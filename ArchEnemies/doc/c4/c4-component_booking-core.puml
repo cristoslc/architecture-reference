@@ -1,0 +1,51 @@
+@startuml
+!include <c4/C4_Component.puml>  
+' uncomment the following line and comment the first to use locally
+' !include C4_Component.puml
+
+!theme aws-orange
+skinparam BackgroundColor white   
+
+LAYOUT_WITH_LEGEND()
+
+skinparam linetype ortho
+title Container diagram for **Road Warrior** app - Booking core
+
+Container(collector_agencies, "Collector Agencies", "interact with Agencies apis", "Collect booking updates")
+Container(notifier, "Update notifier", "generate meaninfull notification", "Allow for generation of notification towards different target. Web or mobile app")
+Container(mail_poller, "Mail integration", "retrieve travel via mails", "- poller\n- listener\n- filterer\n\nscrape mails from the active users")
+'Container(sharer, "Share", "", "allow for sharing trip")
+Container(sharer, "Share", "Sharing trip information", "content can be shared via Social media or directly ot individual")
+
+Container_Boundary(booking_core, "Booking core") {
+Component(booking_engine, "Booking Engine", "Rest Controller", "Provide access to all the booking within the storage. **CRUD** operations")
+Component(booking_tracker, "Booking tracker", "scan for update", "in a time frequency base request information from bookings, This will be based on a proximity alghoritm to possibly limit the amunt of worker needed to gather the update")
+ContainerDb(booking_storage, "Booking storage", "DB", "Booking Storage: Hold information on all bookings")
+
+
+Rel_Neighbor(booking_tracker, booking_engine, "interact")
+
+' Rel(booking_engine, booking_storage, "CRUD")
+
+booking_engine -->booking_storage
+}
+
+
+Container(front_end, "Front end", "Serve contenct to user", "This is a combination of web & Mobile app")
+
+Container(analytics, "Analytics", "Business inteliggence", "Data reporter\nAnaytics storage\nAnalytics exporter")
+
+'Rel_Back(collector_agencies, booking_tracker, "Get updates")
+
+collector_agencies <-- booking_tracker
+
+Rel_Back(notifier, booking_tracker, "send")
+Rel(front_end, booking_engine, "CRUD")
+
+
+Rel_Neighbor(booking_storage, analytics, "reports")
+Rel(sharer, booking_engine, "update")
+Rel_Neighbor(booking_engine, mail_poller, "update")
+
+
+@enduml

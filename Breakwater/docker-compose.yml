@@ -1,0 +1,30 @@
+services:
+  n8n:
+    image: docker.n8n.io/n8nio/n8n
+    container_name: n8n
+    ports:
+      - "5678:5678"
+    volumes:
+      - n8n_data:/home/node/.n8n
+      - ./n8n/init:/init
+    entrypoint: ["tini", "--", "/init/docker-entrypoint-custom.sh"]
+    environment:
+      - N8N_ENCRYPTION_KEY=FRRa32cxcb3V9gEpfhvaP00a3wle4kw0
+    depends_on:
+      - postgre
+
+  postgre:
+    image: postgres:14
+    container_name: postgre
+    ports:
+      - "5432:5432"
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./postgre/init.sql:/docker-entrypoint-initdb.d/init.sql
+
+volumes:
+  n8n_data:
+  pg_data:

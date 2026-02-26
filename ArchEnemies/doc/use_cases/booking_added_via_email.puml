@@ -1,0 +1,41 @@
+@startuml booking_added_via_email
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'actor "User" as user
+'participant "Mail\nfilterer" as mail_filterer
+'participant "GDS\nconnector" as gds_connector
+'participant "Sharer" as sharer
+'participant "Social Media\nconnector" as social_connector
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Analytics\nGenerator" as analytics_generator
+'participant "Analytics\nStorage" as analytics_storage
+'participant "Analytics\nExporter" as analytics_exporter
+'participant "Web" as web
+
+participant "Booking agency\nEmail service" as agency
+participant "User Email provider or\nEmail phone client" as user_email
+participant "Mail\npoller/listener\nMobile app" as mail_poller
+participant "Booking\nEngine" as booking_engine
+participant "Agency/GDS\nconnector" as agency_connector
+participant "Booking\nstorage" as booking_storage
+participant "Booking\ntracker" as booking_tracker
+participant "Notifier" as notifier
+participant "Web/Mobile App" as app
+
+
+agency -> user_email: New booking info\nemail (SMTP)
+mail_poller <-> user_email: Periodic email scan (poller)\nor reception (listener)
+mail_poller -> booking_engine: Request for booking processing
+booking_engine -> agency_connector: Query booking details and status
+return Status and details
+booking_engine -> booking_storage: Store new booking information
+return New user record added
+booking_engine -> notifier: Send user notification
+notifier -> app: Notify new booking detected
+notifier -> user_email: Notify new booking detected
+@enduml

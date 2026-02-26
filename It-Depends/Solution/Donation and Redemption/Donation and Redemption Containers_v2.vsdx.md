@@ -1,0 +1,209 @@
+# Visio Diagram: Donation and Redemption Containers_v2.vsdx
+
+## Page-2
+
+**Components:**
+
+- [Actor] Charity / [Person] /  / Organizational member represents social impact charity
+- [Actor] Business / [Person] /  / Organizational member represents business looking for social impact
+- [Actor] Civilian / [Member] /  / A non-police officer community member
+- [Actor] Officer / [Member] /  / Police Officer community member
+- [Actor] Business Representative /  / Administers Storefront
+- [Actor] Charity Representative /  / Publicizes
+- [Actor] Municipality Representative /  / Administers Incentives
+- [Actor] Municipality / [Person] /  / Organizational member represents municipality supporting social rdemption
+- [Actor] HeyBlue!  Treasurer / [Person] /  / Cash and Points Reconciliation
+- [Database] Points /  / EventStore for Points
+- [Component] Redeems/Donates / [HTTPS]
+- [Component] Donates / [HTTPS]
+- [Component] Publishes Needs / [HTTPS]
+- [Component] Manages Storefront / [HTTPS]
+- [Component] Analytics and Reporting / [Software System]  / Interaction and Operational data management/analytics/reporting
+- [Component] Media Management / [Software System]  / Manages Social and Other Media Interactions
+- [Component] Pushes Data, Generates Reports / [mTLS]
+- [Component] Generates / [Event]
+- [Component] Retail Systems / [Software System]  / External Systems of Businesses looking to spend on positive social impact
+- [Component] Integrates / [technology]
+- [Component] Charity Systems / [Software System]  / External Systems of Charities Looking for Engagement
+- [Component] Integrates / [technology]
+- [Component] Municipality Systems / [Software System]  / External Systems of Municipalities Willing to Reward Positive Interaction
+- [Component] Integrates / [technology]
+- [Component] Uses
+- [Component] Uses
+- [Component] Uses
+- [Component] Interactions Management / [Software System]  / System for community members to interact for good
+- [Component] PointsAwarded / [Event]
+- [Component] Donation and Redemption  / [Software System]
+- [Component] HeyBlue! Web Application
+- [Component] HeyBue! Mobile Application
+- [Component] Redeems/Donates / [HTTPS]
+- [Component] Donates / [HTTPS]
+- [Component] Manages Fine/Penalty Exchange / [HTTPS]
+- [Component] Points Accounting /  / Points Accrual, Compensation, Donation, Redemption
+- [Component] Organization Registry /  / Manages Details of Organizations. Extensible for new Oganization Types
+- [Component] Publish / [Events]
+- [Component] Cash Accounting /  / Calculation of HeyBlue! earn on point redemption. Accounting, reconciliation
+- [Component] Pushes Data / [mTLS]
+- [Component] StoreFront /  / Supports StorFront Configuration/Integration
+- [Component] Manage and Browse / [Event]
+- [Component] Gateway /  / Routes Events/Requests
+- [Component] Ecommerce Engine /  / Extensible Interop Engine for Redemption Transactions
+- [Component] Redemption Workflow / [Event]
+- [Component] Manage and Browse / [technology]
+- [Component] Query / [technology]
+- [Component] PointsConsumed / [technology]
+- [Component] GetSnapshot / [technology]
+- [Component] HeyBlue! Accounting Application /  / Supports Cash and Points Reconciliation
+- [Component] Points Compensation (Credits/Debits) / [technology]
+- [Component] Banking System / [Software System]  / To reconcile expected affiliate payments and outbound community building paymens
+- [Component] Reconciles
+- [Component] [Software System] Donation Redemption and Accounting  / Container Diagram
+
+**Connections:**
+
+- Shape-67 --> Cash Accounting
+- HeyBlue!  Treasurer --> Shape-67
+- Retail Systems --(Integrates / [technology])--> Ecommerce Engine
+- Ecommerce Engine --(Generates / [Event])--> Media Management
+- Cash Accounting --(Pushes Data, Generates Reports / [mTLS])--> Analytics and Reporting
+- Civilian --(Redeems/Donates / [HTTPS])--> Shape-32
+- Officer --(Donates / [HTTPS])--> Shape-37
+- Charity --(Publishes Needs / [HTTPS])--> Shape-35
+- Business --(Manages Storefront / [HTTPS])--> Shape-30
+- Cash Accounting --(Reconciles)--> Banking System
+- Shape-70 --(Points Compensation (Credits/Debits) / [technology])--> Points Accounting
+- Cash Accounting --(GetSnapshot / [technology])--> Points Accounting
+- Ecommerce Engine --(PointsConsumed / [technology])--> Points Accounting
+- StoreFront --> Organization Registry
+- Ecommerce Engine --(Query / [technology])--> StoreFront
+- Gateway --(Manage and Browse / [technology])--> StoreFront
+- Gateway --(Redemption Workflow / [Event])--> Ecommerce Engine
+- Shape-41 --> Gateway
+- Shape-30 --> Gateway
+- Gateway --(Manage and Browse / [Event])--> Organization Registry
+- Points Accounting --(Pushes Data / [mTLS])--> Analytics and Reporting
+- Points Accounting --(Publish / [Events])--> Points
+- Municipality --(Manages Fine/Penalty Exchange / [HTTPS])--> Shape-30
+- Officer --(Donates / [HTTPS])--> Shape-28
+- Civilian --(Redeems/Donates / [HTTPS])--> Shape-41
+- Interactions Management --(PointsAwarded / [Event])--> Points Accounting
+- Municipality Representative --(Uses)--> Municipality Systems
+- Charity Representative --(Uses)--> Charity Systems
+- Business Representative --(Uses)--> Retail Systems
+- Municipality Systems --(Integrates / [technology])--> Ecommerce Engine
+- Charity Systems --(Integrates / [technology])--> Ecommerce Engine
+
+## Page-1
+
+**Components:**
+
+- [Actor] Charity Admin / [Person] /  / Shops StoreFronts to redeem Donated Points
+- [Actor] Officer / [Member] /  / Police Officer community member
+- [Actor] Business Admin / [Person] /  / Administers
+- [Actor] HeyBlue!  Treasurer / [Person] /  / Cash and Points Reconciliation
+- [Actor] Business Admin / [Person] /  / Administers
+- [Actor] Municipality Admin / [Person] /  / Administers
+- [Actor] HeyBlue Admin / [Member] /  / Manages Storefront, Municipality & Charity Configs
+- [Actor] Civilian / [Member] /  / A non-police officer community member
+- [Actor] Municipality Admin / [Person] /  / Administers
+- [Actor] HeyBlue! / User
+- [Actor] External / User
+- [Database] Points /  / EventStore & Compact Table for Points
+- [Database] Books&Records /  / Shadow Accounting
+- [Database] Configs /  / Storefront, Charity, Municipality Configurations
+- [Database] HeyBlue Database
+- [Component] Administers / [Click]
+- [Component] Administration / [Click]
+- [Component] Analytics and Reporting / [Software System]  / Interaction and Operational data management/analytics/reporting
+- [Component] Media Management / [Software System]  / Manages Social and Other Media Interactions
+- [Component] Pushes Data, Generates Reports / [mTLS]
+- [Component] Generates / [Event]
+- [Component] Retail Stores Systems / [Software System]  / Shopping & Payment System
+- [Component] GetPointBalance / RedeemPoints / EOM Recon File
+- [Component] Municipality Systems / [Software System]  / Manages Point Redemption towards Penalty/Fees
+- [Component] GetPointBalance / RedeemPoints / EOM Recon File
+- [Component] Interactions Management / [Software System]  / System for community members to interact for good
+- [Component] PointsAwarded / [Event]
+- [Component] Donation and Redemption  / [Software System]
+- [Component] HeyBlue! Web / Mobile Application
+- [Component] Donates / [Click]
+- [Component] Administration / [Click]
+- [Component] Points Accounting /  / Points Accrual, Compensation, Donation, Redemption
+- [Component] Organization Registry /  / Manages Details of Organizations. Extensible for new Oganization Types
+- [Component] CRUD / [TCP]
+- [Component] Cash Accounting /  / Calculation of HeyBlue! earn on point redemption. Accounting, reconciliation
+- [Component] Pushes Data / [mTLS]
+- [Component] Ecomm Config /  / Supports StorFront/Charity/Municipality Configuration/Integration
+- [Component] Manage and Browse / [Event]
+- [Component] Gateway /  / Routes Events/Requests
+- [Component] Ecommerce Engine /  / Extensible Interop Engine for Redemption Transactions
+- [Component] DonatePoints / GetPointsBalance / [Event]
+- [Component] Manage and Browse / [technology]
+- [Component] Query / [technology]
+- [Component] GetSnapshot / [technology]
+- [Component] HeyBlue! Accounting Application /  / Supports Cash and Points Reconciliation
+- [Component] CheckDueAmounts / [HTTPS]
+- [Component] Points Adjustments (Credits/Debits)
+- [Component] HeyBlue’s Online Bank / [Online Bank]  / HeyBlue’s Nostro Account
+- [Component] MakePayments To Community
+- [Component] Hey-Blue Front-Ends
+- [Component] CRUD / [TCP]
+- [Component] Wire/ACH/Zelle / To HeyBlue Account
+- [Component] External Front-Ends
+- [Component] StoreFront Web/Mobile App / [Online App] /  / UI App for Redeeming points for shopping & Administration
+- [Component] Municipality Web/Mobile App / [Online Appy] /  / UI App for Redeeming points for Penalties/Fees
+- [Component] EOM  / Confirmation  / File / [HTTPS]
+- [Component] ConfirmationFile / [HTTPS]
+- [Component] Launches with MemberID
+- [Component] External Systems
+- [Component] System  / Interactions / [Event]
+- [Component] GetPointBalance / RedeemPoints / EOM Recon File
+- [Component] Redeem Points / [Click]
+- [Component] Redeem Points / [Click]
+- [Component] Administers / [Click]
+- [Component] Administers / [Click]
+- [Component] Redeems / /Donates Points / [Click]
+- [Component] CRUD / [TCP]
+- [Component] Administers / [Click]
+- [Component] Donation Redemption and Accounting / Level : Container Level
+- [Component] Legend:
+- [Component] HeyBlue! Container
+- [Component] External Syetem
+- [Component] HeyBlue! Component
+
+**Connections:**
+
+- Civilian --(Redeem Points / [Click])--> Shape-66
+- Charity Admin --(Redeem Points / [Click])--> Shape-66
+- Shape-46 --(CheckDueAmounts / [HTTPS])--> Cash Accounting
+- HeyBlue!  Treasurer --> Shape-46
+- Municipality Admin --(Administration / [Click])--> Shape-73
+- Interactions Management --(PointsAwarded / [Event])--> Points Accounting
+- Municipality Systems --(GetPointBalance / RedeemPoints / EOM Recon File)--> Ecommerce Engine
+- Retail Stores Systems --(GetPointBalance / RedeemPoints / EOM Recon File)--> Ecommerce Engine
+- Business Admin --(Administers / [Click])--> Shape-18
+- Business Admin --(Administration / [Click])--> Shape-66
+- Cash Accounting --(Pushes Data, Generates Reports / [mTLS])--> Analytics and Reporting
+- Ecommerce Engine --(Generates / [Event])--> Media Management
+- Municipality Admin --(Administers / [Click])--> Shape-19
+- Ecomm Config --(CRUD / [TCP])--> Configs
+- Civilian --(Redeems / /Donates Points / [Click])--> Shape-19
+- Charity Admin --(Administers / [Click])--> Shape-19
+- HeyBlue Admin --(Administers / [Click])--> Shape-20
+- Retail Stores Systems --(Wire/ACH/Zelle / To HeyBlue Account)--> HeyBlue’s Online Bank
+- Cash Accounting --(CRUD / [TCP])--> Books&Records
+- HeyBlue!  Treasurer --(MakePayments To Community)--> HeyBlue’s Online Bank
+- Shape-49 --(Points Adjustments (Credits/Debits))--> Points Accounting
+- Cash Accounting --(GetSnapshot / [technology])--> Points Accounting
+- Ecomm Config --> Organization Registry
+- Ecommerce Engine --(Query / [technology])--> Ecomm Config
+- Gateway --(Manage and Browse / [technology])--> Ecomm Config
+- Gateway --(DonatePoints / GetPointsBalance / [Event])--> Ecommerce Engine
+- Shape-19 --> Gateway
+- Gateway --(Manage and Browse / [Event])--> Organization Registry
+- Points Accounting --(Pushes Data / [mTLS])--> Analytics and Reporting
+- Points Accounting --(CRUD / [TCP])--> Points
+- Officer --(Donates / [Click])--> Shape-23
+
+---
+*Converted from Visio VSDX (shape text and connections extracted)*

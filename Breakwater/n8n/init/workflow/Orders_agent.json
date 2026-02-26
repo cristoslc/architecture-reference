@@ -1,0 +1,300 @@
+{
+  "name": "Orders agent",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "06370f97-3c66-46dc-b89a-a8e9022ec719",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -720,
+        960
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "Xt8uE5BesjuBgGio",
+          "name": "OpenAi account [Gleb]"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "551d3bf9-9075-4555-a941-bd18317b6a61",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -1040,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "6759bb7d-105e-405c-9976-58215c8dcf80",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -900,
+        580
+      ],
+      "webhookId": "9e5563a0-9d8e-4948-b072-f5942c1268f3",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "id": "0288972f-0afe-4748-9594-86e0d53ebb60",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        -1400,
+        560
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"query\": \"California\"\n}"
+      },
+      "id": "f0f8eebf-5454-4e74-9166-45c883475662",
+      "name": "Structured Output Parser1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        -440,
+        880
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $('SELECT Statement').item.json.output.query }}",
+        "options": {}
+      },
+      "id": "d59cefaa-cc16-46b4-901e-b46f0a6eecd7",
+      "name": "Postgres1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        -180,
+        740
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "nXnQmkZIeceBIXPi",
+          "name": "NEON"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "9915dbbe-697d-44f8-91ca-583d1e5b3b91",
+      "name": "Aggregate1",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        80,
+        740
+      ]
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "concatenate",
+              "field": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "aa39cb52-351b-4429-9476-4643c4b446b3",
+      "name": "Summarize1",
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1,
+      "position": [
+        240,
+        600
+      ]
+    },
+    {
+      "parameters": {},
+      "id": "2ad4f761-7ad3-4cae-b3cc-c92f88ce2c30",
+      "name": "Calculator",
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        540,
+        760
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Execute Workflow Trigger').item.json.query }}",
+        "options": {
+          "systemMessage": "=As a **Logistic Manager** at ShopWise Solutions, your primary task is to assist with customer inquiries about order, shippment, delivery using the following information from the database.\n\n{{ $json.concatenated_data }}"
+        }
+      },
+      "id": "f4e88d6d-c2ae-4900-9191-49a5b7bd0b84",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        460,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Execute Workflow Trigger').item.json.query }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are the SQL guru, working with PostgresDB. Then you receive the question you need to write the SQL query that will answer it. The table structure is following: Do type casting if neneeded.\n\nORDER TABLE structure is following:\nCREATE TABLE public.orders (\n\tproduct_id varchar NULL,\n\tproduct_name text NULL,\n\tcategory text NULL,\n\tcategory_id varchar NULL,\n\torder_id int4 NOT NULL,\n\tcustomer_id varchar NULL,\n\torder_status varchar(20) NULL,\n\treturn_eligible bool NULL,\n\tshipping_date timestamp NULL,\n\tCONSTRAINT orders_pk PRIMARY KEY (order_id),\n\tCONSTRAINT orders_products_fk FOREIGN KEY (product_id) REFERENCES public.products(product_id)\n);\n\nYour output is ready to execute SELECT statement."
+            }
+          ]
+        }
+      },
+      "id": "2cc8ed8e-8edb-4711-8f9a-b61d17862d27",
+      "name": "SELECT Statement",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        -600,
+        660
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "SELECT Statement",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "SELECT Statement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "SELECT Statement",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "SELECT Statement",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Summarize1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SELECT Statement": {
+      "main": [
+        [
+          {
+            "node": "Postgres1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "15e3365e-7eca-4e65-8247-9499a548f772",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "44c682038bf75ec8dc15266789291f5bb0ad80a4292bc8cd649b9c7aab0d548d"
+  },
+  "id": "YactMbSCoWK82AaK",
+  "tags": []
+}

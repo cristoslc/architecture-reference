@@ -1,0 +1,30 @@
+@startuml
+!include <c4/C4_Context.puml>  
+
+'ref http://plantuml.com/stdlib
+!include <office/Users/user.puml>
+!include <office/Users/mobile_user.puml>
+!theme aws-orange
+skinparam BackgroundColor white 
+'LAYOUT_WITH_LEGEND
+
+hide stereotype
+
+title     System Context diagram for **Road Warrior** app
+
+Person(customer  , Customer , "<$user>   <$mobile_user>" )
+
+System(road_warrior, "The Road Warrior", "Allows customers to view information related to their trips. \nUser can add , update or delete existing reservation.\n\nUpdate from travel booking should reflecte in the app within 5m from the source system")
+
+System_Ext(email_provider, "E-mail provider", "User mail provider.")
+System_Ext(social_media, "External parties", "Social media or indivituals")
+System_Ext(third_parties, "Third parties")
+System_Ext(ext_agencies, "External Agencies", "GDS [Amadeus|Travelport|Sabre]\nAgencies [hotel/flight/car] supplier")
+
+Rel(customer, road_warrior, "Uses", "Notify\nYearly Reports")
+
+Rel_Back_Neighbor(road_warrior, email_provider, "Retrieve", "Poll or listen to travel related notifications")
+Rel_Back_Neighbor(ext_agencies, road_warrior, "Update booking")
+Rel(road_warrior, social_media, "share", "trip event")
+Rel(road_warrior, third_parties, "analytics reports")
+@enduml

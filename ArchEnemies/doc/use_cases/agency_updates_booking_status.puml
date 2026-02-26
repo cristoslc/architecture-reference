@@ -1,0 +1,46 @@
+@startuml agency_updates_booking_status
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'participant "Mail\npoller" as mail_poller
+'participant "Mail\nlistener" as mail_listener
+'participant "Mail\nfilterer" as mail_filterer
+'participant "GDS\nconnector" as gds_connector
+'participant "Sharer" as sharer
+'participant "Social Media\nconnector" as social_connector
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Analytics\nGenerator" as analytics_generator
+'participant "Analytics\nStorage" as analytics_storage
+'participant "Analytics\nExporter" as analytics_exporter
+'participant "Web" as web
+
+participant "Booking\ntracker" as booking_tracker
+participant "Agency\nconnector" as agency_connector
+participant "Agency/GDS\nAPI" as agency
+participant "Booking\nEngine" as booking_engine
+participant "Booking\nstorage" as booking_storage
+participant "Notifier" as notifier
+participant "Web/Mobile\nApp" as app
+actor "User" as user
+
+booking_tracker -> agency_connector: Periodic tracking of\nmonitored/active bookings
+agency_connector -> agency: API read request
+return Booking(s) status
+agency_connector --> booking_tracker: Booking data
+note over booking_tracker
+    Booking(s) change(s) are
+    detected
+end note
+booking_tracker -> booking_engine: Update booking record(s)
+booking_engine -> booking_storage: Store updates
+return Confirm updates
+booking_engine -> notifier: Trigger notifications with status changes
+notifier -> app: Notification
+app -> user: Notification rendered in\n- Web interface\n- Mobile app
+notifier -> user: Email notification
+
+@enduml

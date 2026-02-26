@@ -1,0 +1,53 @@
+@startuml user_share_trip_on_social_media
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'participant "Mail\npoller" as mail_poller
+'participant "Mail\nlistener" as mail_listener
+'participant "Mail\nfilterer" as mail_filterer
+'participant "Booking\ntracker" as booking_tracker
+'participant "Notifier" as notifier
+'participant "Agency\nconnector" agency_connector
+'participant "GDS\nconnector" as gds_connector
+'participant "Sharer" as sharer
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Analytics\nGenerator" as analytics_generator
+'participant "Analytics\nStorage" as analytics_storage
+'participant "Analytics\nExporter" as analytics_exporter
+'participant "Web" as web
+
+actor "User" as user
+participant "Web/Mobile App" as app
+participant "Booking\nEngine" as booking_engine
+participant "Booking\nstorage" as booking_storage
+participant "Social Media\nconnector" as social_connector
+participant "Social Media\nPublic API" as social_api
+
+user -> app: Access dashboard
+app -> booking_engine: Request trips and booking details
+booking_engine -> booking_storage: Read active user records
+return User records
+booking_engine --> app: User records
+user -> app: Trigger share in social media
+note over app
+    User fill short text which
+    will be complementarily send
+    next to the trip summary details
+end note
+app -> social_connector: POST share operation
+social_connector -> social_api: API request
+return Confirm share operation done
+social_connector --> app: Confirm share done
+note over app
+    Dashboard will show in the trip
+    small artifact component to denote
+    the trip has been shared on specific
+    social media company. Eg: social media
+    favicon or icon
+end note
+app --> user
+@enduml

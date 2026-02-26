@@ -1,0 +1,75 @@
+@startuml user_request_help
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'participant "Mail\npoller" as mail_poller
+'participant "Mail\nlistener" as mail_listener
+'participant "Mail\nfilterer" as mail_filterer
+'participant "Booking\ntracker" as booking_tracker
+'participant "Notifier" as notifier
+'participant "GDS\nconnector" as gds_connector
+'participant "Sharer" as sharer
+'participant "Social Media\nconnector" as social_connector
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Analytics\nGenerator" as analytics_generator
+'participant "Analytics\nStorage" as analytics_storage
+'participant "Analytics\nExporter" as analytics_exporter
+'participant "Web" as web
+
+note over user
+    User suffers unexpected issue
+    and access the app to request
+    help and remediation
+end note
+actor "User" as user
+participant "Web/Mobile App" as app
+participant "Booking\nEngine" as booking_engine
+participant "Booking\nstorage" as booking_storage
+participant "Agency\nconnector" as agency_connector
+participant "Agency public\nWeb/API" as agency_api
+actor "Agent Help Desk" as agent_help_desk
+
+user -> app: Trigger Request Help
+app -> booking_engine: Get Agency Help contact information
+booking_engine -> booking_storage: Read data
+return Data
+booking_engine --> app: Report contact and solution options
+app --> user: Render options to escalate support
+
+== Email Option ==
+note over user
+    User fills a message describing the issue
+    and requesting assistance. Booking details
+    are info are attached to the communication
+end note
+user -> app: Escalate via email
+app -> agent_help_desk: Email submission
+agent_help_desk -> user: Support response (email/call)
+
+== Phone call ==
+note over user
+    Option only available in Mobile app
+    User push option to trigger phone call
+    to agency
+end note
+user -> agent_help_desk: Phone call
+return Support response
+
+== Escalate via Agency web site ==
+note over user
+    User wants to access the booking
+    agency web site and trigger the
+    relevant support escalation process
+end note
+
+user -> app: Request access to Agency web site
+app --> user: Redirect / Open Agency website
+user -> agency_api: Start Support escalation process
+agency_api -> agent_help_desk: Notify incident
+agent_help_desk --> user: Support / Remediation interaction
+
+@enduml

@@ -1,0 +1,42 @@
+@startuml yearly_report_notification
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'participant "Mail\npoller" as mail_poller
+'participant "Mail\nlistener" as mail_listener
+'participant "Mail\nfilterer" as mail_filterer
+'participant "Booking\ntracker" as booking_tracker
+'participant "Agency\nconnector" agency_connector
+'participant "GDS\nconnector" as gds_connector
+'participant "Sharer" as sharer
+'participant "Social Media\nconnector" as social_connector
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Web" as web
+
+participant "Data Analytics\ngenerator" as data_analytics_generator
+participant "Analytics\nStorage" as analytics_storage
+participant "Notifier" as notifier
+participant "App/Web" as app
+actor "User" as user
+
+data_analytics_generator -> analytics_storage: Request analytics data
+return  Analytics data
+data_analytics_generator -> data_analytics_generator: Generate user yearly report
+data_analytics_generator -> analytics_storage: Store yearly report
+data_analytics_generator -> notifier: Notify yearly report is available
+notifier -> app: Notify report is avaialable
+app -> user: Notification
+notifier -> user: Email report summary and highlights
+note over user
+    Email contain a brief summary
+    and some highlights. Provides a link
+    to explore the report in detail via
+    the Web/Mobile App
+end note
+
+
+@enduml

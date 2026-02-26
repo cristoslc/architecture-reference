@@ -1,0 +1,42 @@
+@startuml booking_tracking
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+participant "Booking\ntracker" as booking_tracker
+participant "Booking\nEngine" as booking_engine
+participant "Booking\nstorage" as booking_storage
+participant "Agency/GDS\nconnector" as agency_connector
+participant "Agency/GDS/Third parties\nStandard API" as third_parties
+participant "Notifier" as notifier
+participant "App/Web" as app
+actor "User" as user
+
+booking_tracker -> booking_engine: Query active bookings
+booking_engine -> booking_storage: Query
+return Relation of active bookings
+note right
+   Active bookings are either bookings which:
+   - Are part of an active trip defined by user
+   - Have not being reported as cancelled by\n
+     the relevant agency/supplier
+   - Finalization date has not being reached
+end note
+booking_engine --> booking_tracker: Response
+booking_tracker -> agency_connector
+agency_connector -> third_parties
+return Booking status
+agency_connector --> booking_tracker: Booking status
+== Booking change detected ==
+note over booking_tracker
+   If a meaningful change in the booking status
+   is confirmed, notification workflow starts
+   to inform end user
+end note
+booking_tracker -> notifier: POST end user message
+notifier -> app: Render message on interface or mobile notification
+app -> user
+
+@enduml

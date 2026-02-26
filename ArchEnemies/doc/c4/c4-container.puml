@@ -1,0 +1,81 @@
+@startuml
+'!includeurl https://raw.githubusercontent.com/RicardoNiepel/C4-PlantUML/master/C4_Container.puml
+!include <c4/C4_Container.puml>  
+'ref http://plantuml.com/stdlib
+!include <office/Users/user.puml>
+!include <office/Users/mobile_user.puml>
+!theme aws-orange
+skinparam BackgroundColor white  
+LAYOUT_WITH_LEGEND()
+
+skinparam linetype ortho
+
+title Container diagram for **Road Warrior** app
+
+Person(customer  , Customer , "<$user>   <$mobile_user>" )
+
+System_Boundary(c1, "The Road Warrior") {
+
+Container(booking_core, "Booking core", "", "Booking Engine\nBooking tracker\nBooking storage")
+
+'    Container(backend_api, "API Application", "Java, Docker Container", "Provides Internet banking functionality via API")
+Container(analytics, "Analytics", "Business inteliggence", "Data reporter\nAnaytics storage\nAnalytics exporter")
+Container(mail_poller, "Mail integration", "retrieve travel via mails", "- poller\n- listener\n- filterer\n\nscrape mails from the active users")
+Container(collector_agencies, "Collector Agencies", "...", "Interact with Agencies and collect booking updates")
+
+together {
+    Container(front_end, "Front end", "Serve contenct to user", "This is a combination of web & Mobile app")
+    Container(help, "help gateway", "redirect to travel agency")
+    Container(sharer, "Share", "Sharing trip information", "content can be shared via Social media or directly ot individual")
+}
+
+Container(notifier, "Update notifier", "generate meaninfull notification", "Allow for generation of notification towards different target. Web or mobile app")
+
+}
+
+
+System_Ext(email_provider, "E-mail provider", "User mail provider.")
+System_Ext(third_parties, "Third parties")
+System_Ext(social_media, "External parties", "Social media or indivituals")
+System_Ext(ext_agencies, "External Agencies", "GDS [Amadeus|Travelport|Sabre]\nAgencies [hotel/flight/car] supplier")
+
+
+sharer -[hidden]- analytics
+analytics -[hidden]- mail_poller
+
+front_end -[hidden]- notifier
+notifier -[hidden]- booking_core
+ 
+customer --> front_end
+
+
+front_end --> booking_core
+
+
+
+mail_poller <- email_provider
+booking_core <- mail_poller
+
+ext_agencies <- collector_agencies
+booking_core <-- collector_agencies
+
+
+analytics <-- booking_core
+
+third_parties -[hidden]-email_provider
+
+customer -- analytics
+
+analytics -> third_parties
+
+
+customer --> help
+help --> booking_core
+front_end - notifier
+
+notifier <-- booking_core
+
+customer <-- sharer
+social_media <-- sharer 
+
+@enduml

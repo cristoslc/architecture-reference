@@ -1,0 +1,33 @@
+@startuml user_report_generation
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'participant "Mail\npoller" as mail_poller
+'participant "Mail\nlistener" as mail_listener
+'participant "Mail\nfilterer" as mail_filterer
+'participant "Booking\ntracker" as booking_tracker
+'participant "Notifier" as notifier
+'participant "Agency\nconnector" agency_connector
+'participant "GDS\nconnector" as gds_connector
+'participant "Sharer" as sharer
+'participant "Social Media\nconnector" as social_connector
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Web" as web
+
+actor "User" as user
+participant "App/Web" as app
+participant "Analytics\nExporter" as analytics_exporter
+participant "Analytics\nStorage" as analytics_storage
+
+user -> app: User access report(s)
+app -> analytics_exporter: Request user report(s)
+analytics_exporter -> analytics_storage: Recover user report(s)
+return Report(s)
+analytics_exporter --> app: Report data
+app --> user: Render yearly report
+
+@enduml

@@ -1,0 +1,36 @@
+@startuml
+actor Customer as Cu
+actor POS
+
+participant "Coupon Service" as Co
+participant "Order Service" as O
+participant "Inventory Service" as I
+participant "Survey Service" as S
+participant "User Profile Service" as U
+
+Cu -> POS: Purchase Items
+alt Customer has a coupon
+  Cu -> POS: Apply Coupon Code
+  POS -> Co: Validate Coupon
+  Co -> POS: Coupon is Valid
+end
+Cu -> POS: Offline Payment
+
+O -> POS: Fetch Purchases
+activate O
+POS -> O: All recent purchases
+O -> O: Create Orders
+alt Customer has a coupon
+  O -> Co: Mark coupon redeemed
+end
+ O -> I: Update Inventory
+
+alt Customer is a member
+ O -> S: Order Completed Event
+deactivate O
+  activate S
+   S -> U: Fetch user information
+   S -> Cu: Send Survey
+  deactivate S
+ end
+@enduml

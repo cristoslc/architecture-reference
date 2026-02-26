@@ -1,0 +1,155 @@
+@startuml
+
+hide stereotype
+skinparam linetype ortho
+
+skinparam rectangle{
+    BackgroundColor WhiteSmoke
+    borderColor black
+    'LineColor<<actor>> #86B56B
+    LineColor<<actor>> #F08C02
+    FontColor<<actor>> #F08C02
+    borderColor<<actor>> #3C84CA
+    BackgroundColor<<actor>> #FFFFFF
+    RoundCorner<<actor>> 15
+
+    RoundCorner<<container>> 20
+    BackgroundColor<<container>> #FFFFFF
+
+
+    RoundCorner<<system>> 20
+    BackgroundColor<<system>> #FFFFFF
+
+
+    'borderColor<<action>> #3F75BB
+    borderColor<<action>> #black
+    FontColor<<action>> #black
+    RoundCorner<<action>> 10
+    BackgroundColor<<action>> #FFFFFF
+
+
+    BackgroundColor<<sticky>> #F3D22B
+    borderColor<<sticky>> black
+
+    borderColor<<answer>> #lightgray
+    FontColor<<answer>> #3F75BB
+    '
+ }
+
+   ' }
+
+    rectangle user <<actor>> [
+    User
+    '---
+    '* add, update, delete reservation
+    '* share trip info (social/directly)
+    ]
+'    rectangle supplier <<actor>>[
+'    Supplier
+'    ]
+
+ rectangle booking_crud <<action>> [
+
+  Booking crud   
+
+]
+rectangle "Collector Agency" as collector_agency <<container>>{
+
+    rectangle "GDS integration" as gds_integration <<action>>
+    rectangle "Agency integration" as agency_integration <<action>>
+
+}
+
+together {
+    rectangle GDS <<container>>{
+        rectangle Sabre <<actor>>
+        rectangle Travelport <<actor>>
+        rectangle Amadeus <<actor>>
+        Sabre -[hidden] Travelport
+        Travelport -[hidden] Amadeus
+    }
+
+    rectangle Agencies <<container>>{
+        rectangle Car <<actor>>
+        rectangle "Flight Supplier" as flight_supplier <<actor>>
+        rectangle "Hotel Supplier" as hotel_supplier <<actor>>
+        Car -[hidden] flight_supplier
+        flight_supplier -[hidden] hotel_supplier
+    }
+ 
+'    GDS <=[#black] Agencies
+}
+rectangle booking_db <<action>> [
+
+        Booking
+    db **(Storage)**    
+
+]
+
+
+
+
+
+
+rectangle 1 #line.dotted [
+   **1**
+
+enter booking
+
+]
+
+
+user --> 1
+1 --> booking_crud
+'
+'
+rectangle 2 #line.dotted [
+   **2**
+
+   query agency
+
+]
+rectangle 3 #line.dotted [
+      **3**
+
+   Get updates
+]
+
+rectangle 4 #line.dotted [
+   **4**
+
+   Validation
+
+   ---
+
+   - valid user
+   - valid pnr
+
+]
+
+booking_crud - 2
+collector_agency --2
+
+Agencies -- 3
+GDS --3
+
+3 -- collector_agency
+
+4 <- booking_crud
+
+4 -> booking_crud
+
+
+'
+rectangle 5 #line.dotted [
+   **5**
+
+   Storage
+
+
+]
+ 
+
+booking_crud -- 5
+5 -> booking_db
+@enduml

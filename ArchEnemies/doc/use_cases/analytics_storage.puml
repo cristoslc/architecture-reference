@@ -1,0 +1,38 @@
+@startuml analytics_storage
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'participant "Mail\npoller" as mail_poller
+'participant "Mail\nlistener" as mail_listener
+'participant "Mail\nfilterer" as mail_filterer
+'participant "Booking\ntracker" as booking_tracker
+'participant "Notifier" as notifier
+'participant "GDS\nconnector" as gds_connector
+'participant "Sharer" as sharer
+'participant "Social Media\nconnector" as social_connector
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Web" as web
+
+
+participant "Analytics\nExporter" as analytics_exporter
+participant "Booking\nEngine" as booking_engine
+participant "Booking\nstorage" as booking_storage
+participant "Analytics\nStorage" as analytics_storage
+participant "Agency\nconnector" as agency_connector
+participant "Agency/GDS\nAPI" as agency
+
+analytics_exporter -> booking_engine: Read booking data
+booking_engine -> booking_storage: Read data
+return Data
+booking_engine --> analytics_exporter: Booking records
+analytics_exporter -> agency_connector: Get extra booking analytics related data
+agency_connector -> agency
+return Data analytics
+agency_connector --> analytics_exporter: Third parties - Data analytics
+analytics_exporter -> analytics_storage: Store enriched booking analytics data
+
+@enduml

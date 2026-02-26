@@ -1,0 +1,41 @@
+@startuml data_analytics_consumerization
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'actor "User" as user
+'participant "Mail\npoller" as mail_poller
+'participant "Mail\nlistener" as mail_listener
+'participant "Mail\nfilterer" as mail_filterer
+'participant "Booking\nEngine" as booking_engine
+'participant "Booking\nstorage" as booking_storage
+'participant "Booking\ntracker" as booking_tracker
+'participant "Notifier" as notifier
+'participant "Agency\nconnector" agency_connector
+'participant "GDS\nconnector" as gds_connector
+'participant "Sharer" as sharer
+'participant "Social Media\nconnector" as social_connector
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Analytics\nGenerator" as analytics_generator
+'participant "Analytics\nStorage" as analytics_storage
+'participant "Analytics\nExporter" as analytics_exporter
+'participant "Web" as web
+'participant "App" as app
+
+participant "Third parties" as third_parties
+participant "Analytics\nExporter" as analytics_exporter
+participant "Analytics\nStorage" as analytics_storage
+
+third_parties <-> analytics_exporter: HTTP, Streaming
+note over analytics_exporter
+    Data service can be offered
+    in different formats and interfaces
+end note
+analytics_exporter -> analytics_storage: Report / Raw analytic data request
+return Data
+analytics_exporter --> third_parties: Report / Raw analytic data
+
+@enduml
