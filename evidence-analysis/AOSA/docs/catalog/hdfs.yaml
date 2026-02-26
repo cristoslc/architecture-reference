@@ -1,0 +1,36 @@
+project_name: "HDFS (Hadoop Distributed File System)"
+source: "AOSA"
+source_url: "https://aosabook.org/en/v1/hdfs.html"
+project_url: "https://github.com/apache/hadoop"
+evidence_type: "book-chapter"
+aosa_volume: 1
+aosa_chapter_authors: ["Robert Chansler", "Hairong Kuang", "Sanjay Radia", "Konstantin Shvachko", "Suresh Srinivas"]
+year_described: 2011
+domain: "Distributed Storage / Big Data"
+architecture_styles:
+  - "Primary-Secondary (Master-Slave)"
+  - "Data Replication"
+key_technologies:
+  - "Java"
+  - "RPC (Hadoop IPC)"
+  - "Block-level replication"
+  - "Write-ahead logging (edit log)"
+  - "Checkpoint (fsimage)"
+quality_attributes:
+  - "Fault Tolerance"
+  - "Scalability"
+  - "Throughput"
+  - "Data Integrity"
+production_scale: "Runs clusters of 10,000+ nodes managing petabytes of data at companies like Yahoo, Facebook, and major cloud providers"
+notable_strengths:
+  - "NameNode/DataNode separation: centralized metadata management with distributed data storage"
+  - "Block-level replication (default factor of 3) with rack-aware placement for fault tolerance"
+  - "Streaming data access pattern optimized for batch processing (high throughput over low latency)"
+  - "Automatic re-replication when DataNodes fail, detected via heartbeat mechanism"
+  - "Append-only write model simplifies consistency (WORM: Write-Once-Read-Many)"
+  - "Checkpoint and journal (edit log) mechanism for NameNode metadata durability"
+notable_gaps:
+  - "Single NameNode is a single point of failure (addressed by HA NameNode in later versions)"
+  - "Not suited for low-latency random reads/writes"
+  - "Small files problem: NameNode memory is proportional to number of files, not data volume"
+one_line_summary: "A primary-secondary distributed file system that achieves fault tolerance and high throughput through block-level replication with rack-aware placement, optimized for batch processing of petabyte-scale datasets."
