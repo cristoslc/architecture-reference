@@ -18,6 +18,8 @@ The library is organized into three layers: **problem spaces** (classifying the 
 
 **"I want to see how others solved a similar kata"** -- Browse the [Challenge Analyses](../analysis/challenges/)
 
+**"I want to add fitness functions to my architecture"** -- Read the [Fitness Functions Guide](../templates/fitness-functions-guide.md), then use the template in [Feasibility Guide](../templates/feasibility-guide.md) Section 3
+
 **"I want templates and best practices"** -- See the [Templates](../templates/) directory
 
 ## Library Structure
@@ -44,7 +46,7 @@ The library is organized into three layers: **problem spaces** (classifying the 
 |-----------|----------|
 | [Challenge Analyses](../analysis/challenges/) | 11 comparative analyses (one per kata challenge): Farmacy Food, Sysops Squad, Farmacy Family, Spotlight Platform, Hey Blue!, Wildlife Watcher, Road Warrior, MonitorMe, ShopWise AI, ClearView, Certifiable Inc. |
 | [Cross-Cutting Analysis](../analysis/cross-cutting.md) | Statistical patterns across all 78 teams: style vs. placement, ADR discipline, documentation completeness, team size, quality attributes, the "winning formula" scorecard |
-| [Templates](../templates/) | ADR guide, C4 guide, feasibility guide, architecture selection guide, kata checklist |
+| [Templates](../templates/) | ADR guide, C4 guide, feasibility guide, fitness functions guide, architecture selection guide, kata checklist |
 
 ### Raw Data
 
@@ -70,6 +72,8 @@ The following are the most striking patterns from the cross-cutting analysis and
 6. **Hybrid/evolutionary approaches win.** Of the 11 first-place winners, 8 (73%) list two or more architecture styles, compared to 52% of runners-up. Judges reward teams that propose phased evolution from MVP to target state.
 
 7. **Team size has zero correlation with placement.** Average team sizes are nearly identical across all placements (3.6-3.9 members). Three-person teams won four first-place finishes.
+
+8. **Fitness functions are the most underutilized winning practice.** Only ~17% of teams include fitness functions, yet 55% of first-place winners do. Teams that define falsifiable, quantitative targets for quality attributes -- the architectural equivalent of TDD -- gain a disproportionate competitive advantage. See the [Fitness Functions Guide](../templates/fitness-functions-guide.md) for patterns and evidence.
 
 ## Dataset
 
