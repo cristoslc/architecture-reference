@@ -1,0 +1,53 @@
+project_name: "Squidex"
+source: "RealWorldASPNET"
+source_url: "https://github.com/nathancolgate/real-world-aspnetcore"
+project_url: "https://github.com/Squidex/squidex"
+evidence_type: "production-application"
+domain: "Headless CMS / Content Management"
+language: "C#"
+github_stars_approx: 2300
+year_created: 2017
+maintained_as_of: "2025 (active)"
+architecture_styles:
+  - "CQRS"
+  - "Event Sourcing"
+  - "Event-Driven"
+key_technologies:
+  - "ASP.NET Core"
+  - "MongoDB (event store and read model)"
+  - "GraphQL (content delivery API)"
+  - "REST API (management and content)"
+  - "OpenID Connect (identity)"
+  - "SignalR (real-time updates)"
+  - "Docker"
+  - "Kubernetes"
+  - "Orleans (virtual actor model, optional clustering)"
+  - "NATS (optional messaging)"
+  - "Angular (admin UI)"
+quality_attributes:
+  - "Extensibility"
+  - "Auditability (full event history)"
+  - "Multi-tenancy"
+  - "Scalability"
+  - "API-first (headless)"
+production_scale: "Used by enterprises and agencies for multi-tenant content management. Self-hostable or Squidex Cloud. Active community with commercial support tier."
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_plugin_system: true
+notable_strengths:
+  - "Full CQRS + Event Sourcing in production: every state change is stored as an immutable event, enabling complete audit trail and temporal queries"
+  - "MongoDB as both event store and read model store — pragmatic choice that avoids separate infrastructure for projections"
+  - "Event-sourced content versioning: all content changes are events, enabling undo/redo, version comparison, and content scheduling"
+  - "Multi-tenant architecture with per-app isolation: a single Squidex instance serves multiple independent content apps"
+  - "Dual API: GraphQL for flexible content delivery queries, REST for management operations and content mutations"
+  - "Scripting engine allows custom validation and transformation rules on content changes"
+  - "Rule system triggers external actions (webhooks, Algolia sync, Elasticsearch indexing) based on content events"
+  - "Optional Orleans integration for distributed clustering and virtual actor model"
+notable_gaps:
+  - "Event store on MongoDB means no built-in event stream subscriptions like EventStoreDB provides — projections are custom-built"
+  - "Event sourcing adds storage growth over time; requires snapshot strategies for aggregates with long event histories"
+  - "Angular admin UI is monolithic and heavy; less flexibility for custom admin experiences"
+  - "Community is smaller than competing headless CMS options (Strapi, Contentful) limiting ecosystem"
+one_line_summary: "A headless CMS built on CQRS + Event Sourcing with MongoDB, where every content change is an immutable event enabling full audit trails, versioning, and event-triggered integrations — the most complete production CQRS/ES implementation in the .NET open-source ecosystem."

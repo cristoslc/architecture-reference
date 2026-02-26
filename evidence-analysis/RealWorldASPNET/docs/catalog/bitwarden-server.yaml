@@ -1,0 +1,53 @@
+project_name: "Bitwarden Server"
+source: "RealWorldASPNET"
+source_url: "https://github.com/nathancolgate/real-world-aspnetcore"
+project_url: "https://github.com/bitwarden/server"
+evidence_type: "production-application"
+domain: "Security / Password Management"
+language: "C#"
+github_stars_approx: 16000
+year_created: 2015
+maintained_as_of: "2025 (active)"
+architecture_styles:
+  - "Service-Based"
+  - "Event-Driven"
+key_technologies:
+  - "ASP.NET Core"
+  - "SQL Server (primary, via Dapper)"
+  - "Entity Framework Core (PostgreSQL, MySQL, SQLite for self-hosted)"
+  - "Docker / Docker Compose"
+  - "Kubernetes (Helm charts for AKS, EKS, OpenShift)"
+  - "RabbitMQ / Azure Service Bus (AMQP event distribution)"
+  - "AES-256-CBC (vault encryption)"
+  - "Argon2id / PBKDF2 SHA-256 (key derivation)"
+  - "OAuth2 / OIDC (Identity Server)"
+  - "SignalR (real-time notifications)"
+  - "Cloudflare / Fastly (edge infrastructure)"
+  - "Datadog (observability)"
+quality_attributes:
+  - "Security (zero-knowledge, end-to-end encryption)"
+  - "Availability"
+  - "Multi-platform Sync"
+  - "Deployability (cloud, self-hosted, air-gapped)"
+  - "Compliance (SOC 2 Type II, GDPR, CCPA, HIPAA)"
+production_scale: "Leading open-source password manager. Millions of users across cloud and self-hosted deployments. 99% of enterprise customers report improved security posture. Ranked #1 in 2024 Business Password Manager comparison (Info-Tech Research Group, 9.1/10 composite)."
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_plugin_system: false
+notable_strengths:
+  - "Zero-knowledge architecture: all encryption/decryption occurs client-side; server never accesses unencrypted vault data or master passwords"
+  - "Decomposed into 9 independently versioned services (API, Identity, Billing, Events, EventsProcessor, Admin, Notifications, SCIM, SSO)"
+  - "Dual data access strategy: Dapper + stored procedures for SQL Server performance; Entity Framework Core for self-hosted database flexibility (PostgreSQL, MySQL, SQLite)"
+  - "Multiple deployment models: cloud (Azure, multi-region US/EU), self-hosted standard (Docker Compose), self-hosted lite (single container), Kubernetes (Helm)"
+  - "Command-Query Separation (CQS) pattern breaks large service classes into focused command/query operations"
+  - "AMQP event distribution enables asynchronous audit logging and third-party integrations"
+  - "Transparent open-source codebase enables community security review"
+notable_gaps:
+  - "Cloud deployments tightly coupled to SQL Server; no database flexibility for cloud customers"
+  - "ETH Zurich research identified key management vulnerabilities in enterprise recovery features where a compromised server could replace public keys"
+  - "US/EU cloud regions are completely segregated — no cross-region replication or global failover"
+  - "30-minute organization item sync window may be slow for time-sensitive credential sharing"
+  - "Code complexity from accumulated enterprise features (recovery, sharing, directory sync) expands attack surface"
+one_line_summary: "A zero-knowledge password manager decomposed into 9 services with client-side encryption, dual data access (Dapper/EF Core), AMQP event distribution, and deployment flexibility from single-container self-hosted to multi-region Kubernetes — serving millions of users with SOC 2 Type II compliance."
