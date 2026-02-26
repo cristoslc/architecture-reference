@@ -1,0 +1,36 @@
+project_name: "Graphite"
+source: "AOSA"
+source_url: "https://aosabook.org/en/v1/graphite.html"
+project_url: "https://github.com/graphite-project/graphite-web"
+evidence_type: "book-chapter"
+aosa_volume: 1
+aosa_chapter_authors: ["Chris Davis"]
+year_described: 2011
+domain: "Monitoring / Metrics"
+architecture_styles:
+  - "Pipeline"
+  - "Service-Based"
+key_technologies:
+  - "Python"
+  - "Whisper (round-robin database)"
+  - "Carbon (metric ingestion daemon)"
+  - "Django (web application)"
+  - "Cairo (graph rendering)"
+  - "TCP / UDP (metric transport)"
+quality_attributes:
+  - "Scalability"
+  - "Simplicity"
+  - "Composability"
+  - "Real-time Processing"
+production_scale: "Widely deployed for infrastructure monitoring; handles millions of metrics per minute at companies like Etsy, GitHub, and Booking.com"
+notable_strengths:
+  - "Three-component pipeline architecture: Carbon (receive) → Whisper (store) → Graphite-web (query/render) — each independently scalable"
+  - "Whisper time-series database with automatic downsampling via retention policies (high-res recent data, lower-res historical)"
+  - "URL-based graph rendering API enables composable, embeddable metric visualizations"
+  - "Carbon relay enables fan-out to multiple storage backends for horizontal scaling"
+  - "Hierarchical metric naming with dot-delimited paths provides natural organization and wildcard querying"
+notable_gaps:
+  - "Whisper uses fixed-size files per metric — high-cardinality metrics create millions of small files"
+  - "Single-node Graphite-web can become a bottleneck under heavy query load"
+  - "No built-in alerting (typically paired with external tools like Nagios or PagerDuty)"
+one_line_summary: "A three-stage metrics pipeline (Carbon receiver → Whisper time-series store → Graphite-web renderer) with hierarchical metric naming and automatic downsampling, designed for infrastructure monitoring at scale."

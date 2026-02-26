@@ -1,0 +1,38 @@
+project_name: "Riak"
+source: "AOSA"
+source_url: "https://aosabook.org/en/v1/riak.html"
+project_url: "https://github.com/basho/riak"
+evidence_type: "book-chapter"
+aosa_volume: 1
+aosa_chapter_authors: ["Rusty Klophaus", "Justin Sheehy"]
+year_described: 2011
+domain: "Distributed Database / Key-Value Store"
+architecture_styles:
+  - "Peer-to-Peer (Masterless)"
+  - "Eventual Consistency"
+key_technologies:
+  - "Erlang"
+  - "Consistent hashing (Dynamo-style)"
+  - "Vector clocks"
+  - "Merkle trees (anti-entropy)"
+  - "Read-repair"
+  - "Handoff (hinted and primary)"
+  - "HTTP / Protocol Buffers API"
+quality_attributes:
+  - "Availability"
+  - "Fault Tolerance"
+  - "Partition Tolerance"
+  - "Horizontal Scalability"
+production_scale: "Deployed at companies requiring high-availability distributed storage including Comcast, NHS, Rovio, and multiple telecoms"
+notable_strengths:
+  - "Fully masterless (peer-to-peer) ring architecture — no single point of failure, any node can serve any request"
+  - "Consistent hashing with virtual nodes enables near-linear horizontal scaling and automatic data distribution"
+  - "Tunable consistency (N/R/W values) allows per-request tradeoff between consistency and availability"
+  - "Vector clocks track causal history for conflict detection, with application-level resolution"
+  - "Anti-entropy via Merkle tree comparison ensures replicas converge even after extended partitions"
+  - "Hinted handoff provides temporary storage when target nodes are unavailable, auto-replaying on recovery"
+notable_gaps:
+  - "Eventual consistency model requires application-level conflict resolution (not suitable for all use cases)"
+  - "Vector clocks can grow unboundedly in high-churn scenarios"
+  - "No built-in support for cross-datacenter strong consistency"
+one_line_summary: "A masterless, peer-to-peer distributed key-value store using consistent hashing, vector clocks, and tunable N/R/W consistency — designed for extreme availability and partition tolerance at the expense of strong consistency."
