@@ -1,0 +1,35 @@
+project_name: "NGINX"
+source: "AOSA"
+source_url: "https://aosabook.org/en/v2/nginx.html"
+project_url: "https://github.com/nginx/nginx"
+evidence_type: "book-chapter"
+aosa_volume: 2
+aosa_chapter_authors: ["Andrew Alexeev"]
+year_described: 2012
+domain: "Web Infrastructure"
+architecture_styles:
+  - "Event-Driven"
+  - "Pipeline"
+key_technologies:
+  - "C"
+  - "epoll / kqueue (OS-level event notification)"
+  - "shared memory"
+  - "Unix sockets"
+  - "mmap"
+quality_attributes:
+  - "Performance"
+  - "Scalability"
+  - "Reliability"
+  - "Concurrency"
+production_scale: "Powers approximately 30% of all websites worldwide; designed to solve the C10K problem (10,000+ concurrent connections)"
+notable_strengths:
+  - "Master-worker process model with graceful restarts — workers can be replaced without dropping connections"
+  - "Event-driven, non-blocking I/O architecture eliminates thread-per-connection overhead"
+  - "Modular design with compile-time and runtime module loading (HTTP, mail, stream modules)"
+  - "Pipeline-based request processing: each request passes through a chain of handler modules"
+  - "Memory pool allocator per-connection avoids fragmentation and simplifies cleanup"
+  - "Hot code deployment: new binary can take over listening sockets from old binary with zero downtime"
+notable_gaps:
+  - "Single-threaded workers mean CPU-bound operations block the event loop (mitigated by thread pools in later versions)"
+  - "Configuration is static (reload required); no runtime API for dynamic routing in the open-source version"
+one_line_summary: "A master-worker, event-driven web server and reverse proxy whose non-blocking I/O pipeline architecture solved the C10K problem and now powers a third of the internet."
