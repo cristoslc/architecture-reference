@@ -1,0 +1,38 @@
+@startuml
+!include <c4/C4_Component.puml>  
+!include <office/Users/user.puml>
+!include <office/Users/mobile_user.puml> 
+!theme aws-orange
+skinparam BackgroundColor white   
+
+LAYOUT_WITH_LEGEND()
+
+'skinparam linetype ortho
+title Container diagram for **Road Warrior** app - Analytics
+
+'Person(customer  , Customer , "<$user>   <$mobile_user>" )
+
+Person(customer  , Customer , "<$user>   <$mobile_user>" )
+Container_Boundary(front_end, "Front end\n\n") {
+
+Component(front_end_web, "Web app", "SPA", "Web application that act as facade for **Booking Engine**")
+Component(front_end_moble, "Mobile app", "ios / Android", "")
+
+}
+
+Container(booking_core, "Booking core", "", "Booking Engine\nBooking tracker\nBooking storage")
+Container(notifier, "Update notifier", "generate meaninfull notification", "Allow for generation of notification towards different target. Web or mobile app")
+
+
+front_end_web --> booking_core
+front_end_moble --> booking_core
+
+front_end_web <-- notifier
+front_end_moble <--  notifier
+
+customer --> front_end_web
+customer --> front_end_moble
+
+booking_core .> notifier
+
+@enduml 

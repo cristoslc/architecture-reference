@@ -1,0 +1,50 @@
+@startuml notification_local_events
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'participant "Mail\npoller" as mail_poller
+'participant "Mail\nlistener" as mail_listener
+'participant "Mail\nfilterer" as mail_filterer
+'participant "Booking\nEngine" as booking_engine
+'participant "Booking\nstorage" as booking_storage
+'participant "Notifier" as notifier
+'participant "Agency\nconnector" as agency_connector
+'participant "GDS\nconnector" as gds_connector
+'participant "Sharer" as sharer
+'participant "Social Media\nconnector" as social_connector
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Analytics\nGenerator" as analytics_generator
+'participant "Analytics\nStorage" as analytics_storage
+'participant "Analytics\nExporter" as analytics_exporter
+'participant "Web" as web
+'participant "App" as app
+
+participant "Booking\ntracker" as booking_tracker
+participant "Booking\nEngine" as booking_engine
+participant "Booking\nstorage" as booking_storage
+participant "Third parties\nComplementary services\nconnector" as third_parties_connector
+participant "Third parties API" as third_parties_api
+participant "Notifier" as notifier
+participant "Web/ Mobile App" as app
+actor "User" as user
+
+booking_tracker -> booking_tracker: Detects booking close to occur
+booking_tracker -> booking_engine: Request get local events and service info
+booking_engine -> booking_storage: Get info
+return Index of services
+booking_engine -> third_parties_connector: Get current info on services and events
+third_parties_connector -> third_parties_api: Get data
+return Data
+third_parties_connector --> booking_engine
+booking_engine -> notifier: Trigger notification
+note over notifier
+    User notified on critical
+    events and services in all app clients
+    Mobile or Web App
+end note
+notifier -> app: Notify local events and services info
+@enduml

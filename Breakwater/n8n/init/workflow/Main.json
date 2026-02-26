@@ -1,0 +1,180 @@
+{
+  "name": "Main",
+  "nodes": [
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "30db02a0-fcd0-4d22-a81f-dff1fddba130",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1300,
+        800
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "Xt8uE5BesjuBgGio",
+          "name": "OpenAi account [Gleb]"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "name": "Logistics_Manager",
+        "description": "Expert on order statuses, shipping details, and delivery dates.",
+        "workflowId": {
+          "__rl": true,
+          "value": "YactMbSCoWK82AaK",
+          "mode": "list",
+          "cachedResultName": "AI Katas — Oreders agent"
+        },
+        "responsePropertyName": "output"
+      },
+      "id": "d9e7cdae-b4c2-4e67-929d-a1b8ac24668c",
+      "name": "Logistics Manager",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1460,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "name": "Product_Consultant",
+        "description": "Specialist in comparing and recommending products across all categories.",
+        "workflowId": {
+          "__rl": true,
+          "value": "x9fL1MLuqwwlHBTn",
+          "mode": "list",
+          "cachedResultName": "AI Katas — Product"
+        },
+        "responsePropertyName": "output"
+      },
+      "id": "246cc591-d608-4de4-9de9-6561f0c8693b",
+      "name": "Product Consultant",
+      "type": "@n8n/n8n-nodes-langchain.toolWorkflow",
+      "typeVersion": 1.2,
+      "position": [
+        1640,
+        820
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "systemMessage": "=## **ShopWise Solutions Assistant** \n\nOur platform specializes in a broad range of consumer products, including electronics, apparel, home goods, and more. ShopWise Solutions is committed to delivering an outstanding customer experience, efficient order fulfillment, and maintaining a diverse catalog of high-quality products.\n\n### **YOUR MAIN DUTY**\n1. **Understand the customer's question** and redirect it to the appropriate agent:\n   \n   - **Logistics Manager**: Expert on order statuses, shipping details, delivery dates, and any other logistics-related inquiries.\n   - **Product Consultant**: Specialist in comparing, recommending, and analyzing products across all categories. Has access to **customer ratings, product statistics, reviews**, and pricing. Best suited for questions that involve comparisons, ratings, recommendations, and data-driven decisions.\n\n2. **Once you receive the response from the relevant agent**, communicate it back to the customer in a polite and friendly manner.\n\n### **IMPORTANT GUIDELINES**\n- There is a chance that the same product may be sold by multiple **merchants**. Take this into consideration when addressing product inquiries, and be sure to **mention if multiple merchants offer the same item** to provide the customer with the best options.\n  \n- Do not engage in conversations or provide information on unrelated topics, including:\n  - General knowledge.\n  - Personal advice.\n  - Opinions.\n  - Subjects outside of our product categories.\n  \n- If a question does not pertain to ShopWise Solutions’ products or services, **politely decline** and redirect the customer to topics relevant to our business.\n  \n- If you are unsure whether a question is relevant, prioritize declining to answer unless the inquiry clearly involves our product offerings or business operations.\n\n### **ADDITIONAL GUIDANCE FOR ROUTING QUESTIONS**\n- If a question involves product details, comparisons, ratings, customer satisfaction, or category statistics (e.g., “Which category has the highest customer satisfaction?”), **redirect to the Product Consultant**.\n- For any inquiries related to tracking, delivery times, order history, or other logistics-related issues, **redirect to the Logistics Manager**.\n\n### **EXAMPLES FOR CLARIFICATION**\n- **Customer asks about the ratings distribution across product categories for reliable purchases:** Route to **Product Consultant**.\n- **Customer asks when their order will arrive or if they can change their delivery address:** Route to **Logistics Manager**.\n- **Customer asks about comparing two electronics based on features and price:** Route to **Product Consultant**.\n- **Customer is inquiring about whether an item is in stock or the number of available units:** Route to **Product Consultant**.\n- **Customer asks about a delayed shipment or tracking updates:** Route to **Logistics Manager**."
+        }
+      },
+      "id": "c16e1173-6852-4a70-88f3-085ce84274d9",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        1300,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "public": true,
+        "options": {}
+      },
+      "id": "fa067552-ea24-4a35-9069-9a1684cbab12",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        1080,
+        580
+      ],
+      "webhookId": "0de5efaf-b5c4-4af4-8e73-a89105c3275e"
+    },
+    {
+      "parameters": {
+        "contextWindowLength": 3
+      },
+      "id": "244271a0-71e5-4569-b526-aac61754e434",
+      "name": "Window Buffer Memory",
+      "type": "@n8n/n8n-nodes-langchain.memoryBufferWindow",
+      "typeVersion": 1.2,
+      "position": [
+        1800,
+        800
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Logistics Manager": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Product Consultant": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Window Buffer Memory": {
+      "ai_memory": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_memory",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "a1ae49dd-8d21-453d-9762-8a88d12fd640",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "44c682038bf75ec8dc15266789291f5bb0ad80a4292bc8cd649b9c7aab0d548d"
+  },
+  "id": "tSOircIqZGuvHnrP",
+  "tags": []
+}

@@ -1,0 +1,62 @@
+@startuml user_shares_trip_info_with_other_user
+!theme aws-orange
+
+skinparam BackgroundColor white
+skinparam actorstyle awesome
+autonumber 1
+
+'participant "Mail\npoller" as mail_poller
+'participant "Mail\nlistener" as mail_listener
+'participant "Mail\nfilterer" as mail_filterer
+'participant "Booking\nEngine" as booking_engine
+'participant "Booking\nstorage" as booking_storage
+'participant "Booking\ntracker" as booking_tracker
+'participant "Agency\nconnector" agency_connector
+'participant "GDS\nconnector" as gds_connector
+'participant "Social Media\nconnector" as social_connector
+'participant "Help\nGateway" as help_gateway
+'participant "Data\nExporter" as data_exporter
+'participant "Analytics\nGenerator" as analytics_generator
+'participant "Analytics\nStorage" as analytics_storage
+'participant "Analytics\nExporter" as analytics_exporter
+'participant "Web" as web
+'participant "App" as app
+
+actor "User" as user
+participant "Web/Mobile App" as app
+participant "Booking\nEngine" as booking_engine
+participant "Booking\nstorage" as booking_storage
+participant "Notifier" as notifier
+actor "Other user(s)" as other_user
+
+user -> app: Access dashboard
+app -> booking_engine: Request trips and booking details
+booking_engine -> booking_storage: Read active user records
+return User records
+booking_engine --> app: User records
+user -> app: Trigger share with other users
+note over app
+    User can optionally select
+    which bookings or details
+    will be shared and the target users
+end note
+app -> booking_engine: Get user(s) info
+booking_engine -> booking_storage: Read user info
+return User info
+booking_engine --> app: User info
+app -> booking_engine: Share info
+booking_engine -> booking_storage: Update users notified
+note over booking_engine
+    Record of users notified
+    on booking(s) allows to
+    update them in case the
+    bookings are updated later
+end note
+return Confirm records updated
+booking_engine --> app: Confirm booking(s) details has been shared
+app --> user
+booking_engine -> notifier: Notify user(s) on the trip shared info
+notifier -> app
+app -> other_user
+
+@enduml

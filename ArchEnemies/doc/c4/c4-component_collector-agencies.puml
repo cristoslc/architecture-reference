@@ -1,0 +1,33 @@
+@startuml
+!include <c4/C4_Component.puml>  
+
+!theme aws-orange
+skinparam BackgroundColor white   
+
+LAYOUT_WITH_LEGEND()
+
+skinparam linetype ortho
+title Container diagram for **Road Warrior** app - Analytics
+
+'Person(customer  , Customer , "<$user>   <$mobile_user>" )
+
+
+Container(booking_core, "Booking core", "", "Booking Engine\nBooking tracker\nBooking storage")
+
+Container_Boundary(collector_agencies, "Collector Agencies") {
+Component(collector_agencies_poll, "Agencies Poller", "...", "Interact with Agencies and collect booking updates")
+Component(collector_agencies_subscribe, "Agencies Subscriber", "...", "Interact with Agencies and collect booking updates")
+
+}
+
+System_Ext(ext_agencies, "External Agencies", "GDS [Amadeus|Travelport|Sabre]\nAgencies [hotel/flight/car] supplier")
+
+
+'front_end <-- analytics_exporter
+Rel_Back(booking_core, collector_agencies_subscribe, "update")
+Rel_Back(booking_core, collector_agencies_poll, "update")
+
+Rel_Back(collector_agencies_subscribe, ext_agencies, "poll update")
+Rel(collector_agencies_poll, ext_agencies, "Query bookings")
+
+@enduml

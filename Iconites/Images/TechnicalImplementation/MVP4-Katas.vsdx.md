@@ -1,0 +1,153 @@
+# Visio Diagram: MVP4-Katas.vsdx
+
+**Components:**
+
+- [Component] Azure Cloud
+- [Component] Azure Kubernetes Service
+- [Component] Master Node
+- [Component] DNS
+- [Component] Public IP
+- [Component] Address record pointing  / to Public IP
+- [Component] API Server
+- [Component] Azure Disks
+- [Component] HQ Region
+- [Component] Core Services
+- [Component] Node 1
+- [Component] Monitoring Namespace
+- [Component] Monitoring / Private Endpoint
+- [Component] Node 1
+- [Component] Node N
+- [Component] RoadWarriors Namespace
+- [Component] RoadWarriors / Private Endpoint
+- [Component] Azure Service Bus
+- [Component] Cosmos DB
+- [Component] Auto Sync
+- [Component] images: /  /  / 	roadwarrior.notifications	     :v1 /  / 	roadwarrior.reservations	     :v1 /  / 				...
+- [Component] CICD Pipeline
+- [Component] Container Registry
+- [Component] kubectl / apply
+- [Component] Download PWA as an app
+- [Component] Azure Storage Account
+- [Component] ...
+- [Component] Get  / Static  / Content
+- [Component] Ingress Rule
+- [Component] Ingress Controller
+- [Component] Event Topics
+- [Component] Event Subscriptions
+- [Component] Row stored for transactional read and writes
+- [Component] Column stored for analytical queries
+- [Component] Static Content
+- [Component] External Email Providers
+- [Component] Third Party Services
+- [Component] Local Mailbox
+- [Component] Forwards Emails / To RoadWarrior Mailbox
+- [Component] Triggers  / Power Automate
+- [Component] Power Automate
+- [Component] Publish Events on Event Queue
+- [Component] Subscribe to Third Party Services
+- [Component] Node 1
+- [Component] Gatekeeper Namespace
+- [Component] Gatekeeper / Private Endpoint
+- [Component] Authentication Pods
+- [Component] Travel Integration Pods
+- [Component] Trip Management Pods
+- [Component] Email Data Parsing Pods
+- [Component] Social Media Pods
+- [Component] Reporting & Analytics Pods
+- [Component] Azure Synapse Link
+- [Component] Azure Synapse
+- [Component] Date: 12/09/2023
+- [Component] Date: 13/09/2023
+- [Component] Stream Analytics
+- [Component] Reporting & Analytics
+- [Component] Power BI Dashboard
+- [Component] Azure Analytics
+- [Component] Column Stored partitioned by Key (eg Date/Trip)
+- [Component] Azure Front Door
+- [Component] Azure Traffic Manager
+- [Component] Azure CDN
+- [Component] Next JS PWA
+- [Component] Next JS PWA
+- [Component] Application Gateway
+- [Component] Region A
+- [Component] Application Layer
+- [Component] Next JS PWA
+- [Component] Next JS PWA
+- [Component] Application Gateway
+- [Component] Region B
+- [Component] Application Layer
+- [Component] Next JS PWA
+- [Component] Next JS PWA
+- [Component] Application Gateway
+- [Component] Region C
+- [Component] Application Layer
+- [Component] Next JS PWA
+- [Component] Next JS PWA
+- [Component] Application Gateway
+- [Component] Region D
+- [Component] Application Layer
+- [Component] Region A
+- [Component] API Layer
+- [Component] Region B
+- [Component] API Layer
+- [Component] Region C
+- [Component] API Layer
+- [Component] Region D
+- [Component] API Layer
+- [Component] Region A
+- [Component] DB Layer
+- [Component] Redis Cache
+- [Component] Cosmos DB Read
+- [Component] Cosmos DB Read/Write
+- [Component] Cosmos DB Read
+- [Component] Local Distribution
+- [Component] Region B
+- [Component] DB Layer
+- [Component] Redis Cache
+- [Component] Cosmos DB Read
+- [Component] Cosmos DB Read/Write
+- [Component] Cosmos DB Read
+- [Component] Local Distribution
+- [Component] Region C
+- [Component] DB Layer
+- [Component] Redis Cache
+- [Component] Cosmos DB Read
+- [Component] Cosmos DB Read/Write
+- [Component] Cosmos DB Read
+- [Component] Local Distribution
+- [Component] Region D
+- [Component] DB Layer
+- [Component] Redis Cache
+- [Component] Cosmos DB Read
+- [Component] Cosmos DB Read/Write
+- [Component] Cosmos DB Read
+- [Component] Local Distribution
+- [Component] Recommendation Pods
+- [Component] Send Requests
+- [Component] Send Requests
+- [Component] Send Requests
+- [Component] Send Requests
+- [Component] CQRS  / Queries
+- [Component] Get From / Cache or DB
+- [Component] Publish to / Event Bus
+- [Component] Get From / Cache or DB
+- [Component] Publish to / Event Bus
+- [Component] Get From / Cache or DB
+- [Component] Publish to / Event Bus
+- [Component] Get From / Cache or DB
+- [Component] Publish to / Event Bus
+- [Component] CQRS Commands
+- [Component] CQRS  / Queries
+- [Component] CQRS Commands
+- [Component] CQRS  / Queries
+- [Component] CQRS Commands
+- [Component] CQRS  / Queries
+- [Component] CQRS Commands
+- [Component] Global  / Distrubtion
+- [Component] Publish User on / Events Queues
+
+**Connections:**
+
+
+---
+*Converted from Visio VSDX (shape text and connections extracted)*

@@ -1,0 +1,41 @@
+@startuml
+!include <c4/C4_Component.puml>  
+' uncomment the following line and comment the first to use locally
+' !include C4_Component.puml
+
+!theme aws-orange
+skinparam BackgroundColor white   
+
+LAYOUT_WITH_LEGEND()
+
+skinparam linetype ortho
+title Container diagram for **Road Warrior** app - Booking core
+
+
+Container_Boundary(notifier_core, "Notifier") {
+Component(notifier_analyzer, "Analyze", "", "")
+Component(notifier_web, "Web notifier", "web app notifications", "Allow for generation of notification towards different target. Web or mobile app")
+Component(notifier_mobile, "Mobile notifier", "noti app notifications", "Allow for generation of notification towards different target. Web or mobile app")
+
+
+notifier_web <-- notifier_analyzer
+notifier_mobile <-- notifier_analyzer
+
+}
+
+Component(booking_tracker, "Booking tracker", "scan for update", "in a time frequency base request information from bookings, This will be based on a proximity alghoritm to possibly limit the amunt of worker needed to gather the update")
+
+Container(front_end, "Front end", "Serve contenct to user", "This is a combination of web & Mobile app")
+
+
+
+
+Rel_Back(notifier_analyzer, booking_tracker, "send")
+Rel_Back(front_end, notifier_web, "alert " )
+Rel_Back(front_end, notifier_mobile, "alert  ")
+
+
+
+
+
+@enduml

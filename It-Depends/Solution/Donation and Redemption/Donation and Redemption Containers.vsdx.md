@@ -1,0 +1,95 @@
+# Visio Diagram: Donation and Redemption Containers.vsdx
+
+**Components:**
+
+- [Actor] Charity / [Person] /  / Organizational member represents social impact charity
+- [Actor] Business / [Person] /  / Organizational member represents business looking for social impact
+- [Actor] Civilian / [Member] /  / A non-police officer community member
+- [Actor] Officer / [Member] /  / Police Officer community member
+- [Actor] Business Representative /  / Administers Storefront
+- [Actor] Charity Representative /  / Publicizes
+- [Actor] Municipality Representative /  / Administers Incentives
+- [Actor] Municipality / [Person] /  / Organizational member represents municipality supporting social rdemption
+- [Database] Points /  / EventStore for Points
+- [Component] Redeems/Donates / [HTTPS]
+- [Component] Donates / [HTTPS]
+- [Component] Publishes Needs / [HTTPS]
+- [Component] Manages Storefront / [HTTPS]
+- [Component] Analytics and Reporting / [Software System]  / Interaction and Operational data management/analytics/reporting
+- [Component] Media Management / [Software System]  / Manages Social and Other Media Interactions
+- [Component] Pushes Data, Generates Reports / [mTLS]
+- [Component] Generates / [Event]
+- [Component] Retail Systems / [Software System]  / External Systems of Businesses looking to spend on positive social impact
+- [Component] Integrates / [technology]
+- [Component] Charity Systems / [Software System]  / External Systems of Charities Looking for Engagement
+- [Component] Integrates / [technology]
+- [Component] Municipality Systems / [Software System]  / External Systems of Municipalities Willing to Reward Positive Interaction
+- [Component] Integrates / [technology]
+- [Component] Uses
+- [Component] Uses
+- [Component] Uses
+- [Component] Interactions Management / [Software System]  / System for community members to interact for good
+- [Component] PointsAwarded / [Event]
+- [Component] Donation and Redemption  / [Software System]
+- [Component] HeyBlue! Web Application
+- [Component] HeyBue! Mobile Application
+- [Component] Redeems/Donates / [HTTPS]
+- [Component] Donates / [HTTPS]
+- [Component] Manages Fine/Penalty Exchange / [HTTPS]
+- [Component] Points Accounting /  / Points Accrual, Compensation, Donation, Redemption
+- [Component] Organization Registry /  / Manages Details of Organizations. Extensible for new Oganization Types
+- [Component] Publish / [Events]
+- [Component] Cash Accounting /  / Calculation of HeyBlue! earn on point redemption. Accounting, reconciliation
+- [Component] Pushes Data / [mTLS]
+- [Component] StoreFront /  / Supports StorFront Configuration/Integration
+- [Component] Manage and Browse / [Event]
+- [Component] Gateway /  / Routes Events/Requests
+- [Component] Ecommerce Engine /  / Extensible Interop Engine for Redemption Transactions
+- [Component] Redemption Workflow / [Event]
+- [Component] Manage and Browse / [technology]
+- [Component] Query / [technology]
+- [Component] PointsConsumed / [technology]
+- [Component] GetSnapshot / [technology]
+- [Component] HeyBlue!  Treasurer / [Person] /  / Cash and Points Reconciliation
+- [Component] HeyBlue! Accounting Application /  / Supports Cash and Points Reconciliation
+- [Component] Points Compensation (Credits/Debits) / [technology]
+- [Component] Banking System / [Software System]  / To reconcile expected affiliate payments and outbound community building paymens
+- [Component] Reconciles
+- [Component] [Software System] Donation Redemption and Accounting  / Container Diagram
+
+**Connections:**
+
+- Shape-112 --> Cash Accounting
+- HeyBlue!  Treasurer --> Shape-112
+- Ecommerce Engine --(Generates / [Event])--> Media Management
+- Cash Accounting --(Pushes Data, Generates Reports / [mTLS])--> Analytics and Reporting
+- Civilian --(Redeems/Donates / [HTTPS])--> Shape-35
+- Officer --(Donates / [HTTPS])--> Shape-40
+- Charity --(Publishes Needs / [HTTPS])--> Shape-38
+- Business --(Manages Storefront / [HTTPS])--> Shape-33
+- Cash Accounting --(Reconciles)--> Banking System
+- Shape-115 --(Points Compensation (Credits/Debits) / [technology])--> Points Accounting
+- Cash Accounting --(GetSnapshot / [technology])--> Points Accounting
+- Ecommerce Engine --(PointsConsumed / [technology])--> Points Accounting
+- StoreFront --> Organization Registry
+- Ecommerce Engine --(Query / [technology])--> StoreFront
+- Gateway --(Manage and Browse / [technology])--> StoreFront
+- Gateway --(Redemption Workflow / [Event])--> Ecommerce Engine
+- Shape-44 --> Gateway
+- Shape-33 --> Gateway
+- Gateway --(Manage and Browse / [Event])--> Organization Registry
+- Points Accounting --(Pushes Data / [mTLS])--> Analytics and Reporting
+- Points Accounting --(Publish / [Events])--> Points
+- Municipality --(Manages Fine/Penalty Exchange / [HTTPS])--> Shape-33
+- Officer --(Donates / [HTTPS])--> Shape-31
+- Civilian --(Redeems/Donates / [HTTPS])--> Shape-44
+- Interactions Management --(PointsAwarded / [Event])--> Points Accounting
+- Municipality Representative --(Uses)--> Municipality Systems
+- Charity Representative --(Uses)--> Charity Systems
+- Business Representative --(Uses)--> Retail Systems
+- Municipality Systems --(Integrates / [technology])--> Ecommerce Engine
+- Charity Systems --(Integrates / [technology])--> Ecommerce Engine
+- Retail Systems --(Integrates / [technology])--> Ecommerce Engine
+
+---
+*Converted from Visio VSDX (shape text and connections extracted)*

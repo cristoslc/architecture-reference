@@ -1,0 +1,603 @@
+{
+  "name": "Product",
+  "nodes": [
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "select * \nfrom products\nwhere category like '%{{ $json.output.category }}%'\nand (lower(product_name) like lower('%{{ $json['output.product_names'] }}%') or lower(cluster_label) like lower('%{{ $json['output.product_names'] }}%'))",
+        "options": {}
+      },
+      "id": "c9e6c7f8-59f0-4f8c-9877-46a9c428daf8",
+      "name": "Postgres",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        640,
+        600
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "nXnQmkZIeceBIXPi",
+          "name": "NEON"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "options": {}
+      },
+      "id": "d1e53103-da89-49a5-8509-54722936d65c",
+      "name": "When chat message received",
+      "type": "@n8n/n8n-nodes-langchain.chatTrigger",
+      "typeVersion": 1.1,
+      "position": [
+        -380,
+        1100
+      ],
+      "webhookId": "fbd41133-a50b-4954-a83a-3f0509213e27",
+      "disabled": true
+    },
+    {
+      "parameters": {},
+      "id": "40497a01-9300-4edb-ba6a-498febff273f",
+      "name": "Execute Workflow Trigger",
+      "type": "n8n-nodes-base.executeWorkflowTrigger",
+      "typeVersion": 1,
+      "position": [
+        -400,
+        1320
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "5e01ac00-4c69-4892-9ac3-55a4ce9e8e7e",
+      "name": "OpenAI Chat Model",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        1400,
+        1800
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "Xt8uE5BesjuBgGio",
+          "name": "OpenAi account [Gleb]"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "f3a8dcba-c063-455a-b55e-6c7bbe701f83",
+      "name": "Calculator",
+      "type": "@n8n/n8n-nodes-langchain.toolCalculator",
+      "typeVersion": 1,
+      "position": [
+        1660,
+        1380
+      ]
+    },
+    {
+      "parameters": {
+        "options": {
+          "temperature": 0.4
+        }
+      },
+      "id": "c9decb8b-b7b7-48e2-b665-bf3aaf4a4967",
+      "name": "OpenAI Chat Model1",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1,
+      "position": [
+        -40,
+        1320
+      ],
+      "credentials": {
+        "openAiApi": {
+          "id": "Xt8uE5BesjuBgGio",
+          "name": "OpenAi account [Gleb]"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"category\": \"California\",\n\t\"product_names\": [\"Los Angeles\", \"San Francisco\", \"San Diego\"]\n}"
+      },
+      "id": "6cc77617-fd41-4223-a816-4e792c242129",
+      "name": "Structured Output Parser",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        240,
+        1220
+      ]
+    },
+    {
+      "parameters": {
+        "fieldToSplitOut": "output.product_names",
+        "include": "allOtherFields",
+        "options": {}
+      },
+      "id": "d9748a29-1cda-47a8-ae36-079bb76eef6a",
+      "name": "Split Out",
+      "type": "n8n-nodes-base.splitOut",
+      "typeVersion": 1,
+      "position": [
+        440,
+        960
+      ]
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "c4317b7b-d31a-4f65-b16b-6ccd969df1c4",
+      "name": "Aggregate",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1340,
+        620
+      ]
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "concatenate",
+              "field": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "55437b42-dd43-4d9f-a56f-0ace97501a3f",
+      "name": "Summarize",
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1,
+      "position": [
+        1560,
+        680
+      ]
+    },
+    {
+      "parameters": {
+        "compare": "selectedFields",
+        "fieldsToCompare": "product_id",
+        "options": {}
+      },
+      "id": "6924769c-e69d-4948-a6dc-641905ef659a",
+      "name": "Remove Duplicates",
+      "type": "n8n-nodes-base.removeDuplicates",
+      "typeVersion": 2,
+      "position": [
+        1000,
+        580
+      ]
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "f15a2127-fc58-4cfd-ab04-af01100d26e1",
+              "leftValue": "={{ $json.output.category }}",
+              "rightValue": "not_found",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            },
+            {
+              "id": "7a01d767-e7eb-473d-9671-59f5194ee92c",
+              "leftValue": "={{ $json['output.product_names'] }}",
+              "rightValue": "not_found",
+              "operator": {
+                "type": "string",
+                "operation": "equals",
+                "name": "filter.operator.equals"
+              }
+            }
+          ],
+          "combinator": "or"
+        },
+        "options": {}
+      },
+      "id": "f485cc96-71b2-4299-b978-60b8e56f2f78",
+      "name": "If porduct not specified",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [
+        480,
+        1220
+      ]
+    },
+    {
+      "parameters": {
+        "jsonSchemaExample": "{\n\t\"query\": \"California\"\n}"
+      },
+      "id": "d90ea2da-7edc-4b70-8406-b290208e5524",
+      "name": "Structured Output Parser1",
+      "type": "@n8n/n8n-nodes-langchain.outputParserStructured",
+      "typeVersion": 1.2,
+      "position": [
+        760,
+        1700
+      ]
+    },
+    {
+      "parameters": {
+        "operation": "executeQuery",
+        "query": "{{ $json.output.query }}",
+        "options": {}
+      },
+      "id": "e57d96ab-1caa-4601-93a0-2528b424c1ef",
+      "name": "Postgres1",
+      "type": "n8n-nodes-base.postgres",
+      "typeVersion": 2.5,
+      "position": [
+        1000,
+        1340
+      ],
+      "credentials": {
+        "postgres": {
+          "id": "nXnQmkZIeceBIXPi",
+          "name": "NEON"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "aggregate": "aggregateAllItemData",
+        "options": {}
+      },
+      "id": "63468564-3c9f-40f6-84f1-c6019d36066e",
+      "name": "Aggregate1",
+      "type": "n8n-nodes-base.aggregate",
+      "typeVersion": 1,
+      "position": [
+        1220,
+        1340
+      ]
+    },
+    {
+      "parameters": {
+        "fieldsToSummarize": {
+          "values": [
+            {
+              "aggregation": "concatenate",
+              "field": "data"
+            }
+          ]
+        },
+        "options": {}
+      },
+      "id": "0892e9e5-d57c-4dfd-9ed2-0a2e8fea0675",
+      "name": "Summarize1",
+      "type": "n8n-nodes-base.summarize",
+      "typeVersion": 1,
+      "position": [
+        1380,
+        1200
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Execute Workflow Trigger').item.json.query }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are a **product category classifier and product name extractor**. Your task is to analyze the customer's question and perform the following actions:\n\n1. Identify the **category of the product**. The product category must be selected from the following list:\n   - Microwaves\n   - CPUs\n   - Freezers\n   - Washing Machines\n   - Mobile Phones\n   - Digital Cameras\n   - Fridges\n   - Dishwashers\n   - TVs\n   - Fridge Freezers\n\n2. Extract the **product names** mentioned in the customer's question. This can include:\n   - Specific product names or types mentioned by the customer (e.g., \"iPhone 12\" or \"Samsung 4K TV\").\n   - If only a general product type is mentioned (e.g., \"TV\" or \"freezer\"), use the product type as the product name.\n\n### Output:\n- Return the product **category** as **one word**, exactly as it appears in the list.\n- If you cannot determine a category from the question, return **nothing**.\n- Return a **list of product names**. If specific product names are mentioned, include them in the list. If a general product type is mentioned, include that type in the list. If you cannot identify any product names or category return 'not_found'.\n- If customer asking for some statistics: count, how many, top, most, less, lowestd. Return 'not_found'\n\n### Format:\n- `category: <category>` (replace `<category>` with the category name from the list)\n- `product_names: <name1>, <name2>`\n\n### Example Outputs:\n1. Customer asks: \"Recommend me a TV please, 4K.\"\n   - `category: TVs`\n   - `product_names: \"TV\"`\n2. Customer asks: \"What is the best iPhone 12?\"\n   - `category: Mobile Phones`\n   - `product_names: \"iPhone 12\"`\n3. Customer asks: \"Do you have any freezers on sale?\"\n   - `category: Freezers`\n   - `product_names: \"freezer\"`\n4. Customer asks: \"I see there are some Sony TVs in your catalog. Can you compare the features and prices between the Sony KD75XF8596BU and other TV models you have?\"\n   - `category: TVs`\n   - `product_names: \"Sony KD75XF8596BU\", \"TV\"`\n5. Customer asks: \"Looking at the ratings distribution across different product categories, which category would you recommend for the most reliable purchases based on customer satisfaction?\"\n   - `category: not_found`\n   - `product_names: \"not_found\"\n6. Customer asks: \"the most expensive tv?\"\n   - `category: not_found`\n   - `product_names: \"not_found\"\n\n\n### SQL Context:\n- Each product name in `product_names` will be used iteratively in the following SQL condition: `product_name LIKE '%<name>%' OR cluster_label LIKE '%<name>%'`."
+            }
+          ]
+        }
+      },
+      "id": "ac314f12-05ca-452a-9744-c53eccc9e947",
+      "name": "Basic LLM Chain",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        20,
+        1000
+      ]
+    },
+    {
+      "parameters": {
+        "height": 414.18779651184764,
+        "width": 1323.9879580279462
+      },
+      "id": "d3ef56ce-353a-4399-891b-7b3856726c48",
+      "name": "Sticky Note",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [
+        460,
+        460
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Execute Workflow Trigger').item.json.query }}",
+        "options": {
+          "systemMessage": "=As a **Product Consultant** at ShopWise Solutions, your primary task is to assist with customer inquiries about products using the following information from the database. Currency is Euro:\n\n{{ $json.concatenated_data }}"
+        }
+      },
+      "id": "aab937b7-7c2d-470e-a6fc-2f8fb65320f4",
+      "name": "AI Agent",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 1.6,
+      "position": [
+        1700,
+        900
+      ]
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $('Execute Workflow Trigger').item.json.query }}",
+        "hasOutputParser": true,
+        "messages": {
+          "messageValues": [
+            {
+              "message": "=You are the SQL guru, working with PostgresDB. Then you receive the question you need to write the SQL query that will answer it. The table structure is following:\n\n\nCREATE TABLE public.products (\n\tproduct_id varchar NOT NULL,\n\tproduct_name text NULL,\n\tmerchant_id varchar NULL,\n\tcluster_id varchar NULL,\n\tcluster_label text NULL,\n\tcategory_id varchar NULL,\n\tcategory text NULL,\n\tprice numeric(14, 2) NULL,\n\tstock_quantity int4 NULL,\n\tdescription text NULL,\n\trating numeric(3, 1) NULL,\n\tCONSTRAINT products_pk PRIMARY KEY (product_id)\n);\n\nSOME DATA: \nthere are only following categories in data set:\n- Microwaves\n   - CPUs\n   - Freezers\n   - Washing Machines\n   - Mobile Phones\n   - Digital Cameras\n   - Fridges\n   - Dishwashers\n   - TVs\n   - Fridge Freezers\n\nYour output is ready to execute SELECT statement."
+            }
+          ]
+        }
+      },
+      "id": "3a303885-13e4-4133-a593-b33247397983",
+      "name": "SELECT Statement",
+      "type": "@n8n/n8n-nodes-langchain.chainLlm",
+      "typeVersion": 1.4,
+      "position": [
+        660,
+        1480
+      ]
+    }
+  ],
+  "pinData": {
+    "Execute Workflow Trigger": [
+      {
+        "json": {
+          "query": "Which product category has the highest customer satisfaction ratings?"
+        }
+      }
+    ]
+  },
+  "connections": {
+    "Postgres": {
+      "main": [
+        [
+          {
+            "node": "Remove Duplicates",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "When chat message received": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Execute Workflow Trigger": {
+      "main": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_languageModel",
+            "index": 0
+          },
+          {
+            "node": "SELECT Statement",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Calculator": {
+      "ai_tool": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "ai_tool",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "OpenAI Chat Model1": {
+      "ai_languageModel": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_languageModel",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "Basic LLM Chain",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Split Out": {
+      "main": [
+        [
+          {
+            "node": "If porduct not specified",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate": {
+      "main": [
+        [
+          {
+            "node": "Summarize",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Remove Duplicates": {
+      "main": [
+        [
+          {
+            "node": "Aggregate",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "If porduct not specified": {
+      "main": [
+        [
+          {
+            "node": "SELECT Statement",
+            "type": "main",
+            "index": 0
+          }
+        ],
+        [
+          {
+            "node": "Postgres",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Structured Output Parser1": {
+      "ai_outputParser": [
+        [
+          {
+            "node": "SELECT Statement",
+            "type": "ai_outputParser",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Postgres1": {
+      "main": [
+        [
+          {
+            "node": "Aggregate1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Aggregate1": {
+      "main": [
+        [
+          {
+            "node": "Summarize1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Summarize1": {
+      "main": [
+        [
+          {
+            "node": "AI Agent",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Basic LLM Chain": {
+      "main": [
+        [
+          {
+            "node": "Split Out",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "SELECT Statement": {
+      "main": [
+        [
+          {
+            "node": "Postgres1",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": false,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "1076ab06-51df-4629-8ade-0ede813ce7ae",
+  "meta": {
+    "templateCredsSetupCompleted": true,
+    "instanceId": "44c682038bf75ec8dc15266789291f5bb0ad80a4292bc8cd649b9c7aab0d548d"
+  },
+  "id": "x9fL1MLuqwwlHBTn",
+  "tags": []
+}

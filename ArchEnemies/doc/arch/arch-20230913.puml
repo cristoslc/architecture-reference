@@ -1,0 +1,199 @@
+@startuml
+
+'skinparam handwritten true
+hide stereotype
+
+left to right direction
+
+'skinparam linetype ortho
+'skinparam linetype polyline
+
+'60
+'132
+'202
+skinparam rectangle{
+    BackgroundColor WhiteSmoke
+    borderColor black
+    'LineColor<<actor>> #86B56B
+    LineColor<<actor>> #F08C02
+    FontColor<<actor>> #F08C02
+    borderColor<<actor>> #3C84CA
+    BackgroundColor<<actor>> #FFFFFF
+    RoundCorner<<actor>> 15
+
+    RoundCorner<<container>> 20
+    BackgroundColor<<container>> #FFFFFF
+
+
+    RoundCorner<<system>> 20
+    BackgroundColor<<system>> #FFFFFF
+
+
+    'borderColor<<action>> #3F75BB
+    borderColor<<action>> #black
+    FontColor<<action>> #black
+    RoundCorner<<action>> 10
+    BackgroundColor<<action>> #FFFFFF
+
+
+    BackgroundColor<<sticky>> #F3D22B
+    borderColor<<sticky>> black
+
+    borderColor<<answer>> #lightgray
+    FontColor<<answer>> #3F75BB
+    '
+ }
+
+
+
+
+together {
+    rectangle user <<actor>> [
+    User
+    '---
+    '* add, update, delete reservation
+    '* share trip info (social/directly)
+    ]
+'    rectangle supplier <<actor>>[
+'    Supplier
+'    ]
+
+    rectangle email_provider <<actor>> [
+    Email Provider
+    ]
+
+rectangle "Social media" as social_media <<actor>>
+}
+
+
+together {
+    rectangle GDS <<container>>{
+        rectangle Sabre <<actor>>
+        rectangle Travelport <<actor>>
+        rectangle Amadeus <<actor>>
+        Sabre -[hidden] Travelport
+        Travelport -[hidden] Amadeus
+    }
+
+    rectangle Agencies <<container>>{
+        rectangle Car <<actor>>
+        rectangle "Flight Supplier" as flight_supplier <<actor>>
+        rectangle "Hotel Supplier" as hotel_supplier <<actor>>
+        Car -[hidden] flight_supplier
+        flight_supplier -[hidden] hotel_supplier
+    }
+ 
+'    GDS <=[#black] Agencies
+}
+
+rectangle third_parties <<actor>>[
+
+    Third parties  
+
+]
+
+
+rectangle " " as System <<system>> {
+
+rectangle "Collector Agency" as collector_agency <<container>>{
+
+    rectangle "GDS integration" as gds_integration <<action>>
+    rectangle "Agency integration" as agency_integration <<action>>
+
+}
+
+
+'
+rectangle booking_db <<action>> [
+
+        Booking
+    db **(Storage)**    
+
+]
+
+rectangle mail_poller<<action>> [
+mail poller
+]
+
+rectangle mail_filter<<action>>[
+mail filter
+]
+
+rectangle booking_crud <<action>> [
+
+  Booking crud   
+
+]
+
+rectangle booking_tracker <<action>> [
+booking tracker
+]
+
+
+rectangle update_notifier<<action>>[
+Update notifier
+]
+
+rectangle help<<action>> [
+Help
+]
+
+rectangle sharer<<action>> [
+Sharer
+]
+
+
+rectangle "Data analytics" as data_analytics #line.dotted {
+
+    rectangle data_reporter <<action>> [
+Data Reporter
+]
+rectangle analytics_reporter <<action>>[
+Analytics reporter
+]
+}
+}
+
+'=============================================
+'  Connection
+'=============================================
+
+Agencies        <-[#black]--     collector_agency
+GDS             <-[#black]--     collector_agency
+
+
+email_provider   -[#black]->     mail_poller
+mail_poller      -[#black]->     mail_filter
+
+mail_filter      -[#black]-->     booking_crud
+
+collector_agency  <-[#black]--    booking_tracker
+booking_crud      <-[#green]     booking_tracker
+booking_tracker   -[#black]>     update_notifier
+
+collector_agency  <-[#black]-    booking_crud
+help              -[#black]->    booking_crud
+sharer            -[#black]-->    booking_crud
+'
+
+booking_crud      -[#black]-> booking_db
+booking_db        -[#black]-> data_reporter
+
+'=============================================
+
+
+'social_media     -[#black]>    sharer
+sharer     -[#black]>    social_media
+
+user             -[#black]->         booking_crud
+user             -[#black]->         sharer
+user             <-[#black]--        data_reporter
+user             <-[#black]          update_notifier
+user             -[#black]->         help
+
+analytics_reporter -[#black]> third_parties
+
+@enduml
+
+
+

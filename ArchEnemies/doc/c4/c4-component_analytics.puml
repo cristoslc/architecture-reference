@@ -1,0 +1,40 @@
+@startuml
+!include <c4/C4_Component.puml>  
+
+!theme aws-orange
+skinparam BackgroundColor white   
+
+LAYOUT_WITH_LEGEND()
+
+skinparam linetype ortho
+title Container diagram for **Road Warrior** app - Analytics
+
+'Person(customer  , Customer , "<$user>   <$mobile_user>" )
+
+System_Ext(third_parties, "Third parties")
+
+Container(front_end, "Front end", "Serve contenct to user", "This is a combination of web & Mobile app")
+
+Container_Boundary(analytics, "Analytics") {
+
+Component(data_exporter, "Data exporter", "scan for update", "")
+Component(analytics_generator, "Analytics Generator", "scan for update", "")
+Component(analytics_exporter, "Analytics exporter", "scan for update", "")
+
+ContainerDb(analytics_storage, "Analytics Storage", "DB", "")
+
+data_exporter -> analytics_storage
+analytics_storage -> analytics_exporter
+analytics_storage --> analytics_generator
+}
+
+ContainerDb(booking_storage, "Booking storage", "DB", "Booking Storage: Hold information on all bookings")
+
+'front_end <-- analytics_exporter
+
+Rel_Back(front_end, analytics_exporter, "report", "yearly reports")
+analytics_exporter -> third_parties
+
+booking_storage --> data_exporter
+
+@enduml

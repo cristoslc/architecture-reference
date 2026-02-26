@@ -1,0 +1,274 @@
+@startuml
+skinparam handwritten true
+hide stereotype
+
+left to right direction
+
+'skinparam linetype ortho
+
+skinparam rectangle{
+    BackgroundColor WhiteSmoke
+    borderColor black
+    LineColor<<actor>> #86B56B
+    borderColor<<actor>> #86B56B
+    BackgroundColor<<actor>> #D6E8D5
+    LineColor<<actor>> #D6E8D5
+    RoundCorner<<actor>> 15
+
+    borderColor<<action>> #3F75BB
+    FontColor<<action>> #3F75BB
+    'BackgroundColor<<action>> #FFE5CC
+'    RoundCorner<<action>> 30
+    BackgroundColor<<sticky>> #F3D22B
+    borderColor<<sticky>> black
+
+    RectangleFontSize <<answer>> 100
+    borderColor<<answer>> #lightgray
+'    classFontSize <<answer>> 20
+    FontColor<<answer>> #3F75BB
+    '
+ }
+
+
+rectangle Actors {
+
+    rectangle system  <<actor>> [
+    System
+
+    ---
+
+    * poll email for travel
+    * interact with agencies
+    * gather analytics data
+    * end of year report
+    ]
+    rectangle user <<actor>> [
+    User
+
+    ---
+
+    * add, update, delete reservation
+    * share trip info (social/directly)
+    ]
+'    rectangle supplier <<actor>>[
+'    Supplier
+'    ]
+
+    'rectangle email_prvider <<actor>> [
+    'Email Provider
+    ']
+}
+
+' position actors
+'
+user                 .[hidden]                      system       
+'supplier             .[hidden]                      user         
+'email_prvider        .[hidden]                      supplier     
+
+
+' action
+
+rectangle mail_poller [
+**Mail Poller**
+——-
+
+Get mail 
+From provider
+]
+
+rectangle mail_filter [
+Mail
+Filter
+]
+
+rectangle booking_logger [
+**Booking Logger**
+
+---
+receive all the possible
+events**???**
+]
+
+rectangle travel_updates [
+**Agency integrator**
+
+---
+
+travel update
+]
+
+rectangle booking_manual [
+**Booking**
+
+---
+
+* add
+* update
+* Delete
+
+---
+should we allow to add
+booking that hase not
+found via mail?
+
+onlyto the dashboard
+
+or we need to allow
+to book a ticket
+via the app**??**
+]
+
+rectangle booking_answer <<answer>> [
+
+**Answer 16**
+
+---
+
+**This only applies to Road Warrior;**
+**the user will have to manually**
+**interact with the individual**
+**service to make changes or cancelations.**
+
+]
+
+rectangle sharer  [
+Sharer
+]
+
+rectangle help  [
+
+**Help**
+
+---
+
+
+]
+
+rectangle help_answer <<answer>>[
+**Answer 17**
+
+---
+
+**We allow the user to specify a preferred travel agent,**
+**and that's where we redirect them.**
+**If the user hasn't specified a travel agent,**
+**then this facility isn't available **
+**(we aren't in the business of brokering for travel agents.**
+
+]
+
+help =[#green] help_answer
+
+rectangle booking_viewer  [
+Booking Viewer
+
+Trip View
+]
+
+rectangle booking_keeping 
+
+rectangle data_reporter  [
+Data Reporter
+
+---
+
+end of year
+statistical report
+]
+
+
+rectangle group_trip <<sticky>>[
+**Trip Aggregator**
+
+---
+
+Capability to
+group booking
+into a trip
+]
+
+rectangle trip_archive <<sticky>>[
+**Auto remove**
+
+---
+
+Remove **completed**
+trips
+
+]
+
+
+
+rectangle q2 <<action>>#line.dotted[
+trip completed??
+]
+
+rectangle bi [
+**Business Intelligence**
+
+---
+
+]
+
+system -[#black]-- bi
+
+bi -[#black]-- booking_keeping
+
+data_reporter -[#black]-- booking_keeping
+
+booking_viewer            .[hidden]               sharer
+sharer                    .[hidden]               booking_manual
+booking_manual            .[hidden].               help
+
+
+trip_archive .. q2
+q2 .. booking_logger
+
+
+system -[#black]- group_trip
+
+group_trip -[#black]- trip_archive
+
+'
+' Links 
+user -[#black]-- sharer
+user -[#black]-- booking_viewer
+user -[#black]-- booking_manual
+user -[#black]-- help
+
+
+'supplier <... travel_updates
+system -[#black]- travel_updates
+
+'email_prvider <--- mail_poller
+system -[#black]-- mail_poller
+system -[#black]-- data_reporter
+
+'
+' connectivty intermediate
+booking_viewer   <-[#black]-    data_reporter
+'
+help             ..      travel_updates
+booking_viewer   -[#black]--    booking_keeping
+'booking_manual   -[#black]-->   booking_keeping
+booking_manual   -[#black]-->   booking_logger
+
+group_trip           -[#black]    sharer
+'sharer           -[#black]--    booking_keeping
+'
+mail_poller      <-[#black]-    mail_filter
+
+booking_logger   -[#black]->    booking_keeping
+'
+'
+mail_filter      -[#black]-    booking_logger
+travel_updates   -[#black]->   booking_logger
+'
+'
+'
+'
+booking_manual =[#green] booking_answer
+@enduml
+
+
+
