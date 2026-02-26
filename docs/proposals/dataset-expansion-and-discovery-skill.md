@@ -45,9 +45,24 @@ The Architecture Reference Library currently contains **78 team submissions** ac
 
 | Source | What it provides |
 |--------|------------------|
+| **[Microservices Project List (Taibi, Tampere University)](https://github.com/davidetaibi/Microservices_Project_List)** | **378 real-world microservice projects** — peer-reviewed, academically cited (Rahman et al. 2019, d'Aragona et al. MSR 2024). Most directly complementary: production microservice repos vs. our competition designs |
+| **[Microservice Dependency Graph Dataset](https://github.com/clowee/MicroserviceDataset)** | GraphML dependency graphs + SVG visualizations for microservice projects. Enables structural comparison against Kata-proposed architectures |
+| **[Kaggle: Software Architectural Styles Dataset](https://www.kaggle.com/datasets/qadeemkhan/dataset-of-software-architectural-styles)** | Architecture style classification dataset designed for statistical/data-mining analysis — closest public equivalent to what this repo is building |
+| **[Libraries.io / Zenodo](https://zenodo.org/records/3626071)** | 311M+ rows of dependency metadata across 2.7M projects and 36 package managers (CC-BY-SA 4.0). Ecosystem-scale dependency architecture patterns |
+| **[Software Heritage Graph Dataset](https://www.softwareheritage.org/)** | Largest public source code archive: 16B+ files from 250M+ projects as a deduplicated Merkle DAG. Available on AWS Open Data (Pietri et al., MSR 2019) |
+| **[GHTorrent](https://www2.dmst.aueb.gr/dds/pubs/conf/2012-MSR-GitHub/html/github-mirror.html)** | Offline GitHub metadata mirror (commits, issues, PRs, social metadata). Most-cited GitHub dataset in academic literature (172+ studies) |
+| **[Enterprise-Driven OSS Dataset (ACM MSR 2020)](https://dl.acm.org/doi/abs/10.1145/3379597.3387495)** | 17,264 enterprise-driven GitHub projects identified by domain mining — addresses the hobby-project bias in most OSS research |
 | **[Software Architecture Styles Dataset (ResearchGate, 2017)](https://www.researchgate.net/publication/312596176)** | 18-attribute dataset of architecture styles designed for data mining/clustering analysis |
 | **[Open-Source Developer Metrics Dataset (ScienceDirect, 2022)](https://www.sciencedirect.com/science/article/pii/S2352340922010459)** | 700+ developers across 17 OSS projects with 24 software architecture metrics at different granularities |
-| **[code-maat](https://github.com/adamtornhill/code-maat)** (open source by CodeScene founder) | VCS mining tool that extracts evolutionary coupling, hotspots, and social patterns from git history — the raw data source for behavioral architecture analysis |
+
+### Tier 3b — Architecture mining tools (for the discovery skill)
+
+| Tool | What it does |
+|------|--------------|
+| **[code-maat](https://github.com/adamtornhill/code-maat)** (open source by CodeScene founder) | VCS mining tool that extracts evolutionary coupling, hotspots, and social patterns from git history |
+| **[Code2DFD](https://github.com/)** | Generates data flow diagrams from source code; analyzes GitHub repos directly |
+| **[EventCatalog](https://www.eventcatalog.dev/)** | Open-source architecture catalog for distributed systems. Documents domains, services, events, schemas. Pulls from OpenAPI/AsyncAPI. Used by Nike, AWS, GOV.UK |
+| **[Architecture Recovery Tools (arXiv 2024)](https://arxiv.org/html/2412.08352v1)** | Comparative study of 13 static analysis architecture recovery tools for microservice applications — directly relevant to building the discovery skill |
 
 ### Tier 4 — Reference architecture implementations (working code)
 
@@ -58,6 +73,10 @@ The Architecture Reference Library currently contains **78 team submissions** ac
 | **[jasontaylordev/CleanArchitecture](https://github.com/jasontaylordev/CleanArchitecture)** | Clean/Hexagonal Architecture + CQRS + MediatR |
 | **[Azure-Samples/Serverless-microservices-reference-architecture](https://github.com/Azure-Samples/Serverless-microservices-reference-architecture)** | Serverless microservices on Azure |
 | **[GoogleCloudPlatform/cloud-foundation-fabric](https://github.com/GoogleCloudPlatform/cloud-foundation-fabric)** | IaC-driven modular landing zone architecture |
+| **[dotnet/eShop](https://github.com/dotnet/eShop)** | Active successor to eShopOnContainers — canonical .NET microservices reference |
+| **[ThreeDotsLabs/wild-workouts-go-ddd-example](https://github.com/ThreeDotsLabs/wild-workouts-go-ddd-example)** | Production-ready Go DDD + Clean Architecture + CQRS + gRPC |
+| **[thombergs/buckpal](https://github.com/thombergs/buckpal)** | Java/Spring Boot Hexagonal Architecture (book companion) |
+| **[AWS reference architectures](https://github.com/aws-samples)** | Security (multi-account CloudFormation+Terraform), Analytics (CDK), ECS microservices, multi-tenant SaaS |
 
 ---
 
