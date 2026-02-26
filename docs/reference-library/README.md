@@ -54,6 +54,7 @@ The library is organized into three layers: **problem spaces** (classifying the 
 |-----------|----------|
 | [Team Catalogs](../catalog/) | 78 YAML files with structured metadata per team (architecture styles, ADR counts, quality attributes, documentation artifacts, placement) |
 | [Master Index](../catalog/_index.yaml) | Aggregated index of all seasons, challenges, teams, and style frequencies |
+| [Evidence Pool](../../evidence-pool/TheKataLog/) | 78 team submission folders organized by `<year>-<kata challenge>/<team>/`, sourced from the [TheKataLog](https://github.com/TheKataLog) GitHub organization |
 
 ## Key Findings (Summary)
 

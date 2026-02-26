@@ -69,7 +69,7 @@ Across the eight teams examined, every single one used C4 as their primary archi
 
 Pentagram2021 authored a complete Structurizr DSL workspace that generated all their diagrams from a single source file. This is the gold standard for C4 tooling:
 
-Source: `/Pentagram2021/models/c4/c4model.txt`
+Source: `/evidence-pool/TheKataLog/2021-Farmacy-Family/Pentagram2021/models/c4/c4model.txt`
 
 Key structural patterns in their DSL:
 - Persons defined with role descriptions and visual tags (`"Customer"`, `"Transactional Customer"`)
@@ -84,7 +84,7 @@ Key structural patterns in their DSL:
 
 Arch8s used the `C4-PlantUML` stdlib, which enforces correct C4 notation through macros:
 
-Source: `/Arch8s/assets/plantuml/context.puml`
+Source: `/evidence-pool/TheKataLog/2022-Spotlight-Platform/Arch8s/assets/plantuml/context.puml`
 
 ```plantuml
 @startuml Spotlight context diagram
@@ -401,11 +401,11 @@ For reference, the actual C4 artifacts from each team can be found at:
 
 | Team | C4 Documentation | Diagram Source Files |
 |------|-----------------|---------------------|
-| Archangels | `Archangels/3.ViewsAndPerspectives/C4Models/README.md` | `Archangels/assets/diagrams/` (PNG, Excalidraw) |
-| Sever-Crew | `Sever-Crew/README.md` (inline) | `Sever-Crew/images/` (JPG, PNG) |
-| Pentagram2021 | `Pentagram2021/solution/solutionOverview.md` | `Pentagram2021/models/c4/c4model.txt` (Structurizr DSL), `Pentagram2021/images/structurizr-*.png` |
-| Global-Variables | `Global-Variables/README.md` (Section 6.iii) | `Global-Variables/docs/system-context.jpg`, `Global-Variables/docs/container-diagram.jpg` |
-| Arch8s | `Arch8s/4.Views/4.4.C4Models/README.md` | `Arch8s/assets/plantuml/*.puml`, `Arch8s/assets/spotlight-c4.dsl` (Structurizr DSL) |
-| Celus-Ceals | `Celus-Ceals/4.Solution/1.FirstIteration/C4Models/README.md` | `Celus-Ceals/4.Solution/1.FirstIteration/C4Models/` (per-container markdown + PNG) |
-| ZAITects | `ZAITects/README.md` (inline C2/C3) | `ZAITects/assets/test1c2.png`, `ZAITects/assets/test2c2.png`, `ZAITects/assets/test1-grader-c3.jpg` |
-| Pragmatic | `Pragmatic/C4/` (dedicated directory) | `Pragmatic/C4/images/C4.drawio` (Draw.io source), `Pragmatic/C4/images/*.svg` |
+| Archangels | `evidence-pool/TheKataLog/2021-Farmacy-Family/Archangels/3.ViewsAndPerspectives/C4Models/README.md` | `evidence-pool/TheKataLog/2021-Farmacy-Family/Archangels/assets/diagrams/` (PNG, Excalidraw) |
+| Sever-Crew | `evidence-pool/TheKataLog/2021-Farmacy-Family/Sever-Crew/README.md` (inline) | `evidence-pool/TheKataLog/2021-Farmacy-Family/Sever-Crew/images/` (JPG, PNG) |
+| Pentagram2021 | `evidence-pool/TheKataLog/2021-Farmacy-Family/Pentagram2021/solution/solutionOverview.md` | `evidence-pool/TheKataLog/2021-Farmacy-Family/Pentagram2021/models/c4/c4model.txt` (Structurizr DSL), `evidence-pool/TheKataLog/2021-Farmacy-Family/Pentagram2021/images/structurizr-*.png` |
+| Global-Variables | `evidence-pool/TheKataLog/2022-Spotlight-Platform/Global-Variables/README.md` (Section 6.iii) | `evidence-pool/TheKataLog/2022-Spotlight-Platform/Global-Variables/docs/system-context.jpg`, `evidence-pool/TheKataLog/2022-Spotlight-Platform/Global-Variables/docs/container-diagram.jpg` |
+| Arch8s | `evidence-pool/TheKataLog/2022-Spotlight-Platform/Arch8s/4.Views/4.4.C4Models/README.md` | `evidence-pool/TheKataLog/2022-Spotlight-Platform/Arch8s/assets/plantuml/*.puml`, `evidence-pool/TheKataLog/2022-Spotlight-Platform/Arch8s/assets/spotlight-c4.dsl` (Structurizr DSL) |
+| Celus-Ceals | `evidence-pool/TheKataLog/2023-Wildlife-Watcher/Celus-Ceals/4.Solution/1.FirstIteration/C4Models/README.md` | `evidence-pool/TheKataLog/2023-Wildlife-Watcher/Celus-Ceals/4.Solution/1.FirstIteration/C4Models/` (per-container markdown + PNG) |
+| ZAITects | `evidence-pool/TheKataLog/2025-Certifiable-Inc/ZAITects/README.md` (inline C2/C3) | `evidence-pool/TheKataLog/2025-Certifiable-Inc/ZAITects/assets/test1c2.png`, `evidence-pool/TheKataLog/2025-Certifiable-Inc/ZAITects/assets/test2c2.png`, `evidence-pool/TheKataLog/2025-Certifiable-Inc/ZAITects/assets/test1-grader-c3.jpg` |
+| Pragmatic | `evidence-pool/TheKataLog/2024-ClearView/Pragmatic/C4/` (dedicated directory) | `evidence-pool/TheKataLog/2024-ClearView/Pragmatic/C4/images/C4.drawio` (Draw.io source), `evidence-pool/TheKataLog/2024-ClearView/Pragmatic/C4/images/*.svg` |

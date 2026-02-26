@@ -210,4 +210,4 @@ Across all four submissions, the teams that placed highest (ConnectedAI and Brea
 
 ---
 
-*Analysis based on team submissions to the O'Reilly Architecture Kata, AI Winter 2024 season. Team directories: `ConnectedAI/`, `Breakwater/`, `Transformers/`, `IntelliMutual/`. YAML catalog entries in `docs/catalog/`.*
+*Analysis based on team submissions to the O'Reilly Architecture Kata, AI Winter 2024 season. Team directories: `evidence-pool/TheKataLog/2024-ShopWise-AI/ConnectedAI/`, `evidence-pool/TheKataLog/2024-ShopWise-AI/Breakwater/`, `evidence-pool/TheKataLog/2024-ShopWise-AI/Transformers/`, `evidence-pool/TheKataLog/2024-ShopWise-AI/IntelliMutual/`. YAML catalog entries in `docs/catalog/`.*

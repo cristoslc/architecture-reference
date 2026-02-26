@@ -565,14 +565,14 @@ Reference: DeveloperToArchitect.com/downloads/worksheets.html]
 
 | Team | Repository Path | Key Files |
 |------|----------------|-----------|
-| ArchColider | `ArchColider/` | `2.SolutionBackground/SystemAppoach.md`, `2.SolutionBackground/SolutionOverview.md` |
-| Archangels | `Archangels/` | `2.SolutionBackground/ArchitecturePatterns.md`, `1.ProblemBackground/ArchitectureAnalysis.md` |
-| PegasuZ | `Pegasuz/` | `quanta/quanta-identification.md`, `quanta/npo-candidate.md`, `ADRs/007.adr-arch-style-np-candidate-mvp.md` |
-| MonArch | `MonArch/` | `Readme.md` (contains full architecture approach) |
-| Profitero | `Profitero-Data-Alchemists/` | `README.md`, `adrs/adr-1-architecture-style.md` |
-| AnimAI | `AnimAI/` | `4-ADRs/ADR-013 Architectural Characteristics Summary.adoc`, `4-ADRs/ADR-014 Selected Architecture.adoc` |
-| Pragmatic | `Pragmatic/` | `ADR/ADR-002-architecture-style.md`, `ArchitectureCharacteristics/Characteristics.md` |
-| SAG | `Software-Architecture-Guild/` | `adrs/adr-6-ai-assistant-architecture.md`, `README.md` |
+| ArchColider | `evidence-pool/TheKataLog/2020-Farmacy-Food/ArchColider/` | `2.SolutionBackground/SystemAppoach.md`, `2.SolutionBackground/SolutionOverview.md` |
+| Archangels | `evidence-pool/TheKataLog/2021-Farmacy-Family/Archangels/` | `2.SolutionBackground/ArchitecturePatterns.md`, `1.ProblemBackground/ArchitectureAnalysis.md` |
+| PegasuZ | `evidence-pool/TheKataLog/2022-Spotlight-Platform/Pegasuz/` | `quanta/quanta-identification.md`, `quanta/npo-candidate.md`, `ADRs/007.adr-arch-style-np-candidate-mvp.md` |
+| MonArch | `evidence-pool/TheKataLog/2022-Hey-Blue/MonArch/` | `Readme.md` (contains full architecture approach) |
+| Profitero | `evidence-pool/TheKataLog/2023-Road-Warrior/Profitero-Data-Alchemists/` | `README.md`, `adrs/adr-1-architecture-style.md` |
+| AnimAI | `evidence-pool/TheKataLog/2023-Wildlife-Watcher/AnimAI/` | `4-ADRs/ADR-013 Architectural Characteristics Summary.adoc`, `4-ADRs/ADR-014 Selected Architecture.adoc` |
+| Pragmatic | `evidence-pool/TheKataLog/2024-ClearView/Pragmatic/` | `ADR/ADR-002-architecture-style.md`, `ArchitectureCharacteristics/Characteristics.md` |
+| SAG | `evidence-pool/TheKataLog/2025-Certifiable-Inc/Software-Architecture-Guild/` | `adrs/adr-6-ai-assistant-architecture.md`, `README.md` |
 
 ---
 

@@ -432,11 +432,11 @@ This guide was compiled from the following team repositories:
 
 | Team | Competition | Placement | ADR Count | Repository Path |
 |------|------------|-----------|-----------|----------------|
-| ArchColider | Fall 2020 | 1st | 16 | `ArchColider/4.ADRs/` |
-| Archangels | Fall 2021 | 1st | 18 | `Archangels/4.ADRs/` |
-| BluzBrothers | Winter 2024 | 1st | 20 | `BluzBrothers/ADR/` |
-| ZAITects | Winter 2025 | 1st | 18 | `ZAITects/ADRs/` |
-| It-Depends | Fall 2022 | Runner-up | 16 | `It-Depends/Functional Decision Records/` and `It-Depends/Non Functional Decision Records/` |
-| Mad-Katas | Spring 2021 | 3rd | 17 | `Mad-Katas/4.ADRs/` |
-| Los-Ingenials | Fall 2022 | Runner-up | 21 | `Los-Ingenials/ADRs/` |
-| Pragmatic | Fall 2024 | 1st | 22 | `Pragmatic/ADR/` |
+| ArchColider | Fall 2020 | 1st | 16 | `evidence-pool/TheKataLog/2020-Farmacy-Food/ArchColider/4.ADRs/` |
+| Archangels | Fall 2021 | 1st | 18 | `evidence-pool/TheKataLog/2021-Farmacy-Family/Archangels/4.ADRs/` |
+| BluzBrothers | Winter 2024 | 1st | 20 | `evidence-pool/TheKataLog/2024-MonitorMe/BluzBrothers/ADR/` |
+| ZAITects | Winter 2025 | 1st | 18 | `evidence-pool/TheKataLog/2025-Certifiable-Inc/ZAITects/ADRs/` |
+| It-Depends | Fall 2022 | Runner-up | 16 | `evidence-pool/TheKataLog/2022-Hey-Blue/It-Depends/Functional Decision Records/` and `evidence-pool/TheKataLog/2022-Hey-Blue/It-Depends/Non Functional Decision Records/` |
+| Mad-Katas | Spring 2021 | 3rd | 17 | `evidence-pool/TheKataLog/2021-Sysops-Squad/Mad-Katas/4.ADRs/` |
+| Los-Ingenials | Fall 2022 | Runner-up | 21 | `evidence-pool/TheKataLog/2022-Hey-Blue/Los-Ingenials/ADRs/` |
+| Pragmatic | Fall 2024 | 1st | 22 | `evidence-pool/TheKataLog/2024-ClearView/Pragmatic/ADR/` |
