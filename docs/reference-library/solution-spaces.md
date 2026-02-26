@@ -2,7 +2,7 @@
 
 A normalized, evidence-based catalog of architectural approaches used across 78 O'Reilly Architecture Kata submissions (Fall 2020 through Winter 2025), weighted by placement scores.
 
-> **Multi-source evidence available.** This document covers TheKataLog competition data only. For the **production-weighted combined scoreboard** incorporating 12 AOSA production systems (6 pts each) and 8 reference implementations (1-2 pts each), see [Cross-Source Evidence Reference](evidence/cross-source-reference.md). Key finding: **Pipeline** (entirely from production evidence) and **Plugin/Microkernel** (82% production evidence) are significantly under-represented in competition data alone.
+> **Multi-source evidence available.** This document covers TheKataLog competition data only. For the **production-weighted combined scoreboard** incorporating 12 AOSA production systems and 5 RealWorldASPNET production apps (20 pts each) plus 8 reference implementations (1-2 pts each), see [Cross-Source Evidence Reference](evidence/cross-source-reference.md). Key finding: **Pipeline** (#3 overall, 100% production evidence) and **Plugin/Microkernel** (#2 overall, 97% production evidence) are invisible in competition data but dominate production systems. **Microservices** (#2 in KataLog, #5 overall) has zero production evidence across all sources.
 
 ---
 
@@ -27,7 +27,7 @@ This document maps the **solution space** of architecture kata competitions: whi
 
 ## Scoring Methodology (KataLog Only)
 
-This section scores competition entries only (1-4 pts per team). For the **production-weighted methodology** where AOSA production systems receive 6 pts each, see [Cross-Source Evidence Reference](evidence/cross-source-reference.md#evidence-weighting-methodology).
+This section scores competition entries only (1-4 pts per team). For the **production-weighted methodology** where production systems (AOSA, RealWorldASPNET) receive 20 pts each, see [Cross-Source Evidence Reference](evidence/cross-source-reference.md#evidence-weighting-methodology).
 
 Each team receives a placement score based on their competitive result:
 
