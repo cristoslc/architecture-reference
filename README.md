@@ -25,7 +25,9 @@ Raw sources are preserved in an **evidence pool**, structured analyses and YAML 
 | See cross-cutting patterns across all 78 teams | [Cross-Cutting Analysis](evidence-analysis/TheKataLog/docs/analysis/cross-cutting.md) |
 | Compare evidence across all three sources | [Cross-Source Reference](docs/reference-library/evidence/cross-source-reference.md) |
 | Study production architectures (NGINX, Git, etc.) | [AOSA Catalog](evidence-analysis/AOSA/docs/catalog/) |
+| See patterns across 12 production systems | [AOSA Source Analysis](evidence-analysis/AOSA/docs/analysis/source-analysis.md) |
 | Find working code for a pattern | [Reference Implementations Catalog](evidence-analysis/ReferenceArchitectures/docs/catalog/) |
+| See patterns across 8 reference implementations | [Reference Architectures Source Analysis](evidence-analysis/ReferenceArchitectures/docs/analysis/source-analysis.md) |
 
 ## Key Findings
 
@@ -73,15 +75,21 @@ Raw sources are preserved in an **evidence pool**, structured analyses and YAML 
 │   │           ├── _index.yaml     # Master index of all seasons/teams/styles
 │   │           └── *.yaml          # 78 structured team metadata files
 │   ├── AOSA/                       # Architecture of Open Source Applications
-│   │   └── docs/catalog/
-│   │       ├── _index.yaml         # Index of 12 AOSA projects
-│   │       ├── SCHEMA.yaml         # YAML schema for AOSA entries
-│   │       └── *.yaml              # Per-project catalogs (nginx, git, hdfs, etc.)
+│   │   └── docs/
+│   │       ├── analysis/
+│   │       │   └── source-analysis.md  # Patterns across 12 production systems
+│   │       └── catalog/
+│   │           ├── _index.yaml     # Index of 12 AOSA projects
+│   │           ├── SCHEMA.yaml     # YAML schema for AOSA entries
+│   │           └── *.yaml          # Per-project catalogs (nginx, git, hdfs, etc.)
 │   └── ReferenceArchitectures/     # Curated reference implementations
-│       └── docs/catalog/
-│           ├── _index.yaml         # Index of 8 reference repos
-│           ├── SCHEMA.yaml         # YAML schema for reference impl entries
-│           └── *.yaml              # Per-repo catalogs (eShop, buckpal, etc.)
+│       └── docs/
+│           ├── analysis/
+│           │   └── source-analysis.md  # Patterns across 8 reference implementations
+│           └── catalog/
+│               ├── _index.yaml     # Index of 8 reference repos
+│               ├── SCHEMA.yaml     # YAML schema for reference impl entries
+│               └── *.yaml          # Per-repo catalogs (eShop, buckpal, etc.)
 │
 ├── evidence-pool/                  # Raw source submissions (read-only reference)
 │   └── TheKataLog/
