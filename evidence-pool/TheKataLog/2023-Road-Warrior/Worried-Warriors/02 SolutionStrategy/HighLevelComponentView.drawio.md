@@ -1,0 +1,160 @@
+# HighLevelComponentView
+
+*Extracted text labels from `HighLevelComponentView.drawio`*
+
+## Domains
+
+- User Access Layer
+- iOS mobile app
+- Android mobile app
+- Web application
+- Travel planningPlanning Service
+- Enjoy your trip!Travel Service
+- Help me!Support Service
+- Time machineAnalytics Service
+- Data Capture
+- Planning data service
+- Agency updates
+- Updates Travel Networks
+- User Profile creator
+- Trip creator
+- Reservation creator
+- Trip reservation linker
+- Social media publisher
+- Trip share
+- Reservation updater
+- Trip activator
+- Support data service
+- Agent registrator
+- Help redirector
+- Support data archiver
+- OLAP data system
+- Report generator
+- Time machine API
+- Social media publisher
+- Trip archiver
+- Reservation update checker
+- Trip updater
+- Trip reservation linker
+- Trip & reservation provider
+- Reservation updater
+- Mail Extractor
+
+## Interaction
+
+- External Systems
+- User Access Layer
+- iOS mobile app
+- Android mobile app
+- Web application
+- Travel planningPlanning Service
+- Enjoy your trip!Travel Service
+- Help me!Support Service
+- Time machineAnalytics Service
+- Data Capture
+- Planning data service
+- Agency updates
+- Travel networks updates
+- User Profile creator
+- Trip creator
+- Reservation creator
+- Trip reservation linker
+- Social media publisher
+- Trip share
+- Reservation updater
+- Trip activator
+- Support data service
+- Agent registrator
+- Help redirector
+- Support data archiver
+- OLAP data system
+- Report generator
+- Time machine API
+- Social media publisher
+- Trip archiver
+- Reservation update checker
+- Trip updater
+- Trip reservation linker
+- Trip & reservation provider
+- Reservation updater
+- API Gateway
+- API Gateway
+- Mail updates
+- Async Message Queue
+- Async Message Queue
+- Async Message Queue
+- Async Message Queue
+- Social media
+- Travel networks
+- Agency
+- Mail
+- GPS
+
+## DataFlowModules
+
+- Outbound
+- Front end
+- Core
+- Inbound
+- Agency
+- Social Media
+- Help redirector
+- Social Media Publisher
+- Trip Share
+- Web UI
+- Mobile App
+- traveler updates
+- get content
+- API Management
+- Trip
+- assign to
+- Reservation
+- Create, Update, Delete
+- Reservation Inbox
+- Reservation Update Checker
+- Mail reservation discovery
+- Agency Change Capture
+- Apollo Change Capture
+- Master Data
+- Traveler
+- Agents
+
+## Service boundaries domain
+
+- Travel planningPlanning Service
+- Enjoy your trip!Travel Service
+- Help me!Support Service
+- Data Capture
+- Planning data service
+- Mail Extractor
+- Agency updates
+- Updates Travel Networks
+- User Profile creator
+- Trip creator
+- Reservation creator
+- Trip reservation linker
+- Social media publisher
+- Trip share
+- Reservation updater
+- Trip activator
+- Support data service
+- Agent registrator
+- Help redirector
+- Support data archiver
+- OLAP data system
+- Report generator
+- Time machine API
+- Mobile app
+- Web application
+- Web application
+- Mobile app
+- Mobile app
+- Web application
+- Agent registrator
+- Trip archiver
+- Social media publisher
+- Reservation update checker
+- Trip reservation linker
+- Trip updater
+- Trip & reservation provider
+- Reservation updater

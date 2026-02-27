@@ -1,0 +1,145 @@
+# ARCH-KATA-00_Requirement_Analysis_frank
+
+*Extracted text labels from `ARCH-KATA-00_Requirement_Analysis_frank.drawio`*
+
+## Quality Requirements
+
+- Software Product Quality ISO 25010
+- Functional Suitability
+- Reliability
+- Performance efficiency
+- Operability (Useability)
+- Security
+- Compatibility
+- Maintainability
+- Transferability
+- Appropriateness
+- Accuracy
+- Compliance
+- Availability
+- Fault tolerance
+- Recoverability
+- Compliance
+- Timebehavior
+- Resourceutilisation
+- Compliance
+- Appropriateness-recogniseability
+- Learnability
+- Ease-of-use
+- Helpfulness
+- Attractiveness
+- Technical-accessibility
+- Compliance
+- Confidentiality
+- Integrity
+- Non-repudiation
+- Accountability
+- Authenticity
+- Compliance
+- Replaceability
+- Coexistence
+- Interoperability
+- Compliance
+- Modularity
+- Reusability
+- Analyzability
+- Changeability
+- Modificationstability
+- Testability
+- Compliance
+- Portability
+- Adaptability
+- Installability
+- Compliance
+- R1: Poll email looking for travel-related emails
+- R3: The system must interface with the agency’s existing airline, hotel, and car rental interface system to update travel details Additional Context: must integrate seamlessly with existing travel systems
+- R3: Updates must be in the app within 5 minutes of an update
+- R6: Richest user interface possible across alldeployment platforms
+- R7: Provide end-of-year summary reports for userswith a wide range of metrics about their travelusage
+- R8: Road Warrior gathers analytical data from userstrips for various purposes - travel trends, locations,airline and hotel vendor preferences, cancellationand update frequency, and so on.
+- TR1: Users must be able to access the system at alltimes (max 5 minutes per month of unplanneddowntime)
+- TR3: Response time from web (800ms) and mobile(First-contentful paint of under 1.4 sec)
+- Users: 2 million active users/week
+- Accuracy of correct identified travel-related emails: The email polling system should accurately identify travel-related emails based on the input parameters. True Positives (correctly identified travel-related emails).False Positives (non-travel-related emails incorrectly identified as travel-related).True Negatives (non-travel-related emails correctly identified as non-travel-related).False Negatives (travel-related emails incorrectly classified as non-travel-related).
+- Context: must work internationally
+- Context: must work internationally
+- Must be available in different languages
+- Context: Must be accessible/available throughout the globe
+- Must be able to recover within 5 minutes
+- Near-Realtime
+- Analytical data of the user must be protected
+- Wide range of metrics: Assumption: will be extended in future
+
+## System business context
+
+- Traveler
+- Airline
+- Road Warrior (global)
+- Hotel
+- 1...15 million  (reserve, search, book, cancel ..)
+- car rental
+- social media
+- name
+- 1
+- name
+- 1
+- share travel infos
+- suppliers help support
+- name
+- 1
+- communicate
+- journey trip
+- 1
+- rent
+- 0..n
+- book
+- 0..n
+- book
+- 0..n
+- Legend
+- colored external system
+- RW employee
+- eMail
+- 1
+- administer
+- 1..n
+- travelsystems (i.e, SABRE, APOLLO)
+- booking
+- 1..10
+- eMail
+- others. public transport, train, scooter, bike etc.
+- Travel Assistent
+- later: payments, Ads, fees
+- later: extensions
+- suppliers
+- travel agency
+- social media
+
+## technical context
+
+- Road Warrior (global)
+- social media
+- suppliers help support
+- Mail
+- Dashboard
+- end year report
+- HTTPS
+- confirmation ID
+- SABRE, APOLLO ...
+- SMTP
+- HTTPS
+- HTTPS
+- HTTPS
+- HTTPS
+- ID Provider
+- OAuth/OID
+- Text
+- Scan, Grouping around confirmationID
+- Text
+- Manual Alternative: D&D Filter
+
+## component view
+
+- acoount
+- travel
+- reports

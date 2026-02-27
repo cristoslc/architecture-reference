@@ -1,0 +1,116 @@
+# Subsystems-Interaction
+
+*Extracted text labels from `Subsystems-Interaction.drawio`*
+
+- 000 All @ 50% opacity
+- Authentcate/Authorize
+- API Gateway
+- live triip data
+- Trip Sync Mgr
+- Notification Mgr
+- add/remove/updatetrip
+- Broadcast/Trip updates
+- share trip details
+- scrape
+- generate reports
+- Dashboard Mgr
+- Hepdesk Mgmt
+- Vendor Mgmt
+- helpdesk query
+- Add/Remove vendors
+- Travel Service Provider
+- Trip Organizer
+- Social Media Service
+- Email Service
+- get whitelistedemails/filters
+- User Config Mgmt
+- Trip Summary Provider
+- Register
+- Get User
+- Identity Mgmt
+- Add/UpdateUser Profile
+- User Mgmt
+- Data Mgmt
+- UI
+- 000 All
+- Authentcate/Authorize
+- API Gateway
+- live triip data
+- Trip Sync Mgr
+- Notification Mgr
+- add/remove/updatetrip
+- Broadcast/Trip updates
+- share trip details
+- scrape
+- generate reports
+- Dashboard Mgr
+- Hepdesk Mgmt
+- Vendor Mgmt
+- helpdesk query
+- Add/Remove vendors
+- Travel Service Provider
+- Trip Organizer
+- Social Media Service
+- Email Service
+- get whitelistedemails/filters
+- User Config Mgmt
+- Trip Summary Provider
+- Register
+- Get User
+- Identity Mgmt
+- Add/UpdateUser Profile
+- User Mgmt
+- Data Mgmt
+- UI
+- 001 Register new user
+- API Gateway
+- Register
+- Add/UpdateUser Profile
+- User Mgmt
+- Data Mgmt
+- UI
+- Register New User
+- 002 Login
+- Authentcate/Authorize
+- API Gateway
+- Dashboard Mgr
+- Get User
+- return bearer token
+- informs of active user login
+- Identity Mgmt
+- Add/UpdateUser Profile
+- User Mgmt
+- Data Mgmt
+- UI
+- Login/Authenticate1. Authenticate2. Check user against UserMgmt3. Inform Dashboard Mgr of active user [will be useful for further use cases...]4. return valid bearer token5. Valid bearer token is must for all further usecase calls5.1. NOTE: ApiGateway will reject all calls with invalid bearer tokens
+- 004 Add Email Whitelist/filters
+- API Gateway
+- Dashboard Mgr
+- Updates
+- User Config Mgmt
+- Data Mgmt
+- UI
+- Add E-mail whitelist/ filtersPrecondition: Authenticated and with valid token
+- 005 User Ad/Re/Up Trips
+- API Gateway
+- add/remove/updatetrip
+- Dashboard Mgr
+- all bookingdetails
+- Travel Service Provider
+- Updatestrip/booking
+- get by PNR
+- Trip Organizer
+- Data Mgmt
+- UI
+- User manually adds/updates/deletes bookingPrecondition: Authenticated and with valid token1. Calls Trip Organizer with PNR2. Trip Organizer calls Travel Service Provider for all other details like Start/Emnd dates, Departure Arrival times, gate details, etc3. Commits details by informing Data Management
+- 006 Auto update via E-mail polling
+- API Gateway
+- scrape
+- Dashboard Mgr
+- Trip Organizer
+- Email Service
+- get whitelistedemails/filters
+- User Config Mgmt
+- Data Mgmt
+- UI
+- Auto update via E-mail pollingPrecondition: Authenticated and with valid token1. Activate E-mail scaping for user2. Get users ehitelist/filters3. Start polling3.1 Inform Trip Organizer of data from E-mail3.2 Trip Organizer will check if data is newer and commit

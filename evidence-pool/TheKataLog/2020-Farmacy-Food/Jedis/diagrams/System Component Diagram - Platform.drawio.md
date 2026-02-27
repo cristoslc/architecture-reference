@@ -1,0 +1,547 @@
+# System Component Diagram - Platform
+
+*Extracted text labels from `System Component Diagram - Platform.drawio`*
+
+## Legend
+
+- Layer 1
+- Non-Human Actor(Actor Type)
+- Description
+- API Name(API)
+- Description
+- Engine Name(Engine)
+- Engine DescriptionEngine could be cron based job or message broker consumer
+- Database Name
+- Description
+- Application Name(Mobile Application)
+- Description
+- Web Application Name(Web Application)
+- Description.This could be also module / widget in web app
+- Wormhole - used to indicate that this is a a copy of the same service instead of drawing complex lines that complicate visualisation
+- A calls or uses B in sync mode. For example API call or database query
+- A
+- B
+- A interfaces with B in async mode. For example, using a message broker when A is producer and B is consumer
+- A
+- B
+- Service / System Name(External Service)
+- Description
+- Capability Name
+- Used to visualise boundaries of a capability / domain
+- Human Actor(Person)
+- Description
+- System Name(Internal System)
+- Description
+- Legend
+
+## System Overview and Use Case Diagram
+
+- Layer 1
+- Registered Customer(Person)
+- Registered to FF services
+- Farmacy Food(The System)
+- Allows customers to buy food, subscribe to services, provide recommendations and receive personalised menu. As well as manage inventory
+- Walk-in Customer(Person)
+- Anonymous or Registered walk-in customer
+- Refiller(Person)
+- Refills meals in SmartFridges
+- Knowledge Employee(Person)
+- Analyses data
+- Kiosk Owner(Person)
+- Owns Kiosk with POS
+- Signs upLogs inEdits personal profileChanges preferencesCRUD Payment MethodDelete meSubmits feedback (VOC)Ranks mealsViews/Search meal nearbyCreate meal subscription
+- Authenticate CustomerNotify what meal was takenSend inventory statusSend health status
+- Reserve meal
+- Analyse dataCreate manufacturing programAdd KitchensAdd POS / FridgesRegister Kiosk OwnersBuilds menusCreate healthy food recommendations
+- Review FeedbacksReview rankingsHandle customer ticketsHandle disputes and chargebacks
+- Update inventory
+- Place manufacturing order
+- Fill mealsRemove expired meals
+- Pickup mealsReturn expired meals
+- View reportsOrder Meals for Kiosk
+- Authorize CCPickup Meal
+- CC authorizationCharge FundsReturns
+- Send notificationsRequest feedbacksRequest ratings
+- AuthenticatePickup meal
+- Smart Fridge / POS(Device)
+- Mini store / restaurant
+- Payment System(System)
+- Handles all money movement
+- Kitchen(System)
+- Kitchen
+- Customer Success Agent(Person)
+- CS Agent
+- System Overview and Use Case Diagram
+
+## System Component Diagram
+
+- Layer 1
+- Kitchen Capability
+- Card & Payment Capability
+- Identity and Profile Capability
+- Meal Inventory Capability
+- Feedback Capability
+- Fridge Capability
+- Fridge Admin Module(System Admin Web Application)
+- Allows users to manage / define new fridges and manage existing ones. Users can also view reports and dashboards
+- Identity Service(API)
+- Identity Management and authentication using user credentials
+- Wallet & Payment(API)
+- This service stores and processes customer credit cards: authorizations, charges, returns. This service is under PCI scope.
+- Fridges Database
+- Fridges definitions, configurations, statuses, metrics
+- Fridge Admin(API)
+- Fridge attributes such as location, properties, capacity, configuration, thresholds. Includes CRUD, list and search API.
+- authenticates using credit card (after swipe)publish events when meals are touched ormoved fridge receive notificationwhen customers pick wrongor someone else’s mealsclosing session when thefridge door is closed
+- authenticationusing credit cardreceives back CC token and user identity ID
+- publishes session closure event
+- authenticate
+- authenticate
+- uses
+- uses
+- get profile and settings
+- get profile and settings
+- send status, local metrics and parameters
+- gets identity attributes andverifies it is active and in a good stand
+- reads and updates  (on purchase) inventory
+- sendfeedback
+- sendfeedback
+- publish inventory update  / location change event
+- stores or updatescredit cards
+- stores or updatescredit cards
+- update and track inventory
+- Fridge Status (API)
+- Fridge health check, actual inventory, status, environment metrics like temperature, humidity etc.
+- Smart Fridge / POS(Device)
+- Pro-active smart fridge or POS device that periodically initiates connection and sends status
+- Purchase Session (API)
+- Creates purchase session based on User Identity and Credit Card BEFORE the door us opened. This service is under PCI scope since it receives and transfers credit card data (but doesn’t stores).Receives "meal touched" notifications from fridge device when meals are “touched” or moved by customersSends signal back to device when customers take “wrong” or someone else’s mealCaches transaction details in case payment service is down.
+- Purchase Sessions
+- Stores purchase sessions and keeps track on customer/fridge activity and interactions
+- Customer Accounts(API)
+- Customer profile and settings
+- Customer Accounts
+- Stores purchase sessions and keeps track on customer/fridge activity and interactions
+- update and track inventory
+- Demand Planning(Engine)
+- Planning and Async inventory update engine. Utilizes ML to determine which meals to order to which fridge, and when
+- Feedbacks & Ranking Results
+- Actual customer feedbacks and rankings
+- Feedback Collection(API)
+- Used to collect feedbacks initiated by customers in web or mobile apps
+- Cards & Payments
+- Stores credit cards and their unique card tokens so non-PCI services could indicate which card to use without knowing card details. Also stores Payments.
+- User Identities
+- Stores user identities
+- Card Processor 2(External Service)
+- Processes customer credit card: authorizations, charges, returns
+- Card Processor 1(External Service)
+- Processes customer credit card: authorizations, charges, returns
+- get meals (for surprise me)
+- get customercontact detailsand notification oreferences
+- Several card processors will be used for resiliency in case of default processor is unavailable
+- Meals
+- Stores meals types, amounts, allocations, expiration dates, prices, Inventory, Meal (instance) Attributes such as who ordered if it was created for subscribed customer
+- Meal Types(API)
+- Meal catalog, meal CRUD
+- Meal Search(API)
+- API for users to search and present meals either near location or kind
+- Refiller Application(Mobile Application)
+- A mobile application used by refiners to indicate which meal went to with fridge and what shelf/placement
+- Work Order Creation(Engine)
+- Creates work orders for the kitchen
+- Kitchen
+- Meal works orders for kitchen, employee shifts, time tracking, kitchen inventory, meal attributes
+- Kitchen Service(API)
+- List production orders, shift CRUD, meal prep time tracking, quality control parameters
+- Kitchen Application(Web Application)
+- Kitchen management application
+- Material Order(Engine)
+- Creates purchase orders for material and ingredients
+- Suppliers(External Service)
+- Material and inventory suppliers
+- Meal Subscription Capability
+- Subscription Work Orders(Engine)
+- Creates meal reservations according to customer subscription
+- Meal Subscriptions
+- Stores customer subscription details and subscription templates
+- Subscription Service(API)
+- Allows to create meal subscriptions according to user preference. Per diem, weekly, monthly, yearly.
+- Subscription Notification(Engine)
+- Listens to meal updates, and sends notification to customer when the ordered meal arrived to fridge or feedback requests after meal purchases
+- Subscription Admin(API)
+- Manages subscription templates. Could be used by a dietitian for creating meal recommendations, including personalized subscriptions.
+- Kitchen Application(Web Application)
+- Kitchen management application
+- Subscription Admin Module(System Admin Web Application)
+- Allows users to manage / define new subscription types. Users can also view reports and dashboard.
+- Meal Inventory(API)
+- Updates meals inventory and meal status including meal attributes and parameters
+- Meal Inventory(API)
+- Updates meals inventory and meal status including meal attributes and parameters
+- Notifications Capability
+- Notifications
+- Stores notification channel and template configurations, as well as operational details and status
+- Notification Scheduler
+- Schedules notifications to be sent either immediately or at a later time
+- Notification Configuration Service(API)
+- Used to configure notification channels and templates. CRUD and List.
+- Notification Admin Module(System Admin Web Application)
+- Used to configure notification channels and templates
+- System Component Diagram
+- Farmacy Food(Customer Mobile Application)
+- Similarly like Web, this is a Mobile application that customers use to interact with the system.
+- Farmacy Food(Customer Web Application)
+- Web application that customers use to interact with the system. Includes sign up, login, profile, settings, payment methods, subscriptions, feedbacks, advices and recommendations
+- Farmacy Food(Customer Mobile Application)
+- Similarly like Web, this is a Mobile application that customers use to interact with the system.
+- Farmacy Food(Customer Web Application)
+- Web application that customers use to interact with the system. Includes sign up, login, profile, settings, payment methods, subscriptions, feedbacks, advices and recommendations
+- Farmacy Food(Customer Mobile Application)
+- Similarly like Web, this is a Mobile application that customers use to interact with the system.
+- Farmacy Food(Customer Web Application)
+- Web application that customers use to interact with the system. Includes sign up, login, profile, settings, payment methods, subscriptions, feedbacks, advices and recommendations
+- consumes session closure event
+- publishes work order creation message
+- consume work order creation message
+- consume work order creation message
+- publish work order creation message
+- createand managemealsubscriptions
+- consume inventory update  / location change event
+- publish notificationmessage
+- consume notification message
+- Notification Sender
+- Sends notification to users or staff. Know whether to use push notifications to mobile app, email, or SMS.
+- check if thereis a subscribed meal for specific customer in specific fridge
+
+## Data Platform Diagram
+
+- Layer 1
+- Sources
+- Ingestion
+- Store
+- Processing
+- Serving
+- System EngineEvents / Messages
+- API ServiceEvents / Messages
+- Databases
+- Event Bus
+- publish
+- storerawdata
+- storerawdata
+- query andenrich
+- run model
+- query
+- store processeddata
+- query
+- queryfor historical data
+- query
+- storepre-calculated,processed oraggregatedfeaturesfor ML models
+- query
+- publish
+- Streaming Ingestion(Engine)
+- Used to store raw data for further processing
+- Batch Ingestion(Engine)
+- Used to enrich and store raw as well as enriched data
+- Data Lake
+- Used to store raw data
+- Analytics and Processing(Engine)
+- Used to enrich, analyse and process data
+- ML Models(API)
+- Used to host and serve machine learning models
+- ML Store
+- Used to store ML trained data (pickles) and features
+- ML Training(Engine)
+- Used to train ML models
+- External Sources
+- Data Reporting(Web Application)
+- Used for analytics, operational reports, business performance tracking, data exploration, demand planning
+- Data Warehouse
+- Used to store and serve processed and analysed data
+- Ad Hoc Discovery and Development(Web Application)
+- Used to research data by data scientists (like Jupyter)
+- publish
+- consume
+- Data Platform Diagram
+- enrich
+
+## System Overview and Use Case Diagram - Platform
+
+- Layer 1
+- Registered Customer(Person)
+- Registered to FF services
+- Farmacy Food(The System)
+- Allows customers to buy food, subscribe to services, provide recommendations and receive personalised menu. As well as manage inventory
+- Walk-in Customer(Person)
+- Anonymous or Registered walk-in customer
+- Refiller(Person)
+- Refills meals in SmartFridges
+- Knowledge Employee(Person)
+- Analyses data
+- Kiosk Owner(Person)
+- Owns Kiosk with POS
+- Signs upLogs inEdits personal profileChanges preferencesCRUD Payment MethodDelete meSubmits feedback (VOC)Ranks mealsViews/Search meal nearbySearch for meal plansCreate meal subscriptionSubscribe to ArticlesCommunicate with Nutrition ExpertView/Read articlesRequest personal menu
+- Authenticate CustomerNotify what meal was takenSend inventory statusSend health status
+- Reserve meal
+- Analyse dataCreate manufacturing programAdd KitchensAdd POS / FridgesRegister Kiosk Owners
+- Review FeedbacksReview rankingsHandle customer ticketsHandle disputes and chargebacks
+- Update inventory
+- Build GENERIC menusBuild PERSONAL menusAccess personal customer profilePublish articlesCommunicate with customer
+- Update inventory
+- Place manufacturing order
+- Fill mealsRemove expired meals
+- Pickup mealsReturn expired meals
+- View reportsOrder Meals for Kiosk
+- AuthenticateAuthorize CCPickup Meal
+- CC authorizationCharge FundsReturns
+- Send notificationsRequest feedbacksRequest ratings
+- AuthenticateAuthorize CCPickup meal
+- Smart Fridge / POS(Device)
+- Mini store / restaurant
+- Card Processor(External System)
+- Processes customer credit card: authorizations, charges, returns
+- Kitchen(System)
+- Kitchen
+- Customer Success Agent(Person)
+- CS Agent
+- System Overview and Use Case Diagram
+- Nutrition Expert(Person)
+- Creates  meal menus andrecommendations
+- ChefTec(External System)
+- Inventory Control, Nutritional Analysis, Purchasing & Ordering, Production, and Requisitioning & Transfer
+- QuickBooks(External System)
+- Accounting, Book Management, Invoicing
+
+## System Component Diagram - Platform
+
+- Layer 1
+- Kitchen Capability
+- Card & Payment Capability
+- Identity and Profile Capability
+- Meal Inventory Capability
+- Feedback Capability
+- Fridge Capability
+- Fridge Admin Module(System Admin Web Application)
+- Allows users to manage / define new fridges and manage existing ones. Users can also view reports and dashboards
+- Identity Service(API)
+- Identity Management and authentication using user credentials
+- Wallet & Payment(API)
+- This service stores and processes customer credit cards: authorizations, charges, returns. This service is under PCI scope.
+- Fridges Database
+- Fridges definitions, configurations, statuses, metrics
+- Fridge Admin(API)
+- Fridge attributes such as location, properties, capacity, configuration, thresholds. Includes CRUD, list and search API.
+- authenticates using credit card (after swipe)publish events when meals are touched ormoved fridge receive notificationwhen customers pick wrongor someone else’s mealsclosing session when thefridge door is closed
+- authenticationusing credit cardreceives back CC token and user identity ID
+- publishes session closure event
+- authenticate
+- authenticate
+- uses
+- uses
+- get profile and settings
+- get profile and settings
+- send status, local metrics and parameters
+- gets identity attributes andverifies it is active and in a good stand
+- reads and updates  (on purchase) inventory
+- sendfeedback
+- sendfeedback
+- publish inventory update  / location change event
+- stores or updatescredit cardsor perform payment
+- stores or updatescredit cardsorperform payment
+- consume work order creation message
+- update and track inventory
+- Fridge Status (API)
+- Fridge health check, actual inventory, status, environment metrics like temperature, humidity etc.
+- Smart Fridge / POS(Device)
+- Pro-active smart fridge or POS device that periodically initiates connection and sends status
+- Purchase Session (API)
+- Creates purchase session based on User Identity and Credit Card BEFORE the door us opened. This service is under PCI scope since it receives and transfers credit card data (but doesn’t stores).Receives "meal touched" notifications from fridge device when meals are “touched” or moved by customersSends signal back to device when customers take “wrong” or someone else’s mealCaches transaction details in case payment service is down.
+- Purchase Sessions
+- Stores purchase sessions and keeps track on customer/fridge activity and interactions
+- Customer Accounts(API)
+- Customer profile and settings
+- Customer Accounts
+- Stores purchase sessions and keeps track on customer/fridge activity and interactions
+- Demand Planning(Engine)
+- Planning and Async inventory update engine. Utilizes ML to determine which meals to order to which fridge, and when
+- Feedbacks & Ranking Results
+- Actual customer feedbacks and rankings
+- update and track inventory
+- Feedback Collection(API)
+- Used to collect feedbacks initiated by customers in web or mobile apps
+- Cards & Payments
+- Stores credit cards and their unique card tokens so non-PCI services could indicate which card to use without knowing card details. Also stores Payments.
+- User Identities
+- Stores user identities
+- Card Processor 2(External Service)
+- Processes customer credit card: authorizations, charges, returns
+- Card Processor 1(External Service)
+- Processes customer credit card: authorizations, charges, returns
+- Several card processors will be used for resiliency in case of default processor is unavailable
+- Meals
+- Stores meals types, amounts, allocations, expiration dates, prices, Inventory, Meal (instance) Attributes such as who ordered if it was created for subscribed customer
+- get meals (for surprise me)
+- get customercontact detailsand notification preferences
+- Meal Types(API)
+- Meal catalog, meal CRUD
+- Meal Search(API)
+- API for users to search and present meals either near location or kind
+- CRUD meal types
+- Get personal details and preferencesfor meal plan personalization
+- Get meal plans
+- Get personal details and preferencesfor meal plan personalization
+- Get meal plans
+- Get meal plans
+- Get meal plans
+- Read content
+- Read content
+- Refiller Application(Mobile Application)
+- A mobile application used by refiners to indicate which meal went to with fridge and what shelf/placement
+- Work Order Creation(Engine)
+- Creates work orders for the kitchen
+- Kitchen
+- Meal works orders for kitchen, employee shifts, time tracking, kitchen inventory, meal attributes
+- Get Referral ID
+- When purchase event is published in the system event bus, R&R engine consumes the message and retrieves referral ID of the customer
+- Get Creditsto calculate final price for customers (and reward them)
+- uses
+- Kitchen Service(API)
+- List production orders, shift CRUD, meal prep time tracking, quality control parameters
+- Get / List Meal Types
+- publish base price change event for meal type
+- execute pricing ruleand calculate new price per meal type
+- Get / List Meal Types
+- pay
+- Get / List Meal Types
+- Get Prices
+- Get Prices
+- publishpricing rule change event
+- Kitchen Application(Web Application)
+- Kitchen management application
+- Material Order(Engine)
+- Creates purchase orders for material and ingredients
+- ChefTec(External Service)
+- Inventory Control, Nutritional Analysis, Purchasing & Ordering, Production, and Requisitioning & Transfer
+- Meal Subscription Capability
+- Subscription Work Orders(Engine)
+- Creates meal reservations according to customer subscription
+- Meal Subscriptions
+- Stores customer subscription details and subscription templates
+- Subscription Service(API)
+- Allows to create meal subscriptions according to user preference. Per day, weekly, monthly, yearly.
+- Subscription Notification(Engine)
+- Listens to meal updates, and sends notification to customer when the ordered meal arrived to fridge or feedback requests after meal purchases
+- Kitchen Application(Web Application)
+- Kitchen management application
+- Subscription Admin Module(System Admin Web Application)
+- Allows users to manage subscriptions. Users can also view reports and dashboard.
+- Meal Inventory(API)
+- Updates meals inventory and meal status including meal attributes and parameters
+- Meal Inventory(API)
+- Updates meals inventory and meal status including meal attributes and parameters
+- Notifications Capability
+- Notifications
+- Stores notification channel and template configurations, as well as operational details and status
+- Notification Scheduler(Engine)
+- Schedules notifications to be sent either immediately or at a later time
+- Notification Configuration Service(API)
+- Used to configure notification channels and templates. CRUD and List.
+- Notification Admin Module(System Admin Web Application)
+- Used to configure notification channels and templates
+- System Component Diagram
+- Farmacy Food(Customer Mobile Application)
+- Similarly like Web, this is a Mobile application that customers use to interact with the system.
+- Farmacy Food(Customer Web Application)
+- Web application that customers use to interact with the system. Includes sign up, login, profile, settings, payment methods, subscriptions, feedbacks, advices and recommendations
+- Farmacy Food(Customer Mobile Application)
+- Similarly like Web, this is a Mobile application that customers use to interact with the system.
+- Farmacy Food(Customer Web Application)
+- Web application that customers use to interact with the system. Includes sign up, login, profile, settings, payment methods, subscriptions, feedbacks, advices and recommendations
+- Farmacy Food(Customer Mobile Application)
+- Similarly like Web, this is a Mobile application that customers use to interact with the system.
+- Farmacy Food(Customer Web Application)
+- Web application that customers use to interact with the system. Includes sign up, login, profile, settings, payment methods, subscriptions, feedbacks, advices and recommendations
+- consumes session closure event
+- publishes work order creation message
+- consume work order creation message
+- publish work order creation message
+- createand managemealsubscriptionsusing meal plans as templates
+- consume inventory update  / location change event
+- publish notificationmessage
+- consume notification message
+- Notification Sender
+- Sends notification to users or staff. Know whether to use push notifications to mobile app, email, or SMS.
+- check if thereis a subscribed meal for specific customer in specific fridge
+- Expert Platform
+- Expert Application(Web Application)
+- Nutrition expert application for creating meals, meal plans, giving recommendations and interacting with customers
+- Meal Plans Admin(API)
+- CRUD meal plans
+- Meal Types(API)
+- Meal catalog, meal CRUD
+- Meal Plans
+- Meal plans
+- Farmacy Food(Customer Mobile Application)
+- Similarly like Web, this is a Mobile application that customers use to interact with the system.
+- Farmacy Food(Customer Web Application)
+- Web application that customers use to interact with the system. Includes sign up, login, profile, settings, payment methods, subscriptions, feedbacks, advices and recommendations
+- Get meal plans
+- Customer Accounts(API)
+- Customer profile and settings
+- Meal Plans(API)
+- List and get meal plans; Like or Dislike Meal Plans
+- Expert Communication(API)
+- A messaging service for communication between Experts and Customers. In the future might be refactored to a dedicated messaging capability.
+- Messages
+- Messages store
+- Content Management Capability
+- CMS(API)
+- Content Management System API
+- CMS
+- CMS store
+- CRUD Content
+- Farmacy Food(Customer Mobile Application)
+- Similarly like Web, this is a Mobile application that customers use to interact with the system.
+- Farmacy Food(Customer Web Application)
+- Web application that customers use to interact with the system. Includes sign up, login, profile, settings, payment methods, subscriptions, feedbacks, advices and recommendations
+- Referrals, Rewardsand Credits Capability
+- Referral Code Creation(API)
+- Creates referral codes and referee records.
+- Reward Policy Management(API)
+- CRUD reward policies
+- Referrals
+- IDs of customers that asked referral codes, customer referral codes, successful referrals per customer, referred customer purchases.
+- Reward Policies
+- Stores reward policies
+- Referrals and Rewards(Engine)
+- Tracks referred customer purchases. Updates customer credits and assigns rewards according to reward policy.
+- An example of a reward policy could be:1. Update customer credits with each referred meal.2. Grant customer free meal each time a referred customer purchases 1st, 100th and 1000th meal
+- Purchase Session (API)
+- Creates purchase session based on User Identity and Credit Card BEFORE the door us opened. This service is under PCI scope since it receives and transfers credit card data (but doesn’t stores).Receives "meal touched" notifications from fridge device when meals are “touched” or moved by customersSends signal back to device when customers take “wrong” or someone else’s mealCaches transaction details in case payment service is down.
+- Credits
+- Stores credit points for customers
+- Credits(API)
+- CRUD reward policies
+- QuickBooks(External Service)
+- Accounting, Book Management, Invoicing
+- Pricing Capability
+- Pricing Service(API)
+- This service is for getting latest prices
+- Calculated Prices
+- Stores calculates prices
+- Pricing Policy Service(API)
+- This service is for managing pricing policy rules per locations, time, meal types, customer credits, customer types and other attributes
+- Pricing Policy Rules
+- Stores pricing policy rules
+- Pricing Admin Module(System Admin Web Application)
+- Allows users to manage / define pricing policy rules
+- Pricing Calculation(Engine)
+- Reactive pricing calculation engine
+- Meal Types(API)
+- Meal catalog, meal CRUD
+- Farmacy Food(Customer Mobile Application)
+- Similarly like Web, this is a Mobile application that customers use to interact with the system.
+- Farmacy Food(Customer Web Application)
+- Web application that customers use to interact with the system. Includes sign up, login, profile, settings, payment methods, subscriptions, feedbacks, advices and recommendations
+- When session starts get latest prices per current meals (meal types) in the fridgeand “freeze” prices per session.If prices updated during the ongoingsession then customer is not impacted.
+- When session starts get latest prices per current meals (meal types) in the fridgeand “freeze” prices per session.If prices updated during the ongoingsession then customer is not impacted.

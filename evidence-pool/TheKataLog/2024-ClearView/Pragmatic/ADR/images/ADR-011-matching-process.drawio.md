@@ -1,0 +1,55 @@
+# ADR-011-matching-process
+
+*Extracted text labels from `ADR-011-matching-process.drawio`*
+
+- Matching Process
+- A
+- B
+- C
+- D
+- E
+- F
+- AI
+- Resume
+- Story
+- Vector features
+- ...
+- Static Score Matching
+- AI
+- Role
+- Vector features
+- ...
+- AI
+- Resume
+- Ai
+- Story
+- Human readablefeatures
+- Static Score Matching
+- AI
+- Role
+- Human readablefeatures
+- Resume
+- AI Score Matching
+- Role
+- AI
+- Resume
+- Story
+- AIScore Matching
+- Role
+- AI
+- Resume
+- AI
+- Story
+- Human readablefeatures
+- AI ScoreMatching
+- AI
+- Role
+- Human readablefeatures
+- Resume
+- Story
+- AI
+- Role
+- AI
+- Choose role specific features
+- Story features based on specific role
+- Static Matching

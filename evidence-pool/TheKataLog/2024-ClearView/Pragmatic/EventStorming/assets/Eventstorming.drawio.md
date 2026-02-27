@@ -1,0 +1,110 @@
+# Eventstorming
+
+*Extracted text labels from `Eventstorming.drawio`*
+
+- Actor
+- Command
+- Domain-Events
+- External Systems
+- EventstormingTeam: 	PragmaticDate	23.09.2024
+- A: AssumptionQ: Questions  P: ProblemsD: Decision
+- register
+- Job Candidate
+- Job candidate registered
+- log in
+- Job Candidate
+- Job logged in registered
+- upload resume
+- Job Candidate
+- resume uploaded
+- resume tipps recived
+- delte account
+- Job Candidate
+- Account deleted
+- delete resume
+- Job Candidate
+- resume delted
+- submit resume
+- Job Candidate
+- resume published
+- anonymized resume to Story
+- Story published
+- A:Human Readable
+- A: Story is an anonymized version of the resume
+- submit open role
+- Hiring Manager
+- get published role
+- review matches with stories
+- Hiring Manager
+- starting billing process
+- Match created with story and open role
+- upload open role
+- Hiring Manager
+- new open role is uploaded
+- change open role
+- Hiring Manager
+- open role is changed
+- delte open role
+- Hiring Manager
+- open role is deleted
+- unlockcandidate
+- Billing system
+- P: How is the payment process. with in System Currency or...
+- payment rejected / declined
+- reject / decline payment
+- Hiring Manager
+- payment accepted
+- pay
+- Hiring Manager
+- Job Candidate unlocked
+- HR-Systems(1 to n)
+- Job Candidate hired
+- mark unlocked Job Candidate as hired
+- Hiring Manager
+- Job Candidate unhired
+- reject hiring
+- Job Candidate
+- A: Job Candidate can overrule a hiring
+- A: We don't want that usersmust accept it
+- D: payment process synchronous
+- For the sake of clarity, analysis and report data are not explicitly included in the flow.
+- saved survey reult about Job Candidate
+- fill out survey
+- Hiring Manager
+- saved survey reult about Hiring Manager
+- fill out survey
+- Job Candidate
+- Job Candidate hired
+- mark unlocked Job Candidate as hired
+- Hiring Manager
+- send survey to...
+- ... Hiring Manager
+- ... Job Candidate
+- creates monthly report
+- Administator
+- monthly report generated
+- D: Should be automatically
+- views monthly report
+- Hiring Manager
+- showed monthly report
+- check quality of stories
+- Administator
+- show generation from resume to stories
+- update survey about Job Candidate
+- Administator
+- updated survey about Job Candidate
+- update survey about Employer
+- Administator
+- updated survey about Employer
+- accept Employer
+- Administator
+- accepted Employer
+- reject Employer
+- Administator
+- rejected Employer
+- maintain User
+- Administator
+- User maintained
+- show match
+- Job Candidate
+- show Employer Details

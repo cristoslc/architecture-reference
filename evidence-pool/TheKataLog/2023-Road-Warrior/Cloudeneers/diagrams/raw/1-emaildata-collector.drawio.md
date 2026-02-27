@@ -1,0 +1,16 @@
+# 1-emaildata-collector
+
+*Extracted text labels from `1-emaildata-collector.drawio`*
+
+- EmailScanner - ServicePublish travel related email to queue from user mailbox.
+- Travel relevent email
+- Publish
+- EmailParser - ServiceExtract data from email and publish to queue
+- Subscribe
+- Travel data
+- UpdateMerger - ServiceClean and unify travel data
+- Database
+- Service -Serverless functions
+- Synchronous
+- Asynchronous
+- Legend

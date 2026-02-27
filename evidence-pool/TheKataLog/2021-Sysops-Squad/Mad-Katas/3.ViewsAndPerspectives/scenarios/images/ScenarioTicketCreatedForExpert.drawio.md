@@ -1,0 +1,45 @@
+# ScenarioTicketCreatedForExpert
+
+*Extracted text labels from `ScenarioTicketCreatedForExpert.drawio`*
+
+- Schedule
+- Actors
+- Scenario: Ticket Created for Expert
+- Expert App
+- Ticket
+- Expert
+- Expert
+- 1
+- Accept Ticket
+- 2
+- Find Skilled Expert
+- <from Customer Creates Ticket scenario>
+- No
+- Yes
+- Is Expert available for Appointment(s)?
+- 4a
+- 4b
+- Assign Expert to Ticket
+- Update Expert Schedule *
+- Notification
+- 5
+- Alert Expert to new Ticket
+- Yes
+- No
+- Ticket accepted?
+- y6c
+- y6a
+- y6b
+- Accept Ticket
+- y7
+- Notify Customer of appointment confirmation
+- Show as accepted
+- 3
+- Mark Expert Schedule Pending
+- * Mark accepted appointment as busy and, if appropriate, mark unaccepted appointment(s) as free.
+- n6b
+- n6a
+- Refuse Ticket
+- Mark Expert Schedule Free
+- Customer
+- Notify Expert of assigned Ticket via SMS

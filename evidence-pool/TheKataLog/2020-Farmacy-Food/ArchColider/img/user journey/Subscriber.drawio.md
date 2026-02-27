@@ -1,0 +1,42 @@
+# Subscriber
+
+*Extracted text labels from `Subscriber.drawio`*
+
+- JOURNEY: Subscribed user makes an order & picks the meal
+- Actors
+- Subscriber
+- Menu Catalog
+- Selects a Meal
+- Point of Sale
+- Has Coupon?
+- Ordering System
+- Make Order
+- Access Code
+- Generates
+- Browses
+- Loyalty / Promotion System
+- Discount
+- Ghost Kitchen
+- Make Batch of Meals
+- Scheduling System
+- Pick & Deliver
+- Yes
+- apply discount
+- No
+- order preparation request
+- Smart Fridge
+- Provide Meal
+- Is Code Valid?
+- Yes
+- No (generate new code request)
+- deliver food to the fridge
+- pick up the meal
+- Feedback/Review System
+- Create Review
+- pick up meal
+- mark meal as reviewable
+- rate the meal
+- Notification System
+- Notification
+- send "order accepted" notification
+- send "order ready to be picked" notification
