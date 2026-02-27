@@ -1,6 +1,6 @@
 # ShopWise AI Assistant -- Comparative Analysis
 
-**Challenge:** AI Winter 2024 Season | 4 Teams
+**Challenge:** AI Winter 2024 Season | 3 Teams
 **Kata:** Design and build an AI-powered support assistant for ShopWise Solutions, an e-commerce platform, handling customer inquiries on products, orders, returns, and refunds through natural language understanding and seamless database integration.
 
 ---
@@ -11,28 +11,28 @@ The ShopWise AI Assistant kata was the first AI-focused challenge in the O'Reill
 
 This made the challenge uniquely demanding. Teams had to demonstrate competence not just in software architecture, but in LLM selection, prompt engineering, data pipeline design, agent orchestration, and AI evaluation -- disciplines that many architecture practitioners are still developing fluency in.
 
-Four teams competed. Their submissions ranged from deeply documented multi-agent platforms with formal C4 diagrams and quantitative evaluation pipelines, to lean low-code prototypes that prioritized speed of delivery over architectural formalism. The spread in approach makes this an unusually instructive set of submissions for practitioners navigating the emerging intersection of AI engineering and software architecture.
+Three teams placed. Their submissions ranged from a deeply documented multi-agent platform with formal C4 diagrams and a quantitative evaluation pipeline, to a lean low-code prototype that prioritized speed of delivery over architectural formalism, to a monolithic text-to-SQL pipeline that differentiated itself through multilingual support. The spread in approach makes this an unusually instructive set of submissions for practitioners navigating the emerging intersection of AI engineering and software architecture.
 
 ---
 
 ## Team Comparison Matrix
 
-| Dimension | ConnectedAI (1st) | Breakwater (2nd) | Transformers (3rd) | IntelliMutual (Runner-up) |
-|---|---|---|---|---|
-| **Architecture Style** | Multi-agent supervisor hierarchy | Workflow-orchestrated multi-agent (low-code) | Monolithic text-to-SQL pipeline | Two-chain pipeline |
-| **Orchestration Framework** | LangGraph | n8n (visual workflow) | None (direct API calls) | LangChain |
-| **Primary LLM** | Claude 3.5 Sonnet (reasoning), Gemini 1.5 Flash (routing) | OpenAI GPT (via n8n) | Google Gemini Pro + OpenAI GPT | Claude 3.5 Sonnet (via Amazon Bedrock) |
-| **Database** | MongoDB (NoSQL) + PostgreSQL | PostgreSQL | SQLite | PostgreSQL |
-| **Frontend** | React.js with WebSockets | n8n built-in chat UI | Flask with Bootstrap HTML/CSS/JS | Streamlit |
-| **Deployment** | Google Cloud Run, Firebase, Docker | Docker Compose (local) | Local only (no containerization) | AWS ECS, RDS, ELB, Docker |
-| **ADR Count** | 12 | 5 | 0 | 3 (2 are blank templates) |
-| **ADR Quality** | Thorough: context, options, consequences | Concise but capture real pivots | N/A | Skeletal; decisions not recorded |
-| **Formal Diagrams** | C1, C2, C3 (full C4 hierarchy) | None | Conceptual flow diagrams only | Single architecture overview |
-| **Evaluation Framework** | Ragas + LangFuse (quantitative metrics) | None | None | None |
-| **Video Presentation** | Yes (presentation + agent demo) | No | No | No |
-| **Team Size** | 5 (named, with roles) | Not specified | Not specified | Not specified |
-| **Multilingual Support** | No | No | Yes (5 languages) | No |
-| **Cloud Deployed** | Yes (GCP) | No | No | Yes (AWS) |
+| Dimension | ConnectedAI (1st) | Breakwater (2nd) | Transformers (3rd) |
+|---|---|---|---|
+| **Architecture Style** | Multi-agent supervisor hierarchy | Workflow-orchestrated multi-agent (low-code) | Monolithic text-to-SQL pipeline |
+| **Orchestration Framework** | LangGraph | n8n (visual workflow) | None (direct API calls) |
+| **Primary LLM** | Claude 3.5 Sonnet (reasoning), Gemini 1.5 Flash (routing) | OpenAI GPT (via n8n) | Google Gemini Pro + OpenAI GPT |
+| **Database** | MongoDB (NoSQL) + PostgreSQL | PostgreSQL | SQLite |
+| **Frontend** | React.js with WebSockets | n8n built-in chat UI | Flask with Bootstrap HTML/CSS/JS |
+| **Deployment** | Google Cloud Run, Firebase, Docker | Docker Compose (local) | Local only (no containerization) |
+| **ADR Count** | 12 | 5 | 0 |
+| **ADR Quality** | Thorough: context, options, consequences | Concise but capture real pivots | N/A |
+| **Formal Diagrams** | C1, C2, C3 (full C4 hierarchy) | None | Conceptual flow diagrams only |
+| **Evaluation Framework** | Ragas + LangFuse (quantitative metrics) | None | None |
+| **Video Presentation** | Yes (presentation + agent demo) | No | No |
+| **Team Size** | 5 (named, with roles) | Not specified | Not specified |
+| **Multilingual Support** | No | No | Yes (5 languages) |
+| **Cloud Deployed** | Yes (GCP) | No | No |
 
 ---
 
@@ -78,17 +78,9 @@ Their distinguishing feature was multilingual support -- a translation layer for
 
 However, the architecture had significant limitations: a single-table SQLite schema merging products and orders, global mutable state for chat history (not session-safe), and no separation of concerns in the Flask application. There were no ADRs documenting any design decisions.
 
-### IntelliMutual: Two-Chain Pipeline
-
-IntelliMutual's architecture was clean and focused: a two-chain LangChain pipeline where the first chain converts user queries to SQL and the second chain converts SQL results to natural language. They used Claude 3.5 Sonnet through Amazon Bedrock and deployed to AWS ECS with RDS PostgreSQL.
-
-Their most technically interesting decision was using PostgreSQL's full-text search with `tsvector` indexing for better query matching -- a practical optimization that improved the quality of SQL generation. They also implemented SQL safety measures: SELECT-only validation and LIMIT enforcement to prevent runaway queries.
-
-The deployment was production-oriented (ECS, RDS, ELB), but they acknowledged the database was in a public subnet -- a security concern documented for future remediation. Unfortunately, two of their three ADRs were blank templates, making it difficult to understand the reasoning behind their decisions.
-
 ---
 
-## What Separated Winners from Runners-Up
+## What Distinguished the Top Teams
 
 ### 1. Documentation Depth and ADR Quality
 
@@ -96,7 +88,7 @@ The single largest differentiator was the quality and completeness of architectu
 
 Breakwater's 5 ADRs were more concise but equally valuable because they documented *real decision pivots* -- the Groq-to-OpenAI switch, the RAG-to-SQL pivot, the SQL-agent-to-Postgres-node workaround. These are the messy, honest records that help future practitioners.
 
-At the other end, Transformers had zero ADRs, and IntelliMutual's were mostly blank templates. In an architecture kata, the reasoning is the deliverable -- not just the code.
+Transformers had zero ADRs, which placed them at a significant disadvantage. In an architecture kata, the reasoning is the deliverable -- not just the code.
 
 ### 2. Quantitative AI Evaluation
 
@@ -104,7 +96,7 @@ ConnectedAI was the only team to implement a formal evaluation framework. Using 
 
 Their evaluation results revealed non-obvious insights: Gemini 1.5 Flash scored high on answer relevancy but zero on faithfulness for return-eligibility queries because it asked for an order ID even when one was provided. This led to a nuanced conclusion documented in their evaluation report -- that individual metrics are insufficient and must be interpreted holistically. They ultimately chose Claude 3.5 Sonnet for production despite its higher cost, based on qualitative multi-turn conversation testing.
 
-No other team attempted any form of systematic evaluation, which is a significant gap when building AI systems where output quality is non-deterministic.
+Neither Breakwater nor Transformers attempted any form of systematic evaluation, which is a significant gap when building AI systems where output quality is non-deterministic.
 
 ### 3. Multi-Agent Sophistication
 
@@ -112,23 +104,23 @@ ConnectedAI and Breakwater both implemented multi-agent architectures, but Conne
 
 The four-agent decomposition allowed ConnectedAI to produce C3 component diagrams for each agent, making the internal architecture of each specialist transparent. Breakwater's approach was effective but less visible architecturally -- the routing logic was embedded in prompts rather than expressed in infrastructure.
 
-Transformers and IntelliMutual both used single-pipeline architectures (text-to-SQL followed by response generation), which limited their ability to handle complex routing scenarios like "compare two products and tell me about my order for one of them."
+Transformers used a single-pipeline architecture (text-to-SQL followed by response generation), which limited their ability to handle complex routing scenarios like "compare two products and tell me about my order for one of them."
 
 ### 4. C4 Diagram Coverage
 
 ConnectedAI was the only team to produce a full C4 hierarchy: system context (C1), container diagrams for both the AI assistant and the responsible AI platform (C2), and component diagrams for each of the four specialist agents (C3). This made their architecture navigable at multiple levels of abstraction.
 
-Transformers had conceptual flow diagrams that described the pipeline but did not follow any formal notation. IntelliMutual had a single architecture overview image. Breakwater had no diagrams at all -- a notable gap given the visual nature of their n8n workflow approach.
+Transformers had conceptual flow diagrams that described the pipeline but did not follow any formal notation. Breakwater had no diagrams at all -- a notable gap given the visual nature of their n8n workflow approach.
 
 ---
 
 ## Common Patterns
 
-Despite their differences, several patterns appeared across multiple (or all) submissions:
+Despite their differences, several patterns appeared across the three placing teams:
 
 ### Text-to-SQL as Core Pattern
 
-All four teams converged on text-to-SQL as the primary mechanism for database interaction. Whether implemented through LangGraph tool-calling (ConnectedAI), n8n workflow nodes (Breakwater), direct Gemini Pro API calls (Transformers), or LangChain chains (IntelliMutual), every team chose to have the LLM generate SQL queries rather than use vector similarity search (RAG) as the primary retrieval mechanism.
+All three teams converged on text-to-SQL as the primary mechanism for database interaction. Whether implemented through LangGraph tool-calling (ConnectedAI), n8n workflow nodes (Breakwater), or direct Gemini Pro API calls (Transformers), every team chose to have the LLM generate SQL queries rather than use vector similarity search (RAG) as the primary retrieval mechanism.
 
 Breakwater explicitly tested RAG vs. SQL and documented that SQL outperformed RAG for their structured product/order data. This aligns with the emerging consensus that text-to-SQL is often superior to RAG for queries against well-structured relational data.
 
@@ -138,15 +130,15 @@ Teams that implemented multi-agent architectures (ConnectedAI, Breakwater) both 
 
 ### PostgreSQL as the Common Denominator
 
-Three of four teams used PostgreSQL (Breakwater, IntelliMutual, and ConnectedAI as a secondary store). Its combination of relational querying, full-text search (leveraged explicitly by IntelliMutual with `tsvector` indexing), and general ecosystem maturity made it the default choice. Only Transformers used SQLite, which introduced limitations (single-table schema, no concurrent access).
+Two of the three teams used PostgreSQL (Breakwater for their primary store, ConnectedAI as a secondary analytical store). Its combination of relational querying, full-text search capabilities, and general ecosystem maturity made it a natural default for structured e-commerce data. Transformers used SQLite, which introduced limitations (single-table schema, no concurrent access) but kept the deployment simple.
 
 ### Containerization for Portability
 
-Three teams (ConnectedAI, Breakwater, IntelliMutual) containerized their solutions with Docker, though to varying degrees. ConnectedAI deployed to Google Cloud Run; IntelliMutual deployed to AWS ECS; Breakwater provided a one-command `docker compose up -d` for local operation. Transformers was the only team with no containerization at all.
+Two teams (ConnectedAI, Breakwater) containerized their solutions with Docker, though to different degrees. ConnectedAI deployed to Google Cloud Run with a full cloud-native stack; Breakwater provided a one-command `docker compose up -d` for local operation. Transformers was the only team with no containerization at all, running purely as a local Flask application.
 
 ### LLM Provider Diversity
 
-No two teams used the exact same LLM configuration. Claude 3.5 Sonnet appeared in two submissions (ConnectedAI, IntelliMutual) but through different providers (Vertex AI vs. Amazon Bedrock). OpenAI appeared in three submissions but in different roles (primary model, secondary model, or sole model). Google Gemini appeared in two. This diversity suggests the AI assistant space has not yet consolidated around a single model provider, and teams are making pragmatic choices based on cost, capability, and platform familiarity.
+No two teams used the exact same LLM configuration. ConnectedAI employed a dual-model strategy with Claude 3.5 Sonnet for reasoning and Gemini 1.5 Flash for routing. Breakwater used OpenAI GPT through n8n's built-in integrations. Transformers combined Google Gemini Pro for SQL generation with OpenAI GPT for response synthesis. This diversity suggests the AI assistant space has not yet consolidated around a single model provider, and teams are making pragmatic choices based on cost, capability, and platform familiarity.
 
 ---
 
@@ -172,10 +164,6 @@ Breakwater's "Superceded" ADRs (Groq to OpenAI, RAG to SQL) are among the most h
 
 Transformers was the only team to implement multilingual support (Spanish, German, Hindi, French in addition to English). While their architecture was the simplest, this feature demonstrates awareness of a real-world requirement -- global e-commerce platforms serve multilingual customers. The translation layer was implemented as a pipeline stage, wrapping the core text-to-SQL flow.
 
-### IntelliMutual: SQL Safety Guardrails
-
-IntelliMutual's SELECT-only validation and LIMIT enforcement for generated SQL queries is a practical safety measure that other teams did not explicitly address. When an LLM generates SQL, there is an inherent risk of producing DELETE, UPDATE, or unbounded SELECT queries. IntelliMutual's approach of validating generated SQL before execution is a pattern that every text-to-SQL system should implement.
-
 ---
 
 ## Lessons for Practitioners
@@ -186,11 +174,11 @@ In traditional software architecture, ADRs document infrastructure and framework
 
 ### 2. Evaluation is an Architectural Concern, Not an Afterthought
 
-ConnectedAI's use of Ragas and LangFuse for quantitative evaluation was the single most sophisticated technical contribution across all submissions. Their finding that Gemini 1.5 Flash scored high on answer relevancy but zero on faithfulness illustrates a critical lesson: AI systems require evaluation infrastructure *built into the architecture*, not bolted on after deployment. The fact that three of four teams had no evaluation framework at all reflects a maturity gap in how the industry approaches AI system design.
+ConnectedAI's use of Ragas and LangFuse for quantitative evaluation was the single most sophisticated technical contribution across all submissions. Their finding that Gemini 1.5 Flash scored high on answer relevancy but zero on faithfulness illustrates a critical lesson: AI systems require evaluation infrastructure *built into the architecture*, not bolted on after deployment. The fact that neither of the other placing teams had an evaluation framework at all reflects a maturity gap in how the industry approaches AI system design.
 
 ### 3. Text-to-SQL Beats RAG for Structured Data
 
-All four teams converged on text-to-SQL rather than vector-based RAG for querying structured product and order databases. Breakwater explicitly tested both and found SQL superior. This pattern makes intuitive sense -- RAG excels at retrieving unstructured knowledge from documents, while structured data in relational databases is better accessed through SQL generation. Practitioners building AI assistants over structured data should default to text-to-SQL and only add RAG for genuinely unstructured content.
+All three teams converged on text-to-SQL rather than vector-based RAG for querying structured product and order databases. Breakwater explicitly tested both and found SQL superior. This pattern makes intuitive sense -- RAG excels at retrieving unstructured knowledge from documents, while structured data in relational databases is better accessed through SQL generation. Practitioners building AI assistants over structured data should default to text-to-SQL and only add RAG for genuinely unstructured content.
 
 ### 4. Multi-Agent Architectures Need Formal Structure
 
@@ -200,14 +188,14 @@ Both ConnectedAI and Breakwater implemented multi-agent architectures, but Conne
 
 Breakwater's second-place finish using n8n demonstrates that visual workflow tools can produce competitive results in a prototyping context. For teams exploring multi-agent architectures, starting with a low-code tool to validate agent topology and prompt design before committing to a code-based framework can dramatically reduce iteration time. The key is treating it as a stepping stone, not a destination -- as Breakwater's ADR explicitly acknowledges.
 
-### 6. Security Cannot Be Deferred in AI Systems
+### 6. SQL Safety Guardrails Are Essential for Text-to-SQL Systems
 
-IntelliMutual's acknowledgment that their database was in a public subnet, and ConnectedAI's ADR on authentication and authorization (ADR-008), highlight that AI systems face the same security concerns as any production system -- plus additional ones around prompt injection, data exfiltration through generated queries, and model access control. IntelliMutual's SQL safety guardrails (SELECT-only, LIMIT enforcement) are a minimum baseline that should be standard practice.
+When an LLM generates SQL, there is an inherent risk of producing DELETE, UPDATE, or unbounded SELECT queries. Any production text-to-SQL system should implement safety measures such as SELECT-only validation and LIMIT enforcement to prevent runaway or destructive queries. This is a minimum baseline that should be standard practice for teams adopting the text-to-SQL pattern.
 
 ### 7. Working Software Still Wins
 
-Across all four submissions, the teams that placed highest (ConnectedAI and Breakwater) had fully working, demonstrable systems. ConnectedAI provided video demos of each test scenario. Breakwater offered a one-command Docker startup. The challenge explicitly required building, not just designing -- and the results show that architectural rigor combined with working software is the winning combination.
+Across all three submissions, the teams that placed highest (ConnectedAI and Breakwater) had fully working, demonstrable systems. ConnectedAI provided video demos of each test scenario. Breakwater offered a one-command Docker startup. The challenge explicitly required building, not just designing -- and the results show that architectural rigor combined with working software is the winning combination.
 
 ---
 
-*Analysis based on team submissions to the O'Reilly Architecture Kata, AI Winter 2024 season. Team directories: `evidence-pool/TheKataLog/2024-ShopWise-AI/ConnectedAI/`, `evidence-pool/TheKataLog/2024-ShopWise-AI/Breakwater/`, `evidence-pool/TheKataLog/2024-ShopWise-AI/Transformers/`, `evidence-pool/TheKataLog/2024-ShopWise-AI/IntelliMutual/`. YAML catalog entries in `docs/catalog/`.*
+*Analysis based on team submissions to the O'Reilly Architecture Kata, AI Winter 2024 season. Team directories: `evidence-pool/TheKataLog/2024-ShopWise-AI/ConnectedAI/`, `evidence-pool/TheKataLog/2024-ShopWise-AI/Breakwater/`, `evidence-pool/TheKataLog/2024-ShopWise-AI/Transformers/`. YAML catalog entries in `docs/catalog/`.*

@@ -3,7 +3,7 @@
 > **Challenge:** Fall 2024 O'Reilly Architecture Kata
 > **Domain:** AI-powered HR platform for reducing bias in recruitment
 > **Client:** Diversity Cyber Council (501c3 Non-Profit)
-> **Teams analyzed:** 7
+> **Teams analyzed:** 3
 
 ---
 
@@ -11,82 +11,74 @@
 
 ClearView is a supplemental HR platform for the Diversity Cyber Council, a non-profit organization serving under-represented demographics in the tech industry. The system must anonymize candidate resumes using AI, construct bias-free "stories" from them, match candidates to open roles using LLMs, integrate with employers' existing HR systems, and aggregate data to reveal hiring disparities. Key tensions in the problem: the client is a non-profit with limited budget, yet the solution demands expensive AI/LLM capabilities; the system must eliminate bias while relying on LLMs that are themselves known to carry biases; and the platform must integrate with an unbounded number of third-party HR systems.
 
-Seven teams tackled this challenge. Three placed (1st through 3rd), and four were recognized as runners-up.
+This analysis examines the three placing teams and how their architectural decisions led to their success.
 
 ---
 
 ## Team Comparison Matrix
 
-| Dimension | **Pragmatic** (1st) | **Katamarans** (2nd) | **Ctrl+Alt+Elite** (3rd) | **ArchZ** (Runner-up) | **DevExperts** (Runner-up) | **Equihire Architects** (Runner-up) | **Jazz Executor** (Runner-up) |
-|---|---|---|---|---|---|---|---|
-| **Team size** | 3 | 3 | 3 | 5 | 5 | 4 | 4 |
-| **Architecture style** | Service-Based + Event-Driven (selective) | Event-Driven | Event-Driven + Microservices (supporting) | Mixed per-quanta (Event-Driven, Microservices, Service-Based) | Event-Driven | Service-Based | Microservices |
-| **Top 3 quality attributes** | Interoperability, Feasibility, Testability | Cost, Abstraction, Integration | Scalability, Performance, Interoperability | Security, Availability, Scalability | Scalability, Data Integrity, Extensibility | Cost, Interoperability, Simplicity | Scalability, Availability, Consistency |
-| **ADR count** | 22 | 14 | 20 | 21 | 10 | 9 | 11 |
-| **C4 depth** | C1, C2, C3 (4 views) | C1, C2 | C1, C2, C3 (4 views) | C1, C2 (per quanta) | C1, C2, C3 (4 views) | None (ad-hoc component diagrams) | C1, C2, C3 |
-| **Event Storming** | Yes | Yes | Yes | Yes (actor-action) | No | No | No |
-| **Deployment diagram** | No | Yes (Azure) | Yes (AWS) | Yes (AWS/K8s) | Yes (AWS) | No | Yes |
-| **Feasibility/cost analysis** | Yes (token estimation, AI expert interview) | Yes (cost fitness function, AI pricing calculator) | No | No | Yes ($8,448/year with AWS Calculator) | Yes (scoped to 5,000 candidates) | No |
-| **Fitness functions** | No | Yes (4 functions) | No | No | No | No | Yes |
-| **UX prototypes** | No | No | Yes (Figma, 3 roles) | Yes (Figma, 4 roles) | No | No | Yes (video walkthroughs) |
-| **Video presentation** | No | Yes | No | Yes (Loom) | No | No | Yes |
-| **Matching approach** | Deterministic: human-readable features extracted by LLM, then static comparison | Weighted token comparison with fine-tunable weights | Vector DB + Knowledge Graph + LLM re-ranking pipeline | RAG with vector search | LLM-based (Step Functions workflow) | Cosine Similarity with Strategy Pattern (LLM alternative) | AI/ML service (not deeply specified) |
+| Dimension | **Pragmatic** (1st) | **Katamarans** (2nd) | **Ctrl+Alt+Elite** (3rd) |
+|---|---|---|---|
+| **Team size** | 3 | 3 | 3 |
+| **Architecture style** | Service-Based + Event-Driven (selective) | Event-Driven | Event-Driven + Microservices (supporting) |
+| **Top 3 quality attributes** | Interoperability, Feasibility, Testability | Cost, Abstraction, Integration | Scalability, Performance, Interoperability |
+| **ADR count** | 22 | 14 | 20 |
+| **C4 depth** | C1, C2, C3 (4 views) | C1, C2 | C1, C2, C3 (4 views) |
+| **Event Storming** | Yes | Yes | Yes |
+| **Deployment diagram** | No | Yes (Azure) | Yes (AWS) |
+| **Feasibility/cost analysis** | Yes (token estimation, AI expert interview) | Yes (cost fitness function, AI pricing calculator) | No |
+| **Fitness functions** | No | Yes (4 functions) | No |
+| **UX prototypes** | No | No | Yes (Figma, 3 roles) |
+| **Video presentation** | No | Yes | No |
+| **Matching approach** | Deterministic: human-readable features extracted by LLM, then static comparison | Weighted token comparison with fine-tunable weights | Vector DB + Knowledge Graph + LLM re-ranking pipeline |
 
 ---
 
 ## Architecture Style Choices
 
-### Service-Based Architecture (Pragmatic, Equihire Architects)
+### Service-Based with Selective Event-Driven (Pragmatic)
 
-Two teams chose service-based architecture as their primary style, both explicitly motivated by the non-profit budget constraint. Pragmatic (ADR-002) selected service-based architecture for its balance of feasibility and testability, adding event-driven capabilities only where interoperability demanded it -- for example, publishing matches as events (ADR-016) and asynchronous communication with external systems (ADR-005). Equihire Architects (ADR-02) made a nearly identical choice, explicitly noting that microservices and event-driven architectures were considered but rejected because "cost and simplicity were the main characteristics which made the difference."
+Pragmatic (ADR-002) selected service-based architecture as its primary style for its balance of feasibility and testability, adding event-driven capabilities only where interoperability demanded it -- for example, publishing matches as events (ADR-016) and asynchronous communication with external systems (ADR-005). This hybrid approach was explicitly motivated by the non-profit budget constraint, choosing pragmatic cost-consciousness over architectural ambition. The service-based style gave Pragmatic independently deployable services without the operational overhead of full microservices or the complexity of event-driven choreography -- a middle ground that proved to be a winning formula.
 
-The service-based style proved to be a winning approach: both teams that chose it placed well (1st and runner-up), suggesting that judges valued pragmatic cost-consciousness over architectural ambition.
+### Event-Driven Architecture (Katamarans)
 
-### Event-Driven Architecture (Katamarans, DevExperts)
-
-Katamarans (ADR-008) chose pure event-driven architecture after evaluating microkernel (rejected for scalability) and service-oriented (rejected for high delivery costs). Their rationale emphasized loose coupling, cost efficiency through idle-until-triggered components, and evolvability in a rapidly changing AI landscape. DevExperts also selected event-driven architecture but layered it on a fully serverless AWS stack (Lambda, SQS, Step Functions), achieving the lowest estimated infrastructure cost of all teams at $8,448/year.
+Katamarans (ADR-008) chose pure event-driven architecture after evaluating microkernel (rejected for scalability) and service-oriented (rejected for high delivery costs). Their rationale emphasized loose coupling, cost efficiency through idle-until-triggered components, and evolvability in a rapidly changing AI landscape. This style aligned directly with their identification of cost as the primary driver (ADR-002), ensuring that every component could scale down to zero when not in use -- an important consideration for a non-profit with unpredictable traffic.
 
 ### Event-Driven + Microservices Hybrid (Ctrl+Alt+Elite)
 
 Ctrl+Alt+Elite (ADR-01) adopted event-driven architecture as the primary style with microservices as supporting components. This was the most technology-rich submission, specifying Kafka as the event broker, Golang as the programming language, PostgreSQL for transactional data, Redshift for analytics, and a full AWS deployment topology. The specificity cut both ways: it demonstrated implementation readiness but lacked the cost analysis to justify the stack for a non-profit client.
 
-### Per-Quanta Style Selection (ArchZ)
+### Style Comparison
 
-ArchZ took the most theoretically sophisticated approach, treating the platform as a collection of architectural quanta, each with its own style. Their AI and Matching quanta used event-driven architecture; User Profile and Integrations used microservices; and Invoice, Notification, and Survey used service-based architecture. While intellectually rigorous, this approach introduced significant operational complexity that was not offset by a feasibility analysis.
-
-### Full Microservices (Jazz Executor)
-
-Jazz Executor was the only team to select a pure microservices architecture. With 10 quality attributes listed (the most of any team) and no clear top-3 prioritization, the submission lacked the focus that characterised the winning entries. The microservices choice was the most expensive and operationally complex option, and the absence of a cost analysis was a notable gap for a non-profit client.
+The three teams represent a spectrum from conservative to ambitious. Pragmatic anchored on service-based architecture and added event-driven patterns surgically; Katamarans committed fully to event-driven architecture; Ctrl+Alt+Elite layered microservices on top of an event-driven core. All three teams were small (3 members each), and notably, the most constrained architectural choice -- Pragmatic's service-based approach -- won first place. This suggests that for budget-constrained clients, restraint in architectural complexity is rewarded when paired with deep domain analysis.
 
 ---
 
-## What Separated Winners from Runners-Up
+## What Distinguished the Top Teams
 
 ### 1. Depth of AI/LLM Risk Analysis
 
-The clearest differentiator was how seriously teams engaged with the risks and costs of LLM integration -- the novel architectural challenge of this kata.
+The clearest differentiator among the three placing teams was how seriously each engaged with the risks and costs of LLM integration -- the novel architectural challenge of this kata.
 
 **Pragmatic** (1st) conducted an actual interview with an AI expert, performed token estimation research calculating costs per prompt ($0.001-$0.025 depending on model), and used those findings to drive multiple ADRs. Their ADR-011 (Deterministic Matching) is the standout decision: rather than letting the LLM perform matching directly (which would be expensive and non-deterministic), they designed a pipeline where the LLM extracts human-readable features, and matching is then performed deterministically. This reduced complexity from O(n*m) to O(n+m) in terms of LLM prompts. Their ADR-025 (AI Test Concept) then outlined a comprehensive testing strategy for the non-deterministic LLM components.
 
 **Katamarans** (2nd) complemented this with a cost fitness function that calculated the per-candidate processing cost ($0.06 for a full hiring flow), enabling ongoing cost governance. Their ADR-005 (Changing AI Solution Landscape) and ADR-006 (Picking 3rd Party AI Services) demonstrated awareness that the AI market is volatile and designed abstraction layers accordingly.
 
-**Ctrl+Alt+Elite** (3rd) designed the most technically sophisticated AI pipeline (Vector DB + Knowledge Graph + LLM re-ranking), but did not include a cost or feasibility analysis -- a significant omission given the non-profit context.
-
-By contrast, runners-up either treated AI as a black box (Jazz Executor), deferred AI decisions without sufficient architectural guardrails (DevExperts), or took a simpler but under-specified approach (ArchZ relied on RAG with vector search but did not quantify costs).
+**Ctrl+Alt+Elite** (3rd) designed the most technically sophisticated AI pipeline (Vector DB + Knowledge Graph + LLM re-ranking), but did not include a cost or feasibility analysis -- a significant omission given the non-profit context. This gap between the first two teams and the third illustrates that technical sophistication alone is insufficient; understanding the economic constraints of the AI components matters equally.
 
 ### 2. Explicit Prioritization and Trade-off Documentation
 
-Winning teams made hard choices and documented their reasoning. Pragmatic explicitly "downplayed" data integrity (ADR-004) to keep the architecture simpler, acknowledging the trade-off rather than trying to satisfy every quality attribute. Katamarans identified cost as their primary driver (ADR-002) and made every subsequent decision through that lens. Equihire Architects scoped their system to 5,000 candidates and intentionally deprioritized scalability -- a brave decision that kept their architecture honest.
+Each placing team made hard choices and documented their reasoning, but the sharpness of those choices correlated with placement. Pragmatic explicitly "downplayed" data integrity (ADR-004) to keep the architecture simpler, acknowledging the trade-off rather than trying to satisfy every quality attribute. Katamarans identified cost as their primary driver (ADR-002) and made every subsequent decision through that lens. Ctrl+Alt+Elite prioritized scalability and performance, leading to a more complex stack that was harder to justify for a non-profit's initial deployment.
 
-Runner-up teams tended toward broader, less differentiated lists. Jazz Executor listed 10 quality attributes without clear prioritization. ArchZ listed 7 attributes and applied them per-quanta, which was thorough but diffused the architectural narrative.
+The pattern is clear: the teams that chose fewer, sharper priorities and traced every downstream decision back to those priorities produced the most coherent architectures.
 
 ### 3. Process Rigor and Requirements Elicitation
 
-All three winning teams performed Event Storming to discover bounded contexts and event flows. Pragmatic combined it with DDD; Katamarans used the "Six Thinking Hats" technique for requirements distillation; Ctrl+Alt+Elite used it to identify microservice boundaries. Among runners-up, only ArchZ performed Event Storming (using an actor-action variant). DevExperts, Equihire Architects, and Jazz Executor skipped this step, which may have led to less grounded service decomposition.
+All three placing teams performed Event Storming to discover bounded contexts and event flows. Pragmatic combined it with DDD; Katamarans used the "Six Thinking Hats" technique for requirements distillation; Ctrl+Alt+Elite used it to identify microservice boundaries. This shared commitment to domain-first design, before making technology choices, led to better-grounded service decomposition and more natural bounded contexts across all three submissions.
 
 ### 4. Completeness of the Architecture Narrative
 
-Winning teams told a complete story from requirements through architecture decisions to known limitations. Pragmatic's Known Limitations section was particularly effective -- it acknowledged that their matching algorithm has limitations, that matching is delayed (not real-time), and that external AI rate limiting is an unsolved problem. This transparency likely built credibility with judges.
+The placing teams told complete stories from requirements through architecture decisions to known limitations. Pragmatic's Known Limitations section was particularly effective -- it acknowledged that their matching algorithm has limitations, that matching is delayed (not real-time), and that external AI rate limiting is an unsolved problem. This transparency likely built credibility with judges. Katamarans' fitness functions served a similar purpose, acknowledging that operational health must be measured and governed. Ctrl+Alt+Elite's Figma prototypes grounded the architecture in a tangible user experience, demonstrating that the technical design served real user workflows.
 
 ---
 
@@ -94,23 +86,23 @@ Winning teams told a complete story from requirements through architecture decis
 
 ### External LLMs over Self-Hosted Models
 
-All seven teams chose to use external, third-party LLM services rather than self-hosted models. The reasoning was remarkably consistent: the non-profit context demands low upfront cost, LLM technology evolves too rapidly to commit to a specific model, and pay-as-you-go pricing is more predictable than infrastructure costs. Pragmatic (ADR-007) gave the most thorough analysis, comparing external APIs, cloud-hosted open-source models, and on-premise options before selecting external APIs for their cost and time-to-market advantages.
+All three teams chose to use external, third-party LLM services rather than self-hosted models. The reasoning was remarkably consistent: the non-profit context demands low upfront cost, LLM technology evolves too rapidly to commit to a specific model, and pay-as-you-go pricing is more predictable than infrastructure costs. Pragmatic (ADR-007) gave the most thorough analysis, comparing external APIs, cloud-hosted open-source models, and on-premise options before selecting external APIs for their cost and time-to-market advantages.
 
 ### Adapter/Connector Pattern for HR Integration
 
-Every team identified HR system integration as a first-class architectural concern. The solutions converged on similar patterns: a dedicated integration service with per-HR-system adapters or connectors. Pragmatic (ADR-023) designed an adapter-based HR Integration Service with event-driven triggers. Ctrl+Alt+Elite (ADR-12) built a custom orchestration engine with connector libraries. Katamarans designed an HR integration orchestrator. The pattern was consistent because the problem demanded it: an unbounded number of HR systems, each with potentially different APIs, data formats, and authentication mechanisms.
+All three teams identified HR system integration as a first-class architectural concern. The solutions converged on similar patterns: a dedicated integration service with per-HR-system adapters or connectors. Pragmatic (ADR-023) designed an adapter-based HR Integration Service with event-driven triggers. Ctrl+Alt+Elite (ADR-12) built a custom orchestration engine with connector libraries. Katamarans designed an HR integration orchestrator. The pattern was consistent because the problem demanded it: an unbounded number of HR systems, each with potentially different APIs, data formats, and authentication mechanisms.
 
 ### Event-Driven Communication for AI Workloads
 
-Even teams that did not choose event-driven architecture as their primary style used asynchronous, event-driven patterns for AI-related workloads. Pragmatic (ADR-005) explicitly decided to "use event-driven architecture where needed" for external system communication. This reflects a practical understanding that LLM calls are inherently slow, rate-limited, and failure-prone -- all characteristics that benefit from asynchronous processing.
+Even Pragmatic, which did not choose event-driven architecture as its primary style, used asynchronous, event-driven patterns for AI-related workloads. Their ADR-005 explicitly decided to "use event-driven architecture where needed" for external system communication. Katamarans and Ctrl+Alt+Elite, both event-driven at their core, naturally applied this pattern throughout. This reflects a practical understanding that LLM calls are inherently slow, rate-limited, and failure-prone -- all characteristics that benefit from asynchronous processing.
 
 ### Analytics as a Separate Concern
 
-Every team separated analytics and reporting from the transactional core. Solutions ranged from batch processing (Pragmatic ADR-003), to dedicated analytics engines (Ctrl+Alt+Elite with Redshift + QuickSight), to event-sourced analytics (DevExperts with Athena + QuickSight). The consistency reflects the kata's explicit requirement to "aggregate data to reveal disparities."
+All three teams separated analytics and reporting from the transactional core. Solutions ranged from batch processing (Pragmatic ADR-003) to dedicated analytics engines (Ctrl+Alt+Elite with Redshift + QuickSight) to event-sourced analytics (Katamarans). The consistency reflects the kata's explicit requirement to "aggregate data to reveal disparities."
 
 ### Security and PII as Cross-Cutting Concerns
 
-All teams treated PII protection as critical, though their approaches varied. Katamarans dedicated two ADRs to PII safety (ADR-009, ADR-014) with separate secure storage. Equihire Architects used schema-per-domain database design for security isolation. DevExperts chose Cognito for authentication. The universal recognition of PII sensitivity reflects the domain's ethical requirements.
+All three teams treated PII protection as critical, though their approaches varied. Katamarans dedicated two ADRs to PII safety (ADR-009, ADR-014) with separate secure storage. Pragmatic addressed it through their service boundaries and data isolation. Ctrl+Alt+Elite incorporated it into their microservice design. The universal recognition of PII sensitivity reflects the domain's ethical requirements.
 
 ---
 
@@ -138,23 +130,7 @@ The most technically advanced AI architecture. Resumes and job postings are pars
 
 ### Ctrl+Alt+Elite: Full UX Prototypes
 
-The only top-3 team to include Figma prototypes for all three user roles (Candidate, Employer, Admin), providing a tangible demonstration of the user experience that the architecture is designed to support.
-
-### ArchZ: Architectural Quanta with Per-Component Style Selection
-
-ArchZ applied the concept of architectural quanta (from "Fundamentals of Software Architecture" by Richards and Ford) more thoroughly than any other team. Each quantum -- AI, User Profile, Matching, Invoice, Notification, Integrations, Survey, Analytics -- received its own architecture characteristics worksheet and style selection. This approach is theoretically sound and ensures that each component gets the architectural treatment it deserves, though it increases operational complexity.
-
-### DevExperts: Concrete Cost Estimation with AWS Calculator
-
-DevExperts provided the most specific infrastructure cost estimate: $8,448/year with a link to the actual AWS Calculator breakdown. For a non-profit client, this level of concreteness is extremely valuable for budgeting and decision-making. They also included a "Postponed Decisions" table with clear justifications for what was deferred and why.
-
-### Equihire Architects: Strategy Pattern for Matching
-
-Equihire Architects designed a Strategy Pattern for their matching scoring logic, allowing the system to switch between Cosine Similarity (cheaper, deterministic) and LLM-based scoring (more accurate, more expensive) at runtime. This "dial" between cost and accuracy is a pragmatic approach for a non-profit that might start with the cheaper option and upgrade later.
-
-### DevExperts: Backend-for-Frontend (BFF) Pattern
-
-DevExperts clearly articulated a BFF pattern where each user role (Candidate, Employer, Admin) gets a dedicated backend service tailored to its frontend needs. This is a well-established pattern but was not commonly seen across submissions.
+The only placing team to include Figma prototypes for all three user roles (Candidate, Employer, Admin), providing a tangible demonstration of the user experience that the architecture is designed to support.
 
 ---
 
@@ -166,15 +142,15 @@ The most successful teams (Pragmatic, Katamarans) designed their architectures t
 
 ### 2. Cost analysis is not optional for non-profit clients
 
-Teams that performed explicit cost analysis (Pragmatic's token estimation, Katamarans' cost fitness function, DevExperts' AWS Calculator estimate) demonstrated that they understood the client's context. Teams that proposed AWS-heavy architectures without cost analysis (Ctrl+Alt+Elite, ArchZ) left a credibility gap. For any budget-constrained client, the architecture must justify its own cost of operation.
+Teams that performed explicit cost analysis (Pragmatic's token estimation, Katamarans' cost fitness function) demonstrated that they understood the client's context. Ctrl+Alt+Elite proposed an AWS-heavy architecture without a cost analysis, leaving a credibility gap that likely contributed to their third-place finish. For any budget-constrained client, the architecture must justify its own cost of operation.
 
 ### 3. Fewer, sharper quality attribute priorities beat a long list
 
-Pragmatic chose 3 (Interoperability, Feasibility, Testability). Equihire Architects chose 3 (Cost, Interoperability, Simplicity). Jazz Executor listed 10. The teams with fewer, more focused priorities produced more coherent architectures because every decision could be evaluated against a small set of criteria. When everything is a priority, nothing is.
+Pragmatic chose 3 attributes (Interoperability, Feasibility, Testability). Katamarans chose 3 (Cost, Abstraction, Integration). Ctrl+Alt+Elite chose 3 (Scalability, Performance, Interoperability). All three teams kept their priorities focused, which produced coherent architectures where every decision could be evaluated against a small set of criteria. When everything is a priority, nothing is.
 
 ### 4. Event Storming is a differentiator in kata competitions
 
-All three winning teams performed Event Storming. Only one of four runners-up did. Event Storming forces teams to engage with the domain before making technology choices, leading to better-grounded service decomposition and more natural bounded contexts. For architecture katas specifically, it provides visible evidence of a rigorous design process.
+All three placing teams performed Event Storming. This technique forces teams to engage with the domain before making technology choices, leading to better-grounded service decomposition and more natural bounded contexts. For architecture katas specifically, it provides visible evidence of a rigorous design process.
 
 ### 5. Known limitations build credibility
 
@@ -182,12 +158,12 @@ Pragmatic's explicit Known Limitations section -- acknowledging delayed matching
 
 ### 6. Service-based architecture deserves more respect
 
-In a landscape where microservices and event-driven architectures receive the most attention, the two service-based entries (Pragmatic at 1st, Equihire Architects at runner-up) performed well. Service-based architecture offers a pragmatic middle ground: independently deployable services without the operational overhead of full microservices or the complexity of event-driven choreography. For startups, non-profits, and organizations with limited DevOps maturity, it is often the right choice.
+In a landscape where microservices and event-driven architectures receive the most attention, Pragmatic's service-based entry won first place. Service-based architecture offers a pragmatic middle ground: independently deployable services without the operational overhead of full microservices or the complexity of event-driven choreography. For startups, non-profits, and organizations with limited DevOps maturity, it is often the right choice.
 
 ### 7. The matching algorithm is the architectural fulcrum of AI hiring platforms
 
-Every team had to solve the matching problem, and their approaches were the most varied and architecturally significant decisions in each submission. The spectrum ranged from simple (Equihire Architects' Cosine Similarity), through intermediate (Katamarans' weighted token comparison, Pragmatic's deterministic feature matching), to complex (Ctrl+Alt+Elite's Vector DB + Knowledge Graph + LLM re-ranking). The "right" approach depends on scale, budget, and accuracy requirements -- but the architectural decision must be made explicitly and early, as it cascades into cost, performance, testability, and explainability.
+All three teams had to solve the matching problem, and their approaches were the most varied and architecturally significant decisions in each submission. The spectrum ranged from Katamarans' weighted token comparison, through Pragmatic's deterministic feature matching, to Ctrl+Alt+Elite's Vector DB + Knowledge Graph + LLM re-ranking. The "right" approach depends on scale, budget, and accuracy requirements -- but the architectural decision must be made explicitly and early, as it cascades into cost, performance, testability, and explainability.
 
 ### 8. Abstraction layers around AI services are essential for longevity
 
-Multiple teams (Katamarans ADR-005, ADR-006; Pragmatic ADR-007; Equihire Architects' Strategy Pattern) designed abstraction layers between their architecture and external AI services. Given that LLM providers, pricing, and capabilities change rapidly, this is not optional -- it is a survival requirement. Any team building on LLMs today should assume they will need to swap providers within 18 months.
+Multiple teams (Katamarans ADR-005, ADR-006; Pragmatic ADR-007) designed abstraction layers between their architecture and external AI services. Given that LLM providers, pricing, and capabilities change rapidly, this is not optional -- it is a survival requirement. Any team building on LLMs today should assume they will need to swap providers within 18 months.
