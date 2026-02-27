@@ -39,6 +39,8 @@ The library is organized into three layers: **problem spaces** (classifying the 
 |----------|-----------------|
 | [By Architecture Style](evidence/by-architecture-style.md) | Detailed evidence for each of 7 ranked styles with per-team tables, technology stacks, and pairing patterns |
 | [By Quality Attribute](evidence/by-quality-attribute.md) | 10 quality attributes ranked by correlation with placement, with per-challenge breakdowns |
+| [Cross-Source Reference](evidence/cross-source-reference.md) | Weighted scoreboard mapping 13 styles across all 4 sources with production-weighted scoring |
+| [Cross-Source Analysis](evidence/cross-source-analysis.md) | Triangulation framework and 6 cross-source findings: design-production gap, quality attribute shifts, practice-evidence gaps |
 
 ### Supporting Materials
 

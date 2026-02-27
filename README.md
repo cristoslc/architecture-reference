@@ -1,13 +1,14 @@
 # Architecture Reference Repository
 
-An evidence-based knowledge base for software architecture, drawing on three complementary sources: **78 competition submissions** from [O'Reilly Architecture Katas](https://learning.oreilly.com/featured/architectural-katas/) (Fall 2020 -- Winter 2025), **12 production system narratives** from [The Architecture of Open Source Applications](https://aosabook.org/en/) (AOSA), and **8 curated reference implementations** with working, deployable code.
+An evidence-based knowledge base for software architecture, drawing on four complementary sources: **78 competition submissions** from [O'Reilly Architecture Katas](https://learning.oreilly.com/featured/architectural-katas/) (Fall 2020 -- Winter 2025), **12 production system narratives** from [The Architecture of Open Source Applications](https://aosabook.org/en/) (AOSA), **5 production .NET applications** (RealWorldASPNET), and **8 curated reference implementations** with working, deployable code.
 
 ## What This Is
 
-This repository turns real-world architecture data into actionable guidance. Rather than relying on opinion or convention, every recommendation is grounded in evidence from three distinct vantage points:
+This repository turns real-world architecture data into actionable guidance. Rather than relying on opinion or convention, every recommendation is grounded in evidence from four distinct vantage points:
 
 - **Competition designs** (TheKataLog) -- 78 teams solving 11 kata challenges, with placement-weighted scoring. Shows what judges reward and what patterns correlate with winning.
 - **Production narratives** (AOSA) -- architectural descriptions of systems like NGINX, Git, HDFS, and ZeroMQ, written by their creators. Shows what actually works at scale.
+- **Production applications** (RealWorldASPNET) -- 5 open-source .NET applications with real users (Bitwarden, Jellyfin, nopCommerce, Orchard Core, Squidex). Shows what modern production systems actually look like.
 - **Reference implementations** (curated repos) -- working codebases for patterns like Microservices, Modular Monolith, Hexagonal Architecture, and CQRS. Shows how to build it.
 
 Raw sources are preserved in an **evidence pool**, structured analyses and YAML catalogs live in an **evidence analysis** layer, and distilled guidance lives in the **docs** layer as a reference library with cross-source evidence and reusable templates.
@@ -23,9 +24,14 @@ Raw sources are preserved in an **evidence pool**, structured analyses and YAML 
 | Prepare for an architecture kata | [Kata Checklist](docs/templates/kata-checklist.md) |
 | Browse how teams solved a specific kata | [Challenge Analyses](evidence-analysis/TheKataLog/docs/analysis/challenges/) |
 | See cross-cutting patterns across all 78 teams | [Cross-Cutting Analysis](evidence-analysis/TheKataLog/docs/analysis/cross-cutting.md) |
-| Compare evidence across all three sources | [Cross-Source Reference](docs/reference-library/evidence/cross-source-reference.md) |
+| Compare evidence across all four sources | [Cross-Source Reference](docs/reference-library/evidence/cross-source-reference.md) |
+| Read the cross-source analysis | [Cross-Source Analysis](docs/reference-library/evidence/cross-source-analysis.md) |
 | Study production architectures (NGINX, Git, etc.) | [AOSA Catalog](evidence-analysis/AOSA/docs/catalog/) |
+| See patterns across 12 production systems | [AOSA Source Analysis](evidence-analysis/AOSA/docs/analysis/source-analysis.md) |
 | Find working code for a pattern | [Reference Implementations Catalog](evidence-analysis/ReferenceArchitectures/docs/catalog/) |
+| See patterns across 8 reference implementations | [Reference Architectures Source Analysis](evidence-analysis/ReferenceArchitectures/docs/analysis/source-analysis.md) |
+| Study production .NET applications | [RealWorldASPNET Catalog](evidence-analysis/RealWorldASPNET/docs/catalog/) |
+| See patterns across 5 production .NET apps | [RealWorldASPNET Source Analysis](evidence-analysis/RealWorldASPNET/docs/analysis/source-analysis.md) |
 
 ## Key Findings
 
@@ -52,7 +58,8 @@ Raw sources are preserved in an **evidence pool**, structured analyses and YAML 
 │   │   └── evidence/
 │   │       ├── by-architecture-style.md    # Per-style evidence with team tables
 │   │       ├── by-quality-attribute.md     # 10 quality attributes ranked by placement correlation
-│   │       └── cross-source-reference.md   # Evidence coverage across all 3 sources + cloud patterns
+│   │       ├── cross-source-reference.md   # Weighted scoreboard + coverage across all 4 sources
+│   │       └── cross-source-analysis.md   # Triangulation framework + cross-source findings
 │   ├── templates/                  # Reusable guides and checklists
 │   │   ├── adr-guide.md            # How to write effective ADRs
 │   │   ├── architecture-selection-guide.md  # Structured style selection process
@@ -73,15 +80,29 @@ Raw sources are preserved in an **evidence pool**, structured analyses and YAML 
 │   │           ├── _index.yaml     # Master index of all seasons/teams/styles
 │   │           └── *.yaml          # 78 structured team metadata files
 │   ├── AOSA/                       # Architecture of Open Source Applications
-│   │   └── docs/catalog/
-│   │       ├── _index.yaml         # Index of 12 AOSA projects
-│   │       ├── SCHEMA.yaml         # YAML schema for AOSA entries
-│   │       └── *.yaml              # Per-project catalogs (nginx, git, hdfs, etc.)
-│   └── ReferenceArchitectures/     # Curated reference implementations
-│       └── docs/catalog/
-│           ├── _index.yaml         # Index of 8 reference repos
-│           ├── SCHEMA.yaml         # YAML schema for reference impl entries
-│           └── *.yaml              # Per-repo catalogs (eShop, buckpal, etc.)
+│   │   └── docs/
+│   │       ├── analysis/
+│   │       │   └── source-analysis.md  # Patterns across 12 production systems
+│   │       └── catalog/
+│   │           ├── _index.yaml     # Index of 12 AOSA projects
+│   │           ├── SCHEMA.yaml     # YAML schema for AOSA entries
+│   │           └── *.yaml          # Per-project catalogs (nginx, git, hdfs, etc.)
+│   ├── ReferenceArchitectures/     # Curated reference implementations
+│   │   └── docs/
+│   │       ├── analysis/
+│   │       │   └── source-analysis.md  # Patterns across 8 reference implementations
+│   │       └── catalog/
+│   │           ├── _index.yaml     # Index of 8 reference repos
+│   │           ├── SCHEMA.yaml     # YAML schema for reference impl entries
+│   │           └── *.yaml          # Per-repo catalogs (eShop, buckpal, etc.)
+│   └── RealWorldASPNET/           # Production .NET applications
+│       └── docs/
+│           ├── analysis/
+│           │   └── source-analysis.md  # Patterns across 5 production .NET apps
+│           └── catalog/
+│               ├── _index.yaml     # Index of 5 production apps
+│               ├── SCHEMA.yaml     # YAML schema for production app entries
+│               └── *.yaml          # Per-app catalogs (bitwarden, jellyfin, etc.)
 │
 ├── evidence-pool/                  # Raw source submissions (read-only reference)
 │   └── TheKataLog/
@@ -107,7 +128,7 @@ Raw sources are preserved in an **evidence pool**, structured analyses and YAML 
 | **Reference Library** | `docs/reference-library/` | Distilled guidance: problem/solution mappings, decision navigator, cross-source evidence breakdowns. Start here for recommendations. |
 | **Templates** | `docs/templates/` | Reusable guides for ADRs, C4 diagrams, feasibility studies, fitness functions, and kata preparation. |
 | **Proposals** | `docs/proposals/` | Roadmap proposals for expanding the dataset and building new capabilities (e.g., architecture discovery skill). |
-| **Evidence Analysis** | `evidence-analysis/` | Structured YAML catalogs and comparative analyses derived from evidence sources. Three sub-collections: TheKataLog (78 competition teams), AOSA (12 production systems), and ReferenceArchitectures (8 working codebases). |
+| **Evidence Analysis** | `evidence-analysis/` | Structured YAML catalogs and comparative analyses derived from evidence sources. Four sub-collections: TheKataLog (78 competition teams), AOSA (12 production systems), RealWorldASPNET (5 production .NET apps), and ReferenceArchitectures (8 working codebases). |
 | **Evidence Pool** | `evidence-pool/` | Raw team submissions organized by `<year>-<challenge>/<team>/`. 78 folders sourced from [TheKataLog](https://github.com/TheKataLog) GitHub organization. |
 
 ## Evidence Sources
@@ -116,13 +137,14 @@ Raw sources are preserved in an **evidence pool**, structured analyses and YAML 
 |---|---|---|---|
 | **[TheKataLog](https://github.com/TheKataLog)** | Competition designs | 78 teams | Placement-weighted scoring across 11 challenges; shows what judges reward |
 | **[AOSA](https://aosabook.org/en/)** | Production narratives | 12 projects | Architectural descriptions by creators of NGINX, Git, HDFS, ZeroMQ, LLVM, and others; shows what works at scale |
+| **RealWorldASPNET** | Production applications | 5 projects | Open-source .NET applications with real users: Bitwarden, Jellyfin, nopCommerce, Orchard Core, Squidex |
 | **Reference Implementations** | Working code | 8 repos | Deployable codebases for Microservices, Modular Monolith, Hexagonal, CQRS, Serverless, and DDD patterns |
 
 ### Dataset Summary
 
 | Metric | Value |
 |---|---|
-| Total evidence entries | 98 (78 + 12 + 8) |
+| Total evidence entries | 103 (78 + 12 + 5 + 8) |
 | KataLog seasons | 11 (Fall 2020 -- Winter 2025) |
 | Kata challenges | 11 |
 | AOSA volumes | 2 (2011--2012) |
