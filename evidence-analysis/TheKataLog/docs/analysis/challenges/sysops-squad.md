@@ -1,8 +1,8 @@
 # Sysops Squad -- Comparative Analysis
 
 **Challenge:** O'Reilly Architecture Kata, Spring 2021 Season
-**Teams Analyzed:** 7
-**Source Repositories:** Team-7, ArchElekt, Mad-Katas, Arch-Mahal, Global-Architects, Pentagram, Renaissance
+**Teams Analyzed:** 3
+**Source Repositories:** Team-7, ArchElekt, Mad-Katas
 
 ---
 
@@ -28,10 +28,6 @@ The system serves four primary actor groups (customers, field experts, administr
 | Team Seven | 1st | Service-Based + Event-Driven (message queues) | 12 | C4 (Context, Container), Sequence, Deployment, BPMN, Use Case, Transition | Phased transition architecture with explicit risk analysis |
 | ArchElekt | 2nd | Service-Based | 12 | C4 (Context, Container, Component), Ticket workflow | Pragmatic problem-first design with ticket lifecycle component |
 | The Mad Katas | 3rd | Service-Based + Micro Frontend | 17 | C4 (all three levels), Scenario flows, Graph DB design, Deployment | Graph database (Neo4j) and zero trust security |
-| Arch Mahal | Runner-up | Microservices | 6 | As-Is/To-Be, Service interaction, DR deployment, Scenario | Uber-model for expert self-assignment |
-| Global Architects | Runner-up | Service-Based | 3 | System, Data flow, Context, AWS infrastructure | Self-healing architecture with discrepancy/healing services |
-| Pentagram | Runner-up | Service-Based (Phase 1) evolving to hybrid Microservices (Phase 3+) | 8 | C4 (L1, L2), Sequence, Data models, Migration phases | Fitness-function-driven evolutionary migration |
-| Renaissance | Runner-up | Service-Based | 6 | Actor actions, Use case, Component, Sequence (PlantUML), Deployment (AWS EKS) | Pragmatic 3rd-party tool adoption (BI, Knowledge Base) |
 
 ---
 
@@ -39,7 +35,7 @@ The system serves four primary actor groups (customers, field experts, administr
 
 ### The Dominant Choice: Service-Based Architecture
 
-Six of seven teams selected service-based architecture as their primary style. This near-unanimous convergence is notable and reflects a mature understanding of the problem space. The reasoning was remarkably consistent across teams:
+All three placing teams selected service-based architecture as their primary style. This unanimous convergence reflects a mature understanding of the problem space. The reasoning was remarkably consistent:
 
 - **Team Seven (ADR-1):** Identified four distinct domain areas (customer-facing, operational, billing, administration), each with different architectural characteristics. Service-based architecture provides fault-tolerance, scalability, and agility without the cost overhead of microservices, and serves as a natural evolutionary starting point toward microservices if needed later.
 
@@ -47,49 +43,35 @@ Six of seven teams selected service-based architecture as their primary style. T
 
 - **The Mad Katas:** Performed a formal architecture capabilities comparison matrix across microservices, service-based, and event-driven styles. They concluded that service-based trade-offs (lower elasticity and workflow scores) could be mitigated through containerization, graph databases, orchestrator services, and queues -- making it the most favorable choice.
 
-- **Renaissance:** Provided explicit reasoning for choosing service-based over microservices, emphasizing that the additional complexity of microservices was not justified for the problem scale.
-
-- **Global Architects:** Selected service-based for its balance of maintainability and evolvability without over-engineering.
-
-### The Outlier: Microservices
-
-**Arch Mahal** was the sole team to select a full microservices architecture. Their rationale centered on maximizing independent deployability and scalability. However, this choice was noted as potentially over-ambitious for a migration from a monolith -- the leap from monolith to microservices is substantially larger than to service-based, and the team's 6 ADRs did not fully address the data decomposition challenges that microservices demand.
-
-### The Evolutionary Approach
-
-**Pentagram** took the most sophisticated stance by proposing a phased evolution: starting with service-based (Phase 1), creating bounded contexts with per-service databases (Phase 2), converting the ticketing service to a microservice on the cloud (Phase 3), and data-driven conversion of remaining services (Phase 4). Each phase transition was governed by fitness function measurements rather than arbitrary timelines -- a distinctive approach that none of the other teams adopted.
+The convergence on service-based architecture across all three teams underscores an important practical lesson: for monolith migrations of this scale, service-based architecture strikes the right balance between decomposition benefits and operational complexity. Each team independently recognized that microservices would introduce unnecessary overhead for the problem at hand.
 
 ### Event-Driven Augmentation
 
-**Team Seven** and **Pentagram** both layered event-driven patterns on top of their service-based foundation. Team Seven's ADR-2 made a particularly compelling case: the ticket workflow between domains is inherently message-oriented rather than request-response, as illustrated by their BPMN diagram. They specified guaranteed-delivery point-to-point queues rather than topic-based pub/sub, a precise technical distinction that demonstrated depth of understanding.
+**Team Seven** layered event-driven patterns on top of their service-based foundation. Their ADR-2 made a particularly compelling case: the ticket workflow between domains is inherently message-oriented rather than request-response, as illustrated by their BPMN diagram. They specified guaranteed-delivery point-to-point queues rather than topic-based pub/sub, a precise technical distinction that demonstrated depth of understanding. Both ArchElekt and The Mad Katas also incorporated asynchronous messaging for ticket processing, though Team Seven's treatment was the most architecturally explicit.
 
 ---
 
-## What Separated Winners from Runners-Up
+## What Distinguished the Top Teams
 
 ### 1. Transition Architecture and Migration Rigor
 
-The single clearest differentiator between top-placing and runner-up teams was the depth and realism of their migration strategy.
+The single clearest differentiator among the placing teams was the depth and realism of their migration strategy.
 
-**Team Seven (1st)** provided a complete transition architecture -- not just a target state, but an intermediate architecture that could be deployed first. This transition architecture retained a monolithic database to reduce initial effort while still delivering the critical availability and scalability improvements through asynchronous messaging. Crucially, they included a **risk analysis** of the transition state itself: identifying that the monolithic database could become a performance bottleneck, the single API gateway could be a single point of failure, and security risks from shared data access. This level of intellectual honesty about intermediate states is rare.
+**Team Seven (1st)** provided a complete transition architecture -- not just a target state, but an intermediate architecture that could be deployed first. This transition architecture retained a monolithic database to reduce initial effort while still delivering the critical availability and scalability improvements through asynchronous messaging. Crucially, they included a **risk analysis** of the transition state itself: identifying that the monolithic database could become a performance bottleneck, the single API gateway could be a single point of failure, and security risks from shared data access. This level of intellectual honesty about intermediate states is rare and was the defining characteristic of the winning submission.
 
-**Renaissance** provided the most detailed step-by-step migration among the runner-up teams, with four steps that each included motivation, expected results, and how-to instructions. Their approach of starting with analytics (suspected cause of load issues) and knowledge base (most decoupled) showed practical migration thinking. However, it lacked the risk analysis that Team Seven provided.
+**ArchElekt** took a pragmatic, problem-first approach to migration, mapping each identified problem directly to the architectural change that would solve it. While less elaborate than Team Seven's phased transition, this approach ensured that every step of the migration delivered measurable business value.
 
-**Pentagram** had the most theoretically rigorous approach with fitness-function-driven phase gates, but the fitness functions themselves were not specified in concrete terms -- the *what* to measure and *what thresholds* to use were left as future work.
-
-**Arch Mahal** and **Global Architects** described migration phases at a high level but without the operational detail of the top teams.
+**The Mad Katas** provided the most comprehensive target-state documentation, with detailed C4 diagrams at all three levels and scenario flows that traced ticket processing through the new architecture. Their migration thinking was embedded in the sheer breadth of their ADR coverage, which addressed not only backend services but also frontend decomposition, database technology selection, and security posture.
 
 ### 2. Decision Documentation Depth
 
-The top three teams all produced 12+ ADRs. The quality and specificity of these ADRs was a strong predictor of placement:
+All three teams produced 12 or more ADRs, and the quality and specificity of these records was a strong predictor of placement:
 
 - **Team Seven's** 12 ADRs form a coherent narrative, with later ADRs building on earlier ones (ADR-4 referencing ADR-1, ADR-5 referencing ADR-4). Each ADR includes explicit consequences and trade-offs acknowledged.
 
-- **The Mad Katas** produced the most ADRs of any team (17), and uniquely included **negative decisions** -- ADRs documenting what they decided *not* to do (ADR-12: "We will not separate reporting," ADR-14: "We will not separate System Data," ADR-16: "We will not separate Contract Management"). This practice of recording rejected alternatives is a hallmark of mature architecture documentation.
+- **The Mad Katas** produced the most ADRs (17), and uniquely included **negative decisions** -- ADRs documenting what they decided *not* to do (ADR-12: "We will not separate reporting," ADR-14: "We will not separate System Data," ADR-16: "We will not separate Contract Management"). This practice of recording rejected alternatives is a hallmark of mature architecture documentation.
 
 - **ArchElekt's** 12 ADRs spanned both technical decisions (segregating ticket creation, separating payment database) and business process improvements (expert self-managed skills, active ticket acceptance/rejection). This breadth of scope demonstrated that the team understood architecture as encompassing both system design and business workflow.
-
-Runner-up teams had significantly fewer ADRs: Arch Mahal (6), Renaissance (6), Global Architects (3), Pentagram (8). While count alone is not definitive, the correlation between ADR volume and placement is striking.
 
 ### 3. Process View Coverage
 
@@ -99,23 +81,21 @@ Runner-up teams had significantly fewer ADRs: Arch Mahal (6), Renaissance (6), G
 
 **The Mad Katas** included scenario flow diagrams at the C4 level, providing multi-level views of the same workflows.
 
-Most runner-up teams lacked this process-level detail entirely.
-
 ### 4. Stakeholder and Quality Attribute Analysis
 
-The top three teams each demonstrated a disciplined approach to connecting business requirements to architectural decisions:
+Each of the three teams demonstrated a disciplined approach to connecting business requirements to architectural decisions:
 
 - **Team Seven** mapped specific stakeholders to architecture characteristics (e.g., SH-2 Customer maps to availability, performance, scalability, robustness) and then traced those characteristics to use cases (e.g., QA-1 Scalability maps to UC-3 Ticket Workflow).
 
-- **Pentagram** produced quality attribute scenarios with formal importance/difficulty rankings, the most structured approach among all seven teams.
-
 - **ArchElekt** traced identified problems directly to architectural decisions, creating a clear audit trail from "wrong expert shows up" to "ADR-001: Allow experts to maintain their own skills."
+
+- **The Mad Katas** performed a formal architecture capabilities comparison matrix, systematically evaluating how each candidate style scored against the identified quality attributes before making their selection.
 
 ---
 
 ## Common Patterns
 
-Despite working independently, the seven teams converged on several architectural decisions:
+Despite working independently, the three placing teams converged on several architectural decisions:
 
 ### 1. Ticket Creation Isolation
 
@@ -123,11 +103,11 @@ Every team recognized that ticket creation needed to be isolated from the rest o
 
 ### 2. Billing/Payment Separation
 
-All seven teams separated billing or payment into its own domain with dedicated data storage. The security rationale (PCI compliance, credit card data isolation) was cited consistently. Team Seven (ADR-4) provided the most detailed treatment, explaining exactly which data crosses the boundary (only last 4 digits of credit card number) and how billing data reaches the reporting domain (ETL or replication).
+All three teams separated billing or payment into its own domain with dedicated data storage. The security rationale (PCI compliance, credit card data isolation) was cited consistently. Team Seven (ADR-4) provided the most detailed treatment, explaining exactly which data crosses the boundary (only last 4 digits of credit card number) and how billing data reaches the reporting domain (ETL or replication).
 
 ### 3. Reporting Database Separation
 
-Every team moved reporting and analytics off the main operational database. The recognition that report generation queries were likely contributing to the system freezing was shared across all submissions. Renaissance's migration plan started with this step specifically because they suspected analytics queries were the primary cause of production load.
+Every team moved reporting and analytics off the main operational database. The recognition that report generation queries were likely contributing to the system freezing was shared across all submissions.
 
 ### 4. Notification as a Separate Service
 
@@ -143,15 +123,7 @@ Every team introduced message queues or event-driven communication for the ticke
 
 ### Graph Database for Expert-Ticket Matching (The Mad Katas, ADR-005)
 
-The Mad Katas proposed using Neo4j as the primary datastore -- the most unconventional technology choice across all seven teams. Their datastore analysis document systematically evaluated relational, document, and graph databases against 14 functional and 6 non-functional requirements. Graph databases uniquely met all requirements, particularly for the expert-ticket matching problem where multi-criteria relationship traversal (skills, location, availability) is the core operation. The team acknowledged the training risk but argued that modeling data as it exists in the real world (nodes and relationships rather than tables and joins) would reduce long-term complexity. This was a bold, well-reasoned decision that no other team considered.
-
-### Uber Model for Expert Self-Assignment (Arch Mahal, ADR-003)
-
-Arch Mahal reimagined the expert assignment problem entirely. Rather than the system assigning tickets to experts (which all other teams preserved), they proposed that experts self-select tickets based on their own assessment of skills, location, and availability -- modeled after ride-sharing platforms. This eliminated the wrong-expert problem by definition: if an expert picks a ticket, they are asserting they can handle it. The manager role was redesigned to handle only corner cases where no expert self-assigns. While this introduces the risk of unpopular tickets going unclaimed, it is a genuinely creative reframing of the core business problem.
-
-### Self-Healing Architecture (Global Architects, ADR-0003)
-
-Global Architects introduced a discrepancy service that continuously monitors for differences between created, assigned, and resolved tickets, paired with a healing service that applies automated rules to fix broken ticket states. If automated correction fails, the healing service escalates to a Customer Success Manager (a new role they proposed). This proactive approach to data consistency was unique -- all other teams relied on the ticket workflow itself to prevent inconsistencies, rather than building a separate system to detect and repair them after the fact.
+The Mad Katas proposed using Neo4j as the primary datastore -- the most unconventional technology choice among the placing teams. Their datastore analysis document systematically evaluated relational, document, and graph databases against 14 functional and 6 non-functional requirements. Graph databases uniquely met all requirements, particularly for the expert-ticket matching problem where multi-criteria relationship traversal (skills, location, availability) is the core operation. The team acknowledged the training risk but argued that modeling data as it exists in the real world (nodes and relationships rather than tables and joins) would reduce long-term complexity. This was a bold, well-reasoned decision.
 
 ### Micro Frontend Architecture (The Mad Katas, ADR-003)
 
@@ -159,19 +131,15 @@ The Mad Katas were the only team to address the frontend architecture explicitly
 
 ### Zero Trust Security Model (The Mad Katas, ADR-011)
 
-The Mad Katas proposed zero trust architecture -- assuming the system has been breached and authenticating every internal request -- a security posture that no other team considered. They addressed the performance trade-off by proposing that services begin processing requests immediately while authentication confirmation is in flight, only sending the response after authentication completes. This is a sophisticated pattern that balances security with latency.
-
-### Fitness-Function-Driven Migration (Pentagram, ADR-003)
-
-Pentagram's Phase 0 -- introducing fitness functions into the existing monolith before making any architectural changes -- was a uniquely disciplined approach. By establishing baseline measurements for every quality attribute before migration begins, the team created an objective framework for evaluating whether each phase actually delivered improvement. No other team proposed measuring the before state with such rigor.
-
-### Chatbot for Customer Self-Service (Global Architects)
-
-Global Architects proposed a chatbot service using ML algorithms to resolve simple customer problems without creating a ticket at all. This was the only team to address demand reduction as an architectural strategy -- fewer tickets means less load on the system, regardless of how well the system is architected.
+The Mad Katas proposed zero trust architecture -- assuming the system has been breached and authenticating every internal request -- a security posture that no other placing team considered. They addressed the performance trade-off by proposing that services begin processing requests immediately while authentication confirmation is in flight, only sending the response after authentication completes. This is a sophisticated pattern that balances security with latency.
 
 ### Expert-Managed Skills (ArchElekt, ADR-001)
 
 ArchElekt identified that a root cause of wrong-expert assignment was that *managers* maintained expert skill profiles rather than the experts themselves. Their ADR-001 moved skill maintenance to experts, a simple business process change that addresses a core problem without any technology change at all. This insight -- that some architectural problems have process solutions -- was characteristic of ArchElekt's pragmatic approach.
+
+### Phased Transition with Risk Analysis (Team Seven)
+
+Team Seven's transition architecture was itself an innovation. Rather than presenting only the target state, they designed an intermediate architecture that could be deployed to production, complete with its own risk analysis identifying single points of failure and security gaps. This practice of treating the migration path as a series of production-grade architectures -- each with its own trade-offs documented -- set the standard for migration rigor.
 
 ---
 
@@ -179,7 +147,7 @@ ArchElekt identified that a root cause of wrong-expert assignment was that *mana
 
 ### 1. Start with Service-Based, Not Microservices
 
-The near-unanimous choice of service-based architecture, with the sole microservices team (Arch Mahal) placing as a runner-up, reinforces a practical lesson: for monolith migrations, service-based architecture is usually the right first step. It provides most of the benefits of decomposition (independent deployment, fault isolation, team autonomy) without the operational complexity overhead of microservices (per-service databases, distributed transactions, service mesh). Multiple teams explicitly noted that service-based architecture is an evolutionary stepping stone toward microservices *if and when* the data supports it.
+The unanimous choice of service-based architecture across all three placing teams reinforces a practical lesson: for monolith migrations, service-based architecture is usually the right first step. It provides most of the benefits of decomposition (independent deployment, fault isolation, team autonomy) without the operational complexity overhead of microservices (per-service databases, distributed transactions, service mesh). Multiple teams explicitly noted that service-based architecture is an evolutionary stepping stone toward microservices *if and when* the data supports it.
 
 ### 2. Document What You Decided NOT to Do
 
@@ -195,19 +163,15 @@ ArchElekt's problem-first approach -- identifying five specific problems in the 
 
 ### 5. Address the Full Stack
 
-The Mad Katas stood out by addressing both frontend (micro frontends) and security (zero trust) in addition to backend decomposition. Most teams focused exclusively on service decomposition and data architecture. Real migration projects must address the UI layer, security posture, observability, and deployment infrastructure -- gaps in any of these can undermine the backend architecture.
+The Mad Katas stood out by addressing both frontend (micro frontends) and security (zero trust) in addition to backend decomposition. Most architectural designs focus exclusively on service decomposition and data architecture. Real migration projects must address the UI layer, security posture, observability, and deployment infrastructure -- gaps in any of these can undermine the backend architecture.
 
 ### 6. Process Changes Can Be Architecture Decisions
 
-Several teams proposed business process changes alongside technical changes: ArchElekt moved skill maintenance to experts, Arch Mahal introduced expert self-assignment, Global Architects added a Customer Success Manager role, and ArchElekt required experts to actively accept or reject tickets (ADR-005). These process changes often address root causes more directly than technical changes alone. The lesson is that an architect's scope should include the business workflow, not just the system diagram.
+ArchElekt proposed business process changes alongside technical changes: moving skill maintenance to experts (ADR-001) and requiring experts to actively accept or reject tickets (ADR-005). These process changes address root causes more directly than technical changes alone. The lesson is that an architect's scope should include the business workflow, not just the system diagram.
 
-### 7. Measure Before You Migrate
+### 7. Data Architecture Deserves Dedicated Analysis
 
-Pentagram's Phase 0 (baseline fitness functions before any changes) is a practice that should be standard but rarely is. Without baseline measurements, teams cannot objectively demonstrate that their new architecture actually improved the quality attributes they claim to optimize. This is especially important when justifying the cost and risk of a major migration to business stakeholders.
-
-### 8. Data Architecture Deserves Dedicated Analysis
-
-The Mad Katas' comprehensive datastore analysis -- evaluating three database paradigms against 20 requirements -- produced the most unconventional and potentially high-value decision of any team (graph database). Teams that treated data architecture as an afterthought (using whatever database the monolith already had) missed an opportunity to fundamentally improve the expert-matching and knowledge-base-search capabilities that were core to the business problem.
+The Mad Katas' comprehensive datastore analysis -- evaluating three database paradigms against 20 requirements -- produced the most unconventional and potentially high-value decision of any team (graph database). Teams that treat data architecture as an afterthought (using whatever database the monolith already had) miss an opportunity to fundamentally improve the expert-matching and knowledge-base-search capabilities that are core to the business problem.
 
 ---
 
