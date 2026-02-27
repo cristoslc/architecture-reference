@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Bash, Read, Grep, Glob, Task
 metadata:
   short-description: Evidence-based architecture research from 103 real-world projects
-  version: 1.0.0
+  version: 2.0.0
   source-repo: https://github.com/cristoslc/architecture-reference-repo
 ---
 
@@ -27,45 +27,125 @@ The **architecture-reference-repo** is an evidence-based reference library conta
 
 Kata scoring uses a placement-weighted system: 1st = 4 pts, 2nd = 3 pts, 3rd = 2 pts.
 
+## Setup: Syncing Reference Data
+
+This skill fetches its reference data from the source repository via sparse clone. The reference data lives in `references/` alongside this file.
+
+### First-time setup
+
+Before answering any question, check whether `references/` exists relative to this SKILL.md. If it does not exist, run the sync script:
+
+```bash
+bash scripts/sync-references.sh
+```
+
+This does a sparse clone of `https://github.com/cristoslc/architecture-reference-repo` and extracts the key reference library (~500 KB) into `references/reference-library/`.
+
+### Upgrading to full data
+
+If a question requires catalog search, per-challenge analyses, or templates, and the `references/catalogs/` directory does not exist, offer to run:
+
+```bash
+bash scripts/sync-references.sh --full
+```
+
+This adds YAML catalogs for all 4 evidence sources (~66 files), per-challenge analyses, cross-cutting analyses, and templates (~700 KB total).
+
+### Complete evidence pool
+
+For deep dives into individual team submissions (reading ADRs, C4 diagrams, video transcripts), if `references/evidence-pool/` does not exist, offer to run:
+
+```bash
+bash scripts/sync-references.sh --complete
+```
+
+This adds the full evidence pool (~2.2 GB). Only suggest this when the user explicitly needs to read individual team submissions.
+
+### Updating
+
+To pull the latest data from the source repository, re-run the sync script with the same mode:
+
+```bash
+bash scripts/sync-references.sh --status    # Check current state
+bash scripts/sync-references.sh             # Update sparse references
+bash scripts/sync-references.sh --full      # Update full references
+```
+
+The script is idempotent — it overwrites existing references with fresh data and updates `references/.sync-state.yml`.
+
 ## Locating the Data
 
-Look for the architecture-reference-repo data in this order:
+Use this resolution order to find evidence data. Stop at the first match.
 
-1. **Relative to this skill**: `../../evidence-analysis/` and `../../docs/` (when skill is at `skills/architecture-advisor/` within the repo)
-2. **Current working directory**: Check if `evidence-analysis/TheKataLog/docs/catalog/_index.yaml` exists in the working directory
-3. **Common locations**: `~/src/architecture-reference-repo/`, `~/architecture-reference-repo/`
-4. **Ask the user**: If not found, ask the user for the path to their local clone of `architecture-reference-repo`
+1. **Local references**: Check `references/` relative to this SKILL.md. This is the primary data source for remote installations. The directory structure is:
+   - `references/reference-library/` — Core reference documents (always present after sync)
+   - `references/catalogs/<source>/` — YAML catalogs per source (after `--full` sync)
+   - `references/analysis/<source>/` — Per-source analyses (after `--full` sync)
+   - `references/templates/` — Practitioner guides and templates (after `--full` sync)
+   - `references/evidence-pool/` — Full team submissions (after `--complete` sync)
 
-If the full repo is unavailable, you can still answer questions using the key findings and decision logic embedded in this file (see "Offline Reference" below).
+2. **Source repo (local development)**: Check `../../evidence-analysis/` and `../../docs/` relative to this SKILL.md (works when skill is at `skills/architecture-advisor/` within the source repo itself).
+
+3. **Current working directory**: Check if `evidence-analysis/TheKataLog/docs/catalog/_index.yaml` exists in the working directory (user is working inside the source repo).
+
+4. **Common checkout locations**: Check `~/src/architecture-reference-repo/`, `~/architecture-reference-repo/`.
+
+5. **Ask the user**: If no data is found at any location, ask the user for the path to their local clone.
+
+6. **Fall back to offline reference**: If no local data is available at all, use the key findings embedded in this file (see "Offline Reference" below).
+
+### Path mapping
+
+When data is found via `references/` (resolution path 1), use these path mappings:
+
+| Source repo path | references/ path |
+|-----------------|-----------------|
+| `docs/reference-library/` | `references/reference-library/` |
+| `docs/templates/` | `references/templates/` |
+| `evidence-analysis/TheKataLog/docs/catalog/` | `references/catalogs/TheKataLog/` |
+| `evidence-analysis/AOSA/docs/catalog/` | `references/catalogs/AOSA/` |
+| `evidence-analysis/RealWorldASPNET/docs/catalog/` | `references/catalogs/RealWorldASPNET/` |
+| `evidence-analysis/ReferenceArchitectures/docs/catalog/` | `references/catalogs/ReferenceArchitectures/` |
+| `evidence-analysis/TheKataLog/docs/analysis/` | `references/analysis/TheKataLog/` |
+| `evidence-analysis/AOSA/docs/analysis/` | `references/analysis/AOSA/` |
+| `evidence-analysis/RealWorldASPNET/docs/analysis/` | `references/analysis/RealWorldASPNET/` |
+| `evidence-analysis/ReferenceArchitectures/docs/analysis/` | `references/analysis/ReferenceArchitectures/` |
+| `evidence-pool/TheKataLog/` | `references/evidence-pool/` |
 
 ## What To Do
 
 The user gives you an architecture problem or question. Research the evidence base and return data-driven recommendations with citations.
 
-### Step 1: Classify the question
+### Step 1: Ensure data is available
+
+Check the data resolution order above. If `references/` does not exist and no other data source is available, run `bash scripts/sync-references.sh` before proceeding.
+
+### Step 2: Classify the question
 
 Map the user's problem to one or more of these categories:
 
-| Category | What to search | Key files |
-|----------|---------------|-----------|
-| **Style selection** | Which architecture style fits? | `docs/reference-library/solution-spaces.md`, `docs/reference-library/problem-solution-matrix.md` |
-| **Pattern research** | How did teams implement a specific pattern? | `evidence-analysis/*/docs/catalog/*.yaml` (filter by style), then `evidence-pool/TheKataLog/<year>-<challenge>/<team>/` |
-| **Quality attributes** | Trade-offs between quality attributes | `docs/reference-library/evidence/by-quality-attribute.md` |
-| **ADR examples** | Real ADR examples for a decision type | `evidence-analysis/TheKataLog/docs/catalog/*.yaml` (filter by `adr_topics`), then team submission folders |
-| **Kata preparation** | Starting a new architecture kata | `docs/templates/kata-checklist.md`, `docs/reference-library/decision-navigator.md` |
-| **Feasibility analysis** | What a feasibility analysis looks like | `docs/templates/feasibility-guide.md`, teams with `has_feasibility_analysis: true` |
-| **Fitness functions** | Defining quantitative architecture tests | `docs/templates/fitness-functions-guide.md` |
-| **Challenge comparison** | How teams approached a specific kata | `evidence-analysis/TheKataLog/docs/analysis/challenges/<challenge-name>.md` |
-| **Cross-source validation** | Does a pattern hold across competition and production? | `docs/reference-library/evidence/cross-source-reference.md`, `docs/reference-library/evidence/cross-source-analysis.md` |
+| Category | What to search | Key files (references/ path) |
+|----------|---------------|------------------------------|
+| **Style selection** | Which architecture style fits? | `references/reference-library/solution-spaces.md`, `references/reference-library/problem-solution-matrix.md` |
+| **Pattern research** | How did teams implement a specific pattern? | `references/catalogs/*/*.yaml` (filter by style), then `references/evidence-pool/` |
+| **Quality attributes** | Trade-offs between quality attributes | `references/reference-library/evidence/by-quality-attribute.md` |
+| **ADR examples** | Real ADR examples for a decision type | `references/catalogs/TheKataLog/*.yaml` (filter by `adr_topics`), then team submissions |
+| **Kata preparation** | Starting a new architecture kata | `references/templates/kata-checklist.md`, `references/reference-library/decision-navigator.md` |
+| **Feasibility analysis** | What a feasibility analysis looks like | `references/templates/feasibility-guide.md`, teams with `has_feasibility_analysis: true` |
+| **Fitness functions** | Defining quantitative architecture tests | `references/templates/fitness-functions-guide.md` |
+| **Challenge comparison** | How teams approached a specific kata | `references/analysis/TheKataLog/challenges/<challenge-name>.md` |
+| **Cross-source validation** | Does a pattern hold across competition and production? | `references/reference-library/evidence/cross-source-reference.md`, `references/reference-library/evidence/cross-source-analysis.md` |
 
-### Step 2: Search structured data first
+If the question requires catalogs, analyses, or templates and they are not present, offer to run `bash scripts/sync-references.sh --full` before continuing.
+
+### Step 3: Search structured data first
 
 Start with the YAML catalogs — they are small, structured, and fast to scan.
 
 **Key files to search:**
 
-- `evidence-analysis/TheKataLog/docs/catalog/_index.yaml` — Master index of all 11 seasons, 34 placing teams, and style frequencies
-- `evidence-analysis/TheKataLog/docs/catalog/<team-name>.yaml` — Per-team metadata including:
+- `references/catalogs/TheKataLog/_index.yaml` — Master index of all 11 seasons, 34 placing teams, and style frequencies
+- `references/catalogs/TheKataLog/<team-name>.yaml` — Per-team metadata including:
   - `architecture_styles` — List of styles used
   - `placement` / `placement_numeric` — Competition result (1st/2nd/3rd)
   - `quality_attributes_prioritized` — Quality attributes the team emphasized
@@ -74,34 +154,27 @@ Start with the YAML catalogs — they are small, structured, and fast to scan.
   - `key_technologies` — Technology stack
   - `notable_strengths` / `notable_gaps` — Analyst assessments
   - `one_line_summary` — Quick team profile
-- `evidence-analysis/AOSA/docs/catalog/_index.yaml` — 12 production open-source systems
-- `evidence-analysis/RealWorldASPNET/docs/catalog/_index.yaml` — 5 production .NET apps
-- `evidence-analysis/ReferenceArchitectures/docs/catalog/_index.yaml` — 8 reference implementations
+- `references/catalogs/AOSA/_index.yaml` — 12 production open-source systems
+- `references/catalogs/RealWorldASPNET/_index.yaml` — 5 production .NET apps
+- `references/catalogs/ReferenceArchitectures/_index.yaml` — 8 reference implementations
 
-**Example queries:**
-
-- Find teams using Microservices: `grep -rl "Microservices" evidence-analysis/TheKataLog/docs/catalog/*.yaml`
-- Find first-place teams: `grep -rl "placement: \"1st\"" evidence-analysis/TheKataLog/docs/catalog/*.yaml`
-- Find teams with feasibility analysis: `grep -rl "has_feasibility_analysis: true" evidence-analysis/TheKataLog/docs/catalog/*.yaml`
-- Cross-reference production systems: `grep -rl "event.driven" evidence-analysis/AOSA/docs/catalog/*.yaml`
-
-### Step 3: Consult the reference library
+### Step 4: Consult the reference library
 
 | Document | Use When |
 |----------|----------|
-| `docs/reference-library/solution-spaces.md` | Comparing architecture styles by placement-weighted scores |
-| `docs/reference-library/problem-spaces.md` | Classifying a problem across 10 dimensions |
-| `docs/reference-library/problem-solution-matrix.md` | Mapping problem dimensions to proven solutions |
-| `docs/reference-library/decision-navigator.md` | Walking through a step-by-step architecture decision |
-| `docs/reference-library/evidence/by-architecture-style.md` | Deep evidence for 7 ranked styles with per-team tables |
-| `docs/reference-library/evidence/by-quality-attribute.md` | 10 quality attributes ranked by correlation with placement |
-| `docs/reference-library/evidence/cross-source-reference.md` | Weighted scoreboard across all 4 sources |
-| `docs/reference-library/evidence/cross-source-analysis.md` | Triangulation framework and cross-source findings |
-| `evidence-analysis/TheKataLog/docs/analysis/cross-cutting.md` | Statistical patterns across all placing teams |
+| `references/reference-library/solution-spaces.md` | Comparing architecture styles by placement-weighted scores |
+| `references/reference-library/problem-spaces.md` | Classifying a problem across 10 dimensions |
+| `references/reference-library/problem-solution-matrix.md` | Mapping problem dimensions to proven solutions |
+| `references/reference-library/decision-navigator.md` | Walking through a step-by-step architecture decision |
+| `references/reference-library/evidence/by-architecture-style.md` | Deep evidence for 7 ranked styles with per-team tables |
+| `references/reference-library/evidence/by-quality-attribute.md` | 10 quality attributes ranked by correlation with placement |
+| `references/reference-library/evidence/cross-source-reference.md` | Weighted scoreboard across all 4 sources |
+| `references/reference-library/evidence/cross-source-analysis.md` | Triangulation framework and cross-source findings |
+| `references/analysis/TheKataLog/cross-cutting.md` | Statistical patterns across all placing teams |
 
-### Step 4: Dive into evidence
+### Step 5: Dive into evidence
 
-For deep research, read actual team submissions in `evidence-pool/TheKataLog/`. Submissions are organized as `<year>-<kata-challenge>/<team>/` and may contain:
+For deep research, read team submissions in `references/evidence-pool/` (requires `--complete` sync). Submissions are organized as `<year>-<kata-challenge>/<team>/` and may contain:
 
 - `README.md` or `submission.md` — Main architecture document
 - `ADRs/` or `adr/` — Architecture Decision Records
@@ -110,13 +183,13 @@ For deep research, read actual team submissions in `evidence-pool/TheKataLog/`. 
 
 For per-source analysis, read:
 
-- `evidence-analysis/AOSA/docs/analysis/source-analysis.md` — Patterns across 12 AOSA projects
-- `evidence-analysis/RealWorldASPNET/docs/analysis/source-analysis.md` — Patterns across 5 .NET apps
-- `evidence-analysis/ReferenceArchitectures/docs/analysis/source-analysis.md` — Patterns across 8 reference implementations
+- `references/analysis/AOSA/source-analysis.md` — Patterns across 12 AOSA projects
+- `references/analysis/RealWorldASPNET/source-analysis.md` — Patterns across 5 .NET apps
+- `references/analysis/ReferenceArchitectures/source-analysis.md` — Patterns across 8 reference implementations
 
 Spin up parallel agents to search across multiple team submissions simultaneously for broad research queries.
 
-### Step 5: Synthesize with citations
+### Step 6: Synthesize with citations
 
 Every recommendation MUST cite specific evidence:
 
@@ -128,24 +201,9 @@ Every recommendation MUST cite specific evidence:
 
 Do not make unsupported claims. If the evidence is inconclusive or the sample size is too small, say so.
 
-## Key Files to Search
-
-| Pattern | What It Finds |
-|---------|--------------|
-| `evidence-analysis/*/docs/catalog/*.yaml` | Structured project metadata across all 4 sources |
-| `evidence-analysis/*/docs/catalog/_index.yaml` | Master indexes per source |
-| `docs/reference-library/*.md` | Core reference documents (problem spaces, solution spaces, decision navigator) |
-| `docs/reference-library/evidence/*.md` | Evidence tables by architecture style, quality attribute, and cross-source |
-| `evidence-analysis/TheKataLog/docs/analysis/challenges/*.md` | Per-challenge comparative analyses |
-| `evidence-analysis/TheKataLog/docs/analysis/cross-cutting.md` | Cross-cutting statistical patterns |
-| `evidence-analysis/*/docs/analysis/*.md` | Per-source analysis documents |
-| `docs/templates/*.md` | ADR guide, C4 guide, feasibility guide, fitness functions guide, kata checklist |
-| `evidence-pool/TheKataLog/**/README.md` | Team submission documents |
-| `evidence-pool/TheKataLog/**/ADRs/*.md` | Individual architecture decision records |
-
 ## Offline Reference
 
-When the full repository data is not available, use these key findings to inform recommendations. All data points are derived from the evidence base.
+When no local data is available at all (references/ not synced, no repo checkout), use these key findings to inform recommendations. All data points are derived from the evidence base.
 
 ### Architecture style rankings (by placement-weighted score, kata data)
 
@@ -190,4 +248,4 @@ Scalability is the most commonly cited quality attribute (48 of 78 teams), but f
 
 ## Version Note
 
-Evidence spans 11 kata seasons (Fall 2020 through Winter 2025), 12 AOSA projects, 5 production .NET apps, and 8 reference implementations. When new evidence is added to the repository, the YAML catalogs and reference library are updated accordingly. Check `evidence-analysis/TheKataLog/docs/catalog/_index.yaml` for the `generated` date to confirm data freshness.
+Evidence spans 11 kata seasons (Fall 2020 through Winter 2025), 12 AOSA projects, 5 production .NET apps, and 8 reference implementations. Run `bash scripts/sync-references.sh --status` to check the current sync state and data freshness.

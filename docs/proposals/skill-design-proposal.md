@@ -2,13 +2,13 @@
 
 ## Summary
 
-Design a skill for `architecture-reference-repo` that exposes the evidence-based architecture reference library as an agent-consumable capability — usable both locally within this repository and installable remotely into other repositories via the [remote-skill-manager](https://github.com/cristoslc/LLM-personal-agent-patterns/tree/main/L3-agents-standalone/.agents/skills/remote-skill-manager) pattern.
+Design a skill for `architecture-reference-repo` that exposes the evidence-based architecture reference library as an agent-consumable capability — installable remotely into other repositories via the [remote-skill-manager](https://github.com/cristoslc/LLM-personal-agent-patterns/tree/main/L3-agents-standalone/.agents/skills/remote-skill-manager) pattern. The skill uses a sparse clone to fetch its reference data from GitHub on first use, with on-demand full snapshots for deeper research, following the [Agent Skills specification](https://agentskills.io/specification) `references/` convention.
 
 ## Background
 
 ### What is a skill?
 
-A skill is a directory containing a `SKILL.md` file with YAML frontmatter and natural-language instructions. When an agent reads the `SKILL.md`, it learns what the skill does, when to activate it, and how to execute it. Skills are the primary mechanism for giving agents domain-specific capabilities.
+A skill is a directory containing a `SKILL.md` file with YAML frontmatter and natural-language instructions. When an agent reads the `SKILL.md`, it learns what the skill does, when to activate it, and how to execute it. The [Agent Skills spec](https://agentskills.io/specification) defines optional directories (`scripts/`, `references/`, `assets/`) that support the skill with executable code and additional data.
 
 ### Reference implementations studied
 
@@ -27,9 +27,17 @@ A skill is a directory containing a `SKILL.md` file with YAML frontmatter and na
 
 4. **Provenance is the consumer's concern.** The `.source.yml` manifest is generated at install time by the consuming repo's tooling, not shipped with the skill. The skill itself just needs to live at a well-known path and have a valid `SKILL.md`.
 
-5. **The fetch script validates structure.** The `fetch-remote-skill.sh` script checks that the specified `skill-path` exists and contains a `SKILL.md` file before proceeding. Any skill intended for remote consumption must satisfy this structural contract.
+5. **The fetch script copies the entire skill directory.** `fetch-remote-skill.sh` copies everything in the skill directory — `SKILL.md`, `scripts/`, `references/`, and any other files. A skill with a `scripts/` directory gets those scripts installed alongside the SKILL.md, ready to run.
 
-6. **Integrity hashing excludes provenance metadata.** The SHA-256 digest covers `tar cf - --exclude='.source.yml'` of the skill directory. This means the skill's content — not its installation metadata — is what gets verified. A skill with supporting files (scripts, references, data) gets all of those hashed together.
+6. **Integrity hashing excludes provenance metadata.** The SHA-256 digest covers `tar cf - --exclude='.source.yml'` of the skill directory. This means the skill's code and content — not its installation metadata — is what gets verified. The `references/` directory, being populated after install, is not part of the initial integrity hash.
+
+### What the Agent Skills spec says about `references/`
+
+From the [specification](https://agentskills.io/specification#references%2F):
+
+> Contains additional documentation that agents can read when needed [...] Keep individual reference files focused. Agents load these on demand, so smaller files mean less use of context.
+
+The spec recommends progressive disclosure: metadata (~100 tokens) at startup, instructions (<5000 tokens) on activation, and reference files only when needed. Our `references/` directory follows this pattern — it's populated on demand and loaded file-by-file during research.
 
 ## Design
 
@@ -37,7 +45,7 @@ A skill is a directory containing a `SKILL.md` file with YAML frontmatter and na
 
 **Purpose:** Given an architecture problem, question, or kata challenge, search the evidence library to provide data-driven recommendations grounded in what actually worked across 103 real-world architecture projects from four complementary sources.
 
-**Location:** `skills/architecture-advisor/SKILL.md`
+**Location:** `skills/architecture-advisor/`
 
 ### Evidence base
 
@@ -50,66 +58,196 @@ The skill draws on four evidence sources, each offering a different lens on arch
 | Real-World ASP.NET Core | 5 production .NET apps | Production codebases (Bitwarden, Jellyfin, nopCommerce, Orchard Core, Squidex) |
 | Reference Architectures | 8 curated implementations | Working, deployable code for canonical patterns (eShop, modular monolith, clean arch, etc.) |
 
-### Activation triggers
-
-The skill activates when the user asks about:
-- Architecture style selection ("which architecture style should I use?")
-- Pattern research ("how do teams handle event-driven with microservices?")
-- Quality attribute trade-offs ("scalability vs. simplicity evidence")
-- ADR examples ("show me ADRs for CQRS decisions")
-- Kata preparation ("I'm starting an architecture kata")
-- Feasibility analysis ("what does a feasibility analysis look like?")
-
-### Execution model
-
-The SKILL.md instructs the agent to:
-
-1. **Classify the question** — Map the user's problem to dimensions from `problem-spaces.md` (domain type, scale, compliance, real-time, etc.).
-2. **Search structured data first** — Query the YAML catalog files for projects matching the problem profile. These are small, structured, and fast to scan.
-3. **Consult the reference library** — Read `solution-spaces.md` for placement-weighted scores, `problem-solution-matrix.md` for dimension-to-style mappings, and `decision-navigator.md` for step-by-step guidance.
-4. **Dive into evidence** — For specific questions, read the evidence analysis documents. For deep dives, read individual team submissions in `evidence-pool/TheKataLog/`.
-5. **Spin up parallel agents** — For broad research queries (like real-world-aspnetcore does), launch parallel agents to search across multiple submissions simultaneously.
-6. **Synthesize with citations** — Every recommendation must cite specific projects, placements, and data points. No unsupported claims.
-
-### Data access strategy
-
-The core design tension: the skill's value comes from the data (~2.2 GB across all evidence sources), but a remote skill installation should be lightweight.
-
-**Resolution: three operating modes determined by what data is available.**
-
-| Mode | When | Capabilities | Data Required |
-|------|------|-------------|---------------|
-| **Full** | Inside `architecture-reference-repo` checkout | All evidence search, deep dives into team submissions, parallel agent research | Full repo clone |
-| **Library** | Repo cloned but without evidence-pool (sparse checkout or shallow clone) | Catalog search, reference library, cross-source analysis | `evidence-analysis/` + `docs/` (~700 KB) |
-| **Standalone** | SKILL.md only (remote install without repo clone) | Key findings, decision logic, offline reference data | Just the SKILL.md (~8 KB) |
-
-The SKILL.md is designed so that each mode degrades gracefully. The embedded "Offline Reference" section contains the most critical data points — architecture style rankings, the winning formula, quality attribute correlations, and the scalability trap — so even a standalone install provides actionable guidance.
-
-**How data is located at runtime:**
-
-The SKILL.md instructs the agent to locate data using this resolution order:
-
-1. **Relative paths** — Check `../../evidence-analysis/` and `../../docs/` (works when skill is at `skills/architecture-advisor/` within the source repo).
-2. **Repository root** — Check if the current working directory IS the architecture-reference-repo (has `evidence-analysis/TheKataLog/docs/catalog/_index.yaml`).
-3. **Common checkout locations** — Check `~/src/architecture-reference-repo/`, `~/architecture-reference-repo/`.
-4. **Ask the user** — If not found, ask the user for the path to their local clone.
-5. **Fall back to offline reference** — If no local data is available, use the key findings embedded directly in the SKILL.md.
-
 ### Directory structure
 
 ```
 skills/
   architecture-advisor/
-    SKILL.md          # Skill definition with frontmatter + agent instructions
+    SKILL.md                        # Skill definition + offline reference
+    scripts/
+      sync-references.sh           # Sparse-clone and snapshot script
+    references/                    # NOT checked in; populated by sync script
+      .sync-state.yml              # Provenance: commit, timestamp, mode
+      reference-library/           # Core docs (always synced)
+      catalogs/                    # YAML catalogs per source (--full)
+        TheKataLog/
+        AOSA/
+        RealWorldASPNET/
+        ReferenceArchitectures/
+      analysis/                    # Per-source analyses (--full)
+        TheKataLog/
+        AOSA/
+        RealWorldASPNET/
+        ReferenceArchitectures/
+      templates/                   # Practitioner guides (--full)
+      evidence-pool/               # Full team submissions (--complete)
 ```
 
-Deliberately minimal. The skill is a single file — matching the real-world-aspnetcore pattern. All data lives in the repository's existing `evidence-analysis/`, `docs/`, and `evidence-pool/` directories, accessed via runtime path resolution.
+The `references/` directory is `.gitignore`d in the source repo and absent from the fetched skill. It is populated at runtime by `scripts/sync-references.sh`.
 
-### Remote installation
+### How the sparse clone works
 
-#### How it works
+The sync script (`scripts/sync-references.sh`) uses git's sparse-checkout feature to fetch only the needed paths from the source repository:
 
-A consumer repo with the remote-skill-manager installed would fetch this skill as:
+```bash
+# 1. Treeless partial clone (downloads tree objects on demand, no blobs upfront)
+git clone --depth 1 --filter=blob:none --sparse <repo-url> /tmp/clone
+
+# 2. Configure sparse-checkout to materialize only needed paths
+git sparse-checkout set docs/reference-library  # default mode
+
+# 3. For --full mode, add more paths:
+git sparse-checkout set \
+  docs/reference-library \
+  docs/templates \
+  evidence-analysis/TheKataLog/docs/catalog \
+  evidence-analysis/TheKataLog/docs/analysis \
+  evidence-analysis/AOSA/docs/catalog \
+  evidence-analysis/AOSA/docs/analysis \
+  evidence-analysis/RealWorldASPNET/docs/catalog \
+  evidence-analysis/RealWorldASPNET/docs/analysis \
+  evidence-analysis/ReferenceArchitectures/docs/catalog \
+  evidence-analysis/ReferenceArchitectures/docs/analysis
+
+# 4. Copy materialized files into references/, flattening the catalog/analysis paths
+# 5. Record the commit SHA and timestamp in references/.sync-state.yml
+# 6. Clean up the temporary clone
+```
+
+This avoids cloning the full 2.2 GB evidence pool for the default and `--full` modes.
+
+### Three sync modes
+
+| Mode | Command | What it fetches | Size |
+|------|---------|----------------|------|
+| **Sparse** (default) | `bash scripts/sync-references.sh` | Key reference library: solution-spaces, problem-spaces, decision-navigator, evidence tables, cross-source analysis | ~500 KB |
+| **Full** | `bash scripts/sync-references.sh --full` | Sparse + all 66 YAML catalogs, per-challenge analyses, cross-cutting analysis, templates | ~700 KB |
+| **Complete** | `bash scripts/sync-references.sh --complete` | Full + entire evidence pool (34 team submissions with ADRs, diagrams, transcripts) | ~2.2 GB |
+
+All modes are idempotent — re-running with the same flags updates the references to the latest upstream commit and refreshes `.sync-state.yml`.
+
+### Provenance tracking
+
+The sync script writes `references/.sync-state.yml` to record what was fetched:
+
+```yaml
+# .sync-state.yml — Reference data provenance
+# Machine-generated by sync-references.sh. Do not edit manually.
+
+source:
+  repository: https://github.com/cristoslc/architecture-reference-repo
+  ref: main
+  commit: abc123def456...  # 40-char SHA
+
+sync:
+  mode: full
+  at: "2026-02-27T14:30:00Z"
+  by: sync-references.sh
+
+contents:
+  - reference-library
+  - templates
+  - catalogs
+  - analysis
+```
+
+This is analogous to `.source.yml` for the skill itself (generated by remote-skill-manager), but tracks the *data* provenance rather than the *skill* provenance.
+
+### Data resolution order
+
+The SKILL.md instructs the agent to find data using this precedence:
+
+1. **`references/`** — The skill's own synced reference data (primary for remote installs)
+2. **Source repo relative paths** — `../../evidence-analysis/` and `../../docs/` (when running inside the source repo)
+3. **Current working directory** — Check if the user is working inside a clone of the source repo
+4. **Common checkout locations** — `~/src/architecture-reference-repo/`, `~/architecture-reference-repo/`
+5. **Ask the user** — Prompt for the path to their local clone
+6. **Offline reference** — Key findings embedded directly in the SKILL.md
+
+The agent checks `references/` first. If it doesn't exist, it runs `bash scripts/sync-references.sh` before continuing. If the question requires catalogs and they're not synced, it offers to run `--full`. This makes the skill self-bootstrapping.
+
+### What happens at each stage
+
+**After remote-skill-manager install (no sync yet):**
+
+```
+.agents/skills/architecture-advisor/
+  SKILL.md              # Includes offline reference (style rankings, winning formula, etc.)
+  scripts/
+    sync-references.sh  # Ready to run
+  .source.yml           # Provenance from remote-skill-manager
+```
+
+The agent can answer basic questions ("which architecture style should I use?") using the embedded offline reference data.
+
+**After `bash scripts/sync-references.sh` (default sparse sync):**
+
+```
+.agents/skills/architecture-advisor/
+  SKILL.md
+  scripts/sync-references.sh
+  .source.yml
+  references/
+    .sync-state.yml
+    reference-library/
+      README.md
+      solution-spaces.md
+      problem-spaces.md
+      problem-solution-matrix.md
+      decision-navigator.md
+      evidence/
+        by-architecture-style.md
+        by-quality-attribute.md
+        cross-source-reference.md
+        cross-source-analysis.md
+```
+
+The agent can read the full reference library documents, walk through the decision navigator, and compare architecture styles with detailed evidence tables.
+
+**After `bash scripts/sync-references.sh --full`:**
+
+```
+  references/
+    ...reference-library (as above)...
+    templates/
+      adr-guide.md
+      c4-guide.md
+      feasibility-guide.md
+      fitness-functions-guide.md
+      kata-checklist.md
+      architecture-selection-guide.md
+    catalogs/
+      TheKataLog/   (34 YAML files + _index.yaml)
+      AOSA/         (12 YAML files + _index.yaml)
+      RealWorldASPNET/   (5 YAML files + _index.yaml)
+      ReferenceArchitectures/  (8 YAML files + _index.yaml)
+    analysis/
+      TheKataLog/
+        challenges/   (11 per-challenge analyses)
+        cross-cutting.md
+      AOSA/source-analysis.md
+      RealWorldASPNET/source-analysis.md
+      ReferenceArchitectures/source-analysis.md
+```
+
+The agent can search YAML catalogs, read per-challenge comparative analyses, and provide templates.
+
+**After `bash scripts/sync-references.sh --complete`:**
+
+```
+  references/
+    ...everything above...
+    evidence-pool/
+      2020-Farmacy-Food/ArchColider/   (1st place)
+      2020-Farmacy-Food/Myagis-Forests/ (2nd place)
+      ...34 team directories total...
+```
+
+The agent can deep-dive into individual team submissions.
+
+## Remote installation workflow
+
+### Step 1: Fetch the skill
 
 ```bash
 bash .agents/skills/remote-skill-manager/scripts/fetch-remote-skill.sh \
@@ -119,117 +257,115 @@ bash .agents/skills/remote-skill-manager/scripts/fetch-remote-skill.sh \
   .agents/skills
 ```
 
-The `fetch-remote-skill.sh` script:
-1. Shallow-clones the repository at the specified ref
-2. Validates that `skills/architecture-advisor/SKILL.md` exists
-3. Copies the `architecture-advisor/` directory to `.agents/skills/architecture-advisor/`
-4. Removes any upstream `.source.yml` (we don't ship one)
-5. Computes a SHA-256 integrity digest of the skill directory contents
-6. Generates a `.source.yml` provenance manifest
+This installs `SKILL.md` + `scripts/` + `.source.yml`. No `references/` yet.
 
-This would produce:
+### Step 2: Agent auto-syncs on first use
 
-```
-.agents/skills/
-  architecture-advisor/
-    SKILL.md              # Copied from source
-    .source.yml           # Generated by fetch script (provenance manifest)
+When the agent activates the skill and sees no `references/` directory, the SKILL.md instructs it to run:
+
+```bash
+bash scripts/sync-references.sh
 ```
 
-#### Example `.source.yml` (generated at install time)
+This sparse-clones the source repo and populates `references/reference-library/`.
 
-```yaml
-# .source.yml — Remote skill provenance manifest
-# Machine-generated by fetch-remote-skill.sh. Do not edit manually.
-# Schema: ADR-002-Remote-Skills-Reference-Pattern
+### Step 3: Upgrade on demand
 
-source:
-  repository: https://github.com/cristoslc/architecture-reference-repo
-  ref: main
-  commit: abc123def456...  # actual 40-char SHA
-  path: skills/architecture-advisor
+When a question requires deeper data (catalogs, analyses, team submissions), the agent offers to run:
 
-skill:
-  name: architecture-advisor
-
-fetched:
-  at: "2026-02-27T14:30:00Z"
-  by: fetch-remote-skill.sh
-
-integrity:
-  algorithm: sha256
-  digest: 9f86d08...  # actual 64-char hex
+```bash
+bash scripts/sync-references.sh --full      # For catalogs and analyses
+bash scripts/sync-references.sh --complete   # For full team submissions
 ```
 
-#### Lifecycle operations
+### Step 4: Update
 
-| Operation | Command | What happens |
-|-----------|---------|-------------|
-| **Install** | `bash scripts/fetch-remote-skill.sh <repo> skills/architecture-advisor main .agents/skills` | Fetches skill, generates `.source.yml` |
-| **Update** | Re-run the same fetch command | Overwrites files, regenerates `.source.yml` with new timestamp and commit |
-| **Pin to version** | Use a tag or commit SHA as the `ref` argument | `fetch-remote-skill.sh <repo> skills/architecture-advisor v1.0.0` |
-| **Check drift** | Compare integrity digest | `tar cf - --exclude='.source.yml' -C .agents/skills architecture-advisor \| sha256sum` vs `.source.yml` digest |
-| **Customize locally** | Delete `.source.yml` | Skill becomes locally-owned; drift detection no longer applies |
-| **Remove** | `rm -rf .agents/skills/architecture-advisor` | No other cleanup needed |
+To pull the latest data from the source repository:
 
-### Compatibility with remote-skill-manager pattern
+```bash
+bash scripts/sync-references.sh --status     # Check current state
+bash scripts/sync-references.sh              # Re-sync at current mode
+bash scripts/sync-references.sh --full       # Re-sync with full data
+```
+
+### Integrity and drift
+
+Two independent provenance systems coexist:
+
+| Layer | File | Tracks | Who generates it |
+|-------|------|--------|-----------------|
+| **Skill provenance** | `.source.yml` | Where the SKILL.md + scripts came from | remote-skill-manager (at install time) |
+| **Data provenance** | `references/.sync-state.yml` | Where the reference data came from | sync-references.sh (at sync time) |
+
+The skill and its data can be at different commits. This is by design — the skill's instructions (SKILL.md) change less frequently than the evidence data. A consumer can update their reference data without re-fetching the skill, or vice versa.
+
+Drift detection for the skill itself works exactly as before (SHA-256 of the skill directory, excluding `.source.yml`). Note that `references/` IS included in the hash if it exists at the time of the integrity check, so consumers should be aware that syncing references will change the skill's integrity digest.
+
+## Compatibility with remote-skill-manager pattern
 
 | Requirement | How This Skill Satisfies It |
 |-------------|---------------------------|
 | Skill lives at a well-known path | `skills/architecture-advisor/` in source repo |
-| Contains a valid `SKILL.md` | Yes, with proper YAML frontmatter (`name`, `description`, `license`, `allowed-tools`) |
+| Contains a valid `SKILL.md` | Yes, with proper YAML frontmatter per Agent Skills spec |
 | No `.source.yml` in source | Correct — `.source.yml` is consumer-generated at install time |
-| Self-contained enough to be meaningful when fetched | Yes — SKILL.md embeds key findings, decision logic, and an offline reference section |
-| Integrity-hashable | Yes — single file, deterministic content |
+| Self-contained enough to be meaningful when fetched | Yes — SKILL.md embeds offline reference; scripts enable self-bootstrapping |
+| Additional directories copied by fetch script | Yes — `scripts/` is copied alongside SKILL.md |
+| `references/` not in source | Correct — populated by sync script after install, not shipped |
 | `basename` of skill-path becomes install directory name | `skills/architecture-advisor` → installed as `architecture-advisor/` |
 
-### What the consumer gets at each access level
+## Compatibility with Agent Skills spec
 
-**Standalone (just the fetched SKILL.md):**
-- Architecture style rankings with placement-weighted scores for 7 styles
-- The "winning formula" (2+ styles, 15+ ADRs, feasibility analysis, fitness functions, phased evolution)
-- Quality attribute correlations with placement
-- The "Scalability Trap" insight
-- Cross-source validation summary (kata findings confirmed by AOSA and production systems)
-- Enough to answer "which architecture style should I use?" with data-backed recommendations
-
-**With a local clone of the repo (full or sparse):**
-- Everything above, plus:
-- Searchable YAML catalogs for 34 kata teams, 12 AOSA projects, 5 .NET apps, 8 reference implementations
-- Per-challenge comparative analyses
-- Step-by-step decision navigator
-- Templates (ADR guide, C4 guide, feasibility guide, fitness functions, kata checklist)
-- Deep evidence dives into individual team submissions (full clone only)
+| Spec Requirement | How This Skill Satisfies It |
+|-----------------|---------------------------|
+| `SKILL.md` with YAML frontmatter | Yes — `name`, `description`, `license`, `allowed-tools`, `metadata` |
+| `name` matches directory name | `architecture-advisor` matches `skills/architecture-advisor/` |
+| `scripts/` for executable code | `scripts/sync-references.sh` — self-contained, documents dependencies, handles errors |
+| `references/` for additional documentation | Populated by sync script with focused, file-per-topic reference documents |
+| Progressive disclosure | Metadata → SKILL.md instructions → reference files → catalogs → evidence pool |
+| SKILL.md under 500 lines | ~250 lines; detailed reference data in separate files |
 
 ## Trade-offs considered
 
-### Why a single SKILL.md instead of bundling data files?
+### Why sparse-clone + references/ instead of a single SKILL.md?
 
-- The YAML catalog (~200 KB across 66 files across 4 sources) could be bundled, but it creates a maintenance burden: the skill directory would need to stay in sync with the catalogs as new evidence is added.
-- The real-world-aspnetcore pattern proves that runtime path resolution works well.
-- A single file is trivially fetchable, hashable, and diffable.
-- The embedded offline reference provides the 80/20 value without bundling anything.
+The previous design (v1) embedded a static "Offline Reference" in the SKILL.md and relied on the user having a local clone of the repo for anything deeper. This works but limits remote installs to a small, hand-maintained subset of the evidence.
 
-### Why not use GitHub API for remote data access?
+The sparse-clone approach:
+- **Self-bootstrapping** — the skill can fetch its own data from GitHub without requiring the user to manually clone the repo
+- **Progressive** — starts lightweight, scales up on demand
+- **Updateable** — re-running the sync script pulls latest data
+- **Spec-compliant** — follows the Agent Skills `references/` convention and progressive disclosure pattern
+- **Decoupled** — skill code and skill data can be versioned independently
 
-- Rate limits make it unreliable for deep research (reading dozens of team submissions).
-- Network dependency makes it fragile.
-- A local clone of the repo (even sparse) is faster and more reliable.
-- The SKILL.md can mention GitHub as a fallback, but shouldn't depend on it.
+The trade-off is added complexity: the skill now has a script dependency (`git` must be available) and a network dependency (GitHub must be reachable for the initial sync). Both are acceptable — `git` is effectively universal in development environments, and the sync only runs once (then the data is local).
 
-### Why not make the skill a Claude Code custom slash command?
+### Why keep the offline reference in the SKILL.md?
 
-- Slash commands are tied to a specific repository's `.claude/` configuration.
-- A skill in `skills/` is portable — any tool that reads SKILL.md files can use it.
-- The remote-skill-manager pattern is designed for skills, not slash commands.
+Even with the sync script, there are scenarios where the agent can't or shouldn't run it:
+- No network access (air-gapped environments)
+- The user declines the tool permission prompt for `bash`
+- The sync script fails (GitHub rate limit, network issue)
+
+The embedded offline reference ensures the skill always has some value, even in the worst case.
+
+### Why not persist the sparse checkout instead of copy-and-clean?
+
+Keeping the sparse checkout as a persistent git repo in `references/` would make updates trivial (`git pull`) but creates problems:
+- A nested `.git` directory inside the consumer's repo causes confusion
+- The consumer's git commands might accidentally operate on the wrong repo
+- `.gitignore` handling becomes complex
+
+The copy-and-clean approach is slightly slower for updates (re-clones instead of pulling) but cleaner and more predictable.
+
+### Why not use GitHub API instead of sparse clone?
+
+- Rate limits (60 requests/hour unauthenticated) make it unreliable for fetching dozens of files
+- The sparse-checkout approach downloads only the blobs it needs, which is often faster than multiple API calls
+- A local clone works offline after the initial sync
 
 ### Why `skills/` in source but `.agents/skills/` in consumer?
 
 The source path (`skills/architecture-advisor/`) and the consumer's install path (`.agents/skills/architecture-advisor/`) don't need to match. The fetch script uses `basename` to derive the directory name — only `architecture-advisor` matters. The source repo uses `skills/` as a top-level directory because it's a simpler convention for a repo whose primary purpose includes publishing skills. Consumers use `.agents/skills/` because that's the convention for agent-local skill installations.
-
-### Why embed an offline reference in the SKILL.md?
-
-Most remote installs will not have the full repository cloned. Without the offline reference, the skill would be useless in standalone mode — just instructions pointing at data that isn't there. The embedded reference makes the skill immediately useful even without any local data, covering the most common questions about architecture style selection and quality attribute trade-offs. This is the key design choice that makes remote installation practical rather than just theoretically possible.
 
 ## Versioning strategy
 
@@ -237,49 +373,59 @@ The SKILL.md frontmatter includes a `version` field. The recommended approach:
 
 | Scenario | Version bump | Example |
 |----------|-------------|---------|
-| Offline reference data updated (new kata season, new evidence source) | Minor | 1.0.0 → 1.1.0 |
-| New research methodology or question categories added | Minor | 1.1.0 → 1.2.0 |
-| Frontmatter schema change or breaking path changes | Major | 1.2.0 → 2.0.0 |
-| Typo fixes, wording improvements | Patch | 1.0.0 → 1.0.1 |
+| Offline reference data updated (new kata season, new evidence source) | Minor | 2.0.0 → 2.1.0 |
+| New research methodology or question categories added | Minor | 2.1.0 → 2.2.0 |
+| Breaking changes to references/ structure or sync script interface | Major | 2.2.0 → 3.0.0 |
+| Typo fixes, wording improvements | Patch | 2.0.0 → 2.0.1 |
 
-Consumers who pin to a ref (tag or commit) via the fetch script control their own update cadence. Consumers who fetch `main` get the latest.
+The skill version tracks the SKILL.md + scripts. The data version is tracked separately in `references/.sync-state.yml` (by commit SHA). Consumers who pin to a ref (tag or commit) via the fetch script control their own update cadence.
 
 ## Testing strategy
 
 ### Local testing
 
-Verify the skill works in all three modes:
+Verify the skill works at each sync level:
 
-1. **Full mode** — Run from within the `architecture-reference-repo` checkout. Ask an architecture question and verify the agent finds and cites evidence from the catalogs and reference library.
-2. **Library mode** — Clone the repo without `evidence-pool/` (sparse checkout). Verify the agent uses catalog data and reference library docs but gracefully handles missing team submissions.
-3. **Standalone mode** — Copy just the `SKILL.md` to an empty directory. Verify the agent uses the offline reference and doesn't error when it can't find local data.
+1. **No sync** — Delete `references/`. Ask an architecture question. Verify the agent attempts to run `sync-references.sh` or falls back to the offline reference.
+2. **Sparse sync** — Run `sync-references.sh`. Verify `references/reference-library/` is populated and the agent reads from it.
+3. **Full sync** — Run `sync-references.sh --full`. Verify catalogs and analyses are present. Ask a question that requires searching YAML catalogs.
+4. **Complete sync** — Run `sync-references.sh --complete`. Verify evidence pool is present. Ask for a deep dive into a specific team's ADRs.
+5. **Update** — Re-run sync. Verify `.sync-state.yml` is updated with a new timestamp.
 
 ### Remote fetch testing
 
-Verify compatibility with the remote-skill-manager:
-
 ```bash
-# From any repo with remote-skill-manager installed:
+# 1. Fetch the skill
 bash .agents/skills/remote-skill-manager/scripts/fetch-remote-skill.sh \
   https://github.com/cristoslc/architecture-reference-repo \
   skills/architecture-advisor \
   main \
   /tmp/test-skills
 
-# Verify:
-test -f /tmp/test-skills/architecture-advisor/SKILL.md    # Skill fetched
-test -f /tmp/test-skills/architecture-advisor/.source.yml  # Provenance generated
-grep -q "architecture-advisor" /tmp/test-skills/architecture-advisor/.source.yml  # Name matches
+# 2. Verify structure
+test -f /tmp/test-skills/architecture-advisor/SKILL.md                    # Skill fetched
+test -f /tmp/test-skills/architecture-advisor/scripts/sync-references.sh  # Script fetched
+test -x /tmp/test-skills/architecture-advisor/scripts/sync-references.sh  # Script executable
+test -f /tmp/test-skills/architecture-advisor/.source.yml                 # Provenance generated
+test ! -d /tmp/test-skills/architecture-advisor/references                # No references yet
 
-# Verify integrity:
-DIGEST=$(grep 'digest:' /tmp/test-skills/architecture-advisor/.source.yml | awk '{print $2}')
-FRESH=$(tar cf - --exclude='.source.yml' -C /tmp/test-skills architecture-advisor | sha256sum | cut -d' ' -f1)
-[ "$DIGEST" = "$FRESH" ] && echo "Integrity OK" || echo "Integrity FAIL"
+# 3. Verify sync works
+cd /tmp/test-skills/architecture-advisor
+bash scripts/sync-references.sh
+test -d references/reference-library  # References populated
+test -f references/.sync-state.yml    # Sync state recorded
+
+# 4. Verify full sync
+bash scripts/sync-references.sh --full
+test -d references/catalogs/TheKataLog  # Catalogs populated
+test -d references/analysis/TheKataLog  # Analyses populated
+test -d references/templates            # Templates populated
 ```
 
 ## What's included in this proposal
 
 | File | Purpose |
 |------|---------|
-| `docs/proposals/skill-design-proposal.md` | This document — design rationale, remote-install mechanics, and trade-off analysis |
-| `skills/architecture-advisor/SKILL.md` | Skill definition implementing this design, ready for testing and iteration |
+| `docs/proposals/skill-design-proposal.md` | This document — design rationale, sparse-clone mechanics, and trade-off analysis |
+| `skills/architecture-advisor/SKILL.md` | Skill definition with offline reference, sync instructions, and path mapping |
+| `skills/architecture-advisor/scripts/sync-references.sh` | Sparse-clone script that fetches reference data into `references/` |
