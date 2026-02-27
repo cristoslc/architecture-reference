@@ -8,10 +8,9 @@
 #   bash scripts/sync-references.sh [options]
 #
 # Modes:
-#   (default)     Sparse: key reference library only (~500 KB)
-#   --full        Full: adds catalogs, analyses, and templates (~700 KB)
-#   --complete    Complete: adds evidence pool / team submissions (~2.2 GB)
-#   --status      Show current sync state without fetching
+#   (default)          Reference library, catalogs, analyses, templates (<1 MB)
+#   --evidence-pool    Also includes full team submissions (~2.2 GB)
+#   --status           Show current sync state without fetching
 #
 # Options:
 #   --ref REF     Branch, tag, or commit to fetch (default: main)
@@ -30,17 +29,16 @@ REFERENCES_DIR="$SKILL_DIR/references"
 # --- Defaults ---
 SOURCE_REPO="https://github.com/cristoslc/architecture-reference-repo"
 REF="main"
-MODE="sparse"  # sparse | full | complete
+INCLUDE_EVIDENCE_POOL=false
 STATUS_ONLY=false
 
 # --- Parse arguments ---
 while [ $# -gt 0 ]; do
   case "$1" in
-    --full)      MODE="full"; shift ;;
-    --complete)  MODE="complete"; shift ;;
-    --status)    STATUS_ONLY=true; shift ;;
-    --ref)       REF="${2:?--ref requires a value}"; shift 2 ;;
-    --repo)      SOURCE_REPO="${2:?--repo requires a value}"; shift 2 ;;
+    --evidence-pool) INCLUDE_EVIDENCE_POOL=true; shift ;;
+    --status)        STATUS_ONLY=true; shift ;;
+    --ref)           REF="${2:?--ref requires a value}"; shift 2 ;;
+    --repo)          SOURCE_REPO="${2:?--repo requires a value}"; shift 2 ;;
     -h|--help)
       head -20 "$0" | grep '^#' | sed 's/^# \?//'
       exit 0
@@ -75,6 +73,9 @@ TMPDIR_WORK="$(mktemp -d)"
 cleanup() { rm -rf "$TMPDIR_WORK"; }
 trap cleanup EXIT
 
+MODE="default"
+$INCLUDE_EVIDENCE_POOL && MODE="evidence-pool"
+
 echo "Syncing references (mode: $MODE) from $SOURCE_REPO (ref: $REF)..."
 
 # --- Sparse clone ---
@@ -94,11 +95,9 @@ fi
 
 COMMIT_SHA="$(git rev-parse HEAD)"
 
-# --- Configure sparse-checkout paths based on mode ---
-SPARSE_PATHS="docs/reference-library"
-
-if [ "$MODE" = "full" ] || [ "$MODE" = "complete" ]; then
-  SPARSE_PATHS="$SPARSE_PATHS
+# --- Configure sparse-checkout paths ---
+# Default: reference library + catalogs + analyses + templates
+SPARSE_PATHS="docs/reference-library
 docs/templates
 evidence-analysis/TheKataLog/docs/catalog
 evidence-analysis/TheKataLog/docs/analysis
@@ -108,9 +107,8 @@ evidence-analysis/RealWorldASPNET/docs/catalog
 evidence-analysis/RealWorldASPNET/docs/analysis
 evidence-analysis/ReferenceArchitectures/docs/catalog
 evidence-analysis/ReferenceArchitectures/docs/analysis"
-fi
 
-if [ "$MODE" = "complete" ]; then
+if $INCLUDE_EVIDENCE_POOL; then
   SPARSE_PATHS="$SPARSE_PATHS
 evidence-pool/TheKataLog"
 fi
@@ -128,43 +126,41 @@ if [ -d "$REFERENCES_DIR" ]; then
 fi
 mkdir -p "$REFERENCES_DIR"
 
-# Copy reference library (always included)
+# Reference library
 if [ -d "docs/reference-library" ]; then
   cp -R docs/reference-library "$REFERENCES_DIR/reference-library"
   echo "  Synced: reference-library/"
 fi
 
-# Copy full-mode data
-if [ "$MODE" = "full" ] || [ "$MODE" = "complete" ]; then
-  if [ -d "docs/templates" ]; then
-    cp -R docs/templates "$REFERENCES_DIR/templates"
-    echo "  Synced: templates/"
-  fi
-
-  # Catalogs — flatten the 4 sources into references/catalogs/<source>/
-  mkdir -p "$REFERENCES_DIR/catalogs"
-  for source_dir in evidence-analysis/*/docs/catalog; do
-    if [ -d "$source_dir" ]; then
-      source_name="$(echo "$source_dir" | cut -d'/' -f2)"
-      cp -R "$source_dir" "$REFERENCES_DIR/catalogs/$source_name"
-      file_count=$(find "$REFERENCES_DIR/catalogs/$source_name" -name '*.yaml' | wc -l)
-      echo "  Synced: catalogs/$source_name/ ($file_count YAML files)"
-    fi
-  done
-
-  # Analyses — flatten similarly
-  mkdir -p "$REFERENCES_DIR/analysis"
-  for source_dir in evidence-analysis/*/docs/analysis; do
-    if [ -d "$source_dir" ]; then
-      source_name="$(echo "$source_dir" | cut -d'/' -f2)"
-      cp -R "$source_dir" "$REFERENCES_DIR/analysis/$source_name"
-      echo "  Synced: analysis/$source_name/"
-    fi
-  done
+# Templates
+if [ -d "docs/templates" ]; then
+  cp -R docs/templates "$REFERENCES_DIR/templates"
+  echo "  Synced: templates/"
 fi
 
-# Copy complete-mode data
-if [ "$MODE" = "complete" ]; then
+# Catalogs — flatten the 4 sources into references/catalogs/<source>/
+mkdir -p "$REFERENCES_DIR/catalogs"
+for source_dir in evidence-analysis/*/docs/catalog; do
+  if [ -d "$source_dir" ]; then
+    source_name="$(echo "$source_dir" | cut -d'/' -f2)"
+    cp -R "$source_dir" "$REFERENCES_DIR/catalogs/$source_name"
+    file_count=$(find "$REFERENCES_DIR/catalogs/$source_name" -name '*.yaml' | wc -l)
+    echo "  Synced: catalogs/$source_name/ ($file_count YAML files)"
+  fi
+done
+
+# Analyses — flatten similarly
+mkdir -p "$REFERENCES_DIR/analysis"
+for source_dir in evidence-analysis/*/docs/analysis; do
+  if [ -d "$source_dir" ]; then
+    source_name="$(echo "$source_dir" | cut -d'/' -f2)"
+    cp -R "$source_dir" "$REFERENCES_DIR/analysis/$source_name"
+    echo "  Synced: analysis/$source_name/"
+  fi
+done
+
+# Evidence pool (optional)
+if $INCLUDE_EVIDENCE_POOL; then
   if [ -d "evidence-pool/TheKataLog" ]; then
     cp -R evidence-pool/TheKataLog "$REFERENCES_DIR/evidence-pool"
     team_count=$(find "$REFERENCES_DIR/evidence-pool" -mindepth 2 -maxdepth 2 -type d | wc -l)
@@ -190,21 +186,12 @@ sync:
   by: sync-references.sh
 
 contents:
+  - reference-library
+  - templates
+  - catalogs
+  - analysis
 YAML
 
-# List what was synced
-if [ -d "$REFERENCES_DIR/reference-library" ]; then
-  echo "  - reference-library" >> "$SYNC_STATE"
-fi
-if [ -d "$REFERENCES_DIR/templates" ]; then
-  echo "  - templates" >> "$SYNC_STATE"
-fi
-if [ -d "$REFERENCES_DIR/catalogs" ]; then
-  echo "  - catalogs" >> "$SYNC_STATE"
-fi
-if [ -d "$REFERENCES_DIR/analysis" ]; then
-  echo "  - analysis" >> "$SYNC_STATE"
-fi
 if [ -d "$REFERENCES_DIR/evidence-pool" ]; then
   echo "  - evidence-pool" >> "$SYNC_STATE"
 fi
@@ -219,5 +206,5 @@ echo "  Commit: $COMMIT_SHA"
 echo "  Mode:   $MODE"
 echo "  Path:   $REFERENCES_DIR"
 echo ""
-echo "To update: bash scripts/sync-references.sh${MODE:+ --$MODE}"
-echo "To check:  bash scripts/sync-references.sh --status"
+echo "To update:  bash scripts/sync-references.sh"
+echo "To check:   bash scripts/sync-references.sh --status"

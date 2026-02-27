@@ -39,36 +39,25 @@ Before answering any question, check whether `references/` exists relative to th
 bash scripts/sync-references.sh
 ```
 
-This does a sparse clone of `https://github.com/cristoslc/architecture-reference-repo` and extracts the key reference library (~500 KB) into `references/reference-library/`.
+This does a sparse clone of `https://github.com/cristoslc/architecture-reference-repo` and extracts the reference library, YAML catalogs, analyses, and templates (<1 MB) into `references/`.
 
-### Upgrading to full data
-
-If a question requires catalog search, per-challenge analyses, or templates, and the `references/catalogs/` directory does not exist, offer to run:
-
-```bash
-bash scripts/sync-references.sh --full
-```
-
-This adds YAML catalogs for all 4 evidence sources (~66 files), per-challenge analyses, cross-cutting analyses, and templates (~700 KB total).
-
-### Complete evidence pool
+### Evidence pool
 
 For deep dives into individual team submissions (reading ADRs, C4 diagrams, video transcripts), if `references/evidence-pool/` does not exist, offer to run:
 
 ```bash
-bash scripts/sync-references.sh --complete
+bash scripts/sync-references.sh --evidence-pool
 ```
 
 This adds the full evidence pool (~2.2 GB). Only suggest this when the user explicitly needs to read individual team submissions.
 
 ### Updating
 
-To pull the latest data from the source repository, re-run the sync script with the same mode:
+To pull the latest data from the source repository, re-run the sync script:
 
 ```bash
 bash scripts/sync-references.sh --status    # Check current state
-bash scripts/sync-references.sh             # Update sparse references
-bash scripts/sync-references.sh --full      # Update full references
+bash scripts/sync-references.sh             # Update references
 ```
 
 The script is idempotent — it overwrites existing references with fresh data and updates `references/.sync-state.yml`.
@@ -78,11 +67,11 @@ The script is idempotent — it overwrites existing references with fresh data a
 Use this resolution order to find evidence data. Stop at the first match.
 
 1. **Local references**: Check `references/` relative to this SKILL.md. This is the primary data source for remote installations. The directory structure is:
-   - `references/reference-library/` — Core reference documents (always present after sync)
-   - `references/catalogs/<source>/` — YAML catalogs per source (after `--full` sync)
-   - `references/analysis/<source>/` — Per-source analyses (after `--full` sync)
-   - `references/templates/` — Practitioner guides and templates (after `--full` sync)
-   - `references/evidence-pool/` — Full team submissions (after `--complete` sync)
+   - `references/reference-library/` — Core reference documents
+   - `references/catalogs/<source>/` — YAML catalogs per source
+   - `references/analysis/<source>/` — Per-source analyses
+   - `references/templates/` — Practitioner guides and templates
+   - `references/evidence-pool/` — Full team submissions (only after `--evidence-pool` sync)
 
 2. **Source repo (local development)**: Check `../../evidence-analysis/` and `../../docs/` relative to this SKILL.md (works when skill is at `skills/architecture-advisor/` within the source repo itself).
 
@@ -136,7 +125,7 @@ Map the user's problem to one or more of these categories:
 | **Challenge comparison** | How teams approached a specific kata | `references/analysis/TheKataLog/challenges/<challenge-name>.md` |
 | **Cross-source validation** | Does a pattern hold across competition and production? | `references/reference-library/evidence/cross-source-reference.md`, `references/reference-library/evidence/cross-source-analysis.md` |
 
-If the question requires catalogs, analyses, or templates and they are not present, offer to run `bash scripts/sync-references.sh --full` before continuing.
+If `references/` does not exist, run `bash scripts/sync-references.sh` before continuing.
 
 ### Step 3: Search structured data first
 
@@ -174,7 +163,7 @@ Start with the YAML catalogs — they are small, structured, and fast to scan.
 
 ### Step 5: Dive into evidence
 
-For deep research, read team submissions in `references/evidence-pool/` (requires `--complete` sync). Submissions are organized as `<year>-<kata-challenge>/<team>/` and may contain:
+For deep research, read team submissions in `references/evidence-pool/` (requires `--evidence-pool` sync). Submissions are organized as `<year>-<kata-challenge>/<team>/` and may contain:
 
 - `README.md` or `submission.md` — Main architecture document
 - `ADRs/` or `adr/` — Architecture Decision Records

@@ -69,18 +69,18 @@ skills/
     references/                    # NOT checked in; populated by sync script
       .sync-state.yml              # Provenance: commit, timestamp, mode
       reference-library/           # Core docs (always synced)
-      catalogs/                    # YAML catalogs per source (--full)
+      catalogs/                    # YAML catalogs per source
         TheKataLog/
         AOSA/
         RealWorldASPNET/
         ReferenceArchitectures/
-      analysis/                    # Per-source analyses (--full)
+      analysis/                    # Per-source analyses
         TheKataLog/
         AOSA/
         RealWorldASPNET/
         ReferenceArchitectures/
-      templates/                   # Practitioner guides (--full)
-      evidence-pool/               # Full team submissions (--complete)
+      templates/                   # Practitioner guides
+      evidence-pool/               # Full team submissions (--evidence-pool only)
 ```
 
 The `references/` directory is `.gitignore`d in the source repo and absent from the fetched skill. It is populated at runtime by `scripts/sync-references.sh`.
@@ -93,10 +93,7 @@ The sync script (`scripts/sync-references.sh`) uses git's sparse-checkout featur
 # 1. Treeless partial clone (downloads tree objects on demand, no blobs upfront)
 git clone --depth 1 --filter=blob:none --sparse <repo-url> /tmp/clone
 
-# 2. Configure sparse-checkout to materialize only needed paths
-git sparse-checkout set docs/reference-library  # default mode
-
-# 3. For --full mode, add more paths:
+# 2. Configure sparse-checkout to materialize needed paths
 git sparse-checkout set \
   docs/reference-library \
   docs/templates \
@@ -109,22 +106,22 @@ git sparse-checkout set \
   evidence-analysis/ReferenceArchitectures/docs/catalog \
   evidence-analysis/ReferenceArchitectures/docs/analysis
 
+# 3. For --evidence-pool mode, also add:
+#    evidence-pool/TheKataLog
+
 # 4. Copy materialized files into references/, flattening the catalog/analysis paths
 # 5. Record the commit SHA and timestamp in references/.sync-state.yml
 # 6. Clean up the temporary clone
 ```
 
-This avoids cloning the full 2.2 GB evidence pool for the default and `--full` modes.
-
-### Three sync modes
+### Two sync modes
 
 | Mode | Command | What it fetches | Size |
 |------|---------|----------------|------|
-| **Sparse** (default) | `bash scripts/sync-references.sh` | Key reference library: solution-spaces, problem-spaces, decision-navigator, evidence tables, cross-source analysis | ~500 KB |
-| **Full** | `bash scripts/sync-references.sh --full` | Sparse + all 66 YAML catalogs, per-challenge analyses, cross-cutting analysis, templates | ~700 KB |
-| **Complete** | `bash scripts/sync-references.sh --complete` | Full + entire evidence pool (34 team submissions with ADRs, diagrams, transcripts) | ~2.2 GB |
+| **Default** | `bash scripts/sync-references.sh` | Reference library, all 66 YAML catalogs, per-challenge analyses, cross-cutting analysis, templates | <1 MB |
+| **Evidence pool** | `bash scripts/sync-references.sh --evidence-pool` | Default + entire evidence pool (34 team submissions with ADRs, diagrams, transcripts) | ~2.2 GB |
 
-All modes are idempotent — re-running with the same flags updates the references to the latest upstream commit and refreshes `.sync-state.yml`.
+Both modes are idempotent — re-running updates the references to the latest upstream commit and refreshes `.sync-state.yml`.
 
 ### Provenance tracking
 
@@ -140,7 +137,7 @@ source:
   commit: abc123def456...  # 40-char SHA
 
 sync:
-  mode: full
+  mode: default
   at: "2026-02-27T14:30:00Z"
   by: sync-references.sh
 
@@ -164,7 +161,7 @@ The SKILL.md instructs the agent to find data using this precedence:
 5. **Ask the user** — Prompt for the path to their local clone
 6. **Offline reference** — Key findings embedded directly in the SKILL.md
 
-The agent checks `references/` first. If it doesn't exist, it runs `bash scripts/sync-references.sh` before continuing. If the question requires catalogs and they're not synced, it offers to run `--full`. This makes the skill self-bootstrapping.
+The agent checks `references/` first. If it doesn't exist, it runs `bash scripts/sync-references.sh` before continuing. This makes the skill self-bootstrapping.
 
 ### What happens at each stage
 
@@ -180,7 +177,7 @@ The agent checks `references/` first. If it doesn't exist, it runs `bash scripts
 
 The agent can answer basic questions ("which architecture style should I use?") using the embedded offline reference data.
 
-**After `bash scripts/sync-references.sh` (default sparse sync):**
+**After `bash scripts/sync-references.sh` (default sync):**
 
 ```
 .agents/skills/architecture-advisor/
@@ -200,15 +197,6 @@ The agent can answer basic questions ("which architecture style should I use?") 
         by-quality-attribute.md
         cross-source-reference.md
         cross-source-analysis.md
-```
-
-The agent can read the full reference library documents, walk through the decision navigator, and compare architecture styles with detailed evidence tables.
-
-**After `bash scripts/sync-references.sh --full`:**
-
-```
-  references/
-    ...reference-library (as above)...
     templates/
       adr-guide.md
       c4-guide.md
@@ -230,9 +218,9 @@ The agent can read the full reference library documents, walk through the decisi
       ReferenceArchitectures/source-analysis.md
 ```
 
-The agent can search YAML catalogs, read per-challenge comparative analyses, and provide templates.
+The agent can read the full reference library, search YAML catalogs, read per-challenge comparative analyses, and provide templates.
 
-**After `bash scripts/sync-references.sh --complete`:**
+**After `bash scripts/sync-references.sh --evidence-pool`:**
 
 ```
   references/
@@ -269,13 +257,12 @@ bash scripts/sync-references.sh
 
 This sparse-clones the source repo and populates `references/reference-library/`.
 
-### Step 3: Upgrade on demand
+### Step 3: Evidence pool on demand
 
-When a question requires deeper data (catalogs, analyses, team submissions), the agent offers to run:
+When a question requires reading individual team submissions (ADRs, C4 diagrams, video transcripts), the agent offers to run:
 
 ```bash
-bash scripts/sync-references.sh --full      # For catalogs and analyses
-bash scripts/sync-references.sh --complete   # For full team submissions
+bash scripts/sync-references.sh --evidence-pool
 ```
 
 ### Step 4: Update
@@ -284,8 +271,7 @@ To pull the latest data from the source repository:
 
 ```bash
 bash scripts/sync-references.sh --status     # Check current state
-bash scripts/sync-references.sh              # Re-sync at current mode
-bash scripts/sync-references.sh --full       # Re-sync with full data
+bash scripts/sync-references.sh              # Re-sync references
 ```
 
 ### Integrity and drift
@@ -387,10 +373,9 @@ The skill version tracks the SKILL.md + scripts. The data version is tracked sep
 Verify the skill works at each sync level:
 
 1. **No sync** — Delete `references/`. Ask an architecture question. Verify the agent attempts to run `sync-references.sh` or falls back to the offline reference.
-2. **Sparse sync** — Run `sync-references.sh`. Verify `references/reference-library/` is populated and the agent reads from it.
-3. **Full sync** — Run `sync-references.sh --full`. Verify catalogs and analyses are present. Ask a question that requires searching YAML catalogs.
-4. **Complete sync** — Run `sync-references.sh --complete`. Verify evidence pool is present. Ask for a deep dive into a specific team's ADRs.
-5. **Update** — Re-run sync. Verify `.sync-state.yml` is updated with a new timestamp.
+2. **Default sync** — Run `sync-references.sh`. Verify `references/reference-library/`, `references/catalogs/`, `references/analysis/`, and `references/templates/` are populated. Ask a question that requires searching YAML catalogs.
+3. **Evidence pool sync** — Run `sync-references.sh --evidence-pool`. Verify evidence pool is present. Ask for a deep dive into a specific team's ADRs.
+4. **Update** — Re-run sync. Verify `.sync-state.yml` is updated with a new timestamp.
 
 ### Remote fetch testing
 
@@ -416,7 +401,6 @@ test -d references/reference-library  # References populated
 test -f references/.sync-state.yml    # Sync state recorded
 
 # 4. Verify full sync
-bash scripts/sync-references.sh --full
 test -d references/catalogs/TheKataLog  # Catalogs populated
 test -d references/analysis/TheKataLog  # Analyses populated
 test -d references/templates            # Templates populated
