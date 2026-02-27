@@ -1,7 +1,7 @@
 # MonitorMe -- Comparative Analysis
 
 **Challenge:** O'Reilly Architecture Katas, Winter 2024 Season
-**Teams Analyzed:** 7
+**Teams Analyzed:** 4
 **Domain:** On-premises medical patient monitoring for StayHealthy, Inc.
 
 ---
@@ -26,21 +26,21 @@ The challenge combines real-time streaming, fault tolerance, data integrity, and
 
 ## Team Comparison Matrix
 
-| Dimension | BluzBrothers (1st) | Mighty Orbots (2nd) | Architects Evolution Zone (3rd tied) | LowCode (3rd tied) | InfyArchs (Runner-up) | Safezone Cartons (Runner-up) | Systems Savants (Runner-up) |
-|---|---|---|---|---|---|---|---|
-| **Architecture Style** | Event-driven | Microservices + Event-driven hybrid | Event-driven | Event-driven + Distributed system | Microservices + Event-driven | Event-driven + Service-based | Microservices + Event-driven |
-| **Team Size** | 4 | Not specified | 5 | 5 | 4 | 3 | 4 |
-| **ADR Count** | 20 | 5 | 12 | 3 | 12 | 12 | 11 |
-| **Top Quality Attributes** | Performance, Fault tolerance, Availability | Availability, Data integrity, Data consistency | Responsiveness, Fault tolerance, Performance | Concurrency, Availability, Data integrity | Fault tolerance, Availability, Data integrity | Availability, Performance, Agility | Interoperability, Real-time performance, High availability |
-| **Event Broker** | Apache Kafka (ADR-015) | Implicit (event-driven for rule processing) | RabbitMQ (ADR-007) | Internal event bus | Kafka/Redpanda (ADR) | Telegraf pipeline | HiveMQ MQTT broker |
-| **Database Strategy** | Time-series (InfluxDB) | Time-series + relational (rules/alerts) | NoSQL + in-memory cache | Embedded per-appliance | InfluxDB + PostgreSQL | InfluxDB | PostgreSQL |
-| **Deployment** | Kubernetes on-premises | Not specified | On-premise server cluster | Distributed 3-node appliances | K3s on edge devices | Edge gateways + central hub | AWS Outposts (hybrid) |
-| **C4 Diagrams** | C1, C2 | None | C1, C2, C3 | C1, C2 (per role) | C1, C2 (per system) | C1, C2 (per subsystem) | C1, C2 (simplified + expanded) |
-| **Sequence Diagrams** | 4 use cases | 1 (transformation) | Multiple (alerting, CMS, storage) | 3 (Mermaid-embedded) | None | 1 (device to patient) | None |
-| **UI Wireframes** | None | 7 screens | Desktop, mobile, CMS mockups | Deferred | None | None | Dashboard + mobile mockups |
-| **Fitness Functions** | 3 (sizing, alerts, failover) | None | None | None | None | None | None |
-| **Capacity Planning** | Full throughput calculations | None | None | None | None | Data amount calculations | Capacity planning data |
-| **Video Presentation** | External link only | External link only | Yes (with transcript) | Yes (YouTube) | None | Yes (with transcript) | Yes (YouTube) |
+| Dimension | BluzBrothers (1st) | Mighty Orbots (2nd) | Architects Evolution Zone (3rd tied) | LowCode (3rd tied) |
+|---|---|---|---|---|
+| **Architecture Style** | Event-driven | Microservices + Event-driven hybrid | Event-driven | Event-driven + Distributed system |
+| **Team Size** | 4 | Not specified | 5 | 5 |
+| **ADR Count** | 20 | 5 | 12 | 3 |
+| **Top Quality Attributes** | Performance, Fault tolerance, Availability | Availability, Data integrity, Data consistency | Responsiveness, Fault tolerance, Performance | Concurrency, Availability, Data integrity |
+| **Event Broker** | Apache Kafka (ADR-015) | Implicit (event-driven for rule processing) | RabbitMQ (ADR-007) | Internal event bus |
+| **Database Strategy** | Time-series (InfluxDB) | Time-series + relational (rules/alerts) | NoSQL + in-memory cache | Embedded per-appliance |
+| **Deployment** | Kubernetes on-premises | Not specified | On-premise server cluster | Distributed 3-node appliances |
+| **C4 Diagrams** | C1, C2 | None | C1, C2, C3 | C1, C2 (per role) |
+| **Sequence Diagrams** | 4 use cases | 1 (transformation) | Multiple (alerting, CMS, storage) | 3 (Mermaid-embedded) |
+| **UI Wireframes** | None | 7 screens | Desktop, mobile, CMS mockups | Deferred |
+| **Fitness Functions** | 3 (sizing, alerts, failover) | None | None | None |
+| **Capacity Planning** | Full throughput calculations | None | None | None |
+| **Video Presentation** | External link only | External link only | Yes (with transcript) | Yes (YouTube) |
 
 ---
 
@@ -48,7 +48,7 @@ The challenge combines real-time streaming, fault tolerance, data integrity, and
 
 ### Universal Agreement: Event-Driven at the Core
 
-All seven teams converged on **event-driven architecture** as a foundational element. The MonitorMe problem domain -- continuous streams of vital sign data from multiple devices, real-time display requirements, and anomaly-triggered alerting -- is a textbook fit for event-driven patterns. Where teams diverged was in what they combined with event-driven and how they structured it.
+All four placing teams converged on **event-driven architecture** as a foundational element. The MonitorMe problem domain -- continuous streams of vital sign data from multiple devices, real-time display requirements, and anomaly-triggered alerting -- is a textbook fit for event-driven patterns. Where teams diverged was in what they combined with event-driven and how they structured it.
 
 ### Pure Event-Driven (BluzBrothers, AchitectsEvolutionZone)
 
@@ -56,33 +56,24 @@ All seven teams converged on **event-driven architecture** as a foundational ele
 
 **AchitectsEvolutionZone** (3rd) also chose pure event-driven (ADR-012) but distinguished themselves with **RabbitMQ** as their message broker (ADR-007) and a dedicated **Device Gateway** component. Their emphasis on the physical communication layer -- with separate ADRs for wired communication to CMS (ADR-001), wired gateway-to-server communication (ADR-003), and WLAN paths (ADR-004, ADR-005) -- showed deeper engagement with the on-premises hardware realities.
 
-### Microservices + Event-Driven Hybrid (Mighty Orbots, InfyArchs, Systems Savants)
+### Microservices + Event-Driven Hybrid (Mighty Orbots)
 
-Three teams combined microservices with event-driven patterns, each for different reasons:
-
-**Mighty Orbots** (2nd) arrived at their hybrid through **usage-pattern analysis**. Their wireframe-driven discovery process revealed that fault tolerance for individual sensors naturally mapped to microservices (each sensor's status must not affect others), while the rule processing pipeline demanded event-driven flow. Their architecture has a clearer logical separation: microservices for data acquisition and administration, event-driven for the analysis-to-alert pipeline.
-
-**InfyArchs** decomposed the system into **5 distinct software systems** (Vitals Monitoring, Metrics Capturing, Hospital, Administration, Alerting), each with its own architecture. This is the most granular decomposition of any team, treating each subsystem as a semi-independent product. They specified concrete technology choices at the component level: Go/Rust for data workers, React for UI, Node.js for APIs.
-
-**Systems Savants** paired microservices with event-driven on **AWS Outposts**, creating a hybrid cloud approach for on-premises deployment. Their **MQTT protocol selection** (ADR-009) for IoT device communication is particularly relevant -- MQTT is purpose-built for constrained IoT devices and low-bandwidth scenarios, a choice none of the other teams made explicitly.
+**Mighty Orbots** (2nd) arrived at their hybrid through **usage-pattern analysis**. Their wireframe-driven discovery process revealed that fault tolerance for individual sensors naturally mapped to microservices (each sensor's status must not affect others), while the rule processing pipeline demanded event-driven flow. Their architecture has a clear logical separation: microservices for data acquisition and administration, event-driven for the analysis-to-alert pipeline.
 
 ### Event-Driven + Distributed Hardware (LowCode)
 
 **LowCode** (3rd) took the most distinctive approach by treating the **hardware architecture as a first-class design concern**. Their solution requires a minimum of 3 identical appliances with role-based behavior (Coordinator, Monitor, Analyzer) and automatic failover. When degraded to 2 nodes, the system continues fully; at 1 node, it drops the nurse station display but maintains analysis and alerting. This graceful degradation model (ADR-0001) is the most explicitly designed failover strategy of any team.
 
-### Event-Driven + Service-Based (Safezone Cartons)
-
-**Safezone Cartons** combined event-driven with **service-based architecture** and introduced an **edge gateway pattern** where processing happens at the nurse station level. This brings computation closest to the data source, ensuring the fastest possible local response while asynchronously synchronizing with a central hub. Their use of **Telegraf** (a plugin-driven server agent for collecting and reporting metrics) as the data processing layer is a pragmatic choice from the operations/monitoring world applied to healthcare.
-
 ---
 
-## What Separated Winners from Runners-Up
+## What Distinguished the Top Teams
 
 ### 1. Rigor of Decision Documentation
 
-The single most visible differentiator is ADR depth and discipline:
+The single most visible differentiator across the placing teams is ADR depth and discipline:
 
 - **BluzBrothers (1st): 20 ADRs** -- They documented not just what they decided, but what they *excluded*. ADRs for "scalability downplayed" (ADR-008), "deployability downplayed" (ADR-009), "patient registration out of scope" (ADR-005), and "mobile app out of scope" (ADR-013) demonstrate a team that understood that good architecture is as much about what you leave out as what you include. Their ADR-010 ("availability not used for architecture style selection") is especially notable -- they recognized availability as crucial but argued it should be addressed at the deployment level rather than influencing the software architecture style.
+- **AchitectsEvolutionZone (3rd): 12 ADRs** -- Their decisions focused on infrastructure realities: wired vs. wireless communication, message broker selection, and on-premise deployment. The breadth of their ADRs demonstrated thorough coverage of the physical deployment environment.
 - **Mighty Orbots (2nd): 5 ADRs** -- Fewer in number but including a **superseded ADR** (data administration as input only, later replaced with input-and-output). This showed iterative thinking and willingness to evolve decisions visibly.
 - **LowCode (3rd): 3 ADRs** -- The fewest ADRs of any placed team, but their distributed systems ADR (0001) is among the most impactful single decisions in the entire competition.
 
@@ -96,7 +87,7 @@ The single most visible differentiator is ADR depth and discipline:
 - LAN transfer: 32ms for 4MB
 - **Total end-to-end: 693ms** (under the 1-second requirement)
 
-This step-by-step breakdown -- from sensor to Kafka to database to nurse station -- is the kind of back-of-envelope calculation that separates architectural proposals from architectural *proof*. **Safezone Cartons** and **Systems Savants** also provided data calculations, but without the end-to-end timing validation.
+This step-by-step breakdown -- from sensor to Kafka to database to nurse station -- is the kind of back-of-envelope calculation that separates architectural proposals from architectural *proof*. None of the other placing teams provided comparable end-to-end timing validation, making this a clear competitive advantage.
 
 ### 3. Discovery Process and Requirements Decomposition
 
@@ -111,13 +102,13 @@ This step-by-step breakdown -- from sensor to Kafka to database to nurse station
 
 ### 4. Deployment Realism
 
-The top teams addressed the on-premises constraint thoughtfully:
+The placing teams each addressed the on-premises constraint with concrete strategies:
 
 - **BluzBrothers**: Kubernetes with automated instance duplication (ADR-018, ADR-020), with specific instance counts for services
 - **LowCode**: Custom distributed appliance design with auto-discovery and plug-and-play replacement
 - **AchitectsEvolutionZone**: On-premise server cluster (ADR-011) with detailed infrastructure layout covering wired and wireless paths
 
-Runner-up teams either over-engineered (Systems Savants proposing **AWS Outposts** introduces vendor lock-in and cost complexity for a hospital deployment) or under-specified deployment (Mighty Orbots had no deployment view at all).
+**Mighty Orbots** was the exception among placing teams, providing no deployment view at all -- yet their strength in other areas (wireframe-driven discovery, rule engine design) carried them to second place despite this gap.
 
 ---
 
@@ -125,9 +116,9 @@ Runner-up teams either over-engineered (Systems Savants proposing **AWS Outposts
 
 ### 1. Time-Series Database for Vital Signs
 
-Five of seven teams selected or recommended a **time-series database** for storing vital sign readings. BluzBrothers, InfyArchs, and Safezone Cartons explicitly chose **InfluxDB**. Mighty Orbots selected a generic time-series database with detailed schema design. The rationale is consistent: high-throughput writes, native temporal querying, automatic data retention policies, and aggregation support align with the 24-hour rolling window requirement.
+The placing teams gravitated toward **time-series or specialized databases** for storing vital sign readings. **BluzBrothers** explicitly chose **InfluxDB**, while **Mighty Orbots** selected a generic time-series database with detailed schema design. The rationale is consistent: high-throughput writes, native temporal querying, automatic data retention policies, and aggregation support align with the 24-hour rolling window requirement.
 
-**AchitectsEvolutionZone** opted for **NoSQL** more broadly, and **Systems Savants** chose **PostgreSQL** -- the most relational choice, justified through their data integrity requirements.
+**AchitectsEvolutionZone** opted for **NoSQL** more broadly, and **LowCode** used embedded per-appliance databases suited to their distributed hardware model.
 
 ### 2. Separation of Sensor Ingestion from Analysis
 
@@ -136,19 +127,19 @@ Every team separated the data ingestion pathway from the analysis/alerting pathw
 - **BluzBrothers**: Vital Sign Recorder (writes) vs. Vital Sign Analyzer (reads + processes)
 - **Mighty Orbots**: Ingestion pool (ELT writes) vs. Rule Alert Processor (analysis)
 - **LowCode**: Monitor role (display) vs. Analyzer role (threshold detection)
-- **Safezone Cartons**: Edge gateway (local processing) vs. Central hub (aggregated analysis)
+- **AchitectsEvolutionZone**: Device Gateway (ingestion) vs. analysis services (downstream processing)
 
 ### 3. Event-Driven for the Alert Pipeline
 
-All teams implemented the anomaly-detection-to-alert flow as an event-driven pipeline. The pattern is: sensor data arrives as events, rule processors subscribe to relevant events, matched rules produce alert events, and notification services consume alert events to push to screens and mobile devices.
+All four teams implemented the anomaly-detection-to-alert flow as an event-driven pipeline. The pattern is: sensor data arrives as events, rule processors subscribe to relevant events, matched rules produce alert events, and notification services consume alert events to push to screens and mobile devices.
 
 ### 4. Nurse Station as a Distinct Architectural Boundary
 
-Teams consistently treated the nurse station as a key architectural boundary. **BluzBrothers** (ADR-014) and **Mighty Orbots** explicitly separated the nurse station's monitoring concern from the admin/configuration concern. **Safezone Cartons** pushed computation to the nurse station level with edge gateways. **LowCode** treated the nurse station's display as the most expendable function during degraded operation -- the last thing sacrificed when nodes fail.
+Teams consistently treated the nurse station as a key architectural boundary. **BluzBrothers** (ADR-014) and **Mighty Orbots** explicitly separated the nurse station's monitoring concern from the admin/configuration concern. **AchitectsEvolutionZone** addressed the nurse station's communication paths with dedicated ADRs for wired and wireless connectivity. **LowCode** treated the nurse station's display as the most expendable function during degraded operation -- the last thing sacrificed when nodes fail.
 
 ### 5. Security Deferred (Mostly)
 
-Security was consistently acknowledged but deferred. **BluzBrothers** listed authentication/authorization as a postponed decision. **Mighty Orbots** noted it as a future iteration concern. **LowCode** addressed it most directly with wired connections, on-site storage, and encrypted databases. **Systems Savants** went furthest with a dedicated ADR for layered security (ADR-006). The common reasoning: the system is on-premises, behind hospital infrastructure, and the kata explicitly stated HIPAA compliance was not required.
+Security was consistently acknowledged but deferred. **BluzBrothers** listed authentication/authorization as a postponed decision. **Mighty Orbots** noted it as a future iteration concern. **LowCode** addressed it most directly with wired connections, on-site storage, and encrypted databases. The common reasoning: the system is on-premises, behind hospital infrastructure, and the kata explicitly stated HIPAA compliance was not required.
 
 ---
 
@@ -199,22 +190,6 @@ LowCode's **3-node identical appliance model** with role-based behavior is the m
 
 The **auto-configuration sequence** for plug-and-play appliance replacement (detailed in their Mermaid sequence diagram) means a hospital technician can swap a failed node without software expertise. This is the most operationally practical design for a healthcare environment.
 
-### InfyArchs: IoT Edge Computing with K3s
-
-InfyArchs' choice of **K3s** (lightweight Kubernetes) for edge device orchestration, managed centrally via **Rancher** with **GitOps** deployment, represents the most modern DevOps-oriented approach. Their decomposition into 5 independent software systems, each with its own container and deployment views, makes the solution modular at the system level rather than just the service level.
-
-### Safezone Cartons: Edge Gateway with Data Calculations
-
-Safezone Cartons' **edge gateway architecture** processes data at the nurse station before sending it to the central hub asynchronously. Their detailed **data amount calculations** (showing ~1.09 GB per day per fully-occupied nurse station across all 8 vital sign types) provided concrete evidence for their storage and bandwidth decisions. Their **QR code device registry flow** for patient-device association via mobile app is a practical workflow innovation.
-
-### Systems Savants: MQTT for IoT Communication
-
-Systems Savants was the only team to select **MQTT** (ADR-009) as the device communication protocol. MQTT's publish-subscribe model, small packet overhead, and built-in quality-of-service levels make it the standard IoT protocol -- a technically sound choice for connecting medical monitoring devices. Their use of **HiveMQ** as the MQTT broker adds enterprise-grade clustering and monitoring.
-
-### Systems Savants: Team Topologies Thinking
-
-Along with BluzBrothers (who included a Team Topologies section), Systems Savants considered organizational design alongside technical design. BluzBrothers explicitly documented team structure aligned to their architecture, following Conway's Law principles. This is a dimension most kata teams overlook entirely.
-
 ---
 
 ## Lessons for Practitioners
@@ -229,19 +204,19 @@ Mighty Orbots demonstrated that designing screens before components reveals arch
 
 ### 3. Prove Your Architecture with Numbers
 
-Only one of seven teams (BluzBrothers) provided end-to-end timing calculations. In a domain where sub-1-second response time is a stated requirement and "human lives are at stake," this gap is concerning. Fitness functions and back-of-envelope throughput calculations are lightweight activities that dramatically increase architectural credibility. Safezone Cartons and Systems Savants provided partial calculations -- but the winning team was the only one to close the loop from sensor to screen.
+Only one of four placing teams (BluzBrothers) provided end-to-end timing calculations. In a domain where sub-1-second response time is a stated requirement and "human lives are at stake," this gap is notable. Fitness functions and back-of-envelope throughput calculations are lightweight activities that dramatically increase architectural credibility. The winning team was the only one to close the loop from sensor to screen with concrete numbers -- and it is no coincidence that they took first place.
 
 ### 4. On-Premises Demands Explicit Deployment Architecture
 
-The on-premises constraint was a differentiator. Teams that addressed it concretely (BluzBrothers with Kubernetes, LowCode with distributed appliances, AchitectsEvolutionZone with infrastructure layouts) placed higher than those who either ignored it (Mighty Orbots had no deployment view) or over-relied on cloud abstractions (Systems Savants' AWS Outposts introduces dependencies unusual for a hospital installation). For on-premises systems, the deployment architecture *is* the architecture.
+The on-premises constraint was a differentiator even among the placing teams. Teams that addressed it concretely -- BluzBrothers with Kubernetes, LowCode with distributed appliances, AchitectsEvolutionZone with infrastructure layouts -- produced more convincing proposals than those that left deployment unspecified. For on-premises systems, the deployment architecture *is* the architecture.
 
 ### 5. Healthcare Domain Knowledge Creates Differentiation
 
-AchitectsEvolutionZone's adoption of **HL7** and Systems Savants' selection of **MQTT** for IoT communication show that domain-specific protocol knowledge matters. These are not just technically sound choices -- they signal to stakeholders that the team understands the ecosystem their software inhabits. For any kata challenge, investing time to research the target domain's established standards and protocols pays dividends.
+AchitectsEvolutionZone's adoption of **HL7** for healthcare data interoperability shows that domain-specific protocol knowledge matters. This is not just a technically sound choice -- it signals to stakeholders that the team understands the ecosystem their software inhabits. For any kata challenge, investing time to research the target domain's established standards and protocols pays dividends.
 
 ### 6. Event-Driven Is Not a Complete Answer
 
-While all seven teams correctly identified event-driven architecture as essential, the top teams recognized it as necessary but not sufficient. The winning teams all layered additional concerns on top: hardware failover (LowCode), data pipeline strategy (Mighty Orbots' ELT), caching for alert performance (AchitectsEvolutionZone, BluzBrothers), and deployment orchestration (BluzBrothers, InfyArchs). Architecture style selection is the beginning of the design process, not the end.
+While all four placing teams correctly identified event-driven architecture as essential, each recognized it as necessary but not sufficient. The teams layered additional concerns on top: hardware failover (LowCode), data pipeline strategy (Mighty Orbots' ELT), caching for alert performance (AchitectsEvolutionZone, BluzBrothers), and deployment orchestration (BluzBrothers). Architecture style selection is the beginning of the design process, not the end.
 
 ### 7. Graceful Degradation Trumps Binary Availability
 
