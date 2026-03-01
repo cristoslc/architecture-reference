@@ -1,18 +1,18 @@
 ---
 name: remote-skill-manager
 description: Fetch skills from remote Git repositories, generate `.source.yml` provenance manifests, detect drift, and update fetched skills. Use when installing shared skills from external repos, checking for upstream changes, or auditing skill provenance.
-license: UNLICENSED
+license: MIT
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 metadata:
   short-description: Fetch, track, and update remote skills
-  related-adr: ADR-002-Remote-Skills-Reference-Pattern
   version: 1.0.0
   author: cristos
+  source-repo: https://github.com/cristoslc/architecture-reference-repo
 ---
 
 # Remote Skill Manager
 
-Fetch skills from remote Git repositories into the local `.agents/skills/` directory and maintain `.source.yml` provenance manifests per ADR-002.
+Fetch skills from remote Git repositories into a local skills directory and maintain `.source.yml` provenance manifests for integrity tracking.
 
 ## Quick reference
 
@@ -33,11 +33,11 @@ Every skill fetched from a remote repo gets a `.source.yml` file written alongsi
 - **When** it was fetched and by whom
 - **Integrity** hash for drift detection
 
-The schema is defined in ADR-002 and formalized as:
+The schema is formalized as:
 - JSON Schema: `references/source-yml-schema.json`
 - Jinja template: `references/source-yml.template.j2`
 
-Local-only skills (authored in this repo) do NOT have `.source.yml`. Its absence is the signal that a skill is locally maintained.
+Local-only skills (authored in the consuming repo) do NOT have `.source.yml`. Its absence is the signal that a skill is locally maintained.
 
 ### Drift detection
 
@@ -62,9 +62,9 @@ Drift means either upstream changed (re-fetch to update) or the local copy was m
    ```bash
    bash scripts/fetch-remote-skill.sh \
      https://github.com/acme/shared-skills \
-     .agents/skills/code-review \
+     skills/code-review \
      v2.1.0 \
-     ../../.agents/skills
+     .agents/skills
    ```
 
 2. The script will:
@@ -72,7 +72,7 @@ Drift means either upstream changed (re-fetch to update) or the local copy was m
    - Extract the skill directory from the clone
    - Copy it to the target skills directory
    - Compute an integrity hash of the fetched files
-   - Generate `.source.yml` from the Jinja template
+   - Generate `.source.yml` from the template
    - Clean up the temporary clone
 
 3. Verify the result:
@@ -101,7 +101,7 @@ To update to a new version:
 ```bash
 bash scripts/fetch-remote-skill.sh \
   https://github.com/acme/shared-skills \
-  .agents/skills/code-review \
+  skills/code-review \
   v3.0.0
 ```
 
@@ -146,8 +146,6 @@ Run the smoke test to validate the fetch-and-stamp workflow end-to-end:
 ```bash
 bash scripts/smoke-test.sh
 ```
-
-The smoke test exercises acceptance criteria AC-1 through AC-5 from ADR-002. See `scripts/smoke-test.sh` for details.
 
 ## Skill references
 
