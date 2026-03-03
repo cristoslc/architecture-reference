@@ -56,7 +56,7 @@ Every artifact embeds a lifecycle table tracking phase transitions:
 | Active  | 2026-02-25 | def5678 | Dependency X satisfied |
 ```
 
-Commit hashes reference the repo state at the time of the transition, not the commit that writes the hash stamp itself. Commit first, then stamp the hash and amend — the pre-amend hash is the correct value.
+Commit hashes reference the repo state at the time of the transition, not the commit that writes the hash stamp itself. Commit the transition first, then stamp the resulting hash into the lifecycle table and index in a second commit. This keeps the stamped hash reachable in git history.
 
 ## Index maintenance
 
@@ -94,6 +94,16 @@ Run `specgraph.sh status` for a project-wide progress snapshot — one table per
 Run `specgraph.sh next` for a quick "what should I work on?" view — shows ready items (unblocked, in-progress or not-yet-started) with what completing each would unblock, plus any blocked items and what they're waiting on.
 
 Both are read-only operations. They do not modify any files.
+
+### Combined "what's next?" flow
+
+When asked "what's next?" or "what should I work on?", combine **both** layers:
+
+1. **Spec layer** — run `specgraph.sh next` to find which artifacts are ready at the planning level (all dependencies resolved).
+2. **Task layer** — invoke the **execution-tracking** skill and run `bd ready --json` to find concrete unblocked tasks in the execution backend.
+3. **Present both together:** spec-level ready items (with what they'd unblock) and task-level ready items (claimable work). If bd is not initialized or has no tasks, note that and show only the spec layer.
+
+This ensures "what's next?" answers both "which specs can move forward?" and "which concrete tasks can I pick up right now?"
 
 ## Creating artifacts
 
