@@ -1,40 +1,40 @@
 project_name: sample-spring-microservices-new
 source: Discovered
-source_url: "https://github.com/piomin/sample-spring-microservices-new"
-project_url: "https://github.com/piomin/sample-spring-microservices-new"
+source_url: https://github.com/piomin/sample-spring-microservices-new
+project_url: https://github.com/piomin/sample-spring-microservices-new
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:29:02Z"
+discovered_at: '2026-03-03T17:29:02Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Java/Kotlin
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Microservices
 key_technologies:
-  - Maven
-  - Docker
-  - Docker Compose
+- Maven
+- Docker
+- Docker Compose
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Moderate signal profile with identifiable patterns
-  - CI/CD automation present
+- Moderate signal profile with identifiable patterns
+- CI/CD automation present
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Textbook Spring Cloud microservices demo with Eureka discovery,
+  Config Server, API Gateway, OpenFeign inter-service communication, and distributed
+  tracing
 discovery_metadata:
-  confidence: 0.4
+  confidence: 0.95
   signals_detected: 11
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
+  - style: Modular Monolith
+    score: 0.4
   signal_breakdown:
     package_manifests: 7
     container_orchestration: 2
@@ -46,4 +46,14 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_required: true
+review_required: false
+review_notes: 'README explicitly titled ''Microservices with Spring Cloud Advanced
+  Demo Project''. 6 independently deployable Spring Boot services: employee-service,
+  department-service, organization-service, gateway-service (Spring Cloud Gateway
+  with lb:// routes), discovery-service (Eureka @EnableEurekaServer), config-service
+  (Spring Cloud Config @EnableConfigServer). Inter-service calls via @FeignClient
+  annotations in department-service/client/EmployeeClient.java and organization-service/client/{EmployeeClient,DepartmentClient}.java.
+  docker-compose.yml orchestrates all services as separate containers with health
+  checks. Distributed tracing via Micrometer+OpenTelemetry+Zipkin. Per-service config
+  files in config-service/src/main/resources/config/. Multi-module Maven pom.xml with
+  packaging=pom.'

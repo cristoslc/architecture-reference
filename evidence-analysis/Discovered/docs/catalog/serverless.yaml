@@ -1,58 +1,55 @@
 project_name: serverless
 source: Discovered
-source_url: "https://github.com/serverless/serverless"
-project_url: "https://github.com/serverless/serverless"
+source_url: https://github.com/serverless/serverless
+project_url: https://github.com/serverless/serverless
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:45:40Z"
+discovered_at: '2026-03-03T17:45:40Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: JavaScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Pipe-and-Filter
 key_technologies:
-  - Node.js
-  - Go modules
-  - Maven
-  - Python/pip
-  - Docker
-  - Terraform
-  - Serverless Framework
-  - Kafka
-  - RabbitMQ
-  - GraphQL
-  - GitHub Actions
+- Node.js
+- Go modules
+- Maven
+- Python/pip
+- Docker
+- Terraform
+- Serverless Framework
+- Kafka
+- RabbitMQ
+- GraphQL
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: JavaScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: CLI deployment framework with plugin-based modular monolith architecture
+  and command pipeline processing
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.87
   signals_detected: 366
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.87
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Serverless
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Event-Driven
+    score: 0.6
+  - style: Serverless
+    score: 0.6
+  - style: Microservices
+    score: 0.4
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 111
     container_orchestration: 16
@@ -64,4 +61,23 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: 'LLM review of github.com/serverless/serverless. This is the Serverless
+  Framework itself -- a CLI tool for deploying serverless apps, NOT a serverless application.
+  Classifying what the repo IS, not what it enables. AGENTS.md confirms: ''command-line
+  tool for deploying serverless applications to AWS Lambda.'' Structure: npm workspaces
+  monorepo (packages/sf-core, packages/serverless, packages/engine, packages/mcp,
+  packages/util, packages/standards). Core architecture in packages/serverless/lib/serverless.js
+  is a classic modular monolith: single Serverless class orchestrating PluginManager,
+  Service, Config, CLI, and ConfigSchemaHandler classes. Plugin system (packages/serverless/lib/classes/plugin-manager.js)
+  loads 60+ internal plugins covering AWS provider, packaging, deployment, events
+  compilation, etc. Router pattern in packages/sf-core/src/lib/router.js dispatches
+  to specialized runners (TraditionalRunner, CfnRunner, ComposeRunner, ServerlessContainerFrameworkRunner,
+  ServerlessAiFrameworkRunner). Pipe-and-Filter secondary style: command processing
+  flows through lifecycle hooks -- init() loads config then plugins, run() validates
+  then merges arrays then sets function names then validates service then triggers
+  plugin lifecycle via pluginManager.run(). Event compilation plugins form a processing
+  pipeline: each compile plugin (schedule, s3, api-gateway, websockets, sns, stream,
+  kafka, sqs, cloudfront, http-api, etc.) transforms configuration into CloudFormation
+  resources in sequence. The packages/ workspace structure provides module boundaries
+  but all packages deploy as a single CLI tool.'

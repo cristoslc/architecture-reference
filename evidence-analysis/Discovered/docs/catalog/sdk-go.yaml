@@ -1,48 +1,47 @@
 project_name: sdk-go
 source: Discovered
-source_url: "https://github.com/cloudevents/sdk-go"
-project_url: "https://github.com/cloudevents/sdk-go"
+source_url: https://github.com/cloudevents/sdk-go
+project_url: https://github.com/cloudevents/sdk-go
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:31:44Z"
+discovered_at: '2026-03-03T17:31:44Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Go
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Layered
+- Pipe-and-Filter
 key_technologies:
-  - Go modules
-  - Kafka
-  - NATS
-  - gRPC
-  - GitHub Actions
+- Go modules
+- Kafka
+- NATS
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
+- Fault Tolerance
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (2 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (2 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Go SDK for CloudEvents with layered architecture (event model, binding/encoding,
+  protocol interfaces, client facade) and pipe-and-filter message transformation pipeline
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.88
   signals_detected: 51
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.88
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.4
+  - style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 33
     container_orchestration: 0
@@ -54,4 +53,15 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: 'README identifies this as the official CloudEvents SDK for Go. Core
+  in v2/ has explicit layers: event (data model), binding (encoding/message abstraction
+  with transformer pipeline), protocol (transport interfaces defined in protocol/doc.go
+  as decoupling layer), and client (high-level facade). v2/alias.go re-exports layered
+  internals as convenience API. Protocol implementations (HTTP, Kafka, AMQP, NATS,
+  MQTT, PubSub, WebSocket) are separate Go modules under protocol/. The binding/transformer/
+  package implements composable pipe-and-filter pattern with add_metadata, delete_metadata,
+  set_metadata, and version transformers. Messages flow through MessageReader -> Transformer
+  chains -> StructuredWriter/BinaryWriter pipeline. Classified as what the repo IS
+  (a layered SDK with pipe-and-filter encoding), not what it enables (event-driven
+  applications).'
