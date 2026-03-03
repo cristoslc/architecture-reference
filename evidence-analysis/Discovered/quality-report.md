@@ -1,17 +1,17 @@
 # Dataset Scaling Pipeline - Quality Report
 
-Generated: 2026-03-03 19:03 UTC
+Generated: 2026-03-03 19:06 UTC
 Total entries: 163
-Classified: 61
-Indeterminate (needs LLM review): 102
+Classified: 66
+Indeterminate (needs LLM review): 97
 
 ## Confidence Distribution (classified entries only)
 
-- Median: 0.97
+- Median: 0.95
 - IQR (25th-75th): 0.90 - 1.00
 - 90% interval (5th-95th): 0.90 - 1.00
 - Range: 0.82 - 1.00
-- Mean: 0.96 (n=61)
+- Mean: 0.96 (n=66)
 
 ```
   0.0-0.1  |  (0)
@@ -23,7 +23,7 @@ Indeterminate (needs LLM review): 102
   0.6-0.7  |  (0)
   0.7-0.8  |  (0)
   0.8-0.9  | ### (3)
-  0.9-1.0  | ########################################################## (58)
+  0.9-1.0  | ############################################################### (63)
 ```
 
 ## Architecture Style Coverage
@@ -33,13 +33,13 @@ Target: n >= 10 for each of the 12 canonical styles.
 | Style | Count | Target Met |
 |-------|-------|------------|
 | Microservices | 45 | Yes |
-| Event-Driven | 53 | Yes |
-| Modular Monolith | 7 | **No** (3 short) |
+| Event-Driven | 55 | Yes |
+| Modular Monolith | 8 | **No** (2 short) |
 | Service-Based | 1 | **No** (9 short) |
-| Domain-Driven Design | 34 | Yes |
-| CQRS | 11 | Yes |
-| Space-Based | 0 | **No** (10 short) |
-| Hexagonal Architecture | 4 | **No** (6 short) |
+| Domain-Driven Design | 37 | Yes |
+| CQRS | 13 | Yes |
+| Space-Based | 1 | **No** (9 short) |
+| Hexagonal Architecture | 7 | **No** (3 short) |
 | Serverless | 7 | **No** (3 short) |
 | Layered | 6 | **No** (4 short) |
 | Pipe-and-Filter | 27 | Yes |
@@ -49,16 +49,14 @@ Target: n >= 10 for each of the 12 canonical styles.
 
 ## Indeterminate Entries (needs LLM review)
 
-Entries with confidence < 0.85: 102
+Entries with confidence < 0.85: 97
 
 | Project | Confidence | Heuristic Candidates |
 |---------|-----------|---------------------|
-| Confab | 0.80 | Domain-Driven Design (0.3) |
 | Ecommerce.Api | 0.80 | Pipe-and-Filter (0.3) |
 | EventStore | 0.80 | Pipe-and-Filter (0.3) |
 | Inflow | 0.80 | Event-Driven (0.3) |
 | OrchardCore | 0.80 | Pipe-and-Filter (0.3) |
-| coherence | 0.80 | Domain-Driven Design (0.3) |
 | ddd-forum | 0.80 | Pipe-and-Filter (0.3) |
 | directus | 0.80 | Event-Driven (0.3) |
 | discourse | 0.80 | Event-Driven (0.3) |
@@ -95,7 +93,6 @@ Entries with confidence < 0.85: 102
 | semantic-kernel | 0.70 | Pipe-and-Filter (0.3) |
 | serverless | 0.70 | Domain-Driven Design (0.3) |
 | zammad | 0.70 | Domain-Driven Design (0.3) |
-| clean-architecture-manga | 0.60 | Hexagonal Architecture (0.4) |
 | dify | 0.60 | Pipe-and-Filter (0.3) |
 | geode | 0.60 | Domain-Driven Design (0.3) |
 | go-micro | 0.60 | Event-Driven (0.3) |
@@ -105,7 +102,6 @@ Entries with confidence < 0.85: 102
 | rabbitmq-server | 0.60 | Event-Driven (0.3) |
 | saleor | 0.60 | Pipe-and-Filter (0.3) |
 | CQRSlite | 0.50 | Domain-Driven Design (0.3) |
-| CleanArchitecture | 0.50 | Domain-Driven Design (0.3) |
 | MediatR | 0.50 | Pipe-and-Filter (0.3) |
 | NServiceBus | 0.50 | Pipe-and-Filter (0.3) |
 | NorthwindTraders | 0.50 | CQRS (0.3) |
@@ -138,7 +134,6 @@ Entries with confidence < 0.85: 102
 | zuul | 0.50 | Pipe-and-Filter (0.3) |
 | MetaGPT | 0.40 | Modular Monolith (0.4) |
 | Zappa | 0.40 | Modular Monolith (0.4) |
-| clean-architecture-example | 0.40 | Modular Monolith (0.4) |
 | dbt-core | 0.40 | Microservices (0.4) |
 | ddd-starter-modelling-process | 0.40 | Modular Monolith (0.4) |
 | ehcache3 | 0.40 | Domain-Driven Design (0.3) |
@@ -160,10 +155,10 @@ Entries with confidence < 0.85: 102
 
 The following 7 styles have fewer than 10 samples:
 
-- **Modular Monolith**: 7/10
+- **Modular Monolith**: 8/10
 - **Service-Based**: 1/10
-- **Space-Based**: 0/10
-- **Hexagonal Architecture**: 4/10
+- **Space-Based**: 1/10
+- **Hexagonal Architecture**: 7/10
 - **Serverless**: 7/10
 - **Layered**: 6/10
 - **Multi-Agent**: 2/10

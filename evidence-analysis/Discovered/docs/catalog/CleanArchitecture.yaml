@@ -11,7 +11,9 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Hexagonal Architecture
+  - Domain-Driven Design
+  - CQRS
 key_technologies:
   - .NET
   - GitHub Actions
@@ -24,26 +26,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+one_line_summary: ASP.NET Core Clean Architecture template with concentric dependency rule, DDD aggregates, and CQRS command/query separation
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.95
   signals_detected: 35
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: CQRS
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
+    style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 22
     container_orchestration: 0
@@ -55,4 +47,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_required: true
+review_required: false
+review_notes: "Evidence: README.md explicitly states 'Clean Architecture is just the latest in a series of names for the same loosely-coupled, dependency-inverted architecture. You will also find it named hexagonal, ports-and-adapters, or onion architecture.' src/ has 4 concentric projects: Core (domain model, no external deps) -> UseCases (commands/queries) -> Infrastructure (EF Core, email) -> Web (FastEndpoints). Core/ContributorAggregate/ contains Aggregates, Value Objects (ContributorName, PhoneNumber via Vogen), Domain Events (ContributorDeletedEvent, ContributorNameUpdatedEvent), Specifications, and interfaces -- classic DDD. UseCases/ separates Commands (CreateContributorCommand, DeleteContributorCommand, UpdateContributorCommand) from Queries (GetContributorQuery, ListContributorsQuery) with separate handlers -- explicit CQRS. Infrastructure implements repository abstractions (EfRepository<T>) and query services (ListContributorsQueryService). Dependency flow enforces ports-and-adapters: Core defines interfaces (IDeleteContributorService, IEmailSender), Infrastructure implements them. README Goals section: 'provide a basic solution structure that can be used to build Domain-Driven Design (DDD)-based applications.'"

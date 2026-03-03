@@ -11,7 +11,10 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Modular Monolith
+  - Domain-Driven Design
+  - CQRS
+  - Event-Driven
 key_technologies:
   - .NET
   - Docker Compose
@@ -25,29 +28,16 @@ notable_gaps:
   - No architecture decision records found
   - No CI/CD configuration detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+one_line_summary: .NET 5 modular monolith for conference management using DDD, CQRS, and event-driven module integration
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.95
   signals_detected: 34
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: CQRS
-      score: 0.4
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
+    style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 26
     container_orchestration: 1
@@ -59,4 +49,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: "Evidence: README.md explicitly states 'modular monolith architecture' with 'CQRS', 'Clean Architecture', and 'Domain-Driven Design' building blocks; modules integrated via 'event-driven architecture' with local contracts. src/Modules/ contains 7 independent modules (Agendas, Attendances, Conferences, Saga, Speakers, Tickets, Users) loaded by a single Bootstrapper. Complex modules (Agendas, Attendances) use 4-layer Clean Architecture (Api/Application/Domain/Infrastructure) with DDD aggregates (AggregateRoot base class in Shared.Abstractions/Kernel/Types/). Simpler modules (Conferences, Speakers, Tickets, Users) use 2-layer CRUD (Api/Core). CQRS confirmed via Commands/Queries separation in Shared.Abstractions and per-module Application layers. Event-driven integration via IMessageBroker publishing to both RabbitMQ (external) and IModuleClient (in-process). Saga module orchestrates cross-module workflows (InviteSpeakerSaga.cs). docker-compose.yaml runs PostgreSQL and RabbitMQ."
