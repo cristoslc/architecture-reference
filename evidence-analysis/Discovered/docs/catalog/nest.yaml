@@ -1,56 +1,53 @@
 project_name: nest
 source: Discovered
-source_url: "https://github.com/nestjs/nest"
-project_url: "https://github.com/nestjs/nest"
+source_url: https://github.com/nestjs/nest
+project_url: https://github.com/nestjs/nest
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:46:13Z"
+discovered_at: '2026-03-03T17:46:13Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Layered
 key_technologies:
-  - Node.js
-  - Docker Compose
-  - Kafka
-  - RabbitMQ
-  - NATS
-  - gRPC
-  - GraphQL
-  - GitHub Actions
+- Node.js
+- Docker Compose
+- Kafka
+- RabbitMQ
+- NATS
+- gRPC
+- GraphQL
+- GitHub Actions
 quality_attributes:
-  - Deployability
-  - Modularity
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: TypeScript framework with modular monorepo structure (9 Lerna packages)
+  and layered request pipeline (Guards->Interceptors->Pipes->Handlers)
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.85
   signals_detected: 81
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.85
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.7
+  - style: Layered
+    score: 0.3
+  - style: Event-Driven
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 51
     container_orchestration: 7
@@ -62,4 +59,14 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: 'Monorepo: lerna.json defines packages/* with 9 packages (common, core,
+  microservices, platform-express, platform-fastify, platform-socket.io, platform-ws,
+  testing, websockets). Module system: packages/core/injector/module.ts manages _imports/_providers/_controllers/_exports
+  as core organizational unit. DependenciesScanner (packages/core/scanner.ts) builds
+  module dependency graph. Layered pipeline: packages/core/guards/, packages/core/interceptors/,
+  packages/core/pipes/, packages/core/middleware/, packages/core/router/ form distinct
+  request-processing layers. Adapter pattern: packages/core/adapters/http-adapter.ts
+  defines AbstractHttpAdapter port; platform-express and platform-fastify provide
+  concrete adapters. The microservices package enables microservice patterns for users
+  but the framework itself ships as a single coordinated monorepo.'

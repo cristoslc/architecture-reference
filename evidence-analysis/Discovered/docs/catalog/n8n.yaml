@@ -1,55 +1,54 @@
 project_name: n8n
 source: Discovered
-source_url: "https://github.com/n8n-io/n8n"
-project_url: "https://github.com/n8n-io/n8n"
+source_url: https://github.com/n8n-io/n8n
+project_url: https://github.com/n8n-io/n8n
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:42:49Z"
+discovered_at: '2026-03-03T17:42:49Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Workflow Automation
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Pipe-and-Filter
+- Event-Driven
 key_technologies:
-  - Node.js
-  - Python/pip
-  - Docker
-  - Docker Compose
-  - Terraform
-  - Kafka
-  - RabbitMQ
-  - OpenAPI
-  - GitHub Actions
+- Node.js
+- Python/pip
+- Docker
+- Docker Compose
+- Terraform
+- Kafka
+- RabbitMQ
+- OpenAPI
+- GitHub Actions
 quality_attributes:
-  - Deployability
-  - Modularity
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Workflow automation platform with pipe-and-filter execution engine
+  where data flows through connected nodes in a directed graph, triggered by event
+  sources
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.9
   signals_detected: 152
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.9
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Event-Driven
+    score: 0.6
+  - style: Microservices
+    score: 0.5
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 65
     container_orchestration: 12
@@ -61,4 +60,18 @@ discovery_metadata:
     test_structure: 4
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: 'PRIMARY: Pipe-and-Filter - WorkflowExecute.processRunExecutionData()
+  in packages/core/src/execution-engine/workflow-execute.ts implements classic pipe-and-filter
+  loop: nodes popped from nodeExecutionStack, each executed via executeNode(), output
+  data (INodeExecutionData[][]) passed to downstream nodes via addNodeToBeExecuted()
+  using connectionsBySourceNode graph. 304 integration nodes in packages/nodes-base/nodes/
+  each implement INodeType as self-contained filters. NodeConnectionTypes defines
+  Main plus 12 AI connection types. Workflow class in packages/workflow/src/workflow.ts
+  models the directed graph with connectionsBySourceNode/connectionsByDestinationNode.
+  SECONDARY: Event-Driven - MessageEventBus in packages/cli/src/eventbus/ with typed
+  event message classes (audit, execution, node, queue, workflow, runner). Scaling
+  via Redis pub/sub in packages/cli/src/scaling/. Triggers include webhooks, cron,
+  polling. Push notifications via SSE/WebSocket. Also exhibits Modular Monolith traits:
+  pnpm workspace monorepo with clear package boundaries (workflow, core, cli, nodes-base,
+  frontend) and DI container (@n8n/di), but deployed as single process.'
