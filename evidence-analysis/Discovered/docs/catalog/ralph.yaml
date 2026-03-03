@@ -1,45 +1,44 @@
 project_name: ralph
 source: Discovered
-source_url: "https://github.com/allegro/ralph"
-project_url: "https://github.com/allegro/ralph"
+source_url: https://github.com/allegro/ralph
+project_url: https://github.com/allegro/ralph
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:32:18Z"
+discovered_at: '2026-03-03T17:32:18Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Asset Management
 language: Python
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Layered
+- Modular Monolith
 key_technologies:
-  - Node.js
-  - Python/pip
-  - Docker Compose
-  - GitHub Actions
+- Node.js
+- Python/pip
+- Docker Compose
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Moderate signal profile with identifiable patterns
-  - CI/CD automation present
-  - Multi-style composition (2 styles)
+- Moderate signal profile with identifiable patterns
+- CI/CD automation present
+- Multi-style composition (2 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Django-based asset management/DCIM/CMDB monolith with standard layered
+  architecture and well-organized domain modules
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.88
   signals_detected: 8
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.88
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.4
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 3
     container_orchestration: 1
@@ -51,4 +50,15 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Classic Django layered architecture: presentation (admin views/templates
+  in ralph/admin/), API layer (DRF with centralized RalphRouter in ralph/api/routers.py),
+  business logic (models + transitions system in ralph/lib/transitions/), data access
+  (Django ORM across 20+ apps). Modular Monolith signals from well-defined Django
+  apps: assets, data_center, back_office, networks, deployment, dhcp, dns, domains,
+  virtual, operations, etc. Each app has models.py, admin.py, views.py, and api/ subpackages.
+  Single deployable: docker-compose.yml runs one web service with nginx/MySQL/Redis.
+  Shared lib/ directory provides cross-cutting concerns (transitions, custom_fields,
+  permissions, metrics). INSTALLED_APPS in settings/base.py lists all ~25 internal
+  apps. URL routing in urls/base.py is a single monolithic dispatcher. No messaging,
+  event bus, or service decomposition detected.'
