@@ -10,8 +10,8 @@
 #   ref         — Branch, tag, or commit (default: HEAD)
 #   target-dir  — Local directory to install into (default: .agents/skills)
 #
-# Requires: git, sha256sum or shasum, date
-# Generates: .source.yml provenance manifest
+# Requires: git, tar, sha256sum or shasum, date
+# Generates: .source.yml provenance manifest per ADR-002
 
 set -euo pipefail
 
@@ -91,9 +91,9 @@ cp -R "$TMPDIR_WORK/repo/$SKILL_PATH/." "$DEST/"
 rm -f "$DEST/.source.yml"
 
 # --- Compute integrity hash ---
-# Content-only hash: file paths + contents, sorted. Ignores filesystem metadata
-# (timestamps, xattrs, directory entries) for cross-platform determinism.
-INTEGRITY_DIGEST="$(cd "$TARGET_DIR" && find "$SKILL_NAME" -type f ! -name '.source.yml' -print0 | sort -z | while IFS= read -r -d '' f; do printf '%s\n' "$f"; cat "$f"; done | sha256_hash)"
+# Content-only hash: hash file paths + contents, not filesystem metadata.
+# This avoids tar non-determinism from directory mtime changes.
+INTEGRITY_DIGEST="$(cd "$TARGET_DIR" && find "$SKILL_NAME" -type f ! -name '.source.yml' | LC_ALL=C sort | while IFS= read -r f; do printf '%s\n' "$f"; sha256_hash < "$f"; done | sha256_hash)"
 
 # --- Generate .source.yml ---
 FETCHED_AT="$(iso_timestamp)"
