@@ -11,7 +11,8 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Serverless
+  - Event-Driven
 key_technologies:
   - Node.js
   - Maven
@@ -32,26 +33,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+one_line_summary: Azure Functions extension providing durable orchestration, activity, and entity triggers for stateful serverless workflows
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.92
   signals_detected: 75
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Serverless
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
+    style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 51
     container_orchestration: 6
@@ -63,4 +54,5 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 2
-review_required: true
+review_required: false
+review_notes: README states this is an 'extension for Azure Functions' adding orchestrator, activity, and entity functions. Core project (src/WebJobs.Extensions.DurableTask/) contains Bindings/ with OrchestrationTriggerAttributeBindingProvider.cs, ActivityTriggerAttributeBindingProvider.cs, EntityTriggerAttributeBindingProvider.cs - these are Azure Functions trigger bindings, confirming Serverless architecture. Listener/ directory contains TaskOrchestrationShim.cs, TaskActivityShim.cs, TaskEntityShim.cs implementing the function dispatch model. EntityScheduler/ implements actor-model entities with RequestMessage.cs, ResponseMessage.cs, MessageSorter.cs - event-driven message passing. EventGridLifeCycleNotificationHelper.cs integrates with Azure Event Grid for lifecycle events. Grpc/Protos/orchestrator_service.proto enables out-of-process function communication. Storage/ abstracts Azure Storage backends (Blob, Queue, Table). The csproj depends on Microsoft.Azure.DurableTask.Core and Microsoft.Azure.DurableTask.AzureStorage. Worker.Extensions.DurableTask provides the isolated worker model with DurableFunctionExecutor handling Orchestration, Activity, and Entity execution. Dockerfiles exist only in test/SmokeTests/ for CI, not production deployment. No ARCHITECTURE.md found.

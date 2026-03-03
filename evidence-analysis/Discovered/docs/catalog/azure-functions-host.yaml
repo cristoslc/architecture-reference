@@ -11,7 +11,9 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Event-Driven
+  - Layered
+  - Pipe-and-Filter
 key_technologies:
   - Node.js
   - .NET
@@ -29,29 +31,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+one_line_summary: "C# runtime host for Azure Functions using event-driven architecture with layered project structure and middleware pipeline"
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.92
   signals_detected: 68
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Serverless
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+    style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 35
     container_orchestration: 0
@@ -63,4 +52,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_required: true
+review_required: false
+review_notes: "README: 'runtime host used by the Azure Functions service' built on Azure WebJobs SDK. Event-Driven: src/WebJobs.Script/Eventing/ has ScriptEventManager using System.Reactive.Subjects with pub/sub (HostRestartEvent, WorkerErrorEvent, RpcChannelEvent, InboundGrpcEvent/OutboundGrpcEvent in src/WebJobs.Script.Grpc/Eventing/). Layered: 4-project dependency chain -- Abstractions (contracts) -> Script (core runtime: Host/, Binding/, Workers/, Scale/) -> Grpc (out-of-process worker channels) -> WebHost (ASP.NET Core Controllers/, Security/, Routing/). Pipe-and-Filter: src/WebJobs.Script.WebHost/Middleware/ has 25+ middleware components (FunctionInvocationMiddleware, HttpThrottleMiddleware, ExceptionMiddleware, HostAvailabilityCheckMiddleware). The repo IS a serverless runtime host, not a serverless app itself. Trigger/binding system in src/WebJobs.Script/Binding/ dispatches to language workers via gRPC (src/WebJobs.Script.Grpc/Channel/GrpcWorkerChannel.cs)."

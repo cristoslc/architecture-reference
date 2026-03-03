@@ -11,7 +11,9 @@ language: Java/Kotlin
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - CQRS
+  - Event-Driven
+  - Domain-Driven Design
 key_technologies:
   - Node.js
   - Maven
@@ -28,26 +30,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+one_line_summary: Java framework providing CQRS, Event Sourcing, and DDD building blocks for message-driven microservice systems
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.97
   signals_detected: 97
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.97
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: CQRS
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
+    style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 34
     container_orchestration: 1
@@ -59,4 +51,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: "README.md explicitly states: 'framework for building evolutionary, event-driven microservice systems based on the principles of DDD, CQRS, and Event Sourcing.' pom.xml description: 'plumbing and wiring required to build a CQRS architecture.' GitHub topics include cqrs, ddd, domain-driven-design, event-sourcing, message-driven. Module structure directly implements these patterns: messaging/ contains commandhandling/ (CommandBus, CommandHandler, CommandMessage), queryhandling/ (QueryBus, QueryHandler, QueryMessage), and eventhandling/ (EventBus, EventHandler) - the three bus types are the core CQRS separation. eventsourcing/ module provides EventStore, EventSourcingRepository, and SourcingCondition. modelling/ provides DDD building blocks: Repository pattern (Repository.java, InMemoryRepository), Entity modeling (EntityMetamodel, EntityEvolver), and aggregate lifecycle management. axon-5/design-principles.md documents architectural rules (no ThreadLocals, reactive support, UnitOfWork lifecycle). messaging/core/ provides MessageStream, UnitOfWork, correlation data - the messaging backbone. Distributed support via commandhandling/distributed/DistributedCommandBus. Dead letter queue support in messaging/deadletter/. Classified as what the framework IS (a CQRS+ES+DDD framework), not what it enables (microservices)."
