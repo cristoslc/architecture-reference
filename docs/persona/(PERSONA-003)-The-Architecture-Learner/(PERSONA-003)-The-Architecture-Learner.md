@@ -1,7 +1,7 @@
 ---
 title: "The Architecture Learner"
 artifact: PERSONA-003
-status: Draft
+status: Validated
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -54,3 +54,4 @@ Accesses the reference library as a study resource, typically during dedicated l
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | af8095e | Initial creation — hypothesized from expected reference library usage patterns, not yet validated via user research |
+| Validated | 2026-03-03 | 32dd4a2 | Validated by user as a target persona for the architecture reference catalog |
