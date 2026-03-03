@@ -11,7 +11,10 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Domain-Driven Design
+  - Modular Monolith
+  - Event-Driven
+  - Layered
 key_technologies:
   - Node.js
   - Go modules
@@ -31,29 +34,16 @@ notable_strengths:
   - Multi-style composition (5 styles)
 notable_gaps:
   - No architecture decision records found
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+one_line_summary: Opinionated .NET application framework implementing DDD building blocks, modular monolith architecture, and event-driven infrastructure with layered module structure
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.95
   signals_detected: 807
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Domain-Driven Design
-      score: 0.7
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Hexagonal Architecture
-      score: 0.4
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+    style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 759
     container_orchestration: 17
@@ -65,4 +55,5 @@ discovery_metadata:
     test_structure: 2
     documentation: 1
     directory_structure: 6
-review_required: true
+review_required: false
+review_notes: "README explicitly lists DDD, Microservices, Modularity as first-class architectures; GitHub topics include domain-driven-design and modular-monolith. DDD evidence: framework/src/Volo.Abp.Ddd.Domain/ provides Entity, AggregateRoot, ValueObject, DomainService, Repository abstractions; Volo.Abp.Ddd.Application/ provides application service layer; every module (modules/identity/, modules/cms-kit/) follows strict DDD layering with Domain, Domain.Shared, Application, Application.Contracts, EntityFrameworkCore, HttpApi layers. Modular Monolith evidence: framework/src/Volo.Abp.Core/Volo/Abp/Modularity/ contains AbpModule, DependsOnAttribute, ModuleLoader, ModuleManager, PlugIns system; modules/ directory has 18+ self-contained modules each with own .slnx and NuGet packaging. Event-Driven evidence: framework/src/Volo.Abp.EventBus/ with Local and Distributed event buses; transport adapters for RabbitMQ, Kafka, Azure, Dapr, Rebus; Inbox/Outbox pattern (InboxProcessor.cs, OutboxSender.cs); domain events via IGeneratesDomainEvents in aggregate roots. Layered evidence: each module enforces Domain.Shared->Domain->Application.Contracts->Application->HttpApi->Web dependency chain visible across all modules."

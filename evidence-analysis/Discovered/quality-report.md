@@ -1,9 +1,9 @@
 # Dataset Scaling Pipeline - Quality Report
 
-Generated: 2026-03-03 18:47 UTC
+Generated: 2026-03-03 18:57 UTC
 Total entries: 163
-Classified: 47
-Indeterminate (needs LLM review): 116
+Classified: 51
+Indeterminate (needs LLM review): 112
 
 ## Confidence Distribution (classified entries only)
 
@@ -11,7 +11,7 @@ Indeterminate (needs LLM review): 116
 - IQR (25th-75th): 0.90 - 1.00
 - 90% interval (5th-95th): 0.90 - 1.00
 - Range: 0.88 - 1.00
-- Mean: 0.97 (n=47)
+- Mean: 0.96 (n=51)
 
 ```
   0.0-0.1  |  (0)
@@ -23,7 +23,7 @@ Indeterminate (needs LLM review): 116
   0.6-0.7  |  (0)
   0.7-0.8  |  (0)
   0.8-0.9  | # (1)
-  0.9-1.0  | ############################################## (46)
+  0.9-1.0  | ################################################## (50)
 ```
 
 ## Architecture Style Coverage
@@ -33,23 +33,23 @@ Target: n >= 10 for each of the 12 canonical styles.
 | Style | Count | Target Met |
 |-------|-------|------------|
 | Microservices | 43 | Yes |
-| Event-Driven | 43 | Yes |
-| Modular Monolith | 3 | **No** (7 short) |
-| Service-Based | 0 | **No** (10 short) |
-| Domain-Driven Design | 29 | Yes |
+| Event-Driven | 46 | Yes |
+| Modular Monolith | 6 | **No** (4 short) |
+| Service-Based | 1 | **No** (9 short) |
+| Domain-Driven Design | 31 | Yes |
 | CQRS | 8 | **No** (2 short) |
 | Space-Based | 0 | **No** (10 short) |
 | Hexagonal Architecture | 4 | **No** (6 short) |
 | Serverless | 5 | **No** (5 short) |
-| Layered | 0 | **No** (10 short) |
-| Pipe-and-Filter | 24 | Yes |
-| Multi-Agent | 0 | **No** (10 short) |
+| Layered | 2 | **No** (8 short) |
+| Pipe-and-Filter | 25 | Yes |
+| Multi-Agent | 1 | **No** (9 short) |
 
 **4/12 styles meet target coverage.**
 
 ## Indeterminate Entries (needs LLM review)
 
-Entries with confidence < 0.85: 116
+Entries with confidence < 0.85: 112
 
 | Project | Confidence | Heuristic Candidates |
 |---------|-----------|---------------------|
@@ -59,10 +59,6 @@ Entries with confidence < 0.85: 116
 | EventStore | 0.80 | Pipe-and-Filter (0.3) |
 | Inflow | 0.80 | Event-Driven (0.3) |
 | OrchardCore | 0.80 | Pipe-and-Filter (0.3) |
-| abp | 0.80 | Pipe-and-Filter (0.3) |
-| akka | 0.80 | Domain-Driven Design (0.3) |
-| appwrite | 0.80 | Pipe-and-Filter (0.3) |
-| aspnetboilerplate | 0.80 | Pipe-and-Filter (0.3) |
 | autogen | 0.80 | Microservices (0.8) |
 | bank-of-anthos | 0.80 | Microservices (0.8) |
 | coherence | 0.80 | Domain-Driven Design (0.3) |
@@ -151,7 +147,6 @@ Entries with confidence < 0.85: 116
 | zuul | 0.50 | Pipe-and-Filter (0.3) |
 | MetaGPT | 0.40 | Modular Monolith (0.4) |
 | Zappa | 0.40 | Modular Monolith (0.4) |
-| anthropic-cookbook | 0.40 | Modular Monolith (0.4) |
 | aws-serverless-airline-booking | 0.40 | Modular Monolith (0.4) |
 | clean-architecture-example | 0.40 | Modular Monolith (0.4) |
 | dbt-core | 0.40 | Microservices (0.4) |
@@ -169,16 +164,17 @@ Entries with confidence < 0.85: 116
 | solidus | 0.40 | Microservices (0.4) |
 | superagent | 0.40 | Modular Monolith (0.4) |
 | swarm | 0.40 | Modular Monolith (0.4) |
+| anthropic-cookbook | 0.20 | Modular Monolith (0.4) |
 
 ## Coverage Gaps
 
 The following 8 styles have fewer than 10 samples:
 
-- **Modular Monolith**: 3/10
-- **Service-Based**: 0/10
+- **Modular Monolith**: 6/10
+- **Service-Based**: 1/10
 - **CQRS**: 8/10
 - **Space-Based**: 0/10
 - **Hexagonal Architecture**: 4/10
 - **Serverless**: 5/10
-- **Layered**: 0/10
-- **Multi-Agent**: 0/10
+- **Layered**: 2/10
+- **Multi-Agent**: 1/10
