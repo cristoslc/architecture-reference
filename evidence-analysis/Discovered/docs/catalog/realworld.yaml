@@ -1,40 +1,39 @@
 project_name: realworld
 source: Discovered
-source_url: "https://github.com/gothinkster/realworld"
-project_url: "https://github.com/gothinkster/realworld"
+source_url: https://github.com/gothinkster/realworld
+project_url: https://github.com/gothinkster/realworld
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:46:09Z"
+discovered_at: '2026-03-03T17:46:09Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Social Media
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Layered
 key_technologies:
-  - Node.js
-  - OpenAPI
-  - GitHub Actions
+- Node.js
+- OpenAPI
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - CI/CD automation present
+- CI/CD automation present
 notable_gaps:
-  - No architecture decision records found
-  - No test infrastructure detected
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No test infrastructure detected
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Reference specification and implementation for the RealWorld (Conduit)
+  Medium.com clone, with a layered Nitro/Prisma backend API
 discovery_metadata:
-  confidence: 0.4
+  confidence: 0.75
   signals_detected: 7
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
+  - style: Modular Monolith
+    score: 0.4
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 0
@@ -46,4 +45,18 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'The repo is primarily a specification project (OpenAPI spec, API test
+  suites in Bruno/Hurl/Postman, E2E Playwright specs, frontend/backend documentation)
+  but also includes a reference backend implementation in apps/api/ built with Nitro
+  (server framework) and Prisma ORM on SQLite. The reference API follows a Layered
+  architecture: file-based route handlers in server/routes/api/ (presentation/controller
+  layer), utility mappers in server/utils/ (article.mapper.ts, author.mapper.ts, profile.utils.ts
+  as a mapping/service layer), TypeScript interfaces in server/models/ (domain model
+  layer), and Prisma ORM with schema.prisma for data access. Auth middleware (auth-event-handler.ts,
+  auth.ts) acts as cross-cutting concern. No service layer abstraction exists - route
+  handlers directly call Prisma. The apps/documentation/ directory is an Astro-based
+  docs site. Confidence is moderate (0.75) because the actual code implementation
+  is a relatively small reference implementation, not a production system, and the
+  layering is thin (routes call ORM directly with mapper utilities but no distinct
+  service/business-logic layer).'

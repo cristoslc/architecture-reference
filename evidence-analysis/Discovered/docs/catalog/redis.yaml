@@ -1,42 +1,42 @@
 project_name: redis
 source: Discovered
-source_url: "https://github.com/redis/redis"
-project_url: "https://github.com/redis/redis"
+source_url: https://github.com/redis/redis
+project_url: https://github.com/redis/redis
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:55:28Z"
+discovered_at: '2026-03-03T17:55:28Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Grid
 language: C/C++
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Space-Based
+- Event-Driven
 key_technologies:
-  - Python/pip
-  - GitHub Actions
+- Python/pip
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
-  - Modularity
+- Fault Tolerance
+- Deployability
+- Modularity
 notable_strengths:
-  - Moderate signal profile with identifiable patterns
-  - Comprehensive test infrastructure
-  - CI/CD automation present
+- Moderate signal profile with identifiable patterns
+- Comprehensive test infrastructure
+- CI/CD automation present
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: C/C++ project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: C in-memory data store with Space-Based shared-nothing clustering
+  and Event-Driven I/O via custom event loop
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.92
   signals_detected: 14
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
+  - style: Modular Monolith
+    score: 0.7
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 0
@@ -48,4 +48,12 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'README describes in-memory key-value store with 16384-slot hash partitioning
+  (cluster.h CLUSTER_SLOTS), pub/sub messaging (pubsub.c), streams (t_stream.c), and
+  event-driven networking (ae.c/ae.h custom event loop with epoll/kqueue/select backends).
+  MANIFESTO point 2: Memory storage is #1. Point 7: shared-nothing approach with single-threaded
+  cores composed via Redis Cluster. Data partitioned across nodes by consistent hashing
+  of key slots. server.h shows ae.h event loop as core architectural primitive. modules/
+  directory contains extensible data-type plugins (redisearch, redisjson, redistimeseries,
+  vector-sets).'
