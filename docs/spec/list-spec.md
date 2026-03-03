@@ -1,10 +1,10 @@
 # Agent Specs
 
-## Approved
+## Implemented
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
-| SPEC-001 | Architecture Discovery Skill | Analyze a local repo via filesystem signal extraction and heuristic+LLM classification, producing a YAML catalog entry and markdown summary compatible with the evidence base. | 2026-03-03 | b63f031 |
+| SPEC-001 | Architecture Discovery Skill | Analyze a local repo via filesystem signal extraction and heuristic+LLM classification, producing a YAML catalog entry and markdown summary compatible with the evidence base. | 2026-03-03 | f07312f |
 
 ## Draft
 

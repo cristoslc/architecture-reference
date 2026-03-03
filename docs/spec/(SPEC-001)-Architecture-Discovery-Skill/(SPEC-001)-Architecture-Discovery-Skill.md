@@ -1,7 +1,7 @@
 ---
 title: "Architecture Discovery Skill"
 artifact: SPEC-001
-status: Approved
+status: Implemented
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -153,3 +153,4 @@ Run against the 8 known reference architecture repos. Compare discovered `archit
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Approved | 2026-03-03 | b63f031 | Skipped Draft/Review — design is well-established from EPIC-003 proposal |
+| Implemented | 2026-03-03 | f07312f | All 5 tasks complete, calibration passed (93% accuracy) |
