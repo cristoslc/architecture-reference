@@ -76,11 +76,11 @@ journey
 ## Pain Points
 
 - **Finding analogous solved problems (score: 2).** The problem-solution matrix maps problem dimensions to architecture styles, but the architect needs to know "has anyone built something like what I'm building?" — not just "what style fits this dimension." The current library lacks domain-specific filtering.
-- **Searching cross-source evidence (score: 2).** Evidence is spread across four sources with different formats, depths, and coverage areas. There is no unified search or comparison view. The cross-source reference table exists but is dense and requires significant interpretation.
+- **Searching cross-source evidence (score: 2).** Evidence is spread across five sources with different formats, depths, and coverage areas. There is no unified search or comparison view. The cross-source reference table exists but is dense and requires significant interpretation.
 
 ## Opportunities
 
-- **Unified search across evidence sources.** Let the architect describe their problem and get relevant evidence from all four sources, ranked by relevance.
+- **Unified search across evidence sources.** Let the architect describe their problem and get relevant evidence from all five sources, ranked by relevance.
 - **Domain-specific filtering.** The evidence base spans healthcare, logistics, civic tech, travel, IoT, AI, retail, and more. Let architects filter by domain vertical.
 - **Production-first evidence.** Distinguish competition evidence (what was proposed) from production evidence (what actually ran) to help architects calibrate their confidence.
 - **Architecture-advisor skill.** The most direct opportunity — let the architect ask questions and get evidence-backed answers within their workflow, without needing to navigate the reference library manually.

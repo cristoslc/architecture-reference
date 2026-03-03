@@ -1,8 +1,8 @@
 # Cross-Source Architecture Evidence Reference
 
-Maps the library's architecture styles to weighted evidence across all four sources. Production evidence from real-world applications is weighted most heavily.
+Maps the library's architecture styles to weighted evidence across all five sources. Production evidence from real-world applications is weighted most heavily; automated discovery from 173 open-source repositories adds code-level breadth.
 
-Generated: 2026-02-26
+Generated: 2026-03-03
 
 ---
 
@@ -29,25 +29,31 @@ Not all evidence is equal. A pattern proven at production scale is stronger evid
 - **Competition winners (4 pts) outweigh templates (2 pts).** Expert judges evaluated trade-offs against a real problem statement; a template demonstrates a pattern in a to-do app.
 - **Production evidence now dominates the rankings.** Patterns like Pipeline (100% production) and Plugin/Microkernel (97% production) surge to the top, while competition-popular patterns like Microservices (0% production) and Serverless (0% production) drop. This corrects the competition bias where teams default to trendy patterns without production validation.
 
+### Discovered evidence: breadth, not depth
+
+The Discovered source (173 open-source repositories classified by automated signal detection with LLM review) is not included in the Combined Weighted Scoreboard. These are working codebases on GitHub, but the classification is automated, the quality varies (production systems mixed with tutorials and samples), and we cannot verify production deployment. Rather than assign an arbitrary point weight that would distort the curated scoreboard, Discovered entry counts are shown as a separate column for breadth context.
+
+The Discovered column answers: *"How many open-source codebases exhibit this pattern?"* The Combined score answers: *"How strong is the expert-validated evidence for this pattern?"* Both questions matter; they measure different things.
+
 ---
 
 ## Combined Weighted Scoreboard
 
-| Rank | Style | KataLog | AOSA | RealWorld | Ref Impls | Combined | Entries | vs KataLog-only |
-|------|-------|---------|------|-----------|-----------|----------|---------|-----------------|
-| 1 | **Event-Driven** | 94 | 60 | 40 | 9 | **203** | 57 | -- |
-| 2 | **Plugin/Microkernel** | 4 | 60 | 60 | 0 | **124** | 8 | **+9** (was #11) |
-| 3 | **Pipeline** | 0 | 100 | 20 | 0 | **120** | 6 | **NEW** |
-| 4 | **Service-Based** | 43 | 40 | 20 | 2 | **105** | 29 | -1 (was #3) |
-| 5 | **Microservices** | 67 | 0 | 0 | 9 | **76** | 44 | -3 (was #2) |
-| 6 | **Modular Monolith** | 18 | 0 | 20 | 2 | **40** | 8 | -2 (was #4) |
-| 7 | **CQRS/Event Sourcing** | 8 | 0 | 20 | 5 | **33** | 7 | **+1** (was #8) |
-| 8 | **Space-Based** | 4 | 20 | 0 | 0 | **24** | 3 | +2 (was #10) |
-| 9 | **Layered Architecture** | 0 | 0 | 20 | 0 | **20** | 1 | **NEW** |
-| 10 | **Domain-Driven Design** | 11 | 0 | 0 | 5 | **16** | 7 | -4 (was #6) |
-| 11 | **Hexagonal/Clean** | 10 | 0 | 0 | 6 | **16** | 7 | -4 (was #7) |
-| 12 | **Serverless** | 12 | 0 | 0 | 2 | **14** | 9 | -7 (was #5) |
-| 13 | **Multi-Agent** | 8 | 0 | 0 | 0 | **8** | 3 | -4 (was #9) |
+| Rank | Style | KataLog | AOSA | RealWorld | Ref Impls | Combined | Entries | Discovered | vs KataLog-only |
+|------|-------|---------|------|-----------|-----------|----------|---------|------------|-----------------|
+| 1 | **Event-Driven** | 94 | 60 | 40 | 9 | **203** | 57 | 100 | -- |
+| 2 | **Plugin/Microkernel** | 4 | 60 | 60 | 0 | **124** | 8 | 0 | **+9** (was #11) |
+| 3 | **Pipeline** | 0 | 100 | 20 | 0 | **120** | 6 | 47 | **NEW** |
+| 4 | **Service-Based** | 43 | 40 | 20 | 2 | **105** | 29 | 10 | -1 (was #3) |
+| 5 | **Microservices** | 67 | 0 | 0 | 9 | **76** | 44 | 54 | -3 (was #2) |
+| 6 | **Modular Monolith** | 18 | 0 | 20 | 2 | **40** | 8 | 42 | -2 (was #4) |
+| 7 | **CQRS/Event Sourcing** | 8 | 0 | 20 | 5 | **33** | 7 | 30 | **+1** (was #8) |
+| 8 | **Space-Based** | 4 | 20 | 0 | 0 | **24** | 3 | 10 | +2 (was #10) |
+| 9 | **Layered Architecture** | 0 | 0 | 20 | 0 | **20** | 1 | 44 | **NEW** |
+| 10 | **Domain-Driven Design** | 11 | 0 | 0 | 5 | **16** | 7 | 51 | -4 (was #6) |
+| 11 | **Hexagonal/Clean** | 10 | 0 | 0 | 6 | **16** | 7 | 15 | -4 (was #7) |
+| 12 | **Serverless** | 12 | 0 | 0 | 2 | **14** | 9 | 10 | -7 (was #5) |
+| 13 | **Multi-Agent** | 8 | 0 | 0 | 0 | **8** | 3 | 10 | -4 (was #9) |
 
 ### What changed with production-weighted scoring (20 pts)
 
@@ -66,6 +72,20 @@ With production systems at 20 pts each (up from 6), a single production system n
 6. **Serverless drops to #12 (was #5).** Still zero production evidence across all sources. 8 KataLog teams and 1 reference implementation, but no AOSA or RealWorldASPNET projects use serverless as a primary style. The gap between competition popularity and production adoption is second only to Microservices.
 
 7. **Layered Architecture enters at #9.** nopCommerce's four-layer architecture (20 pts, 100% production) places it above DDD, Hexagonal/Clean, Serverless, and Multi-Agent — all of which lack any production backing.
+
+### What the Discovered column reveals
+
+The Discovered column adds 173 open-source repositories classified from structural signals (Docker configs, message queues, API specs, directory structure). Comparing code-level breadth against the curated scoreboard exposes several patterns:
+
+1. **Code popularity diverges from curated evidence.** DDD has the 4th-highest Discovered count (51 repos) but ranks #10 in the curated scoreboard (16 pts, 0% production). Layered has the 5th-highest (44 repos) but ranks #9 (20 pts, single production exemplar). These patterns are widely implemented in open-source code but lack expert validation at multiple lifecycle stages.
+
+2. **Pipeline/Pipe-and-Filter is confirmed.** 47 Discovered repos (data processing pipelines, ETL systems, stream processors) reinforce AOSA's production evidence. This is the style where code-level breadth and production-level depth converge most strongly.
+
+3. **Plugin/Microkernel has zero Discovered entries.** The #2 curated style (124 pts, 97% production) is structurally undetectable by automated discovery because plugin architectures are defined by runtime extension points and host-plugin contracts, not by directory structure or container orchestration. This is a blind spot in signal-based classification.
+
+4. **Microservices dominates code but not production.** 54 Discovered repos (31% of all discoveries) vs. 0 production systems. The design-production gap is even wider when code-level evidence is included: many teams build microservices tutorials and sample apps, but no microservices system in the evidence base has production validation.
+
+5. **Event-Driven's breadth is proportional to its depth.** 100 Discovered repos (58% of all discoveries) aligns with Event-Driven's #1 curated ranking. Unlike Microservices, where code breadth outpaces production evidence, Event-Driven is consistently the most common pattern at every evidence tier.
 
 ### Production Evidence Share
 
@@ -87,27 +107,31 @@ Percentage of each style's combined score from production sources (AOSA + RealWo
 | Serverless | 0% | (no production evidence) |
 | Multi-Agent | 0% | (no production evidence) |
 
-**Remaining gaps:** Microservices (the #5 style by total score but #2 by KataLog popularity) has zero production evidence — all 76 points come from competition designs and reference templates. Serverless, DDD, Hexagonal/Clean, and Multi-Agent also lack production backing. These are the highest-priority gaps for future evidence collection.
+**Remaining gaps:** Five styles have zero production evidence: Microservices, DDD, Hexagonal/Clean, Serverless, and Multi-Agent. Discovered evidence shows all five have active open-source implementations (54, 51, 15, 10, and 10 repos respectively), confirming they are widely *built* but not yet *validated at production scale* within this evidence base. Microservices (54 Discovered repos, #2 in KataLog) has the widest gap between code popularity and production adoption. DDD (51 Discovered repos, #4 in code breadth) is the most-implemented pattern with zero production backing — a priority gap for future evidence collection.
 
 ---
 
 ## Evidence Coverage by Style (Detailed)
 
-| Style | KataLog | AOSA | RealWorldASPNET | Ref Impls | Total |
-|-------|---------|------|-----------------|-----------|-------|
-| **Event-Driven** | 47 | 3 (NGINX, Twisted, ZeroMQ) | 2 (Squidex, Bitwarden) | 5 | 57 |
-| **Microservices** | 39 | 0 | 0 | 5 | 44 |
-| **Service-Based** | 25 | 2 (Selenium, Graphite) | 1 (Bitwarden) | 1 | 29 |
-| **Plugin/Microkernel** | 2 | 3 (LLVM, SQLAlchemy, GStreamer) | 3 (Jellyfin, Orchard Core, nopCommerce) | 0 | 8 |
-| **Pipeline** | 0 | 5 (NGINX, LLVM, ZeroMQ, Graphite, GStreamer) | 1 (Jellyfin) | 0 | 6 |
-| **Modular Monolith** | 6 | 0 | 1 (Orchard Core) | 1 | 8 |
-| **CQRS/Event Sourcing** | 3 | 0 | 1 (Squidex) | 3 | 7 |
-| **Domain-Driven Design** | 4 | 0 | 0 | 3 | 7 |
-| **Hexagonal/Clean** | 4 | 0 | 0 | 3 | 7 |
-| **Serverless** | 8 | 0 | 0 | 1 | 9 |
-| **Space-Based** | 2 | 1 (Riak) | 0 | 0 | 3 |
-| **Multi-Agent** | 3 | 0 | 0 | 0 | 3 |
-| **Layered Architecture** | 0 | 0 | 1 (nopCommerce) | 0 | 1 |
+| Style | KataLog | AOSA | RealWorldASPNET | Ref Impls | Discovered | Total |
+|-------|---------|------|-----------------|-----------|------------|-------|
+| **Event-Driven** | 47 | 3 (NGINX, Twisted, ZeroMQ) | 2 (Squidex, Bitwarden) | 5 | 100 | 157 |
+| **Microservices** | 39 | 0 | 0 | 5 | 54 | 98 |
+| **Domain-Driven Design** | 4 | 0 | 0 | 3 | 51 | 58 |
+| **Pipeline / Pipe-and-Filter** | 0 | 5 (NGINX, LLVM, ZeroMQ, Graphite, GStreamer) | 1 (Jellyfin) | 0 | 47 | 53 |
+| **Modular Monolith** | 6 | 0 | 1 (Orchard Core) | 1 | 42 | 50 |
+| **Layered Architecture** | 0 | 0 | 1 (nopCommerce) | 0 | 44 | 45 |
+| **Service-Based** | 25 | 2 (Selenium, Graphite) | 1 (Bitwarden) | 1 | 10 | 39 |
+| **CQRS/Event Sourcing** | 3 | 0 | 1 (Squidex) | 3 | 30 | 37 |
+| **Hexagonal/Clean** | 4 | 0 | 0 | 3 | 15 | 22 |
+| **Serverless** | 8 | 0 | 0 | 1 | 10 | 19 |
+| **Space-Based** | 2 | 1 (Riak) | 0 | 0 | 10 | 13 |
+| **Multi-Agent** | 3 | 0 | 0 | 0 | 10 | 13 |
+| **Plugin/Microkernel** | 2 | 3 (LLVM, SQLAlchemy, GStreamer) | 3 (Jellyfin, Orchard Core, nopCommerce) | 0 | 0 | 8 |
+
+**Source totals:** KataLog 78 teams, AOSA 12 projects, RealWorldASPNET 5 projects, Reference Impls 8 repos, Discovered 173 repos = **276 entries** across all five sources.
+
+Note: Entry counts per style sum to more than total entries because each entry may exhibit multiple styles (e.g., a Discovered repo classified as both Event-Driven and Microservices counts once in each row). Discovered uses "Pipe-and-Filter" as the canonical name for the same pattern AOSA calls "Pipeline."
 
 ---
 
@@ -176,15 +200,15 @@ Maps cloud provider design pattern documentation to the library's architecture s
 
 ## Evidence Quality Comparison
 
-| Dimension | TheKataLog | AOSA | RealWorldASPNET | Reference Impls |
-|-----------|-----------|------|-----------------|-----------------|
-| **Evidence type** | Competition design proposals | Book-chapter narratives by creators | Production apps with real users | Working code, sample domain |
-| **Evidence weight** | **1-4 pts** (placement) | **20 pts** (production) | **20 pts** (production) | **1-2 pts** (template) |
-| **Entries** | 78 teams | 12 projects | 5 projects | 8 repos |
-| **Has running code?** | No | No (describes existing code) | Yes | Yes |
-| **Has real users?** | No | Yes (millions) | Yes (thousands to millions) | No (developers only) |
-| **Covers production scale?** | No (theoretical) | Yes | Yes | No (sample domains) |
-| **Architecture styles** | 12 canonical + variants | Pipeline, Plugin, Event-Driven | CQRS/ES, Plugin, Modular Monolith | Microservices, Hexagonal, DDD |
-| **Language diversity** | N/A (design only) | C, C++, Python, Java, Erlang | C# (.NET) | C#, Java, Go |
-| **Strengths** | Large sample, placement data | Real-world, production insights | Modern .NET, actively maintained | Executable, testable |
-| **Limitations** | Competition bias, no code | Dated (2011-2012) | .NET-only, 5 entries | Sample domains, vendor-specific |
+| Dimension | TheKataLog | AOSA | RealWorldASPNET | Reference Impls | Discovered |
+|-----------|-----------|------|-----------------|-----------------|------------|
+| **Evidence type** | Competition design proposals | Book-chapter narratives by creators | Production apps with real users | Working code, sample domain | Working open-source code, auto-classified |
+| **Evidence weight** | **1-4 pts** (placement) | **20 pts** (production) | **20 pts** (production) | **1-2 pts** (template) | Not weighted (breadth context) |
+| **Entries** | 78 teams | 12 projects | 5 projects | 8 repos | 173 repos |
+| **Has running code?** | No | No (describes existing code) | Yes | Yes | Yes |
+| **Has real users?** | No | Yes (millions) | Yes (thousands to millions) | No (developers only) | Varies (some production, some tutorial) |
+| **Covers production scale?** | No (theoretical) | Yes | Yes | No (sample domains) | Unknown (not verified) |
+| **Architecture styles** | 12 canonical + variants | Pipeline, Plugin, Event-Driven | CQRS/ES, Plugin, Modular Monolith | Microservices, Hexagonal, DDD | All 12 canonical styles (n >= 10 each) |
+| **Language diversity** | N/A (design only) | C, C++, Python, Java, Erlang | C# (.NET) | C#, Java, Go | Go, Java, Python, C#, TypeScript, Rust, Kotlin, Ruby, Elixir |
+| **Strengths** | Large sample, placement data | Real-world, production insights | Modern .NET, actively maintained | Executable, testable | Massive breadth, all 12 styles, multi-language, includes ecosystems |
+| **Limitations** | Competition bias, no code | Dated (2011-2012) | .NET-only, 5 entries | Sample domains, vendor-specific | Automated classification, quality varies, production status unverified |

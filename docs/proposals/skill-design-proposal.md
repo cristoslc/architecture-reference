@@ -43,13 +43,13 @@ The spec recommends progressive disclosure: metadata (~100 tokens) at startup, i
 
 ### Skill: `architecture-advisor`
 
-**Purpose:** Given an architecture problem, question, or kata challenge, search the evidence library to provide data-driven recommendations grounded in what actually worked across 103 real-world architecture projects from four complementary sources.
+**Purpose:** Given an architecture problem, question, or kata challenge, search the evidence library to provide data-driven recommendations grounded in what actually worked across 276 architecture projects from five complementary sources.
 
 **Location:** `skills/architecture-advisor/`
 
 ### Evidence base
 
-The skill draws on four evidence sources, each offering a different lens on architecture:
+The skill draws on five evidence sources, each offering a different lens on architecture:
 
 | Source | Projects | What it provides |
 |--------|----------|------------------|
@@ -57,6 +57,7 @@ The skill draws on four evidence sources, each offering a different lens on arch
 | Architecture of Open Source Applications (AOSA) | 12 production systems | Detailed narratives from the architects who built NGINX, Git, Selenium, etc. |
 | Real-World ASP.NET Core | 5 production .NET apps | Production codebases (Bitwarden, Jellyfin, nopCommerce, Orchard Core, Squidex) |
 | Reference Architectures | 8 curated implementations | Working, deployable code for canonical patterns (eShop, modular monolith, clean arch, etc.) |
+| Discovered | 173 open-source repos | Automated architecture classification from structural signals (Docker, APIs, message queues, directory structure) with LLM review. Covers all 12 canonical styles. |
 
 ### Directory structure
 
