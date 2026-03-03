@@ -1,17 +1,17 @@
 # Dataset Scaling Pipeline - Quality Report
 
-Generated: 2026-03-03 19:06 UTC
+Generated: 2026-03-03 19:08 UTC
 Total entries: 163
-Classified: 66
-Indeterminate (needs LLM review): 97
+Classified: 71
+Indeterminate (needs LLM review): 92
 
 ## Confidence Distribution (classified entries only)
 
 - Median: 0.95
 - IQR (25th-75th): 0.90 - 1.00
-- 90% interval (5th-95th): 0.90 - 1.00
+- 90% interval (5th-95th): 0.89 - 1.00
 - Range: 0.82 - 1.00
-- Mean: 0.96 (n=66)
+- Mean: 0.95 (n=71)
 
 ```
   0.0-0.1  |  (0)
@@ -22,8 +22,8 @@ Indeterminate (needs LLM review): 97
   0.5-0.6  |  (0)
   0.6-0.7  |  (0)
   0.7-0.8  |  (0)
-  0.8-0.9  | ### (3)
-  0.9-1.0  | ############################################################### (63)
+  0.8-0.9  | #### (4)
+  0.9-1.0  | ################################################################### (67)
 ```
 
 ## Architecture Style Coverage
@@ -33,23 +33,23 @@ Target: n >= 10 for each of the 12 canonical styles.
 | Style | Count | Target Met |
 |-------|-------|------------|
 | Microservices | 45 | Yes |
-| Event-Driven | 55 | Yes |
-| Modular Monolith | 8 | **No** (2 short) |
+| Event-Driven | 58 | Yes |
+| Modular Monolith | 10 | Yes |
 | Service-Based | 1 | **No** (9 short) |
-| Domain-Driven Design | 37 | Yes |
-| CQRS | 13 | Yes |
+| Domain-Driven Design | 39 | Yes |
+| CQRS | 15 | Yes |
 | Space-Based | 1 | **No** (9 short) |
 | Hexagonal Architecture | 7 | **No** (3 short) |
 | Serverless | 7 | **No** (3 short) |
-| Layered | 6 | **No** (4 short) |
-| Pipe-and-Filter | 27 | Yes |
-| Multi-Agent | 2 | **No** (8 short) |
+| Layered | 7 | **No** (3 short) |
+| Pipe-and-Filter | 28 | Yes |
+| Multi-Agent | 3 | **No** (7 short) |
 
-**5/12 styles meet target coverage.**
+**6/12 styles meet target coverage.**
 
 ## Indeterminate Entries (needs LLM review)
 
-Entries with confidence < 0.85: 97
+Entries with confidence < 0.85: 92
 
 | Project | Confidence | Heuristic Candidates |
 |---------|-----------|---------------------|
@@ -57,7 +57,6 @@ Entries with confidence < 0.85: 97
 | EventStore | 0.80 | Pipe-and-Filter (0.3) |
 | Inflow | 0.80 | Event-Driven (0.3) |
 | OrchardCore | 0.80 | Pipe-and-Filter (0.3) |
-| ddd-forum | 0.80 | Pipe-and-Filter (0.3) |
 | directus | 0.80 | Event-Driven (0.3) |
 | discourse | 0.80 | Event-Driven (0.3) |
 | domain-driven-hexagon | 0.80 | CQRS (0.3) |
@@ -78,7 +77,6 @@ Entries with confidence < 0.85: 97
 | typeorm | 0.80 | Domain-Driven Design (0.3) |
 | EventSourcing.NetCore | 0.70 | Domain-Driven Design (0.3) |
 | IDDD_Samples | 0.70 | Domain-Driven Design (0.4) |
-| ddd-playground | 0.70 | Hexagonal Architecture (0.3) |
 | eShop | 0.70 | Hexagonal Architecture (0.3) |
 | erxes | 0.70 | Pipe-and-Filter (0.3) |
 | eventuate-tram-core | 0.70 | Domain-Driven Design (0.3) |
@@ -101,12 +99,10 @@ Entries with confidence < 0.85: 97
 | mattermost | 0.60 | Event-Driven (0.3) |
 | rabbitmq-server | 0.60 | Event-Driven (0.3) |
 | saleor | 0.60 | Pipe-and-Filter (0.3) |
-| CQRSlite | 0.50 | Domain-Driven Design (0.3) |
 | MediatR | 0.50 | Pipe-and-Filter (0.3) |
 | NServiceBus | 0.50 | Pipe-and-Filter (0.3) |
 | NorthwindTraders | 0.50 | CQRS (0.3) |
 | Rebus | 0.50 | Pipe-and-Filter (0.3) |
-| crewAI | 0.50 | Pipe-and-Filter (0.3) |
 | e2b | 0.50 | Event-Driven (0.3) |
 | eShopOnWeb | 0.50 | Event-Driven (0.3) |
 | eureka | 0.50 | Domain-Driven Design (0.3) |
@@ -134,7 +130,6 @@ Entries with confidence < 0.85: 97
 | zuul | 0.50 | Pipe-and-Filter (0.3) |
 | MetaGPT | 0.40 | Modular Monolith (0.4) |
 | Zappa | 0.40 | Modular Monolith (0.4) |
-| dbt-core | 0.40 | Microservices (0.4) |
 | ddd-starter-modelling-process | 0.40 | Modular Monolith (0.4) |
 | ehcache3 | 0.40 | Domain-Driven Design (0.3) |
 | go-backend-clean-architecture | 0.40 | Modular Monolith (0.4) |
@@ -153,12 +148,11 @@ Entries with confidence < 0.85: 97
 
 ## Coverage Gaps
 
-The following 7 styles have fewer than 10 samples:
+The following 6 styles have fewer than 10 samples:
 
-- **Modular Monolith**: 8/10
 - **Service-Based**: 1/10
 - **Space-Based**: 1/10
 - **Hexagonal Architecture**: 7/10
 - **Serverless**: 7/10
-- **Layered**: 6/10
-- **Multi-Agent**: 2/10
+- **Layered**: 7/10
+- **Multi-Agent**: 3/10

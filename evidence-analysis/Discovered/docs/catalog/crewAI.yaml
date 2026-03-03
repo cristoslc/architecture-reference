@@ -11,7 +11,8 @@ language: Python
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Multi-Agent
+  - Event-Driven
 key_technologies:
   - Python/pip
   - Docker
@@ -26,23 +27,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+one_line_summary: Python multi-agent orchestration framework with event-driven flow control and agent-to-agent delegation
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.95
   signals_detected: 21
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+    style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 8
     container_orchestration: 1
@@ -54,4 +48,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: "Evidence: README.md L54 describes 'Fast and Flexible Multi-Agent Automation Framework'. README.md L59-60 details two core paradigms: Crews (autonomous collaborating agents with role-based delegation) and Flows (event-driven workflows with @start/@listen/@router decorators). lib/crewai/src/crewai/agents/ contains agent executor, delegation tools (delegate_work_tool.py, ask_question_tool.py), and agent adapters. lib/crewai/src/crewai/flow/ implements event-driven control with flow.py (@start, @listen, @router decorators), state management, persistence, and conditional branching. lib/crewai/src/crewai/events/ has a full event bus (event_bus.py singleton with sync/async handlers), event listeners, and typed events (agent_events, crew_events, flow_events, a2a_events). lib/crewai/src/crewai/a2a/ provides agent-to-agent protocol support with delegation utilities. process.py defines sequential and hierarchical execution processes for crews. lib/crewai/src/crewai/memory/ and knowledge/ provide shared memory and knowledge layers. The workspace (pyproject.toml) is a uv monorepo with crewai, crewai-tools, crewai-files, and devtools packages."
