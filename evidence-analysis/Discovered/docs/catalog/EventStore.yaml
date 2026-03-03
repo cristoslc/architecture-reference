@@ -11,7 +11,9 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Event-Driven
+  - CQRS
+  - Modular Monolith
 key_technologies:
   - Node.js
   - .NET
@@ -32,32 +34,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+one_line_summary: Event-native database (KurrentDB) with internal message bus, separated read/write paths, and plugin-based modular subsystems
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.95
   signals_detected: 229
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: CQRS
-      score: 0.4
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+    style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 85
     container_orchestration: 4
@@ -69,4 +55,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 5
-review_required: true
+review_required: false
+review_notes: "Event-Driven: InMemoryBus in src/KurrentDB.Core/Bus/ with IPublisher/ISubscriber/IHandle<T> pattern; 28+ message types in src/KurrentDB.Core/Messages/; VNodeFSM dispatches by node state; PersistentSubscription and Surge streaming subsystems. CQRS: Separated write path (StorageWriterService with dedicated _writerQueue/_writerBus in src/KurrentDB.Core/Services/Storage/StorageWriterService.cs) and read path (StorageReaderService/StorageReaderWorker with StorageReaderBus in src/KurrentDB.Core/Services/Storage/StorageReaderService.cs); ReaderIndex provides read model; RequestManagementService in src/KurrentDB.Core/Services/RequestManager/ mediates writes. Modular Monolith: Single ClusterVNode process hosts distinct subsystems - Core, ProjectionsSubsystem (ISubsystem in src/KurrentDB.Projections.Core/ProjectionsSubsystem.cs), Connectors (src/Connectors/), Surge (src/KurrentDB.Surge/), 6+ Auth plugins, PluginHosting/PluginLoader.cs for dynamic loading; ~70 .NET projects in one solution."

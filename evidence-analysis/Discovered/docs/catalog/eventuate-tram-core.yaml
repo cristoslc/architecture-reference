@@ -11,13 +11,15 @@ language: Java/Kotlin
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Event-Driven
+  - Microservices
 key_technologies:
   - Gradle
   - Docker
   - Kafka
   - RabbitMQ
 quality_attributes:
+
 notable_strengths:
   - Rich signal profile with strong architectural indicators
   - Multi-style composition (3 styles)
@@ -25,23 +27,16 @@ notable_gaps:
   - No architecture decision records found
   - No CI/CD configuration detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+one_line_summary: Transactional messaging framework implementing Outbox pattern for reliable event-driven communication between microservices
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.92
   signals_detected: 102
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
+    style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 94
     container_orchestration: 1
@@ -53,4 +48,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: "Event-Driven: Core abstraction is message/event publish-subscribe — MessageProducer/MessageConsumer interfaces (eventuate-tram-messaging/), DomainEventPublisher/DomainEventDispatcher (eventuate-tram-events/), CommandProducer/CommandDispatcher (eventuate-tram-commands/). Implements Transactional Outbox pattern via MessageProducerJdbcImpl inserting into OUTBOX table (eventuate-tram-producer-jdbc/). Supports multiple message brokers: Kafka, RabbitMQ, ActiveMQ, Redis (eventuate-tram-consumer-kafka/, eventuate-tram-consumer-rabbitmq/, eventuate-tram-consumer-activemq/, eventuate-tram-consumer-redis/). CDC service in docker-compose-mysql-binlog-kafka.yml tails transaction logs to publish outbox messages. Microservices: Explicitly designed as microservices collaboration platform (README.adoc line 5). Provides saga coordination primitives (commands/replies for orchestration-based sagas). Aggregate-scoped domain event publishing (eventuate-tram-aggregate-domain-events/). Channel-based inter-service messaging with subscriber ID isolation. Decorator chain pattern for cross-cutting concerns like duplicate detection (eventuate-tram-consumer-common/DecoratedMessageHandlerFactory.java, DuplicateDetectingMessageHandlerDecorator.java)."

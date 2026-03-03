@@ -11,7 +11,8 @@ language: Java/Kotlin
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Layered
+  - Service-Based
 key_technologies:
   - Gradle
   - GitHub Actions
@@ -24,23 +25,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+one_line_summary: Netflix service discovery server with classic layered WAR architecture and peer-to-peer replication across server nodes
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.82
   signals_detected: 19
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.82
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
+    style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 10
     container_orchestration: 0
@@ -52,4 +46,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: "Layered: Classic 3-layer architecture within a servlet WAR. Presentation layer = JAX-RS/Jersey REST resources in eureka-core/src/.../resources/ (ApplicationsResource, InstanceResource, PeerReplicationResource). Business/service layer = registry package (AbstractInstanceRegistry, PeerAwareInstanceRegistryImpl) handling register/renew/cancel/evict operations, plus cluster/ package for peer replication (PeerEurekaNode, ReplicationTaskProcessor). Data layer = in-memory ConcurrentHashMap registry with ResponseCacheImpl (Guava LoadingCache) for read caching. Bootstrap via ServletContextListener (EurekaBootStrap) wiring layers together. web.xml defines filter chain (StatusFilter, ServerRequestAuthFilter, RateLimitingFilter, GzipEncodingEnforcingFilter) before Jersey dispatch. Service-Based: Multi-module Gradle project (settings.gradle) with eureka-client, eureka-core, eureka-server as independently versionable JARs sharing the same deployment. eureka-core depends on eureka-client; eureka-server (WAR) depends on both. Client transport layer (shared/transport/decorator/) uses decorator pattern with RetryableEurekaHttpClient, SessionedEurekaHttpClient, RedirectingEurekaHttpClient for resilient HTTP communication between client and server nodes. Cluster replication in eureka-core/cluster/ implements peer-to-peer service-based communication via batched HTTP (ReplicationList/ReplicationListResponse protocol objects). Not Microservices because client and server share code modules and the entire server is a single WAR deployment."
