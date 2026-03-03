@@ -26,6 +26,27 @@ Discovered/
     └── analysis/          (cross-source analysis documents)
 ```
 
+## How repos were selected
+
+The 163 repositories in this evidence pool were curated in `pipeline/manifest.yaml` to achieve broad coverage across all 12 canonical architecture styles (target: n >= 10 per style). Selection criteria:
+
+1. **Style coverage** -- repos were chosen to represent each of the 12 canonical architecture styles (Microservices, Event-Driven, Modular Monolith, Service-Based, Domain-Driven Design, CQRS, Space-Based, Hexagonal Architecture, Serverless, Layered, Pipe-and-Filter, Multi-Agent). Under-represented styles received extra sourcing effort.
+2. **Public GitHub repos** -- all repos are publicly accessible on GitHub for reproducibility.
+3. **Diverse ecosystems** -- repos span multiple languages (Java, C#/.NET, Go, Python, TypeScript, Ruby, C/C++, PHP) and frameworks to avoid ecosystem bias.
+4. **Mix of production systems and reference implementations** -- includes both real-world production codebases (Discourse, GitLab, Mastodon, Redis) and teaching/reference repos (eShopOnWeb, clean-architecture-example, ddd-forum) to capture how architectures manifest at different scales.
+5. **Priority tiers** -- each manifest entry has a priority (1 = well-documented with clear patterns, 2 = standard, 3 = stretch candidates where the style signal may be weaker).
+
+The `expected_styles` field in the manifest is a hint for validation only -- it is not used during classification. The classifier operates solely on filesystem signals and (for low-confidence entries) evidence-based LLM review of the repo contents.
+
+## Classification process
+
+Each repo goes through a two-pass classification:
+
+1. **Heuristic pass** -- `extract-signals.sh` scans the filesystem for architecture signals (package manifests, container orchestration, messaging, API specs, ADRs, CI/CD, test structure, documentation, directory patterns). `classify.py` scores these signals against rule-based heuristics.
+2. **LLM review (conditional)** -- entries with heuristic confidence < 0.85 are reviewed by an LLM agent that clones the repo and inspects actual contents (README, directory structure, package metadata, config files). Review notes cite specific files and directories as evidence.
+
+Entries that remain indeterminate after both passes (e.g., documentation-only repos with no code) are kept as `Indeterminate` with an explanation.
+
 ## Quality gating
 
 - Entries with `discovery_metadata.confidence >= 0.5` are automatically accepted

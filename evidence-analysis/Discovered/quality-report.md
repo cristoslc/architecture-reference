@@ -1,17 +1,17 @@
 # Dataset Scaling Pipeline - Quality Report
 
-Generated: 2026-03-03 19:18 UTC
+Generated: 2026-03-03 19:24 UTC
 Total entries: 163
-Classified: 88
-Indeterminate (needs LLM review): 75
+Classified: 93
+Indeterminate (needs LLM review): 70
 
 ## Confidence Distribution (classified entries only)
 
 - Median: 0.95
 - IQR (25th-75th): 0.90 - 1.00
-- 90% interval (5th-95th): 0.84 - 1.00
+- 90% interval (5th-95th): 0.82 - 1.00
 - Range: 0.82 - 1.00
-- Mean: 0.94 (n=88)
+- Mean: 0.94 (n=93)
 
 ```
   0.0-0.1  |  (0)
@@ -22,8 +22,8 @@ Indeterminate (needs LLM review): 75
   0.5-0.6  |  (0)
   0.6-0.7  |  (0)
   0.7-0.8  |  (0)
-  0.8-0.9  | ######## (8)
-  0.9-1.0  | ################################################################################ (80)
+  0.8-0.9  | ######### (9)
+  0.9-1.0  | #################################################################################### (84)
 ```
 
 ## Architecture Style Coverage
@@ -33,15 +33,15 @@ Target: n >= 10 for each of the 12 canonical styles.
 | Style | Count | Target Met |
 |-------|-------|------------|
 | Microservices | 49 | Yes |
-| Event-Driven | 69 | Yes |
-| Modular Monolith | 15 | Yes |
+| Event-Driven | 72 | Yes |
+| Modular Monolith | 17 | Yes |
 | Service-Based | 2 | **No** (8 short) |
 | Domain-Driven Design | 45 | Yes |
 | CQRS | 22 | Yes |
-| Space-Based | 2 | **No** (8 short) |
+| Space-Based | 3 | **No** (7 short) |
 | Hexagonal Architecture | 8 | **No** (2 short) |
 | Serverless | 7 | **No** (3 short) |
-| Layered | 15 | Yes |
+| Layered | 19 | Yes |
 | Pipe-and-Filter | 29 | Yes |
 | Multi-Agent | 3 | **No** (7 short) |
 
@@ -49,7 +49,7 @@ Target: n >= 10 for each of the 12 canonical styles.
 
 ## Indeterminate Entries (needs LLM review)
 
-Entries with confidence < 0.85: 75
+Entries with confidence < 0.85: 70
 
 | Project | Confidence | Heuristic Candidates |
 |---------|-----------|---------------------|
@@ -68,7 +68,6 @@ Entries with confidence < 0.85: 75
 | strapi | 0.80 | Pipe-and-Filter (0.3) |
 | typeorm | 0.80 | Domain-Driven Design (0.3) |
 | IDDD_Samples | 0.70 | Domain-Driven Design (0.4) |
-| gitlabhq | 0.70 | Pipe-and-Filter (0.3) |
 | kafka-streams-examples | 0.70 | Modular Monolith (0.4) |
 | kafka | 0.70 | Domain-Driven Design (0.3) |
 | n8n | 0.70 | Domain-Driven Design (0.3) |
@@ -79,7 +78,6 @@ Entries with confidence < 0.85: 75
 | semantic-kernel | 0.70 | Pipe-and-Filter (0.3) |
 | serverless | 0.70 | Domain-Driven Design (0.3) |
 | zammad | 0.70 | Domain-Driven Design (0.3) |
-| geode | 0.60 | Domain-Driven Design (0.3) |
 | go-micro | 0.60 | Event-Driven (0.3) |
 | letta | 0.60 | Event-Driven (0.3) |
 | mastodon | 0.60 | Pipe-and-Filter (0.3) |
@@ -90,9 +88,6 @@ Entries with confidence < 0.85: 75
 | NServiceBus | 0.50 | Pipe-and-Filter (0.3) |
 | NorthwindTraders | 0.50 | CQRS (0.3) |
 | Rebus | 0.50 | Pipe-and-Filter (0.3) |
-| forem | 0.50 | Event-Driven (0.3) |
-| full-stack-fastapi-template | 0.50 | Microservices (0.5) |
-| ghostfolio | 0.50 | Event-Driven (0.3) |
 | infinispan | 0.50 | Pipe-and-Filter (0.3) |
 | jellyfin | 0.50 | Pipe-and-Filter (0.3) |
 | kedro | 0.50 | Pipe-and-Filter (0.3) |
@@ -134,7 +129,7 @@ Entries with confidence < 0.85: 75
 The following 5 styles have fewer than 10 samples:
 
 - **Service-Based**: 2/10
-- **Space-Based**: 2/10
+- **Space-Based**: 3/10
 - **Hexagonal Architecture**: 8/10
 - **Serverless**: 7/10
 - **Multi-Agent**: 3/10
