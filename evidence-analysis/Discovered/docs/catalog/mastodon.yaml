@@ -11,7 +11,8 @@ language: Ruby
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Event-Driven
+  - Layered
 key_technologies:
   - Node.js
   - Docker
@@ -27,23 +28,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+one_line_summary: Federated social network built on Rails with pervasive async event processing via Sidekiq workers, ActivityPub inbox/delivery pipelines, fan-out-on-write distribution, and a separate streaming API
 discovery_metadata:
-  confidence: 0.6
+  confidence: 0.88
   signals_detected: 32
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.88
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+    style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 5
@@ -55,4 +49,5 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: "Event-Driven: Sidekiq queues (default/push/ingress/mailers/pull/scheduler) in config/sidekiq.yml; extensive async workers in app/workers/ and app/workers/activitypub/ (delivery_worker, distribution_worker, processing_worker); fan_out_on_write_service.rb for timeline distribution; Redis pub/sub powering the Node.js streaming/ service; ActivityPub federation inherently event-driven with inbox receipt triggering async processing chains. Layered: classic Rails MVC (app/controllers, app/models, app/views) plus service layer (app/services/), serializers (app/serializers/), policies (app/policies/ via Pundit), presenters (app/presenters/), validators (app/validators/), and infrastructure lib (app/lib/). docker-compose.yml shows web+sidekiq+streaming all sharing same DB and Redis - single monolith codebase, not microservices. Automated discovery incorrectly suggested Microservices and Pipe-and-Filter."

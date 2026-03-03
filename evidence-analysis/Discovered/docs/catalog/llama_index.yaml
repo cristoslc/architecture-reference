@@ -11,7 +11,8 @@ language: Python
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Pipe-and-Filter
+  - Modular Monolith
 key_technologies:
   - Node.js
   - Python/pip
@@ -27,23 +28,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+one_line_summary: Python LLM data framework using pipe-and-filter ingestion/query pipelines organized as a plugin-based modular monolith
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.88
   signals_detected: 859
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.88
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
+    style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 837
     container_orchestration: 7
@@ -55,4 +49,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_required: true
+review_required: false
+review_notes: "LLM review: CONTRIBUTING.md explicitly states 'organized as a monorepo' with modular packages. Core architecture is pipe-and-filter: ingestion/pipeline.py implements run_transformations() chaining TransformComponent sequences; query engines chain retrievers->postprocessors->response synthesizers; TransformQueryEngine wraps query engines with query transforms. The monorepo has llama-index-core as the central module with 25+ integration categories (llms, embeddings, vector_stores, readers, etc.) each as independently installable packages -- classic modular monolith with plugin architecture. 300+ integration packages on LlamaHub. Not classified as Multi-Agent despite agent support because the repo IS a data framework/toolkit, not an agent orchestration system itself."

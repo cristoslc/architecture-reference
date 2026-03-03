@@ -11,12 +11,16 @@ language: Java/Kotlin
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Domain-Driven Design
+  - Hexagonal Architecture
+  - Event-Driven
+  - CQRS
 key_technologies:
   - Maven
   - Docker
   - Docker Compose
 quality_attributes:
+
 notable_strengths:
   - Moderate signal profile with identifiable patterns
   - Architecture documentation present
@@ -24,23 +28,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No CI/CD configuration detected
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+one_line_summary: Textbook DDD reference with hexagonal architecture, domain events, and CQRS read models across bounded contexts
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.96
   signals_detected: 8
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.96
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
+    style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 1
     container_orchestration: 3
@@ -52,4 +49,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 1
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: "README explicitly describes DDD with Event Storming, hexagonal architecture, and CQRS. Bounded contexts (lending, catalogue) separated by packages with ArchUnit enforcement (ModularArchitectureTest.java). Lending context uses model/application/infrastructure hexagonal layering enforced by LendingHexagonalArchitectureTest.java and NoSpringInDomainLogicTest.java. Rich aggregate design (Patron with PlacingOnHoldPolicy, AvailableBook/BookOnHold/CheckedOutBook type-state pattern). DomainEvents interface with both immediate (JustForwardDomainEventPublisher) and eventual (StoreAndForwardDomainEventPublisher) consistency. Separate CQRS read models: PatronProfileReadModel queries holds_sheet/checkouts_sheet tables, DailySheet for expiring holds and overdue checkouts. GitHub topics include ddd, hexagonal-architecture, ports-and-adapters, aggregate, event-storming. Org is ddd-by-examples."

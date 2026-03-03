@@ -11,7 +11,7 @@ language: Python
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Pipe-and-Filter
 key_technologies:
   - Python/pip
   - GitHub Actions
@@ -22,17 +22,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+one_line_summary: Python workflow framework implementing Pipe-and-Filter architecture for building complex batch processing pipelines with dependency resolution
 discovery_metadata:
-  confidence: 0.4
+  confidence: 0.92
   signals_detected: 5
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
+    style: Modular Monolith
+    score: 0.4
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 0
@@ -44,4 +43,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: "README.rst explicitly describes Luigi as a tool to 'build complex pipelines of batch jobs' with 'dependency resolution, workflow management.' Core abstractions are Task (filter) and Target (pipe/connector): each Task defines requires() for input dependencies, run() for processing, and output() for producing Targets consumed downstream. The workflows.rst doc shows the canonical Task->Target->Task chain pattern. The top_artists.py example demonstrates a multi-stage pipeline (ExternalStreams -> Streams -> AggregateArtists -> TopArtists). The design_and_limitations.rst confirms focus on chaining tasks with dependencies. luigi/contrib/ provides 40+ pluggable Task types (hadoop, spark, postgres, s3, etc.) acting as interchangeable pipeline stages. The event.py module provides lifecycle hooks but these are observability, not architectural event-driven patterns. The scheduler.py manages task execution order based on dependency DAGs. Compared to GNU Make per README Philosophy section. Single style classification: Pipe-and-Filter is the defining pattern of what Luigi IS."
