@@ -1,48 +1,47 @@
 project_name: orbit
 source: Discovered
-source_url: "https://github.com/orbit/orbit"
-project_url: "https://github.com/orbit/orbit"
+source_url: https://github.com/orbit/orbit
+project_url: https://github.com/orbit/orbit
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:56:12Z"
+discovered_at: '2026-03-03T17:56:12Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Java/Kotlin
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Space-Based
+- Pipe-and-Filter
 key_technologies:
-  - Gradle
-  - Docker
-  - Kubernetes
-  - Docker Compose
-  - gRPC
-  - GitHub Actions
+- Gradle
+- Docker
+- Kubernetes
+- Docker Compose
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
+- Scalability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (2 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (2 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: EA virtual actor framework for JVM (Orleans-inspired) with distributed
+  mesh, automatic actor placement, and bidirectional message pipeline
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.88
   signals_detected: 31
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.88
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.7
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.7
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 11
     container_orchestration: 9
@@ -54,4 +53,14 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Primary: Space-Based - distributed virtual actor runtime with mesh
+  clustering (ClusterManager.kt using Dijkstra routing via jgrapht), transparent actor
+  placement (PlacementStep.kt, AddressableManager.locateOrPlace), distributed directories
+  backed by etcd (orbit-server-etcd module), node/addressable leasing with TTLs, HAProxy
+  load balancing across server nodes (docker-compose.yml). Secondary: Pipe-and-Filter
+  - explicit Pipeline class with ordered PipelineStep array (IdentityStep->RoutingStep->PlacementStep->VerifyStep->AuthStep->TransportStep
+  in PipelineSteps.kt), bidirectional message flow via pointer-based traversal (PipelineContext.kt
+  onInbound/onOutbound). Documentation confirms: virtual actors activated/deactivated
+  transparently across server pool, at-most-once delivery, single-activation guarantee
+  per actor identity.'

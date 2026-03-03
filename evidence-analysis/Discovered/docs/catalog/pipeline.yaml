@@ -1,49 +1,48 @@
 project_name: pipeline
 source: Discovered
-source_url: "https://github.com/tektoncd/pipeline"
-project_url: "https://github.com/tektoncd/pipeline"
+source_url: https://github.com/tektoncd/pipeline
+project_url: https://github.com/tektoncd/pipeline
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:51:11Z"
+discovered_at: '2026-03-03T17:51:11Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: CI/CD
 language: Go
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Pipe-and-Filter
+- Event-Driven
 key_technologies:
-  - Go modules
-  - Python/pip
-  - Docker
-  - Kubernetes
-  - OpenAPI
-  - gRPC
-  - GitHub Actions
+- Go modules
+- Python/pip
+- Docker
+- Kubernetes
+- OpenAPI
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
+- Scalability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (2 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (2 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Kubernetes-native CI/CD pipeline engine using DAG-based task orchestration
+  with event-driven reconciliation controllers
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.92
   signals_detected: 143
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.7
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.7
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 5
     container_orchestration: 30
@@ -55,4 +54,13 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Primary: Pipe-and-Filter - core purpose is defining/executing CI/CD
+  pipelines as DAGs of Tasks with data flowing between stages (pkg/reconciler/pipeline/dag/dag.go
+  implements explicit DAG model; docs/pipelines.md describes Pipeline as collection
+  of Tasks in execution order; Task Results pass to downstream Task Parameters). Secondary:
+  Event-Driven - built on Kubernetes controller/reconciler pattern with event-triggered
+  reconciliation loops (pkg/reconciler/pipelinerun/pipelinerun.go, pkg/reconciler/taskrun/taskrun.go);
+  CloudEvents integration (pkg/reconciler/events/cloudevent/); K8s events at lifecycle
+  transitions. Not Microservices: single Go module with shared CRDs, not independently
+  deployable services.'
