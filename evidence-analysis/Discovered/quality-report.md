@@ -1,9 +1,9 @@
 # Dataset Scaling Pipeline - Quality Report
 
-Generated: 2026-03-03 20:06 UTC
-Total entries: 163
+Generated: 2026-03-03 20:09 UTC
+Total entries: 160
 Classified: 160
-Indeterminate (needs LLM review): 3
+Indeterminate (needs LLM review): 0
 
 ## Confidence Distribution (classified entries only)
 
@@ -49,13 +49,9 @@ Target: n >= 10 for each of the 12 canonical styles.
 
 ## Indeterminate Entries (needs LLM review)
 
-Entries with confidence < 0.85: 3
+Entries with confidence < 0.85: 0
 
-| Project | Confidence | Heuristic Candidates |
-|---------|-----------|---------------------|
-| ddd-starter-modelling-process | 0.40 | Modular Monolith (0.4) |
-| project-layout | 0.30 | Modular Monolith (0.4) |
-| anthropic-cookbook | 0.20 | Modular Monolith (0.4) |
+None.
 
 ## Coverage Gaps
 
