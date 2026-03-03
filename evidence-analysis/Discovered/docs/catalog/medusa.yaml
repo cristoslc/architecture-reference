@@ -11,7 +11,8 @@ language: TypeScript
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Modular Monolith
+  - Event-Driven
 key_technologies:
   - Node.js
   - OpenAPI
@@ -27,23 +28,16 @@ notable_strengths:
   - Multi-style composition (3 styles)
 notable_gaps:
   - No architecture decision records found
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+one_line_summary: Modular monolith commerce platform with 30+ domain modules, event bus, and workflow orchestration running in a single Node.js process
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.92
   signals_detected: 129
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: CQRS
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+    style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 108
     container_orchestration: 0
@@ -55,4 +49,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 1
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: "LLM review: 30+ domain modules in packages/modules/ (cart, order, product, payment, etc.) each with own models/services/migrations. Module SDK loads modules into shared awilix DI container (packages/core/modules-sdk/src/medusa-module.ts). Official architecture docs describe 4-layer stack (API Routes -> Workflows -> Modules -> Data Store) in single app. Event bus is a required core dependency (event-bus-local and event-bus-redis). Most modules declare EVENT_BUS dependency. Subscribers pattern in packages/medusa/src/subscribers/. Workflow engine handles multi-step business processes with saga patterns (packages/core/orchestration/src/workflow/). CLAUDE.md: TypeScript monorepo with 30+ modular commerce packages. No Docker/container orchestration. Single deployable unit."
