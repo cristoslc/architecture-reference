@@ -1,18 +1,18 @@
 ---
 name: discover-architecture
-description: Analyze a local repository's filesystem to discover its architecture style(s), producing a YAML catalog entry and markdown summary. Uses heuristic signal extraction plus LLM-assisted classification against 12 canonical styles. Use when the user provides a repo path and wants to identify its architecture, or when batch-discovering architecture patterns for the evidence catalog.
+description: Analyze a local repository's filesystem to discover its architecture style(s), producing a YAML catalog entry and markdown summary. Uses a two-pass approach — deterministic heuristic classification via classify.py, then evidence-based LLM review when confidence is low. Use when the user provides a repo path and wants to identify its architecture, or when batch-reviewing indeterminate entries in the evidence catalog.
 license: MIT
 allowed-tools: Bash, Read, Grep, Glob, Agent
 metadata:
   short-description: Discover architecture styles from repository filesystem signals
-  version: 1.0.0
+  version: 1.1.0
   author: cristos
   source-repo: https://github.com/cristoslc/architecture-reference-repo
 ---
 
 # Discover Architecture
 
-Analyze a local repository and classify its architecture style(s) by extracting filesystem signals and applying heuristic rules. Produces two artifacts: a YAML catalog entry compatible with the evidence base, and a human-readable markdown summary.
+Analyze a local repository and classify its architecture style(s) using a two-pass approach: deterministic heuristic classification followed by evidence-based LLM review when confidence is low. Produces two artifacts: a YAML catalog entry compatible with the evidence base, and a human-readable markdown summary.
 
 ## Activation
 
@@ -43,19 +43,7 @@ If the script fails, check:
 
 ## Step 2: Classify Architecture Styles
 
-Read the signal-to-style mapping rules at `references/signal-rules.md` (relative to this SKILL.md). Apply the classification rules to the signal report from Step 1.
-
-### Classification procedure
-
-For each of the 12 canonical architecture styles, compute a confidence score:
-
-1. **Initialize** all style confidences to 0.0
-2. **Match signals** from the report against the rules in `references/signal-rules.md`:
-   - Strong signals add 0.3 to the style's confidence
-   - Supporting signals add 0.1
-3. **Apply thresholds** — a style is detected if its confidence meets or exceeds the threshold defined in the rules
-4. **Resolve conflicts** using the conflict rules (e.g., Microservices vs. Modular Monolith)
-5. **Order styles** by confidence, highest first
+Classification is a two-pass process: a deterministic heuristic pass (always runs), then a conditional LLM review (only when confidence is low).
 
 ### The 12 canonical styles
 
@@ -74,21 +62,79 @@ These are the only valid values for `architecture_styles` in the output:
 - Pipe-and-Filter
 - Multi-Agent
 
-### LLM judgment for ambiguous cases
+### Step 2a: Heuristic classification
 
-After applying the heuristic rules, use your own reasoning to refine the classification:
+Run the heuristic classifier on the signal output from Step 1:
 
-- **Directory structure inspection**: If the signal report shows interesting directory patterns (e.g., `services_dir: true` or `clean_layers: true`), read a few key directories to understand the actual organization. Use `ls` or `Glob` to inspect the top-level structure and one level deeper.
-- **README and documentation**: Read the repo's README.md (if it exists) for explicit architecture descriptions. Developers often state their architecture choices.
-- **Configuration files**: If messaging or IaC signals are detected, glance at the actual config files to confirm they are meaningful (not just boilerplate or examples).
-- **Multi-style composition is normal**: 73% of winning architecture teams use 2+ styles. Do not force a single-style classification.
+```bash
+bash scripts/extract-signals.sh /path/to/repo | python3 pipeline/classify.py
+```
 
-### Compute overall confidence
+`classify.py` codifies the rules from `references/signal-rules.md` into an algorithmic scorer. It produces a complete catalog YAML entry with:
+- `architecture_styles` — detected styles, or `["Indeterminate"]` if confidence < 0.85
+- `discovery_metadata.confidence` — overall confidence score
+- `discovery_metadata.heuristic_candidates` — styles that scored above threshold (even if overall confidence was too low)
+- `discovery_metadata.classification_method` — `"heuristic"` or `"heuristic-inconclusive"`
 
-1. Overall confidence = max(per-style confidences)
-2. If no style exceeds its threshold: overall confidence < 0.3, classify as "Indeterminate"
-3. If only Layered matches: cap overall confidence at 0.5 (it is the default fallback)
-4. Multi-style bonus: if 2+ styles exceed threshold, add 0.1 to overall confidence (capped at 1.0)
+**If confidence >= 0.85**: the heuristic result is final. Proceed to Step 3.
+
+**If confidence < 0.85**: proceed to Step 2b (LLM review).
+
+### Step 2b: LLM review (confidence < 0.85)
+
+When the heuristic is inconclusive, the agent inspects the repo's actual contents to classify it. This is evidence-based review — classify from what you can see in the repo, not from training-data knowledge about the project.
+
+#### Evidence gathering
+
+Inspect the following sources in the target repo (skip any that don't exist):
+
+1. **README.md** (first 200 lines) — primary evidence source. Often states what the project IS.
+2. **Top-level and second-level directory structure** — `ls` the root and one level deep in key directories (src/, lib/, packages/, services/, etc.)
+3. **Package metadata** — `package.json` description, `pyproject.toml` project description, `pom.xml` description, `Cargo.toml` description
+4. **docker-compose.yml** — service names and structure (if present)
+5. **ARCHITECTURE.md** or `docs/architecture/` (if present)
+6. **Heuristic candidates** — cross-reference the `heuristic_candidates` from Step 2a as hints (they may be right but below threshold)
+7. **Manifest expected_styles** — if the repo appears in a manifest with expected styles, treat those as hints, not truth
+
+#### Classification guidelines
+
+- **Classify what the repo IS, not what it enables.** Kafka IS event-driven infrastructure. Redis IS a space-based in-memory data store. A web framework IS layered. Don't classify a testing library as "the architecture it tests."
+- **README is the primary evidence source.** If the README says "this is a CQRS framework," that's strong evidence.
+- **Heuristic candidates and manifest expected_styles are hints, not truth.** They inform your investigation but don't determine your conclusion.
+- **review_notes MUST cite specific files and directories.** Bad: "this is clearly microservices." Good: "services/ contains ordering/, catalog/, basket/ as separate deployable units. docker-compose.yml defines 5 service containers. README.md describes inter-service communication via RabbitMQ."
+- **Multi-style composition is normal.** 73% of winning architecture teams use 2+ styles. Don't force a single-style classification.
+- **If truly indeterminate after review**, keep `architecture_styles: ["Indeterminate"]` but explain why in review_notes (e.g., "README is sparse, directory structure is flat, no clear architectural patterns beyond basic file organization").
+
+#### Applying the review
+
+After gathering evidence, determine:
+- `architecture_styles` — the styles this repo exhibits
+- `confidence` — your confidence in the classification (0.0-1.0)
+- `one_line_summary` — concise description of the repo's architecture
+- `review_notes` — evidence citations justifying the classification
+
+Update the catalog entry using `apply-review.py`:
+
+```bash
+python3 pipeline/apply-review.py \
+  --entry evidence-analysis/Discovered/docs/catalog/<project>.yaml \
+  --styles "Style-One,Style-Two" \
+  --confidence 0.92 \
+  --summary "One-line architecture description" \
+  --notes "README.md describes X. src/services/ contains Y. docker-compose.yml defines Z."
+```
+
+### Batch review of existing indeterminate entries
+
+For reviewing multiple existing indeterminate entries (e.g., from the quality report):
+
+1. Identify entries to review from the quality report or `grep -l 'review_required: true' evidence-analysis/Discovered/docs/catalog/*.yaml`
+2. For each entry:
+   a. Clone the repo to a temporary directory (shallow clone is fine: `git clone --depth 1`)
+   b. Run Steps 2a-2b against the clone
+   c. Call `apply-review.py` with the evidence-based results
+   d. Clean up the clone
+3. For large batches (20+ entries), use sub-agents (10-15 entries each), with each agent processing its entries end-to-end
 
 ## Step 3: Infer Quality Attributes
 
