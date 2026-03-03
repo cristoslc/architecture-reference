@@ -102,9 +102,24 @@ def generate_report(catalog_dir, output_path):
         conf = meta.get("confidence", 0) if isinstance(meta, dict) else 0
         confidences.append(conf)
 
-    avg_conf = sum(confidences) / len(confidences)
+    n = len(confidences)
+    avg_conf = sum(confidences) / n
     min_conf = min(confidences)
     max_conf = max(confidences)
+    sorted_conf = sorted(confidences)
+    median_conf = (sorted_conf[n // 2] + sorted_conf[(n - 1) // 2]) / 2
+
+    def percentile(vals, p):
+        """Linear interpolation percentile (sorted input)."""
+        k = (len(vals) - 1) * p / 100
+        f = int(k)
+        c = f + 1 if f + 1 < len(vals) else f
+        return vals[f] + (vals[c] - vals[f]) * (k - f)
+
+    p25 = percentile(sorted_conf, 25)
+    p75 = percentile(sorted_conf, 75)
+    p5 = percentile(sorted_conf, 5)
+    p95 = percentile(sorted_conf, 95)
 
     # --- Style coverage ---
     style_counter = Counter()
@@ -136,9 +151,11 @@ def generate_report(catalog_dir, output_path):
         "",
         "## Confidence Distribution",
         "",
-        f"- Mean: {avg_conf:.2f}",
-        f"- Min:  {min_conf:.2f}",
-        f"- Max:  {max_conf:.2f}",
+        f"- Median: {median_conf:.2f}",
+        f"- IQR (25th-75th): {p25:.2f} - {p75:.2f}",
+        f"- 90% interval (5th-95th): {p5:.2f} - {p95:.2f}",
+        f"- Range: {min_conf:.2f} - {max_conf:.2f}",
+        f"- Mean: {avg_conf:.2f} (n={n})",
         "",
         "```",
         confidence_histogram(entries),

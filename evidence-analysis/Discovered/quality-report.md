@@ -1,13 +1,15 @@
 # Dataset Scaling Pipeline - Quality Report
 
-Generated: 2026-03-03 13:10 UTC
+Generated: 2026-03-03 15:24 UTC
 Total entries: 10
 
 ## Confidence Distribution
 
-- Mean: 0.84
-- Min:  0.50
-- Max:  1.00
+- Median: 1.00
+- IQR (25th-75th): 0.65 - 1.00
+- 90% interval (5th-95th): 0.50 - 1.00
+- Range: 0.50 - 1.00
+- Mean: 0.84 (n=10)
 
 ```
   0.0-0.1  |  (0)
