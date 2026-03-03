@@ -11,7 +11,8 @@ language: TypeScript
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Microservices
+  - Event-Driven
 key_technologies:
   - Node.js
   - Docker
@@ -29,29 +30,16 @@ notable_gaps:
   - No architecture decision records found
   - No test infrastructure detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+one_line_summary: TypeScript plugin-based XOS platform using GraphQL Federation microservices with BullMQ event-driven communication
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.92
   signals_detected: 80
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: CQRS
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+    style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 25
     container_orchestration: 18
@@ -63,4 +51,5 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: "Microservices: Each plugin (sales_api, frontline_api, operation_api, etc.) runs as an independent service on its own port with its own Dockerfile (backend/plugins/*/Dockerfile). Gateway at backend/gateway/ uses Apollo Router for GraphQL Federation (supergraph-compose.ts) to compose subgraph schemas. Service discovery via Redis in erxes-api-shared/src/utils/service-discovery.ts (joinErxesGateway/leaveErxesGateway). Inter-service communication via tRPC in erxes-api-shared/src/utils/trpc/utils.ts (sendTRPCMessage creates untyped client to remote plugin address). Frontend uses Module Federation (frontend/core-ui/module-federation.config.ts, frontend/plugins/*/module-federation.config.ts) for micro-frontend composition. Event-Driven: BullMQ queues handle async work in erxes-api-shared/src/utils/mq-worker.ts (createMQWorkerWithListeners, sendWorkerMessage). Event dispatcher in erxes-api-shared/src/core-modules/common/eventDispatcher.ts fires DB change events and automation triggers via queues. Automation triggers sent via BullMQ in erxes-api-shared/src/core-modules/automations/sendAutomationMessage.ts. Gateway MQ workers in backend/gateway/src/mq/workers/workers.ts."

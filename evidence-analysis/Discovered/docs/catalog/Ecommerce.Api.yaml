@@ -11,7 +11,9 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - CQRS
+  - Layered
+  - Domain-Driven Design
 key_technologies:
   - .NET
 quality_attributes:
@@ -23,29 +25,16 @@ notable_gaps:
   - No architecture decision records found
   - No CI/CD configuration detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+one_line_summary: ASP.NET Core e-commerce API using MediatR-based CQRS with separated Commands/Queries, DDD-flavored domain entities, and classic three-layer project structure
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.82
   signals_detected: 11
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.82
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Layered
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: CQRS
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+    style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 10
     container_orchestration: 0
@@ -57,4 +46,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 6
-review_required: true
+review_required: false
+review_notes: "CQRS: Explicit Commands/ and Queries/ directories under src/Streetwood.Infrastructure/ with separate Models and Handlers (e.g. Commands/Handlers/Order/CreateOrderCommandHandler.cs, Queries/Handlers/Order/GetFilteredOrdersQueryHandler.cs); MediatR IRequestHandler used for all dispatching via src/Streetwood.API/Bus/MediatorBus.cs; Services split into Abstract/Commands/ and Abstract/Queries/ interfaces. Layered: Three-project dependency chain API->Infrastructure->Core (src/Streetwood.API.csproj refs Infrastructure, Infrastructure.csproj refs Core); API has Controllers/, Middleware/, Filters/; Infrastructure has Services/, Mappers/, Factories/; Core has Domain/Entities, Domain/Abstract/Repositories. DDD: Rich domain entities with protected setters and behavior methods (e.g. src/Streetwood.Core/Domain/Entities/Order.cs with Close(), SetShipment(); Product.cs with SetPrice(), AddImage()); abstract Entity base class with Guid Id; repository interfaces in Core/Domain/Abstract/Repositories/; factory pattern (IOrderFactory). README explicitly states 'CQRS (one database)' and 'Smart domain objects (DDD)'. Single shared database via IDbContext - no read/write separation."

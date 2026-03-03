@@ -11,7 +11,8 @@ language: Java/Kotlin
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Layered
+  - Modular Monolith
 key_technologies:
   - Gradle
   - Docker
@@ -28,20 +29,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+one_line_summary: Java caching library with layered tiered-storage architecture and modular SPI-based plugin system
 discovery_metadata:
-  confidence: 0.4
+  confidence: 0.92
   signals_detected: 42
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.3
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
+    style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 30
     container_orchestration: 3
@@ -53,4 +50,5 @@ discovery_metadata:
     test_structure: 2
     documentation: 1
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: "LAYERED: Clear vertical layering visible in module dependency chain: ehcache-api (public API contracts: Cache.java, CacheManager.java, Service.java SPI interfaces) -> ehcache-core (internal SPI: ServiceLocator.java, Store.java, tiering interfaces AuthoritativeTier.java/CachingTier.java) -> ehcache-impl (concrete implementations: OnHeapStore, OffHeapStore, OffHeapDiskStore, TieredStore in ehcache-impl/src/main/java/org/ehcache/impl/internal/store/). The tiering subsystem itself is layered: CachingTier (heap/offheap) sits above AuthoritativeTier (disk/clustered), composed by TieredStore.java. MODULAR MONOLITH: Multi-module Gradle build (settings.gradle defines 25+ modules) with strict module boundaries enforced by SPI: ehcache-api, ehcache-core, ehcache-impl, ehcache-107 (JSR-107), ehcache-xml, ehcache-management, ehcache-transactions, clustered/*. Java ServiceLoader used for plugin discovery (META-INF/services/org.ehcache.core.spi.service.ServiceFactory lists 26 factory implementations). ServiceLocator.java manages dependency-ordered startup/shutdown of services. The ehcache module (build.gradle) is a packaging module that bundles api+core+impl+107+xml into a single deployable jar. All modules share a single process boundary — this is a library, not a distributed system."
