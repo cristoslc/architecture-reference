@@ -1,0 +1,62 @@
+project_name: livekit
+source: Discovered
+source_url: https://github.com/livekit/livekit
+project_url: https://github.com/livekit/livekit
+evidence_type: automated-discovery
+discovered_at: '2026-03-03T21:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Real-Time Communications
+language: Go
+languages:
+  - Go
+architecture_styles:
+  - Service-Based
+  - Event-Driven
+key_technologies:
+  - Go
+  - Redis
+  - Docker Compose
+  - Helm
+quality_attributes:
+  - Scalability
+  - Performance
+  - Deployability
+notable_strengths:
+  - Independently deployable service components
+  - Redis-based inter-service coordination
+  - Separate Helm charts per service for Kubernetes
+notable_gaps:
+  - No architecture decision records found
+one_line_summary: Real-time communications platform with 4-5 coarse-grained services
+  (media server, egress, ingress, SIP, agents) coordinated via Redis message queues
+discovery_metadata:
+  confidence: 0.92
+  signals_detected: 16
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.92
+  signal_breakdown:
+    package_manifests: 3
+    container_orchestration: 2
+    infrastructure_as_code: 1
+    messaging: 3
+    api_specs: 1
+    adrs: 0
+    ci_cd: 4
+    test_structure: 2
+    documentation: 0
+    directory_structure: 2
+review_required: false
+review_notes: 'Documentation describes independently deployable services: (1) LiveKit
+  Server — core WebRTC SFU handling rooms, participants, and media streams;
+  (2) Egress Service — recording and streaming export, deployed separately with own
+  Helm chart; (3) Ingress Service — accepts external RTMP/WHIP/HLS/SRT streams into
+  rooms, deployed separately; (4) SIP Server — telephony bridge for SIP calls into
+  WebRTC rooms; (5) Agents — optional AI/automation service. Services communicate
+  via Redis message queues for task dispatching and coordination. Each service has
+  independent Docker deployment and Kubernetes Helm chart. docker-compose examples
+  show multi-container deployment with livekit + redis + ingress + sip as separate
+  services. Service-Based because 4-5 coarse-grained services with distinct
+  responsibilities coordinate via Redis. Event-Driven because services use Redis
+  pub/sub for async task dispatch.'

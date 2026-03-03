@@ -1,0 +1,84 @@
+project_name: arr-stack
+source: Discovered
+source_url: https://github.com/sct/overseerr
+project_url: https://github.com/sct/overseerr
+evidence_type: automated-discovery
+discovered_at: '2026-03-03T21:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+entry_type: ecosystem
+constituent_repos:
+  - url: https://github.com/sct/overseerr
+    role: Request management frontend — users submit media requests that are dispatched
+      to Sonarr/Radarr via their APIs
+  - url: https://github.com/Sonarr/Sonarr
+    role: TV series acquisition service — receives requests from Overseerr, queries
+      Prowlarr for indexers, monitors downloads, manages library
+  - url: https://github.com/Radarr/Radarr
+    role: Movie acquisition service — receives requests from Overseerr, queries
+      Prowlarr for indexers, monitors downloads, manages library
+  - url: https://github.com/Prowlarr/Prowlarr
+    role: Indexer aggregation service — provides unified search API consumed by
+      Sonarr and Radarr for torrent/usenet indexer queries
+  - url: https://github.com/morpheus65535/bazarr
+    role: Subtitle service — monitors Sonarr/Radarr libraries via their APIs and
+      automatically fetches matching subtitles
+domain: Media Automation
+language: C#
+languages:
+  - C#
+  - TypeScript
+  - Python
+architecture_styles:
+  - Service-Based
+key_technologies:
+  - Docker Compose
+  - REST API
+  - SQLite
+quality_attributes:
+  - Modularity
+  - Extensibility
+  - Deployability
+notable_strengths:
+  - Each service independently developed, deployed, and versioned
+  - Clear API contracts between services
+  - Classic example of coarse-grained service coordination
+notable_gaps:
+  - No centralized orchestration — coordination is peer-to-peer via REST APIs
+  - Each service has its own database (SQLite) with no shared state
+one_line_summary: Media automation ecosystem where 5 independently developed services
+  (Overseerr, Sonarr, Radarr, Prowlarr, Bazarr) coordinate media request fulfillment
+  through REST API integrations
+discovery_metadata:
+  confidence: 0.92
+  signals_detected: 15
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.92
+  signal_breakdown:
+    package_manifests: 3
+    container_orchestration: 2
+    infrastructure_as_code: 0
+    messaging: 2
+    api_specs: 3
+    adrs: 0
+    ci_cd: 3
+    test_structure: 2
+    documentation: 0
+    directory_structure: 2
+review_required: false
+review_notes: 'Multi-repo ecosystem forming a coordinated service-based media
+  automation system. Workflow: (1) User submits request via Overseerr web UI;
+  (2) Overseerr dispatches to Sonarr (TV) or Radarr (movies) via REST API
+  (/api/v3/); (3) Sonarr/Radarr query Prowlarr for available indexers via
+  /api/v1/indexer; (4) Sonarr/Radarr manage download clients and monitor
+  completion; (5) Bazarr polls Sonarr/Radarr libraries via their APIs and fetches
+  subtitles from OpenSubtitles/Addic7ed. Each service: independently versioned
+  (separate GitHub repos, release cycles), independently deployed (own Docker
+  container), own SQLite database, own REST API with OpenAPI documentation.
+  Communication is synchronous REST with webhook callbacks for event notification.
+  5 coarse-grained services with clear domain boundaries (request management,
+  TV acquisition, movie acquisition, indexer aggregation, subtitle management)
+  communicating via well-defined REST APIs. Service-Based because this is the
+  canonical pattern: independently deployed coarse-grained services coordinating
+  via APIs without service mesh or API gateway overhead.'

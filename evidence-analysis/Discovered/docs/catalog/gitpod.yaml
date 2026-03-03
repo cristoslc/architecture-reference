@@ -1,0 +1,69 @@
+project_name: gitpod
+source: Discovered
+source_url: https://github.com/gitpod-io/gitpod
+project_url: https://github.com/gitpod-io/gitpod
+evidence_type: automated-discovery
+discovered_at: '2026-03-03T21:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Developer Tools
+language: TypeScript
+languages:
+  - TypeScript
+  - Go
+architecture_styles:
+  - Service-Based
+  - Event-Driven
+key_technologies:
+  - Node.js
+  - Go
+  - Docker
+  - Kubernetes
+  - gRPC
+quality_attributes:
+  - Scalability
+  - Deployability
+  - Modularity
+notable_strengths:
+  - 15+ independently deployable services with clear domain boundaries
+  - Multi-protocol communication (gRPC, REST, WebSocket)
+  - Multi-cluster Kubernetes deployment support
+notable_gaps:
+  - Complex deployment topology
+one_line_summary: Cloud development environment platform with 15+ coarse-grained
+  services (server, workspace-manager, image-builder, content-service, IDE services)
+  coordinated via gRPC, REST, and WebSocket APIs
+discovery_metadata:
+  confidence: 0.93
+  signals_detected: 20
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.93
+  signal_breakdown:
+    package_manifests: 4
+    container_orchestration: 3
+    infrastructure_as_code: 1
+    messaging: 3
+    api_specs: 2
+    adrs: 0
+    ci_cd: 5
+    test_structure: 2
+    documentation: 0
+    directory_structure: 3
+review_required: false
+review_notes: 'Repository structure under components/ and cmd/ shows 15+ services:
+  (1) server — main backend orchestrator for workspace lifecycle and API requests;
+  (2) ws-manager-mk2 — workspace instance creation, scheduling, lifecycle management;
+  (3) ws-daemon — low-level workspace operations on worker nodes; (4) supervisor —
+  runs inside workspace containers for IDE/tooling management; (5) ws-proxy —
+  workspace port routing over HTTP/WebSocket; (6) image-builder-mk3 — container
+  image building service (gRPC API); (7) registry-facade — Docker registry proxy;
+  (8) content-service — workspace snapshots and content (gRPC API); (9) blobserve —
+  blob content serving; (10) dashboard — React web UI; (11) ide-service — IDE
+  backend coordination; (12) public-api-server — external REST API; (13) spicedb —
+  authorization/permissions; (14) usage — metering service. Inter-service
+  communication via gRPC (ws-manager ↔ ws-daemon, server ↔ image-builder, server ↔
+  content-service), HTTP REST (dashboard ↔ server), and WebSocket (browser ↔
+  ws-proxy). Workspace lifecycle: Dashboard → Server → Ws-Manager → Ws-Daemon →
+  Image-Builder → Content-Service. Service-Based because 15+ coarse-grained
+  services own distinct domain responsibilities and communicate via defined APIs.'

@@ -1,0 +1,69 @@
+project_name: temporal
+source: Discovered
+source_url: https://github.com/temporalio/temporal
+project_url: https://github.com/temporalio/temporal
+evidence_type: automated-discovery
+discovered_at: '2026-03-03T21:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Workflow Orchestration
+language: Go
+languages:
+  - Go
+architecture_styles:
+  - Service-Based
+  - Event-Driven
+key_technologies:
+  - Go
+  - gRPC
+  - Protobuf
+  - Docker Compose
+  - PostgreSQL
+  - Elasticsearch
+quality_attributes:
+  - Scalability
+  - Fault Tolerance
+  - Durability
+notable_strengths:
+  - Textbook 4-service architecture with clear separation of concerns
+  - gRPC-based inter-service communication with strong typing
+  - Independent horizontal scaling per service role
+notable_gaps:
+  - No architecture decision records found
+one_line_summary: Durable workflow execution platform with 4 coarse-grained gRPC
+  services (frontend, history, matching, worker) implementing classic Service-Based
+  architecture with independent scaling
+discovery_metadata:
+  confidence: 0.95
+  signals_detected: 18
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.95
+  signal_breakdown:
+    package_manifests: 3
+    container_orchestration: 2
+    infrastructure_as_code: 1
+    messaging: 3
+    api_specs: 2
+    adrs: 0
+    ci_cd: 5
+    test_structure: 2
+    documentation: 0
+    directory_structure: 3
+review_required: false
+review_notes: 'Documentation and docker-compose-multirole.yaml define 4 core services:
+  (1) Frontend Service (port 7233) — stateless API gateway handling rate limiting,
+  authorization, validation, routes requests to History and Matching; (2) History
+  Service (port 7234) — workflow execution state manager, persists event history as
+  append-only log, manages shards, drives execution via transfer/timer/replicator/
+  visibility queues; (3) Matching Service (port 7235) — task queue manager and
+  worker dispatcher, matches workers to tasks, manages queue partitioning;
+  (4) Worker Service — background processing for system workflows, replication,
+  maintenance. All inter-service communication via strongly-typed gRPC with Protobuf.
+  Ringpop gossip protocol (ports 6934/6935/6939) for cluster membership and service
+  discovery. History uses transactional outbox pattern for reliable task dispatch to
+  Matching. Production scaling: Frontend (5 instances, stateless), History
+  (15 instances, sharded), Matching (17 instances, distributed), Worker
+  (3 instances). Service-Based because 4 coarse-grained services with distinct
+  domain responsibilities communicate via well-defined gRPC interfaces with
+  independent scaling characteristics.'

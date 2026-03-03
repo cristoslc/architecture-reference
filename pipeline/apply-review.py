@@ -18,6 +18,16 @@ Usage:
       --entry evidence-analysis/Discovered/docs/catalog/some-repo.yaml \
       --confidence 0.40 \
       --notes "README is sparse. No clear architectural patterns beyond basic layering."
+
+    # Ecosystem entry (multi-repo system):
+    python3 pipeline/apply-review.py \
+      --entry evidence-analysis/Discovered/docs/catalog/arr-stack.yaml \
+      --styles "Service-Based" \
+      --confidence 0.90 \
+      --summary "Media automation ecosystem with coordinated services" \
+      --notes "Multiple repos forming a service-based system." \
+      --entry-type ecosystem \
+      --repos "https://github.com/Sonarr/Sonarr|TV acquisition service;https://github.com/Radarr/Radarr|Movie acquisition service"
 """
 
 import argparse
@@ -48,7 +58,8 @@ except ImportError:
         return _dump(data)
 
 
-def apply_review(entry_path, styles, confidence, summary, notes):
+def apply_review(entry_path, styles, confidence, summary, notes,
+                 entry_type=None, repos=None):
     """Apply review results to a catalog entry, preserving existing fields."""
     entry = load_yaml(entry_path)
     if not entry or not isinstance(entry, dict):
@@ -73,6 +84,14 @@ def apply_review(entry_path, styles, confidence, summary, notes):
     # Update review_required
     entry["review_required"] = False
 
+    # Update entry_type if provided
+    if entry_type:
+        entry["entry_type"] = entry_type
+
+    # Update constituent_repos if provided (for ecosystem entries)
+    if repos:
+        entry["constituent_repos"] = repos
+
     # Update discovery_metadata
     meta = entry.get("discovery_metadata", {})
     if not isinstance(meta, dict):
@@ -91,7 +110,8 @@ def apply_review(entry_path, styles, confidence, summary, notes):
 
     project = entry.get("project_name", os.path.basename(entry_path))
     style_str = ", ".join(entry["architecture_styles"])
-    print(f"Updated {project}: {style_str} (confidence={confidence})")
+    type_str = f" [{entry_type}]" if entry_type else ""
+    print(f"Updated {project}{type_str}: {style_str} (confidence={confidence})")
 
 
 def main():
@@ -119,6 +139,15 @@ def main():
         "--notes", required=True,
         help="Review notes citing specific files/directories as evidence"
     )
+    parser.add_argument(
+        "--entry-type",
+        choices=["repo", "ecosystem"],
+        help="Entry type: 'repo' (single repository) or 'ecosystem' (multi-repo system)"
+    )
+    parser.add_argument(
+        "--repos",
+        help="Constituent repos for ecosystem entries. Format: 'url|role;url|role;...'"
+    )
     args = parser.parse_args()
 
     if not os.path.exists(args.entry):
@@ -131,7 +160,22 @@ def main():
 
     confidence = max(0.0, min(1.0, args.confidence))
 
-    apply_review(args.entry, styles, confidence, args.summary, args.notes)
+    # Parse constituent repos
+    repos = None
+    if args.repos:
+        repos = []
+        for pair in args.repos.split(";"):
+            pair = pair.strip()
+            if not pair:
+                continue
+            parts = pair.split("|", 1)
+            if len(parts) == 2:
+                repos.append({"url": parts[0].strip(), "role": parts[1].strip()})
+            else:
+                repos.append({"url": parts[0].strip(), "role": ""})
+
+    apply_review(args.entry, styles, confidence, args.summary, args.notes,
+                 entry_type=args.entry_type, repos=repos)
 
 
 if __name__ == "__main__":

@@ -1,0 +1,69 @@
+project_name: zadig
+source: Discovered
+source_url: https://github.com/koderover/zadig
+project_url: https://github.com/koderover/zadig
+evidence_type: automated-discovery
+discovered_at: '2026-03-03T21:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: DevOps
+language: Go
+languages:
+  - Go
+architecture_styles:
+  - Service-Based
+  - Event-Driven
+key_technologies:
+  - Go
+  - Docker
+  - Kubernetes
+  - MongoDB
+  - NSQ
+  - gRPC
+quality_attributes:
+  - Scalability
+  - Deployability
+  - Modularity
+notable_strengths:
+  - 11 distinct microservices with clear domain boundaries
+  - Multi-protocol communication (REST, gRPC, NSQ message queue)
+  - Kubernetes-native deployment with separate Dockerfiles per service
+notable_gaps:
+  - No architecture decision records found
+one_line_summary: Cloud-native DevOps platform with 11 coarse-grained services
+  (aslan, user, cron, hubserver, warpdrive, collie) coordinated via REST APIs,
+  gRPC, and NSQ message queues
+discovery_metadata:
+  confidence: 0.93
+  signals_detected: 18
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.93
+  signal_breakdown:
+    package_manifests: 3
+    container_orchestration: 3
+    infrastructure_as_code: 1
+    messaging: 3
+    api_specs: 1
+    adrs: 0
+    ci_cd: 5
+    test_structure: 2
+    documentation: 0
+    directory_structure: 3
+review_required: false
+review_notes: 'pkg/microservice/ and cmd/ directories define 11 services: (1) Aslan
+  (port 25000) — core business logic, workflow orchestration, project management;
+  (2) User (port 80) — authentication, roles, permissions with Dex integration;
+  (3) Cron (port 80) — scheduled jobs, environment recycling, K8s cleanup;
+  (4) HubServer (port 26000) — multi-cluster Kubernetes management; (5) JobExecutor —
+  workflow task execution on K8s pods; (6) JobAgent — VM-based task execution;
+  (7) Collie (port 28080) — AI environment inspection and diagnostics;
+  (8) WarpDrive (port 80) — release management and deployment coordination;
+  (9) Picket — policy enforcement and RBAC; (10) PodExec — pod terminal access;
+  (11) HubAgent — remote cluster communication agent. Inter-service communication:
+  REST APIs (Aslan ↔ HubServer, User ↔ Aslan), gRPC (User service dual
+  HTTP/gRPC), NSQ message queue for async workflows (Aslan publishes, Cron
+  consumes via TopicCronjob). Service discovery via pkg/config/config.go with
+  AslanServiceAddress(), UserServiceAddress(), HubServerServiceAddress(). Separate
+  Dockerfiles per service in docker/ directory. Service-Based because 11
+  coarse-grained services own distinct domains and coordinate via defined APIs.'

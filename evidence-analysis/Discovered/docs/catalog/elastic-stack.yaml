@@ -1,0 +1,83 @@
+project_name: elastic-stack
+source: Discovered
+source_url: https://github.com/elastic/elasticsearch
+project_url: https://github.com/elastic/elasticsearch
+evidence_type: automated-discovery
+discovered_at: '2026-03-03T21:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+entry_type: ecosystem
+constituent_repos:
+  - url: https://github.com/elastic/elasticsearch
+    role: Distributed search and analytics engine — indexes and queries data received
+      from Logstash/Beats, serves queries from Kibana via REST API
+  - url: https://github.com/elastic/kibana
+    role: Visualization and management dashboard — queries Elasticsearch via REST API,
+      provides UI for search, dashboards, alerting, and fleet management
+  - url: https://github.com/elastic/logstash
+    role: Data processing pipeline — ingests from multiple sources, transforms via
+      filter plugins, outputs to Elasticsearch via bulk API
+  - url: https://github.com/elastic/beats
+    role: Lightweight data shippers — collect metrics (Metricbeat), logs (Filebeat),
+      network data (Packetbeat), audit events (Auditbeat) and ship to
+      Elasticsearch or Logstash
+domain: Observability
+language: Java
+languages:
+  - Java
+  - TypeScript
+  - Go
+  - Ruby
+architecture_styles:
+  - Service-Based
+  - Pipe-and-Filter
+key_technologies:
+  - Docker Compose
+  - REST API
+  - Lucene
+quality_attributes:
+  - Scalability
+  - Performance
+  - Extensibility
+notable_strengths:
+  - Each component independently developed, versioned, and deployed
+  - Well-defined REST API contracts between all services
+  - Flexible deployment topologies (Beats→ES, Beats→Logstash→ES, etc.)
+notable_gaps:
+  - Tight version coupling between components
+one_line_summary: Observability ecosystem where 4 independently developed services
+  (Elasticsearch, Kibana, Logstash, Beats) form a coordinated data collection,
+  processing, storage, and visualization pipeline
+discovery_metadata:
+  confidence: 0.93
+  signals_detected: 16
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.93
+  signal_breakdown:
+    package_manifests: 3
+    container_orchestration: 2
+    infrastructure_as_code: 0
+    messaging: 2
+    api_specs: 3
+    adrs: 0
+    ci_cd: 4
+    test_structure: 2
+    documentation: 0
+    directory_structure: 2
+review_required: false
+review_notes: 'Multi-repo ecosystem forming the classic ELK/Elastic Stack. Service
+  coordination workflow: (1) Beats agents (Filebeat, Metricbeat, Packetbeat,
+  Auditbeat — separate Go binaries) collect data from infrastructure and ship via
+  REST to Elasticsearch or Logstash; (2) Logstash (Ruby/Java pipeline) ingests
+  events, applies filter plugins (grok, mutate, geoip), outputs to Elasticsearch
+  via /_bulk REST API; (3) Elasticsearch (Java, distributed) indexes documents
+  across shards/replicas, serves search/aggregation queries via REST API;
+  (4) Kibana (TypeScript/Node.js) queries Elasticsearch via REST API for
+  visualization, dashboards, alerting, APM, and fleet management. Each component:
+  independently versioned (separate repos, coordinated releases), independently
+  deployed (own Docker image), communicates via documented REST APIs. Service-Based
+  because 4 coarse-grained services with distinct responsibilities (collection,
+  processing, storage, visualization) coordinate via REST APIs. Also Pipe-and-Filter
+  because data flows through a processing pipeline (Beats → Logstash → Elasticsearch
+  → Kibana).'
