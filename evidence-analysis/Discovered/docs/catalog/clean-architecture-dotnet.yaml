@@ -11,7 +11,10 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Domain-Driven Design
+  - CQRS
+  - Microservices
+  - Event-Driven
 key_technologies:
   - .NET
   - Docker
@@ -29,26 +32,16 @@ notable_gaps:
   - No architecture decision records found
   - No test infrastructure detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+one_line_summary: Microservices reference architecture with DDD aggregates, CQRS command/query separation, and Dapr-based event-driven integration
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.92
   signals_detected: 30
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Domain-Driven Design
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: CQRS
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
+    style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 20
     container_orchestration: 4
@@ -60,4 +53,5 @@ discovery_metadata:
     test_structure: 0
     documentation: 1
     directory_structure: 5
-review_required: true
+review_required: false
+review_notes: "Evidence: README.md explicitly describes 'Minimal DDD, CQRS, and Clean Architecture' (line 35). src/N8T.Core/Domain/ provides DDD building blocks: EntityRootBase with AggregateRoot marker (Entities.cs), DomainEvents (Events.cs), IRepository (Repository/IRepository.cs), and Specification pattern (Specification/). CQRS is formalized via ICommand<T>/IQuery<T> interfaces in Cqrs.cs, with separate UseCases/Commands/ and UseCases/Queries/ directories per service. docker-compose.yml defines 4 independently deployed services (productapp, customerapp, settingapp, webapigatewayapp) each with its own Dapr sidecar, API gateway via YARP, and shared PostgreSQL. tye.yaml confirms the same multi-service topology. Event-driven: IEventBus interface in src/N8T.Infrastructure/Bus/, Dapr pub/sub (components/pubsub.yaml using Redis), TransactionalOutbox pattern in src/N8T.Infrastructure/TransactionalOutbox/, and IntegrationEvents contracts in samples/DataContracts/CoolStore.IntegrationEvents/. Each service follows Clean Architecture layers: Api (presentation), AppCore (domain+use-cases), Infrastructure (persistence)."

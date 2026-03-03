@@ -11,7 +11,8 @@ language: Python
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Pipe-and-Filter
+  - Layered
 key_technologies:
   - Python/pip
   - Kafka
@@ -26,20 +27,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+one_line_summary: AWS serverless framework with explicit multi-stage deployment pipeline and layered package organization
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.82
   signals_detected: 20
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.82
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
+    style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 13
     container_orchestration: 0
@@ -51,4 +48,5 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: "Evidence: chalice/deploy/deployer.py lines 1-80 document a multi-stage deployment pipeline (Application Graph Builder -> Dependency Builder -> Build Stage -> Plan Stage -> Sweeper -> Executor -> Recorder). Deployer._deploy() (line 380) chains these stages sequentially, each transforming data for the next. BuildStage (line 643) iterates steps list over resources in classic pipe-and-filter. Package is layered: app.py (standalone runtime), cli/ (presentation), config.py (configuration), deploy/ (infrastructure with models/planner/executor), awsclient.py (AWS integration). setup.py describes itself as 'Microframework'. Classifying what the repo IS (a deployment tool with pipeline architecture), not what it enables (serverless apps)."
