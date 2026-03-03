@@ -1,7 +1,7 @@
 ---
 title: "Dataset Scaling Pipeline"
 artifact: SPEC-002
-status: Approved
+status: Implemented
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -98,3 +98,4 @@ The pipeline is a shell-based batch orchestrator with Python helpers (stdlib onl
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | b63f031 | Initial creation — will be refined after SPEC-001 implementation |
 | Approved | 2026-03-03 | 6d61123 | Refined implementation approach — SPEC-001 implemented, decisions resolved |
+| Implemented | 2026-03-03 | d4fef8e | All tasks complete — 10/10 integration test, mean confidence 0.84 |
