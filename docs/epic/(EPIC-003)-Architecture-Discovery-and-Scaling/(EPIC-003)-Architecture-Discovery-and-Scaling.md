@@ -1,7 +1,7 @@
 ---
 title: "Architecture Discovery and Scaling"
 artifact: EPIC-003
-status: Proposed
+status: Active
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -69,9 +69,11 @@ The `/discover-architecture` skill would analyze a repository and produce a stru
 
 ## Child Specs
 
-_Updated as Agent Specs are created under this epic._
-
-None yet.
+| ID | Title | Phase | Status |
+|----|-------|-------|--------|
+| [SPEC-001](../../spec/\(SPEC-001\)-Architecture-Discovery-Skill/\(SPEC-001\)-Architecture-Discovery-Skill.md) | Architecture Discovery Skill | Phase 1 | Approved |
+| [SPEC-002](../../spec/\(SPEC-002\)-Dataset-Scaling-Pipeline/\(SPEC-002\)-Dataset-Scaling-Pipeline.md) | Dataset Scaling Pipeline | Phase 2 | Draft (depends on SPEC-001) |
+| [SPEC-003](../../spec/\(SPEC-003\)-Comparative-Analysis-Engine/\(SPEC-003\)-Comparative-Analysis-Engine.md) | Comparative Analysis Engine | Phase 3 | Draft (depends on SPEC-002) |
 
 ## Key Dependencies
 
@@ -82,3 +84,4 @@ No blocking dependencies. EPIC-001 (Dataset Expansion) provides the evidence bas
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-03 | f0ae265 | Split from EPIC-001; covers Phases 2-4 of original dataset expansion proposal |
+| Active | 2026-03-03 | b63f031 | Child specs created: SPEC-001 (Approved), SPEC-002, SPEC-003 (Draft) |
