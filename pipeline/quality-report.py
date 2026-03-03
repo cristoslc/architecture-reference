@@ -95,19 +95,22 @@ def generate_report(catalog_dir, output_path):
         print(f"Generated {output_path}: 0 entries")
         return
 
-    # --- Confidence stats ---
-    confidences = []
+    # --- Split confident vs indeterminate ---
+    confident_entries = []
+    indeterminate_entries = []
     for e in entries:
+        styles = e.get("architecture_styles", [])
+        if styles == ["Indeterminate"]:
+            indeterminate_entries.append(e)
+        else:
+            confident_entries.append(e)
+
+    # --- Confidence stats (confident entries only) ---
+    confidences = []
+    for e in confident_entries:
         meta = e.get("discovery_metadata", {})
         conf = meta.get("confidence", 0) if isinstance(meta, dict) else 0
         confidences.append(conf)
-
-    n = len(confidences)
-    avg_conf = sum(confidences) / n
-    min_conf = min(confidences)
-    max_conf = max(confidences)
-    sorted_conf = sorted(confidences)
-    median_conf = (sorted_conf[n // 2] + sorted_conf[(n - 1) // 2]) / 2
 
     def percentile(vals, p):
         """Linear interpolation percentile (sorted input)."""
@@ -116,27 +119,48 @@ def generate_report(catalog_dir, output_path):
         c = f + 1 if f + 1 < len(vals) else f
         return vals[f] + (vals[c] - vals[f]) * (k - f)
 
-    p25 = percentile(sorted_conf, 25)
-    p75 = percentile(sorted_conf, 75)
-    p5 = percentile(sorted_conf, 5)
-    p95 = percentile(sorted_conf, 95)
+    if confidences:
+        n = len(confidences)
+        avg_conf = sum(confidences) / n
+        min_conf = min(confidences)
+        max_conf = max(confidences)
+        sorted_conf = sorted(confidences)
+        median_conf = (sorted_conf[n // 2] + sorted_conf[(n - 1) // 2]) / 2
+        p25 = percentile(sorted_conf, 25)
+        p75 = percentile(sorted_conf, 75)
+        p5 = percentile(sorted_conf, 5)
+        p95 = percentile(sorted_conf, 95)
+    else:
+        n = avg_conf = min_conf = max_conf = median_conf = 0
+        p25 = p75 = p5 = p95 = 0
 
-    # --- Style coverage ---
+    # --- Style coverage (confident entries only) ---
     style_counter = Counter()
-    for e in entries:
+    for e in confident_entries:
         styles = e.get("architecture_styles", [])
         if isinstance(styles, list):
             for s in styles:
                 style_counter[s] += 1
 
-    # --- Review-required entries ---
+    # --- Indeterminate entries (for LLM review) ---
     review_entries = []
-    for e in entries:
-        if e.get("review_required", False):
-            meta = e.get("discovery_metadata", {})
-            conf = meta.get("confidence", 0) if isinstance(meta, dict) else 0
-            review_entries.append((e.get("project_name", "?"), conf,
-                                   e.get("architecture_styles", [])))
+    for e in indeterminate_entries:
+        meta = e.get("discovery_metadata", {})
+        conf = meta.get("confidence", 0) if isinstance(meta, dict) else 0
+        candidates = meta.get("heuristic_candidates", []) if isinstance(meta, dict) else []
+        # Normalize: fallback parser may return a single dict instead of a list
+        if isinstance(candidates, dict):
+            candidates = [candidates]
+        if not isinstance(candidates, list):
+            candidates = []
+        cand_parts = []
+        for c in candidates:
+            if isinstance(c, dict):
+                cand_parts.append(f"{c.get('style', '?')} ({c.get('score', '?')})")
+            else:
+                cand_parts.append(str(c))
+        cand_str = ", ".join(cand_parts) if cand_parts else "none"
+        review_entries.append((e.get("project_name", "?"), conf, cand_str))
 
     # --- Coverage gaps ---
     gaps = [s for s in CANONICAL_STYLES if style_counter.get(s, 0) < TARGET_PER_STYLE]
@@ -148,8 +172,10 @@ def generate_report(catalog_dir, output_path):
         "",
         f"Generated: {now}",
         f"Total entries: {len(entries)}",
+        f"Classified: {len(confident_entries)}",
+        f"Indeterminate (needs LLM review): {len(indeterminate_entries)}",
         "",
-        "## Confidence Distribution",
+        "## Confidence Distribution (classified entries only)",
         "",
         f"- Median: {median_conf:.2f}",
         f"- IQR (25th-75th): {p25:.2f} - {p75:.2f}",
@@ -158,7 +184,7 @@ def generate_report(catalog_dir, output_path):
         f"- Mean: {avg_conf:.2f} (n={n})",
         "",
         "```",
-        confidence_histogram(entries),
+        confidence_histogram(confident_entries),
         "```",
         "",
         "## Architecture Style Coverage",
@@ -181,20 +207,19 @@ def generate_report(catalog_dir, output_path):
         "",
     ])
 
-    # --- Flagged entries ---
+    # --- Indeterminate entries ---
     lines.extend([
-        "## Entries Flagged for Human Review",
+        "## Indeterminate Entries (needs LLM review)",
         "",
-        f"Entries with confidence < 0.5: {len(review_entries)}",
+        f"Entries with confidence < 0.85: {len(review_entries)}",
         "",
     ])
 
     if review_entries:
-        lines.append("| Project | Confidence | Styles |")
-        lines.append("|---------|-----------|--------|")
-        for name, conf, styles in sorted(review_entries, key=lambda x: x[1]):
-            styles_str = ", ".join(styles) if isinstance(styles, list) else str(styles)
-            lines.append(f"| {name} | {conf:.2f} | {styles_str} |")
+        lines.append("| Project | Confidence | Heuristic Candidates |")
+        lines.append("|---------|-----------|---------------------|")
+        for name, conf, cand_str in sorted(review_entries, key=lambda x: -x[1]):
+            lines.append(f"| {name} | {conf:.2f} | {cand_str} |")
     else:
         lines.append("None.")
 

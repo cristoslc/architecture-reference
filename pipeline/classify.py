@@ -556,17 +556,20 @@ def classify(signal_data, domain_override=None):
     matched.sort(key=lambda x: -x[1])
 
     # Overall confidence calculation
+    CONFIDENCE_THRESHOLD = 0.85
+
     if not matched:
         overall_confidence = max(scores.values()) if scores else 0.0
-        architecture_styles = ["Indeterminate"]
         primary_confidence = overall_confidence
+        heuristic_candidates = []
     else:
         overall_confidence = matched[0][1]
-        architecture_styles = [style for style, _ in matched]
         primary_confidence = matched[0][1]
+        heuristic_candidates = [{"style": style, "score": round(score, 2)}
+                                for style, score in matched]
 
         # Layered-only cap
-        if architecture_styles == ["Layered"]:
+        if len(matched) == 1 and matched[0][0] == "Layered":
             overall_confidence = min(overall_confidence, 0.5)
 
         # Multi-style bonus
@@ -576,6 +579,14 @@ def classify(signal_data, domain_override=None):
     # Clamp
     overall_confidence = round(min(max(overall_confidence, 0.0), 1.0), 2)
     primary_confidence = round(min(max(primary_confidence, 0.0), 1.0), 2)
+
+    # Below threshold: emit Indeterminate, preserve heuristic guesses in metadata
+    if overall_confidence < CONFIDENCE_THRESHOLD:
+        architecture_styles = ["Indeterminate"]
+        classification_method = "heuristic-inconclusive"
+    else:
+        architecture_styles = [style for style, _ in matched]
+        classification_method = "heuristic"
 
     # Detect technologies and quality attributes
     key_technologies = detect_technologies(signals)
@@ -620,8 +631,9 @@ def classify(signal_data, domain_override=None):
             "confidence": overall_confidence,
             "signals_detected": sig(signals, "total_detected"),
             "signals_evaluated": 10,
-            "classification_method": "heuristic",
+            "classification_method": classification_method,
             "primary_style_confidence": primary_confidence,
+            "heuristic_candidates": heuristic_candidates,
             "signal_breakdown": {
                 "package_manifests": sig(signals, "package_manifests", "count"),
                 "container_orchestration": sig(signals, "container_orchestration", "count"),
@@ -637,8 +649,8 @@ def classify(signal_data, domain_override=None):
         },
     }
 
-    # Add review flag for low confidence
-    if overall_confidence < 0.5:
+    # Add review flag for inconclusive entries
+    if overall_confidence < CONFIDENCE_THRESHOLD:
         catalog_entry["review_required"] = True
 
     return catalog_entry
