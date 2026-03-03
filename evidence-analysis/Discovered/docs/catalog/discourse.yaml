@@ -11,7 +11,9 @@ language: Ruby
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Layered
+  - Event-Driven
+  - Modular Monolith
 key_technologies:
   - Node.js
   - RabbitMQ
@@ -27,26 +29,16 @@ notable_strengths:
   - Multi-style composition (4 styles)
 notable_gaps:
   - No architecture decision records found
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+one_line_summary: Ruby on Rails community forum platform with layered MVC architecture, plugin-based modularity, and pervasive internal event system
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.92
   signals_detected: 76
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Service-Based
-      score: 0.4
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Event-Driven
-      score: 0.3
+    style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 55
     container_orchestration: 0
@@ -58,4 +50,5 @@ discovery_metadata:
     test_structure: 3
     documentation: 1
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: "Evidence: README.md states 'Ruby on Rails back end API' with 'Ember.js front end' (line 71-72). app/ has classic Rails MVC layers: controllers/(86), models/(279), views/, serializers/(219), services/, jobs/. lib/ contains 278 domain modules. DiscourseEvent system provides pub/sub event bus with 212 trigger calls across 95 files and 63 listener registrations — used for webhooks, plugin hooks, and cross-cutting concerns (lib/discourse_event.rb, config/initializers/012-web_hook_events.rb). Plugin system (43 plugins in plugins/) enables modular extensions, each with own MVC structure (e.g. plugins/chat/app/ has controllers, models, services, jobs). Gemfile confirms Rails 8, Sidekiq for async jobs, MessageBus for real-time, Redis for caching. Modular Monolith: single deployable with 43 self-contained plugins having independent app/ structures."

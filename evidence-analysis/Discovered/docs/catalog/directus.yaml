@@ -11,7 +11,9 @@ language: TypeScript
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Modular Monolith
+  - Layered
+  - Event-Driven
 key_technologies:
   - Node.js
   - Docker
@@ -29,23 +31,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+one_line_summary: Modular monolith headless CMS with layered API (controllers/services/database) and event-driven extension system
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.88
   signals_detected: 60
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.88
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Event-Driven
-      score: 0.3
+    style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 39
     container_orchestration: 3
@@ -57,4 +52,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: "Evidence: README.md describes 'real-time API and App dashboard for managing SQL database content.' pnpm-workspace.yaml defines monorepo with 5 top-level workspaces (api/, app/, sdk/, directus/, packages/*) plus ~30 internal packages under packages/. api/src/ has clear layered structure: controllers/ (38 route handlers), services/ (40+ domain services like items.ts, users.ts, files.ts), middleware/ (auth, cache, rate-limiter, schema), and database/ (migrations, helpers, query AST). Services implement AbstractService interface and follow uniform CRUD pattern with Knex-based data access. api/src/emitter.ts implements a 3-channel EventEmitter2-based event bus (filter/action/init) used throughout for hook-based extensibility. api/src/flows.ts provides a FlowManager with trigger handlers and operation pipelines. packages/ contains well-separated concerns: storage/ with abstract Driver class, storage-driver-{s3,gcs,azure,local,cloudinary,supabase} driver implementations, extensions/ for plugin system, auth/drivers/ with local/oauth2/openid/ldap/saml providers. docker-compose.yml provides dev infrastructure only (7 DB vendors, Redis, Minio, Keycloak). Single deployable artifact via directus/ package which wraps @directus/api."
