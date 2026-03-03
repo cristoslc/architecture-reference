@@ -1,51 +1,48 @@
 project_name: zammad
 source: Discovered
-source_url: "https://github.com/zammad/zammad"
-project_url: "https://github.com/zammad/zammad"
+source_url: https://github.com/zammad/zammad
+project_url: https://github.com/zammad/zammad
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:38:30Z"
+discovered_at: '2026-03-03T17:38:30Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Customer Support
 language: Ruby
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Layered
 key_technologies:
-  - Node.js
-  - Docker
-  - Docker Compose
-  - RabbitMQ
-  - GraphQL
-  - GitHub Actions
+- Node.js
+- Docker
+- Docker Compose
+- RabbitMQ
+- GraphQL
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Ruby on Rails helpdesk/customer-support platform with classic layered
+  MVC architecture plus service and policy layers
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.92
   signals_detected: 276
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Event-Driven
+    score: 0.6
+  - style: Microservices
+    score: 0.5
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 7
     container_orchestration: 7
@@ -57,4 +54,12 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: 'Textbook Rails layered architecture: app/controllers/ (~106 controllers)
+  for REST API + GraphQL, app/models/ (~113 ActiveRecord models) with rich concerns,
+  app/services/service/ for domain logic (ticket, auth, AI, calendar), app/policies/
+  using Pundit for authorization. Procfile runs web (Puma), websocket (EventMachine),
+  and background worker (delayed_job) as co-located processes in one codebase. Vue.js
+  frontend in app/frontend/ with desktop and mobile apps. PostgreSQL, Redis, Elasticsearch.
+  No separate deployable services, no message broker, no explicit module/bounded-context
+  boundaries -- standard Rails monolith with well-organized layers.'
