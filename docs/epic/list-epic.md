@@ -4,5 +4,11 @@
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
-| EPIC-001 | Dataset Expansion and Evidence Enrichment | Expand the evidence base from 78 O'Reilly Kata submissions to 200+ projects across 4+ complementary sources (AOSA, cloud providers, academic datasets, reference implementations). | 2026-03-03 | 6883447 |
 | EPIC-002 | Architecture Advisor Skill | Build a remote-installable agent skill exposing the evidence library as an AI-consumable capability, with sparse-clone data fetching and progressive disclosure. | 2026-03-03 | 6883447 |
+| EPIC-003 | Architecture Discovery and Scaling | Build automated discovery tooling to classify architecture patterns from repos, then scale the evidence base from 62 to 200+ projects with comparative analysis. | 2026-03-03 | f0ae265 |
+
+## Complete
+
+| ID | Title | Summary | Last Updated | Commit |
+|----|-------|---------|--------------|--------|
+| EPIC-001 | Dataset Expansion and Evidence Enrichment | Expanded the evidence base from 1 source (78 Kata submissions) to 4 sources (62 cataloged projects) with cross-source analysis. | 2026-03-03 | f0ae265 |
