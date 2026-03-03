@@ -149,14 +149,12 @@ process_repo() {
     fi
 
     # Classify
-    local domain_flag=""
-    if [[ -n "$domain" ]]; then
-        domain_flag="--domain $domain"
-    fi
-
     local catalog_entry
-    # shellcheck disable=SC2086
-    catalog_entry="$(echo "$signals" | python3 "$CLASSIFY_SCRIPT" $domain_flag 2>/dev/null)"
+    if [[ -n "$domain" ]]; then
+        catalog_entry="$(echo "$signals" | python3 "$CLASSIFY_SCRIPT" --domain "$domain" 2>/dev/null)"
+    else
+        catalog_entry="$(echo "$signals" | python3 "$CLASSIFY_SCRIPT" 2>/dev/null)"
+    fi
     if [[ -z "$catalog_entry" ]]; then
         echo "  FAIL $name (classification failed)" >&2
         rm -rf "$clone_path"
