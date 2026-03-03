@@ -11,7 +11,8 @@ language: Java/Kotlin
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Space-Based
+  - Modular Monolith
 key_technologies:
   - Maven
   - Gradle
@@ -32,26 +33,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+one_line_summary: Distributed in-memory data grid and computing platform; textbook space-based architecture with modular monolith internal structure
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.92
   signals_detected: 213
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.7
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+    style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 114
     container_orchestration: 29
@@ -63,4 +54,5 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: "README describes 'distributed database for high-performance computing with in-memory speed' with multi-tier storage (memory + disk). Core architecture: GridKernalContext orchestrates 46+ GridProcessor subsystems and 12+ GridManager subsystems via GridComponent interface. SPI layer provides pluggable discovery (spi/discovery/), communication (spi/communication/), failover, load balancing. Data partitioned via affinity processor (internal/processors/affinity/). 35+ Maven modules compile into single runtime per node. Space-based signals: in-memory data grid, data partitioning/replication, co-located compute (IgniteCompute), distributed data structures (AtomicLong, Queue, Set, CountDownLatch). Not microservices -- single process per node. Not event-driven as primary style -- events are internal mechanism only."
