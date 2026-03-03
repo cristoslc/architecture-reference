@@ -1,9 +1,9 @@
 # Dataset Scaling Pipeline - Quality Report
 
-Generated: 2026-03-03 19:48 UTC
+Generated: 2026-03-03 19:50 UTC
 Total entries: 163
-Classified: 123
-Indeterminate (needs LLM review): 40
+Classified: 128
+Indeterminate (needs LLM review): 35
 
 ## Confidence Distribution (classified entries only)
 
@@ -11,7 +11,7 @@ Indeterminate (needs LLM review): 40
 - IQR (25th-75th): 0.90 - 0.97
 - 90% interval (5th-95th): 0.82 - 1.00
 - Range: 0.82 - 1.00
-- Mean: 0.94 (n=123)
+- Mean: 0.93 (n=128)
 
 ```
   0.0-0.1  |  (0)
@@ -22,8 +22,8 @@ Indeterminate (needs LLM review): 40
   0.5-0.6  |  (0)
   0.6-0.7  |  (0)
   0.7-0.8  |  (0)
-  0.8-0.9  | ################## (18)
-  0.9-1.0  | ######################################################################################################### (105)
+  0.8-0.9  | ################### (19)
+  0.9-1.0  | ############################################################################################################# (109)
 ```
 
 ## Architecture Style Coverage
@@ -33,28 +33,27 @@ Target: n >= 10 for each of the 12 canonical styles.
 | Style | Count | Target Met |
 |-------|-------|------------|
 | Microservices | 51 | Yes |
-| Event-Driven | 81 | Yes |
-| Modular Monolith | 28 | Yes |
+| Event-Driven | 82 | Yes |
+| Modular Monolith | 30 | Yes |
 | Service-Based | 2 | **No** (8 short) |
 | Domain-Driven Design | 49 | Yes |
-| CQRS | 27 | Yes |
+| CQRS | 28 | Yes |
 | Space-Based | 5 | **No** (5 short) |
-| Hexagonal Architecture | 14 | Yes |
+| Hexagonal Architecture | 15 | Yes |
 | Serverless | 8 | **No** (2 short) |
-| Layered | 31 | Yes |
-| Pipe-and-Filter | 35 | Yes |
+| Layered | 34 | Yes |
+| Pipe-and-Filter | 36 | Yes |
 | Multi-Agent | 5 | **No** (5 short) |
 
 **8/12 styles meet target coverage.**
 
 ## Indeterminate Entries (needs LLM review)
 
-Entries with confidence < 0.85: 40
+Entries with confidence < 0.85: 35
 
 | Project | Confidence | Heuristic Candidates |
 |---------|-----------|---------------------|
 | OrchardCore | 0.80 | Modular Monolith (0.7), CQRS (0.4), Layered (0.3), Event-Driven (0.3), Domain-Driven Design (0.3), Pipe-and-Filter (0.3) |
-| nocodb | 0.80 | Microservices (0.7), Event-Driven (0.6), Domain-Driven Design (0.3), Pipe-and-Filter (0.3) |
 | orbit | 0.80 | Microservices (0.7), Pipe-and-Filter (0.3) |
 | pipeline | 0.80 | Microservices (0.7), Pipe-and-Filter (0.3) |
 | qdrant | 0.80 | Microservices (0.8) |
@@ -62,7 +61,6 @@ Entries with confidence < 0.85: 40
 | shopware | 0.80 | Modular Monolith (0.7), Event-Driven (0.6), Service-Based (0.4), Domain-Driven Design (0.3) |
 | strapi | 0.80 | Modular Monolith (0.7), Layered (0.4), CQRS (0.3), Pipe-and-Filter (0.3) |
 | typeorm | 0.80 | Modular Monolith (0.7), Event-Driven (0.3), Domain-Driven Design (0.3) |
-| nopCommerce | 0.70 | Event-Driven (0.6), Modular Monolith (0.4), Layered (0.3), Domain-Driven Design (0.3), Pipe-and-Filter (0.3) |
 | outline | 0.70 | Event-Driven (0.6), Microservices (0.4), CQRS (0.4), Domain-Driven Design (0.3) |
 | practical-dotnet-aspire | 0.70 | Event-Driven (0.6), Microservices (0.4), Domain-Driven Design (0.3) |
 | redis | 0.70 | Modular Monolith (0.7) |
@@ -71,10 +69,7 @@ Entries with confidence < 0.85: 40
 | zammad | 0.70 | Event-Driven (0.6), Microservices (0.5), Domain-Driven Design (0.3) |
 | rabbitmq-server | 0.60 | Microservices (0.5), Event-Driven (0.3) |
 | saleor | 0.60 | Microservices (0.5), CQRS (0.3), Pipe-and-Filter (0.3) |
-| NServiceBus | 0.50 | Modular Monolith (0.4), Event-Driven (0.3), Domain-Driven Design (0.3), Pipe-and-Filter (0.3) |
-| NorthwindTraders | 0.50 | Modular Monolith (0.4), Domain-Driven Design (0.4), Hexagonal Architecture (0.4), Layered (0.4), CQRS (0.3) |
 | Rebus | 0.50 | Modular Monolith (0.4), Pipe-and-Filter (0.3) |
-| openproject | 0.50 | Microservices (0.4), Event-Driven (0.3), CQRS (0.3), Pipe-and-Filter (0.3) |
 | phidata | 0.50 | Microservices (0.4), Pipe-and-Filter (0.3) |
 | ralph | 0.50 | Modular Monolith (0.4), Pipe-and-Filter (0.3) |
 | sample-dotnet-core-cqrs-api | 0.50 | Modular Monolith (0.4), CQRS (0.4), Event-Driven (0.3), Domain-Driven Design (0.3) |

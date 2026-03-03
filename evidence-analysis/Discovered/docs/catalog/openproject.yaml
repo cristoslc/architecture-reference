@@ -1,53 +1,50 @@
 project_name: openproject
 source: Discovered
-source_url: "https://github.com/opf/openproject"
-project_url: "https://github.com/opf/openproject"
+source_url: https://github.com/opf/openproject
+project_url: https://github.com/opf/openproject
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:38:10Z"
+discovered_at: '2026-03-03T17:38:10Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Project Management
 language: Ruby
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Layered
 key_technologies:
-  - Node.js
-  - Docker
-  - Docker Compose
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- Docker
+- Docker Compose
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Deployability
-  - Modularity
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Rails monolith with 27 feature modules as Rails Engines (ActsAsOpEngine)
+  sharing a single PostgreSQL database, plus consistent service/contract/policy layers
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.9
   signals_detected: 50
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.9
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: CQRS
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.4
+  - style: Event-Driven
+    score: 0.3
+  - style: CQRS
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 15
@@ -59,4 +56,10 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 5
-review_required: true
+review_required: false
+review_notes: '27 modules in modules/ dir, each a Rails Engine with own gemspec, models,
+  controllers, services, contracts, workers. ActsAsOpEngine mixin in lib/open_project/plugins/acts_as_op_engine.rb.
+  AGENTS.md self-describes as Large monorepo. docker-compose.yml shows single backend+worker+frontend
+  services. Modules loaded in-process via Gemfile.modules path refs. Core app/ has
+  layered dirs: models, controllers, services, contracts, policies, forms, components,
+  workers. GoodJob for background processing. Angular frontend in frontend/.'
