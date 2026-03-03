@@ -1,10 +1,10 @@
 ---
 name: architecture-advisor
-description: Research how real architecture teams solved problems using evidence from 103 projects across four sources — 34 placing O'Reilly Architecture Kata teams, 12 AOSA production systems, 5 production .NET apps, and 8 reference implementations. Use when the user asks about architecture style selection, pattern trade-offs, quality attributes, ADR examples, kata preparation, or feasibility analysis. Triggers on "architecture patterns", "which architecture style", "how did teams handle", "kata preparation", "architecture evidence", "ADR examples", "feasibility analysis", "fitness functions".
+description: Research how real architecture teams solved problems using evidence from 276 projects across five sources — 34 placing O'Reilly Architecture Kata teams, 12 AOSA production systems, 5 production .NET apps, 8 reference implementations, and 173 auto-discovered open-source repos. Use when the user asks about architecture style selection, pattern trade-offs, quality attributes, ADR examples, kata preparation, or feasibility analysis. Triggers on "architecture patterns", "which architecture style", "how did teams handle", "kata preparation", "architecture evidence", "ADR examples", "feasibility analysis", "fitness functions".
 license: MIT
 allowed-tools: Bash, Read, Grep, Glob, Agent
 metadata:
-  short-description: Evidence-based architecture research from 103 real-world projects
+  short-description: Evidence-based architecture research from 276 real-world projects
   version: 2.0.0
   author: cristos
   source-repo: https://github.com/cristoslc/architecture-reference-repo
@@ -12,7 +12,7 @@ metadata:
 
 # Architecture Advisor
 
-Evidence-based architecture research from 103 real-world projects: 34 O'Reilly Architecture Kata placing teams, 12 AOSA production systems, 5 production .NET apps, and 8 reference implementations. Each project has a structured YAML catalog entry. Kata scoring uses placement-weighted points: 1st = 4 pts, 2nd = 3 pts, 3rd = 2 pts.
+Evidence-based architecture research from 276 real-world projects: 34 O'Reilly Architecture Kata placing teams, 12 AOSA production systems, 5 production .NET apps, 8 reference implementations, and 173 auto-discovered open-source repos classified from structural signals. Each project has a structured YAML catalog entry. Kata scoring uses placement-weighted points: 1st = 4 pts, 2nd = 3 pts, 3rd = 2 pts.
 
 ## Setup: Syncing Reference Data
 

@@ -6,7 +6,7 @@ Agent skills published by this repository, installable into other projects via [
 
 | Skill | Description |
 |-------|-------------|
-| [architecture-advisor](architecture-advisor/) | Evidence-based architecture research from 103 real-world projects |
+| [architecture-advisor](architecture-advisor/) | Evidence-based architecture research from 276 real-world projects |
 | [remote-skill-manager](remote-skill-manager/) | Fetch, track, and update skills from remote Git repositories |
 
 ## Quick start
