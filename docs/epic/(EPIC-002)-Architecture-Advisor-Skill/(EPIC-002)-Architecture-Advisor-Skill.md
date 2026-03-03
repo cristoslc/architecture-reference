@@ -1,7 +1,7 @@
 ---
 title: "Architecture Advisor Skill"
 artifact: EPIC-002
-status: Proposed
+status: Complete
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -34,7 +34,7 @@ Build a remote-installable agent skill that exposes the evidence-based architect
 
 ### Out of scope
 
-- The `/discover-architecture` classification skill (that is EPIC-001 Phase 2)
+- The `/discover-architecture` classification skill (see EPIC-003)
 - ML-based architecture classification
 - Community contribution pipeline
 - Custom UI or web interface
@@ -67,12 +67,24 @@ None yet.
 
 ## Key Dependencies
 
-No blocking dependencies. The `skills/architecture-advisor/` directory already exists in the repo with initial scaffolding.
+None. EPIC-001 (Dataset Expansion) provided the 4-source evidence base this skill serves.
 
-EPIC-001 (Dataset Expansion) enriches the data this skill serves but is not a blocker — the skill can launch with the current 4-source evidence base.
+## Outcome
+
+The skill is fully implemented at `skills/architecture-advisor/`:
+
+| File | Purpose |
+|------|---------|
+| `SKILL.md` | Skill definition with frontmatter, research methodology, offline reference, path resolution |
+| `scripts/sync-references.sh` | Sparse-clone script with default (<1 MB) and evidence-pool (~2.2 GB) modes |
+| `scripts/smoke-test.sh` | End-to-end verification of sync workflow (6 test suites, 25+ checks) |
+| `.gitignore` | Excludes `references/` (populated at runtime) |
+
+The companion `skills/remote-skill-manager/` provides `fetch-remote-skill.sh` for remote installation with provenance tracking and integrity hashing.
 
 ## Lifecycle
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-03 | 6883447 | Adapted from skill-design-proposal.md proposal |
+| Complete | 2026-03-03 | 3bc4437 | All success criteria met; skill fully implemented with SKILL.md, sync script, and smoke tests |
