@@ -1,49 +1,49 @@
 project_name: typeorm
 source: Discovered
-source_url: "https://github.com/typeorm/typeorm"
-project_url: "https://github.com/typeorm/typeorm"
+source_url: https://github.com/typeorm/typeorm
+project_url: https://github.com/typeorm/typeorm
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:46:23Z"
+discovered_at: '2026-03-03T17:46:23Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Layered
 key_technologies:
-  - Node.js
-  - Docker Compose
-  - GitHub Actions
+- Node.js
+- Docker Compose
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
-  - Modularity
+- Fault Tolerance
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: ORM library with modular monolith architecture organized into 25+
+  cohesive modules (driver, entity-manager, repository, query-builder, persistence,
+  metadata, schema-builder) with clear layered dependency flow from decorators through
+  entity manager to drivers
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.87
   signals_detected: 32
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.87
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.7
+  - style: Event-Driven
+    score: 0.3
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 1
@@ -55,4 +55,12 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'src/ has 25+ distinct modules with clean interfaces: Driver interface
+  (src/driver/Driver.ts) with DriverFactory (src/driver/DriverFactory.ts) selecting
+  among 15+ database implementations; layered flow from DataSource (src/data-source/DataSource.ts)
+  orchestrating EntityManager -> QueryBuilder -> QueryRunner -> Driver; persistence
+  subsystem has own layers: EntityPersistExecutor -> SubjectExecutor -> SubjectBuilder
+  -> QueryRunner; subscriber/Broadcaster pattern provides event hooks but does not
+  define system structure; single npm package deployment (monolith); no formal architecture
+  docs'

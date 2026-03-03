@@ -1,46 +1,45 @@
 project_name: traefik
 source: Discovered
-source_url: "https://github.com/traefik/traefik"
-project_url: "https://github.com/traefik/traefik"
+source_url: https://github.com/traefik/traefik
+project_url: https://github.com/traefik/traefik
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:28:07Z"
+discovered_at: '2026-03-03T17:28:07Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Go
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Pipe-and-Filter
 key_technologies:
-  - Node.js
-  - Go modules
-  - Python/pip
-  - Docker
-  - Kubernetes
-  - Docker Compose
-  - gRPC
-  - GitHub Actions
+- Node.js
+- Go modules
+- Python/pip
+- Docker
+- Kubernetes
+- Docker Compose
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
+- Scalability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: HTTP reverse proxy/load balancer with textbook middleware chain
+  (pipe-and-filter) architecture
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.92
   signals_detected: 199
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
+  - style: Microservices
+    score: 0.5
   signal_breakdown:
     package_manifests: 8
     container_orchestration: 176
@@ -52,4 +51,17 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Review of github.com/traefik/traefik. Traefik IS a reverse proxy --
+  classifying what it IS, not what it enables. Core evidence: pkg/server/middleware/middlewares.go
+  uses alice library to BuildMiddlewareChain() composing 30+ independent filters (auth,
+  compress, ratelimit, circuitbreaker, headers, retry, etc.) from pkg/middlewares/.
+  Each filter implements http.Handler wrapping next handler. Request flow: EntryPoints
+  -> Router -> MiddlewareChain -> BackendService. pkg/server/router/router.go matches
+  routes then delegates through middleware pipeline. pkg/middlewares/response_modifier.go
+  modifies responses flowing back through the chain. pkg/provider/ interface feeds
+  dynamic config from Docker/K8s/Consul through ConfigurationWatcher channel (another
+  pipe pattern). Separate parallel pipelines for TCP/UDP/HTTP in pkg/server/. Single
+  binary, not microservices. Confidence 0.92: clear pipe-and-filter signals throughout,
+  not quite 0.95 because the provider aggregation and dynamic config watching add
+  complexity beyond pure pipe-and-filter.'

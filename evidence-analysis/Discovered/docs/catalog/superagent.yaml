@@ -1,41 +1,41 @@
 project_name: superagent
 source: Discovered
-source_url: "https://github.com/superagent-ai/superagent"
-project_url: "https://github.com/superagent-ai/superagent"
+source_url: https://github.com/superagent-ai/superagent
+project_url: https://github.com/superagent-ai/superagent
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:58:24Z"
+discovered_at: '2026-03-03T17:58:24Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: AI/ML
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Pipe-and-Filter
+- Layered
 key_technologies:
-  - Node.js
-  - Python/pip
-  - OpenAPI
-  - GitHub Actions
+- Node.js
+- Python/pip
+- OpenAPI
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Moderate signal profile with identifiable patterns
-  - CI/CD automation present
+- Moderate signal profile with identifiable patterns
+- CI/CD automation present
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Multi-language SDK for AI agent safety with pipe-and-filter processing
+  pipeline and layered provider abstraction
 discovery_metadata:
-  confidence: 0.4
+  confidence: 0.8
   signals_detected: 8
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.8
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
+  - style: Modular Monolith
+    score: 0.4
   signal_breakdown:
     package_manifests: 5
     container_orchestration: 0
@@ -47,4 +47,13 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: 'Repo is a client-side SDK (TypeScript + Python) for AI safety (guard,
+  redact, scan). Core pipeline in sdk/typescript/src/client.ts: input processing ->
+  prompt construction -> provider dispatch -> response transformation -> result aggregation.
+  Provider strategy pattern in sdk/typescript/src/providers/ with ProviderConfig interface
+  (transformRequest/transformResponse/authHeader). Layered: public API (index.ts),
+  business logic (prompts/, schemas.ts, chunking in client.ts), infrastructure (providers/).
+  Also includes CLI (cli/src/commands/) and MCP server adapter (mcp/src/index.ts).
+  No containers, no microservices, no event-driven patterns. docs/ is a Next.js documentation
+  site, not part of the core architecture.'

@@ -1,37 +1,36 @@
 project_name: swarm
 source: Discovered
-source_url: "https://github.com/openai/swarm"
-project_url: "https://github.com/openai/swarm"
+source_url: https://github.com/openai/swarm
+project_url: https://github.com/openai/swarm
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:58:15Z"
+discovered_at: '2026-03-03T17:58:15Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: AI/ML
 language: Python
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Multi-Agent
 key_technologies:
-  - Python/pip
-  - Docker Compose
-quality_attributes:
-notable_strengths:
+- Python/pip
+- Docker Compose
+quality_attributes: null
+notable_strengths: null
 notable_gaps:
-  - No architecture decision records found
-  - No CI/CD configuration detected
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No CI/CD configuration detected
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Lightweight stateless multi-agent orchestration framework with Agent
+  and handoff primitives for building cooperative agent networks
 discovery_metadata:
-  confidence: 0.4
+  confidence: 0.95
   signals_detected: 5
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
+  - style: Modular Monolith
+    score: 0.4
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 2
@@ -43,4 +42,12 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: 'README explicitly describes multi-agent coordination and execution
+  with Agent and handoff primitives. setup.cfg self-describes as ''multi-agent orchestration
+  framework''. swarm/types.py defines Agent class (name, model, instructions, functions).
+  swarm/core.py implements orchestration loop: get completion, execute tools, switch
+  agent on handoff, repeat. Agent handoff pattern in examples/triage_agent/agents.py
+  and examples/airline/configs/agents.py shows functions returning Agent objects to
+  trigger routing. Nine example directories demonstrate multi-agent patterns: triage,
+  airline customer service, support bot, personal shopper.'
