@@ -1,48 +1,45 @@
 project_name: spree
 source: Discovered
-source_url: "https://github.com/spree/spree"
-project_url: "https://github.com/spree/spree"
+source_url: https://github.com/spree/spree
+project_url: https://github.com/spree/spree
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:33:41Z"
+discovered_at: '2026-03-03T17:33:41Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: Ruby
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
 key_technologies:
-  - Node.js
-  - Docker
-  - Docker Compose
-  - GitHub Actions
+- Node.js
+- Docker
+- Docker Compose
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: API-first eCommerce platform built as composable Rails engines (core,
+  api, admin, emails) with dependency injection and internal event bus
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.92
   signals_detected: 15
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.4
+  - style: Layered
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 5
     container_orchestration: 3
@@ -54,4 +51,11 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: 'LLM review: spree/ dir contains 4 separate Rails engine gems (spree_core,
+  spree_api, spree_admin, spree_emails) each with own gemspec, models, controllers,
+  services, and tests. Spree::Core::Dependencies defines 50+ injectable service points
+  across domain boundaries (cart, checkout, shipment, account). Internal event bus
+  via publish_event/Subscriber pattern in app/subscribers/. docker-compose.yml shows
+  single web+worker deployment. Meta-gem composition allows optional modules. JS packages/
+  are SDK/CLI tooling, not services.'

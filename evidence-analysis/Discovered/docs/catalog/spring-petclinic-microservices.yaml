@@ -1,41 +1,40 @@
 project_name: spring-petclinic-microservices
 source: Discovered
-source_url: "https://github.com/spring-petclinic/spring-petclinic-microservices"
-project_url: "https://github.com/spring-petclinic/spring-petclinic-microservices"
+source_url: https://github.com/spring-petclinic/spring-petclinic-microservices
+project_url: https://github.com/spring-petclinic/spring-petclinic-microservices
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:27:37Z"
+discovered_at: '2026-03-03T17:27:37Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Veterinary
 language: Java/Kotlin
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Microservices
 key_technologies:
-  - Maven
-  - Docker
-  - Docker Compose
-  - GitHub Actions
+- Maven
+- Docker
+- Docker Compose
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Textbook Spring Cloud microservices demo with Eureka service discovery,
+  config server, API gateway, and independently deployable domain services
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.97
   signals_detected: 15
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.97
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
+  - style: Microservices
+    score: 0.5
   signal_breakdown:
     package_manifests: 9
     container_orchestration: 4
@@ -47,4 +46,15 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'README title: ''Distributed version of the Spring PetClinic Sample
+  Application built with Spring Cloud''. 8 independent Maven modules each with own
+  pom.xml and Spring Boot main class: customers-service, vets-service, visits-service,
+  genai-service, api-gateway, config-server, discovery-server, admin-server. docker-compose.yml
+  defines 11 separate containers with health-check-based dependency ordering. Eureka
+  service discovery (@EnableEurekaServer), Spring Cloud Config for centralized config,
+  Spring Cloud Gateway for API routing. Inter-service communication via REST (WebClient
+  in VisitsServiceClient calls http://visits-service/). Circuit breaker via Resilience4j.
+  Distributed tracing with Zipkin/OpenTelemetry. Each business service has its own
+  data model and repository layer. Monitoring via Prometheus + Grafana. This is the
+  canonical Spring Cloud microservices reference application.'

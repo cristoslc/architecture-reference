@@ -1,56 +1,55 @@
 project_name: shopware
 source: Discovered
-source_url: "https://github.com/shopware/shopware"
-project_url: "https://github.com/shopware/shopware"
+source_url: https://github.com/shopware/shopware
+project_url: https://github.com/shopware/shopware
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:39:05Z"
+discovered_at: '2026-03-03T17:39:05Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: PHP
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Event-Driven
 key_technologies:
-  - Node.js
-  - Docker Compose
-  - Kafka
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- Docker Compose
+- Kafka
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
-  - Evolvability
-  - Modularity
+- Fault Tolerance
+- Deployability
+- Evolvability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Well-documented architecture decisions (ADRs)
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- Well-documented architecture decisions (ADRs)
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: PHP project exhibiting Indeterminate patterns
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Open-source e-commerce platform built as a Symfony-based modular
+  monolith with four well-defined bundles (Core, Administration, Storefront, Elasticsearch)
+  and pervasive internal event-driven extensibility via BusinessEventRegistry and
+  Flow Builder
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.9
   signals_detected: 748
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.9
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Service-Based
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.7
+  - style: Event-Driven
+    score: 0.6
+  - style: Service-Based
+    score: 0.4
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 9
     container_orchestration: 2
@@ -62,4 +61,18 @@ discovery_metadata:
     test_structure: 3
     documentation: 144
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: 'LLM review of repo structure. src/ contains 4 top-level Symfony bundles
+  each with own composer.json and DependencyInjection: Core, Administration, Storefront,
+  Elasticsearch. composer.json replace section confirms separately-publishable packages
+  (shopware/core, shopware/storefront, etc.) deployed as single monolith. Core internally
+  organized into domain modules: Checkout (Cart, Customer, Order, Payment, Promotion,
+  Shipping), Content (Product, Category, CMS, Media, Flow, Seo), System (SalesChannel,
+  Currency, Tax, User, StateMachine), Framework (DAL, Plugin, MessageQueue, Event,
+  API, Rule). Event-driven: Framework/Event has BusinessEventCollector, BusinessEventRegistry,
+  and *Aware interfaces. AGENTS.md states Extension Pattern Priority 1 is Events via
+  EventSubscriberInterface. Framework/MessageQueue provides async message handling.
+  Content/Flow implements visual Flow Builder for business automation. Custom DAL
+  replaces Doctrine ORM with EntityDefinition and EntityRepository classes. 139 ADRs
+  in adr/ directory. compose.yaml shows single web service + MariaDB + OpenSearch
+  + Valkey. Single Kernel.php extends Symfony HttpKernel.'
