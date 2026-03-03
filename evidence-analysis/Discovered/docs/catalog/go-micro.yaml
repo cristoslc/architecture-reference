@@ -11,7 +11,8 @@ language: Go
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Hexagonal Architecture
+  - Microservices
 key_technologies:
   - Go modules
   - Python/pip
@@ -28,20 +29,16 @@ notable_strengths:
   - Multi-style composition (2 styles)
 notable_gaps:
   - No architecture decision records found
-one_line_summary: Go project exhibiting Indeterminate patterns
+one_line_summary: Go microservices framework built on hexagonal architecture with pluggable interface-driven ports and adapters
 discovery_metadata:
-  confidence: 0.6
+  confidence: 0.92
   signals_detected: 18
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Event-Driven
-      score: 0.3
+    style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 0
@@ -53,4 +50,5 @@ discovery_metadata:
     test_structure: 2
     documentation: 1
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: "Every core package defines a Go interface (port) with swappable implementations (adapters): broker/broker.go (Broker interface) with http.go, nats/, rabbitmq/ adapters; registry/registry.go (Registry interface) with mdns_registry.go, consul/, etcd/, nats/ adapters; transport/transport.go (Transport interface) with http_transport.go, grpc/, nats/ adapters; client/client.go (Client interface) with rpc_client.go and grpc/ adapters; server/server.go (Server interface) with rpc_server.go and grpc/ adapters; store/store.go (Store interface) with file.go, memory.go, mysql/, postgres/, nats-js-kv/ adapters; codec/codec.go (Codec interface) with json/, proto/, grpc/ codecs; auth/auth.go (Auth interface) with jwt/ and noop/ adapters; config/config.go (Config interface) with source/loader/reader subsystems. profile/profile.go bundles adapter selections into named profiles (LocalProfile, NatsProfile). service/service.go composes all interfaces into a unified service. gateway/ provides API and MCP gateway capabilities."
