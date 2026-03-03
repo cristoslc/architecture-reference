@@ -11,7 +11,8 @@ language: C/C++
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Event-Driven
+  - Modular Monolith
 key_technologies:
   - Docker
   - Docker Compose
@@ -24,17 +25,16 @@ notable_gaps:
   - No architecture decision records found
   - No test infrastructure detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: C/C++ project exhibiting Indeterminate patterns
+one_line_summary: High-performance multithreaded event-driven in-memory cache with modular C architecture built on libevent
 discovery_metadata:
-  confidence: 0.4
+  confidence: 0.95
   signals_detected: 7
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.4
+    style: Microservices
+    score: 0.4
   signal_breakdown:
     package_manifests: 0
     container_orchestration: 6
@@ -46,4 +46,5 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: "README.md explicitly states 'multithreaded event-based key/value cache store'. Event-Driven: memcached.h includes <event.h> (libevent); memcached.c defines event_handler() callback and drive_machine() state machine over enum conn_states (16 states: conn_listening, conn_read, conn_parse_cmd, conn_write, etc.); doc/threads.txt describes 'one listener thread, N event worker threads' each running their own epoll loop; thread.c implements worker thread pool with connection queue dispatch. Modular Monolith: single binary with well-separated modules -- protocol handling (proto_text.c, proto_bin.c, proto_parser.c, proto_proxy.c), storage subsystem (slabs.c, items.c, assoc.c, extstore.c, storage.c), a large proxy subsystem (proxy.h, proxy_config.c, proxy_lua.c, proxy_network.c, proxy_request.c -- 14 proxy_* files), background workers (crawler.c, slab_automove.c, logger.c), and utility modules (hash.c, cache.c, tls.c, crc32c.c). Clear internal boundaries but compiled and deployed as a single daemon."

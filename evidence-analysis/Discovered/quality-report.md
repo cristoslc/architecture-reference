@@ -1,17 +1,17 @@
 # Dataset Scaling Pipeline - Quality Report
 
-Generated: 2026-03-03 18:45 UTC
+Generated: 2026-03-03 18:47 UTC
 Total entries: 163
-Classified: 42
-Indeterminate (needs LLM review): 121
+Classified: 47
+Indeterminate (needs LLM review): 116
 
 ## Confidence Distribution (classified entries only)
 
 - Median: 1.00
 - IQR (25th-75th): 0.90 - 1.00
 - 90% interval (5th-95th): 0.90 - 1.00
-- Range: 0.90 - 1.00
-- Mean: 0.97 (n=42)
+- Range: 0.88 - 1.00
+- Mean: 0.97 (n=47)
 
 ```
   0.0-0.1  |  (0)
@@ -22,8 +22,8 @@ Indeterminate (needs LLM review): 121
   0.5-0.6  |  (0)
   0.6-0.7  |  (0)
   0.7-0.8  |  (0)
-  0.8-0.9  |  (0)
-  0.9-1.0  | ########################################## (42)
+  0.8-0.9  | # (1)
+  0.9-1.0  | ############################################## (46)
 ```
 
 ## Architecture Style Coverage
@@ -32,24 +32,24 @@ Target: n >= 10 for each of the 12 canonical styles.
 
 | Style | Count | Target Met |
 |-------|-------|------------|
-| Microservices | 42 | Yes |
-| Event-Driven | 40 | Yes |
-| Modular Monolith | 0 | **No** (10 short) |
+| Microservices | 43 | Yes |
+| Event-Driven | 43 | Yes |
+| Modular Monolith | 3 | **No** (7 short) |
 | Service-Based | 0 | **No** (10 short) |
-| Domain-Driven Design | 27 | Yes |
-| CQRS | 6 | **No** (4 short) |
+| Domain-Driven Design | 29 | Yes |
+| CQRS | 8 | **No** (2 short) |
 | Space-Based | 0 | **No** (10 short) |
 | Hexagonal Architecture | 4 | **No** (6 short) |
 | Serverless | 5 | **No** (5 short) |
 | Layered | 0 | **No** (10 short) |
-| Pipe-and-Filter | 22 | Yes |
+| Pipe-and-Filter | 24 | Yes |
 | Multi-Agent | 0 | **No** (10 short) |
 
 **4/12 styles meet target coverage.**
 
 ## Indeterminate Entries (needs LLM review)
 
-Entries with confidence < 0.85: 121
+Entries with confidence < 0.85: 116
 
 | Project | Confidence | Heuristic Candidates |
 |---------|-----------|---------------------|
@@ -156,16 +156,12 @@ Entries with confidence < 0.85: 121
 | clean-architecture-example | 0.40 | Modular Monolith (0.4) |
 | dbt-core | 0.40 | Microservices (0.4) |
 | ddd-starter-modelling-process | 0.40 | Modular Monolith (0.4) |
-| eShopOnContainers | 0.40 | Modular Monolith (0.4) |
 | ehcache3 | 0.40 | Domain-Driven Design (0.3) |
 | go-backend-clean-architecture | 0.40 | Modular Monolith (0.4) |
 | go-clean-arch | 0.40 | Modular Monolith (0.4) |
 | kotlin-fullstack-sample | 0.40 | Modular Monolith (0.4) |
 | lambda-api | 0.40 | Modular Monolith (0.4) |
-| langchain | 0.40 | Modular Monolith (0.4) |
 | luigi | 0.40 | Modular Monolith (0.4) |
-| m-r | 0.40 | Modular Monolith (0.4) |
-| memcached | 0.40 | Microservices (0.4) |
 | ngx-admin | 0.40 | Modular Monolith (0.4) |
 | project-layout | 0.40 | Modular Monolith (0.4) |
 | realworld | 0.40 | Modular Monolith (0.4) |
@@ -173,15 +169,14 @@ Entries with confidence < 0.85: 121
 | solidus | 0.40 | Microservices (0.4) |
 | superagent | 0.40 | Modular Monolith (0.4) |
 | swarm | 0.40 | Modular Monolith (0.4) |
-| snakemake | 0.30 | ? (?) |
 
 ## Coverage Gaps
 
 The following 8 styles have fewer than 10 samples:
 
-- **Modular Monolith**: 0/10
+- **Modular Monolith**: 3/10
 - **Service-Based**: 0/10
-- **CQRS**: 6/10
+- **CQRS**: 8/10
 - **Space-Based**: 0/10
 - **Hexagonal Architecture**: 4/10
 - **Serverless**: 5/10

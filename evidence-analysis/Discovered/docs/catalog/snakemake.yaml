@@ -11,7 +11,8 @@ language: Python
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Pipe-and-Filter
+  - Modular Monolith
 key_technologies:
   - Python/pip
   - Docker
@@ -24,14 +25,15 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+one_line_summary: Python workflow management system for reproducible data analyses, built as a modular monolith with a DAG-based pipe-and-filter execution engine and plugin interfaces for executors, storage, scheduling, reporting, and logging
 discovery_metadata:
-  confidence: 0.3
+  confidence: 0.9
   signals_detected: 18
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.3
+  classification_method: llm-review
+  primary_style_confidence: 0.9
   heuristic_candidates:
+
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 4
@@ -43,4 +45,5 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: "README.md: describes Snakemake as a workflow management system for reproducible/scalable data analyses with rules defining input-to-output transformations. dag.py: builds directed acyclic graph of jobs from rule dependencies - core pipe-and-filter orchestration. rules.py + jobs.py: define transformation steps (filters) and their instantiated executions. scheduling/: job_scheduler.py, greedy.py, milp.py handle execution ordering of pipeline stages. executors/: local.py, dryrun.py, touch.py provide different execution backends. pyproject.toml: declares 6 plugin interface packages (snakemake-interface-executor-plugins, storage-plugins, report-plugins, logger-plugins, scheduler-plugins, common) enabling modular extension. src/snakemake/ contains well-separated modules: caching/, deployment/ (conda.py, singularity.py, containerize.py), linting/, report/, io/, ioutils/, settings/, remote/ (S3, GS, FTP, HTTP, etc.), script/, template_rendering/. workflow.py: central orchestrator importing from all modules. api.py: public API layer with plugin registries (ExecutorPluginRegistry, StoragePluginRegistry, ReportPluginRegistry, SchedulerPluginRegistry). Single deployable package with plugin-based extensibility = Modular Monolith; rule-based input-to-output DAG execution = Pipe-and-Filter."

@@ -11,7 +11,8 @@ language: Python
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Pipe-and-Filter
+  - Modular Monolith
 key_technologies:
   - Python/pip
   - Docker Compose
@@ -24,17 +25,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+one_line_summary: Python monorepo framework for building LLM-powered applications via composable Runnable components chained with pipe operator into sequential/parallel processing pipelines
 discovery_metadata:
-  confidence: 0.4
+  confidence: 0.88
   signals_detected: 39
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.88
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
+    style: Modular Monolith
+    score: 0.4
   signal_breakdown:
     package_manifests: 21
     container_orchestration: 1
@@ -46,4 +46,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: "EVIDENCE: libs/README.md confirms monorepo structure with core/, langchain/, langchain_v1/, partners/, text-splitters/, standard-tests/ as independently versioned packages. libs/core/langchain_core/runnables/base.py defines Runnable(ABC, Generic[Input, Output]) with .pipe() method and | operator for chaining -- RunnableSequence (line 2817) is described as 'the most important composition operator in LangChain' where 'output of one is the input of the next'. RunnableParallel (line 3565) enables fan-out. runnables/router.py provides RouterRunnable for conditional routing between Runnables. This is textbook Pipe-and-Filter: typed Input->Output components composed into processing pipelines. Modular Monolith: libs/ contains 7+ independently packaged modules (core, langchain, langchain_v1, partners/*, text-splitters, standard-tests, model-profiles) each with own pyproject.toml and version. Partners dir has 15+ provider packages (openai, anthropic, ollama, etc.) as separate pip-installable modules sharing langchain-core interfaces. Callback system in callbacks/base.py provides event hooks (on_llm_new_token, on_retriever_end, etc.) but this is an internal observability mechanism, not the primary architectural pattern. No docker-compose.yml, no ARCHITECTURE.md, no messaging infrastructure."
