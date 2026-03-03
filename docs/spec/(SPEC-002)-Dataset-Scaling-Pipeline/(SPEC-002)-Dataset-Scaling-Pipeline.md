@@ -1,10 +1,11 @@
 ---
 title: "Dataset Scaling Pipeline"
 artifact: SPEC-002
-status: Draft
+status: Approved
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
+pipeline-dir: pipeline/
 parent-epic: EPIC-003
 linked-research: []
 linked-adrs: []
@@ -64,13 +65,36 @@ A manifest of target repositories (YAML list of repo URLs with metadata: domain,
 
 ## Implementation Approach
 
-_To be refined after SPEC-001 is implemented and calibrated. Key decisions deferred:_
-- Repo selection criteria and manifest curation
-- Confidence threshold for automatic vs. human-reviewed entries
-- Whether evolutionary analysis (git history) is in this spec or a separate one
+### Resolved decisions
+
+1. **Repo selection**: Curate a YAML manifest of public GitHub repos covering all 12 architecture styles. Target 150+ repos to achieve 200+ catalog entries when combined with existing evidence sources. Focus on well-known, documented open-source projects.
+2. **Confidence threshold**: 0.5 for automatic acceptance (per postconditions). Entries below 0.5 are still cataloged but flagged with `review_required: true`.
+3. **Evolutionary analysis**: Deferred to a separate spec. This pipeline focuses on structural discovery via `extract-signals.sh`.
+
+### Architecture
+
+The pipeline is a shell-based batch orchestrator with Python helpers (stdlib only, no pip dependencies):
+
+1. **Repo manifest** (`pipeline/manifest.yaml`) — YAML list of repos with `url`, `domain`, `expected_styles` (optional), and `priority`. Acts as the single source of truth for target repos.
+
+2. **Batch orchestrator** (`pipeline/run-pipeline.sh`) — reads the manifest, shallow-clones repos to a temp directory (parallel, configurable concurrency), runs `extract-signals.sh` on each clone, pipes signals through the heuristic classifier, writes catalog entries to `evidence-analysis/Discovered/docs/catalog/`, and cleans up clones. Idempotent — re-running skips already-cataloged repos.
+
+3. **Heuristic classifier** (`pipeline/classify.py`) — codifies the signal-to-style mapping rules from `skills/discover-architecture/references/signal-rules.md` into an algorithmic classifier. Accepts signal YAML on stdin, emits a catalog YAML entry on stdout conforming to `catalog-schema.yaml`. No LLM required.
+
+4. **Index generator** (`pipeline/generate-index.py`) — scans all catalog entries in `evidence-analysis/Discovered/docs/catalog/` and builds `evidence-analysis/Discovered/_index.yaml` with aggregated statistics.
+
+5. **Quality report** (`pipeline/quality-report.py`) — generates a markdown report: confidence distribution, per-style coverage (target: n >= 10 for all 12 styles), entries flagged for review, and coverage gaps.
+
+### Key constraints
+
+- Pipeline is idempotent — re-running skips already-cataloged repos
+- No network calls during classification (signals are extracted from local clones)
+- Python 3.9+ with only stdlib (PyYAML acceptable since it ships with most Python installs)
+- Signal extraction reuses `skills/discover-architecture/scripts/extract-signals.sh` without modification
 
 ## Lifecycle
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | b63f031 | Initial creation — will be refined after SPEC-001 implementation |
+| Approved | 2026-03-03 | 6d61123 | Refined implementation approach — SPEC-001 implemented, decisions resolved |
