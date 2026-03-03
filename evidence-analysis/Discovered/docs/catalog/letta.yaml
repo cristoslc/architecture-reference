@@ -11,7 +11,8 @@ language: Python
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Multi-Agent
+  - Layered
 key_technologies:
   - Node.js
   - Python/pip
@@ -30,20 +31,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+one_line_summary: Stateful AI agent platform with multi-agent orchestration patterns (supervisor, round-robin, dynamic, sleeptime) and a cleanly layered server (routers/services/ORM/schemas)
 discovery_metadata:
-  confidence: 0.6
+  confidence: 0.88
   signals_detected: 43
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.88
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Event-Driven
-      score: 0.3
+    style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 4
@@ -55,4 +52,5 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: "Multi-Agent: letta/agents/ has BaseAgent, LettaAgent, EphemeralAgent, VoiceAgent with distinct roles; letta/groups/ contains DynamicMultiAgent, RoundRobinMultiAgent, SleeptimeMultiAgent (4 versions), SupervisorMultiAgent orchestration patterns; agents have independent state, memory, and tool access. Layered: letta/server/rest_api/routers/v1/ has 33+ endpoint routers; letta/services/ has 40+ manager classes (AgentManager, BlockManager, MessageManager, etc.); letta/orm/ has 50+ ORM models; letta/schemas/ has 50+ Pydantic schemas; clean dependency flow from API->services->ORM->DB. compose.yaml defines letta_server + pgvector DB + nginx proxy."

@@ -11,7 +11,8 @@ language: JavaScript
 languages:
 
 architecture_styles:
-  - Indeterminate
+  - Serverless
+  - Layered
 key_technologies:
   - Node.js
   - GitHub Actions
@@ -22,17 +23,16 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: JavaScript project exhibiting Indeterminate patterns
+one_line_summary: Zero-dependency web framework purpose-built for AWS Lambda serverless applications with layered internal architecture
 discovery_metadata:
-  confidence: 0.4
+  confidence: 0.92
   signals_detected: 4
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
+    style: Modular Monolith
+    score: 0.4
   signal_breakdown:
     package_manifests: 1
     container_orchestration: 0
@@ -44,4 +44,5 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: "README: 'Lightweight web framework for AWS Lambda using AWS API Gateway Lambda Proxy Integration or ALB Lambda Target Support'. Topics: serverless, aws-lambda, api-gateway, serverless-applications. Core API class exposes api.run(event, context) matching Lambda handler signature. lib/ has clear layered decomposition: request.js, response.js, compression.js, logger.js, errors.js, s3-service.js, utils.js. Zero runtime dependencies. Tests include sample-event-apigateway-v1.json, sample-event-alb1.json. Published to npm as framework library, not a deployed app."
