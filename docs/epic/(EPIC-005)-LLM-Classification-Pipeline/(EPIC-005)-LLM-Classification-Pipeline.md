@@ -1,7 +1,7 @@
 ---
 title: "LLM Classification Pipeline"
 artifact: EPIC-005
-status: Proposed
+status: Active
 author: cristos
 created: 2026-03-04
 last-updated: 2026-03-04
@@ -290,3 +290,4 @@ _To be created as work begins. Expected specs:_
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-04 | 5b2e916 | 120 Indeterminate entries awaiting automated LLM review |
+| Active | 2026-03-04 | 6db2360 | Child specs SPEC-010/011/012 being created |
