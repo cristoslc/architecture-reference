@@ -1,0 +1,142 @@
+# Gold Standard — Manually verified architecture classifications
+#
+# Used by validate-review.sh to measure LLM classification accuracy.
+# Each entry has been manually reviewed by inspecting the repo's codebase.
+#
+# Selection criteria:
+# - Stratified by confidence tier (tier 1, 2, 3)
+# - Covers 10+ architecture styles
+# - Includes both clear-cut and ambiguous cases
+#
+# Fields:
+#   repo:             project_name from catalog
+#   entry:            path to catalog YAML
+#   correct_styles:   manually verified architecture style(s)
+#   confidence:       reviewer confidence (high/medium/low)
+#   evidence:         specific files/structures that justify classification
+#   tier:             confidence band (1=0.70-0.84, 2=0.50-0.69, 3=0.30-0.49)
+
+# ── Tier 1 (confidence 0.70-0.84) ────────────────────────────────────────────
+
+- repo: bank-of-anthos
+  entry: evidence-analysis/Discovered/docs/catalog/bank-of-anthos.yaml
+  correct_styles: ["Microservices"]
+  confidence: high
+  evidence: "Google's sample microservices app: 10 services in separate dirs, Kubernetes manifests, gRPC + REST APIs, per-service Dockerfiles"
+  tier: 1
+
+- repo: domain-driven-hexagon
+  entry: evidence-analysis/Discovered/docs/catalog/domain-driven-hexagon.yaml
+  correct_styles: ["Hexagonal Architecture", "Domain-Driven Design"]
+  confidence: high
+  evidence: "Reference implementation of hexagonal/DDD: ports/, adapters/, domain/ directories, aggregate roots, value objects"
+  tier: 1
+
+- repo: EventStore
+  entry: evidence-analysis/Discovered/docs/catalog/EventStore.yaml
+  correct_styles: ["Event-Driven", "CQRS"]
+  confidence: high
+  evidence: "Event sourcing database: event store, projections, subscriptions, command/query separation"
+  tier: 1
+
+- repo: serverless-express
+  entry: evidence-analysis/Discovered/docs/catalog/serverless-express.yaml
+  correct_styles: ["Serverless"]
+  confidence: high
+  evidence: "serverless.yml, Lambda handler wrapping Express.js, SAM template, function-level deployment"
+  tier: 1
+
+- repo: AxonFramework
+  entry: evidence-analysis/Discovered/docs/catalog/AxonFramework.yaml
+  correct_styles: ["Event-Driven", "CQRS", "Domain-Driven Design"]
+  confidence: high
+  evidence: "CQRS+ES framework: command bus, event bus, saga, aggregate, command handlers, event handlers, projections"
+  tier: 1
+
+- repo: nest
+  entry: evidence-analysis/Discovered/docs/catalog/nest.yaml
+  correct_styles: ["Modular Monolith", "Layered"]
+  confidence: medium
+  evidence: "NestJS framework: modules/ with self-contained features, controllers/services/repositories pattern, DI container"
+  tier: 1
+
+- repo: shopware
+  entry: evidence-analysis/Discovered/docs/catalog/shopware.yaml
+  correct_styles: ["Modular Monolith", "Event-Driven", "Domain-Driven Design"]
+  confidence: medium
+  evidence: "E-commerce platform: src/Core/Framework has events, domain model, bounded contexts in Checkout/Content/System"
+  tier: 1
+
+# ── Tier 2 (confidence 0.50-0.69) ────────────────────────────────────────────
+
+- repo: clean-architecture-manga
+  entry: evidence-analysis/Discovered/docs/catalog/clean-architecture-manga.yaml
+  correct_styles: ["Hexagonal Architecture"]
+  confidence: high
+  evidence: "Clean Architecture reference: Application/UseCases, Domain/ValueObjects, Infrastructure/DataAccess with ports/adapters"
+  tier: 2
+
+- repo: CQRSlite
+  entry: evidence-analysis/Discovered/docs/catalog/CQRSlite.yaml
+  correct_styles: ["CQRS", "Event-Driven"]
+  confidence: high
+  evidence: "Lightweight CQRS framework: Commands, Events, Domain aggregate base class, event publisher"
+  tier: 2
+
+- repo: chatwoot
+  entry: evidence-analysis/Discovered/docs/catalog/chatwoot.yaml
+  correct_styles: ["Layered", "Event-Driven"]
+  confidence: medium
+  evidence: "Rails app with controllers/services/models, ActionCable for real-time, Sidekiq for async jobs"
+  tier: 2
+
+- repo: dify
+  entry: evidence-analysis/Discovered/docs/catalog/dify.yaml
+  correct_styles: ["Microservices", "Pipe-and-Filter"]
+  confidence: medium
+  evidence: "LLM app platform: docker-compose with API/worker/web services, workflow pipeline engine"
+  tier: 2
+
+- repo: forem
+  entry: evidence-analysis/Discovered/docs/catalog/forem.yaml
+  correct_styles: ["Modular Monolith", "Layered"]
+  confidence: medium
+  evidence: "Rails app (dev.to): single deploy, app/models+controllers+services, background jobs"
+  tier: 2
+
+# ── Tier 3 (confidence 0.30-0.49) ────────────────────────────────────────────
+
+- repo: aws-serverless-airline-booking
+  entry: evidence-analysis/Discovered/docs/catalog/aws-serverless-airline-booking.yaml
+  correct_styles: ["Serverless", "Event-Driven"]
+  confidence: high
+  evidence: "AWS SAM templates, Lambda functions, Step Functions, SNS/SQS, DynamoDB"
+  tier: 3
+
+- repo: eShopOnContainers
+  entry: evidence-analysis/Discovered/docs/catalog/eShopOnContainers.yaml
+  correct_styles: ["Microservices", "Event-Driven", "CQRS", "Domain-Driven Design"]
+  confidence: high
+  evidence: "Microsoft reference microservices app: 6+ services, RabbitMQ event bus, CQRS in Ordering service, DDD aggregates"
+  tier: 3
+
+- repo: clean-architecture-example
+  entry: evidence-analysis/Discovered/docs/catalog/clean-architecture-example.yaml
+  correct_styles: ["Hexagonal Architecture"]
+  confidence: medium
+  evidence: "Clean Architecture demo: domain/application/infrastructure layers, ports and adapters pattern"
+  tier: 3
+
+- repo: actix
+  entry: evidence-analysis/Discovered/docs/catalog/actix.yaml
+  correct_styles: ["Layered"]
+  confidence: medium
+  evidence: "Rust actor framework: primarily a library, not an app architecture. Layered internal structure."
+  tier: 3
+
+- repo: crewAI
+  entry: evidence-analysis/Discovered/docs/catalog/crewAI.yaml
+  correct_styles: ["Multi-Agent", "Pipe-and-Filter"]
+  confidence: high
+  evidence: "Multi-agent AI framework: Agent definitions, crew orchestration, task pipeline, tools system"
+  tier: 3
