@@ -59,7 +59,7 @@ except ImportError:
 
 
 def apply_review(entry_path, styles, confidence, summary, notes,
-                 entry_type=None, repos=None):
+                 entry_type=None, repos=None, method="llm-review"):
     """Apply review results to a catalog entry, preserving existing fields."""
     entry = load_yaml(entry_path)
     if not entry or not isinstance(entry, dict):
@@ -98,7 +98,7 @@ def apply_review(entry_path, styles, confidence, summary, notes,
         meta = {}
 
     meta["confidence"] = confidence
-    meta["classification_method"] = "llm-review"
+    meta["classification_method"] = method
     # primary_style_confidence tracks the top style's confidence
     meta["primary_style_confidence"] = confidence
     entry["discovery_metadata"] = meta
@@ -148,6 +148,11 @@ def main():
         "--repos",
         help="Constituent repos for ecosystem entries. Format: 'url|role;url|role;...'"
     )
+    parser.add_argument(
+        "--method", default="llm-review",
+        help="Classification method name (default: llm-review). "
+             "Use 'deep-validation' for deep-context validation pass."
+    )
     args = parser.parse_args()
 
     if not os.path.exists(args.entry):
@@ -175,7 +180,7 @@ def main():
                 repos.append({"url": parts[0].strip(), "role": ""})
 
     apply_review(args.entry, styles, confidence, args.summary, args.notes,
-                 entry_type=args.entry_type, repos=repos)
+                 entry_type=args.entry_type, repos=repos, method=args.method)
 
 
 if __name__ == "__main__":

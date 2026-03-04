@@ -314,6 +314,153 @@ def validate(gold_standard_path, catalog_dir, output_path, verbose=False):
         sys.exit(1)
 
 
+def three_way_compare(gold_standard_path, catalog_dir, output_path, methods,
+                      verbose=False):
+    """Compare multiple classification methods against gold standard."""
+    gold_entries = load_yaml(gold_standard_path)
+    if not gold_entries:
+        print("Error: gold standard is empty")
+        sys.exit(1)
+
+    print(f"Loaded {len(gold_entries)} gold standard entries")
+    print(f"Comparing methods: {', '.join(methods)}")
+
+    method_results = {m: {"correct": 0, "total": 0, "mismatches": []} for m in methods}
+    pairwise_agree = {}
+    for i, m1 in enumerate(methods):
+        for m2 in methods[i + 1:]:
+            pairwise_agree[f"{m1} vs {m2}"] = {"agree": 0, "total": 0}
+
+    all_three_agree = 0
+    all_three_total = 0
+
+    for entry in gold_entries:
+        repo = entry["repo"]
+        entry_path = entry.get("entry", f"{catalog_dir}/{repo}.yaml")
+        correct_styles = set(entry["correct_styles"])
+
+        if not os.path.exists(entry_path):
+            continue
+
+        catalog = load_yaml(entry_path)
+        if not catalog:
+            continue
+
+        catalog_styles = set(catalog.get("architecture_styles", ["Indeterminate"]))
+        review_required = catalog.get("review_required", True)
+
+        if review_required or catalog_styles == {"Indeterminate"}:
+            continue
+
+        meta = catalog.get("discovery_metadata", {})
+        if not isinstance(meta, dict):
+            meta = {}
+        catalog_method = meta.get("classification_method", "heuristic")
+
+        # For each method, check if the catalog was classified by that method
+        method_styles = {}
+        for m in methods:
+            if m == "heuristic":
+                # Heuristic is the base — always has a classification
+                method_styles[m] = catalog_styles
+            elif m == catalog_method:
+                method_styles[m] = catalog_styles
+            else:
+                method_styles[m] = None  # Not classified by this method
+
+        # Score each method that has a classification
+        for m in methods:
+            if method_styles.get(m) is None:
+                continue
+            method_results[m]["total"] += 1
+            matched = bool(correct_styles & method_styles[m])
+            if matched:
+                method_results[m]["correct"] += 1
+            else:
+                method_results[m]["mismatches"].append({
+                    "repo": repo,
+                    "correct": list(correct_styles),
+                    "predicted": list(method_styles[m]),
+                })
+
+        # Pairwise agreement
+        for i, m1 in enumerate(methods):
+            for m2 in methods[i + 1:]:
+                key = f"{m1} vs {m2}"
+                if method_styles.get(m1) is not None and method_styles.get(m2) is not None:
+                    pairwise_agree[key]["total"] += 1
+                    if method_styles[m1] == method_styles[m2]:
+                        pairwise_agree[key]["agree"] += 1
+
+        # All-agree check
+        available = [method_styles[m] for m in methods if method_styles.get(m) is not None]
+        if len(available) == len(methods):
+            all_three_total += 1
+            if len(set(frozenset(s) for s in available)) == 1:
+                all_three_agree += 1
+
+    # Build report
+    report = {
+        "gold_standard_entries": len(gold_entries),
+        "methods": methods,
+        "per_method": {},
+        "pairwise_agreement": {},
+        "all_agree": {
+            "count": all_three_agree,
+            "total": all_three_total,
+            "rate": round(all_three_agree / all_three_total, 3) if all_three_total > 0 else 0,
+        },
+    }
+
+    for m in methods:
+        r = method_results[m]
+        accuracy = r["correct"] / r["total"] if r["total"] > 0 else 0
+        report["per_method"][m] = {
+            "accuracy": round(accuracy, 3),
+            "correct": r["correct"],
+            "total": r["total"],
+            "passes_threshold": accuracy >= 0.85,
+            "mismatches": r["mismatches"],
+        }
+
+    for key, data in pairwise_agree.items():
+        rate = data["agree"] / data["total"] if data["total"] > 0 else 0
+        report["pairwise_agreement"][key] = {
+            "agreement_rate": round(rate, 3),
+            "agree": data["agree"],
+            "total": data["total"],
+        }
+
+    with open(output_path, "w") as f:
+        json.dump(report, f, indent=2)
+
+    # Print summary
+    print()
+    print("=" * 60)
+    print("THREE-WAY COMPARISON REPORT")
+    print("=" * 60)
+    print(f"Gold standard entries:  {len(gold_entries)}")
+    print(f"Methods compared:       {', '.join(methods)}")
+    print()
+
+    print("Per-method accuracy:")
+    for m in methods:
+        r = report["per_method"][m]
+        marker = " (PASS)" if r["passes_threshold"] else " (FAIL)"
+        print(f"  {m + ':':<25} {r['accuracy']:.1%} ({r['correct']}/{r['total']}){marker}")
+    print()
+
+    print("Pairwise agreement:")
+    for key, data in report["pairwise_agreement"].items():
+        print(f"  {key + ':':<40} {data['agreement_rate']:.1%}")
+    print()
+
+    all_data = report["all_agree"]
+    print(f"All methods agree:      {all_data['rate']:.1%} ({all_data['count']}/{all_data['total']})")
+    print()
+    print(f"Report saved to: {output_path}")
+
+
 def main():
     parser = argparse.ArgumentParser(description="Validate LLM review accuracy")
     parser.add_argument("--gold-standard", default="pipeline/gold-standard/gold-standard.yaml")
@@ -322,6 +469,11 @@ def main():
     parser.add_argument("--verbose", action="store_true")
     parser.add_argument("--run-report", default="")
     parser.add_argument("--spot-check", type=int, default=0)
+    parser.add_argument(
+        "--methods",
+        help="Comma-separated classification methods for three-way comparison "
+             "(e.g. 'heuristic,llm-review,deep-validation')"
+    )
     args = parser.parse_args()
 
     if args.spot_check > 0:
@@ -333,9 +485,15 @@ def main():
 
     if not args.output:
         os.makedirs("pipeline/reports", exist_ok=True)
-        args.output = f"pipeline/reports/validation-{os.popen('date +%Y%m%d-%H%M%S').read().strip()}.json"
+        suffix = "three-way" if args.methods else "validation"
+        args.output = f"pipeline/reports/{suffix}-{os.popen('date +%Y%m%d-%H%M%S').read().strip()}.json"
 
-    validate(args.gold_standard, args.catalog, args.output, args.verbose)
+    if args.methods:
+        methods = [m.strip() for m in args.methods.split(",") if m.strip()]
+        three_way_compare(args.gold_standard, args.catalog, args.output,
+                          methods, args.verbose)
+    else:
+        validate(args.gold_standard, args.catalog, args.output, args.verbose)
 
 
 if __name__ == "__main__":

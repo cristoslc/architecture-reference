@@ -1,5 +1,11 @@
 # Epics
 
+## Proposed
+
+| ID | Title | Summary | Last Updated | Commit |
+|----|-------|---------|--------------|--------|
+| EPIC-006 | Deep-Context Classification Validation | Re-validate all catalog classifications by cloning repos and feeding deep context (source files, configs, architecture docs) to the LLM. Produces verification verdicts, override rules, and expanded gold standard. | 2026-03-04 | — |
+
 ## Active
 
 | ID | Title | Summary | Last Updated | Commit |
