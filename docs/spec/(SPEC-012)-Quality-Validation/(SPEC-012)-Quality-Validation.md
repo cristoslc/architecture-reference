@@ -1,7 +1,7 @@
 ---
 title: "Quality Validation"
 artifact: SPEC-012
-status: Draft
+status: Approved
 author: cristos
 created: 2026-03-04
 last-updated: 2026-03-04
@@ -123,3 +123,4 @@ pipeline/validate-review.sh --spot-check 5 --run-report pipeline/reports/latest.
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-04 | 334cf4a | Initial creation under EPIC-005, depends on SPEC-010 and SPEC-011 |
+| Approved | 2026-03-04 | 0b6a5d7 | validate-review.py + gold standard (17 entries, 10 styles) |
