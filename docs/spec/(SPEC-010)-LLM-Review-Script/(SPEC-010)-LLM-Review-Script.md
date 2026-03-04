@@ -1,7 +1,7 @@
 ---
 title: "LLM Review Script"
 artifact: SPEC-010
-status: Draft
+status: Approved
 author: cristos
 created: 2026-03-04
 last-updated: 2026-03-04
@@ -126,3 +126,4 @@ The system prompt (`pipeline/prompts/system-prompt.md`) must include:
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-04 | 334cf4a | Initial creation under EPIC-005 |
+| Approved | 2026-03-04 | 5507fd8 | Implemented llm-review.sh with dry-run validation |
