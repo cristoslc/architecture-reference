@@ -32,8 +32,8 @@ The two evidence synthesis documents (`evidence/by-architecture-style.md` at 487
 - SPEC-006 (problem-spaces) and SPEC-007 (solution-spaces) complete
 
 **Postconditions:**
-- Evidence tables cite all 5 sources
-- Quality attribute rankings reflect production data
+- Evidence tables cite evidence from 3+ sources per claim
+- Quality attribute rankings computed from full 5-source evidence pool
 
 ## Acceptance Criteria
 

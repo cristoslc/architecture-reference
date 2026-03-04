@@ -39,10 +39,10 @@ The `docs/reference-library/solution-spaces.md` document (528 lines) is 95% Kata
 
 | ID | Criterion | Verification |
 |----|-----------|--------------|
-| AC-1 | Pipeline rises to top-5 (was invisible with 0 KataLog teams) | Check new rankings |
-| AC-2 | Plugin/Microkernel rises to top-3 | Check new rankings |
-| AC-3 | Microservices falls from near-top to mid-range | Check new rankings |
-| AC-4 | Every style cites production evidence | Scan evidence tables |
+| AC-1 | Style scoreboard rankings reflect production-weighted methodology applied to full 276-entry evidence pool | Verify scoring formula applied (20 pts/production, 20 pts/Discovered, 1-4 pts/KataLog, 1-2 pts/RefArch) |
+| AC-2 | Every style profile cites evidence from 3+ distinct sources | Manual scan of evidence citations |
+| AC-3 | No stale single-source references remain | grep for "62 manually", "103 ", "four sources" returns no hits |
+| AC-4 | Document framework preserved (section templates, dimension definitions) | Compare structure before/after |
 
 ## Scope & Constraints
 

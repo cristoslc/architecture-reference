@@ -15,7 +15,7 @@ depends-on:
 
 ## Problem Statement
 
-The `docs/reference-library/problem-spaces.md` document (1500+ lines) is 98% KataLog-only — it classifies problems based on the 11 kata challenges rather than synthesizing problem classifications across all 5 evidence sources. This document needs a full cross-source rewrite to reflect the expanded 276-entry evidence base.
+The `docs/reference-library/problem-spaces.md` document (1500+ lines) is 98% KataLog-only — it classifies problems based on KataLog kata challenges rather than synthesizing problem classifications across all 5 evidence sources. This document needs a full cross-source rewrite to reflect the expanded 276-entry evidence base.
 
 ## External Behavior
 
@@ -26,7 +26,7 @@ The `docs/reference-library/problem-spaces.md` document (1500+ lines) is 98% Kat
 
 **Outputs:**
 - Rewritten `problem-spaces.md` with cross-source problem classifications
-- Problem profiles expanded from 11 kata profiles to 28+ system profiles
+- Problem profiles covering systems from all 5 evidence sources (not just KataLog kata challenges)
 
 **Preconditions:**
 - SPEC-004 (signals) and SPEC-005 (source analysis) complete (foundational layer)
@@ -41,9 +41,9 @@ The `docs/reference-library/problem-spaces.md` document (1500+ lines) is 98% Kat
 | ID | Criterion | Verification |
 |----|-----------|--------------|
 | AC-1 | Document cites 3+ sources for major problem categories | Manual scan of evidence citations |
-| AC-2 | Problem profiles include 28+ systems from all sources | Count profiles in rewritten doc |
+| AC-2 | Problem profiles include systems from all 5 evidence sources | Verify profiles exist for KataLog, AOSA, RealWorld, RefArch, and Discovered entries |
 | AC-3 | Similarity matrix includes production systems (AOSA/RealWorld/Discovered) | Check matrix includes non-KataLog entries |
-| AC-4 | Document length remains reasonable (~1500-2000 lines) | wc -l on output |
+| AC-4 | Document framework preserved (dimension definitions, per-profile template) | Compare structure before/after |
 
 ## Scope & Constraints
 
