@@ -4,6 +4,7 @@
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
+| EPIC-005 | LLM Classification Pipeline | Automates Pass 2 LLM review of 120 Indeterminate catalog entries via multi-turn llm CLI pipeline. | 2026-03-04 | 5b2e916 |
 
 ## Active
 
