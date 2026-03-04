@@ -13,5 +13,8 @@
 |----|-------|---------|--------------|--------|
 | SPEC-003 | Comparative Analysis Engine | Compare a user's repo architecture against the expanded catalog, generating evidence-grounded comparison reports. Depends on SPEC-002. | 2026-03-03 | b63f031 |
 | SPEC-004 | Pipeline Signal Preservation | Rerun the dataset scaling pipeline to preserve raw signal extraction data for all 173 Discovered repos, creating an audit trail for classification decisions. | 2026-03-03 | 960504c |
-| SPEC-005 | Cross-Source Reference Library Rewrites | Rewrite 6 core reference library documents (~3,700 lines) to integrate evidence from all 5 sources using production-weighted methodology. | 2026-03-03 | 960504c |
-| SPEC-006 | Discovered Source Analysis Creation | Create source-analysis.md for the Discovered evidence source, synthesizing aggregate characteristics of 173 repos for cross-source comparison. | 2026-03-03 | 960504c |
+| SPEC-005 | Discovered Source Analysis | Create source-analysis.md for the Discovered evidence source (173 repos), synthesizing architecture style distribution, QA priorities, and key findings. | 2026-03-03 | 1032e4b |
+| SPEC-006 | Problem-Spaces Cross-Source Rewrite | Rewrite problem-spaces.md (1500+ lines) to classify problems from all 5 sources, expanding from 11 kata profiles to 28+ system profiles. | 2026-03-03 | 1032e4b |
+| SPEC-007 | Solution-Spaces Cross-Source Rewrite | Rewrite solution-spaces.md (528 lines) with production-weighted scoring methodology (20 pts per production system vs 1-4 pts per KataLog placement). | 2026-03-03 | 1032e4b |
+| SPEC-008 | Evidence Cross-Source Update | Rewrite evidence/by-architecture-style.md and evidence/by-quality-attribute.md (1025 lines) with cross-source evidence tables. | 2026-03-03 | 1032e4b |
+| SPEC-009 | Synthesis Cross-Source Update | Rewrite problem-solution-matrix.md and decision-navigator.md (662 lines) with production-system evidence in all cells and paths. | 2026-03-03 | 1032e4b |
