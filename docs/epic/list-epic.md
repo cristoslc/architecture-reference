@@ -4,7 +4,7 @@
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
-| EPIC-004 | Cross-Source Reference Library Integration | Rewrite 6 core reference library documents to synthesize evidence from all 5 sources (276 entries) instead of reflecting only KataLog competition data. Create Discovered source analysis and fix pipeline signal preservation. | 2026-03-03 | — |
+| EPIC-004 | Cross-Source Reference Library Integration | Rewrite 6 core reference library documents to synthesize evidence from all 5 sources (276 entries) instead of reflecting only KataLog competition data. Create Discovered source analysis and fix pipeline signal preservation. Also weights Discovered repos same as AOSA/RealWorld (20 pts each). | 2026-03-03 | 47f63a6 |
 
 ## Active
 
