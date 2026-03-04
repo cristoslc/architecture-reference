@@ -92,4 +92,4 @@ The Discovered evidence source (173 repos) needs persistent signals stored in `e
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | 960504c | Initial creation for EPIC-004 implementation |
-| Implemented | 2026-03-04 | | Layer 1 complete: 163 signals created with GitHub metadata, star filtering enabled |
+| Implemented | 2026-03-04 | 448deab | Layer 1 complete: 163 signals created with GitHub metadata, star filtering enabled |

@@ -1,14 +1,14 @@
 ---
 title: "Problem-Spaces Cross-Source Rewrite"
 artifact: SPEC-006
-status: Draft
+status: Active
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
 parent-epic: EPIC-004
 depends-on:
-  - SPEC-004
-  - SPEC-005
+  - SPEC-004  # Implemented: signals preserved
+  - SPEC-005  # Implemented: source analysis done
 ---
 
 # Problem-Spaces Cross-Source Rewrite
@@ -70,3 +70,4 @@ The `docs/reference-library/problem-spaces.md` document (1500+ lines) is 98% Kat
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | — | Initial creation |
+| Active | 2026-03-04 | | Dependencies satisfied (SPEC-004, SPEC-005 implemented) |
