@@ -270,13 +270,11 @@ Each run produces a JSON report:
 
 ## Child Specs
 
-_To be created as work begins. Expected specs:_
-
-| ID | Title | Scope |
-|----|-------|-------|
-| TBD | LLM Review Script | Core `llm-review.sh` script, system prompt, response parsing |
-| TBD | Multi-Turn Escalation Protocol | Structured info requests, fulfillment logic, conversation management |
-| TBD | Quality Validation | Spot-check classified results, accuracy measurement, regression testing |
+| ID | Title | Status |
+|----|-------|--------|
+| [SPEC-010](../../spec/(SPEC-010)-LLM-Review-Script/(SPEC-010)-LLM-Review-Script.md) | LLM Review Script | Draft |
+| [SPEC-011](../../spec/(SPEC-011)-Multi-Turn-Escalation-Protocol/(SPEC-011)-Multi-Turn-Escalation-Protocol.md) | Multi-Turn Escalation Protocol | Draft |
+| [SPEC-012](../../spec/(SPEC-012)-Quality-Validation/(SPEC-012)-Quality-Validation.md) | Quality Validation | Draft |
 
 ## Key Dependencies
 
