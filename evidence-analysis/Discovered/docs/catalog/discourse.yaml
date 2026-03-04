@@ -1,52 +1,50 @@
 project_name: discourse
 source: Discovered
-source_url: "https://github.com/discourse/discourse"
-project_url: "https://github.com/discourse/discourse"
+source_url: https://github.com/discourse/discourse
+project_url: https://github.com/discourse/discourse
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:11:48Z"
+discovered_at: '2026-03-04T06:11:48Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Social Media
 language: Ruby
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Layered
 key_technologies:
-  - Node.js
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Deployability
-  - Modularity
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Architecture documentation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Architecture documentation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+- No architecture decision records found
+one_line_summary: Discourse is a Ruby-based community forum platform built as a modular
+  monolith on Rails with traditional layered MVC structure and a plugin architecture
+  for extensibility
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.75
   signals_detected: 76
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Service-Based
-      score: 0.4
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Event-Driven
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.7
+  - style: Service-Based
+    score: 0.4
+  - style: Layered
+    score: 0.3
+  - style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 55
     container_orchestration: 0
@@ -58,4 +56,14 @@ discovery_metadata:
     test_structure: 3
     documentation: 1
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: (1) Heuristic top candidate is Modular Monolith
+  (score 0.7), with Layered as secondary (score 0.3). (2) 55 package manifests indicate
+  a large, single-deployment Ruby application rather than multiple independently deployable
+  services. (3) Zero container orchestration signals rules out Microservices. (4)
+  Single messaging signal (RabbitMQ/similar) is insufficient for Event-Driven classification.
+  (5) Discourse is a well-known open-source forum platform — it is a Rails monolith
+  with an explicit plugin system providing module-level boundaries, and standard Rails
+  MVC layering (controllers/models/services/views) underneath. (6) ''Modularity''
+  listed as a quality attribute corroborates Modular Monolith. (7) No Kubernetes,
+  Helm, API Gateway, or service discovery signals present.'

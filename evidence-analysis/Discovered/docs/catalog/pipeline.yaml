@@ -1,49 +1,49 @@
 project_name: pipeline
 source: Discovered
-source_url: "https://github.com/tektoncd/pipeline"
-project_url: "https://github.com/tektoncd/pipeline"
+source_url: https://github.com/tektoncd/pipeline
+project_url: https://github.com/tektoncd/pipeline
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:33:53Z"
+discovered_at: '2026-03-04T06:33:53Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: CI/CD
 language: Go
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Pipe-and-Filter
+- Microservices
 key_technologies:
-  - Go modules
-  - Python/pip
-  - Docker
-  - Kubernetes
-  - OpenAPI
-  - gRPC
-  - GitHub Actions
+- Go modules
+- Python/pip
+- Docker
+- Kubernetes
+- OpenAPI
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
+- Scalability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (2 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (2 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Tekton Pipelines is a Kubernetes-native CI/CD engine that models
+  build/deploy workflows as composable pipelines of Tasks and Steps, deployed as Kubernetes
+  controllers/operators
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.75
   signals_detected: 143
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.7
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.7
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 5
     container_orchestration: 30
@@ -55,4 +55,15 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Classification based on domain knowledge of Tekton + catalog signals:
+  (1) Pipe-and-Filter is the primary conceptual architecture — Tekton''s core abstraction
+  is a directed pipeline of Steps→Tasks→Pipelines, each transforming inputs to outputs,
+  which is a canonical pipe-and-filter pattern; (2) Microservices signals are strong
+  (score 0.7) — Tekton runs as multiple Kubernetes controllers (pipeline controller,
+  webhook, etc.) each independently deployable, consistent with 30 container_orchestration
+  signals and 92 api_specs signals (CRD OpenAPI schemas); (3) the CI/CD domain and
+  Kubernetes deployment model strongly reinforce both styles; heuristic_candidates
+  confirmed Pipe-and-Filter (0.3) and Microservices (0.7) as the automated classifier''s
+  top candidates, with domain knowledge elevating Pipe-and-Filter to primary since
+  it is the defining user-facing abstraction of the system.'

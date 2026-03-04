@@ -1,42 +1,42 @@
 project_name: redis
 source: Discovered
-source_url: "https://github.com/redis/redis"
-project_url: "https://github.com/redis/redis"
+source_url: https://github.com/redis/redis
+project_url: https://github.com/redis/redis
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:38:49Z"
+discovered_at: '2026-03-04T06:38:49Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Grid
 language: C/C++
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
 key_technologies:
-  - Python/pip
-  - GitHub Actions
+- Python/pip
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
-  - Modularity
+- Fault Tolerance
+- Deployability
+- Modularity
 notable_strengths:
-  - Moderate signal profile with identifiable patterns
-  - Comprehensive test infrastructure
-  - CI/CD automation present
+- Moderate signal profile with identifiable patterns
+- Comprehensive test infrastructure
+- CI/CD automation present
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: C/C++ project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Redis is a single-process in-memory data structure server written
+  in C, organized as a modular monolith with well-separated internal subsystems (networking,
+  persistence, clustering, replication, commands) compiled into one deployable binary
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.72
   signals_detected: 14
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.72
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
+  - style: Modular Monolith
+    score: 0.7
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 0
@@ -48,4 +48,12 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: heuristic_candidates scores Modular Monolith
+  at 0.70; domain is ''Data Grid''; language is C/C++ which is typical of a single
+  compiled binary; no container_orchestration, no messaging bus signals, no api_specs
+  — all ruling out Microservices or Event-Driven; test_structure signals (3) and ci_cd
+  signals (9) consistent with a mature single-unit project; Redis is well-known publicly
+  as a single-process server with internal modules (ae.c event loop, rdb.c/aof.c persistence,
+  cluster.c, replication.c, t_*.c data type handlers) forming a cohesive monolith
+  with clear internal boundaries'

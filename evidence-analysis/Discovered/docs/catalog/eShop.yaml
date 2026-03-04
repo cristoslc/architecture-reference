@@ -1,56 +1,55 @@
 project_name: eShop
 source: Discovered
-source_url: "https://github.com/dotnet/eShop"
-project_url: "https://github.com/dotnet/eShop"
+source_url: https://github.com/dotnet/eShop
+project_url: https://github.com/dotnet/eShop
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:05:52Z"
+discovered_at: '2026-03-04T06:05:52Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
-language: "C#"
-languages:
-
+language: C#
+languages: null
 architecture_styles:
-  - Indeterminate
+- Microservices
+- Event-Driven
+- Domain-Driven Design
+- CQRS
 key_technologies:
-  - Node.js
-  - .NET
-  - RabbitMQ
-  - gRPC
-  - GitHub Actions
+- Node.js
+- .NET
+- RabbitMQ
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
+- Fault Tolerance
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (5 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (5 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: dotnet/eShop is a .NET reference e-commerce application built with
+  microservices communicating via RabbitMQ events and gRPC, organized around domain-driven
+  bounded contexts with CQRS patterns
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.78
   signals_detected: 72
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.78
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Domain-Driven Design
-      score: 0.4
-    -
-      style: CQRS
-      score: 0.4
-    -
-      style: Hexagonal Architecture
-      score: 0.3
+  - style: Event-Driven
+    score: 0.6
+  - style: Microservices
+    score: 0.5
+  - style: Domain-Driven Design
+    score: 0.4
+  - style: CQRS
+    score: 0.4
+  - style: Hexagonal Architecture
+    score: 0.3
   signal_breakdown:
     package_manifests: 25
     container_orchestration: 0
@@ -62,4 +61,14 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: (1) RabbitMQ + gRPC as key technologies (39
+  messaging signals, 2 API specs) strongly indicates Event-Driven Microservices; (2)
+  25 package manifests suggest multiple independently deployable services each with
+  their own project/dependencies; (3) DDD score 0.4 and CQRS score 0.4 from heuristic
+  candidates align with the well-known dotnet/eShop reference architecture which explicitly
+  uses bounded contexts (Catalog, Ordering, Basket, Identity, Payment) and CQRS/MediatR
+  within services; (4) This is a well-known Microsoft reference application — the
+  dotnet/eShop repo is the successor to eShopOnContainers, which is publicly documented
+  as a microservices reference architecture using these exact patterns. Hexagonal
+  architecture signals (0.3) are weaker and not included as a primary style.'

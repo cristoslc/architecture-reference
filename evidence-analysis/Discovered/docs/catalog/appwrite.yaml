@@ -1,55 +1,53 @@
 project_name: appwrite
 source: Discovered
-source_url: "https://github.com/appwrite/appwrite"
-project_url: "https://github.com/appwrite/appwrite"
+source_url: https://github.com/appwrite/appwrite
+project_url: https://github.com/appwrite/appwrite
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:20:45Z"
+discovered_at: '2026-03-04T06:20:45Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: PHP
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Microservices
+- Event-Driven
+- Modular Monolith
 key_technologies:
-  - Node.js
-  - Docker
-  - Docker Compose
-  - GitHub Actions
+- Node.js
+- Docker
+- Docker Compose
+- GitHub Actions
 quality_attributes:
-  - Deployability
-  - Modularity
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (5 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (5 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: PHP project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Appwrite is an open-source Backend-as-a-Service (BaaS) platform
+  built in PHP, structured as a set of containerized services communicating via events
+  and messaging, with internal modular organization
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.75
   signals_detected: 27
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.7
+  - style: Layered
+    score: 0.3
+  - style: Event-Driven
+    score: 0.3
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 3
@@ -61,4 +59,15 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: 'Public knowledge: Appwrite is a well-known open-source BaaS with a
+  Docker Compose-based multi-service deployment (appwrite core, workers, realtime,
+  executor, etc.), each service handling distinct responsibilities (auth, database,
+  storage, functions, realtime). This aligns with Microservices signals (container_orchestration:
+  3, package_manifests: 4) and Event-Driven signals (messaging: 3) from the catalog.
+  Workers consume queue-based events for async processing (emails, webhooks, builds).
+  Within the PHP monorepo, code is organized into well-defined modules/domains (directory_structure:
+  4), supporting Modular Monolith as a secondary style. Heuristic candidates corroborate:
+  Modular Monolith (0.7), Event-Driven (0.3). The ''Layered'' and ''Pipe-and-Filter''
+  candidates are lower-confidence secondary patterns within individual services rather
+  than primary architectural styles.'

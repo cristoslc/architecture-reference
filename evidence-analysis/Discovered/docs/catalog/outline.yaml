@@ -1,52 +1,49 @@
 project_name: outline
 source: Discovered
-source_url: "https://github.com/outline/outline"
-project_url: "https://github.com/outline/outline"
+source_url: https://github.com/outline/outline
+project_url: https://github.com/outline/outline
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:21:50Z"
+discovered_at: '2026-03-04T06:21:50Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Knowledge Management
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Event-Driven
 key_technologies:
-  - Node.js
-  - Docker
-  - Docker Compose
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- Docker
+- Docker Compose
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Moderate signal profile with identifiable patterns
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Moderate signal profile with identifiable patterns
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Outline is a knowledge management/wiki application built as a TypeScript
+  modular monolith with event-driven internals, using RabbitMQ for async messaging
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.72
   signals_detected: 14
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.72
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: CQRS
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Event-Driven
+    score: 0.6
+  - style: Microservices
+    score: 0.4
+  - style: CQRS
+    score: 0.4
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 1
     container_orchestration: 3
@@ -58,4 +55,15 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: (1) Single package manifest signals a unified
+  deployable unit rather than separate microservices. (2) RabbitMQ presence (messaging
+  score: 3) strongly suggests event-driven internal communication patterns. (3) Event-Driven
+  scored highest (0.6) among heuristic candidates. (4) Microservices scored only 0.4
+  with no Kubernetes/Helm signals, making full microservices unlikely. (5) Outline
+  is a well-known open-source wiki/knowledge base — its public reputation aligns with
+  a monolithic deployment with internal eventing (e.g., document change events, notifications).
+  (6) CQRS score of 0.4 may reflect read/write model separation within the monolith
+  rather than a standalone architecture style. (7) Docker Compose (rather than Kubernetes)
+  further supports a monolith or small-service deployment rather than a distributed
+  microservices system.'

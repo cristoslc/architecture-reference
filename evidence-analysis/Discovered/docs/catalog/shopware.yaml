@@ -1,56 +1,54 @@
 project_name: shopware
 source: Discovered
-source_url: "https://github.com/shopware/shopware"
-project_url: "https://github.com/shopware/shopware"
+source_url: https://github.com/shopware/shopware
+project_url: https://github.com/shopware/shopware
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:17:37Z"
+discovered_at: '2026-03-04T06:17:37Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: PHP
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Event-Driven
+- Domain-Driven Design
 key_technologies:
-  - Node.js
-  - Docker Compose
-  - Kafka
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- Docker Compose
+- Kafka
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
-  - Evolvability
-  - Modularity
+- Fault Tolerance
+- Deployability
+- Evolvability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Well-documented architecture decisions (ADRs)
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- Well-documented architecture decisions (ADRs)
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: PHP project exhibiting Indeterminate patterns
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Shopware is a PHP e-commerce platform built as a modular monolith
+  with event-driven messaging (Kafka/RabbitMQ) and domain-driven internal organization
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.75
   signals_detected: 750
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Service-Based
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.7
+  - style: Event-Driven
+    score: 0.6
+  - style: Service-Based
+    score: 0.4
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 9
     container_orchestration: 2
@@ -62,4 +60,14 @@ discovery_metadata:
     test_structure: 3
     documentation: 144
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog metadata: (1) Modular Monolith — highest heuristic
+  candidate score (0.7), ''Modularity'' listed as quality attribute, single PHP project
+  with strong package manifest signals (9); (2) Event-Driven — Kafka and RabbitMQ
+  listed as key technologies, extremely high messaging signal count (421 out of 750
+  total signals), ''Evolvability'' and ''Fault Tolerance'' quality attributes consistent
+  with async event patterns; (3) Domain-Driven Design — 144 ADRs detected indicating
+  deliberate architectural governance typical of DDD projects, e-commerce domain maps
+  naturally to bounded contexts (catalog, orders, customers, payments), DDD heuristic
+  score of 0.3 present; Service-Based was a heuristic candidate (0.4) but insufficient
+  signals to confirm independent deployable services beyond the monolith core'

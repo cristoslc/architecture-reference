@@ -1,56 +1,55 @@
 project_name: nopCommerce
 source: Discovered
-source_url: "https://github.com/nopSolutions/nopCommerce"
-project_url: "https://github.com/nopSolutions/nopCommerce"
+source_url: https://github.com/nopSolutions/nopCommerce
+project_url: https://github.com/nopSolutions/nopCommerce
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:29:13Z"
+discovered_at: '2026-03-04T06:29:13Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
-language: "C#"
-languages:
-
+language: C#
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Event-Driven
+- Layered
+- Domain-Driven Design
 key_technologies:
-  - Node.js
-  - .NET
-  - Docker
-  - Docker Compose
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- .NET
+- Docker
+- Docker Compose
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (5 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (5 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: nopCommerce is a well-known open-source ASP.NET Core e-commerce
+  platform built as a modular monolith with plugin architecture, layered internals,
+  domain-driven design patterns, and RabbitMQ-based event messaging
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.72
   signals_detected: 107
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.72
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Event-Driven
+    score: 0.6
+  - style: Modular Monolith
+    score: 0.4
+  - style: Layered
+    score: 0.3
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 39
     container_orchestration: 2
@@ -62,4 +61,14 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog and domain knowledge: (1) nopCommerce is publicly
+  known to use a plugin/module architecture with a single deployable unit — classic
+  Modular Monolith; (2) RabbitMQ listed as key technology (64 messaging signals detected)
+  strongly supports Event-Driven messaging for domain events; (3) 39 package manifests
+  and layered ASP.NET MVC structure (controllers/services/repositories) indicate Layered
+  (N-Tier); (4) The e-commerce domain with bounded contexts (catalog, orders, customers,
+  payments) and the DDD score of 0.3 from heuristics support DDD as a secondary style;
+  (5) No Kubernetes/Helm or multiple Dockerfiles detected, ruling out Microservices;
+  (6) Single deployment unit confirmed by absence of service discovery or API gateway
+  signals'

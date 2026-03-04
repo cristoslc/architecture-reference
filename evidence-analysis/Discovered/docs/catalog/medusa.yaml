@@ -1,49 +1,48 @@
 project_name: medusa
 source: Discovered
-source_url: "https://github.com/medusajs/medusa"
-project_url: "https://github.com/medusajs/medusa"
+source_url: https://github.com/medusajs/medusa
+project_url: https://github.com/medusajs/medusa
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:18:56Z"
+discovered_at: '2026-03-04T06:18:56Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Domain-Driven Design
 key_technologies:
-  - Node.js
-  - OpenAPI
-  - GitHub Actions
+- Node.js
+- OpenAPI
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
-  - Modularity
+- Fault Tolerance
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Architecture documentation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Architecture documentation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+one_line_summary: Medusa is an open-source e-commerce platform built as a modular
+  monolith in TypeScript/Node.js, organized around domain-driven business modules
+  (cart, order, product, customer, etc.) with a plugin/module system for extensibility
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.75
   signals_detected: 129
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: CQRS
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.7
+  - style: CQRS
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 108
     container_orchestration: 0
@@ -55,4 +54,14 @@ discovery_metadata:
     test_structure: 1
     documentation: 1
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: 108 package manifests strongly suggest a monorepo
+  with many internal packages/modules rather than independently deployed microservices
+  (no container orchestration signals at all). Zero messaging/broker signals rules
+  out Event-Driven or pure Microservices. The e-commerce domain (orders, products,
+  customers, inventory) is inherently DDD-aligned. CQRS score of 0.3 is plausible
+  as a secondary pattern within modules. Medusa''s well-known architecture (as of
+  v2) is explicitly a modular commerce platform where each domain (cart, payment,
+  fulfillment, etc.) is an isolated module sharing a single deployment unit - consistent
+  with Modular Monolith + DDD classification. ''Modularity'' listed as a quality attribute
+  and ''Architecture documentation present'' further support this.'

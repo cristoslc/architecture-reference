@@ -1,51 +1,50 @@
 project_name: directus
 source: Discovered
-source_url: "https://github.com/directus/directus"
-project_url: "https://github.com/directus/directus"
+source_url: https://github.com/directus/directus
+project_url: https://github.com/directus/directus
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:19:20Z"
+discovered_at: '2026-03-04T06:19:20Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: CMS
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Layered
 key_technologies:
-  - Node.js
-  - Docker
-  - Docker Compose
-  - RabbitMQ
-  - OpenAPI
-  - GitHub Actions
+- Node.js
+- Docker
+- Docker Compose
+- RabbitMQ
+- OpenAPI
+- GitHub Actions
 quality_attributes:
-  - Deployability
-  - Modularity
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Directus is an open-source headless CMS/data platform built as a
+  modular monolith in TypeScript, organized into well-defined internal packages with
+  layered API, app, and SDK components
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.72
   signals_detected: 60
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.7
+  classification_method: llm-review
+  primary_style_confidence: 0.72
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.7
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Event-Driven
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.7
+  - style: Layered
+    score: 0.3
+  - style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 39
     container_orchestration: 3
@@ -57,4 +56,14 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog metadata: (1) 39 package manifests with only
+  3 container orchestration signals strongly favors a monorepo/modular monolith over
+  microservices — many packages but single deployable unit; (2) heuristic_candidates
+  rank Modular Monolith at 0.7 as top candidate; (3) Directus is publicly known to
+  be structured as a monorepo with packages for api, app, sdk, extensions — a classic
+  modular monolith; (4) Layered is secondary given the CMS/API domain (controllers/services/repositories
+  pattern typical in headless CMS); (5) RabbitMQ signal and Event-Driven score of
+  0.3 suggests some async messaging but not sufficient to rank it as a primary style
+  — likely used for webhooks/flows extension feature; (6) OpenAPI spec signal corroborates
+  a single unified API surface rather than multiple independent service APIs'

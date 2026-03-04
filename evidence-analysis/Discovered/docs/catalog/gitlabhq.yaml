@@ -1,61 +1,59 @@
 project_name: gitlabhq
 source: Discovered
-source_url: "https://github.com/gitlabhq/gitlabhq"
-project_url: "https://github.com/gitlabhq/gitlabhq"
+source_url: https://github.com/gitlabhq/gitlabhq
+project_url: https://github.com/gitlabhq/gitlabhq
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:13:49Z"
+discovered_at: '2026-03-04T06:13:49Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Ruby
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Event-Driven
+- CQRS
 key_technologies:
-  - Node.js
-  - Go modules
-  - Python/pip
-  - Docker
-  - Docker Compose
-  - Kafka
-  - RabbitMQ
-  - OpenAPI
-  - GraphQL
-  - GitLab CI
+- Node.js
+- Go modules
+- Python/pip
+- Docker
+- Docker Compose
+- Kafka
+- RabbitMQ
+- OpenAPI
+- GraphQL
+- GitLab CI
 quality_attributes:
-  - Deployability
-  - Modularity
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Architecture documentation present
-  - Multi-style composition (5 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Architecture documentation present
+- Multi-style composition (5 styles)
 notable_gaps:
-  - No architecture decision records found
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+- No architecture decision records found
+one_line_summary: GitLab is a large Ruby on Rails DevOps platform structured as a
+  modular monolith with event-driven async processing (Kafka/RabbitMQ) and CQRS-like
+  read/write separation via GraphQL and REST APIs
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.75
   signals_detected: 1111
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.6
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: CQRS
-      score: 0.4
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Event-Driven
+    score: 0.6
+  - style: Microservices
+    score: 0.5
+  - style: CQRS
+    score: 0.4
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 11
     container_orchestration: 8
@@ -67,4 +65,17 @@ discovery_metadata:
     test_structure: 2
     documentation: 1
     directory_structure: 6
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: (1) Modular Monolith — single primary Ruby/Rails
+  codebase with ''Modularity'' listed as quality attribute and 5-style composition
+  suggesting internal decomposition rather than separate services; (2) Event-Driven
+  — Kafka AND RabbitMQ both present in key_technologies (4 messaging signals detected),
+  consistent with GitLab''s known use of async workers and background job processing;
+  (3) CQRS — 1057 api_specs signals plus both GraphQL and OpenAPI present strongly
+  suggest separate read (GraphQL queries) and write (REST/OpenAPI commands) paths;
+  (4) Docker/Docker Compose present but no Kubernetes/Helm signals in key_technologies,
+  arguing against full Microservices decomposition; (5) Architecture documentation
+  confirmed present (1 documentation signal); (6) ''Deployability'' as quality attribute
+  and GitLab CI present but single-repo structure points to monorepo modular monolith
+  rather than independent microservices. DDD and Pipe-and-Filter candidates scored
+  too low (0.3) to include with confidence.'
