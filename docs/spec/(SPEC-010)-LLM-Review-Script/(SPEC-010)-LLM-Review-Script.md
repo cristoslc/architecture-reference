@@ -128,4 +128,4 @@ The system prompt (`pipeline/prompts/system-prompt.md`) must include:
 | Draft | 2026-03-04 | 334cf4a | Initial creation under EPIC-005 |
 | Approved | 2026-03-04 | 5507fd8 | Implemented llm-review.sh with dry-run validation |
 | Testing | 2026-03-04 | b5da2cd | Pilot: 3/3 classified, full tier-1 run in progress |
-| Implemented | 2026-03-04 | b9a5fb0 | All 3 tiers complete: 57 classified, 63 unclassifiable, 0 errors |
+| Implemented | 2026-03-04 | 707de32 | All 3 tiers complete: 57 classified, 63 unclassifiable, 0 errors |

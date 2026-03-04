@@ -124,4 +124,4 @@ pipeline/validate-review.sh --spot-check 5 --run-report pipeline/reports/latest.
 |-------|------|--------|-------|
 | Draft | 2026-03-04 | 334cf4a | Initial creation under EPIC-005, depends on SPEC-010 and SPEC-011 |
 | Approved | 2026-03-04 | 0b6a5d7 | validate-review.py + gold standard (17 entries, 10 styles) |
-| Implemented | 2026-03-04 | b9a5fb0 | Validation passes: 86.7% accuracy (13/15), above 85% threshold |
+| Implemented | 2026-03-04 | 707de32 | Validation passes: 86.7% accuracy (13/15), above 85% threshold |

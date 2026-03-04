@@ -289,4 +289,4 @@ Each run produces a JSON report:
 |-------|------|--------|-------|
 | Proposed | 2026-03-04 | 5b2e916 | 120 Indeterminate entries awaiting automated LLM review |
 | Active | 2026-03-04 | 6db2360 | Child specs SPEC-010/011/012 being created |
-| Complete | 2026-03-04 | b9a5fb0 | All 120 entries processed, 57 classified, 86.7% validation accuracy |
+| Complete | 2026-03-04 | 707de32 | All 120 entries processed, 57 classified, 86.7% validation accuracy |

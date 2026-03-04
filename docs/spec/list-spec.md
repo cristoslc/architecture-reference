@@ -8,9 +8,9 @@
 | SPEC-002 | Dataset Scaling Pipeline | Batch-run discovery across curated repo manifests, validate output, and integrate 200+ entries into the evidence catalog. Depends on SPEC-001. | 2026-03-03 | d4fef8e |
 | SPEC-004 | Pipeline Signal Preservation | Rerun the dataset scaling pipeline to preserve raw signal extraction data for all 173 Discovered repos, creating an audit trail for classification decisions. | 2026-03-04 | 448deab |
 | SPEC-005 | Discovered Source Analysis | Create source-analysis.md for the Discovered evidence source (173 repos), synthesizing architecture style distribution, QA priorities, and key findings. | 2026-03-04 | 10a003c |
-| SPEC-010 | LLM Review Script | Core llm-review.sh script for automating Pass 2 LLM classification — system prompt, context assembly, response parsing, tier filtering. | 2026-03-04 | b9a5fb0 |
-| SPEC-011 | Multi-Turn Escalation Protocol | Structured info requests (file/tree/glob/grep), fulfillment logic, and conversation management for multi-turn LLM classification. | 2026-03-04 | b9a5fb0 |
-| SPEC-012 | Quality Validation | Gold standard curation, accuracy measurement (>=85%), confusion matrix, confidence calibration, and regression testing for LLM classifications. | 2026-03-04 | b9a5fb0 |
+| SPEC-010 | LLM Review Script | Core llm-review.sh script for automating Pass 2 LLM classification — system prompt, context assembly, response parsing, tier filtering. | 2026-03-04 | 707de32 |
+| SPEC-011 | Multi-Turn Escalation Protocol | Structured info requests (file/tree/glob/grep), fulfillment logic, and conversation management for multi-turn LLM classification. | 2026-03-04 | 707de32 |
+| SPEC-012 | Quality Validation | Gold standard curation, accuracy measurement (>=85%), confusion matrix, confidence calibration, and regression testing for LLM classifications. | 2026-03-04 | 707de32 |
 
 ## Active
 

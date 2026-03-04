@@ -126,4 +126,4 @@ The `-c` flag continues the most recent conversation, maintaining full context.
 | Draft | 2026-03-04 | 334cf4a | Initial creation under EPIC-005, depends on SPEC-010 |
 | Approved | 2026-03-04 | b442221 | Implemented within llm-review.sh (fulfill_requests + process_entry loop) |
 | Testing | 2026-03-04 | b5da2cd | Multi-turn verified: all 3 pilot entries used 2 turns |
-| Implemented | 2026-03-04 | b9a5fb0 | Multi-turn used across all 3 tiers, 164 total LLM calls |
+| Implemented | 2026-03-04 | 707de32 | Multi-turn used across all 3 tiers, 164 total LLM calls |
