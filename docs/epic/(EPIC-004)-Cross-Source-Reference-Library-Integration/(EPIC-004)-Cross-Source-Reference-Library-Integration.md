@@ -8,7 +8,7 @@ last-updated: 2026-03-03
 parent-vision: VISION-001
 success-criteria:
   - Every reference library file (solution-spaces, problem-spaces, by-architecture-style, by-quality-attribute, problem-solution-matrix, decision-navigator) cites evidence from 3+ sources — not just KataLog
-  - Style scoreboard rankings reflect production-weighted methodology (20 pts per production system, 1-4 pts per KataLog placement, 1-2 pts per reference implementation, Discovered as breadth counts)
+  - Style scoreboard rankings reflect production-weighted methodology (20 pts per production system, 20 pts per Discovered real-world repo, 1-4 pts per KataLog placement, 1-2 pts per reference implementation)
   - Discovered source has a source-analysis.md synthesizing the 173 catalog entries
   - Pipeline preserves raw signal extraction data in evidence-analysis/Discovered/signals/
   - No stale single-source references remain (grep for "62 manually", "103 ", "four sources" returns no hits)
@@ -63,7 +63,7 @@ All 6 files have reusable structural frameworks (section templates, dimension de
 
 ### Scoring methodology change
 
-The single most impactful change. Current: KataLog-only (1st=4, 2nd=3, 3rd=2, Runner-up=1). New: production-weighted (AOSA/RealWorld=20 pts each, KataLog=1-4 pts, RefArch=1-2 pts, Discovered=breadth counts only). This flips rankings:
+The single most impactful change. Current: KataLog-only (1st=4, 2nd=3, 3rd=2, Runner-up=1). New: production-weighted (AOSA/RealWorld/Discovered=20 pts each, KataLog=1-4 pts, RefArch=1-2 pts). This flips rankings:
 
 - Pipeline rises from invisible (0 KataLog teams) to top-5 (5 AOSA + 1 RealWorldASPNET + 47 Discovered)
 - Plugin/Microkernel rises to top-3 (3 AOSA + 3 RealWorldASPNET production systems)
