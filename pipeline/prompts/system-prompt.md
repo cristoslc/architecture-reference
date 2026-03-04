@@ -71,7 +71,7 @@ Single deployable unit with well-defined internal module boundaries. **Key signa
 ### Domain-Driven Design
 Code organized around business domain concepts with explicit bounded contexts. **Key signals:** `domain/` + `aggregates/` or `entities/` directories, bounded context boundaries in code, domain event classes, value objects, repository pattern, anti-corruption layers. Almost always secondary alongside another primary style.
 
-### Hexagonal Architecture (Ports & Adapters)
+### Hexagonal Architecture
 Application core isolated from external concerns via ports (interfaces) and adapters (implementations). **Key signals:** `ports/` and `adapters/` directories, `application/` + `infrastructure/` + `domain/` separation, dependency inversion, Clean Architecture naming (`use-cases/`, `interactors/`).
 
 ### CQRS (Command Query Responsibility Segregation)
@@ -80,7 +80,7 @@ Separate models for reading and writing data. **Key signals:** `commands/` and `
 ### Serverless
 Functions deployed as individual units, triggered by events, managed by cloud platform. **Key signals:** `serverless.yml` or SAM template, Lambda/Cloud Functions handlers, function-level deployment, API Gateway + Lambda integration, Step Functions.
 
-### Layered (N-Tier)
+### Layered
 Traditional horizontal layering: presentation, business logic, data access. **Key signals:** `controllers/` + `services/` + `repositories/` pattern, MVC structure, single deployment unit, shared database. This is the default fallback — only classify as Layered when no other style signals strongly.
 
 ### Service-Based
