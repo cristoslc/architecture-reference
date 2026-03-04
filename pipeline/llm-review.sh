@@ -18,12 +18,12 @@
 #   --catalog <PATH>     Catalog directory (default: evidence-analysis/Discovered/docs/catalog)
 #   --verbose            Show detailed progress
 
-set -euo pipefail
+set -uo pipefail
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
 TIER="all"
 MAX_TURNS=4
-MODEL="claude-sonnet-4-6"
+MODEL="openrouter/anthropic/claude-sonnet-4.6"
 CLONE_DIR=""
 DRY_RUN=false
 LIMIT=0
@@ -88,7 +88,7 @@ fi
 mkdir -p "$REPORTS_DIR"
 
 # ── Logging ───────────────────────────────────────────────────────────────────
-log() { echo "[$(date +%H:%M:%S)] $*"; }
+log() { echo "[$(date +%H:%M:%S)] $*" >&2; }
 verbose() { [[ "$VERBOSE" == "true" ]] && log "$*" || true; }
 
 # ── scan_entries: find catalog entries matching criteria ──────────────────────
@@ -162,10 +162,10 @@ ensure_clone() {
     return
   fi
 
-  # On-demand shallow clone to temp dir
+  # On-demand shallow clone to temp dir (60s timeout)
   local tmp_dir
   tmp_dir=$(mktemp -d)
-  if git clone --depth 1 --quiet "$repo_url" "$tmp_dir/$repo_name" 2>/dev/null; then
+  if timeout 60 git clone --depth 1 --quiet "$repo_url" "$tmp_dir/$repo_name" 2>/dev/null; then
     echo "$tmp_dir/$repo_name"
   else
     rm -rf "$tmp_dir"
@@ -202,15 +202,19 @@ repo_map() {
 
   local target_dir="$clone_path/$base_path"
 
-  # Build prune args
-  local prune_args=()
+  # Build prune expression for find
+  local prune_expr=""
+  local first=true
   for dir in "${FIND_PRUNE_DIRS[@]}"; do
-    prune_args+=(-name "$dir" -o)
+    if [[ "$first" == "true" ]]; then
+      prune_expr="-name $dir"
+      first=false
+    else
+      prune_expr="$prune_expr -o -name $dir"
+    fi
   done
-  # Remove trailing -o
-  unset 'prune_args[-1]'
 
-  find "$target_dir" -maxdepth "$depth" \( "${prune_args[@]}" \) -prune -o -print 2>/dev/null \
+  eval "find \"$target_dir\" -maxdepth \"$depth\" \\( $prune_expr \\) -prune -o -print" 2>/dev/null \
     | head -200 \
     | sed "s|$clone_path/||"
 }
@@ -385,7 +389,7 @@ sys.exit(1)
 
 # ── get_verdict: extract verdict from parsed JSON ─────────────────────────────
 get_verdict() {
-  echo "$1" | python3 -c "import sys,json; print(json.load(sys.stdin).get('verdict','error'))" 2>/dev/null
+  echo "$1" | python3 -c "import sys,json; print(json.load(sys.stdin).get('verdict','error'))" 2>/dev/null || echo "error"
 }
 
 # ── apply_classification: call apply-review.py ────────────────────────────────
@@ -435,7 +439,7 @@ import sys,json; print(json.load(sys.stdin).get('entry_type','repo'))
     cmd+=(--entry-type ecosystem)
   fi
 
-  "${cmd[@]}"
+  "${cmd[@]}" >&2
 }
 
 # ── process_entry: full classification pipeline for one entry ─────────────────
@@ -508,7 +512,7 @@ Please classify this repository now." | llm -m "$MODEL" -c 2>/dev/null || echo '
       python3 "${SCRIPT_DIR}/apply-review.py" \
         --entry "$yaml_file" \
         --confidence "$unclass_confidence" \
-        --notes "LLM review: unclassifiable — $reason"
+        --notes "LLM review: unclassifiable — $reason" >&2
       result_status="unclassifiable"
       ;;
     needs_info)
