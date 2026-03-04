@@ -1,7 +1,7 @@
 ---
 title: "LLM Classification Pipeline"
 artifact: EPIC-005
-status: Active
+status: Complete
 author: cristos
 created: 2026-03-04
 last-updated: 2026-03-04
@@ -272,9 +272,9 @@ Each run produces a JSON report:
 
 | ID | Title | Status |
 |----|-------|--------|
-| [SPEC-010](../../spec/(SPEC-010)-LLM-Review-Script/(SPEC-010)-LLM-Review-Script.md) | LLM Review Script | Draft |
-| [SPEC-011](../../spec/(SPEC-011)-Multi-Turn-Escalation-Protocol/(SPEC-011)-Multi-Turn-Escalation-Protocol.md) | Multi-Turn Escalation Protocol | Draft |
-| [SPEC-012](../../spec/(SPEC-012)-Quality-Validation/(SPEC-012)-Quality-Validation.md) | Quality Validation | Draft |
+| [SPEC-010](../../spec/(SPEC-010)-LLM-Review-Script/(SPEC-010)-LLM-Review-Script.md) | LLM Review Script | Implemented |
+| [SPEC-011](../../spec/(SPEC-011)-Multi-Turn-Escalation-Protocol/(SPEC-011)-Multi-Turn-Escalation-Protocol.md) | Multi-Turn Escalation Protocol | Implemented |
+| [SPEC-012](../../spec/(SPEC-012)-Quality-Validation/(SPEC-012)-Quality-Validation.md) | Quality Validation | Implemented |
 
 ## Key Dependencies
 
@@ -289,3 +289,4 @@ Each run produces a JSON report:
 |-------|------|--------|-------|
 | Proposed | 2026-03-04 | 5b2e916 | 120 Indeterminate entries awaiting automated LLM review |
 | Active | 2026-03-04 | 6db2360 | Child specs SPEC-010/011/012 being created |
+| Complete | 2026-03-04 | b9a5fb0 | All 120 entries processed, 57 classified, 86.7% validation accuracy |
