@@ -15,7 +15,7 @@ depends-on: []
 
 ## Persona
 
-[PERSONA-002: The Practicing Architect](../../persona/\(PERSONA-002\)-The-Practicing-Architect/\(PERSONA-002\)-The-Practicing-Architect.md) — a senior developer or architect making production architecture decisions, looking for empirical grounding.
+[PERSONA-002: The Practicing Architect](../../persona/(PERSONA-002)-The-Practicing-Architect/(PERSONA-002)-The-Practicing-Architect.md) — a senior developer or architect making production architecture decisions, looking for empirical grounding.
 
 ## Goal
 

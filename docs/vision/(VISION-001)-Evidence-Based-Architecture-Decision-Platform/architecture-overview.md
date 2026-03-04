@@ -1,6 +1,6 @@
 # Architecture Overview
 
-_Supporting document for [VISION-001](./\(VISION-001\)-Evidence-Based-Architecture-Decision-Platform.md)_
+_Supporting document for [VISION-001](./(VISION-001)-Evidence-Based-Architecture-Decision-Platform.md)_
 
 ## System Shape
 

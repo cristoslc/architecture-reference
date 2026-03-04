@@ -1,6 +1,6 @@
 # Roadmap
 
-_Supporting document for [VISION-001](./\(VISION-001\)-Evidence-Based-Architecture-Decision-Platform.md)_
+_Supporting document for [VISION-001](./(VISION-001)-Evidence-Based-Architecture-Decision-Platform.md)_
 
 ## Epic Sequencing
 
@@ -18,6 +18,6 @@ EPIC-001 and EPIC-002 are complete. EPIC-003 (discovery tooling and dataset scal
 
 | Epic | Phase | Goal | Dependencies |
 |------|-------|------|--------------|
-| [EPIC-001](../../epic/\(EPIC-001\)-Dataset-Expansion-and-Evidence-Enrichment/\(EPIC-001\)-Dataset-Expansion-and-Evidence-Enrichment.md) | **Complete** | Expand evidence base to 4 sources with 62 cataloged projects | None |
-| [EPIC-002](../../epic/\(EPIC-002\)-Architecture-Advisor-Skill/\(EPIC-002\)-Architecture-Advisor-Skill.md) | **Complete** | Ship a remote-installable agent skill exposing the evidence library | Built on EPIC-001 |
-| [EPIC-003](../../epic/\(EPIC-003\)-Architecture-Discovery-and-Scaling/\(EPIC-003\)-Architecture-Discovery-and-Scaling.md) | Proposed | Build discovery tooling and scale to 200+ projects | Builds on EPIC-001 and EPIC-002 |
+| [EPIC-001](../../epic/(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment/(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment.md) | **Complete** | Expand evidence base to 4 sources with 62 cataloged projects | None |
+| [EPIC-002](../../epic/(EPIC-002)-Architecture-Advisor-Skill/(EPIC-002)-Architecture-Advisor-Skill.md) | **Complete** | Ship a remote-installable agent skill exposing the evidence library | Built on EPIC-001 |
+| [EPIC-003](../../epic/(EPIC-003)-Architecture-Discovery-and-Scaling/(EPIC-003)-Architecture-Discovery-and-Scaling.md) | Proposed | Build discovery tooling and scale to 200+ projects | Builds on EPIC-001 and EPIC-002 |

@@ -37,7 +37,7 @@ Build automated tooling to discover and classify architecture patterns from sour
 
 ## Prior Art
 
-This epic continues Phases 2-4 of the [Dataset Expansion & Architecture Discovery Skill proposal](../../proposals/dataset-expansion-and-discovery-skill.md). Phase 1 (manual data enrichment) was completed as [EPIC-001](../\(EPIC-001\)-Dataset-Expansion-and-Evidence-Enrichment/\(EPIC-001\)-Dataset-Expansion-and-Evidence-Enrichment.md).
+This epic continues Phases 2-4 of the [Dataset Expansion & Architecture Discovery Skill proposal](../../proposals/dataset-expansion-and-discovery-skill.md). Phase 1 (manual data enrichment) was completed as [EPIC-001](../(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment/(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment.md).
 
 ### Discovery skill design (from proposal)
 
@@ -71,9 +71,9 @@ The `/discover-architecture` skill would analyze a repository and produce a stru
 
 | ID | Title | Phase | Status |
 |----|-------|-------|--------|
-| [SPEC-001](../../spec/\(SPEC-001\)-Architecture-Discovery-Skill/\(SPEC-001\)-Architecture-Discovery-Skill.md) | Architecture Discovery Skill | Phase 1 | Approved |
-| [SPEC-002](../../spec/\(SPEC-002\)-Dataset-Scaling-Pipeline/\(SPEC-002\)-Dataset-Scaling-Pipeline.md) | Dataset Scaling Pipeline | Phase 2 | Draft (depends on SPEC-001) |
-| [SPEC-003](../../spec/\(SPEC-003\)-Comparative-Analysis-Engine/\(SPEC-003\)-Comparative-Analysis-Engine.md) | Comparative Analysis Engine | Phase 3 | Draft (depends on SPEC-002) |
+| [SPEC-001](../../spec/(SPEC-001)-Architecture-Discovery-Skill/(SPEC-001)-Architecture-Discovery-Skill.md) | Architecture Discovery Skill | Phase 1 | Approved |
+| [SPEC-002](../../spec/(SPEC-002)-Dataset-Scaling-Pipeline/(SPEC-002)-Dataset-Scaling-Pipeline.md) | Dataset Scaling Pipeline | Phase 2 | Draft (depends on SPEC-001) |
+| [SPEC-003](../../spec/(SPEC-003)-Comparative-Analysis-Engine/(SPEC-003)-Comparative-Analysis-Engine.md) | Comparative Analysis Engine | Phase 3 | Draft (depends on SPEC-002) |
 
 ## Key Dependencies
 
