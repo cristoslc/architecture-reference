@@ -23,7 +23,7 @@ set -uo pipefail
 # ── Defaults ──────────────────────────────────────────────────────────────────
 TIER="all"
 MAX_TURNS=4
-MODEL="openrouter/anthropic/claude-sonnet-4.6"
+MODEL=""
 CLONE_DIR=""
 DRY_RUN=false
 LIMIT=0
@@ -465,7 +465,9 @@ process_entry() {
   local total_llm_calls=0
 
   verbose "Turn $turn: calling LLM..."
-  response=$(echo "$context" | llm -m "$MODEL" -s "$(cat "$SYSTEM_PROMPT")" 2>/dev/null || echo '{"verdict":"error"}')
+  local model_flag=""
+  [[ -n "$MODEL" ]] && model_flag="-m $MODEL"
+  response=$(echo "$context" | llm $model_flag -s "$(cat "$SYSTEM_PROMPT")" 2>/dev/null || echo '{"verdict":"error"}')
   total_llm_calls=$((total_llm_calls + 1))
 
   json=$(parse_response "$response")
@@ -487,7 +489,7 @@ process_entry() {
 
 $fulfilled
 
-Please classify this repository now." | llm -m "$MODEL" -c 2>/dev/null || echo '{"verdict":"error"}')
+Please classify this repository now." | llm $model_flag -c 2>/dev/null || echo '{"verdict":"error"}')
     total_llm_calls=$((total_llm_calls + 1))
 
     json=$(parse_response "$response")
@@ -544,7 +546,7 @@ Please classify this repository now." | llm -m "$MODEL" -c 2>/dev/null || echo '
 # ── Main ──────────────────────────────────────────────────────────────────────
 main() {
   log "LLM Review Pipeline"
-  log "  Model: $MODEL"
+  log "  Model: ${MODEL:-default ($(llm models default 2>/dev/null))}"
   log "  Tier: $TIER"
   log "  Max turns: $MAX_TURNS"
   log "  Catalog: $CATALOG_DIR"
