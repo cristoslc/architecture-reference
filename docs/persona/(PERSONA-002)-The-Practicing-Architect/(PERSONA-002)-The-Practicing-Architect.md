@@ -1,10 +1,10 @@
 ---
 title: "The Practicing Architect"
 artifact: PERSONA-002
-status: Draft
+status: Validated
 author: cristos
 created: 2026-03-03
-last-updated: 2026-03-03
+last-updated: 2026-03-04
 linked-journeys:
   - JOURNEY-002
 linked-stories: []
@@ -54,3 +54,4 @@ Accesses the reference library when starting a new project, evaluating a major a
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | 6883447 | Initial creation — hypothesized from reference library usage patterns, not yet validated via user research |
+| Validated | 2026-03-04 | 0cc423c | Persona confirmed through architecture advisor skill design and reference library usage |

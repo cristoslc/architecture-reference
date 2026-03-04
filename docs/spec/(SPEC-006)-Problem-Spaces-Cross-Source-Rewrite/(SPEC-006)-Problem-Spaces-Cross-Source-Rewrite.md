@@ -9,6 +9,7 @@ parent-epic: EPIC-004
 depends-on:
   - SPEC-004  # Implemented: signals preserved
   - SPEC-005  # Implemented: source analysis done
+  - SPEC-013  # Deep-context validation needed before rewriting reference material
 ---
 
 # Problem-Spaces Cross-Source Rewrite

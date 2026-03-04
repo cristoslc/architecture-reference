@@ -1,10 +1,10 @@
 ---
 title: "Choosing an Architecture for a New System"
 artifact: JOURNEY-002
-status: Draft
+status: Validated
 author: cristos
 created: 2026-03-03
-last-updated: 2026-03-03
+last-updated: 2026-03-04
 parent-vision: VISION-001
 linked-personas:
   - PERSONA-002
@@ -91,3 +91,4 @@ journey
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | 6883447 | Initial creation — derived from reference library structure and skill design proposal |
+| Validated | 2026-03-04 | 0cc423c | Journey confirmed through iterative design work on architecture advisor skill |

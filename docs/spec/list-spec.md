@@ -16,8 +16,8 @@
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
-| SPEC-006 | Problem-Spaces Cross-Source Rewrite | Rewrite problem-spaces.md (1500+ lines) to classify problems from all 5 sources, expanding KataLog-only profiles to cross-source system profiles. | 2026-03-04 | ec39055 |
-| SPEC-007 | Solution-Spaces Cross-Source Rewrite | Rewrite solution-spaces.md (528 lines) with production-weighted scoring methodology (20 pts per production system vs 1-4 pts per KataLog placement). | 2026-03-04 | ec39055 |
+| SPEC-006 | Problem-Spaces Cross-Source Rewrite | Rewrite problem-spaces.md (1500+ lines) to classify problems from all 5 sources, expanding KataLog-only profiles to cross-source system profiles. Now blocked on SPEC-013. | 2026-03-04 | 0cc423c |
+| SPEC-007 | Solution-Spaces Cross-Source Rewrite | Rewrite solution-spaces.md (528 lines) with production-weighted scoring methodology (20 pts per production system vs 1-4 pts per KataLog placement). Now blocked on SPEC-013. | 2026-03-04 | 0cc423c |
 
 ## Draft
 
