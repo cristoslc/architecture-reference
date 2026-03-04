@@ -1,7 +1,7 @@
 ---
 title: "Cross-Source Reference Library Rewrites"
 artifact: SPEC-005
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -20,7 +20,7 @@ addresses: []
 
 Six core reference library documents totaling ~3,700 lines remain 85-98% KataLog-only despite the evidence base expanding from 78 to 276 entries across 5 sources. Practitioners reading these files see competition-derived findings presented as if they were the complete picture, missing critical insights from production systems (AOSA), real-world applications (RealWorld), reference implementations (RefArch), and discovered repositories (Discovered).
 
-The most impactful distortion: style rankings driven by KataLog team counts (where Microservices dominates with 38 teams) rather than production-weighted methodology (where Pipeline rises to top-5 with 53 production systems, and Plugin/Microkernel enters top-3).
+The most impactful distortion: style rankings driven by KataLog team counts rather than production-weighted methodology. The rewrite will apply consistent scoring (20 pts per production system, 20 pts per Discovered repo, 1-4 pts per KataLog placement, 1-2 pts per RefArch implementation) and let the rankings emerge from the full evidence pool.
 
 ## External Behavior
 
@@ -53,7 +53,7 @@ The most impactful distortion: style rankings driven by KataLog team counts (whe
 
 - **Given** the rewritten `solution-spaces.md`
   **When** I view the style scoreboard rankings
-  **Then** Pipeline ranks in top-5 and Plugin/Microkernel ranks in top-3, reflecting production-weighted scores
+  **Then** rankings reflect production-weighted methodology applied to all 276 catalog entries (20 pts/production system, 20 pts/Discovered repo, 1-4 pts/KataLog placement, 1-2 pts/RefArch implementation)
 
 - **Given** any reference library file
   **When** I search for evidence citations
@@ -64,8 +64,8 @@ The most impactful distortion: style rankings driven by KataLog team counts (whe
   **Then** I get zero matches (all stale references updated)
 
 - **Given** a practitioner reading `by-architecture-style.md`
-  **When** they view the Event-Driven section
-  **Then** they see evidence rows for NGINX (AOSA), Bitwarden (RealWorld), RefArch impls, and Discovered repos — not just KataLog teams
+  **When** they view any architecture style section
+  **Then** they see evidence rows citing multiple sources (AOSA, RealWorld, RefArch, Discovered, KataLog) — not just KataLog teams
 
 ## Scope & Constraints
 
@@ -94,7 +94,7 @@ The most impactful distortion: style rankings driven by KataLog team counts (whe
 ### Phase 1: Foundation (Layer 1)
 1. **Audit catalog data** — aggregate style/QA/pattern distributions across all 5 sources
 2. **Compute production-weighted scores** — implement scoring formula (20 pts/production, 20 pts/Discovered, 1-4 pts/KataLog, 1-2 pts/RefArch)
-3. **Rewrite problem-spaces.md** — expand from 11 kata profiles to 28+ system profiles covering all sources
+3. **Rewrite problem-spaces.md** — expand KataLog-only profiles to cross-source system profiles covering all sources
 
 ### Phase 2: Evidence (Layer 2)
 4. **Rewrite solution-spaces.md** — update style scoreboard with production-weighted rankings
@@ -115,3 +115,4 @@ The most impactful distortion: style rankings driven by KataLog team counts (whe
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | 960504c | Initial creation for EPIC-004 implementation |
+| Implemented | 2026-03-04 | | Discovered source analysis created, production-weighted scoring defined |
