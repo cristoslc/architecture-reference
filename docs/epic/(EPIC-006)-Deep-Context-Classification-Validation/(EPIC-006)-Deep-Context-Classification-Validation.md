@@ -114,6 +114,18 @@ This EPIC runs a **second validation pass** using the same `llm` CLI + Minimax 2
 | [SPEC-013](../../spec/(SPEC-013)-Deep-Context-Validation-Script/(SPEC-013)-Deep-Context-Validation-Script.md) | Deep-Context Validation Script | Draft |
 | [SPEC-014](../../spec/(SPEC-014)-Override-Rules-Disagreement-Report/(SPEC-014)-Override-Rules-Disagreement-Report.md) | Override Rules & Disagreement Report | Draft |
 | [SPEC-015](../../spec/(SPEC-015)-Expanded-Gold-Standard-Three-Way-Report/(SPEC-015)-Expanded-Gold-Standard-Three-Way-Report.md) | Expanded Gold Standard & Three-Way Report | Draft |
+| [SPEC-016](../../spec/(SPEC-016)-Validation-Run-Execution/(SPEC-016)-Validation-Run-Execution.md) | Validation Run Execution | Draft |
+
+## Validation
+
+Before transitioning EPIC-006 to Active, run a pilot to confirm the tooling works end-to-end:
+
+```bash
+# Pilot: 5 heuristic-only entries
+pipeline/llm-validate.sh --priority 1 --limit 5 --verbose --clone-dir /tmp/deep-clones
+```
+
+**Gate criteria:** at least 3 of 5 entries produce a valid verdict (not `clone_failed` or `error`), verification report is well-formed JSON, and `apply-review.py --method deep-validation` correctly updates catalog entries.
 
 ## Key Dependencies
 

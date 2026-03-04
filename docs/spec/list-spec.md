@@ -29,3 +29,4 @@
 | SPEC-013 | Deep-Context Validation Script | Re-run classification with cloned repos and deep context assembly (config files, source structure, architecture docs). Produces verification verdicts per entry. | 2026-03-04 | — |
 | SPEC-014 | Override Rules & Disagreement Report | Deterministic rules for when to accept deep-validation results over existing classifications, plus disagreement markdown report. | 2026-03-04 | — |
 | SPEC-015 | Expanded Gold Standard & Three-Way Report | Expand gold standard from 17 to 40+ entries; three-way comparison across heuristic, llm-review, and deep-validation methods. | 2026-03-04 | — |
+| SPEC-016 | Validation Run Execution | Operational run plan for deep-context validation across all four priority populations, with gate criteria, pilot run, and post-run review checklists. | 2026-03-04 | — |
