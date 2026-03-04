@@ -1,49 +1,48 @@
 project_name: mastodon
 source: Discovered
-source_url: "https://github.com/mastodon/mastodon"
-project_url: "https://github.com/mastodon/mastodon"
+source_url: https://github.com/mastodon/mastodon
+project_url: https://github.com/mastodon/mastodon
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:11:19Z"
+discovered_at: '2026-03-04T06:11:19Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Social Media
 language: Ruby
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Event-Driven
 key_technologies:
-  - Node.js
-  - Docker
-  - Docker Compose
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- Docker
+- Docker Compose
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Mastodon is a federated social media platform built as a Ruby on
+  Rails modular monolith with event-driven background processing via RabbitMQ and
+  Sidekiq
 discovery_metadata:
-  confidence: 0.6
+  confidence: 0.75
   signals_detected: 32
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.5
+  - style: Event-Driven
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 5
@@ -55,4 +54,15 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: (1) Single Ruby/Rails application with Docker
+  Compose orchestration — consistent with Modular Monolith rather than true Microservices
+  despite the heuristic candidate score; Mastodon is well-known publicly as a Rails
+  monolith. (2) RabbitMQ presence in key_technologies signals Event-Driven messaging
+  for ActivityPub federation and background job processing. (3) Node.js alongside
+  Ruby typically indicates a separate streaming API server component, suggesting Service-Based
+  decomposition at most (2 coarse services), not full Microservices. (4) Container
+  orchestration signals (5) likely reflect multi-container Docker Compose setup (web,
+  sidekiq, streaming) rather than independent microservices. (5) Heuristic Microservices
+  score of 0.5 is borderline and not supported by public knowledge of the project''s
+  architecture.'

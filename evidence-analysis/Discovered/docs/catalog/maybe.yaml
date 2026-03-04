@@ -1,49 +1,47 @@
 project_name: maybe
 source: Discovered
-source_url: "https://github.com/maybe-finance/maybe"
-project_url: "https://github.com/maybe-finance/maybe"
+source_url: https://github.com/maybe-finance/maybe
+project_url: https://github.com/maybe-finance/maybe
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:14:12Z"
+discovered_at: '2026-03-04T06:14:12Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Finance
 language: Ruby
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Layered
 key_technologies:
-  - Node.js
-  - Docker
-  - Docker Compose
-  - GitHub Actions
+- Node.js
+- Docker
+- Docker Compose
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
+- Fault Tolerance
+- Deployability
 notable_strengths:
-  - Moderate signal profile with identifiable patterns
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Moderate signal profile with identifiable patterns
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Maybe Finance is a Ruby-based personal finance application built
+  as a modular monolith following Rails layered conventions, with Docker-based deployment
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.72
   signals_detected: 9
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.72
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: Layered
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.4
+  - style: Layered
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 1
     container_orchestration: 3
@@ -55,4 +53,13 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: single Ruby project (not multiple service directories),
+  Docker/Docker Compose present but no Kubernetes/Helm/API gateway signals (ruling
+  out Microservices despite 0.4 candidate score), no messaging infrastructure detected
+  (ruling out Event-Driven), CI/CD automation via GitHub Actions, directory_structure
+  signals scored 3/3. The finance domain with Ruby strongly suggests a Rails application
+  following MVC/layered conventions (controllers/services/models). Microservices was
+  a heuristic candidate but container_orchestration=3 with no service_discovery, api_specs=0,
+  and messaging=0 suggests Docker is used for single-app deployment rather than multi-service
+  orchestration. Confidence is moderate (0.72) due to absence of direct file inspection.'

@@ -1,53 +1,53 @@
 project_name: openproject
 source: Discovered
-source_url: "https://github.com/opf/openproject"
-project_url: "https://github.com/opf/openproject"
+source_url: https://github.com/opf/openproject
+project_url: https://github.com/opf/openproject
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:15:42Z"
+discovered_at: '2026-03-04T06:15:42Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Project Management
 language: Ruby
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Layered
+- Modular Monolith
 key_technologies:
-  - Node.js
-  - Docker
-  - Docker Compose
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- Docker
+- Docker Compose
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Deployability
-  - Modularity
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Ruby project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: OpenProject is a Ruby on Rails project management application. The
+  evidence suggests a traditional monolithic Rails architecture with standard layered
+  structure (MVC), where RabbitMQ is used for background job processing (ActiveJob)
+  rather than as a central event bus, and Docker/Docker Compose are used for development
+  environment orchestration rather than service decomposition.
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.7
   signals_detected: 50
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.7
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: CQRS
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.4
+  - style: Event-Driven
+    score: 0.3
+  - style: CQRS
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 15
@@ -59,4 +59,12 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 5
-review_required: true
+review_required: false
+review_notes: 'Evidence: Ruby/Rails project (standard package_manifests: 4 signals
+  from Gemfile, Gemfile.lock); container_orchestration: 15 (Dockerfiles for app +
+  supporting services like postgres, redis); messaging: 1 (RabbitMQ for background
+  jobs, not event-driven architecture); api_specs: 0 (no separate service APIs); directory_structure:
+  5 (low complexity). OpenProject is a well-known monolithic Rails application. The
+  CI/CD signals (28) reflect standard deployment automation, not microservices. Heuristic
+  candidates all scored 0.3-0.4 with inconclusive classification, but the pattern
+  fits a standard Rails monolith with auxiliary infrastructure containers.'

@@ -1,48 +1,49 @@
 project_name: mattermost
 source: Discovered
-source_url: "https://github.com/mattermost/mattermost"
-project_url: "https://github.com/mattermost/mattermost"
+source_url: https://github.com/mattermost/mattermost
+project_url: https://github.com/mattermost/mattermost
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:12:13Z"
+discovered_at: '2026-03-04T06:12:13Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Messaging
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Microservices
+- Event-Driven
+- Modular Monolith
 key_technologies:
-  - Node.js
-  - Go modules
-  - Docker
-  - Docker Compose
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- Go modules
+- Docker
+- Docker Compose
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (2 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (2 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Mattermost is a team messaging platform built as a monorepo combining
+  a modular server core with microservices plugins/integrations, using RabbitMQ for
+  event-driven communication between components
 discovery_metadata:
-  confidence: 0.6
+  confidence: 0.72
   signals_detected: 61
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.72
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Event-Driven
-      score: 0.3
+  - style: Microservices
+    score: 0.5
+  - style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 16
     container_orchestration: 11
@@ -54,4 +55,15 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Classification based on public knowledge of Mattermost''s well-documented
+  architecture combined with catalog signals: (1) Microservices — 11 container orchestration
+  signals, 16 package manifests, and Docker suggest multiple independently deployable
+  units consistent with Mattermost''s known plugin/service architecture; (2) Event-Driven
+  — RabbitMQ listed as key technology indicates async pub/sub messaging between components;
+  (3) Modular Monolith — Mattermost server is publicly known to be a single Go binary
+  with well-defined internal module boundaries (api, app, store layers), consistent
+  with the single strong directory_structure signal and Go modules entry. The heuristic
+  candidates flagged Microservices (0.5) and Event-Driven (0.3) which aligns with
+  this assessment. The Node.js/TypeScript signals likely correspond to the webapp
+  and/or plugin SDK layer.'

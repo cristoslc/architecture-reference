@@ -1,46 +1,47 @@
 project_name: temporal
 source: Discovered
-source_url: "https://github.com/temporalio/temporal"
-project_url: "https://github.com/temporalio/temporal"
+source_url: https://github.com/temporalio/temporal
+project_url: https://github.com/temporalio/temporal
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:24:16Z"
+discovered_at: '2026-03-04T06:24:16Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Workflow Orchestration
 language: Go
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Event-Driven
+- Microservices
 key_technologies:
-  - Go modules
-  - Docker Compose
-  - Kafka
-  - gRPC
-  - GitHub Actions
+- Go modules
+- Docker Compose
+- Kafka
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Architecture documentation present
-  - Multi-style composition (2 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Architecture documentation present
+- Multi-style composition (2 styles)
 notable_gaps:
-  - No architecture decision records found
-one_line_summary: Go project exhibiting Indeterminate patterns
+- No architecture decision records found
+one_line_summary: Temporal is a workflow orchestration platform written in Go that
+  uses Kafka as its event store to manage durable executions. The system communicates
+  via gRPC and deploys multiple services (frontend, history, matching, worker) using
+  Docker Compose.
 discovery_metadata:
-  confidence: 0.6
+  confidence: 0.75
   signals_detected: 93
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Event-Driven
-      score: 0.3
+  - style: Microservices
+    score: 0.5
+  - style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 1
     container_orchestration: 2
@@ -52,4 +53,13 @@ discovery_metadata:
     test_structure: 2
     documentation: 1
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Classification based on catalog metadata: key technologies include
+  Kafka (messaging), Docker Compose (container orchestration), and gRPC (API communication).
+  The signal breakdown shows high API specs (67) and container orchestration signals
+  (2), while heuristic candidates scored Microservices (0.5) and Event-Driven (0.3).
+  Given Temporal''s domain as a workflow orchestration engine that persists workflow
+  state as events in Kafka and coordinates across multiple services, both Event-Driven
+  (event sourcing pattern) and Microservices (multiple deployable components) apply.
+  The confidence is elevated because Temporal is a well-known production system with
+  documented architecture.'

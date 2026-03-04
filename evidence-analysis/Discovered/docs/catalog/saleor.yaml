@@ -1,50 +1,50 @@
 project_name: saleor
 source: Discovered
-source_url: "https://github.com/saleor/saleor"
-project_url: "https://github.com/saleor/saleor"
+source_url: https://github.com/saleor/saleor
+project_url: https://github.com/saleor/saleor
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:17:48Z"
+discovered_at: '2026-03-04T06:17:48Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: Python
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Service-Based
+- Layered
 key_technologies:
-  - Node.js
-  - Python/pip
-  - Docker
-  - Docker Compose
-  - GraphQL
-  - GitHub Actions
+- Node.js
+- Python/pip
+- Docker
+- Docker Compose
+- GraphQL
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Saleor is a Python-based E-Commerce platform with a multi-component
+  architecture. It uses GraphQL APIs, Docker-based deployment, and shows characteristics
+  of a Service-Based architecture with separate frontend (Node.js) and backend (Python)
+  components, along with traditional layered patterns in the backend.
 discovery_metadata:
-  confidence: 0.6
+  confidence: 0.75
   signals_detected: 28
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: CQRS
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.5
+  - style: CQRS
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 3
@@ -56,4 +56,13 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 3
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: (1) Both Python and Node.js in key_technologies
+  suggests multi-component architecture with separate services, (2) container_orchestration:
+  3 signals indicates multiple deployable units, (3) api_specs: 2 suggests separate
+  APIs for different components, (4) ci_cd: 20 shows strong deployment automation,
+  (5) No messaging signals (0) rules out Event-Driven, (6) Heuristic candidates show
+  Microservices (0.5) but below threshold. The presence of both Node.js (likely Dashboard/Storefront)
+  and Python (API server) with Docker Compose suggests a Service-Based architecture
+  with 2-3 coarse-grained services sharing data but having distinct responsibilities.
+  The GraphQL API is the primary interface, common in modern e-commerce platforms.'

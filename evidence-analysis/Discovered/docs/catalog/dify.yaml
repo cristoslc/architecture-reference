@@ -1,54 +1,52 @@
 project_name: dify
 source: Discovered
-source_url: "https://github.com/langgenius/dify"
-project_url: "https://github.com/langgenius/dify"
+source_url: https://github.com/langgenius/dify
+project_url: https://github.com/langgenius/dify
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:40:57Z"
+discovered_at: '2026-03-04T06:40:57Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: AI/ML
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Microservices
+- Event-Driven
 key_technologies:
-  - Node.js
-  - Python/pip
-  - Docker
-  - Docker Compose
-  - RabbitMQ
-  - GitHub Actions
+- Node.js
+- Python/pip
+- Docker
+- Docker Compose
+- RabbitMQ
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Dify is an LLM application development platform composed of multiple
+  independently deployable services communicating via RabbitMQ, containerized with
+  Docker and orchestrated via Docker Compose
 discovery_metadata:
-  confidence: 0.6
+  confidence: 0.72
   signals_detected: 34
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.72
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.5
+  - style: Event-Driven
+    score: 0.3
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 3
     container_orchestration: 6
@@ -60,4 +58,14 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 4
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: (1) RabbitMQ listed as key technology — strong
+  Event-Driven signal; (2) Docker + Docker Compose with 6 container_orchestration
+  signals suggests multiple services; (3) 3 package_manifests suggest separate service
+  codebases (likely API backend in Python, web frontend in TypeScript, and worker
+  service); (4) heuristic_candidates score Microservices 0.5 as top candidate; (5)
+  Dify is publicly known as a multi-service LLM platform with separate api, web, worker,
+  and sandbox containers. Event-Driven secondary style supported by RabbitMQ usage
+  (typically used for async task queuing between api and worker services in Dify).
+  DDD and Pipe-and-Filter signals (both 0.3) are likely internal implementation patterns
+  rather than primary architectural styles.'

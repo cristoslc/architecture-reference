@@ -1,49 +1,48 @@
 project_name: zuul
 source: Discovered
-source_url: "https://github.com/Netflix/zuul"
-project_url: "https://github.com/Netflix/zuul"
+source_url: https://github.com/Netflix/zuul
+project_url: https://github.com/Netflix/zuul
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:05:42Z"
+discovered_at: '2026-03-04T06:05:42Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Java/Kotlin
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Service-Based
+- Pipe-and-Filter
 key_technologies:
-  - Gradle
-  - GitHub Actions
+- Gradle
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Netflix Zuul is an API Gateway that acts as a reverse proxy with
+  filter-based request processing. It exhibits Service-Based architecture (coarse-grained
+  gateway service) combined with Pipe-and-Filter (ZuulFilter chain for cross-cutting
+  concerns like auth, rate-limiting, routing).
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.75
   signals_detected: 18
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.4
+  - style: Event-Driven
+    score: 0.3
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 6
     container_orchestration: 0
@@ -55,4 +54,11 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_required: true
+review_required: false
+review_notes: 'Evidence: 6 package manifests indicate modular structure; 4 messaging
+  signals; 7 CI/CD signals. This is a well-known Netflix OSS API Gateway project that
+  uses filter chains for request processing - a classic pipe-and-filter pattern. The
+  gateway sits in front of backend services, representing a single coarse-grained
+  service (Service-Based) rather than multiple microservices. No Kubernetes/container
+  orchestration present, and no API specs - consistent with a gateway service rather
+  than microservices.'

@@ -1,51 +1,53 @@
 project_name: nextflow
 source: Discovered
-source_url: "https://github.com/nextflow-io/nextflow"
-project_url: "https://github.com/nextflow-io/nextflow"
+source_url: https://github.com/nextflow-io/nextflow
+project_url: https://github.com/nextflow-io/nextflow
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:35:28Z"
+discovered_at: '2026-03-04T06:35:28Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Bioinformatics
 language: Java/Kotlin
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Pipe-and-Filter
+- Modular Monolith
+- Event-Driven
+- Domain-Driven Design
 key_technologies:
-  - Gradle
-  - Python/pip
-  - Docker
-  - GitHub Actions
+- Gradle
+- Python/pip
+- Docker
+- GitHub Actions
 quality_attributes:
-  - Deployability
-  - Evolvability
-  - Modularity
+- Deployability
+- Evolvability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Well-documented architecture decisions (ADRs)
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- Well-documented architecture decisions (ADRs)
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Nextflow is a scientific workflow orchestration engine built as
+  a modular monolith whose core model is Pipe-and-Filter (processes connected by channels),
+  with event-driven dataflow communication and DDD-style domain modeling of workflow
+  concepts
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.75
   signals_detected: 45
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Microservices
+    score: 0.4
+  - style: Event-Driven
+    score: 0.3
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 18
     container_orchestration: 8
@@ -57,4 +59,11 @@ discovery_metadata:
     test_structure: 3
     documentation: 4
     directory_structure: 2
-review_required: true
+review_required: false
+review_notes: 'Evidence: Pipe-and-Filter inferred from Nextflow''s well-known channel/process
+  pipeline model; Modular Monolith from 18 package manifests + Gradle multi-module
+  structure + no API gateway/service-discovery signals; Event-Driven from 3 messaging
+  signals and reactive channel dataflow; DDD from 4 ADRs + explicit domain concepts
+  (Process, Channel, Executor, Pipeline); Microservices candidate (0.4) rejected —
+  Docker signals indicate container orchestration of workflow tasks, not application
+  decomposition'

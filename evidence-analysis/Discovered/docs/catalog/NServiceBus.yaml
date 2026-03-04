@@ -1,50 +1,49 @@
 project_name: NServiceBus
 source: Discovered
-source_url: "https://github.com/Particular/NServiceBus"
-project_url: "https://github.com/Particular/NServiceBus"
+source_url: https://github.com/Particular/NServiceBus
+project_url: https://github.com/Particular/NServiceBus
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:08:48Z"
+discovered_at: '2026-03-04T06:08:48Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
-language: "C#"
-languages:
-
+language: C#
+languages: null
 architecture_styles:
-  - Indeterminate
+- Event-Driven
+- Hexagonal Architecture
 key_technologies:
-  - .NET
-  - GitHub Actions
+- .NET
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No test infrastructure detected
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+- No architecture decision records found
+- No test infrastructure detected
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: NServiceBus is a .NET messaging/enterprise service bus framework
+  - a library/SDK that enables Event-Driven architectures in consumer applications.
+  The codebase itself exhibits hexagonal patterns with ports and adapters for different
+  transport, persistence, and serialization mechanisms.
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.75
   signals_detected: 20
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.4
+  - style: Event-Driven
+    score: 0.3
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 12
     container_orchestration: 0
@@ -56,4 +55,15 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: NServiceBus is a well-known .NET messaging framework
+  from Particular Systems. Signal breakdown shows 12 package manifests (multiple modules/components),
+  1 messaging signal (expected for a messaging framework), 7 CI/CD signals. Heuristic
+  candidates show Event-Driven (0.3), Modular Monolith (0.4), DDD (0.3), Pipe-and-Filter
+  (0.3). The project is fundamentally a messaging infrastructure library that implements
+  the Event-Driven architecture pattern for its users - internally it uses a message-based
+  core with pluggable adapters (transports like MSMQ, RabbitMQ, Azure Service Bus;
+  persistence like NHibernate, RavenDB, EF). This is consistent with Hexagonal Architecture
+  (ports = message handling interfaces, adapters = transport/persistence implementations).
+  Classification is moderate confidence due to being a library rather than an application,
+  but the architectural patterns are well-established.'

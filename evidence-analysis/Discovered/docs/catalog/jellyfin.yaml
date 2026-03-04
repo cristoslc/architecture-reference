@@ -1,49 +1,47 @@
 project_name: jellyfin
 source: Discovered
-source_url: "https://github.com/jellyfin/jellyfin"
-project_url: "https://github.com/jellyfin/jellyfin"
+source_url: https://github.com/jellyfin/jellyfin
+project_url: https://github.com/jellyfin/jellyfin
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:29:02Z"
+discovered_at: '2026-03-04T06:29:02Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Media
-language: "C#"
-languages:
-
+language: C#
+languages: null
 architecture_styles:
-  - Indeterminate
+- Modular Monolith
+- Layered (N-Tier)
 key_technologies:
-  - .NET
-  - GitHub Actions
+- .NET
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "C# project exhibiting Indeterminate patterns"
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Jellyfin is an open-source media server built as a modular monolith
+  with layered architecture, organized into discrete C# projects (API, Core, Controller,
+  Data, Model layers) deployed as a single unit
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.75
   signals_detected: 55
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.75
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.4
+  - style: Event-Driven
+    score: 0.3
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 42
     container_orchestration: 0
@@ -55,4 +53,14 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_required: true
+review_required: false
+review_notes: 'Based on public knowledge of the Jellyfin repository: it is structured
+  as a single deployable .NET application with multiple C# projects (Jellyfin.Server,
+  MediaBrowser.Controller, MediaBrowser.Model, MediaBrowser.Common, Emby.Server.Implementations,
+  Jellyfin.Api, Jellyfin.Data) each representing distinct modules with clear layer
+  boundaries (API layer, controller/business logic layer, data/model layer). No Kubernetes/Docker
+  multi-service orchestration, no message broker configuration. The 42 package manifests
+  signal multiple .csproj files (modular project separation), and the single messaging
+  signal is consistent with internal eventing rather than external broker. Heuristic
+  candidates of Modular Monolith (0.4) and DDD (0.3) from catalog align with the known
+  project-per-concern structure.'

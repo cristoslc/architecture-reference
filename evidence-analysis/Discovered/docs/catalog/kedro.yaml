@@ -1,47 +1,46 @@
 project_name: kedro
 source: Discovered
-source_url: "https://github.com/kedro-org/kedro"
-project_url: "https://github.com/kedro-org/kedro"
+source_url: https://github.com/kedro-org/kedro
+project_url: https://github.com/kedro-org/kedro
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:35:14Z"
+discovered_at: '2026-03-04T06:35:14Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Science
 language: Python
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Pipe-and-Filter
+- Modular Monolith
 key_technologies:
-  - Python/pip
-  - Kafka
-  - GitHub Actions
+- Python/pip
+- Kafka
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Kedro is a Python data pipeline framework whose core abstraction
+  is a DAG of nodes (Pipe-and-Filter), organized internally as a modular monolith
+  with well-separated framework components (pipeline, io, config, runner, extras)
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.85
   signals_detected: 26
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.4
+  classification_method: llm-review
+  primary_style_confidence: 0.85
   heuristic_candidates:
-    -
-      style: Modular Monolith
-      score: 0.4
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Modular Monolith
+    score: 0.4
+  - style: Event-Driven
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 6
     container_orchestration: 0
@@ -53,4 +52,12 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: true
+review_required: false
+review_notes: 'Evidence: Kedro''s primary user-facing abstraction is Pipeline + Node
+  — data flows through a sequence of transforming nodes, a textbook Pipe-and-Filter
+  pattern. Internally the codebase is a single deployable package with well-defined
+  submodules (kedro.pipeline, kedro.io, kedro.config, kedro.runner, kedro.framework)
+  consistent with Modular Monolith. Kafka signal in catalog likely reflects kedro-datasets
+  or streaming dataset support in extras. Heuristic candidates (Pipe-and-Filter: 0.3,
+  Modular Monolith: 0.4) corroborate this classification. This is a framework/library
+  repo, but its own internal architecture is classifiable.'

@@ -1,42 +1,43 @@
 project_name: full-stack-fastapi-template
 source: Discovered
-source_url: "https://github.com/tiangolo/full-stack-fastapi-template"
-project_url: "https://github.com/tiangolo/full-stack-fastapi-template"
+source_url: https://github.com/tiangolo/full-stack-fastapi-template
+project_url: https://github.com/tiangolo/full-stack-fastapi-template
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:10:23Z"
+discovered_at: '2026-03-04T06:10:23Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Indeterminate
+- Layered (N-Tier)
+- Service-Based
 key_technologies:
-  - Node.js
-  - Python/pip
-  - Docker
-  - Docker Compose
-  - GitHub Actions
+- Node.js
+- Python/pip
+- Docker
+- Docker Compose
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Indeterminate patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Full-stack web application template combining a FastAPI Python backend,
+  a TypeScript/Node.js frontend, and a database, orchestrated via Docker Compose as
+  a small number of coarse-grained services
 discovery_metadata:
-  confidence: 0.5
+  confidence: 0.72
   signals_detected: 21
   signals_evaluated: 10
-  classification_method: heuristic-inconclusive
-  primary_style_confidence: 0.5
+  classification_method: llm-review
+  primary_style_confidence: 0.72
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.5
+  - style: Microservices
+    score: 0.5
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 4
@@ -48,4 +49,15 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: true
+review_required: false
+review_notes: 'Evidence from catalog: (1) Known public repo ''tiangolo/full-stack-fastapi-template''
+  is a well-documented full-stack template with FastAPI backend (controllers/routers
+  + services + models = layered), React/TypeScript frontend, and PostgreSQL — classic
+  N-tier web stack. (2) 4 container_orchestration signals + 4 package_manifests suggest
+  ~2-4 distinct service containers (frontend, backend, db, possibly proxy/traefik),
+  fitting Service-Based rather than full Microservices. (3) No messaging signals (0)
+  rules out Event-Driven. (4) No api_specs signals rules against formal Microservices
+  contract patterns. (5) Score of 0.5 for Microservices in heuristic_candidates is
+  likely a false positive from Docker presence alone — service count and lack of service
+  discovery/API gateway config point to Service-Based. (6) FastAPI backends conventionally
+  use routers → services → repositories/models layering, supporting Layered classification.'
