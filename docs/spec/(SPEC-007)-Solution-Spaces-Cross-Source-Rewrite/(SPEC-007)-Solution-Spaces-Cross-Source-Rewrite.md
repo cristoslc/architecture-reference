@@ -68,4 +68,4 @@ The `docs/reference-library/solution-spaces.md` document (528 lines) is 95% Kata
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | — | Initial creation |
-| Active | 2026-03-04 | | Dependencies satisfied (SPEC-004, SPEC-005 implemented), awaiting problem-spaces.md rewrite |
+| Active | 2026-03-04 | ec39055 | Dependencies satisfied (SPEC-004, SPEC-005 implemented), awaiting problem-spaces.md rewrite |
