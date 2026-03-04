@@ -145,8 +145,27 @@ Every `llm` call must return JSON conforming to one of three verdict types:
 |--------|---------|------------|
 | Catalog YAML | Full entry including signal_breakdown, heuristic_candidates | Full |
 | README | First 300 lines of README.md (or README.rst, README.txt) | ~300 lines |
-| Repo map | `find` tree of repo root, depth 3, excluding node_modules/.git/vendor | ~200 lines |
+| Repo map | `find` tree of repo root, depth 3, excluding dependency/build/VCS directories (see exclusion list below) | ~200 lines |
 | Manifest metadata | domain, priority, expected_styles from manifest.yaml | Few lines |
+
+**Repo map exclusion list** (directories pruned from `find` tree):
+
+| Category | Excluded directories |
+|----------|---------------------|
+| VCS | `.git`, `.svn`, `.hg` |
+| Node.js | `node_modules` |
+| Python | `__pycache__`, `.venv`, `venv`, `.tox`, `.eggs`, `*.egg-info` |
+| Java/Kotlin | `target`, `.gradle`, `build`, `.mvn` |
+| .NET/C# | `bin`, `obj`, `packages` |
+| Go | `vendor` |
+| Rust | `target` |
+| Ruby | `.bundle`, `vendor/bundle` |
+| PHP | `vendor` |
+| Elixir | `_build`, `deps` |
+| Swift/Xcode | `.build`, `DerivedData`, `Pods` |
+| General build | `dist`, `out`, `.next`, `.nuxt`, `.output` |
+| IDE/tooling | `.idea`, `.vs`, `.vscode`, `.eclipse` |
+| Misc | `.cache`, `.tmp`, `coverage`, `.nyc_output`, `__snapshots__` |
 
 **Turn 2+ (on `needs_info` response):**
 
