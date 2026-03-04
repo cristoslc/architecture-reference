@@ -1,7 +1,7 @@
 ---
 title: "Pipeline Signal Preservation"
 artifact: SPEC-004
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -62,7 +62,10 @@ The Discovered evidence source (173 repos) needs persistent signals stored in `e
 
 **In scope:**
 - Modify SPEC-002 pipeline to preserve signals
-- Rerun pipeline on all 173 Discovered repos to generate signals retroactively
+- Add GitHub metadata collection (stars, forks, open issues, license) via GitHub API
+- Add star-based filtering (minimum threshold, configurable, default 1000 stars)
+- Support GitHub token via .env file for API rate limits
+- Rerun pipeline on Discovered repos meeting star threshold
 - Commit signals to git
 - Document signal file format
 
@@ -89,3 +92,4 @@ The Discovered evidence source (173 repos) needs persistent signals stored in `e
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | 960504c | Initial creation for EPIC-004 implementation |
+| Implemented | 2026-03-04 | | Layer 1 complete: 163 signals created with GitHub metadata, star filtering enabled |
