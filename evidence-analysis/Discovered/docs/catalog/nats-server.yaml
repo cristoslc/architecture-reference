@@ -1,43 +1,45 @@
 project_name: nats-server
 source: Discovered
-source_url: https://github.com/nats-io/nats-server
-project_url: https://github.com/nats-io/nats-server
+source_url: "https://github.com/nats-io/nats-server"
+project_url: "https://github.com/nats-io/nats-server"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:29:29Z'
+discovered_at: "2026-03-04T06:06:32Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Messaging
 language: Go
-languages: null
+languages:
+
 architecture_styles:
-- Event-Driven
+  - Indeterminate
 key_technologies:
-- Go modules
-- Docker
-- NATS
-- GitHub Actions
+  - Go modules
+  - Docker
+  - NATS
+  - GitHub Actions
 quality_attributes:
-- Deployability
+  - Deployability
 notable_strengths:
-- Moderate signal profile with identifiable patterns
-- CI/CD automation present
-- Multi-style composition (2 styles)
+  - Moderate signal profile with identifiable patterns
+  - CI/CD automation present
+  - Multi-style composition (2 styles)
 notable_gaps:
-- No architecture decision records found
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: 'NATS messaging server: a high-performance pub/sub, request/reply,
-  and streaming system built around subject-based message routing with JetStream persistence'
+  - No architecture decision records found
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Go project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.5
   signals_detected: 11
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-  - style: Modular Monolith
-    score: 0.4
-  - style: Event-Driven
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.4
+    -
+      style: Event-Driven
+      score: 0.3
   signal_breakdown:
     package_manifests: 1
     container_orchestration: 1
@@ -49,19 +51,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: 'README explicitly describes NATS as ''a simple, secure and performant
-  communications system for digital systems, services and devices'' — it IS a messaging/event
-  infrastructure system. Core architecture in server/ is built entirely around event-driven
-  primitives: subject-based pub/sub (server/sublist.go, server/client.go with CLIENT/ROUTER/GATEWAY/LEAF/JETSTREAM
-  connection types), message streams with configurable retention (server/stream.go
-  StreamConfig with subjects, retention policies), consumers with delivery semantics
-  (server/consumer.go), persistent event log via JetStream (server/jetstream.go, server/jetstream_cluster.go
-  for Raft-based replication), event routing across clusters (server/route.go, server/gateway.go
-  for inter-cluster links, server/leafnode.go for edge connections), and system events
-  for observability (server/events.go with $SYS subject hierarchy for connect/disconnect/account
-  events). The entire codebase IS an event-driven messaging system — subject-based
-  addressing, publish-subscribe fan-out, queue groups for load-balanced consumption,
-  at-least-once/exactly-once delivery via JetStream, and Raft consensus for stream
-  replication. Confidence 0.95: this is a textbook event-driven system — it does not
-  merely use event-driven patterns, it is the event-driven infrastructure itself.'
+review_required: true

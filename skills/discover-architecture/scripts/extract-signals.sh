@@ -12,6 +12,7 @@
 # Does NOT modify the target repository.
 
 set -uo pipefail
+
 # Note: -e is intentionally omitted. Many detection commands use grep which
 # returns non-zero when no match is found — that's expected, not an error.
 
@@ -60,6 +61,50 @@ PROJECT_NAME="$(basename "$REPO_PATH")"
 GIT_REMOTE=""
 if [ -d .git ] || git rev-parse --git-dir >/dev/null 2>&1; then
   GIT_REMOTE="$(git remote get-url origin 2>/dev/null || echo "")"
+fi
+
+# --- GitHub metadata (with retry, backoff, wait on rate limit, and optional token) ---
+GITHUB_STARS=0
+GITHUB_FORKS=0
+GITHUB_OPEN_ISSUES=0
+GITHUB_WATCHERS=0
+GITHUB_LICENSE=""
+
+# Check for GitHub token in environment (set GITHUB_TOKEN=xxx before running)
+# Without token: 60 requests/hour, with token: 5000 requests/hour
+if [[ "$GIT_REMOTE" == *"github.com"* ]]; then
+    GITHUB_REPO="$(echo "$GIT_REMOTE" | sed -E 's|.*github\.com/||; s|\.git$||')"
+    
+    # Try up to 3 times with exponential backoff
+    delay=2
+    for attempt in 1 2 3; do
+        # Build curl command dynamically
+        if [[ -n "${GITHUB_TOKEN:-}" ]]; then
+            response="$(curl -s --max-time 30 -H "Accept: application/vnd.github.v3+json" -H "Authorization: token $GITHUB_TOKEN" "https://api.github.com/repos/$GITHUB_REPO")"
+        else
+            response="$(curl -s --max-time 30 -H "Accept: application/vnd.github.v3+json" "https://api.github.com/repos/$GITHUB_REPO")"
+        fi
+        
+        # Skip if empty or looks like error
+        if [[ -z "$response" || "$response" == "<"* ]]; then
+            sleep $delay
+            delay=$((delay * 2))
+            continue
+        fi
+        
+        # Success - parse the data (check if valid JSON first)
+        if echo "$response" | python3 -c "import sys,json; json.load(sys.stdin)" 2>/dev/null; then
+            GITHUB_STARS="$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('stargazers_count',0))" 2>/dev/null || echo "0")"
+            GITHUB_FORKS="$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('forks_count',0))" 2>/dev/null || echo "0")"
+            GITHUB_OPEN_ISSUES="$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('open_issues_count',0))" 2>/dev/null || echo "0")"
+            GITHUB_WATCHERS="$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('watchers_count',0))" 2>/dev/null || echo "0")"
+            GITHUB_LICENSE="$(echo "$response" | python3 -c "import sys,json; d=json.load(sys.stdin); print(d.get('license',{}).get('spdx_id',''))" 2>/dev/null || echo "")"
+            break
+        fi
+        
+        sleep $delay
+        delay=$((delay * 2))
+    done
 fi
 
 # --- Primary language detection ---
@@ -263,6 +308,13 @@ project:
   languages:
 ${LANGUAGES_YAML}
   ecosystem_count: ${ECOSYSTEM_COUNT}
+
+github:
+  stars: ${GITHUB_STARS}
+  forks: ${GITHUB_FORKS}
+  open_issues: ${GITHUB_OPEN_ISSUES}
+  watchers: ${GITHUB_WATCHERS}
+  license: "${GITHUB_LICENSE}"
 
 signals:
   total_detected: ${TOTAL_SIGNALS}

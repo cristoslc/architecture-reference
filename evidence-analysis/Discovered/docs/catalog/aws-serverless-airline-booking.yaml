@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/aws-samples/aws-serverless-airline-booking"
 project_url: "https://github.com/aws-samples/aws-serverless-airline-booking"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:45:36Z"
+discovered_at: "2026-03-04T06:28:01Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Travel
@@ -11,29 +11,26 @@ language: ""
 languages:
 
 architecture_styles:
-  - Serverless
-  - Event-Driven
+  - Indeterminate
 key_technologies:
-
 quality_attributes:
-
 notable_strengths:
-
 notable_gaps:
   - No architecture decision records found
   - No test infrastructure detected
   - No CI/CD configuration detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: AWS serverless airline booking app with Lambda, Step Functions, SNS, AppSync, and DynamoDB across 4 independently deployed services
+one_line_summary:  project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.4
   signals_detected: 0
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-    style: Modular Monolith
-    score: 0.4
+    -
+      style: Modular Monolith
+      score: 0.4
   signal_breakdown:
     package_manifests: 0
     container_orchestration: 0
@@ -45,5 +42,4 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: "README.md describes full serverless stack: Vue.js frontend via Amplify, AppSync GraphQL API hub, Cognito auth, DynamoDB storage. Four backend services in src/backend/ (catalog, booking, payment, loyalty), each with its own SAM template.yaml using AWS::Serverless-2016-10-31. Booking service template.yaml defines AWS::StepFunctions::StateMachine (ProcessBooking) orchestrating reserve-flight, reserve-booking, collect-payment, confirm-booking with compensating transactions (cancel, refund, release). SNS BookingTopic enables async messaging; Loyalty IngestFunc subscribes via SNS FilterPolicy on Booking.Status=confirmed. Services use different languages (Python for booking/payment/catalog, TypeScript for loyalty). Makefile deploys services independently (deploy.booking, deploy.payment, deploy.loyalty). amplify.yml defines CI/CD pipeline. Shared Lambda Layer in src/backend/shared/libs."
+review_required: true

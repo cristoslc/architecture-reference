@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/apache/kafka"
 project_url: "https://github.com/apache/kafka"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:29:20Z"
+discovered_at: "2026-03-04T06:06:22Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Messaging
@@ -11,8 +11,7 @@ language: Java/Kotlin
 languages:
 
 architecture_styles:
-  - Event-Driven
-  - Modular Monolith
+  - Indeterminate
 key_technologies:
   - Maven
   - Gradle
@@ -31,16 +30,23 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Canonical distributed event streaming platform with log-based publish-subscribe, built as a modular monolith with 30+ Gradle subprojects
+one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.7
   signals_detected: 96
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.6
   heuristic_candidates:
-    style: Domain-Driven Design
-    score: 0.3
+    -
+      style: Event-Driven
+      score: 0.6
+    -
+      style: Microservices
+      score: 0.5
+    -
+      style: Domain-Driven Design
+      score: 0.3
   signal_breakdown:
     package_manifests: 8
     container_orchestration: 13
@@ -52,5 +58,4 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
-review_required: false
-review_notes: "README line 12 explicitly states 'open-source distributed event streaming platform.' The entire system IS the event-driven infrastructure: topics, partitions, producers, consumers, and a commit log at its core. 198 JSON request/response message definitions in clients/src/main/resources/common/message/ define the event-based protocol. The streams module (Topology.java, KStream.java, StreamsBuilder.java) implements stream processing topologies. The connect framework (connect/) provides source/sink connector abstractions for event integration. Modular Monolith: settings.gradle defines 30+ subprojects (clients, core, server, streams, connect, raft, metadata, storage, group-coordinator, transaction-coordinator, coordinator-common, share-coordinator) that compile and deploy as a single broker process. Each module has clear domain boundaries (storage, coordination, raft consensus, stream processing) but they are not independently deployable services. docs/design/design.md describes the unified log-based architecture motivation. The raft/ module implements KRaft consensus replacing ZooKeeper. Not classifiable as Microservices despite distributed deployment: brokers run the same monolithic codebase."
+review_required: true

@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/forem/forem"
 project_url: "https://github.com/forem/forem"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:35:07Z"
+discovered_at: "2026-03-04T06:12:31Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Social Media
@@ -11,16 +11,12 @@ language: Ruby
 languages:
 
 architecture_styles:
-  - Layered
-  - Event-Driven
+  - Indeterminate
 key_technologies:
-  - Ruby on Rails 7
-  - Sidekiq
-  - Redis
-  - PostgreSQL
-  - Preact
+  - Node.js
   - Docker
   - Docker Compose
+  - RabbitMQ
   - OpenAPI
   - GitHub Actions
 quality_attributes:
@@ -32,16 +28,23 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Rails community platform (dev.to) with classic MVC layering and extensive Sidekiq-based async event processing
+one_line_summary: Ruby project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.5
   signals_detected: 19
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-    style: Event-Driven
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.4
+    -
+      style: Layered
+      score: 0.3
+    -
+      style: Event-Driven
+      score: 0.3
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 2
@@ -53,5 +56,4 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 2
-review_required: false
-review_notes: "Layered: Standard Rails MVC with app/models/ (116 files), app/controllers/ (89 files), app/views/, app/services/ (83 files), app/queries/ (10 dirs), app/policies/ (Pundit authorization), app/decorators/, app/serializers/, app/validators/, app/forms/. Clear presentation-logic-data separation following Rails conventions. Event-Driven: Extensive Sidekiq background workers in app/workers/ (46 dirs/files) covering notifications, feeds, emails, cache busting, metrics, badge awards, and scheduled automations. config/schedule.yml defines 30+ cron jobs via sidekiq-cron. ActionCable via config/cable.yml for real-time WebSocket messaging. Webhook receivers in app/controllers/incoming_webhooks/ (Stripe, Mailchimp). Redis used as both job queue (Sidekiq) and pub/sub (ActionCable). NOT Modular Monolith: despite organized service objects, there are no enforced module boundaries, no module-level namespacing with explicit public APIs, and models share a single flat namespace in app/models/."
+review_required: true

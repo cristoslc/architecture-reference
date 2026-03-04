@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/jbogard/MediatR"
 project_url: "https://github.com/jbogard/MediatR"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:33:11Z"
+discovered_at: "2026-03-04T06:10:28Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
@@ -11,8 +11,7 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Pipe-and-Filter
-  - CQRS
+  - Indeterminate
 key_technologies:
   - .NET
   - GitHub Actions
@@ -25,16 +24,20 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: In-process mediator library implementing pipeline behavior chain with command/query separation via ISender/IPublisher contracts
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.88
+  confidence: 0.5
   signals_detected: 19
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.88
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-    style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.4
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 15
     container_orchestration: 0
@@ -46,5 +49,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: false
-review_notes: "Pipeline architecture: IPipelineBehavior<TRequest,TResponse> defines filter stages; RequestHandlerWrapperImpl builds pipeline via Aggregate() delegate chain (src/MediatR/Wrappers/RequestHandlerWrapper.cs). Pipeline/ dir contains IRequestPreProcessor, IRequestPostProcessor, RequestPreProcessorBehavior, RequestPostProcessorBehavior, RequestExceptionProcessorBehavior. README shows AddBehavior/AddStreamBehavior/AddRequestPreProcessor/AddRequestPostProcessor registration. CQRS secondary: ISender dispatches commands/queries to single handlers, IPublisher dispatches notifications to multiple handlers. IRequest<TResponse> vs IRequest separates response-bearing queries from void commands. Library enables CQRS but does not enforce read/write model separation."
+review_required: true

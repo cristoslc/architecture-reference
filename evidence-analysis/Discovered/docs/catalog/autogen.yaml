@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/microsoft/autogen"
 project_url: "https://github.com/microsoft/autogen"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:56:38Z"
+discovered_at: "2026-03-04T06:40:04Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: AI/ML
@@ -11,9 +11,7 @@ language: Python
 languages:
 
 architecture_styles:
-  - Layered
-  - Multi-Agent
-  - Event-Driven
+  - Indeterminate
 key_technologies:
   - Node.js
   - Python/pip
@@ -30,16 +28,17 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Multi-agent AI framework with explicitly layered architecture (Core/AgentChat/Extensions) and event-driven message-passing runtime
+one_line_summary: Python project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.8
   signals_detected: 116
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.8
   heuristic_candidates:
-    style: Microservices
-    score: 0.8
+    -
+      style: Microservices
+      score: 0.8
   signal_breakdown:
     package_manifests: 85
     container_orchestration: 6
@@ -51,5 +50,4 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 1
-review_required: false
-review_notes: "LAYERED: README states 'layered and extensible design with clearly divided responsibilities': Core API (python/packages/autogen-core/) provides message passing and agent runtime, AgentChat API (python/packages/autogen-agentchat/) builds on Core with opinionated patterns, Extensions API (python/packages/autogen-ext/) enables pluggable integrations. MULTI-AGENT: Core primitives in autogen_core/_base_agent.py, _agent_id.py, _agent_proxy.py; agent types in agentchat/agents/ include AssistantAgent, SocietyOfMindAgent, CodeExecutorAgent; team orchestration in agentchat/teams/_group_chat/; AgentTool enables agent-as-tool composition; distributed runtime via gRPC in autogen_ext/runtimes/grpc/. EVENT-DRIVEN: Message-passing via PublishMessageEnvelope/SendMessageEnvelope in _single_threaded_agent_runtime.py; topic-based pub/sub with TopicId, TypeSubscription, TypePrefixSubscription; CloudEvents in protos/agent_worker.proto; architecture.md confirms agents communicate via messages through the runtime. Cross-language (Python+.NET) with shared protobuf contracts in protos/. UV workspace monorepo with 10 packages independently published to PyPI."
+review_required: true

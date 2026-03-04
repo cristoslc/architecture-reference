@@ -1,47 +1,49 @@
 project_name: sample-dotnet-core-cqrs-api
 source: Discovered
-source_url: https://github.com/kgrzybek/sample-dotnet-core-cqrs-api
-project_url: https://github.com/kgrzybek/sample-dotnet-core-cqrs-api
+source_url: "https://github.com/kgrzybek/sample-dotnet-core-cqrs-api"
+project_url: "https://github.com/kgrzybek/sample-dotnet-core-cqrs-api"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:31:57Z'
+discovered_at: "2026-03-04T06:09:08Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
-language: C#
-languages: null
+language: "C#"
+languages:
+
 architecture_styles:
-- CQRS
-- Domain-Driven Design
+  - Indeterminate
 key_technologies:
-- .NET
-- GitHub Actions
+  - .NET
+  - GitHub Actions
 quality_attributes:
-- Deployability
+  - Deployability
 notable_strengths:
-- Moderate signal profile with identifiable patterns
-- CI/CD automation present
-- Multi-style composition (4 styles)
+  - Moderate signal profile with identifiable patterns
+  - CI/CD automation present
+  - Multi-style composition (4 styles)
 notable_gaps:
-- No architecture decision records found
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Textbook CQRS + DDD sample with explicit command/query separation
-  using MediatR, rich domain model with aggregates/value objects/domain events, and
-  Dapper raw SQL read model vs EF Core write model
+  - No architecture decision records found
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.5
   signals_detected: 14
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-  - style: Modular Monolith
-    score: 0.4
-  - style: CQRS
-    score: 0.4
-  - style: Event-Driven
-    score: 0.3
-  - style: Domain-Driven Design
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.4
+    -
+      style: CQRS
+      score: 0.4
+    -
+      style: Event-Driven
+      score: 0.3
+    -
+      style: Domain-Driven Design
+      score: 0.3
   signal_breakdown:
     package_manifests: 6
     container_orchestration: 0
@@ -53,13 +55,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 1
-review_required: false
-review_notes: 'README explicitly states ''CQRS implementation with raw SQL and DDD
-  using Clean Architecture''. ICommand/IQuery separation in Application/Configuration/.
-  Read model uses Dapper with raw SQL on DB views (GetCustomerOrderDetailsQueryHandler).
-  Write model uses EF Core with rich domain entities (Customer aggregate root). DDD
-  tactical patterns: Entity base with domain events, IAggregateRoot marker, TypedIdValueBase
-  for strongly-typed IDs, IBusinessRule objects (CustomerCannotOrderMoreThan2OrdersOnTheSameDayRule),
-  ValueObject base class, Repository interfaces in Domain layer. Outbox pattern for
-  reliable event processing. Clean Architecture 4-layer structure: Domain, Application,
-  Infrastructure, API.'
+review_required: true

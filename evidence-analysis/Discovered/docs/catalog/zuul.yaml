@@ -1,45 +1,49 @@
 project_name: zuul
 source: Discovered
-source_url: https://github.com/Netflix/zuul
-project_url: https://github.com/Netflix/zuul
+source_url: "https://github.com/Netflix/zuul"
+project_url: "https://github.com/Netflix/zuul"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:28:48Z'
+discovered_at: "2026-03-04T06:05:42Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Java/Kotlin
-languages: null
+languages:
+
 architecture_styles:
-- Pipe-and-Filter
+  - Indeterminate
 key_technologies:
-- Gradle
-- GitHub Actions
+  - Gradle
+  - GitHub Actions
 quality_attributes:
-- Deployability
+  - Deployability
 notable_strengths:
-- Rich signal profile with strong architectural indicators
-- CI/CD automation present
-- Multi-style composition (4 styles)
+  - Rich signal profile with strong architectural indicators
+  - CI/CD automation present
+  - Multi-style composition (4 styles)
 notable_gaps:
-- No architecture decision records found
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: L7 application gateway built on a textbook Pipe-and-Filter architecture
-  with ordered inbound/endpoint/outbound filter chains
+  - No architecture decision records found
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.5
   signals_detected: 18
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-  - style: Modular Monolith
-    score: 0.4
-  - style: Event-Driven
-    score: 0.3
-  - style: Domain-Driven Design
-    score: 0.3
-  - style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.4
+    -
+      style: Event-Driven
+      score: 0.3
+    -
+      style: Domain-Driven Design
+      score: 0.3
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 6
     container_orchestration: 0
@@ -51,15 +55,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_required: false
-review_notes: 'README states Zuul is an L7 application gateway for dynamic routing,
-  monitoring, resiliency, and security. Core architecture is a three-stage pipeline:
-  INBOUND->ENDPOINT->OUTBOUND (FilterType.java). ZuulFilterChainRunner iterates ordered
-  ZuulFilter[] arrays, passing ZuulMessage through each filter sequentially. ZuulFilterChainHandler
-  wires request and response filter chains. Filter.java annotation defines order,
-  type (INBOUND/ENDPOINT/OUTBOUND), category, and sync type. FilterCategory.java enumerates
-  cross-cutting concerns applied as pipeline stages: abuse, access, routing, observability,
-  context-decorator, etc. Sample app demonstrates: inbound filters (Routes, DebugRequest)
-  -> endpoint (ProxyEndpoint/Healthcheck) -> outbound filters (ZuulResponseFilter).
-  Each filter implements shouldFilter()+apply() pattern, transforming the message
-  before passing it to the next stage. This is a canonical Pipe-and-Filter implementation.'
+review_required: true

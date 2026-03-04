@@ -1,47 +1,50 @@
 project_name: NServiceBus
 source: Discovered
-source_url: https://github.com/Particular/NServiceBus
-project_url: https://github.com/Particular/NServiceBus
+source_url: "https://github.com/Particular/NServiceBus"
+project_url: "https://github.com/Particular/NServiceBus"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:31:42Z'
+discovered_at: "2026-03-04T06:08:48Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
-language: C#
-languages: null
+language: "C#"
+languages:
+
 architecture_styles:
-- Event-Driven
-- Pipe-and-Filter
+  - Indeterminate
 key_technologies:
-- .NET
-- GitHub Actions
+  - .NET
+  - GitHub Actions
 quality_attributes:
-- Deployability
+  - Deployability
 notable_strengths:
-- Rich signal profile with strong architectural indicators
-- CI/CD automation present
-- Multi-style composition (4 styles)
+  - Rich signal profile with strong architectural indicators
+  - CI/CD automation present
+  - Multi-style composition (4 styles)
 notable_gaps:
-- No architecture decision records found
-- No test infrastructure detected
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Event-driven messaging framework for .NET with an explicit pipe-and-filter
-  internal pipeline architecture
+  - No architecture decision records found
+  - No test infrastructure detected
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.5
   signals_detected: 20
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-  - style: Modular Monolith
-    score: 0.4
-  - style: Event-Driven
-    score: 0.3
-  - style: Domain-Driven Design
-    score: 0.3
-  - style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.4
+    -
+      style: Event-Driven
+      score: 0.3
+    -
+      style: Domain-Driven Design
+      score: 0.3
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 12
     container_orchestration: 0
@@ -53,14 +56,4 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 1
-review_required: false
-review_notes: 'README: ''NServiceBus is part of the Particular Service Platform''
-  for building distributed systems with message queues. Core architecture evidence:
-  src/NServiceBus.Core/Pipeline/ contains IBehavior<TInContext,TOutContext> (filters),
-  StageConnector (stage-linking pipes), ForkConnector (pipeline forking), PipelineModelBuilder
-  (topological sort of behaviors), PipelineTerminator. Message processing: MainPipelineExecutor
-  drives messages through receivePipeline. Event-driven evidence: IHandleMessages<T>
-  handler interface, Routing/ with publish/subscribe (ISubscriptionManager, NativePublishSubscribeFeature,
-  UnicastPublishRouter), Transports/ with transport abstractions (IMessageDispatcher,
-  IMessageReceiver, TransportDefinition). Sagas/ for long-running orchestration. Supports
-  Azure Service Bus, SQS/SNS, RabbitMQ, SQL Server transports.'
+review_required: true

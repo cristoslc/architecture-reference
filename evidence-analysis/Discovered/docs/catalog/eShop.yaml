@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/dotnet/eShop"
 project_url: "https://github.com/dotnet/eShop"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:28:56Z"
+discovered_at: "2026-03-04T06:05:52Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
@@ -11,10 +11,7 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - Domain-Driven Design
-  - CQRS
+  - Indeterminate
 key_technologies:
   - Node.js
   - .NET
@@ -31,16 +28,29 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: .NET Aspire reference e-commerce app with microservices communicating via RabbitMQ integration events, DDD aggregates in Ordering domain, and CQRS command/query separation
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.7
   signals_detected: 72
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.6
   heuristic_candidates:
-    style: Hexagonal Architecture
-    score: 0.3
+    -
+      style: Event-Driven
+      score: 0.6
+    -
+      style: Microservices
+      score: 0.5
+    -
+      style: Domain-Driven Design
+      score: 0.4
+    -
+      style: CQRS
+      score: 0.4
+    -
+      style: Hexagonal Architecture
+      score: 0.3
   signal_breakdown:
     package_manifests: 25
     container_orchestration: 0
@@ -52,5 +62,4 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 4
-review_required: false
-review_notes: "Microservices: 7+ independently deployable services (Basket.API, Catalog.API, Ordering.API, Identity.API, OrderProcessor, PaymentProcessor, Webhooks.API) orchestrated via .NET Aspire AppHost (src/eShop.AppHost/Program.cs). Each service has own database (catalogdb, identitydb, orderingdb, webhooksdb). Event-Driven: RabbitMQ-backed integration event bus (src/EventBus/, src/EventBusRabbitMQ/RabbitMQEventBus.cs) with integration events across services; PaymentProcessor subscribes to OrderStatusChangedToStockConfirmed and publishes payment results (src/PaymentProcessor/IntegrationEvents/); Ordering.API publishes/consumes 10+ integration events (src/Ordering.API/Application/IntegrationEvents/). DDD: Ordering bounded context with full tactical DDD — Aggregate Roots (Order, Buyer), Value Objects (Address), Entities, Repository pattern (src/Ordering.Domain/AggregatesModel/), SeedWork base classes (Entity, IAggregateRoot, IUnitOfWork, ValueObject at src/Ordering.Domain/SeedWork/), domain events (7 domain event types at src/Ordering.Domain/Events/), and rich domain model with encapsulated state transitions (Order.SetPaidStatus, SetShippedStatus etc.). CQRS: Explicit command/query separation in Ordering — Commands via MediatR IRequest handlers (src/Ordering.API/Application/Commands/ with CreateOrderCommand, CancelOrderCommand, ShipOrderCommand etc.) and separate Query objects bypassing domain model (src/Ordering.API/Application/Queries/OrderQueries.cs uses direct EF Core projections). CreateOrderCommand explicitly references CQRS pattern in code comments."
+review_required: true

@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/akka/akka"
 project_url: "https://github.com/akka/akka"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:56:10Z"
+discovered_at: "2026-03-04T06:39:31Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
@@ -11,10 +11,7 @@ language: Java/Kotlin
 languages:
 
 architecture_styles:
-  - Event-Driven
-  - Modular Monolith
-  - Pipe-and-Filter
-  - Multi-Agent
+  - Indeterminate
 key_technologies:
   - Maven
   - Gradle
@@ -32,16 +29,23 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: "Scala actor-model toolkit: modular monolith library with event-sourced persistence, reactive streams (pipe-and-filter), and multi-agent actor system"
+one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.8
   signals_detected: 59
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.7
   heuristic_candidates:
-    style: Domain-Driven Design
-    score: 0.3
+    -
+      style: Microservices
+      score: 0.7
+    -
+      style: Event-Driven
+      score: 0.6
+    -
+      style: Domain-Driven Design
+      score: 0.3
   signal_breakdown:
     package_manifests: 8
     container_orchestration: 1
@@ -53,5 +57,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: "README states 'At Akka core is the actor model' for concurrent/distributed systems. build.sbt defines ~25 tightly-coupled SBT subprojects (akka-actor, akka-stream, akka-cluster, akka-persistence, akka-remote, etc.) versioned together as a modular monolith library. Event-Driven: akka-persistence/ has Eventsourced.scala, JournalProtocol.scala, PersistentActor.scala; akka-actor/event/ has EventBus.scala, EventStream.scala; akka-persistence-typed/ has EventSourcedSignal.scala, EventAdapter.scala. Pipe-and-Filter: akka-stream/ implements Reactive Streams with Source.scala, Flow.scala, Sink.scala, Graph.scala, FanInShape.scala, FanOutShape.scala, BidiFlow.scala. Multi-Agent: core actor model with Actor.scala, ActorRef.scala, ActorSystem.scala, ActorCell.scala; typed actors with Behavior.scala, SpawnProtocol.scala; distributed via akka-cluster/, akka-cluster-sharding/, akka-distributed-data/. Language is Scala (not Java/Kotlin). No docker-compose.yml or ARCHITECTURE.md found."
+review_required: true

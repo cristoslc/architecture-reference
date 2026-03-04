@@ -1,48 +1,51 @@
 project_name: strapi
 source: Discovered
-source_url: https://github.com/strapi/strapi
-project_url: https://github.com/strapi/strapi
+source_url: "https://github.com/strapi/strapi"
+project_url: "https://github.com/strapi/strapi"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:40:38Z'
+discovered_at: "2026-03-04T06:19:12Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: CMS
 language: TypeScript
-languages: null
+languages:
+
 architecture_styles:
-- Modular Monolith
-- Layered
+  - Indeterminate
 key_technologies:
-- Node.js
-- GitHub Actions
+  - Node.js
+  - GitHub Actions
 quality_attributes:
-- Deployability
-- Modularity
+  - Deployability
+  - Modularity
 notable_strengths:
-- Rich signal profile with strong architectural indicators
-- Comprehensive test infrastructure
-- CI/CD automation present
-- Multi-style composition (4 styles)
+  - Rich signal profile with strong architectural indicators
+  - Comprehensive test infrastructure
+  - CI/CD automation present
+  - Multi-style composition (4 styles)
 notable_gaps:
-- No architecture decision records found
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: 'Open-source headless CMS: single-process Node.js monolith with
-  plugin/provider module system, IoC container, and layered request pipeline'
+  - No architecture decision records found
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: TypeScript project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.9
+  confidence: 0.8
   signals_detected: 85
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.9
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.7
   heuristic_candidates:
-  - style: Modular Monolith
-    score: 0.7
-  - style: Layered
-    score: 0.4
-  - style: CQRS
-    score: 0.3
-  - style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.7
+    -
+      style: Layered
+      score: 0.4
+    -
+      style: CQRS
+      score: 0.3
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 60
     container_orchestration: 0
@@ -54,12 +57,4 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 5
-review_required: false
-review_notes: Strapi.ts extends Container (IoC) and bootstraps all modules in one
-  process. packages/core/ has core framework (database, server, registries, services);
-  packages/plugins/ has GraphQL, i18n, users-permissions etc; packages/providers/
-  has email/upload providers. Registry pattern in registries/ manages content-types,
-  controllers, services, policies, middlewares, hooks. core-api/ shows layered controller->service->entity-service->database.
-  Koa-based HTTP server in services/server/ with middleware pipeline. docker-compose.dev.yml
-  only runs databases for dev. Monorepo uses yarn workspaces + Nx + Lerna for build
-  coordination but all packages compose into a single deployment unit.
+review_required: true

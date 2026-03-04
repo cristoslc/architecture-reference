@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/aspnetboilerplate/aspnetboilerplate"
 project_url: "https://github.com/aspnetboilerplate/aspnetboilerplate"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:48:12Z"
+discovered_at: "2026-03-04T06:30:49Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
@@ -11,8 +11,7 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Layered
-  - Domain-Driven Design
+  - Indeterminate
 key_technologies:
   - .NET
   - GitHub Actions
@@ -26,16 +25,29 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: N-Layer application framework implementing DDD tactical patterns (Entities, AggregateRoots, ValueObjects, Repositories, DomainServices, Specifications) with a modular plugin system
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.8
   signals_detected: 67
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.7
   heuristic_candidates:
-    style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.7
+    -
+      style: Domain-Driven Design
+      score: 0.6
+    -
+      style: Layered
+      score: 0.3
+    -
+      style: Event-Driven
+      score: 0.3
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 63
     container_orchestration: 0
@@ -47,5 +59,4 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 5
-review_required: false
-review_notes: "README explicitly states 'Layered Architecture based on Domain Driven Design' and repo topics include 'nlayer-architecture' and 'domain-driven-design'. doc/WebSite/NLayer-Architecture.md documents 4-layer model: Presentation, Application, Domain, Infrastructure. src/Abp/Domain/ contains Entities/ (Entity.cs, AggregateRoot.cs with DomainEvents collection, IAggregateRoot.cs), Values/ (ValueObject.cs), Repositories/ (IRepository.cs, AbpRepositoryBase.cs), Services/ (DomainService.cs, IDomainService.cs), Policies/ (IPolicy.cs), Uow/ (IUnitOfWork.cs, UnitOfWorkBase.cs). src/Abp/Application/Services/ provides ApplicationService.cs and CrudAppService.cs as the Application Layer. src/Abp/Specifications/ implements the Specification pattern. src/Abp/Events/Bus/ has IEventBus.cs for in-process domain events (not distributed messaging). src/Abp/Modules/ provides AbpModule.cs module system with DependsOnAttribute for composable NuGet packages but this serves the layered+DDD framework, not a Modular Monolith architecture. 40+ src/ projects (Abp, Abp.AspNetCore, Abp.EntityFrameworkCore, Abp.ZeroCore, etc.) are framework library modules, not bounded-context business modules. No docker-compose.yml or ARCHITECTURE.md found."
+review_required: true

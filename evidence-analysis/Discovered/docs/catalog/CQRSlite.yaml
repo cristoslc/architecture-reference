@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/gautema/CQRSlite"
 project_url: "https://github.com/gautema/CQRSlite"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:33:30Z"
+discovered_at: "2026-03-04T06:10:50Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
@@ -11,12 +11,10 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - CQRS
-  - Event-Driven
+  - Indeterminate
 key_technologies:
   - .NET
 quality_attributes:
-
 notable_strengths:
   - Multi-style composition (4 styles)
 notable_gaps:
@@ -24,16 +22,26 @@ notable_gaps:
   - No test infrastructure detected
   - No CI/CD configuration detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Lightweight CQRS and Event Sourcing framework for .NET providing command/query separation, aggregate roots, event stores, and snapshotting
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.5
   signals_detected: 7
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-    style: Domain-Driven Design
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.4
+    -
+      style: CQRS
+      score: 0.4
+    -
+      style: Event-Driven
+      score: 0.3
+    -
+      style: Domain-Driven Design
+      score: 0.3
   signal_breakdown:
     package_manifests: 6
     container_orchestration: 0
@@ -45,5 +53,4 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 1
-review_required: false
-review_notes: "Evidence: README.md self-describes as 'A lightweight CQRS and Event Sourcing framework for .NET'. Framework/CQRSlite/ has explicit Commands/, Queries/, Events/, Domain/ directories implementing ICommand, IQuery, IEvent interfaces. AggregateRoot.cs implements event sourcing with ApplyChange/LoadFromHistory/FlushUncommittedChanges pattern. IEventStore.cs defines Save/Get for event persistence. Sample/CQRSCode/ has clean WriteModel/ReadModel split with separate command handlers and event-driven read model projections. .csproj PackageTags include 'CQRS;Eventsourcing;queries;commands'. Architecture diagram in README shows Commands->CommandHandlers->Aggregates->Events->EventStore write path and Events->EventHandlers->ReadModels->Queries read path."
+review_required: true

@@ -1,46 +1,45 @@
 project_name: qdrant
 source: Discovered
-source_url: https://github.com/qdrant/qdrant
-project_url: https://github.com/qdrant/qdrant
+source_url: "https://github.com/qdrant/qdrant"
+project_url: "https://github.com/qdrant/qdrant"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:32:22Z'
+discovered_at: "2026-03-04T06:09:35Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Database
 language: Rust
-languages: null
+languages:
+
 architecture_styles:
-- Modular Monolith
-- Layered
+  - Indeterminate
 key_technologies:
-- Node.js
-- Python/pip
-- Rust/Cargo
-- Docker
-- Docker Compose
-- OpenAPI
-- gRPC
-- GitHub Actions
+  - Node.js
+  - Python/pip
+  - Rust/Cargo
+  - Docker
+  - Docker Compose
+  - OpenAPI
+  - gRPC
+  - GitHub Actions
 quality_attributes:
-- Deployability
+  - Deployability
 notable_strengths:
-- Rich signal profile with strong architectural indicators
-- CI/CD automation present
+  - Rich signal profile with strong architectural indicators
+  - CI/CD automation present
 notable_gaps:
-- No architecture decision records found
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: 'Rust vector search engine with clear modular-monolith structure:
-  single deployable binary composed of well-separated Cargo workspace crates in strict
-  dependency layers'
+  - No architecture decision records found
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Rust project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.8
   signals_detected: 109
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.8
   heuristic_candidates:
-  - style: Microservices
-    score: 0.8
+    -
+      style: Microservices
+      score: 0.8
   signal_breakdown:
     package_manifests: 23
     container_orchestration: 4
@@ -52,18 +51,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: 'LLM review of cloned repo. Single binary (src/main.rs) composes all
-  functionality. Workspace has 14 internal crates under lib/ with strict layering:
-  segment (low-level vector storage/indexing) -> shard (segment operations) -> collection
-  (sharding, replication, consensus-aware) -> storage (content_manager, dispatcher,
-  consensus orchestration) -> src/ (actix REST + tonic gRPC servers). Each crate has
-  clear single responsibility (e.g., lib/quantization, lib/sparse, lib/posting_list,
-  lib/gpu). Consensus (Raft) is embedded in-process, not a separate service. No docker-compose
-  orchestration - single Dockerfile builds one binary. The api/ crate defines REST
-  and gRPC interfaces consumed by src/actix and src/tonic modules. Storage crate''s
-  Dispatcher delegates to TableOfContent which manages collections. This is a textbook
-  modular monolith: independently compilable modules with explicit Cargo dependency
-  boundaries, all deployed as a single process. Layered architecture is the secondary
-  pattern - crate dependencies form a strict DAG from segment up through storage to
-  the binary entry point.'
+review_required: true

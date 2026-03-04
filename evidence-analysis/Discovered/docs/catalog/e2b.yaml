@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/e2b-dev/e2b"
 project_url: "https://github.com/e2b-dev/e2b"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:58:32Z"
+discovered_at: "2026-03-04T06:42:06Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: AI/ML
@@ -11,8 +11,7 @@ language: Python
 languages:
 
 architecture_styles:
-  - Layered
-  - Microservices
+  - Indeterminate
 key_technologies:
   - Node.js
   - Go modules
@@ -32,16 +31,20 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Multi-language SDK monorepo for cloud sandbox infrastructure with layered client architecture and microservice-oriented backend
+one_line_summary: Python project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.82
+  confidence: 0.5
   signals_detected: 31
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.82
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-    style: Event-Driven
-    score: 0.3
+    -
+      style: Microservices
+      score: 0.4
+    -
+      style: Event-Driven
+      score: 0.3
   signal_breakdown:
     package_manifests: 10
     container_orchestration: 1
@@ -53,5 +56,4 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 1
-review_required: false
-review_notes: "Layered: Each SDK (packages/js-sdk/, packages/python-sdk/) is organized in clear layers - API client layer (src/api/), connection config layer (src/connectionConfig.ts), sandbox domain layer (src/sandbox/), and envd communication layer (src/envd/) with generated protobuf stubs. The Sandbox class in packages/js-sdk/src/sandbox/index.ts composes modules (Filesystem, Commands, Pty, Git) atop a transport layer using ConnectRPC. Microservices: The system communicates with a separate E2B API service (spec/openapi.yml defines REST endpoints for sandbox CRUD at api.e2b.app) and a per-sandbox envd daemon (spec/envd/envd.yaml for file operations, spec/envd/process/process.proto and spec/envd/filesystem/filesystem.proto for gRPC process/filesystem services). The pnpm-workspace.yaml defines independent packages (js-sdk, python-sdk, cli, connect-python, apps/web) each with their own build/publish lifecycle. Supabase edge functions (supabase/functions/) provide serverless auth hooks. The MCP server spec (spec/mcp-server.json) defines integration contracts. Code generation from OpenAPI and protobuf specs (Makefile codegen target, codegen.Dockerfile) reinforces service boundary separation."
+review_required: true

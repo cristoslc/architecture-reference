@@ -1,40 +1,40 @@
 project_name: solidus
 source: Discovered
-source_url: https://github.com/solidusio/solidus
-project_url: https://github.com/solidusio/solidus
+source_url: "https://github.com/solidusio/solidus"
+project_url: "https://github.com/solidusio/solidus"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:33:46Z'
+discovered_at: "2026-03-04T06:11:09Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: Ruby
-languages: null
+languages:
+
 architecture_styles:
-- Modular Monolith
+  - Indeterminate
 key_technologies:
-- Docker
-- Docker Compose
-- GitHub Actions
+  - Docker
+  - Docker Compose
+  - GitHub Actions
 quality_attributes:
-- Deployability
+  - Deployability
 notable_strengths:
-- Rich signal profile with strong architectural indicators
-- CI/CD automation present
+  - Rich signal profile with strong architectural indicators
+  - CI/CD automation present
 notable_gaps:
-- No architecture decision records found
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Rails-based e-commerce framework decomposed into independently-versioned
-  gem modules (core, api, backend, admin, promotions) sharing a single database and
-  process
+  - No architecture decision records found
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Ruby project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.4
   signals_detected: 16
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-  - style: Microservices
-    score: 0.4
+    -
+      style: Microservices
+      score: 0.4
   signal_breakdown:
     package_manifests: 0
     container_orchestration: 3
@@ -46,14 +46,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: 'Strong modular monolith signals: 7 separate gemspecs (solidus_core,
-  solidus_api, solidus_backend, solidus_admin, solidus_promotions, solidus_legacy_promotions,
-  solidus_sample) each with its own Rails::Engine using isolate_namespace. Core README
-  explicitly documents sub-systems: Order, User, Payment, Inventory, Shipments. All
-  gems depend on solidus_core and share the Spree namespace database (58 migrations
-  in core/db/migrate/). Internal event bus via Omnes (core/lib/spree/bus.rb) with
-  pub/sub subscribers (core/app/subscribers/). Promotions subsystem extracted to separate
-  swappable gem with own models/controllers. All modules deploy as a single Ruby process
-  - not microservices despite multi-gem structure. Docker-compose is dev-only (databases
-  + single app container).'
+review_required: true

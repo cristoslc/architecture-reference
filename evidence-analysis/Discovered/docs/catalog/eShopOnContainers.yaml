@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/dotnet/eShopOnContainers"
 project_url: "https://github.com/dotnet/eShopOnContainers"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:33:26Z"
+discovered_at: "2026-03-04T06:10:45Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
@@ -11,31 +11,26 @@ language: ""
 languages:
 
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - CQRS
-  - Domain-Driven Design
+  - Indeterminate
 key_technologies:
-
 quality_attributes:
-
 notable_strengths:
-
 notable_gaps:
   - No architecture decision records found
   - No test infrastructure detected
   - No CI/CD configuration detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Microsoft reference application demonstrating microservices architecture with DDD, CQRS, and event-driven integration patterns using .NET, Docker, and RabbitMQ
+one_line_summary:  project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.97
+  confidence: 0.4
   signals_detected: 0
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.97
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-    style: Modular Monolith
-    score: 0.4
+    -
+      style: Modular Monolith
+      score: 0.4
   signal_breakdown:
     package_manifests: 0
     container_orchestration: 0
@@ -47,5 +42,4 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: "README.md (dev branch, line 5): '.NET Microservices Sample Reference Application'. src/Services/ contains 6 independent microservices: Basket, Catalog, Identity, Ordering, Payment, Webhooks -- each with own Dockerfile and database (SQL Server, MongoDB, Redis per docker-compose.yml). src/BuildingBlocks/EventBus/ provides EventBusRabbitMQ and EventBusServiceBus for async integration events; IntegrationEvents directories exist in Basket, Catalog, Ordering, Payment, and Webhooks services. Ordering service implements full CQRS with Application/Commands/ (CreateOrderCommand, CancelOrderCommand, etc.) and Application/Queries/ (IOrderQueries, OrderQueries, OrderViewModel). Ordering service implements DDD with Ordering.Domain/AggregatesModel/ (BuyerAggregate, OrderAggregate), SeedWork/ (Entity, ValueObject, IAggregateRoot, IRepository, IUnitOfWork), and 7 domain events. API Gateways in src/ApiGateways/ (Envoy, Mobile.Bff.Shopping, Web.Bff.Shopping). NOTE: main branch is archived redirect; all evidence from dev branch."
+review_required: true

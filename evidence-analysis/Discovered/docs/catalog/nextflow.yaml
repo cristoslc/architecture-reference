@@ -1,50 +1,51 @@
 project_name: nextflow
 source: Discovered
-source_url: https://github.com/nextflow-io/nextflow
-project_url: https://github.com/nextflow-io/nextflow
+source_url: "https://github.com/nextflow-io/nextflow"
+project_url: "https://github.com/nextflow-io/nextflow"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:52:39Z'
+discovered_at: "2026-03-04T06:35:28Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Bioinformatics
 language: Java/Kotlin
-languages: null
+languages:
+
 architecture_styles:
-- Pipe-and-Filter
-- Modular Monolith
+  - Indeterminate
 key_technologies:
-- Gradle
-- Python/pip
-- Docker
-- GitHub Actions
+  - Gradle
+  - Python/pip
+  - Docker
+  - GitHub Actions
 quality_attributes:
-- Deployability
-- Evolvability
-- Modularity
+  - Deployability
+  - Evolvability
+  - Modularity
 notable_strengths:
-- Rich signal profile with strong architectural indicators
-- Well-documented architecture decisions (ADRs)
-- Comprehensive test infrastructure
-- CI/CD automation present
-- Multi-style composition (3 styles)
+  - Rich signal profile with strong architectural indicators
+  - Well-documented architecture decisions (ADRs)
+  - Comprehensive test infrastructure
+  - CI/CD automation present
+  - Multi-style composition (3 styles)
 notable_gaps:
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Dataflow-based workflow engine where processes (filters) are connected
-  by channels (pipes) in a DAG, built as a modular Groovy/Java monolith with a plugin
-  system
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.5
   signals_detected: 45
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-  - style: Microservices
-    score: 0.4
-  - style: Event-Driven
-    score: 0.3
-  - style: Domain-Driven Design
-    score: 0.3
+    -
+      style: Microservices
+      score: 0.4
+    -
+      style: Event-Driven
+      score: 0.3
+    -
+      style: Domain-Driven Design
+      score: 0.3
   signal_breakdown:
     package_manifests: 18
     container_orchestration: 8
@@ -56,15 +57,4 @@ discovery_metadata:
     test_structure: 3
     documentation: 4
     directory_structure: 2
-review_required: false
-review_notes: 'README explicitly states ''based on the dataflow programming model''.
-  Core abstraction: Channel.groovy (GPars DataflowQueue/DataflowVariable), ProcessDef.groovy
-  and WorkflowDef.groovy implement ChainableDef for pipe composition. DAG.groovy models
-  execution as directed acyclic graph of PROCESS/OPERATOR vertices connected by edges.
-  Extension package has 37+ stream operators (map, branch, join, merge, mix, split,
-  concat, etc.) inspired by RxJava per OperatorImpl.groovy comment. Splitter package
-  provides data partitioning filters (Fasta, Fastq, CSV, JSON, Text). Gradle multi-module:
-  5 core modules (nextflow, nf-commons, nf-httpfs, nf-lang, nf-lineage) + 10 plugins
-  (nf-amazon, nf-google, nf-azure, nf-k8s, etc.). Plugin architecture confirmed by
-  ADR (adr/20250922-plugin-spec.md). Single JVM deployable with executor abstraction
-  for HPC/cloud backends. Language is Groovy not Java/Kotlin as initially classified.'
+review_required: true

@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/chatwoot/chatwoot"
 project_url: "https://github.com/chatwoot/chatwoot"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:36:42Z"
+discovered_at: "2026-03-04T06:14:09Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Customer Support
@@ -11,8 +11,7 @@ language: Ruby
 languages:
 
 architecture_styles:
-  - Layered
-  - Event-Driven
+  - Indeterminate
 key_technologies:
   - Node.js
   - Docker
@@ -29,16 +28,26 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Rails 7.1 monolith with classic MVC layering and a Wisper-based pub/sub event system dispatching domain events to async Sidekiq listeners
+one_line_summary: Ruby project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.9
+  confidence: 0.5
   signals_detected: 24
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.9
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-    style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Microservices
+      score: 0.4
+    -
+      style: Event-Driven
+      score: 0.3
+    -
+      style: Domain-Driven Design
+      score: 0.3
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 1
     container_orchestration: 5
@@ -50,5 +59,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 4
-review_required: false
-review_notes: "Evidence: README.md describes a single self-hosted customer support platform (not microservices). app/ follows standard Rails MVC layering: controllers/, models/, views/, services/, builders/, finders/, policies/, presenters/, jobs/, mailers/. lib/events/types.rb defines ~30 domain event constants (CONVERSATION_CREATED, MESSAGE_CREATED, etc.). app/dispatchers/ implements pub/sub via Wisper gem (BaseDispatcher includes Wisper::Publisher); SyncDispatcher and AsyncDispatcher fan out events to 11+ listener classes in app/listeners/ (AutomationRuleListener, WebhookListener, NotificationListener, etc.). AsyncDispatcher routes through Sidekiq (EventDispatcherJob). docker-compose.yaml runs rails, sidekiq, postgres, redis as co-deployed processes of a single app, not independent services. Gemfile confirms Rails 7.1, Sidekiq, Wisper 2.0, Pundit (policy objects), Devise (auth). enterprise/ directory provides an overlay module pattern but does not change the monolithic deployment. config/sidekiq.yml defines 14 priority queues. Procfile shows web + worker processes (single codebase). No microservices boundaries, no CQRS separation, no hexagonal ports/adapters."
+review_required: true

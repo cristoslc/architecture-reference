@@ -1,40 +1,41 @@
 project_name: Rebus
 source: Discovered
-source_url: https://github.com/rebus-org/Rebus
-project_url: https://github.com/rebus-org/Rebus
+source_url: "https://github.com/rebus-org/Rebus"
+project_url: "https://github.com/rebus-org/Rebus"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:31:39Z'
+discovered_at: "2026-03-04T06:08:45Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
-language: C#
-languages: null
+language: "C#"
+languages:
+
 architecture_styles:
-- Pipe-and-Filter
-- Event-Driven
+  - Indeterminate
 key_technologies:
-- .NET
-quality_attributes: null
+  - .NET
+quality_attributes:
 notable_strengths:
-- Multi-style composition (2 styles)
+  - Multi-style composition (2 styles)
 notable_gaps:
-- No architecture decision records found
-- No test infrastructure detected
-- No CI/CD configuration detected
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: .NET service bus library with explicit pipeline-of-steps architecture
-  for message processing and pub/sub event-driven messaging primitives
+  - No architecture decision records found
+  - No test infrastructure detected
+  - No CI/CD configuration detected
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.5
   signals_detected: 4
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-  - style: Modular Monolith
-    score: 0.4
-  - style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.4
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 0
@@ -46,17 +47,4 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 1
-review_required: false
-review_notes: 'Primary: Pipe-and-Filter -- IPipeline interface (Rebus/Pipeline/IPipeline.cs)
-  defines ordered IIncomingStep[] and IOutgoingStep[] sequences. Each step implements
-  Process(context, next) filter pattern. DefaultPipeline (Rebus/Pipeline/DefaultPipeline.cs)
-  builds receive chain (retry->deferred->hydrate->deserialize->routing->activate->saga->dispatch)
-  and send chain (headers->correlation->serialize->validate->send). PipelineStepInjector
-  enables inserting filters at relative positions. DefaultPipelineInvoker chains steps
-  as nested delegates. Encryption/Compression steps (DecryptMessagesIncomingStep,
-  EncryptMessagesOutgoingStep, ZippingSerializerDecorator) are additional pluggable
-  filters. Secondary: Event-Driven -- IBus (Rebus/Bus/IBus.cs) provides Publish/Subscribe/Unsubscribe
-  pub/sub primitives. IHandleMessages<T> (Rebus/Handlers/) for message type handlers.
-  ISubscriptionStorage for topic subscriptions. Saga support (ISagaStorage, Saga<T>)
-  for long-running event-driven workflows. README explicitly describes ''smart endpoints,
-  dumb pipes'' async messaging pattern.'
+review_required: true

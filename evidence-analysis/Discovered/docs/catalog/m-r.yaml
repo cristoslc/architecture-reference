@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/gregoryyoung/m-r"
 project_url: "https://github.com/gregoryyoung/m-r"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:33:10Z"
+discovered_at: "2026-03-04T06:10:27Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
@@ -11,30 +11,27 @@ language: JavaScript
 languages:
 
 architecture_styles:
-  - CQRS
-  - Event-Driven
-  - Domain-Driven Design
+  - Indeterminate
 key_technologies:
   - .NET
 quality_attributes:
-
 notable_strengths:
-
 notable_gaps:
   - No architecture decision records found
   - No test infrastructure detected
   - No CI/CD configuration detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Greg Young's canonical CQRS+Event Sourcing reference implementation with full command/query separation, event store, aggregate roots, and event-driven read model projections
+one_line_summary: JavaScript project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.97
+  confidence: 0.4
   signals_detected: 2
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.97
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-    style: Modular Monolith
-    score: 0.4
+    -
+      style: Modular Monolith
+      score: 0.4
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 0
@@ -46,5 +43,4 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: "CQRS: Commands.cs defines 6 command classes (CreateInventoryItem, DeactivateInventoryItem, etc.) inheriting from Command:Message; CommandHandlers.cs routes each to InventoryCommandHandlers.Handle(); ReadModel.cs provides a completely separate read side with IReadModelFacade, InventoryListView, and InventoryItemDetailView projecting denormalized DTOs; FakeBus.cs enforces Send() to exactly one handler (commands) vs Publish() to many (events); HomeController.cs uses _bus.Send() for writes and _readmodel for reads. Event-Driven/Event Sourcing: Events.cs defines 6 domain events; EventStore.cs implements IEventStore with SaveEvents/GetEventsForAggregate persisting events as source of truth; Domain.cs AggregateRoot.LoadsFromHistory() reconstitutes state by replaying events; Repository.GetById() loads all events and replays them; EventStore publishes events via IEventPublisher to update read model projections. DDD: Domain.cs contains AggregateRoot base class with Id, Version, and change tracking; InventoryItem is a proper aggregate with encapsulated domain logic and invariant enforcement (e.g. cant remove more than available qty, max qty validation); IRepository pattern constrains to AggregateRoot."
+review_required: true

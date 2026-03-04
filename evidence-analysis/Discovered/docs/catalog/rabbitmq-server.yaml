@@ -1,49 +1,50 @@
 project_name: rabbitmq-server
 source: Discovered
-source_url: https://github.com/rabbitmq/rabbitmq-server
-project_url: https://github.com/rabbitmq/rabbitmq-server
+source_url: "https://github.com/rabbitmq/rabbitmq-server"
+project_url: "https://github.com/rabbitmq/rabbitmq-server"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:29:26Z'
+discovered_at: "2026-03-04T06:06:29Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Messaging
 language: JavaScript
-languages: null
+languages:
+
 architecture_styles:
-- Event-Driven
-- Modular Monolith
+  - Indeterminate
 key_technologies:
-- Node.js
-- Maven
-- Python/pip
-- .NET
-- Docker
-- Docker Compose
-- Terraform
-- RabbitMQ
-- GitHub Actions
+  - Node.js
+  - Maven
+  - Python/pip
+  - .NET
+  - Docker
+  - Docker Compose
+  - Terraform
+  - RabbitMQ
+  - GitHub Actions
 quality_attributes:
-- Deployability
+  - Deployability
 notable_strengths:
-- Rich signal profile with strong architectural indicators
-- CI/CD automation present
-- Multi-style composition (2 styles)
+  - Rich signal profile with strong architectural indicators
+  - CI/CD automation present
+  - Multi-style composition (2 styles)
 notable_gaps:
-- No architecture decision records found
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Erlang/OTP message broker implementing exchanges, bindings, and
-  queues as core event-driven primitives with a modular plugin architecture
+  - No architecture decision records found
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: JavaScript project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.6
   signals_detected: 52
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.5
   heuristic_candidates:
-  - style: Microservices
-    score: 0.5
-  - style: Event-Driven
-    score: 0.3
+    -
+      style: Microservices
+      score: 0.5
+    -
+      style: Event-Driven
+      score: 0.3
   signal_breakdown:
     package_manifests: 14
     container_orchestration: 9
@@ -55,19 +56,4 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: 'README explicitly describes RabbitMQ as a multi-protocol messaging
-  and streaming broker supporting AMQP, MQTT, STOMP, and RabbitMQ Streams. Core rabbit
-  app (deps/rabbit/src/, 235 files) implements exchange types (direct, fanout, topic,
-  headers) for message routing, queue types (classic, quorum, stream), channels, and
-  bindings -- all fundamental event-driven messaging primitives. The 57-module deps/
-  directory organizes the system as a modular monolith: protocol adapters (rabbitmq_mqtt,
-  rabbitmq_stomp, rabbitmq_amqp1_0, rabbitmq_stream), auth backends (ldap, oauth2,
-  http, cache), management/monitoring (rabbitmq_management, rabbitmq_prometheus),
-  federation, and shovel -- all deployed as plugins within a single Erlang/OTP node.
-  Boot steps in rabbit.erl define ordered startup phases (pre_boot -> database ->
-  external_infrastructure -> kernel_ready -> core_initialized) with explicit dependency
-  declarations. Event-Driven is primary: this IS a message broker; its entire purpose
-  is event/message routing. Modular Monolith is secondary: the plugin architecture
-  with well-defined boundaries between deps/ modules, each with own Makefile and src/,
-  represents a monolith with strong internal modularity.'
+review_required: true

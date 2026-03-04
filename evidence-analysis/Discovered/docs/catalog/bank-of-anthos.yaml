@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/GoogleCloudPlatform/bank-of-anthos"
 project_url: "https://github.com/GoogleCloudPlatform/bank-of-anthos"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:27:33Z"
+discovered_at: "2026-03-04T06:04:10Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Banking
@@ -11,8 +11,7 @@ language: Java/Kotlin
 languages:
 
 architecture_styles:
-  - Microservices
-  - CQRS
+  - Indeterminate
 key_technologies:
   - Maven
   - Python/pip
@@ -30,16 +29,17 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Sample bank app with polyglot microservices on Kubernetes demonstrating CQRS in the ledger domain
+one_line_summary: Java/Kotlin project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.8
   signals_detected: 109
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.8
   heuristic_candidates:
-    style: Microservices
-    score: 0.8
+    -
+      style: Microservices
+      score: 0.8
   signal_breakdown:
     package_manifests: 9
     container_orchestration: 69
@@ -51,5 +51,4 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 2
-review_required: false
-review_notes: "Evidence: README.md 'Service architecture' section lists 9 independently deployed services (frontend, ledger-writer, balance-reader, transaction-history, ledger-db, user-service, contacts, accounts-db, loadgenerator). kubernetes-manifests/ has separate Deployment+Service YAML per service. src/ organized by domain: src/accounts/ (userservice, contacts, accounts-db), src/ledger/ (ledgerwriter, balancereader, transactionhistory, ledger-db). Each service has own Dockerfile/Jib build, skaffold.yaml, cloudbuild.yaml. Ledger domain exhibits CQRS: ledger-writer handles writes (POST /transactions), balance-reader and transaction-history handle reads with Guava caches polling ledger-db. src/ledgermonolith/ provides monolith variant combining 3 Java services, confirming microservices as primary. docs/adding-new-microservice.md documents adding new services. config.yaml service-api-config shows inter-service HTTP via Kubernetes service names."
+review_required: true

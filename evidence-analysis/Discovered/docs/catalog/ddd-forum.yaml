@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/stemmlerjs/ddd-forum"
 project_url: "https://github.com/stemmlerjs/ddd-forum"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:31:51Z"
+discovered_at: "2026-03-04T06:09:00Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Social Media
@@ -11,9 +11,7 @@ language: TypeScript
 languages:
 
 architecture_styles:
-  - Domain-Driven Design
-  - Modular Monolith
-  - Event-Driven
+  - Indeterminate
 key_technologies:
   - Node.js
   - Docker
@@ -29,16 +27,26 @@ notable_gaps:
   - No architecture decision records found
   - No test infrastructure detected
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Canonical DDD reference app with bounded contexts, aggregates, domain events, value objects, and use cases organized as a modular monolith
+one_line_summary: TypeScript project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.8
   signals_detected: 6
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.7
   heuristic_candidates:
-    style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.7
+    -
+      style: Event-Driven
+      score: 0.3
+    -
+      style: Domain-Driven Design
+      score: 0.3
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 2
     container_orchestration: 2
@@ -50,5 +58,4 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 3
-review_required: false
-review_notes: "Evidence: README.md explicitly states 'built with Clean Architecture and DDD best practices.' src/modules/ contains two bounded contexts (users/, forum/) each with domain/application/adapter/infrastructure layers. src/shared/domain/ provides DDD building blocks: AggregateRoot.ts, Entity.ts, ValueObject.ts, WatchedList.ts, DomainEvents.ts. Forum domain has rich domain model: post.ts (aggregate root), comment.ts, member.ts with value objects (postSlug, postText, commentText, etc.). Domain events: userCreated, postCreated, commentPosted, postVotesChanged, commentVotesChanged. Event subscriptions in src/modules/forum/subscriptions/ (afterUserCreated, afterCommentPosted, afterPostVotesChanged). Repos use interface/implementation separation (IPostRepo -> sequelizePostRepo). Use cases organized per-feature (createPost, upvotePost, login, etc.). Single deployable unit with docker-compose.yml running mysql+redis+adminer. No microservices decomposition."
+review_required: true

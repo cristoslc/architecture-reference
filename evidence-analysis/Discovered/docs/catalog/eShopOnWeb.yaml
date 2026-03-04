@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/dotnet-architecture/eShopOnWeb"
 project_url: "https://github.com/dotnet-architecture/eShopOnWeb"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:31:55Z"
+discovered_at: "2026-03-04T06:09:05Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
@@ -11,8 +11,7 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Layered
-  - Domain-Driven Design
+  - Indeterminate
 key_technologies:
   - .NET
   - Docker
@@ -28,16 +27,20 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: ASP.NET Core monolithic reference app demonstrating clean layered architecture with DDD tactical patterns (aggregates, repositories, specifications)
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.5
   signals_detected: 23
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.4
   heuristic_candidates:
-    style: Event-Driven
-    score: 0.3
+    -
+      style: Microservices
+      score: 0.4
+    -
+      style: Event-Driven
+      score: 0.3
   signal_breakdown:
     package_manifests: 10
     container_orchestration: 3
@@ -49,5 +52,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_required: false
-review_notes: "Layered: strict 3-layer dependency chain - ApplicationCore (no infra deps per ApplicationCore.csproj), Infrastructure (references ApplicationCore per Infrastructure.csproj), Web/PublicApi (reference both per Web.csproj). DDD: aggregate root marker interface (src/ApplicationCore/Interfaces/IAggregateRoot.cs), aggregate folders (src/ApplicationCore/Entities/OrderAggregate/, BasketAggregate/, BuyerAggregate/), encapsulated collections with private backing fields in Order.cs and Basket.cs, Value Object pattern in Address.cs, Repository constrained to IAggregateRoot (IRepository.cs), Specification pattern (src/ApplicationCore/Specifications/), domain services (src/ApplicationCore/Services/OrderService.cs). Automated classifier incorrectly suggested Microservices/Event-Driven; README explicitly states single-process monolithic architecture."
+review_required: true

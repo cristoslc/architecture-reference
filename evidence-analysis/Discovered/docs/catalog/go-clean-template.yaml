@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/evrone/go-clean-template"
 project_url: "https://github.com/evrone/go-clean-template"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:33:03Z"
+discovered_at: "2026-03-04T06:10:18Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
@@ -11,8 +11,7 @@ language: Go
 languages:
 
 architecture_styles:
-  - Hexagonal Architecture
-  - Layered
+  - Indeterminate
 key_technologies:
   - Go modules
   - Docker
@@ -32,16 +31,20 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go Clean Architecture template demonstrating Hexagonal/Ports-and-Adapters with layered dependency rules
+one_line_summary: Go project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.8
   signals_detected: 11
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.7
   heuristic_candidates:
-    style: Event-Driven
-    score: 0.3
+    -
+      style: Microservices
+      score: 0.7
+    -
+      style: Event-Driven
+      score: 0.3
   signal_breakdown:
     package_manifests: 1
     container_orchestration: 3
@@ -53,5 +56,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: "Hexagonal: internal/usecase/contracts.go defines inbound port (Translation interface); internal/repo/contracts.go defines outbound ports (TranslationRepo, TranslationWebAPI). Four driving adapters in internal/controller/ (restapi/, grpc/, amqp_rpc/, nats_rpc/) each adapt a protocol to the same use-case interface. Two driven adapters: internal/repo/persistent/ (Postgres) and internal/repo/webapi/ (Google Translate API). Composition root in internal/app/app.go wires all via constructor injection. Layered: strict inward dependency flow from controllers->usecases->entities; pkg/ isolates infrastructure. Single deployable (one cmd/app/main.go), not microservices despite multiple transport protocols."
+review_required: true

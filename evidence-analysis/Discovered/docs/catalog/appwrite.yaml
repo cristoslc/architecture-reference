@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/appwrite/appwrite"
 project_url: "https://github.com/appwrite/appwrite"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:42:12Z"
+discovered_at: "2026-03-04T06:20:45Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
@@ -11,9 +11,7 @@ language: PHP
 languages:
 
 architecture_styles:
-  - Service-Based
-  - Event-Driven
-  - Modular Monolith
+  - Indeterminate
 key_technologies:
   - Node.js
   - Docker
@@ -29,16 +27,29 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Self-hosted BaaS platform with a monolithic PHP codebase deployed as multiple Docker service containers (API, workers, tasks, realtime) communicating via Redis message queues
+one_line_summary: PHP project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.8
   signals_detected: 27
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.7
   heuristic_candidates:
-    style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Modular Monolith
+      score: 0.7
+    -
+      style: Layered
+      score: 0.3
+    -
+      style: Event-Driven
+      score: 0.3
+    -
+      style: Domain-Driven Design
+      score: 0.3
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 4
     container_orchestration: 3
@@ -50,5 +61,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 4
-review_required: false
-review_notes: "CONTRIBUTING.md explicitly states 'combination of both Monolithic and Microservice architectures'. Single Dockerfile builds one image reused across all services. docker-compose.yml defines ~20 service containers: appwrite (API), appwrite-realtime (WebSocket), 10+ appwrite-worker-* (audits, webhooks, deletes, databases, builds, certificates, functions, mails, messaging, migrations), appwrite-task-* (maintenance, stats, scheduler-functions, scheduler-executions, scheduler-messages). All containers run from the same PHP codebase with different entrypoints (app/http.php, app/worker.php, app/realtime.php). Workers consume from Redis queues via utopia-php/queue -- see src/Appwrite/Event/ (Audit.php, Build.php, Certificate.php, Database.php, Delete.php, Func.php, Mail.php, Messaging.php, Migration.php, Realtime.php, StatsUsage.php, Webhook.php). Platform is modularized into domain modules via src/Appwrite/Platform/Modules/ (Account, Compute, Console, Databases, Functions, Projects, Proxy, Sites, Tokens) registered in src/Appwrite/Platform/Appwrite.php. API controllers organized by domain in app/controllers/api/ (account.php, storage.php, users.php, messaging.php, etc.). composer.json confirms PHP with utopia-php framework ecosystem. Service-Based because independent deployment units share one codebase but run as separate processes. Event-Driven because workers process domain events through Redis message queues. Modular Monolith because the codebase is organized into cohesive domain modules within a single deployable artifact."
+review_required: true

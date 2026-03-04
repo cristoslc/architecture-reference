@@ -1,51 +1,56 @@
 project_name: nopCommerce
 source: Discovered
-source_url: https://github.com/nopSolutions/nopCommerce
-project_url: https://github.com/nopSolutions/nopCommerce
+source_url: "https://github.com/nopSolutions/nopCommerce"
+project_url: "https://github.com/nopSolutions/nopCommerce"
 evidence_type: automated-discovery
-discovered_at: '2026-03-03T17:46:40Z'
+discovered_at: "2026-03-04T06:29:13Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
-language: C#
-languages: null
+language: "C#"
+languages:
+
 architecture_styles:
-- Layered
+  - Indeterminate
 key_technologies:
-- Node.js
-- .NET
-- Docker
-- Docker Compose
-- RabbitMQ
-- GitHub Actions
+  - Node.js
+  - .NET
+  - Docker
+  - Docker Compose
+  - RabbitMQ
+  - GitHub Actions
 quality_attributes:
-- Deployability
+  - Deployability
 notable_strengths:
-- Rich signal profile with strong architectural indicators
-- CI/CD automation present
-- Multi-style composition (5 styles)
+  - Rich signal profile with strong architectural indicators
+  - CI/CD automation present
+  - Multi-style composition (5 styles)
 notable_gaps:
-- No architecture decision records found
-- No architecture documentation (ARCHITECTURE.md)
-one_line_summary: ASP.NET Core eCommerce platform with textbook four-layer architecture
-  (Core/Data/Services/Presentation) and extensible plugin system
+  - No architecture decision records found
+  - No architecture documentation (ARCHITECTURE.md)
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.7
   signals_detected: 107
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.6
   heuristic_candidates:
-  - style: Event-Driven
-    score: 0.6
-  - style: Modular Monolith
-    score: 0.4
-  - style: Layered
-    score: 0.3
-  - style: Domain-Driven Design
-    score: 0.3
-  - style: Pipe-and-Filter
-    score: 0.3
+    -
+      style: Event-Driven
+      score: 0.6
+    -
+      style: Modular Monolith
+      score: 0.4
+    -
+      style: Layered
+      score: 0.3
+    -
+      style: Domain-Driven Design
+      score: 0.3
+    -
+      style: Pipe-and-Filter
+      score: 0.3
   signal_breakdown:
     package_manifests: 39
     container_orchestration: 2
@@ -57,12 +62,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 3
-review_required: false
-review_notes: 'Strict layered deps confirmed via .csproj references: Nop.Core (domain+entities,
-  zero refs) -> Nop.Data (data access, refs Core) -> Nop.Services (business logic/BAL,
-  refs Core+Data) -> Nop.Web.Framework+Nop.Web (MVC presentation, refs all). 30+ plugins
-  extend functionality via IPlugin/BasePlugin+domain-specific PluginManagers. In-process
-  EventPublisher uses DI-resolved IConsumer<T> (observer pattern, not event-driven
-  arch). Single Nop.Web.dll entrypoint per Dockerfile. No RabbitMQ or message broker
-  present (false positive from automated discovery). Docker-compose: one web + one
-  MSSQL = classic monolith deployment.'
+review_required: true

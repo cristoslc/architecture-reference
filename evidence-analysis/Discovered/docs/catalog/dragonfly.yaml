@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/dragonflydb/dragonfly"
 project_url: "https://github.com/dragonflydb/dragonfly"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:55:31Z"
+discovered_at: "2026-03-04T06:38:53Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Grid
@@ -11,8 +11,7 @@ language: C/C++
 languages:
 
 architecture_styles:
-  - Space-Based
-  - Event-Driven
+  - Indeterminate
 key_technologies:
   - Go modules
   - Python/pip
@@ -31,16 +30,17 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: High-performance Redis/Memcached-compatible in-memory data store using shared-nothing Space-Based architecture with event-driven fiber-based I/O
+one_line_summary: C/C++ project exhibiting Indeterminate patterns
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.8
   signals_detected: 67
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.8
   heuristic_candidates:
-    style: Microservices
-    score: 0.8
+    -
+      style: Microservices
+      score: 0.8
   signal_breakdown:
     package_manifests: 8
     container_orchestration: 36
@@ -52,5 +52,4 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 0
-review_required: false
-review_notes: "SPACE-BASED: Shared-nothing architecture with data partitioned into N shards, each owned by a single thread (src/server/engine_shard.h: EngineShard with thread-local shard_, TxQueue, IntentLock). EngineShardSet (src/server/engine_shard_set.h) manages shard-per-proactor mapping. Key-to-shard routing via consistent hashing in src/server/sharding.cc (XXH64 hash % shard_num). In-memory Dash hashtable (src/core/dash.h, src/core/dash_internal.h) based on 'Dash: Scalable Hashing on Persistent Memory' paper. DbSlice (src/server/db_slice.h) manages per-shard database state. TieredStorage (src/server/tiered_storage.h) offloads cold data to disk per-shard. docs/df-share-nothing.md explicitly describes the shared-nothing, thread-per-core model. EVENT-DRIVEN: Fiber-based async I/O via helio library (helio/ submodule). Connection fibers act as coordinators dispatching to shard threads via message passing (docs/df-share-nothing.md, docs/transaction.md). PubSub via RCU-based ChannelStore (src/server/channel_store.h). Journal/replication streaming (src/server/journal/). Redis Streams support (src/server/stream_family.cc). VLL-based transaction scheduling with TxQueue (src/core/tx_queue.h) provides lock-free coordination. ProactorPool manages event loops with io_uring/epoll backends."
+review_required: true

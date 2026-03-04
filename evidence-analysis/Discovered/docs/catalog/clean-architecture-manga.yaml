@@ -3,7 +3,7 @@ source: Discovered
 source_url: "https://github.com/ivanpaulovich/clean-architecture-manga"
 project_url: "https://github.com/ivanpaulovich/clean-architecture-manga"
 evidence_type: automated-discovery
-discovered_at: "2026-03-03T17:32:13Z"
+discovered_at: "2026-03-04T06:09:24Z"
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Banking
@@ -11,8 +11,7 @@ language: "C#"
 languages:
 
 architecture_styles:
-  - Hexagonal Architecture
-  - Domain-Driven Design
+  - Indeterminate
 key_technologies:
   - Node.js
   - .NET
@@ -29,16 +28,23 @@ notable_strengths:
 notable_gaps:
   - No architecture decision records found
   - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Clean Architecture sample for .NET with explicit Ports and Adapters structure, DDD tactical patterns, and use-case-driven application layer
+one_line_summary: "C# project exhibiting Indeterminate patterns"
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.6
   signals_detected: 18
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: heuristic-inconclusive
+  primary_style_confidence: 0.5
   heuristic_candidates:
-    style: Hexagonal Architecture
-    score: 0.4
+    -
+      style: Microservices
+      score: 0.5
+    -
+      style: Domain-Driven Design
+      score: 0.4
+    -
+      style: Hexagonal Architecture
+      score: 0.4
   signal_breakdown:
     package_manifests: 10
     container_orchestration: 6
@@ -50,5 +56,4 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 4
-review_required: false
-review_notes: "Evidence: README.md explicitly names 'Hexagonal Architecture Style (Ports and Adapters)' as a primary pattern (line 93). Project is organized into four layers: Domain (no dependencies, contains Aggregate Root Account.cs, Value Objects Money/Currency/AccountId, Entity Credit/Debit, Repository interface IAccountRepository.cs), Application (depends only on Domain via Application.csproj, contains Use Cases as central organizing structure with IOutputPort ports for each use case), Infrastructure (implements adapters: AccountRepository.cs implements IAccountRepository, CurrencyExchangeService.cs implements ICurrencyExchange, UnitOfWork.cs implements IUnitOfWork), and WebApi (controllers implement IOutputPort acting as driving adapters, e.g. TransactionsController.cs). Dependency direction enforced via .csproj references: Domain has zero project references, Application references only Domain, Infrastructure references Application, WebApi references Application+Infrastructure. DDD tactical patterns extensively used: Aggregate Root (Account), Entities (Credit, Debit), Value Objects (Money, Currency, AccountId), Repository pattern, First-Class Collections (CreditsCollection, DebitsCollection). The wiki index documents DDD patterns explicitly (lines 110-115). Not Microservices despite docker-compose presence - it is a single bounded context (Accounts) with supporting identity-server, not independently deployable microservices."
+review_required: true
