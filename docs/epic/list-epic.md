@@ -1,5 +1,11 @@
 # Epics
 
+## Proposed
+
+| ID | Title | Summary | Last Updated | Commit |
+|----|-------|---------|--------------|--------|
+| EPIC-004 | Cross-Source Reference Library Integration | Rewrite 6 core reference library documents to synthesize evidence from all 5 sources (276 entries) instead of reflecting only KataLog competition data. Create Discovered source analysis and fix pipeline signal preservation. | 2026-03-03 | — |
+
 ## Active
 
 | ID | Title | Summary | Last Updated | Commit |
