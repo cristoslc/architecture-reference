@@ -179,3 +179,4 @@ To be created as SPEC artifacts under this epic:
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-05 | — | Initial creation |
+| Active | 2026-03-05 | a0bcc15 | Dependencies satisfied; ready for child spec creation |
