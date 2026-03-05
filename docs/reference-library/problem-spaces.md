@@ -61,7 +61,7 @@ Evidence type: **automated discovery** -- architecture signals extracted from 12
 | *25 more domains* | 30 | Varies | Banking (2), Customer Support (2), Database (2), Data Integration (2), Food Delivery (2), Finance (2), + 19 single-repo domains |
 
 **Key statistical findings:**
-- Developer Tools dominates at 30% of the corpus (36/122), suggesting that architecture frameworks and templates are the most common open-source contribution pattern
+- 36 of 122 repos (30%) are Developer Tools, the dominant domain. Architecture frameworks and templates are the most common open-source contribution pattern
 - E-Commerce is the most cross-validated domain (evidence from 4 of 5 sources)
 - Event-Driven appears in the top styles for 9 of the 10 largest domain clusters
 - The long tail of 25 domains with 1-3 repos each accounts for 25% of the corpus, reflecting the diversity of real-world problem spaces
@@ -92,7 +92,9 @@ Evidence type: **production narrative** -- architectural descriptions written by
 | Orchard Core | RealWorld | CMS / App Framework | Medium-Large | Modular Monolith, Plugin | Module isolation vs. shared-state performance |
 | nopCommerce | RealWorld | E-Commerce | Large | Plugin, Layered | Plugin ecosystem stability vs. framework evolution over 17 years |
 
-**Discovered domain coverage of production systems:** 12 of 17 production systems have Discovered repos in matching domains (E-Commerce: 11, Infrastructure: 7, Messaging: 5, CMS: 4, Developer Tools: 36, Observability: 3). This cross-validation strengthens confidence in both Discovered patterns and production narratives.
+**Discovered domain coverage of production systems:** 12 of 17 production systems have Discovered repos in matching domains. This cross-validation strengthens confidence in both Discovered patterns and production narratives.
+
+Matching domain sizes: Developer Tools (36 repos), E-Commerce (11), Infrastructure (7), Messaging (5), CMS (4), Observability (3).
 
 ---
 
@@ -139,7 +141,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Developer Tools Cluster (36 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: The largest domain cluster in the corpus, representing 30% of all 122 repos. Event-Driven is the most common style (21 repos), followed by Domain-Driven Design (13), CQRS (11), Hexagonal Architecture (10), Modular Monolith (9), and Layered (9).
+**Discovered prevalence**: 36 of 122 repos (30%) -- the largest domain cluster in the corpus. Event-Driven is the most common style (21 repos), followed by DDD (13), CQRS (11), Hexagonal (10), Modular Monolith (9), and Layered (9).
 
 **Representative projects**: ABP, Backstage, Dapr, GitLab, Supabase, Appwrite, NocoDB, Gitpod, LocalStack, serverless frameworks, clean architecture templates (11 repos across C#, Go, Java, TypeScript).
 
@@ -155,7 +157,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### E-Commerce Cluster (11 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 11 repos (9% of corpus), the most cross-validated domain with evidence from 4 of 5 sources. Event-Driven (6 repos), CQRS (4), Microservices (4), Modular Monolith (4), DDD (3).
+**Discovered prevalence**: 11 of 122 repos (9%). The most cross-validated domain, with evidence from 4 of 5 sources. Top styles: Event-Driven (6 repos), CQRS (4), Microservices (4), Modular Monolith (4), DDD (3).
 
 **Representative projects**: eShop, eShopOnContainers, eShopOnWeb, go-ecommerce-microservices, Medusa, NorthwindTraders, nopCommerce, Saleor, Shopware, Spree, microservices-demo.
 
@@ -185,7 +187,9 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### AI/ML Cluster (6 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 6 repos (5% of corpus), the newest domain cluster. Event-Driven (5 repos), Multi-Agent (4), Layered (3). The Multi-Agent style (4 of 6 repos) is unique to this cluster -- it does not appear in any other source.
+**Discovered prevalence**: 6 of 122 repos (5%) -- the newest domain cluster. Event-Driven (5 repos), Multi-Agent (4), Layered (3).
+
+> **Domain signal.** Multi-Agent appears in 4 of 6 repos in this cluster and does not appear in any other domain.
 
 **Representative projects**: AutoGPT, autogen, camel, crewAI, dify, letta.
 
@@ -199,7 +203,9 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Data Grid Cluster (6 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 6 repos (5% of corpus). Space-Based (5 repos), Event-Driven (4), Modular Monolith (2). Space-Based architecture is nearly exclusive to this cluster -- 5 of 7 total Space-Based repos in the corpus are data grids.
+**Discovered prevalence**: 6 of 122 repos (5%). Space-Based (5 repos), Event-Driven (4), Modular Monolith (2).
+
+> **Domain signal.** 5 of 7 total Space-Based repos in the corpus are data grids. Space-Based architecture is nearly exclusive to this cluster.
 
 **Representative projects**: Redis, Dragonfly, Hazelcast, Apache Ignite, Infinispan, Apache Geode.
 
@@ -263,7 +269,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### LLVM -- Compiler Infrastructure [PRODUCTION-VALIDATED]
 
-**Discovered prevalence**: Compiler infrastructure as a domain is not directly represented in the Discovered corpus, though Pipe-and-Filter (the underlying pattern) appears in 32 of 122 repos across Data Processing, Infrastructure, and Developer Tools domains.
+**Discovered prevalence**: Compiler infrastructure as a domain is not directly represented in the Discovered corpus. Pipe-and-Filter (the underlying pattern) appears in 32 of 122 repos across Data Processing, Infrastructure, and Developer Tools domains.
 
 **Domain**: Compiler infrastructure serving dozens of language frontends and hardware targets.
 **Architecture styles**: Pipeline, Modular Architecture, Plugin Architecture.
@@ -354,7 +360,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Twisted -- Networking Framework [PRODUCTION-VALIDATED]
 
-**Discovered prevalence**: Event-Driven is the most prevalent style in the Discovered corpus (78 of 122 repos, 64%). All these repos trace their architectural lineage to patterns proven by Twisted and NGINX.
+**Discovered prevalence**: Event-Driven is the most prevalent style in the Discovered corpus (63 of 122 repos, 52%). Many of these repos trace their architectural lineage to patterns proven by Twisted and NGINX.
 
 **Domain**: Event-driven networking engine for Python.
 **Architecture styles**: Event-Driven, Reactor Pattern.
@@ -365,7 +371,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### SQLAlchemy -- Database/ORM [PRODUCTION-VALIDATED]
 
-**Discovered prevalence**: Layered Architecture appears in 30 of 122 Discovered repos (25%). SQLAlchemy's approach -- layers that can be used independently -- is the production-validated version of what many Discovered repos implement (ABP, ASP.NET Boilerplate, eShopOnWeb).
+**Discovered prevalence**: 29 of 122 repos (24%) exhibit Layered Architecture. SQLAlchemy's approach -- layers that can be used independently -- is the production-validated version of what many Discovered repos implement (ABP, ASP.NET Boilerplate, eShopOnWeb).
 
 **Domain**: SQL toolkit and Object-Relational Mapper for Python.
 **Architecture styles**: Layered Architecture, Plugin Architecture.
@@ -750,10 +756,10 @@ Profiles ordered from smallest to largest expected scale, grounded in Discovered
 | **Very Large** | Data Processing Cluster | Discovered | Stream processing at scale | Pipe-and-Filter with exactly-once guarantees |
 
 **Architectural transitions by scale tier (Discovered statistics + production validation):**
-- **Small**: Single-process or monolithic architectures are not only acceptable but preferred. In the Discovered corpus, Layered and Hexagonal repos tend to be smaller-scale. Production evidence: BuckPal (RefArch), clean architecture templates (Discovered).
-- **Medium**: Modular Monolith is the sweet spot -- 29 of 122 Discovered repos use it, often combined with Event-Driven. Production evidence: Squidex (RealWorld), Orchard Core (RealWorld). Competition reasoning: winners at Spotlight Platform and Farmacy Food both chose modular monolith.
-- **Large**: Microservices become justified -- 45 of 122 Discovered repos use them. Event-Driven becomes pervasive. Production evidence: nopCommerce (RealWorld), Jellyfin (RealWorld), Graphite (AOSA), Riak (AOSA).
-- **Very Large**: Space-Based patterns (7 Discovered repos, concentrated in Data Grid), in-memory data grids, event-driven pipelines, and aggressive caching become necessary. Production evidence: NGINX (AOSA), HDFS (AOSA), Git (AOSA), Bitwarden (RealWorld), Redis/Dragonfly (Discovered).
+- **Small**: Single-process or monolithic architectures are not only acceptable but preferred. Layered and Hexagonal repos in the Discovered corpus tend to be smaller-scale. Production evidence: BuckPal (RefArch), clean architecture templates (Discovered).
+- **Medium**: Modular Monolith is the sweet spot. 64 of 122 Discovered repos (52%) exhibit it, often combined with Event-Driven. Production evidence: Squidex (RealWorld), Orchard Core (RealWorld). Competition evidence: winners at Spotlight Platform and Farmacy Food both chose modular monolith.
+- **Large**: Microservices become justified. 26 of 122 Discovered repos exhibit them. Event-Driven becomes pervasive. Production evidence: nopCommerce (RealWorld), Jellyfin (RealWorld), Graphite (AOSA), Riak (AOSA).
+- **Very Large**: Space-Based patterns, in-memory data grids, event-driven pipelines, and aggressive caching become necessary. 7 Discovered repos exhibit Space-Based, concentrated in the Data Grid cluster. Production evidence: NGINX (AOSA), HDFS (AOSA), Git (AOSA), Bitwarden (RealWorld), Redis/Dragonfly (Discovered).
 
 ---
 
@@ -787,10 +793,10 @@ Profiles ordered from smallest to largest expected scale, grounded in Discovered
 | **Very High** | Data Processing Cluster | Discovered | Connectors for all sources | Connector framework (Beam, Flink, Debezium) |
 
 **Patterns by integration tier (Discovered statistics + production evidence):**
-- **Low**: Direct API calls with abstraction layers. In Discovered, Hexagonal Architecture (15 repos) provides the port/adapter pattern. Production: Git's protocol-based integration (AOSA).
-- **Medium**: Adapter pattern, dedicated integration services. In Discovered, Event-Driven (78 repos) is the dominant integration pattern. Production: Puppet's agent-catalog model (AOSA), Squidex's webhook-based events (RealWorld).
-- **High**: Event-driven integration backbone, dedicated modules per system. In Discovered, DDD (39 repos) provides bounded context isolation for integration boundaries. Production: NGINX's module system (AOSA), nopCommerce's plugin ecosystem (RealWorld).
-- **Very High**: Microkernel/plugin architecture for extensibility; protocol-based abstraction. In Discovered, Pipe-and-Filter (32 repos) and Microservices (45 repos) combine for connector frameworks. Production: Selenium's wire protocol (AOSA), GStreamer's pipeline-of-plugins (AOSA).
+- **Low**: Direct API calls with abstraction layers. 16 Discovered repos exhibit Hexagonal Architecture, providing the port/adapter pattern. Production: Git's protocol-based integration (AOSA).
+- **Medium**: Adapter pattern, dedicated integration services. Event-Driven is the dominant integration pattern in 63 Discovered repos. Production: Puppet's agent-catalog model (AOSA), Squidex's webhook-based events (RealWorld).
+- **High**: Event-driven integration backbone, dedicated modules per system. DDD appears in 27 of 122 Discovered repos, providing bounded context isolation for integration boundaries. Production: NGINX's module system (AOSA), nopCommerce's plugin ecosystem (RealWorld).
+- **Very High**: Microkernel/plugin architecture for extensibility; protocol-based abstraction. Pipe-and-Filter (19 Discovered repos) and Microservices (26 repos) combine for connector frameworks. Production: Selenium's wire protocol (AOSA), GStreamer's pipeline-of-plugins (AOSA).
 
 ---
 
@@ -914,7 +920,7 @@ Similarity is organized into clusters of profiles that share 3+ problem dimensio
 
 **Shared dimensions**: Severe budget constraints, non-profit or startup context, cost-per-user as a primary architectural driver.
 
-**Why this cluster matters**: Six of 11 KataLog challenges operate under tight budget constraints. The winning pattern across all of them is evolutionary architecture: start with the simplest viable architecture (modular monolith or service-based) and plan for growth rather than building for scale on day one. Discovered evidence supports this -- Modular Monolith appears in 29 of 122 repos, often as the foundation for systems that later evolved.
+**Why this cluster matters**: Six of 11 KataLog challenges operate under tight budget constraints. The winning pattern across all of them is evolutionary architecture: start with the simplest viable architecture (modular monolith or service-based) and plan for growth rather than building for scale on day one. Discovered evidence supports this -- 64 of 122 repos (52%) exhibit Modular Monolith, often as the foundation for systems that later evolved.
 
 **Key cost benchmarks from competition evidence**:
 - $0.002/user/month (Spotlight Platform, TheGlobalVariables)
@@ -927,7 +933,7 @@ Similarity is organized into clusters of profiles that share 3+ problem dimensio
 
 **Members**: MonitorMe (KataLog), Road Warrior (KataLog), Hey Blue! (KataLog), NGINX (AOSA), ZeroMQ (AOSA), GStreamer (AOSA), Twisted (AOSA), Jellyfin (RealWorld), Data Grid cluster (Discovered), Messaging cluster (Discovered), Infrastructure cluster (Discovered)
 
-**Discovered grounding**: Event-Driven is the most prevalent style in the Discovered corpus -- 78 of 122 repos (64%). The Data Grid (6 repos), Messaging (5 repos), and Infrastructure (7 repos) clusters provide the statistical basis: 18 Discovered repos focused on real-time performance.
+**Discovered grounding**: Event-Driven is the most prevalent style in the Discovered corpus -- 63 of 122 repos (52%). The Data Grid (6 repos), Messaging (5 repos), and Infrastructure (7 repos) clusters provide the statistical basis: 18 Discovered repos focused on real-time performance.
 
 **Shared dimensions**: Sub-second latency requirements, high concurrency, event-driven architecture as the dominant pattern.
 
@@ -984,7 +990,7 @@ For the 11 KataLog challenges, the full pairwise similarity scores (0-5 scale):
 2. **Check Discovered domain coverage**: If your domain has Discovered repos, the style distribution for that domain shows what real systems actually use.
 3. **Add production depth**: A problem validated in AOSA or RealWorld has architectural reasoning from the system creators -- the highest-authority evidence.
 4. **Add competition reasoning**: KataLog challenges provide structured problem decomposition (cost projections, constraint documentation, judge commentary) that production systems rarely publish.
-5. **Use Discovered statistics for pattern frequency**: Event-Driven in 78 of 122 repos, Modular Monolith in 29, Microservices in 45 -- these are statistically significant code-level signals.
+5. **Use Discovered statistics for pattern frequency**: Event-Driven in 63 of 122 repos, Modular Monolith in 64, Microservices in 26 -- these are statistically significant code-level signals.
 6. **Cross-reference solution evidence**: The [Solution Space Taxonomy](solution-spaces.md) maps these problem profiles to specific architecture styles. The [Problem-Solution Matrix](problem-solution-matrix.md) provides the direct cross-reference. The [Evidence by Architecture Style](evidence/by-architecture-style.md) provides per-style evidence depth.
 
 ---

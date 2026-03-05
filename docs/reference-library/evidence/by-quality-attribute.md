@@ -32,7 +32,9 @@ Rankings by detection frequency in 122 open-source repositories classified throu
 
 > **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker --> Deployability, module boundaries --> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected. KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
 
-**These rankings reflect what is *detectable* in code, not what is *important* to architects.** Seven of thirteen quality attributes in this document have zero Discovered detection -- not because they are rare in production, but because they leave no filesystem signature. The Discovered layer is most reliable for infrastructure-level QAs (Deployability, Modularity, Scalability, Fault Tolerance) and least reliable for application-level QAs (Performance, Security, Data Integrity, Testability, Interoperability). Cross-source validation corrects for this by combining Discovered breadth with AOSA/RealWorld depth and KataLog qualitative reasoning.
+**These rankings reflect what is *detectable* in code, not what is *important* to architects.** 7 of 13 quality attributes in this document have zero Discovered detection -- not because they are rare in production, but because they leave no filesystem signature.
+
+The Discovered layer is most reliable for infrastructure-level QAs (Deployability, Modularity, Scalability, Fault Tolerance). It is least reliable for application-level QAs (Performance, Security, Data Integrity, Testability, Interoperability). Cross-source validation corrects for this by combining Discovered breadth with AOSA/RealWorld depth and KataLog qualitative reasoning.
 
 | Detectable (filesystem signals) | Undetectable (code-level concerns) |
 |-------------------------------|-------------------------------------|
@@ -64,7 +66,9 @@ The same quality attributes viewed across all five evidence sources. Cross-sourc
 | Cost/Feasibility | 0 | -- | -- | -- | 26 | 1/5 |
 | Simplicity | 0 | 2 | -- | 1 | 6 | 3/5 |
 
-**Key pattern:** The quality attributes with the strongest Discovered detection (Deployability, Modularity) have the weakest KataLog representation. The quality attributes with the strongest KataLog representation (Scalability, Fault Tolerance, Performance, Security) have weak or zero Discovered detection. This inversion demonstrates exactly why cross-source validation matters -- no single source captures the full QA landscape.
+**Key pattern:** The quality attributes with the strongest Discovered detection (Deployability, Modularity) have the weakest KataLog representation. Conversely, the quality attributes with the strongest KataLog representation (Scalability, Fault Tolerance, Performance, Security) have weak or zero Discovered detection.
+
+This inversion demonstrates exactly why cross-source validation matters -- no single source captures the full QA landscape.
 
 ---
 
@@ -72,9 +76,9 @@ The same quality attributes viewed across all five evidence sources. Cross-sourc
 
 ### Statistical Basis
 
-**Detected in 108 of 122 Discovered repos (89%).** The most detected quality attribute by a wide margin. Detection signals: Dockerfile presence (near-universal in modern .NET repos), docker-compose.yml for multi-service orchestration, Kubernetes manifests, Helm charts, and CI/CD pipeline definitions (.github/workflows, azure-pipelines.yml). Common across all domains -- 89% detection reflects modern development practices where containerization has become default tooling rather than intentional architectural prioritization.
+**Detected in 108 of 122 Discovered repos (89%).** The most detected quality attribute by a wide margin. Detection signals: Dockerfile presence, docker-compose.yml for multi-service orchestration, Kubernetes manifests, Helm charts, and CI/CD pipeline definitions (.github/workflows, azure-pipelines.yml). Common across all domains.
 
-> **Detection bias:** The 89% rate is inflated by Docker/Kubernetes signal prevalence. The presence of a Dockerfile or Helm chart is a strong filesystem signal that automated classification reliably detects. This high rate reflects modern tooling conventions rather than intentional deployability engineering.
+> **Detection bias:** The 89% rate is inflated by Docker/Kubernetes signal prevalence. Dockerfile presence is near-universal in modern .NET repos, and a Dockerfile or Helm chart is a strong filesystem signal that automated classification reliably detects. This high rate reflects modern tooling conventions rather than intentional deployability engineering.
 
 ### Production Evidence
 
@@ -88,7 +92,9 @@ The same quality attributes viewed across all five evidence sources. Cross-sourc
 
 ### Qualitative Evidence: Why This QA Matters
 
-Deployability was rarely cited as a top-3 quality attribute in KataLog competitions, where time-limited design exercises focus on logical architecture over operational concerns. However, winning teams that addressed deployment demonstrated operational maturity: BluzBrothers (1st, MonitorMe) documented specific deployment topology with duplicate instances (ADR-018/020). The low KataLog citation rate does not indicate deployability is unimportant -- it indicates that competition formats exclude operational concerns from scoring.
+Deployability was rarely cited as a top-3 quality attribute in KataLog competitions. Time-limited design exercises focus on logical architecture over operational concerns. However, winning teams that addressed deployment demonstrated operational maturity: BluzBrothers (1st, MonitorMe) documented specific deployment topology with duplicate instances (ADR-018/020).
+
+The low KataLog citation rate does not indicate deployability is unimportant -- it indicates that competition formats exclude operational concerns from scoring.
 
 ### Architecture Styles That Best Support It
 
@@ -98,7 +104,9 @@ Deployability was rarely cited as a top-3 quality attribute in KataLog competiti
 | Event-Driven | 63 | -- | Message infrastructure (RabbitMQ, Kafka) drives compose complexity |
 | Microservices | 26 | eShopOnContainers | Per-service containers; independent deployment is a defining trait |
 
-**Cross-Source Convergence:** Deployability is the quality attribute most distorted by detection methodology. The 89% Discovered rate reflects that Dockerfiles are ubiquitous in modern .NET development, not that 89% of projects architecturally prioritize deployability. The meaningful evidence comes from RealWorld systems where deployment flexibility is a product feature (Bitwarden's self-hosted model) or from RefArch repos where deployment topology is the primary teaching objective (eShopOnContainers). Competition teams rarely cite deployability because architecture katas focus on logical design, not operational concerns.
+**Cross-Source Convergence:** Deployability is the quality attribute most distorted by detection methodology. The 89% Discovered rate reflects that Dockerfiles are ubiquitous in modern .NET development, not that 89% of projects architecturally prioritize deployability.
+
+The meaningful evidence comes from RealWorld systems where deployment flexibility is a product feature (Bitwarden's self-hosted model) or from RefArch repos where deployment topology is the primary teaching objective (eShopOnContainers). Competition teams rarely cite deployability because architecture katas focus on logical design, not operational concerns.
 
 ---
 
@@ -106,7 +114,7 @@ Deployability was rarely cited as a top-3 quality attribute in KataLog competiti
 
 ### Statistical Basis
 
-**Detected in 41 of 122 Discovered repos (34%).** Second-most detected quality attribute. Detection signals: separate assemblies/projects per module, explicit dependency injection configuration, internal NuGet package references, and project structure indicating bounded module boundaries. Most common in Developer Tools and E-Commerce domains where codebases grow large enough to require explicit modular organization.
+**Detected in 41 of 122 Discovered repos (34%).** Second-most detected quality attribute. Detection signals: separate assemblies/projects per module, explicit dependency injection configuration, internal NuGet package references, and project structure indicating bounded module boundaries. Most common in Developer Tools and E-Commerce domains -- codebases large enough to require explicit modular organization.
 
 ### Production Evidence
 
@@ -120,7 +128,9 @@ Deployability was rarely cited as a top-3 quality attribute in KataLog competiti
 
 ### Qualitative Evidence: Why This QA Matters
 
-Modularity is implicit in competition architectures but rarely stated as a named quality attribute. Winning teams demonstrate modularity through bounded contexts, service boundaries, and module decomposition diagrams. The modular monolith style (3 KataLog teams, 66.7% top-3 rate) is the most direct competition expression of modularity as a priority. Competition teams describe the symptoms (evolvability, maintainability) rather than the structural property (modularity) -- zero KataLog teams cite modularity directly, yet the strongest competition designs achieve it.
+Modularity is implicit in competition architectures but rarely stated as a named quality attribute. Winning teams demonstrate modularity through bounded contexts, service boundaries, and module decomposition diagrams. The modular monolith style (3 KataLog teams, 66.7% top-3 rate) is the most direct competition expression of modularity as a priority.
+
+Zero KataLog teams cite modularity directly, yet the strongest competition designs achieve it. Competition teams describe the symptoms (evolvability, maintainability) rather than the structural property (modularity).
 
 ### Architecture Styles That Best Support It
 
@@ -130,7 +140,9 @@ Modularity is implicit in competition architectures but rarely stated as a named
 | Pipeline | 19 | LLVM, GStreamer | -- | Pipeline stages are natural module boundaries |
 | Plugin/Microkernel | 0 | LLVM, GStreamer, SQLAlchemy | Orchard Core | Production-dominant pattern for modularity |
 
-**Cross-Source Convergence:** The production evidence strongly favors plugin/microkernel and pipeline architectures for achieving modularity, both of which were nearly invisible in KataLog competitions. LLVM and GStreamer demonstrate that modularity at production scale is achieved through well-defined intermediate representations and typed interfaces between components -- not through service decomposition over a network. The Discovered evidence reinforces this: 64 repos exhibit modular monolith patterns (project-level module boundaries) versus 26 using microservices (network-level module boundaries).
+**Cross-Source Convergence:** The production evidence strongly favors plugin/microkernel and pipeline architectures for achieving modularity. Both were nearly invisible in KataLog competitions.
+
+LLVM and GStreamer demonstrate that modularity at production scale is achieved through well-defined intermediate representations and typed interfaces between components -- not through service decomposition over a network. The Discovered evidence reinforces this: 64 repos exhibit modular monolith patterns (project-level module boundaries) versus 26 using microservices (network-level module boundaries).
 
 ---
 
@@ -179,7 +191,9 @@ Modularity is implicit in competition architectures but rarely stated as a named
 | Pipeline | 19 | -- | NGINX, HDFS, Graphite | Invisible in competition; proven at extreme production scale |
 | Service-Based | 4 | 17 (23.5% top-3) | Graphite | Moderate competition support; Graphite's relay model validates |
 
-**Cross-Source Convergence:** Production systems (NGINX, HDFS, Riak) achieve scalability through fundamentally different mechanisms than competition designs propose. NGINX scales through event-driven non-blocking I/O within a single process; HDFS scales through data partitioning across commodity hardware. Competition teams overwhelmingly propose microservices-based horizontal scaling, yet zero AOSA production systems use microservices as a primary style. The gap suggests competition teams over-index on microservices for scalability when simpler patterns (pipeline, event-driven worker pools) are proven at far greater scale.
+**Cross-Source Convergence:** Production systems (NGINX, HDFS, Riak) achieve scalability through fundamentally different mechanisms than competition designs propose. NGINX scales through event-driven non-blocking I/O within a single process. HDFS scales through data partitioning across commodity hardware.
+
+Competition teams overwhelmingly propose microservices-based horizontal scaling, yet zero AOSA production systems use microservices as a primary style. The gap suggests competition teams over-index on microservices for scalability when simpler patterns (pipeline, event-driven worker pools) are proven at far greater scale.
 
 ---
 
@@ -224,7 +238,9 @@ Modularity is implicit in competition architectures but rarely stated as a named
 | Service-Based | 4 | 14 (28.6% top-3) | -- | Coarser granularity trades some isolation for simplicity |
 | Space-Based | 5 | -- | -- | Replicated processing units; Riak validates the underlying model |
 
-**Cross-Source Convergence:** AOSA production evidence reveals a crucial distinction: HDFS and Riak achieve availability through data replication and consensus protocols at the storage layer, not through microservices decomposition at the application layer. Competition teams typically propose availability through service redundancy (multiple instances behind load balancers). Both approaches are valid but operate at different levels of the stack. The pattern that consistently predicts placement in KataLog is explicit graceful degradation modeling -- documenting what capabilities degrade at each failure level -- rather than claiming generic "high availability."
+**Cross-Source Convergence:** AOSA production evidence reveals a crucial distinction. HDFS and Riak achieve availability through data replication and consensus protocols at the storage layer, not through microservices decomposition at the application layer. Competition teams typically propose availability through service redundancy (multiple instances behind load balancers). Both approaches are valid but operate at different levels of the stack.
+
+The pattern that consistently predicts placement in KataLog is explicit graceful degradation modeling -- documenting what capabilities degrade at each failure level -- rather than claiming generic "high availability."
 
 ---
 
@@ -232,7 +248,9 @@ Modularity is implicit in competition architectures but rarely stated as a named
 
 ### Statistical Basis
 
-**Detected in 4 of 122 Discovered repos (3%).** Low detection rate reflects that observability is implemented through NuGet packages and configuration (Serilog, OpenTelemetry SDK) rather than distinctive filesystem structures. Detection signals: logging configuration files, OpenTelemetry package references. Underdetected relative to actual adoption -- most modern repos implement observability, but the signals are package-level rather than structural.
+**Detected in 4 of 122 Discovered repos (3%).** Detection signals: logging configuration files and OpenTelemetry package references.
+
+> **Detection bias:** The low detection rate reflects that observability is implemented through NuGet packages and configuration (Serilog, OpenTelemetry SDK) rather than distinctive filesystem structures. Most modern repos implement observability, but the signals are package-level rather than structural.
 
 ### Production Evidence
 
@@ -265,7 +283,9 @@ No AOSA or RealWorld systems cite observability as a primary quality attribute. 
 | Service-Based | 4 | 4 (50.0% top-3) | -- | Moderate service count makes tracing manageable |
 | Microservices | 26 | 6 (33.3% top-3) | eShopOnContainers | Many services demand observability; also make it harder |
 
-**Cross-Source Convergence:** Observability is the quality attribute most likely to grow in cross-source validation as the dataset expands. Its current 3-source presence understates its production importance -- modern systems universally implement observability, but the AOSA systems predate the observability movement, and RealWorld applications treat it as operational infrastructure rather than an architectural driver. The KataLog evidence suggests observability is becoming a first-class architectural concern specifically in AI-integrated systems where LLM behavior monitoring requires purpose-built tooling.
+**Cross-Source Convergence:** Observability is the quality attribute most likely to grow in cross-source validation as the dataset expands. Its current 3-source presence understates its production importance.
+
+Modern systems universally implement observability, but the AOSA systems predate the observability movement, and RealWorld applications treat it as operational infrastructure rather than an architectural driver. The KataLog evidence suggests observability is becoming a first-class architectural concern specifically in AI-integrated systems where LLM behavior monitoring requires purpose-built tooling.
 
 ---
 
@@ -273,7 +293,7 @@ No AOSA or RealWorld systems cite observability as a primary quality attribute. 
 
 ### Statistical Basis
 
-**Detected in 2 of 122 Discovered repos (2%).** Severely underdetected. Plugin architectures are identifiable from filesystem signals, but general evolvability (loose coupling, well-defined interfaces, modular boundaries designed for change) requires deeper code analysis that automated filesystem classification cannot perform. The 2% rate dramatically understates the actual prevalence of evolvability-aware design in the corpus.
+**Detected in 2 of 122 Discovered repos (2%).** The 2% rate dramatically understates the actual prevalence of evolvability-aware design in the corpus. Plugin architectures are identifiable from filesystem signals, but general evolvability (loose coupling, well-defined interfaces, modular boundaries designed for change) requires deeper code analysis.
 
 > **Detection bias:** Evolvability is one of the most important quality attributes in production systems (5 AOSA systems, 4 RealWorld apps) yet one of the least detectable through automated analysis. This is the clearest example of where KataLog qualitative evidence is essential to fill the detection gap.
 
@@ -318,7 +338,9 @@ No AOSA or RealWorld systems cite observability as a primary quality attribute. 
 | Pipeline | 19 | -- | LLVM, GStreamer | Jellyfin | Phase-based design inherently extensible at each stage |
 | Microservices | 26 | 20 (45.0% top-3) | -- | -- | Popular in competition; no production extensibility evidence |
 
-**Cross-Source Convergence:** Production evidence overwhelmingly favors plugin/microkernel architectures for extensibility, while competition teams overwhelmingly propose microservices. Six production systems (LLVM, GStreamer, SQLAlchemy, Jellyfin, nopCommerce, Orchard Core) use plugin architectures; zero use microservices for extensibility. This is the largest gap between competition preference and production reality in the entire dataset. Plugin/Microkernel rose from rank #11 to #2 in the cross-source weighted scoreboard specifically because of this extensibility evidence.
+**Cross-Source Convergence:** Production evidence overwhelmingly favors plugin/microkernel architectures for extensibility. 6 production systems (LLVM, GStreamer, SQLAlchemy, Jellyfin, nopCommerce, Orchard Core) use plugin architectures. Zero use microservices for extensibility.
+
+This is the largest gap between competition preference and production reality in the entire dataset. Competition teams overwhelmingly propose microservices instead. Plugin/Microkernel rose from rank #11 to #2 in the cross-source weighted scoreboard specifically because of this extensibility evidence.
 
 ---
 
@@ -326,9 +348,9 @@ No AOSA or RealWorld systems cite observability as a primary quality attribute. 
 
 ### Statistical Basis
 
-**Detected in 0 of 122 Discovered repos (0%).** Performance optimization is entirely invisible to automated filesystem analysis. Performance lives in algorithmic choices, data structure selection, caching strategies, and runtime configuration -- none of which leave filesystem signatures detectable by automated classification.
+**Detected in 0 of 122 Discovered repos (0%).** Performance lives in algorithmic choices, data structure selection, caching strategies, and runtime configuration -- none of which leave filesystem signatures.
 
-> **Detection bias:** The zero detection rate is a detection limitation, not a prevalence finding. Performance is the fourth most-cited quality attribute in KataLog (41 teams, 53%) and is validated by 4 AOSA production systems with deep engineering evidence. This QA relies entirely on production and competition evidence.
+> **Detection bias:** The zero detection rate is a detection limitation, not a prevalence finding. 41 of 78 KataLog teams (53%) cited performance, making it the fourth most-cited quality attribute. 4 AOSA production systems provide deep engineering evidence. This QA relies entirely on production and competition evidence.
 
 ### Production Evidence
 
@@ -365,7 +387,9 @@ No AOSA or RealWorld systems cite observability as a primary quality attribute. 
 | Modular Monolith | 64 | 3 (100% top-3) | -- | Avoids network hops; in-process calls are faster |
 | Microservices | 26 | 22 (40.9% top-3) | -- | Network overhead is a performance cost |
 
-**Cross-Source Convergence:** The AOSA evidence reveals that extreme performance is achieved through low-level engineering decisions (event loops, lock-free data structures, zero-copy I/O, memory-mapped files) rather than architectural style selection. All four AOSA performance systems use pipeline patterns internally, yet zero KataLog teams proposed pipeline as a primary style. Competition teams address performance through architectural choices (CQRS read models, caching layers, async processing) that operate at a higher abstraction level than the systems-programming techniques proven in production. Both levels matter, but production evidence suggests the pipeline pattern is the most underappreciated performance enabler.
+**Cross-Source Convergence:** The AOSA evidence reveals that extreme performance is achieved through low-level engineering decisions (event loops, lock-free data structures, zero-copy I/O, memory-mapped files) rather than architectural style selection. All four AOSA performance systems use pipeline patterns internally, yet zero KataLog teams proposed pipeline as a primary style.
+
+Competition teams address performance through architectural choices (CQRS read models, caching layers, async processing) that operate at a higher abstraction level than the systems-programming techniques proven in production. Both levels matter, but production evidence suggests the pipeline pattern is the most underappreciated performance enabler.
 
 ---
 
@@ -373,9 +397,9 @@ No AOSA or RealWorld systems cite observability as a primary quality attribute. 
 
 ### Statistical Basis
 
-**Detected in 0 of 122 Discovered repos (0%).** Security practices are invisible to filesystem-based detection. Authentication middleware, authorization policies, and encryption configurations are code-level concerns that automated classification cannot reliably detect from repository structure alone.
+**Detected in 0 of 122 Discovered repos (0%).** Authentication middleware, authorization policies, and encryption configurations are code-level concerns invisible to filesystem-based detection.
 
-> **Detection bias:** Security is the fourth most-cited quality attribute in KataLog (40 teams, 51%) and is validated by Bitwarden, the deepest security evidence in the entire dataset. The zero detection rate reflects detection limitations, not security absence.
+> **Detection bias:** The zero detection rate reflects detection limitations, not security absence. 40 of 78 KataLog teams (51%) cited security, making it the fourth most-cited quality attribute. Bitwarden provides the deepest security evidence in the entire dataset.
 
 ### Production Evidence
 
@@ -410,7 +434,9 @@ No AOSA or RealWorld systems cite observability as a primary quality attribute. 
 | Microservices | 26 | 21 (23.8% top-3) | -- | More network boundaries increase attack surface |
 | Service-Based | 4 | 10 (40.0% top-3) | Bitwarden | Bitwarden validates; fewer network boundaries to secure |
 
-**Cross-Source Convergence:** Bitwarden provides the deepest security evidence in the entire dataset -- zero-knowledge architecture, multiple compliance certifications, and annual audits. Competition teams cite security broadly but differentiate only when backing it with specific architectural decisions (zero trust, crypto-shredding, mutual TLS). The pattern that predicts placement is security-as-architecture (specific ADRs addressing concrete security decisions) rather than security-as-checklist (listing encryption and authentication as requirements).
+**Cross-Source Convergence:** Bitwarden provides the deepest security evidence in the entire dataset -- zero-knowledge architecture, multiple compliance certifications, and annual audits.
+
+Competition teams cite security broadly but differentiate only when backing it with specific architectural decisions (zero trust, crypto-shredding, mutual TLS). The pattern that predicts placement is security-as-architecture (specific ADRs addressing concrete security decisions) rather than security-as-checklist (listing encryption and authentication as requirements).
 
 ---
 
@@ -450,7 +476,9 @@ No AOSA or RealWorld systems cite observability as a primary quality attribute. 
 | Pipeline | 19 | -- | Git, HDFS | Content-addressable storage and block checksums |
 | Service-Based | 4 | 4 (75.0% top-3) | -- | Fewer distributed transactions; easier to maintain consistency |
 
-**Cross-Source Convergence:** Git and HDFS demonstrate fundamentally different approaches to data integrity that competition teams could learn from. Git achieves integrity through content-addressable storage (corruption is structurally impossible because addresses are derived from content). HDFS achieves integrity through redundancy and verification (checksums on every read, automatic re-replication). Competition teams typically address data integrity through consistency patterns (saga, two-phase commit, eventual consistency) that operate at the application layer -- valid but at a different level than the storage-layer integrity proven in production.
+**Cross-Source Convergence:** Git and HDFS demonstrate fundamentally different approaches to data integrity. Git achieves integrity through content-addressable storage -- corruption is structurally impossible because addresses are derived from content. HDFS achieves integrity through redundancy and verification -- checksums on every read and automatic re-replication.
+
+Competition teams typically address data integrity through consistency patterns (saga, two-phase commit, eventual consistency) that operate at the application layer. These are valid but at a different level than the storage-layer integrity proven in production.
 
 ---
 
@@ -458,7 +486,9 @@ No AOSA or RealWorld systems cite observability as a primary quality attribute. 
 
 ### Statistical Basis
 
-**Detected in 0 of 122 Discovered repos (0%).** Testability is an internal quality attribute implemented through test patterns and dependency injection conventions that leave no distinctive filesystem signature for automated detection. This does not mean testability is absent -- rather, it reflects that reference implementations exist specifically to demonstrate testable architecture patterns.
+**Detected in 0 of 122 Discovered repos (0%).** Testability is an internal quality attribute implemented through test patterns and dependency injection conventions that leave no distinctive filesystem signature.
+
+> **Detection bias:** The zero rate does not mean testability is absent. Reference implementations exist specifically to demonstrate testable architecture patterns.
 
 ### Production Evidence
 
@@ -482,7 +512,9 @@ KataLog teams rarely cite testability as a quality attribute. Competition time c
 | Modular Monolith | 64 | modular-monolith-with-ddd | Module boundaries create natural test boundaries |
 | Domain-Driven Design | 27 | modular-monolith-with-ddd | Domain model testable in isolation from infrastructure |
 
-**Cross-Source Convergence:** Testability's RefArch-only presence is itself a finding: reference implementations exist specifically to demonstrate how architectural patterns support testability. Hexagonal/Clean Architecture patterns dominate RefArch evidence precisely because their port/adapter separation makes testing the primary architectural benefit. In production systems, testability is achieved through the same patterns but is not documented as an architectural driver -- it is a consequence of good structure rather than a stated goal.
+**Cross-Source Convergence:** Testability's RefArch-only presence is itself a finding: reference implementations exist specifically to demonstrate how architectural patterns support testability. Hexagonal/Clean Architecture patterns dominate RefArch evidence precisely because their port/adapter separation makes testing the primary architectural benefit.
+
+In production systems, testability is achieved through the same patterns but is not documented as an architectural driver. It is a consequence of good structure rather than a stated goal.
 
 ---
 
@@ -524,7 +556,9 @@ KataLog teams rarely cite testability as a quality attribute. Competition time c
 | Service-Based | 4 | 5 (40.0% top-3) | Selenium, SQLAlchemy | Adapter pattern at service boundaries |
 | Plugin/Microkernel | 0 | -- | Selenium, SQLAlchemy | Dialect/driver plugins encapsulate integration differences |
 
-**Cross-Source Convergence:** Both AOSA systems (Selenium, SQLAlchemy) achieve interoperability through the same fundamental pattern: a protocol/dialect abstraction that encapsulates external system differences behind a stable internal interface. Competition teams propose the same pattern (adapter-based integration) but at the service level rather than the driver/dialect level. The cross-source evidence suggests that interoperability is best achieved through plugin/adapter patterns that isolate integration-specific code, regardless of whether the architecture is monolithic or distributed.
+**Cross-Source Convergence:** Both AOSA systems (Selenium, SQLAlchemy) achieve interoperability through the same fundamental pattern: a protocol/dialect abstraction that encapsulates external system differences behind a stable internal interface. Competition teams propose the same pattern (adapter-based integration) but at the service level rather than the driver/dialect level.
+
+The cross-source evidence suggests that interoperability is best achieved through plugin/adapter patterns that isolate integration-specific code, regardless of whether the architecture is monolithic or distributed.
 
 ---
 
@@ -564,7 +598,9 @@ No production sources cite cost as a primary architectural quality attribute. Co
 | Service-Based | 4 | 6 | 50.0% | Fewer services than microservices, lower operational overhead |
 | Serverless | 6 | 3 | 66.7% | Pay-per-invocation model for low-traffic systems |
 
-**Cross-Source Convergence:** Cost/feasibility is the most competition-specific quality attribute. Its absence from production sources does not mean cost is unimportant -- rather, production systems manage cost through operational practices (right-sizing, reserved instances, auto-scaling policies) rather than through architectural style selection. The KataLog evidence does reveal a strong correlation: modular monolith teams cite cost most frequently and achieve the highest placement rate when cost is a factor. This aligns with the Discovered frequency data where Modular Monolith is the most prevalent style (52% of repos).
+**Cross-Source Convergence:** Cost/feasibility is the most competition-specific quality attribute. Its absence from production sources does not mean cost is unimportant. Rather, production systems manage cost through operational practices (right-sizing, reserved instances, auto-scaling policies) rather than through architectural style selection.
+
+The KataLog evidence reveals a strong correlation: modular monolith teams cite cost most frequently and achieve the highest placement rate when cost is a factor. This aligns with the Discovered frequency data where Modular Monolith is the most prevalent style (52% of repos).
 
 ---
 
@@ -608,7 +644,9 @@ No production sources cite cost as a primary architectural quality attribute. Co
 | Service-Based | 4 | 4 (25.0% top-3) | Graphite | -- | Few services with clear boundaries |
 | Hexagonal/Clean | 16 | -- | -- | buckpal | Structure without infrastructure complexity |
 
-**Cross-Source Convergence:** Graphite and ZeroMQ demonstrate that simplicity is not the absence of capability -- it is a deliberate architectural decision to limit complexity by constraining scope and eliminating operational overhead. Graphite chose a fixed-size round-robin database format that sacrifices flexibility for zero-maintenance storage. ZeroMQ eliminated the message broker entirely by embedding patterns into a library. In competition, simplicity as a stated priority consistently led teams toward modular monolith, service-based, or buy-over-build decisions. Across all sources, simplicity correlates strongly with pipeline and plugin patterns -- both of which achieve powerful capabilities through simple, composable abstractions rather than complex distributed coordination.
+**Cross-Source Convergence:** Graphite and ZeroMQ demonstrate that simplicity is not the absence of capability -- it is a deliberate architectural decision to limit complexity by constraining scope and eliminating operational overhead. Graphite chose a fixed-size round-robin database format that sacrifices flexibility for zero-maintenance storage. ZeroMQ eliminated the message broker entirely by embedding patterns into a library.
+
+In competition, simplicity as a stated priority consistently led teams toward modular monolith, service-based, or buy-over-build decisions. Across all sources, simplicity correlates strongly with pipeline and plugin patterns -- both achieve powerful capabilities through simple, composable abstractions rather than complex distributed coordination.
 
 ---
 
@@ -632,20 +670,20 @@ No production sources cite cost as a primary architectural quality attribute. Co
 ### QAs most over-represented in competition vs. production
 
 1. **Cost/Feasibility** -- 26 KataLog teams, zero production evidence. Entirely competition-specific.
-2. **Security** -- 40 KataLog teams but only 1 production system (Bitwarden) where security is the core product. Most production systems handle security at the deployment layer.
-3. **Availability** -- 43 KataLog teams but only 2 AOSA systems (both distributed storage). Competition teams over-state availability needs.
+2. **Security** -- 40 KataLog teams but only 1 production system (Bitwarden), where security is the core product. Most production systems handle security at the deployment layer rather than the architecture layer.
+3. **Availability** -- 43 KataLog teams but only 2 AOSA systems (both distributed storage). Competition teams tend to over-state availability needs.
 
 ### QAs most under-represented in competition vs. production
 
-1. **Modularity** -- Zero KataLog teams cite it directly, but 4 AOSA production systems and 41 Discovered repos demonstrate it. Competition teams describe the symptoms (evolvability, maintainability) rather than the structural property (modularity).
-2. **Deployability** -- Near-zero in KataLog, but 108 Discovered repos and 4 production/reference systems prioritize it. Competition time limits exclude operational concerns.
-3. **Testability** -- Zero KataLog teams, but 4 RefArch repos exist specifically to demonstrate it. Reference implementations fill the gap that competitions and production documentation leave.
+1. **Modularity** -- Zero KataLog teams cite it directly, but 4 AOSA production systems and 41 Discovered repos demonstrate it. Competition teams describe the symptoms (evolvability, maintainability) rather than the structural property.
+2. **Deployability** -- Near-zero KataLog citations, but 108 Discovered repos and 4 production/reference systems prioritize it. Competition time limits exclude operational concerns.
+3. **Testability** -- Zero KataLog teams cite it, but 4 RefArch repos exist specifically to demonstrate it. Reference implementations fill the gap that competitions and production documentation leave.
 
 ### QAs most distorted by Discovered detection bias
 
-1. **Deployability** (89%) -- Grossly inflated. Docker/CI presence is a modern tooling convention, not an architectural decision. Cross-source validation shows deployability is rarely an architectural driver.
-2. **Evolvability** (2%) -- Severely underdetected. The most production-validated QA (9 systems) but nearly invisible to filesystem analysis. KataLog qualitative evidence is essential here.
-3. **Performance** (0%) -- Completely undetectable. The fourth most-cited QA in competition and validated by 4 AOSA systems, but architectural performance decisions leave no filesystem trace.
+1. **Deployability** (89%) -- Grossly inflated. Docker/CI presence is a modern tooling convention, not an architectural decision.
+2. **Evolvability** (2%) -- Severely underdetected. The most production-validated QA (9 systems) is nearly invisible to filesystem analysis. KataLog qualitative evidence is essential here.
+3. **Performance** (0%) -- Completely undetectable. The fourth most-cited QA in competition, validated by 4 AOSA systems. Architectural performance decisions leave no filesystem trace.
 
 ---
 

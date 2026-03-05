@@ -2,7 +2,9 @@
 
 A practitioner-facing guide for navigating from problem characteristics to evidence-based architectural recommendations. Every recommendation is grounded in statistical analysis of 122 open-source repositories (Discovered), validated by 17 production systems (AOSA + RealWorld), and enriched with qualitative reasoning from 78 competition teams (KataLog). Total evidence base: 225 entries across 5 sources.
 
-> **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker -> Deployability, module boundaries -> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected. KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
+> **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker -> Deployability, module boundaries -> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected.
+>
+> KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
 
 ---
 
@@ -73,11 +75,11 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Modular Monolith with documented evolution path to Service-Based or Microservices**
 
-**Statistical basis:** In the Discovered corpus, Modular Monolith appears in 64 of 122 repos (52%) -- the most frequently observed architecture style. It co-occurs with Event-Driven in 38 repos (31% of the entire corpus), suggesting internal event-driven communication within modular boundaries is the single most common architectural configuration in production codebases.
+**Statistical basis:** Modular Monolith appears in 64 of 122 Discovered repos (52%) -- the most frequently observed architecture style. It co-occurs with Event-Driven in 38 repos (31% of the entire corpus). This suggests internal event-driven communication within modular boundaries is the single most common architectural configuration in production codebases.
 
 **Production validation:** Orchard Core (RealWorld) is a production CMS built as a Modular Monolith with a Plugin system, demonstrating successful module isolation and extensibility without the operational overhead of distributed services. The modular-monolith-with-ddd reference implementation (RefArch) provides a canonical example of Modular Monolith with DDD boundaries, confirming that this pattern translates from design to production with well-defined bounded contexts.
 
-**Why this works -- team reasoning:** In KataLog competition, Modular Monolith has the highest average placement score (3.00) of any architecture style. All 3 first-place Modular Monolith teams won their respective competitions. Judges consistently rewarded cost-realism over architectural ambition in non-profit and startup contexts. Teams that defaulted to microservices in budget-constrained settings averaged lower placement scores.
+**Why this works -- team reasoning:** In KataLog competition, Modular Monolith has the highest average placement score (3.00) of any architecture style. All 3 first-place Modular Monolith teams won their respective competitions. Judges consistently rewarded cost-realism over architectural ambition in non-profit and startup contexts.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
@@ -85,7 +87,7 @@ Find the path that best matches your answer profile. If you match multiple paths
 | PegasuZ | 1st | Spotlight Platform | Modular monolith MVP evolving to microservices + event-driven | Asked "Why build a fortress if no one will live in it?" Defined quantum boundaries for later extraction. |
 | MonArch | 1st | Hey Blue! | Modular monolith initial phase evolving to microservices | Projected $2,780/month on GCP for 50K MAU. Began modular, planned service extraction. |
 
-**Critical documentation**: Include a concrete cost analysis. In non-profit/startup challenges, every first-place winner included some form of cost analysis. Feasibility analysis is the strongest single predictor of placement: teams with it are 4.5x more likely to place in the top 2.
+**Critical documentation**: Include a concrete cost analysis. In non-profit/startup challenges, every first-place winner included some form of cost analysis. Feasibility analysis is the strongest single predictor of placement. Teams with it are 4.5x more likely to place in the top 2.
 
 **Also study**: TheGlobalVariables (3rd, Spotlight) calculated $0.002/user/month with serverless microservices. Arch8s (Runner-up, Spotlight) used a hybrid modular monolith + service-based + serverless approach.
 
@@ -96,11 +98,13 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Event-Driven Architecture + Service-Based (NOT microservices-first)**
 
-**Statistical basis:** In the Discovered corpus, Event-Driven appears in 63 of 122 repos (52%), tied with Modular Monolith as the most prevalent style. Service-Based appears in 4 repos (3%) -- its low Discovered count reflects detection difficulty (fewer structural signals than microservices), not low adoption. Critically, Microservices (26 repos, 21%) has zero production systems in the evidence base despite moderate code presence, while Event-Driven is validated by 5 production systems (NGINX, Twisted, ZeroMQ, Squidex, Bitwarden).
+**Statistical basis:** Event-Driven appears in 63 of 122 Discovered repos (52%) -- the joint most prevalent style. It co-occurs with Service-Based patterns across multiple domains. Five production systems validate this combination: NGINX, Twisted, ZeroMQ, Squidex, and Bitwarden.
+
+Service-Based has only 4 Discovered repos (3%), but three production systems (Selenium, Graphite, Bitwarden) confirm it is underdetected, not underused. Detection note: service boundaries leave fewer filesystem signals than microservices or event brokers.
 
 **Production validation:** NGINX (AOSA) uses Event-Driven architecture to handle the C10K problem and beyond, serving over 30% of internet traffic using an asynchronous, non-blocking event loop. Bitwarden (RealWorld) combines Service-Based + Event-Driven patterns for a security-critical password management platform. Graphite (AOSA) uses Pipeline + Service-Based architecture for high-volume metrics ingestion, processing millions of metrics per minute.
 
-**Why this works -- team reasoning:** In KataLog competition, Event-Driven + Service-Based averages 2.57 placement points per team with 3 first-place wins out of 7 teams. Event-Driven + Microservices, despite being the most common combination (17 teams), averages only 1.29 points per team -- the single largest performance gap between any two style combinations in the dataset.
+**Why this works -- team reasoning:** In KataLog competition, Event-Driven + Service-Based averages 2.57 placement points per team with 3 first-place wins out of 7 teams. Event-Driven + Microservices, despite being the most common combination (17 teams), averages only 1.29 points per team. This is the single largest performance gap between any two style combinations in the dataset.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
@@ -109,7 +113,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 | Team Seven | 1st | Sysops Squad | Service-based with event-driven message queues | 12 ADRs, phased migration plan with transition architecture |
 | Profitero Data Alchemists | 1st | Road Warrior | Pure event-driven | Rozanski/Woods viewpoints, 15 ADRs, chose evolvability over elasticity |
 
-**Watch out for**: The "Scalability Trap." Scalability is cited by 68% of runners-up but only 55% of first-place winners. Do not let scalability drive your entire architecture. Address it through targeted mechanisms (scaling groups, CQRS, queue-based decoupling) rather than choosing an entire architecture style for scalability alone. Microservices without event-driven architecture is an anti-pattern -- pure synchronous microservices create tight coupling through REST chains. EDA-only teams averaged 2.44 points; microservices-only teams (no EDA) averaged 1.70.
+**Watch out for**: The "Scalability Trap." Scalability is cited by 68% of runners-up but only 55% of first-place winners. Do not let scalability drive your entire architecture. Address it through targeted mechanisms (scaling groups, CQRS, queue-based decoupling) rather than choosing an entire architecture style for scalability alone.
+
+Microservices without event-driven architecture is an anti-pattern -- pure synchronous microservices create tight coupling through REST chains. 26 Discovered repos (21%) use Microservices, yet zero have production-system validation. EDA-only teams averaged 2.44 points; microservices-only teams (no EDA) averaged 1.70.
 
 **Also study**: Iconites (2nd, Road Warrior) combined microservices + event-driven + space-based with Cosmos DB global distribution. BluzBrothers (1st, MonitorMe) used pure event-driven with Kafka to meet critical latency requirements.
 
@@ -120,7 +126,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Service-Based Architecture with phased transition plan**
 
-**Statistical basis:** Brownfield migration evidence is inherently thin in open-source catalogs -- most repositories represent a single architectural snapshot rather than a migration journey. Service-Based appears in 4 of 122 Discovered repos (3%), but this reflects detection difficulty: service-based architecture is harder to detect from structural signals than microservices (fewer Docker Compose services) or event-driven (no message broker config). The 3 production systems (Selenium, Graphite, Bitwarden) confirm it is underdetected, not underused.
+**Statistical basis:** Service-Based appears in 4 of 122 Discovered repos (3%). Three production systems (Selenium, Graphite, Bitwarden) confirm it is underdetected, not underused.
+
+Brownfield migration evidence is inherently thin in open-source catalogs -- most repositories represent a single architectural snapshot rather than a migration journey. Detection note: service-based architecture leaves fewer structural signals than microservices (fewer Docker Compose services) or event-driven (no message broker config).
 
 **Production validation:** nopCommerce (RealWorld) demonstrates successful brownfield evolution over a 17-year lifespan, migrating from original ASP.NET to modern .NET while maintaining backward compatibility and a large plugin ecosystem. Selenium (AOSA) evolved from its monolithic RC (Remote Control) architecture to the distributed WebDriver architecture -- a production-scale brownfield migration that replaced the core execution model while preserving the public API contract.
 
@@ -146,7 +154,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Event-Driven Architecture, on-premises deployment**
 
-**Statistical basis:** In the Discovered corpus, Event-Driven appears in 63 of 122 repos (52%). Among Observability-focused repos, 3 implement telemetry pipeline patterns analogous to medical monitoring -- continuous high-frequency data ingestion with event-driven processing. No direct healthcare repos appear in the Discovered corpus; the statistical basis here is the general EDA prevalence and its dominance in streaming/pipeline workloads.
+**Statistical basis:** Event-Driven appears in 63 of 122 Discovered repos (52%). Among Observability-focused repos, 3 implement telemetry pipeline patterns analogous to medical monitoring -- continuous high-frequency data ingestion with event-driven processing.
+
+No direct healthcare repos appear in the Discovered corpus. The statistical basis here is EDA's general prevalence and its dominance in streaming/pipeline workloads.
 
 **Production validation:** Graphite (AOSA) is a production monitoring pipeline handling high-frequency metrics at scale, architecturally analogous to medical monitoring systems. Its Carbon daemon ingests continuous time-series data streams, Whisper provides fixed-size time-series storage, and the pipeline processes heterogeneous metric streams with different collection intervals -- the same fundamental pattern as vital sign monitoring with varied cadences (heart rate at 500ms, ECG at 1s, blood pressure at 1hr).
 
@@ -173,7 +183,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Service-Based Architecture + Human-in-the-Loop + Deterministic Boundaries**
 
-**Statistical basis:** In the Discovered corpus, 6 AI/ML repositories include 4 using the Multi-Agent pattern (4% of corpus). AI-as-core-product is the newest architectural pattern with the thinnest statistical basis -- 6 repos out of 122. This is an area where competition evidence provides the most current and relevant guidance, as the AOSA corpus (2011-2012 vintage) predates modern AI systems entirely.
+**Statistical basis:** 6 AI/ML repositories appear in the Discovered corpus. 4 of these use the Multi-Agent pattern (4% of the full corpus).
+
+AI-as-core-product is the newest architectural pattern with the thinnest statistical basis. Competition evidence provides the most current guidance, as the AOSA corpus (2011-2012 vintage) predates modern AI systems entirely.
 
 **Production validation:** No production AI systems appear in the AOSA or RealWorld catalogs. This is the weakest production evidence of any path. The 6 Discovered AI/ML repos confirm multi-agent as an emerging but not yet dominant production pattern.
 
@@ -206,7 +218,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Event-Driven core with pragmatic monolith deployment at the edge**
 
-**Statistical basis:** In the Discovered corpus, Event-Driven appears in 63 of 122 repos (52%). Among Developer Tools (36 repos) and Infrastructure (7 repos) categories, offline operation and eventual synchronization are common requirements. Edge/offline patterns -- store-and-forward, converge-on-connect, local-first operation -- appear across these categories, confirming event-driven communication as the standard approach for intermittently connected systems.
+**Statistical basis:** Event-Driven appears in 63 of 122 Discovered repos (52%). Among Developer Tools (36 repos) and Infrastructure (7 repos) categories, offline operation and eventual synchronization are common requirements.
+
+Edge/offline patterns -- store-and-forward, converge-on-connect, local-first operation -- appear across these categories. This confirms event-driven communication as the standard approach for intermittently connected systems.
 
 **Production validation:** Git (AOSA) is a fully offline-capable distributed system, proving offline-first architecture at massive scale. Every Git clone is a complete repository that operates without any network connectivity, synchronizing changes only when connectivity is available -- the canonical "store-and-forward" pattern. Bitwarden (RealWorld) supports offline vault access. Puppet (AOSA) implements a converge-on-connect pattern where nodes operate independently with their last-known configuration and reconcile state when they reconnect -- directly analogous to IoT edge nodes that must function during connectivity gaps.
 
@@ -231,7 +245,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Per-quantum style selection with adapter/connector patterns**
 
-**Statistical basis:** In the Discovered corpus, 36 Developer Tools repositories consistently surface extensibility as a key architectural tension. Plugin and Adapter patterns appear frequently in this category as the solution for unbounded integration requirements. Pipe-and-Filter (19 repos, 16%) co-occurs with Event-Driven, confirming that pipeline-based processing is a common integration backbone in production codebases.
+**Statistical basis:** 36 Developer Tools repositories in the Discovered corpus consistently surface extensibility as a key architectural tension. Plugin and Adapter patterns appear frequently in this category as the solution for unbounded integration requirements.
+
+Pipe-and-Filter appears in 19 repos (16%) and co-occurs with Event-Driven. This confirms pipeline-based processing as a common integration backbone in production codebases.
 
 **Production validation:** LLVM (AOSA) uses Pipeline + Plugin architecture to handle dozens of language frontends and hardware backends through a stable Intermediate Representation (IR). GStreamer (AOSA) uses a Plugin architecture to handle thousands of codecs, devices, and protocols. Selenium (AOSA) uses an Adapter pattern per browser unified behind a single WebDriver API. Jellyfin (RealWorld) uses a Plugin system for metadata providers, subtitle sources, and client applications.
 
@@ -258,7 +274,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Modular Monolith MVP with evolutionary roadmap OR Service-Based + Selective Event-Driven**
 
-**Statistical basis:** In the Discovered corpus, Modular Monolith appears in 64 of 122 repos (52%). Among these, the co-occurrence with Event-Driven in 38 repos demonstrates that the "start modular, add event-driven communication" evolution path is the most common configuration in real codebases. Non-profit-specific repos are not separately tagged in Discovered, but the general pattern -- modular boundaries with low operational overhead -- aligns with the cost constraints of civic platforms.
+**Statistical basis:** Modular Monolith appears in 64 of 122 Discovered repos (52%). It co-occurs with Event-Driven in 38 repos, making the "start modular, add event-driven communication" evolution path the most common configuration in real codebases.
+
+Non-profit-specific repos are not separately tagged in Discovered, but the general pattern -- modular boundaries with low operational overhead -- aligns with the cost constraints of civic platforms.
 
 **Production validation:** Production evidence for non-profit platforms is limited across all 5 sources. Orchard Core (RealWorld) as a modular monolith CMS demonstrates the pattern at production scale, though not in a non-profit context specifically.
 
@@ -280,7 +298,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Event-Driven + Microservices with multi-region deployment**
 
-**Statistical basis:** In the Discovered corpus, Event-Driven appears in 63 of 122 repos (52%) and co-occurs with Microservices in repos targeting high-scale domains. Among Infrastructure repos (7), high-availability patterns -- replication, partitioning, circuit breakers, bulkheads -- appear as standard production practices. Space-Based appears in 5 repos (4%), confirming it is a niche pattern reserved for extreme scale requirements.
+**Statistical basis:** Event-Driven appears in 63 of 122 Discovered repos (52%) and co-occurs with Microservices in repos targeting high-scale domains. Among Infrastructure repos (7), high-availability patterns -- replication, partitioning, circuit breakers, bulkheads -- appear as standard production practices.
+
+Space-Based appears in 5 repos (4%). It is a niche pattern reserved for extreme scale requirements.
 
 **Production validation:** NGINX (AOSA) serves over 30% of internet traffic through its event-driven, non-blocking architecture. Its master/worker process model allows zero-downtime configuration reloads and binary upgrades. Riak (AOSA) uses a masterless design that eliminates single points of failure, with tunable consistency that allows operators to trade consistency for availability per request. HDFS (AOSA) uses triple replication across racks, tolerating any two simultaneous failures while maintaining data availability.
 
@@ -303,7 +323,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Architecture style driven by other factors, with compliance addressed through specific ADRs and structural separation**
 
-**Statistical basis:** In the Discovered corpus, Banking/Finance repositories (4 repos) consistently prioritize Modularity alongside Deployability, confirming that compliance-heavy domains favor clear module boundaries for audit scope isolation over any particular architecture style choice. Compliance is a constraint on the architecture, not a driver of style selection.
+**Statistical basis:** 4 Banking/Finance repositories in the Discovered corpus consistently prioritize Modularity alongside Deployability. Compliance-heavy domains favor clear module boundaries for audit scope isolation over any particular architecture style choice.
+
+Compliance is a constraint on the architecture, not a driver of style selection.
 
 **Production validation:** Bitwarden (RealWorld) maintains SOC 2 Type II, GDPR, CCPA, and HIPAA compliance in production on a Service-Based + Event-Driven architecture, demonstrating that compliance is achievable as a layered concern. Puppet (AOSA) implements compliance-as-code through idempotent configuration management with full auditability -- every configuration change is versioned, logged, and reproducible.
 
@@ -383,7 +405,7 @@ Based on the statistically derived "Winning Formula" (80% retrospective accuracy
 1. **Document 15+ decisions** with well-structured ADRs showing trade-off reasoning
 2. **Include feasibility analysis** demonstrating cost awareness and practical constraints (4.5x placement impact)
 3. **Use C4 diagrams** at multiple levels to communicate architecture at different granularities
-4. **Adopt event-driven patterns** as a primary or supporting style -- 63 of 122 Discovered repos (52%) and 73% of KataLog winners use EDA
+4. **Adopt event-driven patterns** as a primary or supporting style -- 63 of 122 Discovered repos (52%) use EDA, and 73% of KataLog winners do the same
 5. **Propose evolutionary approaches** with phased roadmaps from MVP to target state (73% of winners)
 
 ### Style Combinations Cheat Sheet

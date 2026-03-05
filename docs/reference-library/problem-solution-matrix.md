@@ -21,7 +21,9 @@ Mappings are grounded in Discovered corpus statistics (122 repos) as the primary
 - **Medium** = 2 sources, or 3+ sources with mixed results
 - **Low** = single source or extrapolated
 
-> **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker -> Deployability, module boundaries -> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected. KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
+> **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker -> Deployability, module boundaries -> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected.
+>
+> KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
 
 **Limitations:** Correlation is not causation. Style frequency does not prove effectiveness. Each repo may exhibit multiple styles; counts are not mutually exclusive. Competition data covers 78 teams across 11 challenges -- some cells have small sample sizes. Production systems may reflect survivorship bias.
 
@@ -48,9 +50,9 @@ Statistical mapping from 122 classified repositories across 35 domains. This is 
 
 **Key statistical findings:**
 
-1. **Event-Driven is the most cross-domain style**, appearing in the top styles for 9 of the 10 largest domain clusters. In 122 repos overall, Event-Driven appears in 63 (52%).
-2. **Developer Tools dominates at 30% of the corpus** (36/122), suggesting architecture frameworks and templates are the most common open-source contribution pattern. Event-Driven(21), DDD(13), and CQRS(11) lead this domain.
-3. **Domain-specific specialization is real.** Space-Based appears in 83% of Data Grid repos but only 4% of the corpus overall. Multi-Agent appears in 67% of AI/ML repos but 4% overall. The matrix captures these niche-but-strong signals.
+1. **Event-Driven is the most cross-domain style**, appearing in the top styles for 9 of the 10 largest domain clusters. It appears in 63 of 122 repos overall (52%).
+2. **Developer Tools dominates at 30% of the corpus** (36 of 122 repos), suggesting architecture frameworks and templates are the most common open-source contribution pattern. Within this domain, Event-Driven leads (21 repos), followed by DDD (13) and CQRS (11).
+3. **Domain-specific specialization is real.** Space-Based appears in 5 of 6 Data Grid repos (83%) but only 4% of the corpus overall. Multi-Agent appears in 4 of 6 AI/ML repos (67%) but 4% overall. The matrix captures these niche-but-strong signals.
 4. **E-Commerce is the most cross-validated domain** with evidence from 4 of 5 sources (Discovered, Production, Competition, RefArch).
 
 ---
@@ -73,7 +75,9 @@ These mappings have the highest confidence -- Discovered statistical frequency A
 | **Media / Streaming** | (cross-domain) | GStreamer (AOSA), Jellyfin (RealWorld) | Pipeline + Plugin | Thousands of codecs/devices |
 | **Compiler / DevTools** | Event-Driven(21/36), DDD(13/36) | LLVM (AOSA), Git (AOSA) | Pipeline + Plugin | Pipeline underdetected in Discovered (detection bias) |
 
-**Notable gap:** Plugin/Microkernel has zero Discovered entries despite 6 production systems (LLVM, SQLAlchemy, GStreamer, Jellyfin, nopCommerce, Orchard Core). Plugin architectures are defined by runtime extension points, not directory structure -- a known detection blind spot. Service-Based has only 4 Discovered repos (3%) but 3 production systems (Selenium, Graphite, Bitwarden), confirming under-detection, not under-use.
+**Notable gap:** Plugin/Microkernel has zero Discovered entries despite 6 production systems (LLVM, SQLAlchemy, GStreamer, Jellyfin, nopCommerce, Orchard Core). Plugin architectures are defined by runtime extension points, not directory structure -- a known detection blind spot.
+
+Service-Based has only 4 Discovered repos (3%) but 3 production systems (Selenium, Graphite, Bitwarden). This confirms under-detection, not under-use.
 
 ---
 
@@ -110,7 +114,7 @@ KataLog competition teams (78 submissions, 11 challenges) explain *why* they cho
 | **Very Large** (2M+) | Space-Based(5/6 Data Grid), CQRS(18 repos) | EDA + Space-Based / CQRS | 2.33 (n=3) | Riak (AOSA), Discovered Data Grid repos |
 | **Extreme** (internet-scale) | Event-Driven(63 repos), Pipe-and-Filter(19 repos) | No competition data | -- | NGINX (billions req/day), HDFS (petabytes), ZeroMQ (millions msg/sec) |
 
-**Critical insight (competition):** Scale alone does not determine style. MonitorMe has only 500 patients but demands 4,000 events/second -- data intensity, not user count, drove universal EDA choice. Conversely, Farmacy Food's winner chose Modular Monolith despite potential national scale, prioritizing startup economics. **Match style to current scale, document the evolution path to future scale.**
+**Critical insight (competition):** Scale alone does not determine style. MonitorMe has only 500 patients but demands 4,000 events/second. Data intensity, not user count, drove the universal EDA choice. Conversely, Farmacy Food's winner chose Modular Monolith despite potential national scale, prioritizing startup economics. **Match style to current scale, document the evolution path to future scale.**
 
 **Production insight:** At extreme scale, the scaling dimension itself determines the style. NGINX scales request throughput through non-blocking event loops. HDFS scales storage through block replication. ZeroMQ scales message throughput through zero-copy, lock-free structures. Riak scales availability through peer-to-peer eventual consistency. **Match style to the dominant scaling dimension, not a single metric.**
 
@@ -241,9 +245,13 @@ Quality attribute-to-style correlations grounded in Discovered detection data, v
 | **Data Integrity** | CQRS(15%) provides audit trail patterns | Squidex (CQRS+ES full audit), HDFS (checksummed replication) | Service-Based (2.50, n=4) | -- |
 | **Interoperability** | (underdetected in Discovered) | LLVM (stable IR bridges languages/hardware), GStreamer (capability negotiation) | Event-Driven (2.33, n=12) | Microservices (1.67, n=6) |
 
-**The Modular Monolith paradox:** MM shows the highest competition placement score across almost every QA. This is partly a selection effect -- the 6 teams that chose MM were disproportionately thoughtful architects making a contrarian, well-reasoned choice. The Discovered corpus independently validates this: Modular Monolith appears in 52% of all repos, the most prevalent style alongside Event-Driven. Production evidence confirms: nopCommerce (17 years, 60K stores) and Orchard Core have outlasted many microservices-first competitors.
+**The Modular Monolith paradox:** MM shows the highest competition placement score across almost every QA. This is partly a selection effect -- the 6 teams that chose MM were disproportionately thoughtful architects making a contrarian, well-reasoned choice.
 
-**The Microservices trap:** With 39 competition teams (50% of submissions), MS is the most popular style but ranks below SB and MM in per-team effectiveness for every QA. Discovered corpus shows MS in 21% of repos -- common but not dominant. The differentiator: MS teams that paired with EDA, DDD, or evolutionary approaches performed markedly better than MS-only (1.70 avg vs. 2.00+ for MS+EDA).
+The Discovered corpus independently validates this: Modular Monolith appears in 52% of all repos, the most prevalent style alongside Event-Driven. Production evidence confirms it too: nopCommerce (17 years, 60K stores) and Orchard Core have outlasted many microservices-first competitors.
+
+**The Microservices trap:** 39 competition teams (50% of submissions) chose MS, making it the most popular style. Yet it ranks below SB and MM in per-team effectiveness for every QA. The Discovered corpus shows MS in 21% of repos -- common but not dominant.
+
+The differentiator: MS teams that paired with EDA, DDD, or evolutionary approaches performed markedly better than MS-only. MS-only averaged 1.70 points; MS+EDA averaged 2.00+.
 
 **Production QA insights not visible in competition or Discovered data:**
 - **Fault tolerance**: HDFS (block replication), Riak (peer-to-peer), NGINX (worker isolation) -- structural property, not just redundancy
@@ -259,7 +267,7 @@ Which style combinations succeed, grounded in Discovered co-occurrence data and 
 
 ### Discovered Co-occurrence Patterns (122 repos)
 
-The strongest co-occurrence in the corpus: **Modular Monolith + Event-Driven appear together in 38 repos** (31% of the entire corpus), suggesting these are complementary rather than competing. Event-Driven communication within a Modular Monolith host is the single most common architectural configuration.
+The strongest co-occurrence in the corpus: **Modular Monolith + Event-Driven appear together in 38 repos** (31% of the entire corpus). This suggests these are complementary rather than competing styles. Event-Driven communication within a Modular Monolith host is the single most common architectural configuration.
 
 Other significant co-occurrences: Layered + Modular Monolith (18 repos), Event-Driven + DDD (cross-domain), Event-Driven + CQRS (15 repos in Developer Tools and E-Commerce).
 
@@ -277,9 +285,9 @@ Other significant co-occurrences: Layered + Modular Monolith (18 repos), Event-D
 | **Event-Driven + Microservices** | 17 repos across domains | 17 / 1.29 (0 first-place from combo alone) | eShopOnContainers, eShop (RefArch) |
 | **3+ complementary styles** | Common in larger repos | 11 / 2.36 (4 first-place wins) | LLVM, GStreamer, wild-workouts-go |
 
-**The combination rule:** Event-Driven + Service-Based (avg 2.57) outperforms Event-Driven + Microservices (avg 1.29) by 2x on per-team placement. The Discovered corpus confirms: MM+EDA co-occurrence (38 repos) is far more common than MS+EDA co-occurrence, suggesting the open-source community independently converges on simpler host architectures with event-driven communication.
+**The combination rule:** Event-Driven + Service-Based (avg 2.57) outperforms Event-Driven + Microservices (avg 1.29) by 2x on per-team placement. The Discovered corpus confirms this independently: MM+EDA co-occurrence (38 repos) is far more common than MS+EDA co-occurrence. The open-source community converges on simpler host architectures with event-driven communication.
 
-**Production insight:** Plugin + Pipeline (LLVM, GStreamer) and Event-Driven + Pipeline (NGINX, GStreamer) are among the most successful production combinations but appear in zero competition submissions and are underdetected in Discovered repos. This reflects both competition framing bias (enterprise over infrastructure) and detection bias (plugin/pipeline patterns are structurally subtle).
+**Production insight:** Plugin + Pipeline (LLVM, GStreamer) and Event-Driven + Pipeline (NGINX, GStreamer) are among the most successful production combinations. Neither appears in competition submissions, and both are underdetected in Discovered repos. This reflects two biases: competition framing bias (enterprise over infrastructure) and detection bias (plugin/pipeline patterns are structurally subtle).
 
 ---
 
@@ -287,25 +295,27 @@ Other significant co-occurrences: Layered + Modular Monolith (18 repos), Event-D
 
 ### Strong Convergences (highest-confidence recommendations)
 
-**Event-Driven for high-throughput systems:** All 5 sources agree. Discovered: 63/122 repos (52%). AOSA: NGINX, ZeroMQ, Twisted. RealWorld: Bitwarden. RefArch: eShopOnContainers. Competition: 7/7 MonitorMe teams, 8/9 Road Warrior teams. The single highest-confidence recommendation in the matrix.
+**Event-Driven for high-throughput systems:** All 5 sources agree. Discovered: 63 of 122 repos (52%). AOSA: NGINX, ZeroMQ, Twisted. RealWorld: Bitwarden. RefArch: eShopOnContainers. Competition: 7 of 7 MonitorMe teams and 8 of 9 Road Warrior teams chose EDA. This is the single highest-confidence recommendation in the matrix.
 
-**Modular Monolith for startups and budget-constrained environments:** 4 sources agree. Discovered: 64/122 repos (52%). RealWorld: nopCommerce (17 years), Orchard Core. RefArch: modular-monolith-with-ddd. Competition: 6/6 MM teams averaged 3.00. The "start simple" advice is production-proven.
+**Modular Monolith for startups and budget-constrained environments:** 4 sources agree. Discovered: 64 of 122 repos (52%). RealWorld: nopCommerce (17 years), Orchard Core. RefArch: modular-monolith-with-ddd. Competition: all 6 MM teams averaged 3.00 placement score. The "start simple" advice is production-proven.
 
-**Plugin architecture for extensibility:** 4 sources agree (zero Discovered due to detection blind spot). AOSA: LLVM, GStreamer, SQLAlchemy. RealWorld: Jellyfin, nopCommerce, Orchard Core. Competition: Wildlife Watcher (Wonderous Toys 3rd). RefArch: eShopOnContainers. The production evidence is overwhelming: when extensibility is primary, plugin outperforms microservices decomposition.
+**Plugin architecture for extensibility:** 4 sources agree. AOSA: LLVM, GStreamer, SQLAlchemy. RealWorld: Jellyfin, nopCommerce, Orchard Core. Competition: Wildlife Watcher (Wonderous Toys 3rd). RefArch: eShopOnContainers. The production evidence is overwhelming: when extensibility is primary, plugin outperforms microservices decomposition.
+
+Detection note: zero Discovered repos detect plugin architecture due to a known blind spot -- plugin patterns are defined by runtime extension points, not directory structure.
 
 ### Instructive Divergences
 
 **Pipeline architecture:** Strong in production (LLVM, GStreamer, Graphite, NGINX), 19 Discovered repos (16% -- mostly Infrastructure and Data Processing), but absent from competition. Competition framing biases toward enterprise systems where pipeline is less common.
 
-**Microservices performance gap:** Competition is strongly cautionary (avg 1.29 with EDA). Discovered shows MS in 26 repos (21%) -- common but not dominant. RefArch repos (eShopOnContainers, wild-workouts-go) assume proven domain boundaries and operational maturity -- both of which competition teams typically lack.
+**Microservices performance gap:** Competition is strongly cautionary -- MS+EDA averages only 1.29 placement points. Discovered shows MS in 26 repos (21%), common but not dominant. RefArch repos (eShopOnContainers, wild-workouts-go) assume proven domain boundaries and operational maturity. Competition teams typically lack both.
 
-**Space-Based architecture:** Discovered: 5/6 Data Grid repos (83%). Competition: Road Warrior Iconites (2nd). No AOSA/RealWorld system uses it. Niche but strongly validated where applicable.
+**Space-Based architecture:** Discovered: 5 of 6 Data Grid repos (83%). Competition: Road Warrior Iconites (2nd place). No AOSA/RealWorld system uses it. Niche but strongly validated where applicable.
 
 ---
 
 ## Decision Flowchart: Choosing Your Style
 
-**Step 1: Check your AI role.** In the Discovered corpus, AI/ML repos show Multi-Agent(4/6) and Modular Monolith(4/6). Competition evidence: 4 first-place teams across 3 AI challenges used SB+EDA+human-in-the-loop. If AI is central, start there.
+**Step 1: Check your AI role.** In the Discovered corpus, AI/ML repos show Multi-Agent (4 of 6) and Modular Monolith (4 of 6). Competition evidence: 4 first-place teams across 3 AI challenges used SB+EDA+human-in-the-loop. If AI is central, start there.
 
 **Step 2: Check your scale and budget.** Discovered evidence: Modular Monolith(52%) and Event-Driven(52%) are the dominant patterns. For startups: MM with documented evolution path (validated by nopCommerce, 17 years). For medium scale: SB+EDA (validated by Bitwarden). For large scale with proven boundaries: MS+EDA. For extreme scale: EDA+Pipeline (validated by NGINX, ZeroMQ).
 
@@ -315,14 +325,14 @@ Other significant co-occurrences: Layered + Modular Monolith (18 repos), Event-D
 
 **Step 5: Check your compliance load.** If high (HIPAA, SOC2): consider zero-knowledge architecture (Bitwarden), crypto-shredding, dedicated compliance boundaries. If medium (PCI, GDPR): isolate sensitive data into dedicated services.
 
-**Step 6: Document the evolution path.** Tie evolution triggers to business milestones, not arbitrary timelines. In the Discovered corpus, MM+EDA co-occurrence (38 repos) suggests this is the most common evolutionary configuration. 73% of first-place competition winners proposed multi-style or phased architectures. nopCommerce evolved over 17 years; LLVM grew from 1 frontend to dozens through stable plugin APIs.
+**Step 6: Document the evolution path.** Tie evolution triggers to business milestones, not arbitrary timelines. In the Discovered corpus, MM+EDA co-occurrence (38 repos) suggests this is the most common evolutionary configuration. 73% of first-place competition winners proposed multi-style or phased architectures. Production evidence confirms longevity: nopCommerce evolved over 17 years, and LLVM grew from 1 frontend to dozens through stable plugin APIs.
 
 **Step 7: Validate against production evidence.** Check if a production system in this matrix operates in a similar domain with a similar style. Production-validated > cross-source agreement > competition-only > single-source.
 
 **Common mistakes to avoid** (all 5 sources):
 1. **Choosing microservices by default:** Discovered shows MM(52%) and EDA(52%) are more prevalent. Competition shows MS underperforms. Production shows the most successful systems use EDA, pipeline, or plugin architectures.
 2. **Ignoring the plugin pattern:** 5 production systems use plugin architectures, but 0 Discovered repos detect them (blind spot). Consider plugin when extensibility is primary.
-3. **Underestimating pipeline architecture:** 19 Discovered repos (16%) + 4 AOSA systems use pipeline. The most underused pattern relative to its production success.
+3. **Underestimating pipeline architecture:** 19 Discovered repos (16%) use pipeline patterns, and 4 AOSA production systems validate them. It is the most underused pattern relative to its production success.
 4. **Over-engineering for scale that does not exist yet:** Discovered MM prevalence (52%) and nopCommerce longevity both show simpler architectures serve longer than expected.
 5. **Treating compliance as an afterthought:** Bitwarden (production) and competition winners both demonstrate compliance is most effective as a structural property.
 
