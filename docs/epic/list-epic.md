@@ -5,6 +5,7 @@
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | EPIC-006 | Deep-Context Classification Validation | Re-validate all catalog classifications by cloning repos and feeding deep context (source files, configs, architecture docs) to the LLM. Produces verification verdicts, override rules, and expanded gold standard. | 2026-03-04 | — |
+| EPIC-007 | Discovered-First Evidence Hierarchy | Restructure all 6 reference library documents to lead with Discovered corpus statistical analysis (122 repos, 35 domains) as primary evidence. Demote KataLog to supplementary qualitative evidence valued for judge commentary and team reasoning. | 2026-03-05 | — |
 
 ## Active
 
