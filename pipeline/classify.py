@@ -181,6 +181,7 @@ STYLES = [
     "Space-Based",
     "Pipe-and-Filter",
     "Multi-Agent",
+    "Plugin/Microkernel",
 ]
 
 THRESHOLDS = {
@@ -192,10 +193,11 @@ THRESHOLDS = {
     "CQRS": 0.3,
     "Serverless": 0.4,
     "Layered": 0.3,
-    "Service-Based": 0.3,
+    "Service-Based": 0.4,
     "Space-Based": 0.4,
     "Pipe-and-Filter": 0.3,
     "Multi-Agent": 0.4,
+    "Plugin/Microkernel": 0.3,
 }
 
 
@@ -321,12 +323,28 @@ def score_layered(s):
 
 def score_service_based(s):
     c = 0.0
-    # Strong signals (+0.2)
+    # Strong signals — SBA-specific indicators
+    # Monorepo packages: 2-8 coarse-grained service packages (SBA hallmark)
+    monorepo_pkgs = sig(s, "service_based", "monorepo_packages")
+    if 2 <= monorepo_pkgs <= 8:
+        c += 0.3
+    # Shared database configs (SBA hallmark: services share databases)
+    db_configs = sig(s, "service_based", "db_config_count")
+    if db_configs >= 1:
+        c += 0.2
+    # Docker Compose services without k8s (SBA uses compose, MS uses k8s)
+    compose_services = sig(s, "container_orchestration", "docker_compose_services")
+    k8s = sig(s, "container_orchestration", "k8s_manifests")
+    if compose_services >= 3 and k8s == 0:
+        c += 0.2
+    # Moderate signals
+    # Service projects in moderate range (coarse-grained, not micro)
     service_projects = sig(s, "directory_patterns", "service_projects")
-    if 2 <= service_projects <= 5:
+    if 2 <= service_projects <= 8:
         c += 0.2
-    if sig_bool(s, "directory_patterns", "services_dir"):
-        c += 0.2
+    # Supporting signal
+    if sig_bool(s, "directory_patterns", "services_dir") and k8s == 0:
+        c += 0.1
     return c
 
 
@@ -362,6 +380,23 @@ def score_multi_agent(s):
     return c
 
 
+def score_plugin_microkernel(s):
+    c = 0.0
+    # Strong signals (+0.2 each)
+    # Plugin/extension directories with actual plugin subdirectories
+    if sig_bool(s, "plugin_microkernel", "has_plugin_dirs"):
+        c += 0.2
+        if sig(s, "plugin_microkernel", "plugin_dir_count") >= 5:
+            c += 0.1  # Many plugins = stronger signal
+    # Plugin manifest files (plugin.json, extension.json)
+    if sig(s, "plugin_microkernel", "plugin_manifests") > 0:
+        c += 0.2
+    # Plugin loader/registry patterns in code
+    if sig(s, "plugin_microkernel", "plugin_loader_patterns") > 0:
+        c += 0.2
+    return c
+
+
 SCORERS = {
     "Microservices": score_microservices,
     "Event-Driven": score_event_driven,
@@ -375,6 +410,7 @@ SCORERS = {
     "Space-Based": score_space_based,
     "Pipe-and-Filter": score_pipe_and_filter,
     "Multi-Agent": score_multi_agent,
+    "Plugin/Microkernel": score_plugin_microkernel,
 }
 
 
@@ -382,11 +418,12 @@ SCORERS = {
 # Conflict resolution
 # ---------------------------------------------------------------------------
 
-def resolve_conflicts(scores):
+def resolve_conflicts(scores, signals=None):
     """Apply conflict rules from signal-rules.md."""
     ms = scores.get("Microservices", 0)
     mm = scores.get("Modular Monolith", 0)
     sb = scores.get("Service-Based", 0)
+    pm = scores.get("Plugin/Microkernel", 0)
 
     # Microservices vs Modular Monolith: if both signal, prefer Microservices
     # if Kubernetes/Helm present (already reflected in score), otherwise Modular Monolith
@@ -396,12 +433,41 @@ def resolve_conflicts(scores):
         else:
             scores["Microservices"] = 0
 
-    # Microservices vs Service-Based: prefer Microservices if score higher
+    # Microservices vs Service-Based: use discriminating heuristics
     if ms >= THRESHOLDS["Microservices"] and sb >= THRESHOLDS["Service-Based"]:
-        if ms >= sb:
-            scores["Service-Based"] = 0
+        if signals:
+            dockerfiles = sig(signals, "container_orchestration", "dockerfiles")
+            compose_svcs = sig(signals, "container_orchestration", "docker_compose_services")
+            k8s = sig(signals, "container_orchestration", "k8s_manifests")
+            svc_projects = sig(signals, "directory_patterns", "service_projects")
+            # Favor SBA when: fewer Dockerfiles, compose-based, fewer service projects
+            sba_hints = 0
+            if dockerfiles < 8:
+                sba_hints += 1
+            if compose_svcs >= 3:
+                sba_hints += 1
+            if k8s == 0:
+                sba_hints += 1
+            if svc_projects <= 5:
+                sba_hints += 1
+            if sba_hints >= 3:
+                scores["Microservices"] = 0
+            elif ms >= sb:
+                scores["Service-Based"] = 0
+            else:
+                scores["Microservices"] = 0
         else:
-            scores["Microservices"] = 0
+            if ms >= sb:
+                scores["Service-Based"] = 0
+            else:
+                scores["Microservices"] = 0
+
+    # Plugin/Microkernel vs Modular Monolith: plugin signals disambiguate
+    if pm >= THRESHOLDS["Plugin/Microkernel"] and mm >= THRESHOLDS["Modular Monolith"]:
+        # Both can coexist — plugin architecture is often also modular.
+        # Only suppress MM if plugin signal is strong (loader patterns found).
+        if signals and sig(signals, "plugin_microkernel", "plugin_loader_patterns"):
+            scores["Modular Monolith"] = 0
 
     return scores
 
@@ -548,7 +614,7 @@ def classify(signal_data, domain_override=None):
         scores[style] = scorer(signals)
 
     # Apply conflict resolution
-    scores = resolve_conflicts(scores)
+    scores = resolve_conflicts(scores, signals)
 
     # Filter styles that meet their threshold
     matched = [(style, score) for style, score in scores.items()

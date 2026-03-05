@@ -178,8 +178,21 @@ DOCKERFILES=$((DOCKERFILES + $(find . -path './.git' -prune -o -name 'Dockerfile
 DOCKER_COMPOSE=$(( $(count_glob "docker-compose.yml") + $(count_glob "docker-compose.yaml") + $(count_glob "compose.yml") + $(count_glob "compose.yaml") ))
 DOCKER_COMPOSE_SERVICES=0
 if [ "$DOCKER_COMPOSE" -gt 0 ]; then
-  # Count services defined in compose files
-  DOCKER_COMPOSE_SERVICES=$(find . -path './.git' -prune -o \( -name 'docker-compose.yml' -o -name 'docker-compose.yaml' -o -name 'compose.yml' -o -name 'compose.yaml' \) -print 2>/dev/null | grep -v '^\./\.git' | head -1 | xargs grep -c '^\s\+[a-z]' 2>/dev/null || echo 0)
+  # Count services: lines that are direct children of the "services:" key
+  # (2-space indented keys immediately under services:)
+  DOCKER_COMPOSE_SERVICES=$(find . -path './.git' -prune -o \( -name 'docker-compose.yml' -o -name 'docker-compose.yaml' -o -name 'compose.yml' -o -name 'compose.yaml' \) -print 2>/dev/null | grep -v '^\./\.git' | while read -r cfile; do
+    python3 -c "
+import sys
+try:
+    import yaml
+    with open('$cfile') as f:
+        d = yaml.safe_load(f)
+    svcs = d.get('services', {})
+    print(len(svcs) if isinstance(svcs, dict) else 0)
+except Exception:
+    print(0)
+" 2>/dev/null
+  done | paste -sd+ - | bc 2>/dev/null || echo 0)
 fi
 K8S_MANIFESTS=$(grep -rl 'kind: Deployment\|kind: Service\|kind: StatefulSet\|kind: DaemonSet' --include='*.yaml' --include='*.yml' . 2>/dev/null | grep -v '\.git/' | wc -l | tr -d ' ')
 HELM_CHARTS=$(count_glob "Chart.yaml")
@@ -291,6 +304,45 @@ HAS_CLEAN_LAYERS=false
 SERVICE_PROJECTS=0
 SERVICE_PROJECTS=$(find . -path './.git' -prune -o -path './node_modules' -prune -o -maxdepth 3 -type d \( -iname '*.api' -o -iname '*-service' -o -iname '*-svc' -o -iname '*Service' \) -print 2>/dev/null | grep -v '^\./\.git' | grep -v 'node_modules' | wc -l | tr -d ' ')
 
+# 11. Service-Based Architecture signals
+# Monorepo packages: top-level package/app/service directories (SBA hallmark: 2-8 coarse services)
+MONOREPO_PACKAGES=0
+for pkg_dir in packages apps services src/packages src/apps src/services; do
+  if [ -d "$pkg_dir" ]; then
+    pkg_count=$(find "$pkg_dir" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+    [ "$pkg_count" -gt "$MONOREPO_PACKAGES" ] && MONOREPO_PACKAGES=$pkg_count
+  fi
+done
+
+# Shared database detection: count distinct database connection config files
+# SBA hallmark: 1-2 shared databases across services (vs. MS database-per-service)
+DB_CONFIG_COUNT=0
+DB_CONFIG_COUNT=$(grep -rl $SEARCH_EXTS 'DATABASE_URL\|connectionString\|dataSource\|datasource\|DB_HOST\|db\.host\|spring\.datasource' . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=dist --exclude-dir=build 2>/dev/null | wc -l | tr -d ' ')
+
+# Deployment unit ratio: Docker Compose services vs Dockerfiles
+# SBA: many compose services, fewer separate Dockerfiles (shared deployment)
+# Already have DOCKER_COMPOSE_SERVICES and DOCKERFILES from section 2
+
+# 12. Plugin/Microkernel signals
+HAS_PLUGIN_DIRS=false
+PLUGIN_DIR_COUNT=0
+for pdir in plugins extensions addons modules/plugins contrib/plugins; do
+  if [ -d "$pdir" ]; then
+    HAS_PLUGIN_DIRS=true
+    pcount=$(find "$pdir" -maxdepth 1 -mindepth 1 -type d 2>/dev/null | wc -l | tr -d ' ')
+    PLUGIN_DIR_COUNT=$((PLUGIN_DIR_COUNT + pcount))
+  fi
+done
+
+# Plugin manifest files (plugin.json, extension.json, etc.)
+PLUGIN_MANIFESTS=$(( $(count_glob "plugin.json") + $(count_glob "extension.json") + $(count_glob "plugin.yaml") + $(count_glob "plugin.yml") ))
+
+# Plugin loader/registry patterns in code
+PLUGIN_LOADER_PATTERNS=0
+if grep -rqi $SEARCH_EXTS 'PluginManager\|plugin_registry\|PluginLoader\|loadPlugin\|registerPlugin\|ExtensionPoint\|extension_registry\|PluginHost\|IPlugin\|plugin_interface' . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=dist 2>/dev/null; then
+  PLUGIN_LOADER_PATTERNS=1
+fi
+
 # --- Compute totals ---
 TOTAL_SIGNALS=$((MANIFEST_COUNT + CONTAINER_COUNT + IAC_COUNT + MESSAGING_COUNT + API_COUNT + ADR_COUNT + CICD_COUNT + TEST_COUNT + DOC_COUNT))
 
@@ -401,4 +453,14 @@ signals:
     cqrs_separation: ${HAS_CQRS_DIRS}
     pipeline_stages: ${HAS_PIPELINE_DIRS}
     service_projects: ${SERVICE_PROJECTS}
+
+  service_based:
+    monorepo_packages: ${MONOREPO_PACKAGES}
+    db_config_count: ${DB_CONFIG_COUNT}
+
+  plugin_microkernel:
+    has_plugin_dirs: ${HAS_PLUGIN_DIRS}
+    plugin_dir_count: ${PLUGIN_DIR_COUNT}
+    plugin_manifests: ${PLUGIN_MANIFESTS}
+    plugin_loader_patterns: ${PLUGIN_LOADER_PATTERNS}
 YAML

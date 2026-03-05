@@ -111,6 +111,22 @@ Rules for classifying architecture styles from filesystem signals. Applied in or
 | Architecture docs | `ARCHITECTURE.md`, `docs/architecture/` | Documentation maturity |
 | Domain model docs | `docs/domain/`, bounded context maps | **DDD** signal |
 
+### 11. Service-Based Architecture signals
+
+| Signal | Files / patterns | What it indicates |
+|--------|-----------------|-------------------|
+| Monorepo packages | `packages/`, `apps/`, `services/` with 2+ subdirectories | Coarse-grained service boundaries (**Service-Based** signal) |
+| Shared database | `DATABASE_URL`, `connectionString`, `spring.datasource` in configs | Shared data layer across services (**Service-Based** signal) |
+| Docker Compose services | 3+ services in compose files | Multi-service orchestration without K8s (**Service-Based** signal) |
+
+### 12. Plugin/Microkernel signals
+
+| Signal | Files / patterns | What it indicates |
+|--------|-----------------|-------------------|
+| Plugin directories | `plugins/`, `extensions/`, `addons/` with subdirectories | Core + extension separation (**Plugin/Microkernel** signal) |
+| Plugin manifests | `plugin.json`, `extension.json`, `plugin.yaml` | Plugin metadata definitions (**Plugin/Microkernel** signal) |
+| Plugin loader patterns | `PluginManager`, `registerPlugin`, `ExtensionPoint`, `plugin_registry` | Runtime plugin loading infrastructure (**Plugin/Microkernel** signal) |
+
 ## Classification rules
 
 Rules are applied after all signals are collected. Confidence scores are cumulative — more matching signals increase confidence.
@@ -236,12 +252,16 @@ Rules are applied after all signals are collected. Confidence scores are cumulat
 ### Service-Based
 
 **Strong signals (confidence += 0.2 each):**
-- 2-5 coarse-grained service directories (fewer than typical microservices)
-- Shared database across services
-- Simpler orchestration than full microservices
+- Monorepo packages: 2+ top-level package/app/service directories (coarse-grained services)
+- `services/` or `apps/` directory present
+- Docker Compose with 3+ services (SBA uses compose for multi-service orchestration)
+
+**Supporting signals (confidence += 0.1 each):**
+- Service project directories (any count >= 1)
+- Database config files present (SBA shares databases across services)
 
 **Threshold:** Classify as Service-Based if confidence >= 0.3
-**Conflict rule:** If Microservices also signals, prefer Microservices if service count > 5 or k8s present.
+**Conflict rule:** If Microservices also signals, apply discriminating heuristics: fewer than 8 Dockerfiles + Docker Compose services >= 3 + no Kubernetes + service projects <= 5 → favor SBA. Otherwise, higher score wins.
 
 ### Space-Based
 
@@ -269,6 +289,19 @@ Rules are applied after all signals are collected. Confidence scores are cumulat
 - Autonomous agent processing units
 
 **Threshold:** Classify as Multi-Agent if confidence >= 0.4
+
+### Plugin/Microkernel
+
+**Strong signals (confidence += 0.2 each):**
+- `plugins/`, `extensions/`, `addons/` directories with subdirectories
+- Plugin manifest files (plugin.json, extension.json, plugin.yaml)
+- Plugin loader/registry patterns in code (PluginManager, registerPlugin, ExtensionPoint)
+
+**Supporting signals (confidence += 0.1 each):**
+- 5+ plugin subdirectories (large plugin ecosystem)
+
+**Threshold:** Classify as Plugin/Microkernel if confidence >= 0.3
+**Conflict rule:** If Modular Monolith also signals, suppress MM only when plugin loader patterns are found (strong evidence of core + extension separation).
 
 ## Overall confidence calculation
 
