@@ -1,12 +1,50 @@
 # Evidence by Architecture Style
 
-Evidence drawn from 225 entries across 5 sources: 78 KataLog competition submissions, 12 AOSA production systems, 5 RealWorldASPNET production apps, 8 reference implementations, and 122 Discovered open-source repositories. Styles ranked by Combined Weighted Score (production-weighted). See [cross-source-reference.md](cross-source-reference.md) for scoring methodology.
+Per-style evidence drawn from 225 entries across 5 sources: 122 Discovered open-source repositories (primary), 12 AOSA production systems, 5 RealWorldASPNET production apps, 8 reference implementations, and 78 KataLog competition submissions. Styles ranked by frequency in 122 real codebases. See [cross-source-reference.md](cross-source-reference.md) for scoring methodology.
 
-**How to read this document**: Each of the 13 styles below includes an Evidence Summary (source counts and ranking), a Cross-Source Evidence Table (specific entries from each source), a Convergence Analysis (where sources agree and disagree), and evidence-grounded When to Use / When to Avoid guidance. Production evidence (AOSA, RealWorld) is listed before competition evidence (KataLog) in all tables. For styles with large KataLog samples (Event-Driven: 47 teams, Microservices: 39 teams, Service-Based: 25 teams), only top performers are shown with a note on total count.
+**How to read this document**: Each of the 13 styles below includes an Evidence Summary opening with Discovered frequency, a Cross-Source Evidence Table (Discovered first), qualitative reasoning from KataLog teams ("Why Teams Choose This Style"), and evidence-grounded When to Use / Avoid guidance. For styles with large KataLog samples (Event-Driven: 47 teams, Microservices: 39 teams, Service-Based: 25 teams), only top performers are shown with a note on total count.
+
+> **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker -> Deployability, module boundaries -> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected. KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
 
 ---
 
-## Style Performance Rankings
+## Discovered Frequency Rankings (PRIMARY)
+
+Styles ranked by frequency in 122 real codebases. This is the primary ranking because it represents the largest, most structurally diverse evidence sample -- how architects actually build software in practice.
+
+| Rank | Style | Discovered Repos | % of Corpus | Top Co-occurring Styles | Domains Where Most Common |
+|------|-------|-----------------|-------------|------------------------|--------------------------|
+| 1 | **Modular Monolith** | 64 | 52% | Event-Driven (38 repos) | Developer Tools, E-Commerce, CMS |
+| 2 | **Event-Driven** | 63 | 52% | Modular Monolith (38 repos) | Developer Tools, Messaging, Infrastructure |
+| 3 | **Layered** | 29 | 24% | Modular Monolith (18 repos) | E-Commerce, Developer Tools |
+| 4 | **Domain-Driven Design** | 27 | 22% | Event-Driven | E-Commerce, Developer Tools |
+| 5 | **Microservices** | 26 | 21% | Event-Driven | Developer Tools, Infrastructure |
+| 6 | **Pipe-and-Filter** | 19 | 16% | Event-Driven | Data Processing, Infrastructure |
+| 7 | **CQRS/Event Sourcing** | 18 | 15% | Event-Driven | Developer Tools, E-Commerce |
+| 8 | **Hexagonal/Clean** | 16 | 13% | Event-Driven | Developer Tools |
+| 9 | **Serverless** | 6 | 5% | Event-Driven | Infrastructure |
+| 10 | **Multi-Agent** | 5 | 4% | Event-Driven | AI/ML |
+| 11 | **Space-Based** | 5 | 4% | Event-Driven | Data Grid |
+| 12 | **Service-Based** | 4 | 3% | Event-Driven | Infrastructure |
+| -- | **Plugin/Microkernel** | 0 | 0% | -- | (detection blind spot) |
+
+### Key Statistical Findings
+
+1. **Modular Monolith and Event-Driven are equally prevalent (52% each) and co-occur in 38 repos.** These are the dominant patterns in real codebases. Their co-occurrence (31% of the entire corpus) suggests they are complementary rather than competing -- Event-Driven communication within a Modular Monolith host is the single most common architectural configuration.
+
+2. **Layered, DDD, and Microservices form a second tier (21-24%).** These appear in roughly one-fifth to one-quarter of repos. Layered + Modular Monolith co-occur in 18 repos, suggesting layered internal structure within modular boundaries.
+
+3. **Plugin/Microkernel has zero Discovered entries despite being production-dominant.** Plugin architectures are defined by runtime extension points and host-plugin contracts, not by directory structure or container orchestration. This is a known blind spot in signal-based detection. The 6 production systems (LLVM, SQLAlchemy, GStreamer, Jellyfin, Orchard Core, nopCommerce) confirm the pattern is heavily used but structurally undetectable.
+
+4. **Service-Based has thin code presence (4 repos, 3%).** Service-based architecture is harder to detect from structural signals than microservices (fewer Docker Compose services) or event-driven (no message broker config). Yet it has 3 production systems (Selenium, Graphite, Bitwarden), confirming it is under-detected, not under-used.
+
+5. **Microservices shows moderate code presence but zero production evidence.** 26 Discovered repos (21%) vs. 0 production systems. Pruning removed many microservices tutorials and sample apps from the original 54, but the design-production gap remains stark.
+
+---
+
+## Production-Weighted Rankings (SECONDARY)
+
+The Combined Weighted Score below uses production-weighted scoring (20 pts per production system). This alternative ranking validates that Discovered frequency broadly aligns with production adoption, while surfacing styles like Plugin/Microkernel and Pipeline that are invisible to automated detection but dominant in production.
 
 | Rank | Style | Combined Score | KataLog Score | AOSA Count | RealWorld Count | RefArch Count | Discovered Count | Production % |
 |------|-------|---------------|---------------|------------|-----------------|---------------|------------------|-------------|
@@ -24,14 +62,7 @@ Evidence drawn from 225 entries across 5 sources: 78 KataLog competition submiss
 | 12 | Serverless | 14 | 12 | 0 | 0 | 1 | 6 | 0% |
 | 13 | Multi-Agent | 8 | 8 | 0 | 0 | 0 | 5 | 0% |
 
-*Production % = share of Combined Score from AOSA + RealWorldASPNET sources. Production-weighted scoring (20 pts per production system) means a single production deployment outweighs an entire Kata competition season. Discovered repos are shown for breadth context but are not included in Combined Score.*
-
-### Key Cross-Source Findings
-
-1. **Production evidence reshapes competition rankings.** Plugin/Microkernel (#2) and Pipeline (#3) were invisible in KataLog but dominate in production. Microservices (#5) and Serverless (#12) are popular in competitions but have zero production evidence. The production-weighted scoring corrects this bias.
-2. **Styles cluster into three tiers.** Tier 1 (100+ points): Event-Driven, Plugin/Microkernel, Pipeline, Service-Based -- all with significant production evidence. Tier 2 (20-76 points): Microservices, Modular Monolith, CQRS, Space-Based, Layered -- mixed evidence. Tier 3 (below 20): DDD, Hexagonal, Serverless, Multi-Agent -- no production evidence as primary styles.
-3. **Internal structure patterns (DDD, Hexagonal, CQRS) appear as secondary classifiers.** They are applied within other styles rather than standing alone. This is a classification artifact, not evidence of their irrelevance -- eShopOnContainers uses all three within its microservices architecture.
-4. **Discovered evidence fills gaps.** Modular Monolith dominates Discovered (64 repos, 52% of catalog) despite ranking only #6 in curated evidence. Pipeline (19 repos) confirms AOSA production evidence. Event-Driven (63 repos) shows consistent breadth across all tiers.
+*Production % = share of Combined Score from AOSA + RealWorldASPNET sources. Production-weighted scoring (20 pts per production system) means a single production deployment outweighs an entire Kata competition season.*
 
 ---
 
@@ -39,18 +70,15 @@ Evidence drawn from 225 entries across 5 sources: 78 KataLog competition submiss
 
 ### Evidence Summary
 
-- **Combined Weighted Score**: 203 (rank #1)
-- **KataLog**: 47 teams, score 94 (48.9% win rate)
-- **AOSA**: 3 systems (NGINX, Twisted, ZeroMQ)
-- **RealWorld**: 2 systems (Bitwarden, Squidex)
-- **RefArch**: 5 repos (eShopOnContainers, eShop, modular-monolith-with-ddd, serverless-microservices, wild-workouts)
-- **Discovered**: 63 repos (52% of catalog)
-- **Production %**: 49%
+Appears in **63 of 122** Discovered repos (**52%**). Co-occurs most frequently with Modular Monolith (38 repos). Detected through message broker configs (Kafka, RabbitMQ), event bus implementations, and async messaging patterns across Go, Java, C#, and Python.
+
+Validated by 5 production systems: NGINX (event-driven reactor, 30%+ of internet traffic), Twisted (reactor pattern), ZeroMQ (broker-less messaging), Bitwarden (event-driven vault sync), and Squidex (event sourcing as primary persistence). 47 KataLog teams chose this style -- judges noted depth of event-flow design (partitioning keys, consumer groups, dead-letter handling) separated winners from runner-ups.
 
 ### Cross-Source Evidence Table
 
 | Source | Entry | Evidence Type | Key Detail |
 |--------|-------|---------------|------------|
+| Discovered | 63 repos | Statistical signal | Message broker configs (Kafka, RabbitMQ) in 52% of catalog; event bus implementations across Go, Java, C#, Python |
 | AOSA | NGINX | Production system | Event-driven reactor handles C10K+; single-threaded event loop per worker process; non-blocking I/O across all connections |
 | AOSA | Twisted | Production system | Reactor pattern with deferred callbacks; protocol factory for pluggable transports; single-threaded event loop with cooperative multitasking |
 | AOSA | ZeroMQ | Production system | Broker-less messaging with zero-copy; multi-pattern support (pub/sub, push/pull, request/reply); lock-free async I/O thread |
@@ -62,9 +90,10 @@ Evidence drawn from 225 entries across 5 sources: 78 KataLog competition submiss
 | RefArch | serverless-microservices-azure | Reference impl | Event Grid triggers between functions; Event Hubs for telemetry ingestion; serverless event processing pipeline |
 | RefArch | wild-workouts-go | Reference impl | Domain events in Go; event-driven communication between training and user services |
 | KataLog | 47 teams (top shown below) | Competition designs | Most-used style across all 11 challenges; appeared in every challenge with top-3 placements |
-| Discovered | 63 repos | Code-level signal | Message broker configs (Kafka, RabbitMQ) in 52% of catalog; event bus implementations across Go, Java, C#, Python |
 
-**Top KataLog teams** (47 teams total; top performers shown):
+### Why Teams Choose This Style
+
+Top KataLog teams (47 teams total; top performers shown):
 
 | Team | Placement | Challenge | Key Detail |
 |------|-----------|-----------|------------|
@@ -80,22 +109,18 @@ Evidence drawn from 225 entries across 5 sources: 78 KataLog competition submiss
 | IPT | 2nd | Hey Blue! | DDD + event-driven microservices; Azure Container Apps, Event Hub; 8 ADRs |
 | Katamarans | 2nd | ClearView | Event broker with third-party AI services; Azure deployment; 14 ADRs |
 
-### Convergence Analysis
+**What winners did differently**: Top EDA teams (BluzBrothers, Profitero Data Alchemists, Pragmatic) showed deep event-flow design -- partitioning keys, consumer group configuration, dead-letter handling, and timing proof. Runner-up teams tended to adopt event-driven patterns without the same depth. Winners consistently paired events with additional structure: service-based decomposition (Team Seven, Pragmatic, ZAITects), hexagonal ports and adapters (MonArch), modular monolith boundaries (PegasuZ), or CQRS read/write separation (Iconites).
 
-All five sources converge on event-driven as the most broadly applicable architecture pattern. AOSA production systems (NGINX, Twisted, ZeroMQ) validate it at extreme scale -- NGINX serves 30%+ of the internet using event loops. RealWorld production apps (Bitwarden, Squidex) confirm it in modern SaaS contexts. KataLog provides the largest competition sample (47 of 78 teams), showing event-driven won in every single challenge where it appeared. Discovered repos (63, 52% of catalog) confirm it as the most common code-level pattern. No other style achieves this level of cross-source unanimity.
+### When to Use / Avoid
 
-The sources disagree on granularity. AOSA systems use event-driven at the infrastructure level (reactor patterns, I/O loops), while KataLog teams use it at the application level (message brokers between services). RealWorld and RefArch sit between these levels, using event buses for inter-service communication. This suggests event-driven is not a single pattern but a family of patterns operating at different abstraction layers.
+**When to use** -- grounded in Discovered domain correlations and production validation:
 
-**What KataLog winners did differently**: Top EDA teams (BluzBrothers, Profitero Data Alchemists, Pragmatic) showed deep event-flow design -- partitioning keys, consumer group configuration, dead-letter handling, and timing proof. Runner-up teams tended to adopt event-driven patterns without the same depth. Winners consistently paired events with additional structure: service-based decomposition (Team Seven, Pragmatic, ZAITects), hexagonal ports and adapters (MonArch), modular monolith boundaries (PegasuZ), or CQRS read/write separation (Iconites).
-
-### When to Use
-
-- Systems with inherently asynchronous data flows -- sensor streams, email polling, notification broadcasting, analytics pipelines (NGINX: C10K connections; BluzBrothers: sub-second medical monitoring)
+- Systems with inherently asynchronous data flows -- sensor streams, email polling, notification broadcasting, analytics pipelines. In the Discovered corpus, event-driven repos cluster in Messaging, Infrastructure, and Developer Tools domains. NGINX confirms the pattern at extreme scale (C10K+); BluzBrothers proved sub-second medical monitoring.
 - Domains where multiple consumers need the same event (Bitwarden: vault sync across devices; Squidex: event sourcing for content changes)
 - Real-time monitoring and alerting (MonitorMe: all 7 teams used EDA; Road Warrior: 8 of 9 teams)
 - Workloads requiring loose coupling between bounded contexts (eShopOnContainers: integration events between microservices)
 
-### When to Avoid
+**When to avoid**:
 
 - Small teams with limited operational experience managing message brokers -- KataLog runner-up teams that declared event-driven without showing mechanics (topic design, partition strategy, dead-letter handling) consistently scored lower
 - Problems requiring strong transactional consistency across services without complementary patterns (Saga, Outbox)
@@ -104,161 +129,144 @@ The sources disagree on granularity. AOSA systems use event-driven at the infras
 
 ---
 
-## 2. Plugin/Microkernel
+## 2. Modular Monolith
 
 ### Evidence Summary
 
-- **Combined Weighted Score**: 124 (rank #2)
-- **KataLog**: ~4 teams, score 4
-- **AOSA**: 3 systems (LLVM, GStreamer, SQLAlchemy)
-- **RealWorld**: 3 systems (Jellyfin, nopCommerce, Orchard Core)
-- **RefArch**: 0
-- **Discovered**: 0 (structurally undetectable by automated classification)
-- **Production %**: 97%
+Appears in **64 of 122** Discovered repos (**52%** -- highest of any style). Co-occurs most frequently with Event-Driven (38 repos). Detected through well-structured directory layouts with module boundaries and single deployment artifacts. Dominant in Developer Tools, E-Commerce, and CMS domains.
+
+Validated by 1 production system: Orchard Core (multi-tenant CMS, independent ASP.NET Core modules). 1 reference implementation: modular-monolith-with-ddd (DDD + CQRS + Event-Driven within monolith). 6 KataLog teams chose this style with the highest win rate of any style (83.3%); judges rewarded cost analysis and pragmatic evolutionary reasoning.
 
 ### Cross-Source Evidence Table
 
 | Source | Entry | Evidence Type | Key Detail |
 |--------|-------|---------------|------------|
-| AOSA | LLVM | Production system | Plugin pass architecture -- optimization and analysis passes loaded dynamically; modular IR enables third-party backends; 3-phase compiler pipeline with pluggable stages |
-| AOSA | GStreamer | Production system | Pipeline elements as loadable plugins; negotiation protocol between elements; plugin registry with lazy loading and caching |
-| AOSA | SQLAlchemy | Production system | Dialect plugins for database backends (PostgreSQL, MySQL, SQLite, Oracle); Core layer (SQL expression) + ORM layer; engine plugins for connection customization |
-| RealWorld | Jellyfin | Production app | Self-hosted media server; plugin system for metadata providers, notification targets, authentication backends; transcoding pipeline with pluggable codecs |
-| RealWorld | nopCommerce | Production app | 60K+ live stores over 17-year evolution; plugin marketplace for payments, shipping, tax, widgets; four-layer architecture with plugin injection points |
-| RealWorld | Orchard Core | Production app | Multi-tenant CMS; module system where each feature is an independent module (themes, widgets, content types); ASP.NET Core module loading |
-| KataLog | Software Architecture Guild | 3rd, Certifiable Inc. | Microkernel with plug-in AI grading solutions; six parallel AI solutions via plug-in architecture |
-| KataLog | Wonderous Toys | 3rd, Wildlife Watcher | Micro Kernel paired with modular monolith and event-driven for species identification extensions |
+| Discovered | 64 repos | Statistical signal | Well-structured directory layouts with module boundaries; single deployment artifacts; most common pattern in Discovered catalog (52% of all repos) |
+| RealWorld | Orchard Core | Production app | Multi-tenant CMS built as modular monolith; each feature (themes, widgets, content types, workflows) is an independent ASP.NET Core module; single deployment with module-level boundaries; Lucene-based search, liquid templates, GraphQL API |
+| RefArch | modular-monolith-with-ddd | Reference impl | DDD + CQRS + Event-Driven within monolith; module-level bounded contexts (Meetings, Administration, Payments) with integration events between modules; in-process event bus with outbox pattern; strong module isolation enforced by architecture tests |
+| KataLog | 6 teams (all shown below) | Competition designs | Highest win rate of all styles (83.3%); 5 of 6 teams placed top-3 |
 
-### Convergence Analysis
+### Why Teams Choose This Style
 
-Plugin/Microkernel exhibits the sharpest divergence between production prevalence and competition visibility in the entire dataset. Six production systems across AOSA and RealWorld (97% of score from production) make it the second-highest-ranked style, yet only ~4 KataLog teams ever proposed it. Automated discovery found zero instances because plugin architectures are defined by runtime extension points and host-plugin contracts, not by directory structure or container configs -- a fundamental blind spot in signal-based classification.
-
-AOSA and RealWorld sources strongly agree that plugin architecture excels for long-lived products that must evolve without core rewrites. LLVM (compilers), GStreamer (media), SQLAlchemy (databases), Jellyfin (media), nopCommerce (e-commerce), and Orchard Core (CMS) span entirely different domains but converge on the same structural pattern: a stable core with a well-defined extension contract. The KataLog's near-invisibility of this pattern suggests competition contexts (time-limited, greenfield) do not surface the long-lifecycle pressures where plugin architecture proves its value.
-
-**Cross-domain consistency**: The plugin contract varies by domain (LLVM: pass interface; GStreamer: element/pad protocol; SQLAlchemy: dialect API; nopCommerce: IPlugin interface; Orchard Core: ASP.NET Core module manifest) but the architectural invariant is identical: the core defines the contract, plugins implement it, and the core never depends on any specific plugin. This is the strongest cross-domain convergence signal in the evidence base.
-
-### When to Use
-
-- Products requiring third-party extensibility without core modification (nopCommerce: 60K+ stores with marketplace plugins; Orchard Core: tenant-specific feature modules)
-- Systems spanning multiple backends or protocols (SQLAlchemy: dialect plugins for every major database; GStreamer: codec and element plugins for media formats)
-- Compiler, build-tool, and IDE architectures (LLVM: pass-based optimization pipeline; every major IDE uses plugin architecture)
-- Long-lived products (10+ years) where the domain is stable but extensions are unpredictable (nopCommerce: 17 years of evolution)
-
-### When to Avoid
-
-- Greenfield projects with uncertain core requirements -- the core must be stable before investing in extension contracts
-- Time-limited competition contexts where the overhead of defining plugin APIs does not pay off (only 2 of 78 KataLog teams used this style)
-- Systems where all functionality is known upfront and extension is not a requirement
-- When the team lacks experience designing stable API contracts -- poorly designed plugin interfaces create worse coupling than monoliths
-
----
-
-## 3. Pipeline
-
-### Evidence Summary
-
-- **Combined Weighted Score**: 120 (rank #3)
-- **KataLog**: 0 teams (not a KataLog competition style)
-- **AOSA**: 5 systems (LLVM, GStreamer, Graphite, NGINX, ZeroMQ)
-- **RealWorld**: 1 system (Jellyfin)
-- **RefArch**: 0
-- **Discovered**: 19 repos (as "Pipe-and-Filter")
-- **Production %**: 100%
-
-### Cross-Source Evidence Table
-
-| Source | Entry | Evidence Type | Key Detail |
-|--------|-------|---------------|------------|
-| AOSA | NGINX | Production system | HTTP request processing pipeline: accept -> read -> parse -> process -> filter -> send; each phase is a handler in a chain; output filters for gzip, chunked encoding, SSI; serves 30%+ of internet traffic |
-| AOSA | LLVM | Production system | 3-phase compiler pipeline: frontend (C/C++/Rust parsing) -> IR (optimization passes) -> backend (x86/ARM/WASM code gen); passes are composable and reorderable; foundation of Apple Clang, Rust compiler, Swift compiler |
-| AOSA | GStreamer | Production system | Media pipeline: source -> demux -> decode -> filter -> encode -> sink; elements connected via pads with capability negotiation; dynamic pipeline reconfiguration |
-| AOSA | Graphite | Production system | Carbon (collection with line/pickle/AMQP receivers) -> Whisper (fixed-size time-series storage) -> Graphite-Web (Django rendering/API); Carbon relay for fan-out |
-| AOSA | ZeroMQ | Production system | I/O thread pipeline: socket -> session -> encoder -> engine; zero-copy message passing between stages; batch processing in pipeline for throughput |
-| RealWorld | Jellyfin | Production app | Transcoding pipeline: input -> demux -> decode -> filter (scale, subtitle burn) -> encode -> mux -> output; FFmpeg-based with pluggable codec support |
-| Discovered | 19 repos | Code-level signal | Data processing pipelines, ETL systems, stream processors; structural signals include stage-based directory layouts and pipeline configuration files |
-
-### Convergence Analysis
-
-Pipeline is the only style with 100% production evidence and 0% competition evidence. All five AOSA systems that exhibit pipeline architecture are among the most successful software projects ever built (NGINX: 30%+ of web traffic; LLVM: foundation of Apple, Google, and ARM toolchains; GStreamer: default Linux media framework; ZeroMQ: financial and telecom messaging). Jellyfin adds modern production confirmation. The 19 Discovered repos reinforce the pattern in data processing contexts (ETL systems, stream processors, data transformation tools).
-
-The complete absence from KataLog is itself a finding: pipeline architecture solves data-transformation and request-processing problems that rarely appear in Kata problem statements (which tend toward business-domain coordination). This suggests the pattern is under-recognized in architecture education despite dominating infrastructure software. AOSA and Discovered sources agree that pipeline excels in data-flow-dominated domains; no source contradicts this.
-
-**Composability as key differentiator**: LLVM's passes can be reordered and composed arbitrarily. GStreamer's elements connect via negotiated pads. NGINX's output filters chain transparently. In every AOSA case, the pipeline's power comes from composable stages with well-defined input/output contracts -- not from the linear topology alone but from the interchangeability of stages within that topology.
-
-### When to Use
-
-- Data transformation chains where each stage has a single responsibility (LLVM: parse -> optimize -> codegen; Graphite: collect -> store -> render)
-- Request processing with ordered filter chains (NGINX: accept -> parse -> process -> filter -> respond)
-- Media processing with format negotiation (GStreamer: source -> decode -> filter -> encode -> sink; Jellyfin: transcoding pipeline)
-- ETL and stream processing systems (19 Discovered repos confirm broad adoption in data engineering)
-- Systems where stages must be independently testable, replaceable, or reorderable
-
-### When to Avoid
-
-- Business-domain coordination problems requiring bidirectional communication between components (pipeline is inherently unidirectional)
-- Systems where the processing order is not well-defined or changes dynamically per request (though GStreamer demonstrates dynamic pipeline reconfiguration is possible, it adds significant complexity)
-- Interactive applications where user input drives non-linear control flow
-- Architectures where stages have heavy shared state -- pipeline assumes each stage passes data forward with minimal coupling
-
----
-
-## 4. Service-Based
-
-### Evidence Summary
-
-- **Combined Weighted Score**: 105 (rank #4)
-- **KataLog**: 25 teams, score 43 (36.0% win rate)
-- **AOSA**: 2 systems (Graphite, Selenium)
-- **RealWorld**: 1 system (Bitwarden)
-- **RefArch**: 1 repo (AKS Baseline)
-- **Discovered**: 4 repos
-- **Production %**: 57%
-
-### Cross-Source Evidence Table
-
-| Source | Entry | Evidence Type | Key Detail |
-|--------|-------|---------------|------------|
-| AOSA | Graphite | Production system | Carbon (collection), Whisper (time-series storage), Graphite-Web (rendering/API) -- three coarse-grained services with clear boundaries; independently deployable but sharing a common data format |
-| AOSA | Selenium | Production system | WebDriver protocol with per-browser adapter drivers; hub-node topology for distributed test execution; coarse service decomposition (hub, node, driver) |
-| RealWorld | Bitwarden | Production app | Zero-knowledge vault with service-based decomposition: API, Identity, Admin, Events, Notifications; shared database with service-level access control; SOC2 certified |
-| RefArch | AKS Baseline | Reference impl | Microservices + service-based on Kubernetes; AKS cluster with ingress controller, service mesh, and coarse service boundaries |
-| KataLog | 25 teams (top shown below) | Competition designs | Dominant style in Sysops Squad (6/7 teams) and Certifiable Inc. (6/7 teams); chosen for budget-constrained and monolith-migration contexts |
-| Discovered | 4 repos | Code-level signal | Coarse-grained service boundaries with shared database patterns |
-
-**Top KataLog teams** (25 teams total; top performers shown):
+All KataLog teams (6 teams, 83.3% win rate):
 
 | Team | Placement | Challenge | Key Detail |
 |------|-----------|-----------|------------|
-| Pragmatic | 1st | ClearView | Service-based for feasibility + testability; events only where interoperability demanded it; 22 ADRs |
-| Team Seven | 1st | Sysops Squad | Service-based migration from monolith; guaranteed-delivery queues for cross-domain communication; 12 ADRs |
-| ZAITects | 1st | Certifiable Inc. | Service-based + event-driven + hybrid AI-human pipeline; LangChain, RAG, vector search; 18 ADRs |
-| ArchElekt | 2nd | Sysops Squad | Problem-first design with clear ADR-to-problem tracing; API Gateway + persistent queue; 12 ADRs |
-| Litmus | 2nd | Certifiable Inc. | RAG + LLM + ETL data pipeline in service-based topology; 18 ADRs |
-| Sever Crew | 2nd | Farmacy Family | AWS + Kafka integration layer; service-based with event-driven communication; 11 ADRs |
-| Architects++ | 3rd | Farmacy Family | Hexagonal + service-based + batch processing; AWS Batch; 15 ADRs |
-| The Mad Katas | 3rd | Sysops Squad | Micro frontend + service-based; Graph Database (Neo4j); 17 ADRs |
-| Software Arch Guild | 3rd | Certifiable Inc. | Microkernel plug-in for AI grading solutions within service-based topology; 6 ADRs |
+| ArchColider | 1st | Farmacy Food | Most comprehensive cost analysis; won with contrarian modular monolith against microservices field; 16 ADRs |
+| MonArch | 1st | Hey Blue! | Modular monolith initial deployment with hexagonal internals; extraction along bounded-context seams |
+| PegasuZ | 1st | Spotlight Platform | Modular monolith as MVP; "Why should the business invest to build a fortress when it is not sure if anyone would be staying in it?" |
+| Rapid Response | 2nd | Wildlife Watcher | 6 microservices designed but deployed as modular monolith initially; only Camera Feed independent |
+| Wonderous Toys | 3rd | Wildlife Watcher | Microkernel + modular monolith + event-driven for species identification extensions |
+| Arch8s | Runner-up | Spotlight Platform | AWS ECS + Aurora PostgreSQL + Lambda for heavy tasks; 17 ADRs |
 
-### Convergence Analysis
+**Small sample, strong signal**: With only 6 KataLog teams, the 83.3% win rate is statistically limited but directionally compelling. ArchColider (1st, Farmacy Food) won with a contrarian modular monolith choice against a field of microservices teams, producing the most comprehensive cost analysis. PegasuZ (1st, Spotlight Platform) asked: "Why should the business invest to build a fortress when it is not sure if anyone would be staying in it?" This pragmatic reasoning characterized all modular monolith winners.
 
-Production and competition evidence converge strongly on service-based architecture as the pragmatic middle ground. Graphite and Selenium (AOSA) demonstrate that coarse-grained service decomposition succeeds in infrastructure software. Bitwarden (RealWorld) confirms it in modern SaaS with SOC2 compliance. KataLog provides the largest competition sample (25 teams), where service-based was the near-unanimous choice for budget-constrained contexts (Sysops Squad: 6/7, Certifiable Inc.: 6/7).
+### When to Use / Avoid
 
-The sources agree that service-based works best when the domain model is not yet fully understood or when operational simplicity is prioritized over independent scalability. Bitwarden's shared database with service-level access control mirrors the KataLog pattern of shared databases with service-level boundaries. The low Discovered count (4 repos) suggests the pattern is harder to detect from code signals alone -- service-based architectures often look like monoliths in code structure while having service-level deployment boundaries.
+**When to use** -- grounded in Discovered domain correlations and production validation:
 
-**KataLog winner pattern**: Top service-based teams distinguished themselves by adding event-driven communication where async was natural (Team Seven, Pragmatic, ZAITects) while keeping the overall deployment and data model simpler than full microservices. Service-based was the dominant choice when budget constraints were explicit: Sysops Squad (6/7 teams), Certifiable Inc. (6/7 teams), and frequently as Phase 1 of an evolutionary approach with microservices as a documented future state.
+- The Discovered corpus shows modular monolith as the most common pattern across Developer Tools, E-Commerce, and CMS domains. Its 52% frequency and co-occurrence with Event-Driven in 38 repos confirms it as the default starting architecture for most domains.
+- Greenfield startup/non-profit projects where the domain model is not yet validated (ArchColider: won against microservices field with cost analysis)
+- Small teams (2-5 members) who cannot sustain microservices operational overhead
+- When time-to-market and cost are primary drivers (PegasuZ: MVP-first reasoning)
+- When paired with hexagonal architecture or DDD bounded contexts, providing documented extraction points (MonArch: hexagonal internals; modular-monolith-with-ddd: module-level bounded contexts)
 
-### When to Use
+**When to avoid**:
 
-- Monolith migration where independent deployability is needed without full microservices complexity (Sysops Squad: near-unanimous choice; Graphite: independently scalable but coarse-grained)
-- Budget-constrained and non-profit contexts (ClearView, Certifiable Inc. winners chose service-based citing cost)
-- AI-integration scenarios where the primary goal is adding AI capabilities to existing platforms (Certifiable Inc.: 6 of 7 teams)
-- Organizations with limited DevOps maturity needing fault isolation without distributed systems overhead (Bitwarden: SOC2 with service-based)
+- Systems that have proven domain boundaries and need independent deployment and scaling
+- Large organizations where monolith deployment creates deployment contention across teams
+- Systems with fundamentally different scaling characteristics across components (Wildlife Watcher: Camera Feed Engine needed independent scaling, forcing Rapid Response to extract it)
 
-### When to Avoid
+---
 
-- Systems requiring extreme independent scalability across service boundaries (Graphite eventually required relay fan-out for scale)
-- Large teams (10+) that benefit from microservices-level independence for parallel development
-- Domains with high throughput requirements where shared database becomes a bottleneck
+## 3. Layered Architecture
+
+### Evidence Summary
+
+Appears in **29 of 122** Discovered repos (**24%**). Co-occurs most frequently with Modular Monolith (18 repos). Detected through directory structures with presentation/business/data layers and dependency flow enforcement. Common in E-Commerce and Developer Tools domains.
+
+Validated by 2 production systems: SQLAlchemy (two-layer Core + ORM, Python standard) and nopCommerce (four-layer architecture, 60K+ stores, 17 years of evolution). Zero KataLog teams proposed layered architecture -- expected, as it is seen as a default rather than an architectural choice in competition contexts.
+
+### Cross-Source Evidence Table
+
+| Source | Entry | Evidence Type | Key Detail |
+|--------|-------|---------------|------------|
+| Discovered | 29 repos | Statistical signal | Directory structures with presentation/business/data layers; dependency flow enforcement; layer-per-folder project organization |
+| AOSA | SQLAlchemy | Production system | Two distinct layers: Core (SQL expression language, schema definition, connection pooling) and ORM (unit of work, identity map, relationship loading); strict layer separation with Core usable independently |
+| RealWorld | nopCommerce | Production app | Four-layer architecture: Web (Razor views, API controllers), Services (business logic), Data (Entity Framework, repositories), Core (domain entities, DTOs); 60K+ live stores; 17 years of evolution |
+
+### Why Teams Choose This Style
+
+No KataLog teams explicitly proposed layered architecture. The absence from competition contexts is itself a finding: layered architecture is the default structural approach that teams adopt implicitly rather than declare explicitly. However, nopCommerce's 17-year longevity and SQLAlchemy's ubiquity demonstrate that the pattern's simplicity is a feature, not a limitation.
+
+**Longevity as evidence**: nopCommerce's 17-year evolution through four layers (Web, Services, Data, Core) is among the strongest evidence for any architecture style in the dataset. The architecture has survived the transition from ASP.NET Web Forms to MVC to Razor Pages to modern ASP.NET Core while maintaining the same four-layer structure. This suggests layered architecture's primary value is durability across technology generations, not performance or scalability.
+
+### When to Use / Avoid
+
+**When to use** -- grounded in Discovered domain correlations and production validation:
+
+- In the Discovered corpus, layered repos co-occur heavily with Modular Monolith (18 of 29 repos), suggesting layered internal structure within modular boundaries is a common configuration.
+- Applications where separation of concerns (presentation, business logic, data access) is the primary architectural driver (nopCommerce: 4 layers serving 60K+ stores)
+- Library and framework design where layers must be independently usable (SQLAlchemy: Core layer usable without ORM)
+- Long-lived applications where team turnover is high and structural simplicity aids onboarding (nopCommerce: 17 years of evolution)
+- Domains where distributed deployment is not required and a single deployment unit is acceptable
+
+**When to avoid**:
+
+- Systems requiring independent deployment or scaling of components -- layered architecture assumes a single deployment unit
+- High-performance systems where layer-to-layer overhead (even in-process) creates latency (pipeline or event-driven may be more appropriate)
+- Domains with complex cross-cutting concerns that do not map cleanly to horizontal layers
+- When layer violations are likely due to team discipline issues -- without enforcement, layers degrade into a big ball of mud
+
+---
+
+## 4. Domain-Driven Design
+
+### Evidence Summary
+
+Appears in **27 of 122** Discovered repos (**22%**). Co-occurs most frequently with Event-Driven. Detected through aggregate root patterns, bounded context directory structures, and domain event implementations. Common in E-Commerce and Developer Tools domains.
+
+No production systems use DDD as a primary classifiable style -- this reflects a classification artifact rather than production absence. Real production systems using DDD are classified by their deployment style (microservices, modular monolith). 3 reference implementations: eShopOnContainers (DDD within microservices), modular-monolith-with-ddd (DDD within monolith), wild-workouts-go (DDD in Go). ~10 KataLog teams applied DDD, with judges noting that DDD context mapping provided the strongest decomposition rationale among winners.
+
+### Cross-Source Evidence Table
+
+| Source | Entry | Evidence Type | Key Detail |
+|--------|-------|---------------|------------|
+| Discovered | 27 repos | Statistical signal | Aggregate root patterns, bounded context directory structures, domain event implementations; second-highest Discovered count among patterns without production evidence |
+| RefArch | eShopOnContainers | Reference impl | Bounded contexts as microservice boundaries (Catalog, Basket, Ordering); aggregates with invariant enforcement; domain events for intra-context side effects; value objects (Address, Money); anti-corruption layers and context mapping between services |
+| RefArch | modular-monolith-with-ddd | Reference impl | DDD tactical patterns within monolith modules (Meetings: aggregate root with rich domain model, Administration: simpler CRUD); each module owns its domain model; integration events for cross-module communication |
+| RefArch | wild-workouts-go | Reference impl | DDD in Go idiom; Training bounded context with aggregate roots; domain events; repository pattern with interface-based ports; demonstrates DDD outside the Java/C# ecosystem |
+| KataLog | ~10 teams (top shown below) | Competition designs | Applied as decomposition methodology within other primary styles |
+
+### Why Teams Choose This Style
+
+Top KataLog teams applying DDD:
+
+| Team | Placement | Challenge | Key Detail |
+|------|-----------|-----------|------------|
+| ArchColider | 1st | Farmacy Food | Event sourcing + DDD bounded contexts in modular monolith; domain model as primary decomposition driver; 16 ADRs |
+| IPT | 2nd | Hey Blue! | DDD context mapping + event-driven microservices; Azure Container Apps with Event Hub; 8 ADRs |
+| Shokunin | Runner-up | Spotlight Platform | DDD + federated GraphQL; ElasticSearch + Redis for internal event messaging; 6 ADRs |
+| Miyagi's Little Forests | 2nd | Farmacy Food | DDD context maps to microservice boundaries with element catalogs; hexagonal internal structure; 6 ADRs |
+
+**Methodology vs. architecture**: DDD's zero production evidence likely reflects a classification artifact. The 27 Discovered repos -- highest among zero-production styles -- confirm that DDD tactical patterns (aggregates, value objects, domain events) are widely implemented in code even when the primary style classification captures the deployment architecture. The most successful KataLog microservices teams (MonArch, IPT, ArchColider) used DDD context mapping to justify service boundaries.
+
+### When to Use / Avoid
+
+**When to use** -- grounded in Discovered domain correlations:
+
+- In the Discovered corpus, DDD repos (22%) co-occur frequently with Event-Driven, suggesting domain events are the most common DDD tactical pattern in practice.
+- Complex business domains where the domain model drives architectural decomposition (eShopOnContainers: bounded contexts as microservice boundaries)
+- Systems requiring explicit boundaries between subdomains with anti-corruption layers
+- As a decomposition methodology within any primary style -- modular monolith, microservices, or service-based (modular-monolith-with-ddd: DDD within monolith; eShopOnContainers: DDD within microservices)
+- When the team includes domain experts who can participate in ubiquitous language and context mapping
+
+**When to avoid**:
+
+- Simple CRUD applications where the overhead of aggregates, value objects, and bounded contexts is not justified
+- Domains where the business logic is thin and the complexity is in infrastructure or integration rather than domain modeling
+- Teams without access to domain experts -- DDD requires continuous collaboration between developers and domain experts
+- As a standalone architecture without a primary hosting style -- DDD is a methodology, not a deployment architecture
 
 ---
 
@@ -266,27 +274,25 @@ The sources agree that service-based works best when the domain model is not yet
 
 ### Evidence Summary
 
-- **Combined Weighted Score**: 76 (rank #5)
-- **KataLog**: 39 teams, score 67 (35.9% win rate)
-- **AOSA**: 0 systems
-- **RealWorld**: 0 systems
-- **RefArch**: 5 repos (eShopOnContainers, eShop, serverless-microservices, AKS Baseline, wild-workouts)
-- **Discovered**: 26 repos
-- **Production %**: 0%
+Appears in **26 of 122** Discovered repos (**21%**). Co-occurs most frequently with Event-Driven. Detected through Docker Compose multi-service layouts, API gateway configs, and per-service databases. Pruned from a higher count by removing tutorials and sample apps. Common in Developer Tools and Infrastructure domains.
+
+Zero production systems across AOSA and RealWorld. 5 reference implementations: eShopOnContainers, eShop, serverless-microservices-azure, AKS Baseline, wild-workouts-go. 39 KataLog teams chose this style (second-most popular); judges noted that winners paired microservices with DDD and event-driven, while runner-ups adopted it as default without justification.
 
 ### Cross-Source Evidence Table
 
 | Source | Entry | Evidence Type | Key Detail |
 |--------|-------|---------------|------------|
+| Discovered | 26 repos | Statistical signal | Docker Compose multi-service layouts, API gateway configs, per-service databases; pruned from higher count by removing tutorials and sample apps |
 | RefArch | eShopOnContainers | Reference impl | Microsoft canonical microservices sample; Catalog, Basket, Ordering, Identity as independent services; DDD aggregates, CQRS in Ordering, integration events via RabbitMQ/Azure Service Bus; Docker Compose and Kubernetes deployment; ~15K GitHub stars |
 | RefArch | eShop | Reference impl | Simplified eShopOnContainers on .NET 8 Aspire; same service boundaries with reduced operational complexity; modern .NET hosting model |
 | RefArch | serverless-microservices-azure | Reference impl | Serverless microservices on Azure Functions; Event Grid for inter-service communication; Durable Functions for orchestration; ride-sharing domain with Trips, Drivers, Passengers services |
 | RefArch | AKS Baseline | Reference impl | Production-grade AKS cluster; service mesh (Linkerd/Istio), NGINX ingress, Azure Monitor, Key Vault integration; microservices deployment target with security and observability baseline |
 | RefArch | wild-workouts-go | Reference impl | Microservices in Go; DDD bounded contexts (Training, User); Hexagonal ports/adapters per service; CQRS command/query handlers; gRPC and HTTP adapters |
 | KataLog | 39 teams (top shown below) | Competition designs | Second-most popular style; winners paired with DDD and event-driven; runner-ups adopted as default without justification |
-| Discovered | 26 repos | Code-level signal | Docker Compose multi-service layouts, API gateway configs, per-service databases; pruned from higher count by removing tutorials and sample apps |
 
-**Top KataLog teams** (39 teams total; top performers shown):
+### Why Teams Choose This Style
+
+Top KataLog teams (39 teams total; top performers shown):
 
 | Team | Placement | Challenge | Key Detail |
 |------|-----------|-----------|------------|
@@ -300,22 +306,19 @@ The sources agree that service-based works best when the domain model is not yet
 | The Marmots | 2nd | Spotlight Platform | Static SPA frontend with route handlers; 19 ADRs |
 | Ctrl+Alt+Elite | 3rd | ClearView | AWS + Kafka event broker; Golang; 20 ADRs |
 
-### Convergence Analysis
+**Over-engineering signal from KataLog**: In the Sysops Squad challenge, the sole microservices team (Arch Mahal) placed as runner-up while all 6 service-based teams placed higher. In ClearView, the sole pure microservices team (Jazz Executor) placed as runner-up. The strongest KataLog performers (MonArch, PegasuZ, Rapid Response) all proposed evolutionary paths starting simpler and decomposing into microservices -- not microservices from day one.
 
-Microservices presents the sharpest gap between competition popularity and production evidence in the entire dataset. It is the second-most popular KataLog style (39 teams, 67 pts) and has the most reference implementations (5 repos), yet zero production systems across AOSA and RealWorld use it as a primary style. The 26 Discovered repos confirm it is widely built in open-source but not yet validated at production scale within this evidence base.
+### When to Use / Avoid
 
-RefArch and KataLog sources agree that microservices works best when paired with DDD, event-driven communication, and explicit bounded contexts. The strongest KataLog performers (MonArch, PegasuZ, Rapid Response) all proposed evolutionary paths starting simpler and decomposing into microservices -- not microservices from day one. The absence of AOSA production evidence is notable: AOSA systems that could be called microservices (Graphite, Selenium) are classified as service-based because their decomposition is coarser than the microservices ideal. This suggests the gap between microservices-as-designed and microservices-as-deployed is a real architectural phenomenon.
+**When to use** -- grounded in Discovered domain correlations and production validation:
 
-**Over-engineering signal from KataLog**: In the Sysops Squad challenge, the sole microservices team (Arch Mahal) placed as runner-up while all 6 service-based teams placed higher. In ClearView, the sole pure microservices team (Jazz Executor) placed as runner-up. This consistent underperformance of microservices in budget-constrained and migration contexts is one of the strongest negative signals in the KataLog dataset.
-
-### When to Use
-
+- In the Discovered corpus, microservices repos (21%) cluster in Developer Tools and Infrastructure domains and co-occur with Event-Driven, confirming that microservices without async communication are rare in practice.
 - Systems with well-understood domain boundaries where independent deployment and scaling provide clear value (eShopOnContainers: Catalog, Basket, Ordering as independent services)
 - Organizations with mature DevOps capabilities and experience operating distributed systems (AKS Baseline: production-grade cluster configuration)
 - When paired with DDD, event storming, or explicit evolutionary paths -- every winning KataLog team justified decomposition with domain analysis
 - Large teams needing parallel development independence across service boundaries
 
-### When to Avoid
+**When to avoid**:
 
 - Greenfield projects where the domain model is still evolving -- modular monolith or service-based provides a safer starting point (MonArch, PegasuZ both proposed this)
 - Small teams who cannot sustain the operational burden (Sysops Squad: 6 of 7 teams chose service-based over microservices)
@@ -324,58 +327,48 @@ RefArch and KataLog sources agree that microservices works best when paired with
 
 ---
 
-## 6. Modular Monolith
+## 6. Pipe-and-Filter
 
 ### Evidence Summary
 
-- **Combined Weighted Score**: 40 (rank #6)
-- **KataLog**: 6 teams, score 18 (83.3% win rate)
-- **AOSA**: 0 explicitly
-- **RealWorld**: 1 system (Orchard Core)
-- **RefArch**: 1 repo (modular-monolith-with-ddd)
-- **Discovered**: 64 repos (52% of catalog -- highest of any style)
-- **Production %**: 50%
+Appears in **19 of 122** Discovered repos (**16%**). Co-occurs most frequently with Event-Driven. Detected through stage-based directory layouts, pipeline configuration files, and data transformation chains. Common in Data Processing and Infrastructure domains.
+
+Validated by 6 production systems: NGINX (HTTP request processing pipeline, 30%+ of internet), LLVM (3-phase compiler pipeline), GStreamer (media pipeline), Graphite (metrics collection-storage-rendering), ZeroMQ (I/O thread pipeline), and Jellyfin (transcoding pipeline). Zero KataLog teams proposed this style -- pipeline solves data-transformation problems that rarely appear in Kata problem statements.
 
 ### Cross-Source Evidence Table
 
 | Source | Entry | Evidence Type | Key Detail |
 |--------|-------|---------------|------------|
-| RealWorld | Orchard Core | Production app | Multi-tenant CMS built as modular monolith; each feature (themes, widgets, content types, workflows) is an independent ASP.NET Core module; single deployment with module-level boundaries; Lucene-based search, liquid templates, GraphQL API |
-| RefArch | modular-monolith-with-ddd | Reference impl | DDD + CQRS + Event-Driven within monolith; module-level bounded contexts (Meetings, Administration, Payments) with integration events between modules; in-process event bus with outbox pattern; strong module isolation enforced by architecture tests |
-| KataLog | 6 teams (all shown) | Competition designs | Highest win rate of all styles (83.3%); 5 of 6 teams placed top-3 |
-| Discovered | 64 repos | Code-level signal | Well-structured directory layouts with module boundaries; single deployment artifacts; most common pattern in pruned Discovered catalog (52% of all repos) |
+| Discovered | 19 repos | Statistical signal | Data processing pipelines, ETL systems, stream processors; structural signals include stage-based directory layouts and pipeline configuration files |
+| AOSA | NGINX | Production system | HTTP request processing pipeline: accept -> read -> parse -> process -> filter -> send; each phase is a handler in a chain; output filters for gzip, chunked encoding, SSI; serves 30%+ of internet traffic |
+| AOSA | LLVM | Production system | 3-phase compiler pipeline: frontend (C/C++/Rust parsing) -> IR (optimization passes) -> backend (x86/ARM/WASM code gen); passes are composable and reorderable; foundation of Apple Clang, Rust compiler, Swift compiler |
+| AOSA | GStreamer | Production system | Media pipeline: source -> demux -> decode -> filter -> encode -> sink; elements connected via pads with capability negotiation; dynamic pipeline reconfiguration |
+| AOSA | Graphite | Production system | Carbon (collection with line/pickle/AMQP receivers) -> Whisper (fixed-size time-series storage) -> Graphite-Web (Django rendering/API); Carbon relay for fan-out |
+| AOSA | ZeroMQ | Production system | I/O thread pipeline: socket -> session -> encoder -> engine; zero-copy message passing between stages; batch processing in pipeline for throughput |
+| RealWorld | Jellyfin | Production app | Transcoding pipeline: input -> demux -> decode -> filter (scale, subtitle burn) -> encode -> mux -> output; FFmpeg-based with pluggable codec support |
 
-**All KataLog teams** (6 teams, 83.3% win rate):
+### Why Teams Choose This Style
 
-| Team | Placement | Challenge | Key Detail |
-|------|-----------|-----------|------------|
-| ArchColider | 1st | Farmacy Food | Most comprehensive cost analysis; won with contrarian modular monolith against microservices field; 16 ADRs |
-| MonArch | 1st | Hey Blue! | Modular monolith initial deployment with hexagonal internals; extraction along bounded-context seams |
-| PegasuZ | 1st | Spotlight Platform | Modular monolith as MVP; "Why should the business invest to build a fortress when it is not sure if anyone would be staying in it?" |
-| Rapid Response | 2nd | Wildlife Watcher | 6 microservices designed but deployed as modular monolith initially; only Camera Feed independent |
-| Wonderous Toys | 3rd | Wildlife Watcher | Microkernel + modular monolith + event-driven for species identification extensions |
-| Arch8s | Runner-up | Spotlight Platform | AWS ECS + Aurora PostgreSQL + Lambda for heavy tasks; 17 ADRs |
+No KataLog teams explicitly proposed pipeline architecture. The complete absence from competition is itself a finding: pipeline architecture solves data-transformation and request-processing problems that rarely appear in Kata problem statements (which tend toward business-domain coordination). This suggests the pattern is under-recognized in architecture education despite dominating infrastructure software.
 
-### Convergence Analysis
+**Composability as key differentiator**: LLVM's passes can be reordered and composed arbitrarily. GStreamer's elements connect via negotiated pads. NGINX's output filters chain transparently. In every AOSA case, the pipeline's power comes from composable stages with well-defined input/output contracts -- not from the linear topology alone but from the interchangeability of stages within that topology.
 
-Modular monolith shows a striking pattern: the highest KataLog win rate (83.3%) paired with the highest Discovered count (64 repos, 52% of catalog), yet limited curated production evidence (Orchard Core only). The Discovered dominance -- revealed after pruning removed tutorials and SDKs -- shows that well-structured open-source applications overwhelmingly exhibit modular monolith patterns. Orchard Core's multi-tenant CMS confirms the pattern works at production scale with real users.
+### When to Use / Avoid
 
-KataLog and RefArch sources agree that modular monolith excels as a starting point with documented extraction paths. Every KataLog winner using this style explicitly documented how modules could be extracted into services later. The modular-monolith-with-ddd reference implementation demonstrates that DDD, CQRS, and event-driven patterns work within a monolith deployment, challenging the assumption that these patterns require distributed services.
+**When to use** -- grounded in Discovered domain correlations and production validation:
 
-**Small sample, strong signal**: With only 6 KataLog teams, the 83.3% win rate is statistically limited but directionally compelling. ArchColider (1st, Farmacy Food) won with a contrarian modular monolith choice against a field of microservices teams, producing the most comprehensive cost analysis. PegasuZ (1st, Spotlight Platform) asked: "Why should the business invest to build a fortress when it is not sure if anyone would be staying in it?" This pragmatic reasoning characterized all modular monolith winners.
+- In the Discovered corpus, pipeline repos cluster in Data Processing and Infrastructure domains. The 19 repos confirm broad adoption in data engineering contexts.
+- Data transformation chains where each stage has a single responsibility (LLVM: parse -> optimize -> codegen; Graphite: collect -> store -> render)
+- Request processing with ordered filter chains (NGINX: accept -> parse -> process -> filter -> respond)
+- Media processing with format negotiation (GStreamer: source -> decode -> filter -> encode -> sink; Jellyfin: transcoding pipeline)
+- Systems where stages must be independently testable, replaceable, or reorderable
 
-### When to Use
+**When to avoid**:
 
-- Greenfield startup/non-profit projects where the domain model is not yet validated (ArchColider: won against microservices field with cost analysis)
-- Small teams (2-5 members) who cannot sustain microservices operational overhead
-- When time-to-market and cost are primary drivers (PegasuZ: MVP-first reasoning)
-- When paired with hexagonal architecture or DDD bounded contexts, providing documented extraction points (MonArch: hexagonal internals; modular-monolith-with-ddd: module-level bounded contexts)
-
-### When to Avoid
-
-- Systems that have proven domain boundaries and need independent deployment and scaling
-- Large organizations where monolith deployment creates deployment contention across teams
-- Systems with fundamentally different scaling characteristics across components (Wildlife Watcher: Camera Feed Engine needed independent scaling, forcing Rapid Response to extract it)
+- Business-domain coordination problems requiring bidirectional communication between components (pipeline is inherently unidirectional)
+- Systems where the processing order is not well-defined or changes dynamically per request (though GStreamer demonstrates dynamic pipeline reconfiguration is possible, it adds significant complexity)
+- Interactive applications where user input drives non-linear control flow
+- Architectures where stages have heavy shared state -- pipeline assumes each stage passes data forward with minimal coupling
 
 ---
 
@@ -383,18 +376,15 @@ KataLog and RefArch sources agree that modular monolith excels as a starting poi
 
 ### Evidence Summary
 
-- **Combined Weighted Score**: 33 (rank #7)
-- **KataLog**: ~5 teams, score 8
-- **AOSA**: 0
-- **RealWorld**: 1 system (Squidex)
-- **RefArch**: 4 repos (clean-architecture-dotnet, modular-monolith-with-ddd, wild-workouts, eShopOnContainers)
-- **Discovered**: 18 repos
-- **Production %**: 61%
+Appears in **18 of 122** Discovered repos (**15%**). Co-occurs most frequently with Event-Driven. Detected through command/query separation patterns, event store configurations, and projection/read-model builders. Common in Developer Tools and E-Commerce domains.
+
+Validated by 1 production system: Squidex (full event sourcing, MongoDB event store, headless CMS). 4 reference implementations: eShopOnContainers, modular-monolith-with-ddd, wild-workouts-go, clean-architecture-dotnet. ~5 KataLog teams applied CQRS, consistently pairing it with event-driven communication.
 
 ### Cross-Source Evidence Table
 
 | Source | Entry | Evidence Type | Key Detail |
 |--------|-------|---------------|------------|
+| Discovered | 18 repos | Statistical signal | Command/query separation patterns, event store configurations, projection/read-model builders |
 | RealWorld | Squidex | Production app | CQRS + event sourcing as primary architecture; every content change stored as immutable event; MongoDB event store; full event history enables audit trail, temporal queries, and replay; headless CMS |
 | RefArch | eShopOnContainers | Reference impl | CQRS in Ordering service: separate read/write models; MediatR for command/query dispatch; integration events for cross-service eventual consistency |
 | RefArch | modular-monolith-with-ddd | Reference impl | CQRS within monolith modules; separate command and query handlers per module; in-process event bus |
@@ -402,24 +392,24 @@ KataLog and RefArch sources agree that modular monolith excels as a starting poi
 | RefArch | clean-architecture-dotnet | Reference impl | CQRS with Hexagonal architecture; MediatR pipeline for commands and queries; clean separation of read/write concerns |
 | KataLog | Iconites | 2nd, Road Warrior | Event-driven + space-based + CQRS read/write separation for travel itinerary management |
 | KataLog | Street Fighters | Runner-up, Road Warrior | Kubernetes + message broker + CQRS for trip data |
-| Discovered | 18 repos | Code-level signal | Command/query separation patterns, event store configurations, projection/read-model builders |
 
-### Convergence Analysis
+### Why Teams Choose This Style
 
-CQRS/Event Sourcing derives 61% of its score from a single production system (Squidex), making it the pattern most dependent on a single source for production validation. However, four reference implementations (the most of any pattern except Event-Driven) provide substantial code-level confirmation. Squidex demonstrates that full event sourcing works in production for content management -- every mutation is an event, enabling complete audit trails, temporal queries, and state replay.
-
-RefArch sources agree that CQRS is most effective within bounded contexts rather than as a system-wide pattern. eShopOnContainers applies CQRS only in the Ordering service, not across all services. The modular-monolith-with-ddd reference shows CQRS works within a monolith, challenging the assumption that CQRS requires microservices. KataLog evidence is thin (~5 teams) but consistent: teams using CQRS paired it with event-driven communication. The 18 Discovered repos confirm moderate open-source adoption.
+KataLog evidence is thin (~5 teams) but consistent: teams using CQRS paired it with event-driven communication. Iconites (2nd, Road Warrior) used CQRS read/write separation for travel itinerary management alongside space-based and event-driven patterns.
 
 **Squidex as canonical production CQRS**: Squidex stores every content mutation as an immutable event in MongoDB. The current state is derived from event replay. This enables temporal queries ("what did this content look like on date X?"), complete audit trails, and event-based integrations with downstream systems. Squidex demonstrates that full event sourcing (not just CQRS read/write separation) is viable in production for content management domains where the event history has intrinsic business value.
 
-### When to Use
+### When to Use / Avoid
 
+**When to use** -- grounded in Discovered domain correlations and production validation:
+
+- In the Discovered corpus, CQRS repos (15%) co-occur with Event-Driven, confirming the patterns are complementary in practice. All 4 reference implementations apply CQRS within bounded contexts, not system-wide.
 - Systems requiring complete audit trails and temporal queries (Squidex: full event history for content management)
 - Domains with asymmetric read/write loads where read models can be independently optimized (eShopOnContainers: separate read/write models in Ordering)
 - Within specific bounded contexts that benefit from separate read/write models, not as a system-wide mandate (eShopOnContainers uses CQRS only in Ordering, not Catalog or Basket)
 - When paired with event sourcing for domains where the event history itself is valuable (content management, financial transactions, compliance-regulated systems)
 
-### When to Avoid
+**When to avoid**:
 
 - Simple CRUD domains where the overhead of separate read/write models is not justified
 - Teams unfamiliar with eventual consistency -- CQRS introduces eventual consistency between command and query sides that must be explicitly managed
@@ -428,184 +418,43 @@ RefArch sources agree that CQRS is most effective within bounded contexts rather
 
 ---
 
-## 8. Space-Based
+## 8. Hexagonal/Clean Architecture
 
 ### Evidence Summary
 
-- **Combined Weighted Score**: 24 (rank #8)
-- **KataLog**: ~2 teams, score 4
-- **AOSA**: 1 system (Riak)
-- **RealWorld**: 0
-- **RefArch**: 0
-- **Discovered**: 5 repos
-- **Production %**: 83%
+Appears in **16 of 122** Discovered repos (**13%**). Co-occurs most frequently with Event-Driven. Detected through port/adapter directory structures, dependency inversion patterns, and clean architecture layer organization across Java, C#, Go, TypeScript, and Kotlin.
+
+No production systems use hexagonal as a primary classifiable style -- like DDD, it serves as an internal structure within other styles. 3 reference implementations: buckpal (Java, hexagonal purity), clean-architecture-dotnet (C# + CQRS), wild-workouts-go (Go idiom). ~6 KataLog teams applied hexagonal, consistently as internal structure within modular monolith or microservices.
 
 ### Cross-Source Evidence Table
 
 | Source | Entry | Evidence Type | Key Detail |
 |--------|-------|---------------|------------|
-| AOSA | Riak | Production system | Peer-to-peer distributed key-value store; consistent hashing for data partitioning; tunable consistency (read/write quorum); no single point of failure; rack-aware replica placement |
-| KataLog | Iconites | 2nd, Road Warrior | Space-based + event-driven + microservices; Cosmos DB + Redis for in-memory data grid; designed for Road Warrior's 15M user peak-load scenario |
-| KataLog | LowCode | 3rd (tied), MonitorMe | Distributed system with event bus and distributed appliance nodes; space-based topology for medical device data |
-| Discovered | 5 repos | Code-level signal | In-memory data grid patterns, distributed caching configurations |
-
-### Convergence Analysis
-
-Space-based architecture has the thinnest evidence base among styles with production validation. Riak (AOSA) provides strong production evidence for the distributed data grid pattern -- peer-to-peer topology with tunable consistency serves as the canonical space-based implementation. However, Riak is a database infrastructure component, not an application architecture, which limits direct applicability.
-
-KataLog evidence is sparse (2 teams) but targeted: both teams chose space-based for high-concurrency, peak-load scenarios (Road Warrior's 15M users, MonitorMe's distributed sensor nodes). The 5 Discovered repos confirm limited but present open-source adoption. The gap between Riak's infrastructure-level space-based architecture and the application-level space-based architecture described by Richards and Ford (in-memory data grids with processing units) remains unbridged in this evidence base.
-
-**Riak's architectural lessons**: Riak demonstrates the core space-based principles at infrastructure scale: no master node (peer-to-peer), data distributed via consistent hashing across a ring, tunable N/R/W values allowing per-request consistency-availability trade-offs, and hinted handoff for partition tolerance. These same principles (replicated data, no central coordinator, tunable consistency) define the application-level space-based architecture pattern, making Riak both an implementation of and infrastructure for space-based systems.
-
-### When to Use
-
-- Systems with extreme concurrency requirements where traditional database-backed architectures create bottlenecks (Riak: peer-to-peer with no single point of failure; consistent hashing eliminates coordination overhead)
-- Variable and unpredictable peak loads where elastic scaling of processing units is needed (Iconites: 15M user peak for Road Warrior; scale-out by adding nodes to the hash ring)
-- Applications where in-memory data grids can eliminate database round-trips for hot data paths (session state, real-time pricing, leaderboards)
-- Distributed sensor or IoT networks with local processing requirements (LowCode: distributed appliance nodes for MonitorMe medical devices)
-
-### When to Avoid
-
-- Systems where data consistency requirements are strict -- space-based architectures trade consistency for availability (Riak's tunable consistency still involves eventual consistency trade-offs; AP side of CAP theorem)
-- Applications with small, predictable loads where the infrastructure complexity of data grids is not justified -- the operational burden of managing distributed caching, replication, and partition recovery is substantial
-- Teams without experience operating distributed data infrastructure -- space-based failure modes (split-brain, replication lag, rebalancing storms) require deep operational expertise
-- Domains where the data model does not partition well across processing units (highly relational data with cross-partition joins)
-
----
-
-## 9. Layered Architecture
-
-### Evidence Summary
-
-- **Combined Weighted Score**: 20 (rank #9)
-- **KataLog**: 0 (not a KataLog competition style)
-- **AOSA**: 1 system (SQLAlchemy)
-- **RealWorld**: 1 system (nopCommerce)
-- **RefArch**: 0
-- **Discovered**: 29 repos
-- **Production %**: 100%
-
-### Cross-Source Evidence Table
-
-| Source | Entry | Evidence Type | Key Detail |
-|--------|-------|---------------|------------|
-| AOSA | SQLAlchemy | Production system | Two distinct layers: Core (SQL expression language, schema definition, connection pooling) and ORM (unit of work, identity map, relationship loading); strict layer separation with Core usable independently |
-| RealWorld | nopCommerce | Production app | Four-layer architecture: Web (Razor views, API controllers), Services (business logic), Data (Entity Framework, repositories), Core (domain entities, DTOs); 60K+ live stores; 17 years of evolution |
-| Discovered | 29 repos | Code-level signal | Directory structures with presentation/business/data layers; dependency flow enforcement; layer-per-folder project organization |
-
-### Convergence Analysis
-
-Layered architecture has 100% production evidence from just two systems, but those systems represent the pattern at different scales and domains. SQLAlchemy's two-layer design (Core + ORM) demonstrates that strict layer separation enables independent layer usage -- Core can be used without ORM. nopCommerce's four-layer design proves the pattern sustains a 17-year-old e-commerce platform serving 60K+ live stores.
-
-The 29 Discovered repos (third-highest count) confirm layered architecture remains one of the most common structural patterns in open-source applications. The absence from KataLog is expected: layered architecture is rarely proposed in competition contexts because it is seen as a default rather than an architectural choice. However, nopCommerce's longevity and SQLAlchemy's ubiquity suggest the pattern's simplicity is a feature, not a limitation -- particularly for domains where the primary concern is separation of concerns rather than distributed deployment.
-
-**Longevity as evidence**: nopCommerce's 17-year evolution through four layers (Web, Services, Data, Core) is among the strongest evidence for any architecture style in the dataset. The architecture has survived the transition from ASP.NET Web Forms to MVC to Razor Pages to modern ASP.NET Core while maintaining the same four-layer structure. This suggests layered architecture's primary value is durability across technology generations, not performance or scalability.
-
-### When to Use
-
-- Applications where separation of concerns (presentation, business logic, data access) is the primary architectural driver (nopCommerce: 4 layers serving 60K+ stores)
-- Library and framework design where layers must be independently usable (SQLAlchemy: Core layer usable without ORM)
-- Long-lived applications where team turnover is high and structural simplicity aids onboarding (nopCommerce: 17 years of evolution)
-- Domains where distributed deployment is not required and a single deployment unit is acceptable
-
-### When to Avoid
-
-- Systems requiring independent deployment or scaling of components -- layered architecture assumes a single deployment unit
-- High-performance systems where layer-to-layer overhead (even in-process) creates latency (pipeline or event-driven may be more appropriate)
-- Domains with complex cross-cutting concerns that do not map cleanly to horizontal layers
-- When layer violations are likely due to team discipline issues -- without enforcement, layers degrade into a big ball of mud
-
----
-
-## 10. Domain-Driven Design
-
-### Evidence Summary
-
-- **Combined Weighted Score**: 16 (rank #10)
-- **KataLog**: ~10 teams, score 11
-- **AOSA**: 0
-- **RealWorld**: 0
-- **RefArch**: 3 repos (eShopOnContainers, modular-monolith-with-ddd, wild-workouts)
-- **Discovered**: 27 repos
-- **Production %**: 0%
-
-### Cross-Source Evidence Table
-
-| Source | Entry | Evidence Type | Key Detail |
-|--------|-------|---------------|------------|
-| RefArch | eShopOnContainers | Reference impl | Bounded contexts as microservice boundaries (Catalog, Basket, Ordering); aggregates with invariant enforcement; domain events for intra-context side effects; value objects (Address, Money); anti-corruption layers and context mapping between services |
-| RefArch | modular-monolith-with-ddd | Reference impl | DDD tactical patterns within monolith modules (Meetings: aggregate root with rich domain model, Administration: simpler CRUD); each module owns its domain model; integration events for cross-module communication |
-| RefArch | wild-workouts-go | Reference impl | DDD in Go idiom; Training bounded context with aggregate roots; domain events; repository pattern with interface-based ports; demonstrates DDD outside the Java/C# ecosystem |
-| KataLog | ArchColider | 1st, Farmacy Food | Event sourcing + DDD bounded contexts in modular monolith; domain model as primary decomposition driver; 16 ADRs |
-| KataLog | IPT | 2nd, Hey Blue! | DDD context mapping + event-driven microservices; Azure Container Apps with Event Hub; 8 ADRs |
-| KataLog | Shokunin | Runner-up, Spotlight Platform | DDD + federated GraphQL; ElasticSearch + Redis for internal event messaging; 6 ADRs |
-| KataLog | Miyagi's Little Forests | 2nd, Farmacy Food | DDD context maps to microservice boundaries with element catalogs; hexagonal internal structure; 6 ADRs |
-| Discovered | 27 repos | Code-level signal | Aggregate root patterns, bounded context directory structures, domain event implementations; second-highest Discovered count among patterns without production evidence |
-
-### Convergence Analysis
-
-DDD has the widest gap between code presence and production adoption in the evidence base. 27 Discovered repos (highest among zero-production-evidence styles) and three reference implementations confirm it is widely implemented in code, but no AOSA or RealWorld system uses DDD as a primary classifiable style. This likely reflects that DDD is a design methodology applied within other styles rather than a standalone architecture -- eShopOnContainers is classified as "microservices" and modular-monolith-with-ddd as "modular monolith," with DDD as a secondary classification.
-
-RefArch and KataLog sources agree that DDD provides the strongest decomposition rationale. The most successful KataLog microservices teams (MonArch, IPT, ArchColider) used DDD context mapping to justify service boundaries. The modular-monolith-with-ddd reference demonstrates that DDD bounded contexts work within a monolith -- they do not require microservices.
-
-**Methodology vs. architecture**: DDD's zero production evidence likely reflects a classification artifact. Real production systems using DDD are classified by their deployment style (microservices, modular monolith) rather than their design methodology. This makes DDD a permanent secondary classifier in this evidence framework. The 27 Discovered repos -- highest among zero-production styles -- confirm that DDD tactical patterns (aggregates, value objects, domain events) are widely implemented in code even when the primary style classification captures the deployment architecture.
-
-### When to Use
-
-- Complex business domains where the domain model drives architectural decomposition (eShopOnContainers: bounded contexts as microservice boundaries)
-- Systems requiring explicit boundaries between subdomains with anti-corruption layers (eShopOnContainers: anti-corruption layers between Catalog, Basket, Ordering)
-- As a decomposition methodology within any primary style -- modular monolith, microservices, or service-based (modular-monolith-with-ddd: DDD within monolith; eShopOnContainers: DDD within microservices)
-- When the team includes domain experts who can participate in ubiquitous language and context mapping
-
-### When to Avoid
-
-- Simple CRUD applications where the overhead of aggregates, value objects, and bounded contexts is not justified
-- Domains where the business logic is thin and the complexity is in infrastructure or integration rather than domain modeling
-- Teams without access to domain experts -- DDD requires continuous collaboration between developers and domain experts
-- As a standalone architecture without a primary hosting style -- DDD is a methodology, not a deployment architecture
-
----
-
-## 11. Hexagonal/Clean Architecture
-
-### Evidence Summary
-
-- **Combined Weighted Score**: 16 (rank #11)
-- **KataLog**: ~6 teams, score 10
-- **AOSA**: 0
-- **RealWorld**: 0
-- **RefArch**: 3 repos (buckpal, clean-architecture-dotnet, wild-workouts)
-- **Discovered**: 16 repos
-- **Production %**: 0%
-
-### Cross-Source Evidence Table
-
-| Source | Entry | Evidence Type | Key Detail |
-|--------|-------|---------------|------------|
+| Discovered | 16 repos | Statistical signal | Port/adapter directory structures, dependency inversion patterns, clean architecture layer organization; languages include Java, C#, Go, TypeScript, Kotlin |
 | RefArch | buckpal | Reference impl | Hexagonal purity as primary goal; banking sample (Send Money use case); incoming ports (use cases), outgoing ports (persistence, external); adapters (web controller, JPA persistence, external API); dependency rule enforced via compile-time checks; Tom Hombergs' companion to "Get Your Hands Dirty on Clean Architecture" |
 | RefArch | clean-architecture-dotnet | Reference impl | Hexagonal + CQRS in C#; four projects (Domain, Application, Infrastructure, Web); MediatR pipeline behaviors for cross-cutting concerns; ports as Application-layer interfaces; FluentValidation for command validation |
 | RefArch | wild-workouts-go | Reference impl | Hexagonal in Go; port interfaces (TrainingRepository, UserService); adapters for HTTP, gRPC, and in-memory test implementations; DDD aggregate roots within hexagonal boundary; demonstrates idiomatic Go approach to ports-and-adapters |
 | KataLog | MonArch | 1st, Hey Blue! | Hexagonal internals within modular monolith; ports and adapters ensuring each module can be extracted without rewriting business logic; 7 ADRs |
 | KataLog | Miyagi's Little Forests | 2nd, Farmacy Food | Hexagonal + event-driven microservices; AWS EKS with hexagonal internal structure per service; element catalog per service; 6 ADRs |
 | KataLog | Architects++ | 3rd, Farmacy Family | Hexagonal + service-based + batch processing; AWS Batch with hexagonal internal structure; 15 ADRs |
-| Discovered | 16 repos | Code-level signal | Port/adapter directory structures, dependency inversion patterns, clean architecture layer organization; languages include Java, C#, Go, TypeScript, Kotlin |
 
-### Convergence Analysis
+### Why Teams Choose This Style
 
-Hexagonal/Clean architecture shares DDD's characteristic of zero production evidence despite active adoption in reference implementations and competition designs. Three reference implementations (buckpal, clean-architecture-dotnet, wild-workouts) provide high-quality code examples, each emphasizing different aspects: buckpal focuses on hexagonal purity, clean-architecture-dotnet combines hexagonal with CQRS, and wild-workouts demonstrates hexagonal in Go.
-
-KataLog and RefArch sources agree that hexagonal architecture excels as an internal structure within other styles. MonArch (1st, Hey Blue!) used hexagonal internals within a modular monolith; Miyagi's Little Forests (2nd, Farmacy Food) used it within microservices. This pattern -- hexagonal as internal structure, not primary architecture -- is consistent across all sources. The 16 Discovered repos confirm moderate adoption in open-source, typically as directory-level clean architecture organization.
+KataLog and RefArch sources agree that hexagonal architecture excels as an internal structure within other styles. MonArch (1st, Hey Blue!) used hexagonal internals within a modular monolith; Miyagi's Little Forests (2nd, Farmacy Food) used it within microservices. This pattern -- hexagonal as internal structure, not primary architecture -- is consistent across all sources.
 
 **Three reference implementations, three languages, one pattern**: buckpal (Java), clean-architecture-dotnet (C#), and wild-workouts-go (Go) implement hexagonal architecture in different languages and domains but converge on identical structural principles: domain logic at the center with no outward dependencies, port interfaces defined in the application layer, and adapters at the boundary handling infrastructure concerns. This cross-language consistency is stronger evidence for the pattern's generality than any single implementation.
 
-### When to Use
+### When to Use / Avoid
 
+**When to use** -- grounded in Discovered domain correlations:
+
+- In the Discovered corpus, hexagonal repos (13%) co-occur with Event-Driven, suggesting port/adapter patterns are common in event-driven codebases where adapters isolate message broker dependencies.
 - As internal structure within services or modules to ensure business logic independence from infrastructure (MonArch: hexagonal within modular monolith modules; Miyagi's Forests: hexagonal within microservices)
 - Systems where infrastructure components (databases, message brokers, external APIs) are expected to change (buckpal: adapter swapping without domain changes)
 - When testability of business logic in isolation is a hard requirement (all three RefArch implementations emphasize in-memory adapter testing)
 - As a structural discipline that makes future extraction or migration safer (MonArch: hexagonal internals ensured extraction-readiness)
 
-### When to Avoid
+**When to avoid**:
 
 - Simple applications where the overhead of port/adapter indirection adds complexity without benefit
 - Teams unfamiliar with dependency inversion and port/adapter patterns -- incorrect implementation creates more coupling, not less
@@ -614,27 +463,25 @@ KataLog and RefArch sources agree that hexagonal architecture excels as an inter
 
 ---
 
-## 12. Serverless
+## 9. Serverless
 
 ### Evidence Summary
 
-- **Combined Weighted Score**: 14 (rank #12)
-- **KataLog**: 8 teams, score 12 (25.0% win rate)
-- **AOSA**: 0
-- **RealWorld**: 0
-- **RefArch**: 1 repo (serverless-microservices-azure)
-- **Discovered**: 6 repos
-- **Production %**: 0%
+Appears in **6 of 122** Discovered repos (**5%**). Co-occurs most frequently with Event-Driven. Detected through function-as-a-service configurations, event trigger definitions, and serverless framework configs. Common in Infrastructure domains.
+
+Zero production systems across AOSA and RealWorld. 1 reference implementation: serverless-microservices-azure. 8 KataLog teams chose this style (25% win rate); judges noted serverless performed best as a component within broader architectures, with cost optimization as the universal rationale.
 
 ### Cross-Source Evidence Table
 
 | Source | Entry | Evidence Type | Key Detail |
 |--------|-------|---------------|------------|
+| Discovered | 6 repos | Statistical signal | Function-as-a-service configurations, event trigger definitions, serverless framework configs |
 | RefArch | serverless-microservices-azure | Reference impl | Azure Functions + Event Grid + Event Hubs; ride-sharing domain with serverless microservices; Durable Functions for orchestration; API Management for gateway |
 | KataLog | 8 teams (top shown below) | Competition designs | Strongest in cost-sensitive contexts; best when combined with other patterns |
-| Discovered | 6 repos | Code-level signal | Function-as-a-service configurations, event trigger definitions, serverless framework configs |
 
-**Top KataLog teams** (8 teams total; top performers shown):
+### Why Teams Choose This Style
+
+Top KataLog teams (8 teams total; top performers shown):
 
 | Team | Placement | Challenge | Key Detail |
 |------|-----------|-----------|------------|
@@ -645,22 +492,19 @@ KataLog and RefArch sources agree that hexagonal architecture excels as an inter
 | Los Ingenials | Runner-up | Hey Blue! | AWS EKS + Lambda hybrid; microservices with serverless for specific functions |
 | Berlin Bears | Runner-up | Farmacy Family | AWS Lambda + Step Functions + DynamoDB; fully serverless stack |
 
-### Convergence Analysis
-
-Serverless has the second-sharpest gap between competition popularity and production evidence (after Microservices). Eight KataLog teams and one reference implementation, but zero production systems across AOSA and RealWorld. The 6 Discovered repos confirm limited open-source adoption.
-
-KataLog evidence consistently shows serverless performs best as a component within broader architectures, not as a standalone style. MonArch (1st) used serverless containers within a modular monolith. TheGlobalVariables (3rd) achieved cost optimization but placed lower than non-serverless teams. The serverless-microservices-azure reference implementation pairs serverless with microservices and event-driven patterns. No source provides evidence of serverless as a successful standalone production architecture.
-
 **Cost-optimization as primary driver**: Every KataLog team that chose serverless cited cost as the primary rationale. TheGlobalVariables calculated $0.002/user/month. It Depends argued Hey Blue!'s burst pattern (daytime activity, near-zero overnight) mapped to scale-to-zero economics. Jaikaturi argued serverless eliminated VM maintenance overhead. This positions serverless as an economic architecture choice rather than a structural one -- chosen for billing model, not for system organization.
 
-### When to Use
+### When to Use / Avoid
 
+**When to use** -- grounded in Discovered domain correlations:
+
+- Serverless repos in the Discovered corpus (5%) are rare but cluster in Infrastructure domains, co-occurring with Event-Driven -- confirming serverless works best as a component in event-driven workflows.
 - Non-profit and ultra-cost-sensitive contexts where pay-per-request pricing aligns with budget constraints (TheGlobalVariables: $0.002/user/month)
 - Systems with highly intermittent or bursty workloads (It Depends: daytime-only pattern for Hey Blue!)
 - As a deployment model for specific components within a broader architecture (MonArch: serverless containers; Los Ingenials: Lambda for specific functions)
 - MVP/prototype contexts where eliminating infrastructure management accelerates delivery
 
-### When to Avoid
+**When to avoid**:
 
 - Systems requiring consistent low-latency responses (cold start penalties)
 - Workloads with sustained high throughput (MonitorMe's continuous sensor streams)
@@ -669,43 +513,40 @@ KataLog evidence consistently shows serverless performs best as a component with
 
 ---
 
-## 13. Multi-Agent
+## 10. Multi-Agent
 
 ### Evidence Summary
 
-- **Combined Weighted Score**: 8 (rank #13)
-- **KataLog**: ~3 teams (AI Winter 2024), score 8
-- **AOSA**: 0
-- **RealWorld**: 0
-- **RefArch**: 0
-- **Discovered**: 5 repos
-- **Production %**: 0%
+Appears in **5 of 122** Discovered repos (**4%**). Co-occurs most frequently with Event-Driven. Detected through agent orchestration patterns, multi-model configurations, and LLM chain definitions. Common in AI/ML domains.
+
+Zero production systems, zero reference implementations. ~3 KataLog teams (AI-focused challenges, Winter 2024-2025); judges noted that constrained agent autonomy through supervisor hierarchies and formal evaluation frameworks separated winners from the field.
 
 ### Cross-Source Evidence Table
 
 | Source | Entry | Evidence Type | Key Detail |
 |--------|-------|---------------|------------|
-| KataLog | ConnectedAI | 1st, ShopWise AI Assistant | Multi-agent supervisor hierarchy with LangGraph; dual-LLM cost optimization (Claude for reasoning, Gemini for routing); quantitative evaluation with Ragas + LangFuse |
-| KataLog | Breakwater | 2nd, ShopWise AI Assistant | Multi-agent workflow-orchestrated with n8n; OpenAI + PostgreSQL; workflow engine as agent coordinator |
+| Discovered | 5 repos | Statistical signal | Agent orchestration patterns, multi-model configurations, LLM chain definitions |
+| KataLog | ConnectedAI | 1st, ShopWise AI | Multi-agent supervisor hierarchy with LangGraph; dual-LLM cost optimization (Claude for reasoning, Gemini for routing); quantitative evaluation with Ragas + LangFuse |
+| KataLog | Breakwater | 2nd, ShopWise AI | Multi-agent workflow-orchestrated with n8n; OpenAI + PostgreSQL; workflow engine as agent coordinator |
 | KataLog | Usfive | Runner-up, Certifiable Inc. | Multi-agent scoring with multiple LLMs; confidence-based escalation between agents |
-| Discovered | 5 repos | Code-level signal | Agent orchestration patterns, multi-model configurations, LLM chain definitions |
 
-### Convergence Analysis
+### Why Teams Choose This Style
 
-Multi-agent is the newest and least-evidenced style, appearing exclusively in the AI-focused Kata challenges (Winter 2024, Winter 2025). With zero production systems, zero reference implementations, and only 5 Discovered repos, the evidence base is the thinnest of all 13 styles. All evidence comes from competition designs and nascent open-source projects.
-
-However, within its limited evidence, a consistent pattern emerges: successful multi-agent teams (ConnectedAI 1st, Breakwater 2nd) constrained agent autonomy through supervisor hierarchies, workflow orchestration, and confidence-based escalation. ConnectedAI was the only ShopWise team with a formal evaluation framework (Ragas + LangFuse), which separated 1st place from all others. This suggests that multi-agent architecture requires the same rigor of architectural governance as any distributed system -- perhaps more, given the non-deterministic nature of LLM-based agents.
+Multi-agent is the newest and least-evidenced style, appearing exclusively in the AI-focused Kata challenges. Within its limited evidence, a consistent pattern emerges: successful multi-agent teams constrained agent autonomy through supervisor hierarchies, workflow orchestration, and confidence-based escalation.
 
 **Architectural governance as differentiator**: ConnectedAI built a supervisor hierarchy where a routing agent delegated to specialized agents (product search, recommendation, FAQ), each with explicit capability boundaries and fallback paths. Breakwater used n8n workflow orchestration to coordinate agents with deterministic handoff points. Both approaches constrain agent autonomy -- the winning pattern is not autonomous agents but orchestrated agents with defined contracts, mirroring the plugin/microkernel pattern's core-extension relationship in an AI context.
 
-### When to Use
+### When to Use / Avoid
 
+**When to use** -- grounded in Discovered domain correlations:
+
+- In the Discovered corpus, multi-agent repos (4%) cluster in AI/ML domains. The pattern is nascent but growing.
 - AI systems where multiple specialized models or agents must collaborate on complex tasks (ConnectedAI: supervisor hierarchy with role-specific agents)
 - Domains where confidence-based escalation between AI and human reviewers is required (Usfive: multi-agent scoring with escalation)
 - When different AI capabilities (reasoning, routing, extraction, evaluation) are best served by different models or prompting strategies (ConnectedAI: Claude for reasoning, Gemini for routing)
 - Systems requiring formal evaluation frameworks for AI output quality
 
-### When to Avoid
+**When to avoid**:
 
 - Systems where a single model or prompt chain suffices -- multi-agent adds orchestration complexity that must be justified
 - Production systems without established AI observability, guardrails, and evaluation infrastructure
@@ -714,32 +555,175 @@ However, within its limited evidence, a consistent pattern emerges: successful m
 
 ---
 
+## 11. Space-Based
+
+### Evidence Summary
+
+Appears in **5 of 122** Discovered repos (**4%**). Co-occurs most frequently with Event-Driven. Detected through in-memory data grid patterns and distributed caching configurations. Common in Data Grid domains.
+
+Validated by 1 production system: Riak (peer-to-peer distributed key-value store, tunable consistency, no single point of failure). ~2 KataLog teams chose this style for high-concurrency, peak-load scenarios.
+
+### Cross-Source Evidence Table
+
+| Source | Entry | Evidence Type | Key Detail |
+|--------|-------|---------------|------------|
+| Discovered | 5 repos | Statistical signal | In-memory data grid patterns, distributed caching configurations |
+| AOSA | Riak | Production system | Peer-to-peer distributed key-value store; consistent hashing for data partitioning; tunable consistency (read/write quorum); no single point of failure; rack-aware replica placement |
+| KataLog | Iconites | 2nd, Road Warrior | Space-based + event-driven + microservices; Cosmos DB + Redis for in-memory data grid; designed for Road Warrior's 15M user peak-load scenario |
+| KataLog | LowCode | 3rd (tied), MonitorMe | Distributed system with event bus and distributed appliance nodes; space-based topology for medical device data |
+
+### Why Teams Choose This Style
+
+KataLog evidence is sparse (2 teams) but targeted: both teams chose space-based for high-concurrency, peak-load scenarios (Road Warrior's 15M users, MonitorMe's distributed sensor nodes).
+
+**Riak's architectural lessons**: Riak demonstrates the core space-based principles at infrastructure scale: no master node (peer-to-peer), data distributed via consistent hashing across a ring, tunable N/R/W values allowing per-request consistency-availability trade-offs, and hinted handoff for partition tolerance. These same principles (replicated data, no central coordinator, tunable consistency) define the application-level space-based architecture pattern, making Riak both an implementation of and infrastructure for space-based systems.
+
+### When to Use / Avoid
+
+**When to use** -- grounded in Discovered domain correlations and production validation:
+
+- In the Discovered corpus, space-based repos (4%) cluster in Data Grid domains, consistent with the pattern's focus on distributed in-memory data management.
+- Systems with extreme concurrency requirements where traditional database-backed architectures create bottlenecks (Riak: peer-to-peer with no single point of failure)
+- Variable and unpredictable peak loads where elastic scaling of processing units is needed (Iconites: 15M user peak for Road Warrior)
+- Applications where in-memory data grids can eliminate database round-trips for hot data paths (session state, real-time pricing, leaderboards)
+- Distributed sensor or IoT networks with local processing requirements (LowCode: distributed appliance nodes for MonitorMe medical devices)
+
+**When to avoid**:
+
+- Systems where data consistency requirements are strict -- space-based architectures trade consistency for availability (Riak's tunable consistency still involves eventual consistency trade-offs; AP side of CAP theorem)
+- Applications with small, predictable loads where the infrastructure complexity of data grids is not justified
+- Teams without experience operating distributed data infrastructure -- space-based failure modes (split-brain, replication lag, rebalancing storms) require deep operational expertise
+- Domains where the data model does not partition well across processing units (highly relational data with cross-partition joins)
+
+---
+
+## 12. Service-Based
+
+### Evidence Summary
+
+Appears in **4 of 122** Discovered repos (**3%**). Co-occurs most frequently with Event-Driven. Detected through coarse-grained service boundaries with shared database patterns -- but service-based architecture is harder to detect from structural signals than microservices or event-driven, making this count likely an underestimate.
+
+Validated by 3 production systems: Graphite (three coarse-grained services), Selenium (hub-node topology), and Bitwarden (SOC2-certified service-based decomposition). 1 reference implementation: AKS Baseline. 25 KataLog teams chose this style -- dominant in budget-constrained and monolith-migration contexts (Sysops Squad: 6/7 teams, Certifiable Inc.: 6/7 teams).
+
+### Cross-Source Evidence Table
+
+| Source | Entry | Evidence Type | Key Detail |
+|--------|-------|---------------|------------|
+| Discovered | 4 repos | Statistical signal | Coarse-grained service boundaries with shared database patterns (likely underdetected) |
+| AOSA | Graphite | Production system | Carbon (collection), Whisper (time-series storage), Graphite-Web (rendering/API) -- three coarse-grained services with clear boundaries; independently deployable but sharing a common data format |
+| AOSA | Selenium | Production system | WebDriver protocol with per-browser adapter drivers; hub-node topology for distributed test execution; coarse service decomposition (hub, node, driver) |
+| RealWorld | Bitwarden | Production app | Zero-knowledge vault with service-based decomposition: API, Identity, Admin, Events, Notifications; shared database with service-level access control; SOC2 certified |
+| RefArch | AKS Baseline | Reference impl | Microservices + service-based on Kubernetes; AKS cluster with ingress controller, service mesh, and coarse service boundaries |
+| KataLog | 25 teams (top shown below) | Competition designs | Dominant style in Sysops Squad (6/7 teams) and Certifiable Inc. (6/7 teams); chosen for budget-constrained and monolith-migration contexts |
+
+### Why Teams Choose This Style
+
+Top KataLog teams (25 teams total; top performers shown):
+
+| Team | Placement | Challenge | Key Detail |
+|------|-----------|-----------|------------|
+| Pragmatic | 1st | ClearView | Service-based for feasibility + testability; events only where interoperability demanded it; 22 ADRs |
+| Team Seven | 1st | Sysops Squad | Service-based migration from monolith; guaranteed-delivery queues for cross-domain communication; 12 ADRs |
+| ZAITects | 1st | Certifiable Inc. | Service-based + event-driven + hybrid AI-human pipeline; LangChain, RAG, vector search; 18 ADRs |
+| ArchElekt | 2nd | Sysops Squad | Problem-first design with clear ADR-to-problem tracing; API Gateway + persistent queue; 12 ADRs |
+| Litmus | 2nd | Certifiable Inc. | RAG + LLM + ETL data pipeline in service-based topology; 18 ADRs |
+| Sever Crew | 2nd | Farmacy Family | AWS + Kafka integration layer; service-based with event-driven communication; 11 ADRs |
+| Architects++ | 3rd | Farmacy Family | Hexagonal + service-based + batch processing; AWS Batch; 15 ADRs |
+| The Mad Katas | 3rd | Sysops Squad | Micro frontend + service-based; Graph Database (Neo4j); 17 ADRs |
+| Software Arch Guild | 3rd | Certifiable Inc. | Microkernel plug-in for AI grading solutions within service-based topology; 6 ADRs |
+
+**KataLog winner pattern**: Top service-based teams distinguished themselves by adding event-driven communication where async was natural (Team Seven, Pragmatic, ZAITects) while keeping the overall deployment and data model simpler than full microservices. Service-based was the dominant choice when budget constraints were explicit: Sysops Squad (6/7 teams), Certifiable Inc. (6/7 teams), and frequently as Phase 1 of an evolutionary approach with microservices as a documented future state.
+
+### When to Use / Avoid
+
+**When to use** -- grounded in Discovered domain correlations and production validation:
+
+- Service-based repos in the Discovered corpus (3%) are likely underdetected -- they look like monoliths in code structure while having service-level deployment boundaries. The 3 production systems (Selenium, Graphite, Bitwarden) confirm it is under-detected, not under-used.
+- Monolith migration where independent deployability is needed without full microservices complexity (Sysops Squad: near-unanimous choice; Graphite: independently scalable but coarse-grained)
+- Budget-constrained and non-profit contexts (ClearView, Certifiable Inc. winners chose service-based citing cost)
+- AI-integration scenarios where the primary goal is adding AI capabilities to existing platforms (Certifiable Inc.: 6 of 7 teams)
+- Organizations with limited DevOps maturity needing fault isolation without distributed systems overhead (Bitwarden: SOC2 with service-based)
+
+**When to avoid**:
+
+- Systems requiring extreme independent scalability across service boundaries (Graphite eventually required relay fan-out for scale)
+- Large teams (10+) that benefit from microservices-level independence for parallel development
+- Domains with high throughput requirements where shared database becomes a bottleneck
+
+---
+
+## 13. Plugin/Microkernel
+
+### Evidence Summary
+
+Appears in **0 of 122** Discovered repos (**0%** -- structurally undetectable by automated classification). Plugin architectures are defined by runtime extension points and host-plugin contracts, not by directory structure or container configs. This is the most significant detection blind spot in the Discovered corpus.
+
+Validated by 6 production systems (the most of any style except Event-Driven): LLVM (plugin pass architecture), GStreamer (pipeline elements as loadable plugins), SQLAlchemy (dialect plugins for database backends), Jellyfin (plugin system for metadata/notification/auth), nopCommerce (plugin marketplace, 60K+ stores), and Orchard Core (multi-tenant module system). Combined Weighted Score: 124 (rank #2), with 97% from production evidence. ~4 KataLog teams proposed it.
+
+### Cross-Source Evidence Table
+
+| Source | Entry | Evidence Type | Key Detail |
+|--------|-------|---------------|------------|
+| Discovered | 0 repos | Detection blind spot | Plugin architectures are runtime behaviors, not filesystem signals -- known limitation of automated classification |
+| AOSA | LLVM | Production system | Plugin pass architecture -- optimization and analysis passes loaded dynamically; modular IR enables third-party backends; 3-phase compiler pipeline with pluggable stages |
+| AOSA | GStreamer | Production system | Pipeline elements as loadable plugins; negotiation protocol between elements; plugin registry with lazy loading and caching |
+| AOSA | SQLAlchemy | Production system | Dialect plugins for database backends (PostgreSQL, MySQL, SQLite, Oracle); Core layer (SQL expression) + ORM layer; engine plugins for connection customization |
+| RealWorld | Jellyfin | Production app | Self-hosted media server; plugin system for metadata providers, notification targets, authentication backends; transcoding pipeline with pluggable codecs |
+| RealWorld | nopCommerce | Production app | 60K+ live stores over 17-year evolution; plugin marketplace for payments, shipping, tax, widgets; four-layer architecture with plugin injection points |
+| RealWorld | Orchard Core | Production app | Multi-tenant CMS; module system where each feature is an independent module (themes, widgets, content types); ASP.NET Core module loading |
+| KataLog | Software Architecture Guild | 3rd, Certifiable Inc. | Microkernel with plug-in AI grading solutions; six parallel AI solutions via plug-in architecture |
+| KataLog | Wonderous Toys | 3rd, Wildlife Watcher | Micro Kernel paired with modular monolith and event-driven for species identification extensions |
+
+### Why Teams Choose This Style
+
+KataLog's near-invisibility of this pattern (~4 teams) suggests competition contexts (time-limited, greenfield) do not surface the long-lifecycle pressures where plugin architecture proves its value. The 6 production systems span entirely different domains -- compilers, media, databases, e-commerce, CMS -- but converge on the same structural pattern: a stable core with a well-defined extension contract.
+
+**Cross-domain consistency**: The plugin contract varies by domain (LLVM: pass interface; GStreamer: element/pad protocol; SQLAlchemy: dialect API; nopCommerce: IPlugin interface; Orchard Core: ASP.NET Core module manifest) but the architectural invariant is identical: the core defines the contract, plugins implement it, and the core never depends on any specific plugin. This is the strongest cross-domain convergence signal in the evidence base.
+
+### When to Use / Avoid
+
+**When to use** -- grounded in production evidence (Discovered data unavailable due to detection blind spot):
+
+- Products requiring third-party extensibility without core modification (nopCommerce: 60K+ stores with marketplace plugins; Orchard Core: tenant-specific feature modules)
+- Systems spanning multiple backends or protocols (SQLAlchemy: dialect plugins for every major database; GStreamer: codec and element plugins for media formats)
+- Compiler, build-tool, and IDE architectures (LLVM: pass-based optimization pipeline; every major IDE uses plugin architecture)
+- Long-lived products (10+ years) where the domain is stable but extensions are unpredictable (nopCommerce: 17 years of evolution)
+
+**When to avoid**:
+
+- Greenfield projects with uncertain core requirements -- the core must be stable before investing in extension contracts
+- Time-limited competition contexts where the overhead of defining plugin APIs does not pay off (only ~4 of 78 KataLog teams used this style)
+- Systems where all functionality is known upfront and extension is not a requirement
+- When the team lacks experience designing stable API contracts -- poorly designed plugin interfaces create worse coupling than monoliths
+
+---
+
 ## Source Coverage Matrix
 
-Shows which sources provide evidence for each style. Filled cells indicate at least one entry; numbers show entry count.
+Shows which sources provide evidence for each style. Filled cells indicate at least one entry; numbers show entry count. Ordered by Discovered frequency.
 
-| Style | KataLog | AOSA | RealWorld | RefArch | Discovered |
-|-------|---------|------|-----------|---------|------------|
-| Event-Driven | 47 | 3 | 2 | 5 | 63 |
-| Plugin/Microkernel | ~4 | 3 | 3 | -- | -- |
-| Pipeline | -- | 5 | 1 | -- | 19 |
-| Service-Based | 25 | 2 | 1 | 1 | 4 |
-| Microservices | 39 | -- | -- | 5 | 26 |
-| Modular Monolith | 6 | -- | 1 | 1 | 64 |
-| CQRS/Event Sourcing | ~5 | -- | 1 | 4 | 18 |
-| Space-Based | ~2 | 1 | -- | -- | 5 |
-| Layered | -- | 1 | 1 | -- | 29 |
-| DDD | ~10 | -- | -- | 3 | 27 |
-| Hexagonal/Clean | ~6 | -- | -- | 3 | 16 |
-| Serverless | 8 | -- | -- | 1 | 6 |
-| Multi-Agent | ~3 | -- | -- | -- | 5 |
+| Style | Discovered | AOSA | RealWorld | RefArch | KataLog |
+|-------|------------|------|-----------|---------|---------|
+| Modular Monolith | 64 | -- | 1 | 1 | 6 |
+| Event-Driven | 63 | 3 | 2 | 5 | 47 |
+| Layered | 29 | 1 | 1 | -- | -- |
+| DDD | 27 | -- | -- | 3 | ~10 |
+| Microservices | 26 | -- | -- | 5 | 39 |
+| Pipe-and-Filter | 19 | 5 | 1 | -- | -- |
+| CQRS/Event Sourcing | 18 | -- | 1 | 4 | ~5 |
+| Hexagonal/Clean | 16 | -- | -- | 3 | ~6 |
+| Serverless | 6 | -- | -- | 1 | 8 |
+| Multi-Agent | 5 | -- | -- | -- | ~3 |
+| Space-Based | 5 | 1 | -- | -- | ~2 |
+| Service-Based | 4 | 2 | 1 | 1 | 25 |
+| Plugin/Microkernel | -- | 3 | 3 | -- | ~4 |
 
 **Observations**:
 - Only **Event-Driven** has evidence from all 5 sources.
-- **Plugin/Microkernel** covers 3 sources but is invisible to automated discovery.
-- **Pipeline** covers 3 sources despite zero competition usage.
+- **Plugin/Microkernel** has the strongest production evidence (6 systems) but is invisible to automated discovery -- the starkest detection bias case.
+- **Modular Monolith** dominates the Discovered corpus (64 repos, 52%) despite limited curated production evidence (Orchard Core only), suggesting it is widely built but under-documented at the production-narrative level.
+- **Service-Based** has thin Discovered presence (4 repos) but 3 production systems, confirming it is under-detected, not under-used.
 - Five styles (**Microservices, DDD, Hexagonal, Serverless, Multi-Agent**) have zero production evidence from AOSA or RealWorld.
-- **Modular Monolith** and **DDD** have the largest Discovered counts among styles with limited curated production evidence, suggesting they are widely built but under-documented at the production-narrative level.
 
 ---
 
@@ -747,9 +731,11 @@ Shows which sources provide evidence for each style. Filled cells indicate at le
 
 Several patterns emerge when comparing evidence across all 13 styles:
 
-### Production vs. Competition Divergence
+### Discovered Frequency vs. Production Evidence
 
-The five styles with the highest production evidence share (Pipeline 100%, Layered 100%, Plugin/Microkernel 97%, Space-Based 83%, CQRS 61%) are fundamentally different from the five styles with zero production evidence (Microservices, DDD, Hexagonal, Serverless, Multi-Agent). Production-proven styles tend to be infrastructure-level patterns (Pipeline, Plugin) or long-established structural patterns (Layered). Zero-production styles tend to be application-level design methodologies (DDD, Hexagonal) or relatively recent trends (Microservices, Serverless, Multi-Agent). This divergence suggests that the software architecture field's educational emphasis on microservices and DDD is not proportional to their production validation in this evidence base.
+The Discovered corpus reveals that the two most commonly built architectural patterns -- Modular Monolith (52%) and Event-Driven (52%) -- are also the most likely to co-occur (38 repos, 31% of the entire corpus). This statistical finding, derived from 122 real codebases, provides the strongest evidence that these styles are complementary rather than competing. Production evidence confirms this: Event-Driven has 5 production systems; Modular Monolith has Orchard Core and the highest KataLog win rate (83.3%).
+
+The production-weighted rankings surface styles invisible to automated detection: Plugin/Microkernel (#2 by combined score, 0 Discovered repos) and Pipeline (#3, 19 Discovered repos). These styles dominate in infrastructure software (LLVM, NGINX, GStreamer, SQLAlchemy) where filesystem signals alone do not capture runtime extension points or processing stage boundaries.
 
 ### Combination Outperforms Purity
 
@@ -757,7 +743,7 @@ Across all sources, combined styles outperform pure styles. Event-Driven + Servi
 
 ### The Evolutionary Path
 
-KataLog winners frequently proposed evolutionary architectures: Modular Monolith as initial deployment with microservices as documented future state (MonArch, PegasuZ), Service-Based as Phase 1 with microservices as Phase 3 (Pentagram). The modular-monolith-with-ddd reference implementation demonstrates that DDD, CQRS, and Event-Driven patterns work within a monolith -- enabling future extraction without requiring distributed infrastructure from day one. This pattern suggests the most robust architecture decisions are not style choices but evolution strategies.
+KataLog winners frequently proposed evolutionary architectures: Modular Monolith as initial deployment with microservices as documented future state (MonArch, PegasuZ), Service-Based as Phase 1 with microservices as Phase 3 (Pentagram). The modular-monolith-with-ddd reference implementation demonstrates that DDD, CQRS, and Event-Driven patterns work within a monolith -- enabling future extraction without requiring distributed infrastructure from day one. Discovered data supports this: the 38-repo co-occurrence of Modular Monolith + Event-Driven suggests many codebases start modular and adopt event-driven communication patterns incrementally.
 
 ### Evidence Gaps
 
@@ -787,11 +773,11 @@ The most successful pairing across all sources is Event-Driven + Service-Based (
 
 | Source | Full Name | Evidence Type | Entries |
 |--------|-----------|---------------|---------|
-| KataLog | O'Reilly Architecture Kata submissions | Competition designs (never built) | 78 teams |
+| Discovered | Discovered open-source repositories | Auto-classified from structural signals | 122 repos |
 | AOSA | Architecture of Open Source Applications | Production systems described by creators | 12 projects |
 | RealWorld | RealWorldASPNET production apps | Production applications with real users | 5 projects |
 | RefArch | Reference implementations | Working code with sample domains | 8 repos |
-| Discovered | Discovered open-source repositories | Auto-classified from structural signals | 122 repos |
+| KataLog | O'Reilly Architecture Kata submissions | Competition designs (never built) | 78 teams |
 
 See [cross-source-reference.md](cross-source-reference.md) for full scoring methodology, evidence weighting rationale, and per-source quality comparison.
 
