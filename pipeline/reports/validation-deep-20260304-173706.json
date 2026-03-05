@@ -1,0 +1,522 @@
+{
+  "run_id": "2026-03-04T22:37:06Z",
+  "model": "",
+  "priority": "1",
+  "entries_processed": 43,
+  "verdicts": {
+    "confirmed": 8,
+    "reclassified": 14,
+    "downgraded": 5,
+    "upgraded": 0,
+    "promoted": 0,
+    "errors": 16,
+    "clone_failures": 0
+  },
+  "override_decisions": {
+    "auto_accepted": 22,
+    "flagged_for_review": 1,
+    "deferred": 20
+  },
+  "results": [
+    {
+      "entry": "airflow.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Pipe-and-Filter",
+        "Modular Monolith"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "The previous 'Indeterminate' classification was incorrect. Deep context reveals clear Pipe-and-Filter (DAG execution) and Modular Monolith (single airflow-core + providers distribution) patterns. The existing classification notes already contained these observations but misclassified as Indeterminate. The heuristic_candidates showed Pipe-and-Filter (0.3) and Microservices (0.8) but the deep context confirms Pipe-and-Filter and Modular Monolith, not Microservices."
+    },
+    {
+      "entry": "argo-workflows.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "The existing classification is INCORRECT. Deep context reveals: (1) NOT Microservices - single codebase with one go.mod, single Dockerfile building multiple binaries, not independent services; (2) NOT Event-Driven - no message broker infrastructure visible in code or configs; (3) NOT DDD - no domain/aggregates/entities directories. The actual architecture is a Layered Monolith: cmd (presentation/entry), server (API), workflow (business logic), pkg/util (data access/infra). The heuristic classifier appears to have conflated Kubernetes CRD controller signals (container orchestration) with microservices."
+    },
+    {
+      "entry": "aspire.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "downgraded",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "The previous classification (Microservices, Event-Driven, DDD with 1.0 confidence) is incorrect. The signals were likely misinterpreting the playground/demo applications (which show examples of what Aspire can deploy) as the architecture of Aspire itself. Aspire is a framework/library project organized in a standard .NET solution structure, not a distributed system exhibiting those patterns."
+    },
+    {
+      "entry": "AutoGPT.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Existing classification claims Microservices + Event-Driven with 0.9 confidence, but deep context shows only 2 clear services (frontend/backend) which is more consistent with Service-Based architecture. No clear evidence of event-driven patterns in the provided context. Need more files to verify."
+    },
+    {
+      "entry": "aws-lambda-powertools-python.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "downgraded",
+      "override_decision": "defer",
+      "existing_styles": "Event-Driven,Microservices,Serverless,Domain-Driven Design",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "The existing classification (Event-Driven, Microservices, Serverless, Domain-Driven Design) was incorrect because this is a library/SDK, not a deployable application. The classification confused 'provides utilities for event-driven/serverless architectures' with 'is an event-driven/serverless architecture'. The signal_breakdown showed 86 'messaging' signals which are event class definitions (e.g., SNSEvent, SQSEvent, KafkaEvent) in the library's event handler utilities - not an event-driven architecture of the repo itself."
+    },
+    {
+      "entry": "backstage.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design,Pipe-and-Filter",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "beam.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Pipe-and-Filter"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "The existing classification incorrectly identified Microservices, Event-Driven, DDD, and Hexagonal. Deep context reveals this is fundamentally a Pipe-and-Filter framework: the Beam Model is literally built on PCollections (data pipes) and PTransforms (filters). The multiple SDKs and runners are part of a single library distribution, not independently deployed microservices. The high signal counts for container_orchestration (107) and messaging (30) reflect the distributed execution backends and IO connectors, not architectural style."
+    },
+    {
+      "entry": "cockroach.yaml",
+      "verdict": "error",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Pipe-and-Filter",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "conductor.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms the existing classification. The directory structure shows multiple independent service modules (grpc-server, grpc-client, rest, ui, server), event queue implementations (awssqs-event-queue, redis-persistence for queue), and domain-driven organization with separate modules for different bounded contexts (workflow definitions, task definitions, execution history). The docker-compose.yaml confirms multi-service deployment. The heuristic candidates in the original metadata (Microservices: 0.8, Event-Driven: 0.6, DDD: 0.3) align with the actual structure."
+    },
+    {
+      "entry": "consul.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "The existing classification claimed Microservices with 1.0 confidence, but deep context reveals this is incorrect. Consul is a SINGLE Go binary deployment, not multiple microservices. Evidence: single root Dockerfile builds one binary, no multiple service directories, no Kubernetes/deployment manifests for separate services. The correct primary style is Modular Monolith - a single deployable unit with well-defined internal module boundaries (agent/, command/, connect/, api/, internal/). Event-Driven is valid for gossip protocol and subscription-based changes. DDD and Hexagonal are not supported by the structure."
+    },
+    {
+      "entry": "dagster.yaml",
+      "verdict": "error",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design,Pipe-and-Filter",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "dapr.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context confirms the existing classification. The Makefile explicitly lists 6 independent binaries (daprd, placement, operator, injector, sentry, scheduler) that are built separately. The cmd/ directory contains 6 distinct service entry points. The README explicitly describes 'Event-driven Pub/Sub system' and the codebase contains numerous pub/sub component implementations. Both Microservices (multiple independent services) and Event-Driven (pub/sub as a core feature) are clearly present."
+    },
+    {
+      "entry": "debezium.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design,Pipe-and-Filter",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "envoy.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Pipe-and-Filter"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Previous classification (Microservices + Event-Driven + Pipe-and-Filter) is incorrect. Evidence: (1) Single C++ binary in source/ - no multiple independently deployable services; (2) No Dockerfiles or Kubernetes manifests for separate services; (3) The 830 'api_specs' are Envoy's xDS configuration protocol buffers, not microservice APIs; (4) Envoy's filter chain architecture (source/extensions/filters/) is textbook Pipe-and-Filter. Only Pipe-and-Filter should be classified."
+    },
+    {
+      "entry": "examples.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "downgraded",
+      "override_decision": "defer",
+      "existing_styles": "Serverless,Microservices,Event-Driven",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "The existing classification was incorrect because: 1) This is not a single application but a collection of ~200 independent example projects; 2) Each example has its own serverless.yml and handler, meant to be deployed separately; 3) There is no unified Microservices architecture (multiple services working together) - just many individual Lambda functions; 4) Event-Driven patterns exist in some examples (SNS, SQS triggers) but these are isolated examples, not a single event-driven system; 5) This is fundamentally a documentation/samples repository, not a deployable software system with an architecture."
+    },
+    {
+      "entry": "flink.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Pipe-and-Filter",
+        "Modular Monolith"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "The previous classification of Microservices was incorrect. Flink is NOT a microservices system - it's a single distributed processing framework/library. The 'messaging' signals (83) are external connector dependencies that allow Flink to consume from/write to message brokers, not internal event-driven architecture between services. Similarly, Domain-Driven Design signals are likely misattributed. The actual architecture is better described as Pipe-and-Filter (operators form transformation pipelines) and Modular Monolith (single Maven project with many internal modules)."
+    },
+    {
+      "entry": "ftgo-application.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven",
+        "Serverless",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context confirms existing classification. Clear Microservices signals: 7+ services with separate Dockerfiles in ftgo-*-service directories, Kubernetes manifests under deployment/kubernetes/ and service-level src/deployment/kubernetes/. Event-Driven: Kafka and Zookeeper in docker-compose.yml, CDC service for Change Data Capture publishing to Kafka. Serverless: ftgo-restaurant-service-aws-lambda/serverless.yml present. DDD: Service boundaries align with domain concepts (consumer, order, kitchen, restaurant, accounting, delivery)."
+    },
+    {
+      "entry": "gitpod.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "go-ecommerce-microservices.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,CQRS,Pipe-and-Filter",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "go-food-delivery-microservices.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven",
+        "CQRS",
+        "Pipe-and-Filter"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Deep context confirms the existing classification. The repository has clear Microservices architecture (3 separate services each with Dockerfile, go.mod, Makefile), Event-Driven via RabbitMQ messaging (internal/pkg/rabbitmq/ with bus, producer, consumer), CQRS with explicit read/write separation (catalogwriteservice vs catalogreadservice + MediatR pattern), and Pipe-and-Filter through MediatR behavior pipelines for validation, logging, and other cross-cutting concerns in the vertical slice architecture."
+    },
+    {
+      "entry": "grafana.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Previous classification as Microservices is incorrect. Deep context reveals a single monolithic application (one root Dockerfile), not independently deployable services. The high container_orchestration signal (105) originates from devenv/ Docker blocks used for local development/testing, not production Kubernetes services. The apps/ directory contains internal modules compiled into the same binary, not microservices. Event-Driven (0.6), CQRS (0.4), DDD (0.3), and Pipe-and-Filter (0.3) scores were low and not strongly supported by source structure. This is best classified as a Modular Monolith with Layered architecture (controllers/services/repositories pattern in pkg/api, pkg/services, pkg/repo)."
+    },
+    {
+      "entry": "hazelcast.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Space-Based",
+        "Event-Driven"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "The existing classification incorrectly includes Microservices, Domain-Driven Design, and Pipe-and-Filter. Deep context reveals: 1) Single monolithic Java product (9300+ files in one build), not Microservices. 2) No clear DDD bounded contexts in code structure. 3) Jet provides pipeline features but is not the primary architecture. The correct primary styles are Space-Based (in-memory data grid is the core product) and Event-Driven (streaming/pub-sub capabilities)."
+    },
+    {
+      "entry": "istio.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Service-Based",
+        "Distributed System"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "The existing classification (Microservices, Event-Driven, Pipe-and-Filter) was incorrect. Microservices signal came from 424 container orchestration signals (Kubernetes deployment infra), misread as microservices architecture. Istio is actually a Service-Based architecture with a unified control plane and distributed data plane proxies. Event-Driven applies weakly (xDS push config), but Pipe-and-Filter does not apply at all - Istio routes traffic, it doesn't transform data through sequential filters."
+    },
+    {
+      "entry": "keycloak.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "The previous classification (Microservices, Event-Driven, Domain-Driven Design, Pipe-and-Filter) is incorrect. Deep context reveals: (1) No microservices - single monolithic build with one main Dockerfile; (2) No Event-Driven - no message broker configs visible despite 69 'messaging' signals (likely classpath/metadata signals); (3) DDD not evident - standard layered structure (model/services/core), no bounded contexts visible; (4) Pipe-and-Filter absent. Correct classification: Modular Monolith with Layered architecture."
+    },
+    {
+      "entry": "linkerd2.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context confirms the existing classification. The directory structure reveals 7 distinct deployable components (controller, viz, multicluster, cli, web, policy-controller, proxy-identity) each with separate Dockerfiles and/or deployment configurations. Kubernetes/Helm manifests in charts/ confirm container orchestration. Event-Driven is supported by RabbitMQ in key technologies and the service mesh's inherent need for event-based communication between proxies and the control plane."
+    },
+    {
+      "entry": "localstack.yaml",
+      "verdict": "reclassified",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Serverless,Event-Driven",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "The previous classification (Microservices, Serverless, Event-Driven) is incorrect. LocalStack runs as a SINGLE container, not multiple microservices. While it simulates many AWS services internally, these are modules within one deployable unit, not independent services. The 20 package_manifests signals reflect Python dependencies, not separate service repos. This is a Modular Monolith (single container, internal module boundaries) with characteristics of Service-Based (coarse-grained services sharing underlying infrastructure)."
+    },
+    {
+      "entry": "mage-ai.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Pipe-and-Filter",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "MassTransit.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "downgraded",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design,Pipe-and-Filter",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "The previous classification (Microservices, Event-Driven, Domain-Driven Design, Pipe-and-Filter with confidence 1.0) was incorrect. MassTransit is not a Microservices system - it has no independently deployable services, no Kubernetes manifests, no API gateways. It's not Pipe-and-Filter (that's a pattern MassTransit enables, not one it implements internally). The signals detected (package_manifests: 60, messaging: 37) reflect the library's supported transports, not its own architecture. This is a framework/library that users consume to build event-driven applications, not an architecture exemplar itself."
+    },
+    {
+      "entry": "microservices-demo.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices"
+      ],
+      "confidence": 1.0,
+      "validation_notes": "Deep context confirms the existing Microservices classification. The repository clearly exhibits classic Microservices architecture patterns: (1) 11 independent services in separate src/ subdirectories, (2) each service has its own Dockerfile, (3) Kubernetes deployment manifests for each service, (4) gRPC for inter-service communication per README, (5) Terraform for infrastructure provisioning, (6) CI/CD via GitHub Actions workflows. The signal_breakdown showing 66% container_orchestration and explicit README documentation corroborates this is a canonical microservices demo."
+    },
+    {
+      "entry": "nhost.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "The existing classification claimed Microservices, Event-Driven, and Domain-Driven Design at 0.9 confidence, but the deep context shows limited evidence. The services/ directory exists with auth and storage services, but the tree shows only ~524 files across services/ with mixed languages (Go, SQL, TypeScript). The catalog claimed 18 container_orchestration signals but I only found 4 Dockerfiles in vendor/ subdirectories and one each in services/auth/build and services/storage/build - no Kubernetes manifests or service orchestration files visible. Need to verify if this is truly microservices (multiple independently deployable services with separate data stores) vs. a modular system with separate components."
+    },
+    {
+      "entry": "nifi.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Pipe-and-Filter",
+        "Event-Driven"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "The existing classification included 5 styles with 1.0 confidence, but deep context reveals that Pipe-and-Filter is the PRIMARY architectural pattern (NiFi literally means 'data flow' and is built around processor graphs). Event-Driven is secondary. Microservices, DDD, and Hexagonal Architecture are not strongly supported - the multiple Dockerfiles are for deployment of separate products (NiFi, NiFi Registry, MiNiFi) within one repo, not independent microservices. The extension bundles represent plugin modules, not microservices or hexagonal ports/adapters."
+    },
+    {
+      "entry": "pachyderm.yaml",
+      "verdict": "error",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Pipe-and-Filter",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "Practical.CleanArchitecture.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven",
+        "Domain-Driven Design",
+        "Hexagonal Architecture",
+        "CQRS"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Deep context confirms the existing classification. The repository clearly exhibits Microservices (6 services with K8s/Helm), Event-Driven (configurable message brokers), CQRS (docs/CQRS/), DDD (Clean/Hexagonal/Onion architecture docs), and Pipe-and-Filter (data pipelines through layers). The high signal counts for container_orchestration (183), messaging (35), and package_manifests (92) in the metadata correlate directly with the observed Microservices and Event-Driven patterns in the source files. The existing confidence of 1.0 is justified by the rich structural evidence."
+    },
+    {
+      "entry": "prefect.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "pulsar.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Event-Driven,Microservices,Domain-Driven Design",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "redpanda.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "flag-for-review",
+      "existing_styles": "Microservices,Event-Driven,Pipe-and-Filter",
+      "new_styles": [
+        "Layered"
+      ],
+      "confidence": 0.75,
+      "validation_notes": "The previous classification was incorrect. Redpanda is a single monolithic C++ distributed system (a message broker), not Microservices. It uses the Kafka protocol but doesn't have an event-driven internal architecture - it's simply a message streaming platform. The 'api_specs' signals (136) are protocol buffer definitions for the Kafka wire protocol, not service APIs. The only reasonable architectural classification is Layered (standard C++ application structure: controllers/services/repositories pattern may exist internally), though the deep directory structure wasn't fully visible to confirm this."
+    },
+    {
+      "entry": "server.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "The existing classification (Microservices, Event-Driven, Domain-Driven Design, Pipe-and-Filter) is incorrect. This is a Modular Monolith - a single PHP application with an apps/plugin system. There is no evidence of multiple independently deployable services, message broker integration, or pipeline processing."
+    },
+    {
+      "entry": "serverless-patterns.yaml",
+      "verdict": "classified",
+      "validation_verdict": "downgraded",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Serverless",
+        "Event-Driven"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Previous classification incorrectly included Microservices (score 0.5), Domain-Driven Design (0.3), and Pipe-and-Filter (0.3). This is a PATTERN COLLECTION of 1000+ independent examples, not a single application. The heuristics misidentified this as a multi-style application when it's actually a reference library. Correct classification: Serverless (primary) + Event-Driven (secondary pattern within many examples). Confidence 0.90 based on clear evidence from IaC files and Lambda/Step Functions patterns."
+    },
+    {
+      "entry": "spark.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "squidex.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design,CQRS,Pipe-and-Filter",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "supabase.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Monorepo"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "The existing classification (Microservices, Event-Driven, DDD with 0.9 confidence) is incorrect. This repository is the Supabase Studio dashboard application - a Next.js monorepo, not a backend services architecture. Evidence: 1) The apps/studio directory contains a Next.js application (confirmed by Dockerfile using Next.js build). 2) No Kubernetes, Helm, or service orchestration files. 3) No domain/aggregates/entities directories. 4) No message broker configurations (Kafka/RabbitMQ configs would be in separate service repos). 5) The docker/ directory only provides local development environment, not service deployment. This is a frontend/dashboard monorepo that orchestrates the open-source tools, not the backend services themselves."
+    },
+    {
+      "entry": "wild-workouts-go-ddd-example.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Hexagonal Architecture"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context confirms the existing classification. The repo clearly shows Microservices (3 bounded contexts with independent deployment) and Hexagonal Architecture (ports/adapters separation in each service). CQRS is also present (app/command and app/query directories) but is implementation detail within the hexagonal structure."
+    },
+    {
+      "entry": "zadig.yaml",
+      "verdict": "error",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "Microservices,Event-Driven,Domain-Driven Design",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    }
+  ]
+}

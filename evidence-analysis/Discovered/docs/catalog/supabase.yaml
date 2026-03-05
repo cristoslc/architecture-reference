@@ -1,59 +1,55 @@
 project_name: supabase
 source: Discovered
-source_url: "https://github.com/supabase/supabase"
-project_url: "https://github.com/supabase/supabase"
+source_url: https://github.com/supabase/supabase
+project_url: https://github.com/supabase/supabase
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:20:00Z"
+discovered_at: '2026-03-04T06:20:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: TypeScript
-languages:
-
+languages: null
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - Domain-Driven Design
+- Monorepo
 key_technologies:
-  - Node.js
-  - Gradle
-  - Python/pip
-  - Rust/Cargo
-  - Docker
-  - Docker Compose
-  - Kafka
-  - RabbitMQ
-  - GraphQL
-  - GitHub Actions
+- Node.js
+- Gradle
+- Python/pip
+- Rust/Cargo
+- Docker
+- Docker Compose
+- Kafka
+- RabbitMQ
+- GraphQL
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
-  - Modularity
+- Fault Tolerance
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: TypeScript project exhibiting Microservices, Event-Driven, Domain-Driven Design patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: A monorepo containing the Supabase Studio dashboard (Next.js application)
+  and development tooling. This is not a microservices, event-driven, or DDD system
+  but rather the frontend/dashboard project that manages the hosted Supabase platform.
 discovery_metadata:
   confidence: 0.9
   signals_detected: 129
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 0.8
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.8
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Microservices
+    score: 0.8
+  - style: Event-Driven
+    score: 0.6
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 72
     container_orchestration: 4
@@ -65,3 +61,12 @@ discovery_metadata:
     test_structure: 5
     documentation: 0
     directory_structure: 2
+review_notes: 'This repository is the main Supabase monorepo containing the Studio
+  dashboard (Next.js app in apps/studio) and development utilities. Evidence: root-level
+  package.json, turbo.json, pnpm-lock.yaml indicate a monorepo. The docker/ directory
+  contains local development configurations. The apps/ directory contains the Studio
+  dashboard application. This is NOT the backend services themselves - those are separate
+  repositories (gotrue, postgrest, realtime, storage, etc.). The existing classification
+  of Microservices/Event-Driven/DDD is incorrect - there are no Kubernetes manifests,
+  service discovery, event brokers, or domain-driven design patterns in this repository.'
+review_required: false

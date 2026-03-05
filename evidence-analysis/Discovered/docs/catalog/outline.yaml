@@ -27,14 +27,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Outline is a knowledge management/wiki application built as a TypeScript
-  modular monolith with event-driven internals, using RabbitMQ for async messaging
+one_line_summary: Outline is a collaborative knowledge base/wiki application built
+  as a TypeScript modular monolith with event-driven internal communication via RabbitMQ
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.85
   signals_detected: 14
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -56,14 +56,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Evidence from catalog: (1) Single package manifest signals a unified
-  deployable unit rather than separate microservices. (2) RabbitMQ presence (messaging
-  score: 3) strongly suggests event-driven internal communication patterns. (3) Event-Driven
-  scored highest (0.6) among heuristic candidates. (4) Microservices scored only 0.4
-  with no Kubernetes/Helm signals, making full microservices unlikely. (5) Outline
-  is a well-known open-source wiki/knowledge base — its public reputation aligns with
-  a monolithic deployment with internal eventing (e.g., document change events, notifications).
-  (6) CQRS score of 0.4 may reflect read/write model separation within the monolith
-  rather than a standalone architecture style. (7) Docker Compose (rather than Kubernetes)
-  further supports a monolith or small-service deployment rather than a distributed
-  microservices system.'
+review_notes: 'Evidence: (1) Single Dockerfile deploying one application from build/server/index.js
+  confirms monolithic deployment. (2) docker-compose.yml only provisions infrastructure
+  (redis, postgres) with no additional application services. (3) Single package.json
+  at root (heuristic signal). (4) Clear modular separation: app/ (726 files, React
+  frontend), server/ (975 files, Node.js backend), shared/ (321 files), plugins/ (193
+  files). (5) RabbitMQ configuration signals event-driven patterns (messaging score:
+  3 from catalog). (6) EventsStore.ts and multiple domain stores suggest internal
+  event handling. (7) Docker Compose instead of Kubernetes confirms non-microservices
+  architecture.'

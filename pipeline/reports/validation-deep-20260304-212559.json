@@ -1,0 +1,456 @@
+{
+  "run_id": "2026-03-05T02:25:59Z",
+  "model": "openrouter/z-ai/glm-5",
+  "priority": "3",
+  "entries_processed": 39,
+  "verdicts": {
+    "confirmed": 28,
+    "reclassified": 0,
+    "downgraded": 0,
+    "upgraded": 1,
+    "promoted": 8,
+    "errors": 2,
+    "clone_failures": 0
+  },
+  "override_decisions": {
+    "auto_accepted": 5,
+    "flagged_for_review": 9,
+    "deferred": 25
+  },
+  "results": [
+    {
+      "entry": "actix.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The actix repository is the canonical Rust actor framework - it provides the Actor trait, message handling (Handler trait), supervision, and address-based communication primitives. These are building blocks for applications, not an application itself. The workspace structure with actix/, actix-broker/, and actix-derive/ crates represents library modules, not deployable services."
+    },
+    {
+      "entry": "akka.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The repository structure clearly shows this is the Akka framework implementation with library modules (akka-actor: 293 files, akka-stream: 265 files, akka-remote: 248 files, akka-cluster: 170 files, etc.) providing infrastructure capabilities. The samples/ subdirectory demonstrates that this is a toolkit others use to build applications, not an application itself. Classifying a framework by the architectural patterns it enables would be a category error."
+    },
+    {
+      "entry": "anthropic-cookbook.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The previous LLM review correctly identified this as a documentation/example repository. The repository structure (50+ .ipynb tutorial notebooks, sample data directories, images for examples) and README content ('copy-able code snippets', 'guides') all support the conclusion that this is an educational cookbook, not a software architecture exemplar."
+    },
+    {
+      "entry": "bank-of-anthos.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Previous classification showed 'Indeterminate' verdict but catalog metadata correctly listed Microservices with 0.88 confidence. Deep context definitively confirms Microservices: each service has its own Dockerfile, Kubernetes manifest, build descriptor (pom.xml/requirements.txt), and skaffold.yaml for independent deployment. The 69 container orchestration signals and 9 package manifests in discovery metadata were accurate indicators."
+    },
+    {
+      "entry": "chalice.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The previous LLM review correctly identified that AWS Chalice is a developer tool/library. The directory structure shows framework internals: CLI factory (chalice/cli/factory.py), deployment models (chalice/deploy/models.py), swagger generation (chalice/deploy/swagger.py), and CDK constructs (chalice/cdk/construct.py). These are framework components, not application architecture."
+    },
+    {
+      "entry": "CleanArchitecture.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Hexagonal Architecture",
+        "Domain-Driven Design",
+        "CQRS"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context fully confirms the existing classification. The directory structure explicitly shows: (1) Hexagonal Architecture - Core project with Interfaces (ports) separated from Infrastructure (adapters), (2) DDD - ContributorAggregate with value objects (ContributorId, ContributorName, PhoneNumber), domain events, and specifications, (3) CQRS - UseCases project with separate Create/Update/Delete (commands) and Get/List (queries) directories. The README also explicitly states 'Clean Architecture is just the latest in a series of names for the same loosely-coupled, dependency-inverted architecture. You will also find it named hexagonal, ports-and-adapters, or onion architecture.'"
+    },
+    {
+      "entry": "dbt-core.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The previous LLM review correctly identified dbt-core as a CLI tool that doesn't exhibit any of the 12 canonical architecture styles. The ARCHITECTURE.md and source structure show a well-organized modular CLI application with task-based commands, but this is library/tool architecture, not system architecture."
+    },
+    {
+      "entry": "ddd-starter-modelling-process.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context fully confirms the existing classification. The directory structure shows zero source code files \u2014 only documentation (.md), images (resources/), and translations. The README explicitly describes this as 'a step-by-step guide for learning and practically applying each aspect of Domain-Driven Design' aimed at 'beginners'. This is pedagogical content about DDD methodology, not a DDD-implemented software system. The previous LLM review correctly identified this as an educational resource with no software architecture to classify."
+    },
+    {
+      "entry": "domain-driven-hexagon.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Hexagonal Architecture",
+        "Domain-Driven Design",
+        "CQRS",
+        "Modular Monolith"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context fully confirms all four classified styles. The src/libs/ddd/ directory contains DDD base classes (entity, aggregate-root, value-object, domain-event, repository port). The src/libs/ports/ directory confirms Hexagonal Architecture with port interfaces. The src/modules/user/commands/ and src/modules/user/queries/ directories confirm CQRS pattern. The two modules (user, wallet) with self-contained domain/application/infrastructure layers, combined with single docker-compose.yml and no Kubernetes, confirms Modular Monolith. This is an intentionally designed reference architecture exemplar."
+    },
+    {
+      "entry": "ehcache3.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The source file counts show 412 Java files in ehcache-impl, 188 in ehcache-core, 87 in ehcache-api - all library code implementing a caching framework. The clustered/ module with 493 files implements a distributed cache server component, but this is part of the library distribution. No application entry point, no business domain, no user-facing architecture exists to classify."
+    },
+    {
+      "entry": "eShopOnContainers.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "kafka.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The directory structure shows framework components (clients, core, streams, connect, metadata, raft, storage) that constitute a distributed messaging platform. Docker files build broker images, not microservices. No bounded contexts, ports/adapters, or business domain organization exists because this is infrastructure software, not a business application. The previous LLM review correctly identified that Kafka is a tool for building event-driven systems, not an example of event-driven architecture itself."
+    },
+    {
+      "entry": "kedro.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Pipe-and-Filter",
+        "Modular Monolith"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Deep context strongly confirms the existing classification. The kedro/pipeline/ module implements the Pipe-and-Filter pattern through Pipeline+Node abstractions where data flows through transforming nodes. The Modular Monolith pattern is evidenced by the single-package structure (kedro/) with well-defined internal modules (pipeline/, io/, config/, runner/, framework/) each having their own test directories, indicating clean module boundaries. No microservices infrastructure (no multiple Dockerfiles, no Kubernetes configs, no service discovery), confirming monolithic deployment."
+    },
+    {
+      "entry": "kotlin-fullstack-sample.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered"
+      ],
+      "confidence": 0.78,
+      "validation_notes": "Deep context reveals clear layered architecture that previous classification missed. The sample demonstrates a valid architectural pattern: presentation layer (frontend/), application layer (backend/), and data layer (H2 database). While it's a tutorial project, it still exhibits recognizable architectural structure worthy of classification."
+    },
+    {
+      "entry": "langchain.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The libs/ directory contains multiple independent Python packages (langchain_core, langchain, langchain_v1, langchain_text_splitters, and 12+ partner integration packages) each with their own pyproject.toml for PyPI distribution. This is a library ecosystem, not a deployable application. No Dockerfile for deployment, no Kubernetes manifests, no service discovery, no message broker configuration\u2014only library code organized for pip install consumption."
+    },
+    {
+      "entry": "livekit.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Deep context reveals clear modular monolith architecture. Previous 'Indeterminate' classification missed the structural evidence: single deployable unit with well-defined internal module boundaries. The pkg/ directory shows functional decomposition (rtc, sfu, service, routing, telemetry) with each module containing its own sub-packages and internal organization, characteristic of modular monolith design."
+    },
+    {
+      "entry": "luigi.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The previous assessment correctly identified that Luigi is a library/SDK (distributable package on PyPI) rather than an application with a runnable architecture. Frameworks and libraries enable architecture styles but do not themselves exhibit the canonical styles defined in the classification schema."
+    },
+    {
+      "entry": "m-r.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "CQRS",
+        "Event-Driven"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context confirms CQRS + Event-Driven classification. The source files clearly show: (1) CQRS with explicit Commands.cs/CommandHandlers.cs separation from ReadModel.cs, (2) Event-Driven architecture with Events.cs, FakeBus.cs pub/sub, and EventStore.cs for event persistence. This is a deliberately minimal educational codebase demonstrating these patterns without infrastructure complexity."
+    },
+    {
+      "entry": "MediatR.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context fully confirms the existing classification. The repository structure (src/MediatR/ with library code, src/MediatR.Contracts/ for contracts, samples/ for usage examples, test/ for library tests) is unequivocally that of a NuGet library/SDK, not an application. The README explicitly states 'Simple mediator implementation in .NET' and documents NuGet installation and DI registration APIs. Classifying this as having an architectural style would incorrectly conflate library code organization with application architecture."
+    },
+    {
+      "entry": "memcached.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The repository structure shows a classic C daemon project: single main binary (memcached.c), internal modules for memory management (slabs.c, items.c), threading (thread.c), and storage (storage.c, extstore.c). The docker-compose.yml provides multi-platform build testing, not runtime service decomposition. This is infrastructure software that doesn't fit the application architecture taxonomy."
+    },
+    {
+      "entry": "MetaGPT.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Multi-Agent"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Previous classification was 'Indeterminate' due to insufficient directory structure signals in the automated discovery pass. With deep context now available, the architecture is clearly Multi-Agent: the README explicitly titles it 'The Multi-Agent Framework', the directory structure shows roles/, environment/, memory/, actions/ patterns characteristic of agent coordination systems, and the core philosophy materializes SOPs for teams of LLM-based agents collaborating as a software company"
+    },
+    {
+      "entry": "modular-monolith-with-ddd.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Domain-Driven Design",
+        "CQRS",
+        "Event-Driven",
+        "Hexagonal Architecture"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context fully confirms all 5 styles. The repository is explicitly designed as a reference implementation demonstrating these patterns together: ADRs document each architectural decision, directory structure matches patterns exactly (Modules/ with Domain/Application/Infrastructure per module), BuildingBlocks provides shared DDD primitives (IAggregateRoot, ValueObject, Entity), IntegrationEvents directories in each module plus EventBus/Inbox/Outbox infrastructure confirm event-driven communication, single Dockerfile/docker-compose backend service confirms monolith deployment model."
+    },
+    {
+      "entry": "ngx-admin.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. ngx-admin is a frontend Angular admin dashboard template with 466 source files (242 TypeScript, 95 SCSS, 79 HTML) organized in standard Angular module structure (@theme/, @core/, pages/). The classification framework's 12 canonical styles are backend/application architecture patterns that fundamentally do not apply to UI template libraries."
+    },
+    {
+      "entry": "overseerr.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Previous classification was 'Indeterminate' due to insufficient metadata signals. Deep context reveals clear Layered Architecture: horizontal separation of concerns with routes (controllers), lib (services), and entity (data access) layers typical of traditional web applications. Not microservices (single deployment, shared database), not modular monolith (no module boundaries), not hexagonal (no ports/adapters separation)."
+    },
+    {
+      "entry": "phidata.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Multi-Agent",
+        "Layered"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Previous classification marked this as Indeterminate due to lack of context. Deep context (README + directory structure) now clearly reveals this is a Multi-Agent framework with explicit agent coordination patterns, team definitions, and workflow orchestration. The layered deployment model (Framework \u2192 Runtime \u2192 Control Plane) is also evident. This is a library/framework that implements and enables the Multi-Agent architectural style."
+    },
+    {
+      "entry": "project-layout.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing unclassifiable classification. The repository contains 18 README.md files, 6 .keep placeholder files, and zero actual source code files. This is a documentation-only repository providing structural guidance for Go projects, not an application that implements any architectural style."
+    },
+    {
+      "entry": "ralph.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Previous classification was 'Indeterminate' due to lack of deep context. With actual source structure visible, this is clearly a Django modular monolith - the src/ralph/ directory contains well-organized domain modules (Django apps) within a single application, with shared database (Django ORM migrations) and single deployment unit (one Dockerfile-prod). The heuristic candidate 'Modular Monolith' at score 0.4 was correct but needed source code verification."
+    },
+    {
+      "entry": "realworld.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "The existing classification is correct. Deep context confirms this is a specification/umbrella project containing an OpenAPI spec, test suites, a CSS theme, a documentation site, and a reference API implementation. The repo's purpose is to enable 100+ independent implementations across different stacks, not to demonstrate a particular architecture style. The reference implementation in apps/api/ could theoretically be classified (appears to be Layered with routes/models/schemas), but classifying it would miss the repo's true nature as a multi-implementation specification project."
+    },
+    {
+      "entry": "Rebus.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The README clearly identifies Rebus as a 'lean service bus implementation' - a library for building message-based systems. The directory structure shows a single library project (Rebus/) with test projects, NuGet packaging tools (tools/nuget/), and build scripts - all consistent with a library/SDK. No deployable application architecture exists to classify."
+    },
+    {
+      "entry": "sample-dotnet-core-cqrs-api.yaml",
+      "verdict": "classified",
+      "validation_verdict": "upgraded",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Hexagonal Architecture",
+        "CQRS",
+        "Domain-Driven Design",
+        "Event-Driven"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context confirms CQRS, DDD, and Event-Driven classifications are correct, but the existing classification missed Hexagonal Architecture (Clean Architecture) which is explicitly stated in README and clearly visible in the project structure with Domain/Application/Infrastructure/API layers following the dependency inversion principle. This is the primary architectural envelope containing the other patterns."
+    },
+    {
+      "entry": "semantic-kernel.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "The existing classification as 'Indeterminate' with the LLM review assessment that 'Semantic Kernel is a multi-language SDK/library... not a deployable application with an architectural style' is correct. Deep context confirms this: the repository contains framework code (agents/, connectors/, processes/), test suites for SDK consumers, and sample code \u2014 all hallmarks of an SDK project rather than an application exhibiting architectural patterns."
+    },
+    {
+      "entry": "serverless.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "smolagents.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The repository structure shows a Python package under src/smolagents/ with library modules, example scripts in examples/, standard test directory, and documentation. No application entry point, no deployment artifacts, no service boundaries exist. The AGENTS.md file is documentation for library users about agent concepts, not an architecture definition. This is definitively a library/SDK, correctly classified as unclassifiable."
+    },
+    {
+      "entry": "snakemake.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. Snakemake is a workflow management library/tool with a single src/ package containing the core implementation. While Snakemake enables Pipe-and-Filter workflows for its users, the repository itself is a Python library with no distinctive architectural pattern - it has a monolithic src/ structure with CLI interfaces, not the bounded contexts, ports/adapters, or service boundaries that would indicate one of the canonical styles."
+    },
+    {
+      "entry": "solidus.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Previous classification as 'Indeterminate' was correct. The repository is a Rails engine/gem library, not a deployable application with an identifiable architecture style. Deep context confirms this is a framework for building e-commerce applications, not an application demonstrating architectural patterns."
+    },
+    {
+      "entry": "spring-petclinic.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered"
+      ],
+      "confidence": 0.82,
+      "validation_notes": "Previous classification as 'Indeterminate' was overly cautious. The repository clearly exhibits Layered architecture with the classic Spring MVC pattern: presentation layer (Thymeleaf templates, controllers), business logic layer (services), and data access layer (Spring Data JPA repositories). This is the canonical Spring PetClinic sample application designed to demonstrate traditional layered web application architecture."
+    },
+    {
+      "entry": "superagent.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Previous classification as 'Indeterminate' correctly identified this repo as not fitting a standard architecture pattern. The deep context confirms this is a library/SDK project containing client implementations for TypeScript and Python, plus a CLI and MCP server wrapper \u2014 none of which represent an application architecture. The SDKs provide guard(), redact(), scan() functions that call an external API, making this a client library rather than an architectural exemplar."
+    },
+    {
+      "entry": "swarm.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Previous classification as 'Indeterminate' was correct. Deep context confirms this is a lightweight educational library/SDK providing Agent primitives and handoff patterns. The examples/ directory contains demonstration applications, but the core repository is a framework, not an application with architecture to classify."
+    },
+    {
+      "entry": "typeorm.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The previous LLM review correctly identified that TypeORM is an ORM library/SDK for TypeScript/Node.js. The directory structure (src/ with 513 library source files, extensive test/ directories, sample/ examples) and docker-compose.yml (testing infrastructure for multiple database backends) all support this being a library, not an application. Libraries do not have deployment architecture styles in the sense this classification system defines \u2014 they are building blocks used by applications."
+    }
+  ]
+}

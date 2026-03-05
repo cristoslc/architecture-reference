@@ -26,15 +26,14 @@ notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
 one_line_summary: Spree is a Ruby on Rails e-commerce platform deployed as a monolithic
-  Rails application with traditional MVC layering (controllers, models, services).
-  Container orchestration (Docker Compose) is used for development/deployment convenience
-  rather than to enable microservices.
+  Rails application with traditional MVC layering and a Rails Engine architecture
+  for the core commerce functionality.
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.85
   signals_detected: 15
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.75
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Microservices
     score: 0.4
@@ -54,14 +53,9 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence from catalog: Ruby on Rails e-commerce platform (Spree is
-  a well-known Rails gem/framework). Key signals: package_manifests (5 - Rails gems),
-  ci_cd (5), container_orchestration (3 - likely for dev environment), no messaging
-  (0), no api_specs (0), directory_structure (3). The absence of messaging systems
-  and API specifications, combined with Ruby/Rails, strongly indicates a monolithic
-  Layered architecture typical of Rails applications. The heuristic candidates (Microservices
-  0.4, Layered 0.3, Pipe-and-Filter 0.3) are close, but the lack of inter-service
-  communication patterns (messaging: 0) rules out Microservices. The 0.4 Microservices
-  score likely stems from Docker Compose presence, which in Rails projects typically
-  just runs the app + database + sometimes Redis for caching/sidekiq - not independent
-  services.'
+review_notes: 'Evidence: server/app/controllers/, server/app/models/, server/app/views/
+  directories confirm classic Rails MVC layering; single Dockerfile (server/Dockerfile)
+  indicates monolithic deployment; docker-compose.yml runs single web service + worker
+  + database/redis for development convenience; spree/ directory (2806 files, 1740
+  Ruby files) is a Rails Engine gem mounted into the server application; Sidekiq worker
+  handles background jobs within the monolith, not inter-service communication.'

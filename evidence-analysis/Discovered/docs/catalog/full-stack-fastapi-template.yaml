@@ -26,15 +26,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Full-stack web application template combining a FastAPI Python backend,
-  a TypeScript/Node.js frontend, and a database, orchestrated via Docker Compose as
-  a small number of coarse-grained services
+one_line_summary: Full-stack web application template with FastAPI Python backend
+  using layered architecture (API routes → CRUD → models), React/TypeScript frontend,
+  and PostgreSQL database, deployed as 2 coarse-grained services via Docker Compose
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.88
   signals_detected: 21
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -50,14 +50,10 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence from catalog: (1) Known public repo ''tiangolo/full-stack-fastapi-template''
-  is a well-documented full-stack template with FastAPI backend (controllers/routers
-  + services + models = layered), React/TypeScript frontend, and PostgreSQL — classic
-  N-tier web stack. (2) 4 container_orchestration signals + 4 package_manifests suggest
-  ~2-4 distinct service containers (frontend, backend, db, possibly proxy/traefik),
-  fitting Service-Based rather than full Microservices. (3) No messaging signals (0)
-  rules out Event-Driven. (4) No api_specs signals rules against formal Microservices
-  contract patterns. (5) Score of 0.5 for Microservices in heuristic_candidates is
-  likely a false positive from Docker presence alone — service count and lack of service
-  discovery/API gateway config point to Service-Based. (6) FastAPI backends conventionally
-  use routers → services → repositories/models layering, supporting Layered classification.'
+review_notes: 'Evidence: (1) Backend layered structure: backend/app/api/routes/ (presentation),
+  backend/app/crud.py (business logic), backend/app/models.py (data) — classic Layered
+  pattern. (2) Service-Based: 2 deployable application services (backend/Dockerfile,
+  frontend/Dockerfile) sharing a PostgreSQL database, orchestrated via compose.yml
+  with Traefik reverse proxy. (3) No microservices signals: no Kubernetes, no service
+  discovery, only 2 application services with shared database. (4) No event-driven
+  signals: no message brokers, no event handlers.'

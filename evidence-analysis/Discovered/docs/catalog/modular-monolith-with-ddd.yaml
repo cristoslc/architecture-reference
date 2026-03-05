@@ -32,15 +32,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A C# reference application demonstrating a modular monolith architecture
-  with DDD bounded contexts, CQRS, domain events, and hexagonal/ports-and-adapters
-  structuring within a single deployable unit
+one_line_summary: A C# reference application demonstrating modular monolith architecture
+  with DDD bounded contexts, CQRS, domain events, and hexagonal structuring within
+  a single deployable unit for a meetings/conference management domain
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.95
   signals_detected: 122
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: deep-validation
+  primary_style_confidence: 0.95
   heuristic_candidates:
   - style: Microservices
     score: 0.4
@@ -64,15 +64,11 @@ discovery_metadata:
     documentation: 1
     directory_structure: 3
 review_required: false
-review_notes: The project name 'modular-monolith-with-ddd' is itself strong evidence;
-  the catalog explicitly states 5-style multi-style composition. Signal breakdown
-  shows 69 messaging signals (Event-Driven/domain events), 47 package manifests (multiple
-  internal modules), 3 directory structure signals (module boundaries), container
-  orchestration via Docker Compose (single deployment unit, not per-service Dockerfiles
-  confirming monolith not microservices). Heuristic candidates scored equally across
-  Microservices, DDD, CQRS, Event-Driven, and Hexagonal — combined with the project
-  name and domain (Conference Management with rich domain), this is a canonical DDD
-  modular monolith reference implementation. Architecture diagrams (C4/PlantUML noted
-  in strengths) further confirm intentional multi-style architectural design. The
-  project is a well-known public reference repo by Kamil Grzybek explicitly demonstrating
-  these five styles together.
+review_notes: 'Evidence: 5 bounded context modules in src/Modules/ (Meetings, Payments,
+  UserAccess, Administration, Registrations) each with Domain/Application/Infrastructure/IntegrationEvents
+  layers; BuildingBlocks/Domain contains IAggregateRoot, IDomainEvent, Entity, ValueObject
+  base classes; BuildingBlocks/Infrastructure/EventBus with Inbox/Outbox patterns;
+  17 ADRs in docs/architecture-decision-log/ including ADR-0002 (modular monolith),
+  ADR-0007 (CQRS), ADR-0010 (clean architecture), ADR-0012 (DDD tactical patterns),
+  ADR-0014 (event-driven communication); single Dockerfile and docker-compose.yml
+  confirm single deployment unit; C4 model diagrams in docs/C4/'

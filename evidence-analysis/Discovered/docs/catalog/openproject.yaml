@@ -28,17 +28,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: OpenProject is a Ruby on Rails project management application. The
-  evidence suggests a traditional monolithic Rails architecture with standard layered
-  structure (MVC), where RabbitMQ is used for background job processing (ActiveJob)
-  rather than as a central event bus, and Docker/Docker Compose are used for development
-  environment orchestration rather than service decomposition.
+one_line_summary: OpenProject is a Rails-based project management application with
+  classic layered MVC architecture and internal modular organization within a single
+  deployable unit.
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.88
   signals_detected: 50
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.7
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.4
@@ -60,11 +58,9 @@ discovery_metadata:
     documentation: 0
     directory_structure: 5
 review_required: false
-review_notes: 'Evidence: Ruby/Rails project (standard package_manifests: 4 signals
-  from Gemfile, Gemfile.lock); container_orchestration: 15 (Dockerfiles for app +
-  supporting services like postgres, redis); messaging: 1 (RabbitMQ for background
-  jobs, not event-driven architecture); api_specs: 0 (no separate service APIs); directory_structure:
-  5 (low complexity). OpenProject is a well-known monolithic Rails application. The
-  CI/CD signals (28) reflect standard deployment automation, not microservices. Heuristic
-  candidates all scored 0.3-0.4 with inconclusive classification, but the pattern
-  fits a standard Rails monolith with auxiliary infrastructure containers.'
+review_notes: 'Evidence: `app/` directory with 3316 files showing standard Rails layering
+  (forms/, contracts/, mailers/, uploaders/); `modules/` directory with 6584 files
+  indicating internal modular boundaries; single production Dockerfile (docker/prod/Dockerfile)
+  confirming single deployable unit; docker-compose.yml shows one backend + one frontend
+  + one worker service with supporting infrastructure (postgres, memcached) - not
+  microservices decomposition; good_job for background jobs (not event-driven messaging).'

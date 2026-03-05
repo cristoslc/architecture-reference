@@ -1,65 +1,60 @@
 project_name: dagster
 source: Discovered
-source_url: "https://github.com/dagster-io/dagster"
-project_url: "https://github.com/dagster-io/dagster"
+source_url: https://github.com/dagster-io/dagster
+project_url: https://github.com/dagster-io/dagster
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:32:45Z"
+discovered_at: '2026-03-04T06:32:45Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Processing
 language: Python
-languages:
-
+languages: null
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - Domain-Driven Design
-  - Pipe-and-Filter
+- Modular Monolith
+- Layered
 key_technologies:
-  - Node.js
-  - Gradle
-  - Python/pip
-  - Rust/Cargo
-  - Docker
-  - Kubernetes
-  - Docker Compose
-  - Terraform
-  - Kafka
-  - RabbitMQ
-  - gRPC
-  - GraphQL
-  - GitHub Actions
+- Node.js
+- Gradle
+- Python/pip
+- Rust/Cargo
+- Docker
+- Kubernetes
+- Docker Compose
+- Terraform
+- Kafka
+- RabbitMQ
+- gRPC
+- GraphQL
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
+- Scalability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Microservices, Event-Driven, Domain-Driven Design patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Dagster is a cloud-native data pipeline orchestrator platform built
+  as a modular monorepo with layered components (core engine, GraphQL API, web UI)
+  and extensive integration libraries
 discovery_metadata:
-  confidence: 0.9
+  confidence: 0.85
   signals_detected: 282
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 0.8
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.8
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 0.8
+  - style: Event-Driven
+    score: 0.6
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 172
     container_orchestration: 61
@@ -71,3 +66,10 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
+review_notes: 'Evidence: python_modules/ contains core modules (dagster, dagster-graphql,
+  dagster-webserver, dagster-pipes) plus 30+ integration libraries under libraries/;
+  each module is self-contained with its own pyproject.toml, tests, and structure;
+  helm/ provides k8s deployment configs; js_modules/ contains the React-based web
+  UI. The architecture is a single framework with well-defined module boundaries,
+  not independent microservices.'
+review_required: false

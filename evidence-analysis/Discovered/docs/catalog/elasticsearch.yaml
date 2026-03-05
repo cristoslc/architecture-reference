@@ -36,11 +36,11 @@ one_line_summary: Elasticsearch is a distributed search and analytics engine bui
   as a modular monolith with layered internal architecture and pipeline-based query/indexing
   processing
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.92
   signals_detected: 560
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -64,17 +64,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Classification based on well-known public knowledge of Elasticsearch''s
-  architecture combined with catalog signals: (1) Modular Monolith — Elasticsearch
-  is a single deployable unit composed of many internal modules (520 package manifests
-  strongly suggest a large multi-module Gradle project with self-contained subsystems
-  like engine, transport, plugins, modules/); (2) Layered N-Tier — the server core
-  follows a classic layered pattern: REST API layer → action/transport layer → engine/index
-  layer → Lucene storage layer; (3) Pipe-and-Filter — query parsing, analysis chains
-  (tokenizers/filters), and indexing pipelines are central architectural patterns
-  in Elasticsearch''s design. The heuristic signals for Event-Driven (Kafka/RabbitMQ
-  presence, score 0.6) and CQRS (score 0.4) likely reflect test infrastructure or
-  integrations in the qa/test modules rather than the core architecture style. 17
-  container orchestration signals likely come from test harness Docker configs, not
-  a microservices deployment topology. The single API spec signal and absence of service
-  discovery/API gateway configs argue against Microservices.'
+review_notes: 'Evidence: (1) Modular Monolith - single deployment artifact (elasticsearch.tar.gz
+  in all Dockerfiles under distribution/docker/), multi-module Gradle structure with
+  520+ package manifests, clear module boundaries: server/ (8012 files, 7491 Java),
+  libs/ (1066 files), modules/ (2703 files), plugins/ (474 files), x-pack/ (18693
+  files); (2) Layered - client/ for API layer, rest-api-spec/ (1100 API spec files),
+  server/ for core engine, distribution/ for packaging; (3) Pipe-and-Filter - analysis
+  plugins (analysis-ukrainian, analysis-phonetic, analysis-nori, analysis-kuromoji,
+  analysis-smartcn) implement text analysis chains with tokenizers/filters, modules/
+  contains query parsing and indexing pipeline components'

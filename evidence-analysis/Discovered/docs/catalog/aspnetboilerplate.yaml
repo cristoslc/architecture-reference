@@ -26,15 +26,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: ASP.NET Boilerplate is a C# application framework organized as a
-  modular monolith with DDD conventions and layered architecture patterns, providing
-  infrastructure for building enterprise .NET applications
+one_line_summary: ASP.NET Boilerplate is a C# application framework implementing a
+  modular monolith architecture with DDD conventions and layered architecture patterns,
+  providing infrastructure for enterprise .NET applications
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.92
   signals_detected: 67
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
@@ -58,16 +58,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 5
 review_required: false
-review_notes: 'Classification based on catalog metadata and well-known public knowledge
-  of the project: (1) Modular Monolith — aspnetboilerplate is famous for its ABP module
-  system (IAbpModule, DependsOn attributes), single deployable framework with self-contained
-  feature modules; heuristic score 0.7 and 63 package manifests suggest many internal
-  module packages without container orchestration (0 container signals); (2) Domain-Driven
-  Design — the framework explicitly promotes DDD patterns: entities, repositories,
-  domain services, aggregates, value objects, and domain events are first-class framework
-  concepts; heuristic score 0.6; (3) Layered — the framework enforces a classic N-tier
-  layering convention (Domain, Application, Infrastructure, Presentation) as its prescribed
-  application structure; heuristic score 0.3. No Kubernetes/Docker orchestration signals,
-  no API gateway, and no messaging infrastructure indicate this is not a microservices
-  or event-driven system at its core. The single messaging signal likely refers to
-  domain event dispatch rather than a broker-based system.'
+review_notes: 'Evidence: (1) Modular Monolith - README explicitly documents module
+  system with IAbpModule and DependsOn attributes, 63 NuGet package manifests in src/
+  representing composable modules, single deployable unit without container orchestration
+  (0 Kubernetes signals); (2) Domain-Driven Design - README states ''layered architectural
+  model based on Domain Driven Design'', framework provides entities, repositories,
+  domain services, aggregates, value objects as first-class concepts; (3) Layered
+  - README shows NLayer Architecture diagram with Domain/Application/Infrastructure/Presentation
+  separation, directory structure under test/Abp.ZeroCore.SampleApp shows Core (Domain),
+  Application, EntityFramework (Infrastructure) layers'

@@ -29,15 +29,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A C# banking domain sample application explicitly demonstrating
-  Clean Architecture (Ports & Adapters) with DDD patterns, structured as a single
-  deployable modular unit
+one_line_summary: A C# Clean Architecture reference implementation for a banking/virtual
+  wallet domain, structured as a single deployable with explicit Domain/Application/Infrastructure/WebApi
+  layer separation following Ports & Adapters principles
 discovery_metadata:
-  confidence: 0.82
+  confidence: 0.95
   signals_detected: 18
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.82
+  classification_method: deep-validation
+  primary_style_confidence: 0.95
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -57,16 +57,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Strong evidence from: (1) project name ''clean-architecture-manga''
-  directly references Clean Architecture, which is synonymous with Hexagonal/Ports
-  & Adapters; (2) domain is Banking — a classic DDD exemplar domain with aggregates,
-  entities, value objects; (3) heuristic candidates show Hexagonal (0.4) and DDD (0.4)
-  alongside Microservices (0.5) — but Microservices score is likely inflated by multiple
-  .csproj package manifests (10 signals) representing internal layer projects rather
-  than independent services; (4) no messaging signals (0), no API specs (0), no service
-  discovery — rules out true Microservices; (5) directory_structure signals (4) suggest
-  internal layer separation (domain/application/infrastructure/presentation); (6)
-  single Docker Compose orchestration suggests single deployable unit consistent with
-  Modular Monolith; (7) GitHub name ''ivanpaulovich/clean-architecture-manga'' is
-  a well-known Clean Architecture reference implementation by Ivan Paulovich, publicly
-  known to implement Ports & Adapters with DDD in a modular monolith structure'
+review_notes: 'Evidence: (1) accounts-api/src/ directory contains classic Hexagonal
+  structure: Domain/ (entities, value objects, repository interfaces), Application/
+  (use cases, services), Infrastructure/ (data access, external adapters), WebApi/
+  (presentation); (2) Domain layer has IAccountRepository.cs (port), ValueObjects/,
+  Credits/, Debits/ directories showing DDD patterns; (3) WebApi Dockerfile copies
+  all four layer projects into single deployable confirming Modular Monolith; (4)
+  docker-compose.yml orchestrates single API + SPA + IdentityServer + SQL Server (not
+  microservices); (5) README explicitly documents Architecture Styles including Hexagonal/Onion/Clean
+  Architecture and DDD patterns (Value Object, Entity, Aggregate Root, Repository)'

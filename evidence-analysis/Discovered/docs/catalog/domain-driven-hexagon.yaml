@@ -25,15 +25,15 @@ notable_gaps:
 - No architecture decision records found
 - No CI/CD configuration detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A TypeScript/Node.js reference/exemplar project demonstrating Domain-Driven
-  Design combined with Hexagonal Architecture and CQRS patterns,
-  organized as a modular monolith
+one_line_summary: A TypeScript/Node.js reference architecture demonstrating Domain-Driven
+  Design combined with Hexagonal Architecture and CQRS, organized as a modular monolith
+  with clear bounded contexts
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.95
   signals_detected: 3
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.85
+  classification_method: deep-validation
+  primary_style_confidence: 0.95
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
@@ -53,12 +53,10 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'The project name ''domain-driven-hexagon'' is itself strong evidence
-  — it explicitly names two architecture styles (DDD + Hexagonal). Heuristic candidates
-  confirm Modular Monolith (0.7), DDD (0.3), and CQRS (0.3). Directory structure signals
-  (score: 3) indicate well-structured module boundaries. Single Docker Compose file
-  (no multi-service orchestration) suggests a modular monolith rather than microservices.
-  The repo is hosted at Sairyss/domain-driven-hexagon on GitHub, which is a well-known
-  public reference architecture repository explicitly combining DDD, Hexagonal/Clean
-  Architecture, and CQRS in TypeScript — this is a widely-cited exemplar repo whose
-  architecture is publicly documented.'
+review_notes: 'Evidence: src/libs/ports/ (ports/interfaces), src/libs/ddd/ containing
+  entity.base.ts, aggregate-root.base.ts, value-object.base.ts, domain-event.base.ts,
+  repository.port.ts; src/modules/user/commands/ and src/modules/user/queries/ directories
+  demonstrating CQRS separation; src/modules/user/ and src/modules/wallet/ as self-contained
+  modules; single docker-compose.yml without Kubernetes indicating monolithic deployment;
+  README explicitly documents all four architectural patterns with detailed explanations
+  of ports/adapters, DDD building blocks, and command/query separation'

@@ -1,72 +1,64 @@
 project_name: beam
 source: Discovered
-source_url: "https://github.com/apache/beam"
-project_url: "https://github.com/apache/beam"
+source_url: https://github.com/apache/beam
+project_url: https://github.com/apache/beam
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:32:06Z"
+discovered_at: '2026-03-04T06:32:06Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Processing
 language: Java/Kotlin
-languages:
-
+languages: null
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - Domain-Driven Design
-  - Hexagonal Architecture
-  - Pipe-and-Filter
+- Pipe-and-Filter
 key_technologies:
-  - Node.js
-  - Go modules
-  - Maven
-  - Gradle
-  - Python/pip
-  - Rust/Cargo
-  - Docker
-  - Kubernetes
-  - Docker Compose
-  - Terraform
-  - Kafka
-  - RabbitMQ
-  - NATS
-  - gRPC
-  - GitHub Actions
+- Node.js
+- Go modules
+- Maven
+- Gradle
+- Python/pip
+- Rust/Cargo
+- Docker
+- Kubernetes
+- Docker Compose
+- Terraform
+- Kafka
+- RabbitMQ
+- NATS
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
-  - Modularity
+- Scalability
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (5 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (5 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Microservices, Event-Driven, Domain-Driven Design patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Apache Beam is a unified data processing framework using the Pipe-and-Filter
+  pattern where pipelines consist of PCollections (data) and PTransforms (filters)
+  connected in a DAG, executable on multiple distributed runners
 discovery_metadata:
-  confidence: 1.0
+  confidence: 0.95
   signals_detected: 958
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 1.0
+  classification_method: deep-validation
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 1.2
-    -
-      style: Event-Driven
-      score: 0.9
-    -
-      style: Domain-Driven Design
-      score: 0.4
-    -
-      style: Hexagonal Architecture
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 1.2
+  - style: Event-Driven
+    score: 0.9
+  - style: Domain-Driven Design
+    score: 0.4
+  - style: Hexagonal Architecture
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 334
     container_orchestration: 107
@@ -78,3 +70,10 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 6
+review_notes: 'Evidence: Beam''s core model is explicitly Pipe-and-Filter - PTransforms
+  transform input PCollections into output PCollections. The README states ''PTransform:
+  represents a computation that transforms input PCollections into output PCollections.''
+  Multiple SDKs (Java/Python/Go) and runners (Flink/Spark/Dataflow) are libraries,
+  not independently deployed microservices. No evidence of bounded contexts (DDD)
+  or port/adapter isolation (Hexagonal).'
+review_required: false

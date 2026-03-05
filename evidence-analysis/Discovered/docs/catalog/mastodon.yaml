@@ -12,6 +12,7 @@ languages: null
 architecture_styles:
 - Modular Monolith
 - Event-Driven
+- Service-Based
 key_technologies:
 - Node.js
 - Docker
@@ -27,15 +28,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Mastodon is a federated social media platform built as a Ruby on
-  Rails modular monolith with event-driven background processing via RabbitMQ and
-  Sidekiq
+one_line_summary: Mastodon is a federated social network platform built as a Ruby
+  on Rails modular monolith with a separate Node.js streaming service, using Sidekiq/Redis
+  for event-driven background processing
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.88
   signals_detected: 32
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.75
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -55,14 +56,11 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence from catalog: (1) Single Ruby/Rails application with Docker
-  Compose orchestration — consistent with Modular Monolith rather than true Microservices
-  despite the heuristic candidate score; Mastodon is well-known publicly as a Rails
-  monolith. (2) RabbitMQ presence in key_technologies signals Event-Driven messaging
-  for ActivityPub federation and background job processing. (3) Node.js alongside
-  Ruby typically indicates a separate streaming API server component, suggesting Service-Based
-  decomposition at most (2 coarse services), not full Microservices. (4) Container
-  orchestration signals (5) likely reflect multi-container Docker Compose setup (web,
-  sidekiq, streaming) rather than independent microservices. (5) Heuristic Microservices
-  score of 0.5 is borderline and not supported by public knowledge of the project''s
-  architecture.'
+review_notes: 'Evidence: (1) Modular Monolith - Single Rails application with 1199
+  Ruby files in app/, shared PostgreSQL database, domain-organized models in app/models/
+  (Account, Status, User, etc.); (2) Event-Driven - Sidekiq background workers, Redis
+  queueing, ActivityPub federation inherently event-based; (3) Service-Based - 2 coarse-grained
+  services: web (Rails monolith) and streaming (Node.js) with separate Dockerfiles
+  (./Dockerfile vs ./streaming/Dockerfile), docker-compose.yml shows shared db/redis
+  but separate deployments; (4) NOT microservices - single shared database, no service
+  discovery, no API gateway, only 2 services not 5+'

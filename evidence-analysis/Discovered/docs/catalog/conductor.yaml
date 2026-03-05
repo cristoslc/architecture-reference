@@ -1,54 +1,52 @@
 project_name: conductor
 source: Discovered
-source_url: "https://github.com/Netflix/conductor"
-project_url: "https://github.com/Netflix/conductor"
+source_url: https://github.com/Netflix/conductor
+project_url: https://github.com/Netflix/conductor
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:05:49Z"
+discovered_at: '2026-03-04T06:05:49Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Workflow Orchestration
 language: Java/Kotlin
-languages:
-
+languages: null
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - Domain-Driven Design
+- Microservices
+- Event-Driven
+- Domain-Driven Design
 key_technologies:
-  - Node.js
-  - Gradle
-  - Docker
-  - Docker Compose
-  - Kafka
-  - RabbitMQ
-  - gRPC
-  - GitHub Actions
+- Node.js
+- Gradle
+- Docker
+- Docker Compose
+- Kafka
+- RabbitMQ
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Architecture documentation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Architecture documentation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-one_line_summary: Java/Kotlin project exhibiting Microservices, Event-Driven, Domain-Driven Design patterns
+- No architecture decision records found
+one_line_summary: Netflix Conductor - A workflow orchestration platform with multiple
+  independently deployable services (gRPC server, REST API, UI), event queue support
+  (AWS SQS, Redis), and domain models for workflows/tasks
 discovery_metadata:
-  confidence: 0.9
+  confidence: 0.92
   signals_detected: 67
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 0.8
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.8
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Microservices
+    score: 0.8
+  - style: Event-Driven
+    score: 0.6
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 24
     container_orchestration: 4
@@ -60,3 +58,10 @@ discovery_metadata:
     test_structure: 1
     documentation: 1
     directory_structure: 0
+review_notes: 'Evidence: (1) Multiple service entry points: conductor-grpc-server,
+  conductor-rest, conductor-server - each independently deployable; (2) Event-driven:
+  awssqs-event-queue module, Redis-based queue (redis-persistence), kafka in key_technologies;
+  (3) DDD: core module contains domain models (workflow, task definitions), bounded
+  contexts via separate modules for persistence/cassandra/es; (4) Infrastructure:
+  docker-compose.yaml with multiple services, supports Postgres/MySQL/Redis/Cassandra/Elasticsearch'
+review_required: false

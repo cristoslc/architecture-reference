@@ -25,15 +25,15 @@ notable_gaps:
 - No architecture decision records found
 - No CI/CD configuration detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Eventuate Tram Core is a Java/Kotlin framework/library providing
-  transactional messaging and event-driven communication primitives, organized as
-  a modular monolith with Kafka and RabbitMQ integration
+one_line_summary: A transactional messaging framework providing event-driven communication
+  primitives through well-organized Gradle modules supporting multiple message brokers
+  and frameworks
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.88
   signals_detected: 102
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -53,14 +53,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence from catalog: (1) Key technologies include Kafka and RabbitMQ
-  — strong messaging/event-driven signals (6 messaging signals detected); (2) 94 package
-  manifests suggest a multi-module Gradle project consistent with a modular monolith
-  structure; (3) The ''eventuate-tram'' project family is publicly known as a transactional
-  messaging framework implementing the Transactional Outbox pattern and saga orchestration
-  — inherently event-driven; (4) Heuristic candidates scored Event-Driven 0.6 and
-  Modular Monolith 0.4, consistent with a framework that ships multiple messaging
-  adapters (Kafka, RabbitMQ) as separate modules within a single deployable artifact;
-  (5) Single container orchestration signal and no service discovery/API gateway config
-  rules out Microservices as a primary style; (6) DDD candidate score of 0.3 is too
-  low and unsupported by structural evidence to include.'
+review_notes: 'Evidence: (1) Event-Driven - modules named *-events, *-commands, *-consumer-*,
+  *-producer-* with implementations for Kafka, RabbitMQ, ActiveMQ, Redis (eventuate-tram-consumer-kafka/,
+  eventuate-tram-consumer-rabbitmq/, eventuate-tram-jdbc-rabbitmq/); (2) Modular Monolith
+  - 50+ Gradle modules organized by concern (commands, events, messaging, consumers,
+  producers) with framework-specific variants (spring, micronaut, reactive) that ship
+  as a cohesive library; (3) docker-compose-*.yml files for testing combinations (mysql-binlog-kafka,
+  postgres-wal-rabbitmq); (4) activemq/Dockerfile for test infrastructure; (5) No
+  microservices indicators - no service discovery, API gateway, or Kubernetes manifests
+  for separate services'

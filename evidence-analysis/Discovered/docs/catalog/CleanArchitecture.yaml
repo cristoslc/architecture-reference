@@ -25,15 +25,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: ardalis/CleanArchitecture is a well-known .NET C# template implementing
-  Clean Architecture (Ports & Adapters) with DDD and CQRS patterns as a single deployable
-  unit
+one_line_summary: A canonical .NET Clean Architecture template implementing Hexagonal/Ports-and-Adapters
+  with DDD tactical patterns and MediatR-based CQRS as a single deployable unit
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.95
   signals_detected: 35
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.85
+  classification_method: deep-validation
+  primary_style_confidence: 0.95
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -55,13 +54,8 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'This is a widely recognized public repository by Steve Smith (ardalis)
-  — a canonical Clean Architecture template for .NET. Known structure includes: src/Core
-  (domain entities, aggregates, interfaces/ports), src/Infrastructure (adapters/implementations),
-  src/Web (presentation layer), with MediatR-based CQRS for commands/queries. Heuristic
-  signals corroborate: 22 package manifests (MediatR, FluentValidation, etc.), 7 messaging
-  signals (domain events, MediatR handlers), DDD score 0.3 and CQRS score 0.4 in signal
-  breakdown, no container orchestration (single deployable unit = not microservices).
-  The Modular Monolith candidate (0.4) reflects the single-deployment nature but the
-  primary architectural intent is Hexagonal/Clean Architecture with DDD tactical patterns
-  and CQRS via MediatR.'
+review_notes: 'Evidence: src/Clean.Architecture.Core (domain + ports/interfaces),
+  src/Clean.Architecture.UseCases (CQRS commands/queries separated by operation type),
+  src/Clean.Architecture.Infrastructure (adapters), src/Clean.Architecture.Core/ContributorAggregate
+  (aggregate with value objects, domain events, specifications), explicit layer separation
+  following dependency inversion'

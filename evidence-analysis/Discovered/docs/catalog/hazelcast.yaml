@@ -1,57 +1,51 @@
 project_name: hazelcast
 source: Discovered
-source_url: "https://github.com/hazelcast/hazelcast"
-project_url: "https://github.com/hazelcast/hazelcast"
+source_url: https://github.com/hazelcast/hazelcast
+project_url: https://github.com/hazelcast/hazelcast
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:35:49Z"
+discovered_at: '2026-03-04T06:35:49Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Grid
 language: Java/Kotlin
-languages:
-
+languages: null
 architecture_styles:
-  - Event-Driven
-  - Microservices
-  - Domain-Driven Design
-  - Pipe-and-Filter
+- Space-Based
+- Event-Driven
 key_technologies:
-  - Maven
-  - Kubernetes
-  - Kafka
-  - RabbitMQ
-  - gRPC
-  - GitHub Actions
+- Maven
+- Kubernetes
+- Kafka
+- RabbitMQ
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
+- Scalability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (4 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Event-Driven, Microservices, Domain-Driven Design patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Hazelcast is a real-time data platform featuring an in-memory distributed
+  data grid (Space-Based) with streaming/event processing capabilities (Event-Driven)
 discovery_metadata:
-  confidence: 1.0
+  confidence: 0.85
   signals_detected: 135
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 0.9
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.9
-    -
-      style: Microservices
-      score: 0.6
-    -
-      style: Domain-Driven Design
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Event-Driven
+    score: 0.9
+  - style: Microservices
+    score: 0.6
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 43
     container_orchestration: 1
@@ -63,3 +57,14 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
+review_notes: 'Evidence: Hazelcast is fundamentally a distributed in-memory data grid
+  - this is the Space-Based architecture style characterized by in-memory data grids.
+  The codebase has 9300+ Java files in a single monolithic build (one root pom.xml).
+  The 78 messaging signals represent Hazelcast''s internal pub/sub and queue mechanisms
+  (distributed messaging), not external microservices. The Jet component provides
+  stream processing pipelines, but this is a feature within the product, not Pipe-and-Filter
+  as the primary architecture. There is no evidence of Microservices - no separate
+  service directories, no Kubernetes deployments, no API Gateway (signal_breakdown
+  shows container_orchestration:1). DDD signals are weak (0.3 score) - no clear bounded
+  context organization in code structure.'
+review_required: false

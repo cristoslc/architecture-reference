@@ -1,53 +1,53 @@
 project_name: linkerd2
 source: Discovered
-source_url: "https://github.com/linkerd/linkerd2"
-project_url: "https://github.com/linkerd/linkerd2"
+source_url: https://github.com/linkerd/linkerd2
+project_url: https://github.com/linkerd/linkerd2
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:04:56Z"
+discovered_at: '2026-03-04T06:04:56Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Go
-languages:
-
+languages: null
 architecture_styles:
-  - Microservices
-  - Event-Driven
+- Microservices
+- Event-Driven
 key_technologies:
-  - Node.js
-  - Go modules
-  - Rust/Cargo
-  - Docker
-  - Kubernetes
-  - RabbitMQ
-  - gRPC
-  - GitHub Actions
+- Node.js
+- Go modules
+- Rust/Cargo
+- Docker
+- Kubernetes
+- RabbitMQ
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Fault Tolerance
-  - Deployability
+- Scalability
+- Fault Tolerance
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (2 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (2 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go project exhibiting Microservices, Event-Driven patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Linkerd2 is a Kubernetes service mesh with multiple independently
+  deployable components (controller, viz, multicluster, web, cli, policy-controller)
+  that communicate via gRPC and use message-based event patterns for distributed state
+  management
 discovery_metadata:
-  confidence: 1.0
+  confidence: 0.95
   signals_detected: 186
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 1.0
+  classification_method: deep-validation
+  primary_style_confidence: 0.95
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 1.3
-    -
-      style: Event-Driven
-      score: 0.3
+  - style: Microservices
+    score: 1.3
+  - style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 11
     container_orchestration: 150
@@ -59,3 +59,10 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 0
+review_notes: 'Evidence: Multiple independent services with separate Dockerfiles (web/,
+  cli/, viz/tap/, viz/metrics-api/, policy-controller/), Helm charts for Kubernetes
+  deployment (charts/linkerd-control-plane/, charts/linkerd-crds/, charts/linkerd2-cni/),
+  gRPC APIs in proto/, RabbitMQ in key technologies, 150 container orchestration signals.
+  The policy-controller uses Rust while main components use Go, demonstrating polyglot
+  microservices.'
+review_required: false

@@ -1,63 +1,58 @@
 project_name: localstack
 source: Discovered
-source_url: "https://github.com/localstack/localstack"
-project_url: "https://github.com/localstack/localstack"
+source_url: https://github.com/localstack/localstack
+project_url: https://github.com/localstack/localstack
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:28:31Z"
+discovered_at: '2026-03-04T06:28:31Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Python
-languages:
-
+languages: null
 architecture_styles:
-  - Microservices
-  - Serverless
-  - Event-Driven
+- Modular Monolith
 key_technologies:
-  - Node.js
-  - Go modules
-  - Maven
-  - Gradle
-  - Python/pip
-  - .NET
-  - Rust/Cargo
-  - Docker
-  - Docker Compose
-  - Terraform
-  - Serverless Framework
-  - Kafka
-  - RabbitMQ
-  - OpenAPI
-  - GitHub Actions
+- Node.js
+- Go modules
+- Maven
+- Gradle
+- Python/pip
+- .NET
+- Rust/Cargo
+- Docker
+- Docker Compose
+- Terraform
+- Serverless Framework
+- Kafka
+- RabbitMQ
+- OpenAPI
+- GitHub Actions
 quality_attributes:
-  - Fault Tolerance
-  - Deployability
-  - Modularity
+- Fault Tolerance
+- Deployability
+- Modularity
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Python project exhibiting Microservices, Serverless, Event-Driven patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: LocalStack is a single-container AWS service emulator with internally
+  modular service implementations, not itself a microservices/serverless architecture
 discovery_metadata:
-  confidence: 0.9
+  confidence: 0.85
   signals_detected: 72
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 0.8
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.8
-    -
-      style: Serverless
-      score: 0.6
-    -
-      style: Event-Driven
-      score: 0.3
+  - style: Microservices
+    score: 0.8
+  - style: Serverless
+    score: 0.6
+  - style: Event-Driven
+    score: 0.3
   signal_breakdown:
     package_manifests: 20
     container_orchestration: 3
@@ -69,3 +64,8 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 2
+review_notes: 'Evidence: Single Dockerfile and docker-compose.yml; localstack-core/
+  is one Python package with internal service modules (services/lambda_, services/s3,
+  services/dynamodb, etc.); tests/aws/serverless/ and tests/aws/terraform/ are test
+  fixtures for users'' applications, not LocalStack''s own architecture'
+review_required: false

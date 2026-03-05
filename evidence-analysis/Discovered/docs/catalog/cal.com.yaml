@@ -30,15 +30,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Cal.com is a scheduling platform built as a TypeScript monorepo
-  (likely Next.js-based) with modular internal structure and event-driven messaging
-  via RabbitMQ
+one_line_summary: Cal.com is an open-source scheduling platform built as a Next.js-based
+  TypeScript monorepo with modular internal structure (apps/packages) and event-driven
+  messaging via RabbitMQ
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.85
   signals_detected: 206
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -60,12 +60,8 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence: 120 package manifests strongly indicate a large monorepo
-  with internal packages/modules rather than independent microservices. RabbitMQ presence
-  (15 messaging signals) points to event-driven communication between modules. Microservices
-  scored only 0.4 vs Event-Driven 0.6, and without Kubernetes/Helm manifests or API
-  gateway config, full microservices is unlikely. 8 container orchestration signals
-  (Docker Compose) suggest a single deployable unit with supporting services. The
-  scheduling domain and known public architecture of cal.com (Next.js monorepo with
-  apps/ and packages/ directories) supports Modular Monolith as primary style. DDD
-  score of 0.3 is insufficient to list as a primary style without directory evidence.'
+review_notes: 'Evidence: README confirms Next.js single deployable unit with tRPC
+  and Prisma over PostgreSQL; Docker Compose orchestration (not Kubernetes); monorepo
+  structure with 120 package manifests indicates internal modules; 15 RabbitMQ messaging
+  signals for event-driven communication between modules; no API gateway or service
+  discovery infrastructure'

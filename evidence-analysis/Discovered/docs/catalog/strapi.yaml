@@ -11,6 +11,7 @@ language: TypeScript
 languages: null
 architecture_styles:
 - Modular Monolith
+- Layered
 key_technologies:
 - Node.js
 - GitHub Actions
@@ -25,15 +26,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Strapi is a headless CMS built as a modular monolith in TypeScript/Node.js,
-  with well-defined internal modules (content types, plugins, admin panel) deployed
-  as a single unit
+one_line_summary: Strapi is a headless CMS framework built as a modular monolith with
+  a plugin-based architecture, deployed as a single Node.js application with well-defined
+  internal module boundaries
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.85
   signals_detected: 85
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.75
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
@@ -55,12 +56,8 @@ discovery_metadata:
     documentation: 0
     directory_structure: 5
 review_required: false
-review_notes: 'Evidence from catalog: heuristic top candidate is Modular Monolith
-  (score 0.70), 60 package_manifests signals suggest a monorepo with multiple internal
-  packages (consistent with Strapi''s known architecture of core + plugins as npm
-  packages), zero container_orchestration and zero messaging signals rule out Microservices
-  and Event-Driven, zero infrastructure_as_code rules out Serverless. Strapi''s public
-  architecture is well-known: a single deployable Node.js application with a plugins/extensions
-  system and internal module boundaries — classic Modular Monolith. Layered (score
-  0.4) is likely a secondary characteristic given the MVC-style controllers/services/repositories
-  pattern typical of Strapi''s internals.'
+review_notes: 'Evidence: monorepo structure with 60 package manifests (from signal_breakdown),
+  single deployment model confirmed by zero container_orchestration and zero messaging
+  signals, examples/ and tests/ directories show unified application structure, nx.json
+  and multiple jest configs indicate monorepo tooling, plugin system evident from
+  examples/plugins/ directory with workspace-plugin and todo-example plugins'

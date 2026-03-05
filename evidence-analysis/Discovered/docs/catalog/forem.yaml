@@ -29,14 +29,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Forem is a Ruby (Rails) social media platform built as a modular
-  monolith with layered MVC structure and event-driven messaging via RabbitMQ
+one_line_summary: Forem is a Rails-based social media platform (powers dev.to) built
+  as a modular monolith with classic MVC layering and event-driven background processing
+  via Sidekiq/Redis
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.78
   signals_detected: 19
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.78
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -56,13 +57,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Evidence from catalog: (1) Ruby/Rails project with single Docker container
-  signals monolith deployment; (2) heuristic candidates rank Modular Monolith highest
-  (0.4) alongside Layered (0.3); (3) RabbitMQ in key_technologies and messaging signal
-  detected confirm Event-Driven component; (4) OpenAPI spec present suggests well-defined
-  internal API boundaries consistent with modular organization; (5) Docker + Docker
-  Compose with container_orchestration signals (score: 2) but no Kubernetes/Helm found,
-  consistent with monolith not microservices; (6) directory_structure signals (score:
-  2) suggest organized internal module separation typical of Modular Monolith. Forem
-  is publicly known as a Rails monolith (DEV.to platform) with background job processing
-  via messaging infrastructure.'
+review_notes: 'Evidence: (1) Single Dockerfile with multi-stage builds (production,
+  testing, development) confirms monolithic deployment; (2) docker-compose.yml shows
+  single forem image used across all services (web, sidekiq, rails) with no Kubernetes/Helm;
+  (3) Classic Rails layered structure: app/models (1003 rb files), app/forms, app/queries,
+  app/mailers, plus 730 erb view templates; (4) Modular organization via namespaced
+  model directories: app/models/articles/, app/models/users/, app/models/settings/,
+  app/models/ahoy/, app/models/concerns/; (5) Query objects organized by domain: app/queries/articles/,
+  app/queries/users/, app/queries/organizations/; (6) Event-driven component: sidekiq
+  service in docker-compose.yml with Redis for background job processing'

@@ -86,6 +86,16 @@ while [[ $# -gt 0 ]]; do
   esac
 done
 
+# ── Portability: timeout command ──────────────────────────────────────────────
+if command -v gtimeout &>/dev/null; then
+  TIMEOUT_CMD="gtimeout"
+elif command -v timeout &>/dev/null; then
+  TIMEOUT_CMD="timeout"
+else
+  # Fallback: no timeout wrapper
+  TIMEOUT_CMD=""
+fi
+
 # ── Validation ────────────────────────────────────────────────────────────────
 if ! command -v llm &>/dev/null; then
   echo "Error: 'llm' CLI not found. Install with: pip install llm" >&2
@@ -249,7 +259,7 @@ ensure_clone() {
   fi
 
   verbose "Cloning $repo_url..."
-  if timeout 120 git clone --depth 1 --quiet "$repo_url" "$target_dir/$repo_name" 2>/dev/null; then
+  if ${TIMEOUT_CMD:+$TIMEOUT_CMD 120} git clone --depth 1 --quiet "$repo_url" "$target_dir/$repo_name" 2>/dev/null; then
     echo "$target_dir/$repo_name"
   else
     [[ -z "$CLONE_DIR" ]] && rm -rf "$target_dir"

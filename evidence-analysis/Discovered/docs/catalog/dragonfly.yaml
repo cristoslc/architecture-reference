@@ -29,15 +29,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: DragonflyDB is a high-performance, Redis/Memcached-compatible in-memory
-  data store written in C/C++, designed for scalability and fault tolerance using
-  a space-based (in-memory data grid) architecture
+one_line_summary: DragonflyDB is a high-performance in-memory data store using shared-nothing
+  architecture with thread-partitioned keyspaces (shards), implementing a Space-Based
+  architecture for vertical scaling
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.85
   signals_detected: 67
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Microservices
     score: 0.8
@@ -53,14 +53,10 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence from catalog: domain explicitly tagged as ''Data Grid''; quality
-  attributes include Scalability and Fault Tolerance; C/C++ language consistent with
-  high-performance in-memory systems; Kubernetes and Docker Compose signals (36 container
-  orchestration signals) suggest distributed deployment topology. DragonflyDB is publicly
-  known as a Redis-compatible in-memory database with shared-nothing threading model
-  — a hallmark of space-based/data-grid architecture. The heuristic candidate of Microservices
-  (score 0.8) likely reflects the container orchestration signals rather than true
-  service decomposition; the ''Data Grid'' domain label is the strongest discriminating
-  signal overriding the heuristic. No messaging, API specs, or directory structure
-  signals means it is unlikely to be Event-Driven or Hexagonal. The Layered style
-  is not primary given the in-memory, distributed-processing nature of the system.'
+review_notes: 'Evidence: README explicitly describes ''shared-nothing architecture''
+  partitioning keyspace between threads where each manages its own slice (shards);
+  src/ contains 532 C/C++ files implementing in-memory data structures; Dash hashtable
+  (docs/dashtable.md) and VLL transaction framework provide in-memory data grid capabilities;
+  single deployable unit scales vertically via multi-threading rather than distributed
+  services; container orchestration signals (36) support deployment topology not service
+  decomposition'

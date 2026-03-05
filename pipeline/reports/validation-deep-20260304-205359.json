@@ -1,0 +1,1059 @@
+{
+  "run_id": "2026-03-05T01:53:59Z",
+  "model": "openrouter/z-ai/glm-5",
+  "priority": "2",
+  "entries_processed": 81,
+  "verdicts": {
+    "confirmed": 44,
+    "reclassified": 9,
+    "downgraded": 6,
+    "upgraded": 2,
+    "promoted": 14,
+    "errors": 6,
+    "clone_failures": 0
+  },
+  "override_decisions": {
+    "auto_accepted": 39,
+    "flagged_for_review": 29,
+    "deferred": 13
+  },
+  "results": [
+    {
+      "entry": "abp.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Domain-Driven Design",
+        "Event-Driven",
+        "Hexagonal Architecture"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms all four classified styles: Modular Monolith evidenced by 18+ self-contained modules in modules/ directory with independent packaging (studio/source-codes/*.SourceCode); DDD evidenced by Volo.Abp.Ddd.Tests project and explicit DDD documentation; Event-Driven evidenced by test/DistEvents with RabbitMQ and Kafka implementations; Hexagonal Architecture evidenced by framework's domain/application/infrastructure layer separation pattern throughout source code"
+    },
+    {
+      "entry": "appwrite.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms Microservices + Event-Driven but contradicts Modular Monolith. The workers are independently deployable containerized services communicating via message queues, not internal modules of a monolith. Dockerfile shows separate executable entrypoints, and docker-compose.yml orchestrates them as distinct services. This is genuine microservices, not a modular monolith."
+    },
+    {
+      "entry": "aspnetboilerplate.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Domain-Driven Design",
+        "Layered"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms the existing classification. The README explicitly documents all three styles: 'Modular Design' with module system infrastructure, 'Layered Architecture' with NLayer diagram, and 'Domain Driven Design' as the foundation. The directory structure under test/Abp.ZeroCore.SampleApp demonstrates the layered pattern (Core/, Application/, EntityFramework/, Authorization/). The NuGet package structure (Abp.*, Abp.Zero.*, Abp.AspNetCore.*) confirms the modular monolith approach - composable modules deployed as a single unit."
+    },
+    {
+      "entry": "autogen.yaml",
+      "verdict": "classified",
+      "validation_verdict": "upgraded",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Multi-Agent",
+        "Event-Driven",
+        "Modular Monolith"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms Multi-Agent and Modular Monolith classification, and provides strong evidence for upgrading to include Event-Driven: proto files (cloudevent.proto, agent_worker.proto), explicit 'event-driven agents' description in README, topic-based pub/sub patterns in samples, and design docs for Topics and Agent Worker Protocol. The gRPC distributed runtime and CloudEvents integration demonstrate robust event-driven architecture beyond simple message passing."
+    },
+    {
+      "entry": "aws-serverless-airline-booking.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Serverless",
+        "Event-Driven"
+      ],
+      "confidence": 0.75,
+      "validation_notes": "Previous classification was 'Indeterminate'. Deep context (README with detailed stack description and architecture diagram) provides sufficient evidence to classify as Serverless with Event-Driven patterns. Step Functions + SNS messaging confirms event-driven communication between Booking and Loyalty services. Confidence limited to 0.75 because source code is not on main branch (archive branch only)."
+    },
+    {
+      "entry": "AxonFramework.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Event-Driven",
+        "CQRS",
+        "Domain-Driven Design",
+        "Modular Monolith"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context strongly confirms the existing classification. The framework is both a library implementing these patterns AND internally structured according to them: messaging/ provides the event-driven foundation, eventsourcing/ and modelling/ implement CQRS/DDD building blocks, and the single multi-module Maven build with no distributed deployment configs reflects Modular Monolith organization at the framework level."
+    },
+    {
+      "entry": "azure-functions-host.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Serverless",
+        "Event-Driven",
+        "Pipe-and-Filter"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms the existing classification. The source structure shows: (1) 870 source files in src/ implementing the serverless runtime; (2) Rpc/ directory for out-of-process worker communication confirming the gRPC worker protocol; (3) Middleware/ directories in both source and tests confirming the pipeline architecture; (4) Integration test directories for EventHubs, CosmosDB, Storage showing event-driven trigger implementations. The three-style classification correctly describes different architectural layers: Serverless (deployment/execution model), Event-Driven (trigger/communication model), and Pipe-and-Filter (internal request processing model)."
+    },
+    {
+      "entry": "cal.com.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Deep context from README confirms Modular Monolith as primary style: single Next.js application, Docker Compose for local orchestration, single PostgreSQL database with Prisma ORM, and monorepo structure (apps/packages) with 120 internal packages. Event-Driven is confirmed as secondary style via RabbitMQ messaging infrastructure (15 signals). The absence of Kubernetes/Helm, API gateway config, or service discovery rules out full microservices. Classification matches existing assessment."
+    },
+    {
+      "entry": "camel.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Multi-Agent",
+        "Modular Monolith"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Deep context confirms both styles: Multi-Agent is evidenced by camel/societies/role_playing.py, camel/societies/workforce/, and the explicit agent role definitions throughout the codebase. Modular Monolith is confirmed by the single pyproject.toml package structure with well-organized internal modules (agents, models, toolkits, storages, memories, interpreters, environments). The catalog correctly identified that Docker/OpenAPI signals are for tooling and demos, not microservices topology."
+    },
+    {
+      "entry": "chatwoot.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Previous classification was 'Indeterminate' at 0.72 confidence. Deep context confirms this is a well-organized Rails modular monolith with clear structural signals: single deployable unit (one Dockerfile), shared database, Sidekiq workers in same codebase, and domain-organized modules (channels, integrations). The event-driven signals (dispatchers, pubsubable concern) are supporting patterns for background jobs, not a primary architectural style."
+    },
+    {
+      "entry": "clean-architecture-dotnet.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Hexagonal Architecture",
+        "CQRS",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Previous classification was 'Indeterminate' but deep context reveals clear multi-style architecture: 3 independently deployable microservices with API gateway, hexagonal layering per service (AppCore isolated from Api/Infrastructure), explicit Commands/Queries separation with MediatR, and DDD patterns including value objects, specifications, and domain events. The catalog metadata already correctly identified all 4 styles but the verdict was incorrectly set to Indeterminate."
+    },
+    {
+      "entry": "clean-architecture-example.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Hexagonal Architecture"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Previous classification was 'Indeterminate' because LLM review lacked cloned repo access. With deep context, the architecture is unambiguous: the directory structure (core/dataproviders/entrypoints/configuration), README documentation, and source file organization clearly demonstrate Hexagonal Architecture with Clean Architecture naming conventions. This is a textbook implementation."
+    },
+    {
+      "entry": "clean-architecture-manga.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Hexagonal Architecture",
+        "Domain-Driven Design",
+        "Modular Monolith"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context fully confirms the existing classification. The source structure at accounts-api/src/ shows textbook Hexagonal Architecture with four explicit layers (Domain, Application, Infrastructure, WebApi) each as separate .csproj projects compiled into one deployable. DDD patterns are evident in Domain/ValueObjects/, Domain/Credits/, Domain/Debits/, and repository interfaces. The single WebApi Dockerfile and docker-compose configuration confirm Modular Monolith deployment pattern. Previous classification was accurate; confidence upgraded from 0.82 to 0.95 based on direct source evidence."
+    },
+    {
+      "entry": "CQRSlite.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "CQRS",
+        "Event-Driven",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Deep context confirms the existing classification. The directory structure explicitly shows CQRS with separate Commands/ and Queries/ directories, Event-Driven with Events/ containing IEventPublisher and IEventStore interfaces, and DDD concepts with Domain/ containing AggregateRoot, Repository pattern, and Session for aggregate tracking. The Sample application demonstrates the full architectural pattern in action with WriteModel/ReadModel separation."
+    },
+    {
+      "entry": "crewAI.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Multi-Agent",
+        "Pipe-and-Filter",
+        "Modular Monolith"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context strongly confirms the existing classification. The README explicitly frames CrewAI as a multi-agent orchestration framework with autonomous agents, crews, role-based collaboration, and task delegation. The sequential/hierarchical process patterns and Flows feature validate Pipe-and-Filter as a secondary style. The single PyPI package deployment with organized internal modules (lib/ with 1003 Python files) without microservices infrastructure confirms Modular Monolith. Confidence increased from 0.82 to 0.92 due to explicit architectural documentation in README and clear structural evidence in the codebase."
+    },
+    {
+      "entry": "ddd-forum.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Domain-Driven Design",
+        "Hexagonal Architecture"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Previous classification was 'Indeterminate' at 0.75 confidence with only catalog metadata. Deep context from source code provides definitive evidence: src/modules/ structure confirms Modular Monolith, src/shared/domain/ base classes and module-level domain/ directories confirm DDD tactical patterns, and the layered structure within each module (domain/useCases/repos/infra) confirms Hexagonal Architecture. README explicitly describes Clean Architecture + DDD with two subdomains, which the code structure fully validates."
+    },
+    {
+      "entry": "dify.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms the existing classification. The presence of multiple independent Dockerfiles (api/Dockerfile, web/Dockerfile), separate service codebases (api/ with 2687 Python files, web/ with 6959 TS/TSX files), Makefile targets treating web and api as separate deployable units, and docker-compose for orchestration all strongly support Microservices. Event-Driven is confirmed by RabbitMQ as a key technology and the architectural pattern of async task processing between api and worker services typical of LLM platforms."
+    },
+    {
+      "entry": "directus.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Previous classification was 'Indeterminate' based on metadata review, but deep context provides clear structural evidence: single Dockerfile producing one deployable artifact, pnpm workspace monorepo with well-defined package boundaries (api/app/sdk/directus), and no service discovery infrastructure. The 39 package manifests and 3 container orchestration signals correctly indicated monorepo structure\u2014now confirmed by actual Dockerfile and directory structure showing modular monolith with layered internal organization."
+    },
+    {
+      "entry": "discourse.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context strongly confirms the existing classification. The plugins/ directory with ~9800 files is definitive evidence of modular boundaries within a single deployable unit. The Rails MVC structure (app/models, app/mailers, app/queries) confirms Layered as secondary style. No evidence of microservices (no container orchestration, no service discovery) or other architectural patterns."
+    },
+    {
+      "entry": "dotnet-starter-kit.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Domain-Driven Design",
+        "Event-Driven"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms all three styles identified in the original classification. The directory structure clearly shows: (a) Modular Monolith with module loader pattern in `src/Modules/` and architecture guardrails tests; (b) DDD with domain primitives in `Core/Domain/` and bounded context modules; (c) Event-Driven with RabbitMQ implementation and outbox pattern in `BuildingBlocks/Eventing/`. Confidence increased from 0.72 to 0.92 due to structural evidence in source files."
+    },
+    {
+      "entry": "dragonfly.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Space-Based"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Deep context confirms Space-Based classification. The README explicitly states Dragonfly uses 'shared-nothing architecture' with keyspaces partitioned into shards per thread - a hallmark of Space-Based in-memory data grids. The src/ structure (532 C/C++ files) shows a single high-performance binary, not microservices. The heuristic candidate of Microservices (score 0.8) correctly reflects container/K8s deployment infrastructure but misidentifies it as service decomposition - this is vertical scaling via threading, not horizontal service distribution."
+    },
+    {
+      "entry": "e2b.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Previous classification incorrectly conflated this SDK repository with the separate infrastructure repository. The Kafka/RabbitMQ signals detected were likely documentation references, not actual configuration in this codebase. This repo is a library/SDK monorepo with a frontend web app, not the microservices backend itself."
+    },
+    {
+      "entry": "elasticsearch.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered",
+        "Pipe-and-Filter"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms the existing classification. The Dockerfiles (default, wolfi, cloud_ess_fips, ironbank) all show a SINGLE deployment artifact (elasticsearch.tar.gz) extracted into a single container image with unified bin/, config/, modules/, plugins/ structure. The 520 package manifests indicate a large multi-module Gradle project with self-contained subsystems. No service discovery, API gateway configs, or multiple service Dockerfiles present - ruling out Microservices. The Kafka/RabbitMQ signals (17) are confirmed as test fixtures (test/fixtures/ directory) not core architecture. The analysis plugins confirm Pipe-and-Filter for text processing pipelines."
+    },
+    {
+      "entry": "erxes.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms Microservices and Event-Driven but refutes Modular Monolith classification. Each backend plugin (sales_api, payment_api, etc.) has its own Dockerfile and is independently deployable via GraphQL Federation\u2014this is a distributed microservices architecture, not a monolith. A modular monolith would have a single deployable unit with internal module boundaries. The README explicitly describes 'microservices architecture' with GraphQL Federation and Apollo Router as API Gateway. Removed Modular Monolith from classification."
+    },
+    {
+      "entry": "eShop.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven",
+        "Domain-Driven Design",
+        "CQRS"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms all four architecture styles. The directory structure and test organization provide clear evidence: service boundaries with independent tests (microservices), integration event infrastructure (event-driven), domain aggregates and seed work (DDD), command handlers in application layer (CQRS). The existing classification was accurate."
+    },
+    {
+      "entry": "eShopOnWeb.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered",
+        "Hexagonal Architecture",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Previous classification was 'Indeterminate' at 0.75 confidence. Deep context confirms this is definitively a Layered architecture (Web/ApplicationCore/Infrastructure projects), with Hexagonal Architecture dependency inversion (ApplicationCore defines interfaces, Infrastructure implements), and DDD tactical patterns (aggregates, IAggregateRoot, Specifications/, repository pattern). The heuristic false positives for Microservices (Docker) and Event-Driven (Kafka mention) are now clearly explained - this is a monolith with two presentation frontends, not microservices. The 'Modular Monolith' tag in catalog metadata should be corrected to 'Hexagonal Architecture' as the structure is layer-based with dependency inversion, not module-based."
+    },
+    {
+      "entry": "eureka.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "EventSourcing.NetCore.yaml",
+      "verdict": "classified",
+      "validation_verdict": "downgraded",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Event-Driven",
+        "CQRS",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms Event-Driven, CQRS, and DDD classification. However, Microservices should be removed as a primary style: this is an educational/showcase repository containing multiple independent sample projects and workshops (Workshops/, Sample/ = 1967 files combined), not a single microservices system. The docker-compose.yml provides infrastructure for tutorials, not orchestrated microservices deployment. Kafka topics (Carts, Orders, Payments, Shipments) and multiple Dockerfiles (Helpdesk.Api, Tickets.Api) are demonstration artifacts, not evidence of a cohesive microservices architecture."
+    },
+    {
+      "entry": "EventStore.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Event-Driven",
+        "CQRS",
+        "Modular Monolith"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms all three styles from the existing classification. The repository structure shows a single deployable unit (KurrentDB.dll from Dockerfile) with internal module boundaries (multiple .csproj projects, plugin system). The Event-Driven nature is inherent to the product identity as an event database. CQRS is evidenced by the projections subsystem (docs/server/features/projections) providing read models separate from the append-only write path. The previous confidence of 0.75 is upgraded to 0.92 based on clear structural signals in the source code."
+    },
+    {
+      "entry": "eventuate-tram-core.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Event-Driven",
+        "Modular Monolith"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms Event-Driven as primary style (messaging modules, multiple broker implementations, command/event abstractions) and Modular Monolith as secondary (50+ cohesive Gradle modules organized by domain concern). The framework enables these architectures rather than demonstrates them as an application, but the structural patterns are clearly present and architecturally intentional."
+    },
+    {
+      "entry": "forem.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered",
+        "Event-Driven"
+      ],
+      "confidence": 0.78,
+      "validation_notes": "Deep context confirms the existing classification: single Dockerfile/docker-compose setup validates monolith deployment; namespaced model directories (articles/, users/, settings/) and domain-organized queries demonstrate modular internal structure; Sidekiq+Redis provides event-driven async processing. The original RabbitMQ reference appears to be an error - the actual implementation uses Sidekiq/Redis for background jobs, but this still supports event-driven classification at the application level."
+    },
+    {
+      "entry": "full-stack-fastapi-template.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered",
+        "Service-Based"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms Layered + Service-Based classification. The backend exhibits clear horizontal layering (api/routes \u2192 crud \u2192 models), and the system comprises exactly 2 application services (backend, frontend) sharing a database with Docker Compose orchestration \u2014 matching Service-Based definition of 2-5 coarse-grained services. Previous heuristic_candidates score of 0.5 for Microservices was correctly identified as a false positive from Docker presence alone."
+    },
+    {
+      "entry": "geode.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Space-Based",
+        "Event-Driven",
+        "Modular Monolith"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context confirms the existing classification. Apache Geode is a canonical implementation of Space-Based Architecture - the upstream of Pivotal GemFire, one of the original space-based systems. Event-Driven is confirmed by explicit CacheListener/CacheWriter/AsyncEventQueue subsystems in geode-cq/ and geode-wan/ modules. Modular Monolith is confirmed by 35+ Gradle submodules (geode-core, geode-wan, geode-cq, geode-lucene, geode-membership, etc.) all building into a single deployable server artifact."
+    },
+    {
+      "entry": "ghostfolio.yaml",
+      "verdict": "classified",
+      "validation_verdict": "downgraded",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith"
+      ],
+      "confidence": 0.82,
+      "validation_notes": "Removed Event-Driven from the classification because RabbitMQ is not mentioned anywhere in the README technology stack (which explicitly lists PostgreSQL, Prisma, Redis, NestJS, Angular). Redis is used for caching, not event messaging. The original catalog metadata appears to have been incorrect about RabbitMQ being a key technology. Modular Monolith classification is confirmed by single-deployable structure with internal module boundaries."
+    },
+    {
+      "entry": "gitlabhq.yaml",
+      "verdict": "classified",
+      "validation_verdict": "downgraded",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Removing CQRS from classification - the 1,057 API specs and presence of both GraphQL and REST APIs do not constitute CQRS architecture. CQRS requires explicit command/query model separation (commands/, queries/ directories, command handlers, query handlers, mediator pattern), which is not visible in the directory structure. Modular Monolith and Event-Driven remain supported by the Rails monolith structure and Sidekiq background job processing respectively. Dockerfile in qa/ is for E2E testing, not microservices deployment."
+    },
+    {
+      "entry": "go-backend-clean-architecture.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Hexagonal Architecture"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Existing classification listed both 'Hexagonal Architecture' and 'Modular Monolith'. Deep context confirms Hexagonal Architecture is correct but contradicts Modular Monolith - there are no module boundaries (no `modules/` or self-contained feature modules). This is a traditional layered monolith with hexagonal/clean architecture principles, not a modular monolith which requires explicit module separation within the monolith. Removed 'Modular Monolith' from styles."
+    },
+    {
+      "entry": "go-clean-arch.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Hexagonal Architecture",
+        "Layered"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms Hexagonal Architecture + Layered classification. The directory structure clearly shows dependency inversion: domain entities (innermost) \u2192 service/use cases \u2192 repository adapters \u2192 delivery layer. The v4 evolution notes 'Declare Interfaces to the consuming side' is a hallmark of hexagonal architecture. Single deployable (one Dockerfile) with well-defined internal module boundaries confirms this is not microservices but a well-structured monolithic application following Clean Architecture principles."
+    },
+    {
+      "entry": "go-clean-template.yaml",
+      "verdict": "classified",
+      "validation_verdict": "downgraded",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Hexagonal Architecture"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms Hexagonal Architecture with high confidence based on clear ports-and-adapters structure with dependency inversion (business logic in usecase/ depends only on interface contracts, not concrete implementations). Previous Event-Driven classification removed because RabbitMQ and NATS are explicitly used for Request-Reply RPC patterns per README ('AMQP RPC based on RabbitMQ as transport and Request-Reply pattern', 'MQ RPC based on NATS as transport and Request-Reply pattern'), not event-driven pub/sub or event sourcing patterns. No event handlers, domain event classes, or pub/sub pattern implementations exist in the codebase. The multiple communication protocols are inbound adapters in Hexagonal architecture, not event-driven event handlers."
+    },
+    {
+      "entry": "go-micro.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms the existing classification. The broker/ directory contains RabbitMQ and NATS implementations confirming Event-Driven capabilities. The registry/, selector/, client/, server/, and transport/ directories confirm Microservices infrastructure with service discovery, load balancing, and pluggable communication. The README explicitly describes microservices features (service discovery, load balancing, RPC client/server) and event-driven support (async messaging, pub/sub). The framework architecture itself uses hexagonal/pluggable interfaces, but it represents and enables Microservices + Event-Driven patterns."
+    },
+    {
+      "entry": "IDDD_Samples.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Domain-Driven Design",
+        "Hexagonal Architecture",
+        "Event-Driven",
+        "Modular Monolith"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context confirms all 4 classified styles: DDD (bounded contexts as separate module directories), Hexagonal (README mentions ports/adapters separation, common module provides infrastructure adapters), Event-Driven (RabbitMQ integration explicitly documented), Modular Monolith (single Gradle build.gradle, no Kubernetes/docker-compose for service orchestration). README additionally confirms CQRS and Event Sourcing in iddd_collaboration module, which are DDD tactical patterns implemented within the bounded context."
+    },
+    {
+      "entry": "ignite.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Space-Based",
+        "Event-Driven",
+        "Modular Monolith"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms the existing classification. Apache Ignite IS a Space-Based architecture implementation - it provides the canonical in-memory data grid, distributed processing units, tuple-space semantics (via IgniteCache and data structures), and virtualized middleware. The 13,470 files under modules/ with single root pom.xml confirm Modular Monolith internal structure. The messaging.adoc, Kafka integration in test Dockerfiles, and data streaming documentation confirm Event-Driven patterns. All three styles are accurately identified and complementary."
+    },
+    {
+      "entry": "infinispan.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Space-Based",
+        "Modular Monolith",
+        "Event-Driven"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms the existing classification. Infinispan is the canonical example of Space-Based architecture - it IS a distributed in-memory data grid product. The modular Maven structure with 30+ submodules deployed as a single server unit confirms Modular Monolith. Event-driven patterns are present in cluster communication (JGroups) and cache event listeners. The catalog classification was accurate."
+    },
+    {
+      "entry": "jellyfin.yaml",
+      "verdict": "error",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "lambda-api.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Previous classification as 'Serverless' was incorrect because this is a framework *for building* serverless applications, not a serverless application itself. The repository is a Node.js npm package/library with no application architecture to classify."
+    },
+    {
+      "entry": "letta.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "library.yaml",
+      "verdict": "classified",
+      "validation_verdict": "upgraded",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Domain-Driven Design",
+        "Hexagonal Architecture",
+        "Event-Driven",
+        "CQRS"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms the existing DDD + Event-Driven + Modular Monolith classification and adds Hexagonal Architecture (explicitly documented for the lending bounded context with ArchUnit tests ensuring domain model isolation from infrastructure) and CQRS (explicitly mentioned for Patron Profiles and Daily Sheets read/write model separation). The README is remarkably explicit about all architecture decisions, including code examples for event publishing strategies and ArchUnit rules for enforcing hexagonal boundaries."
+    },
+    {
+      "entry": "llama_index.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The directory tree shows this is a monorepo containing multiple Python packages (llama-index-core, llama-index-integrations/*, llama-index-packs/*) each with their own pyproject.toml\u2014clear evidence of a library/SDK ecosystem, not an application. The Makefile shows build/test commands for packages, not deployment commands. No application architecture patterns are applicable to a framework that exists to be consumed as a dependency by other applications."
+    },
+    {
+      "entry": "mastodon.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven",
+        "Service-Based"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms the existing classification. The docker-compose.yml clearly shows a Rails monolith (web service), a separate streaming service (Node.js), and Sidekiq workers\u2014all sharing PostgreSQL and Redis. The presence of streaming/Dockerfile confirms intentional service decomposition. The Rails app has rich domain modeling (app/models/ with Account, Status, User, etc.) consistent with Modular Monolith. Redis + Sidekiq confirms Event-Driven background processing. The 2-service decomposition (web + streaming) fits Service-Based (not Microservices due to shared database and low service count)."
+    },
+    {
+      "entry": "mattermost.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Previous classification as Microservices was incorrect. The README explicitly states the system 'runs as a single Linux binary' with PostgreSQL. The Dockerfile confirms single-container deployment. The services directory (server/platform/services/) contains internal modules within the monolith, not independently deployable microservices. Event-Driven was removed as no RabbitMQ/message broker configuration was found in deep context. Layered architecture is evident from server/platform/shared/ and server/platform/services/ separation."
+    },
+    {
+      "entry": "maybe.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Previous classification as 'Modular Monolith + Layered' overstated the architecture. While models show domain namespacing (account/, balance/, transaction/ subdirectories), these are support classes organized by domain concern, not true module boundaries. A Modular Monolith requires explicit modules/ directory with self-contained vertical slices each having their own layers, internal event bus, and module-scoped schemas. The deep context confirms this is standard Rails Layered architecture with well-organized domain models\u2014a single deployable unit following MVC conventions without true modular boundaries."
+    },
+    {
+      "entry": "medusa.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "n8n.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven",
+        "Pipe-and-Filter"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms all three styles: the monorepo structure (pnpm-workspace.yaml), single deployment artifact (one main Dockerfile), and multiple internal packages strongly validate Modular Monolith. The task runner architecture with separate JavaScript and Python execution environments confirms the Event-Driven execution backbone. Pipe-and-Filter is intrinsic to n8n's workflow engine nature - every workflow IS a pipeline of transforming nodes."
+    },
+    {
+      "entry": "nats-server.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "The existing classification showed 'Indeterminate' but the deep context clearly reveals a Modular Monolith + Event-Driven architecture. Single Go module + single Dockerfile confirm monolithic deployment. Internal modular boundaries are visible through: (a) naming conventions grouping related functionality (jetstream*, mqtt*, raft*), (b) sub-packages for isolated concerns (server/certstore/, server/pse/, server/sysmem/), and (c) separate top-level packages (logger/, internal/). NATS is itself an event-driven messaging infrastructure, with native pub/sub and JetStream event streaming embodied in server/events.go, server/stream.go, server/consumer.go. Confidence increased from 0.72 to 0.88 with source-level verification."
+    },
+    {
+      "entry": "nest.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Previous classification as Modular Monolith incorrectly treated the framework monorepo structure as an application architecture. Frameworks and libraries are explicitly excluded from classification per guidance: 'Libraries/SDKs (not applications with architecture)'. The monorepo package organization serves framework distribution purposes, not application modularity."
+    },
+    {
+      "entry": "nextflow.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "nocodb.yaml",
+      "verdict": "needs_info",
+      "validation_verdict": "error",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": ""
+    },
+    {
+      "entry": "nopCommerce.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered",
+        "Event-Driven",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Previous classification was marked 'Indeterminate' but deep context clearly confirms the architecture. The plugin architecture under src/Plugins/ is a textbook Modular Monolith pattern - each plugin is a self-contained module with its own layers, compiled into a single deployable unit. The Dockerfile confirms single-entry deployment via Nop.Web.dll. Layered structure is evident in the Controllers/Services/Domain/Infrastructure pattern within each plugin. Event-Driven is supported by the 64 messaging signals and RabbitMQ integration noted in catalog metadata."
+    },
+    {
+      "entry": "NorthwindTraders.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Hexagonal Architecture",
+        "CQRS",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Previous classification as 'Indeterminate' with heuristic candidates at 0.4 was incorrect. Deep context reveals explicit Clean Architecture intent stated in README and confirmed by source structure. The repository is a textbook example of Hexagonal Architecture (Clean Architecture) with CQRS - the Application layer systematically separates Commands and Queries for each domain area. Previous heuristic scoring failed because it relied on directory name matching without understanding the architectural significance of the Commands/Queries separation pattern."
+    },
+    {
+      "entry": "NServiceBus.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Pipe-and-Filter",
+        "Hexagonal Architecture"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Previous classification was 'Indeterminate' but deep context reveals clear architectural patterns: Pipe-and-Filter is the core message processing model (behaviors chain through pipeline stages), and Hexagonal Architecture enables pluggable transports/serialization via well-defined ports and adapters. The catalog's Event-Driven classification describes what NServiceBus enables in consumer applications, not its internal architecture."
+    },
+    {
+      "entry": "openproject.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered",
+        "Modular Monolith"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms the existing classification. The `modules/` directory with 6584 files (Ruby, YAML, ERB) provides strong evidence of modular organization within the monolith. The `app/` structure shows classic Rails layered architecture. Single Dockerfile and docker-compose configuration confirm single deployable unit, not microservices. RabbitMQ signal from catalog was misleading - docker-compose shows good_job for background jobs, not event-driven architecture."
+    },
+    {
+      "entry": "orbit.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Service-Based"
+      ],
+      "confidence": 0.8,
+      "validation_notes": "Previous classification as 'Microservices' was incorrect. Deep context reveals Orbit is a Virtual Actor framework (like Microsoft Orleans), not a business application with microservices. The Helm charts deploy 3 coarse-grained infrastructure services (server, node-directory, addressable-directory) from a single deployable (orbit-application-fat.jar), which matches Service-Based architecture pattern (2-5 coarse-grained services), not Microservices."
+    },
+    {
+      "entry": "OrchardCore.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Previous classification was 'Indeterminate' with 0.78 confidence, but deep context clearly confirms Modular Monolith as primary style with Event-Driven and DDD as secondary styles. The Dockerfile proves single deployment, README explicitly states modular architecture, and module structure aligns with domain boundaries."
+    },
+    {
+      "entry": "outline.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Deep context confirms the existing classification. The single Dockerfile deploying `build/server/index.js`, docker-compose provisioning only infrastructure (not services), and the clear modular separation (app/server/shared/plugins) strongly support Modular Monolith. RabbitMQ presence and EventsStore confirm Event-Driven patterns. The 0.72 confidence was conservative given the clear structural evidence."
+    },
+    {
+      "entry": "pipeline.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Pipe-and-Filter",
+        "Microservices"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms the existing classification. The cmd/ directory explicitly shows four independent services (controller, webhook, resolvers, events), each with its own main.go entrypoint and Kubernetes deployment config. The CRD definitions in config/300-crds/ (pipeline.yaml, task.yaml, pipelinerun.yaml, taskrun.yaml) provide concrete evidence of the pipe-and-filter abstraction where Steps\u2192Tasks\u2192Pipelines form the canonical transformation chain. The 92 api_specs signals from discovery correspond to these OpenAPI-annotated CRD schemas. Both styles are strongly supported by source structure."
+    },
+    {
+      "entry": "protoactor-go.yaml",
+      "verdict": "classified",
+      "validation_verdict": "downgraded",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Multi-Agent",
+        "Event-Driven"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms Multi-Agent and Event-Driven but rejects Microservices classification. Protoactor-go is a framework/library enabling actor-based architectures, not a microservices application. The actor model (autonomous entities communicating via messages) IS multi-agent architecture. The k8s/consul/etcd cluster providers enable distributing actors across nodes, but actors aren't independently deployable services\u2014they're lightweight concurrent entities within shared deployments. Microservices implies service-level boundaries and independent deployment; actor clustering provides distributed concurrency, not microservices. Evidence: single go.mod at root, examples/ contains demonstration apps rather than independent services, cluster/ provides actor placement not service orchestration."
+    },
+    {
+      "entry": "qdrant.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered"
+      ],
+      "confidence": 0.78,
+      "validation_notes": "Previous classification was 'Indeterminate' with moderate confidence. Deep context confirms Layered architecture: monolithic single-service deployment with API\u2192Service\u2192Storage layering typical of database engines. The Microservices heuristic score of 0.8 was correctly identified as a false positive\u2014multiple API specs represent a single service's dual interfaces (REST + gRPC), not multiple services."
+    },
+    {
+      "entry": "rabbitmq-server.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Previous classification incorrectly applied 'Event-Driven' because the domain is 'Messaging'. RabbitMQ is the message broker infrastructure itself - it facilitates event-driven communication for other applications but its own architecture is Erlang/OTP with plugins, not an event-driven application pattern. Infrastructure/middleware software should not be forced into application architecture style classifications."
+    },
+    {
+      "entry": "redis.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms Modular Monolith classification. The Makefile explicitly shows compilation into a single binary from src/ (with optional modules/), and the source structure shows 639 files in src/ compiled as one unit. The well-documented internal subsystems (networking/ae.c, persistence/rdb.c+aof.c, clustering/cluster.c, replication.c, type handlers/t_*.c) represent clear module boundaries within a single deployable. No evidence of microservices (no per-service Dockerfiles, no k8s manifests), no service discovery, no API gateway. The previous confidence of 0.72 was conservative; structural evidence strongly supports 0.92."
+    },
+    {
+      "entry": "saleor.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Previous 'Service-Based' classification incorrectly interpreted the broader Saleor ecosystem (3 separate repos: saleor, saleor-dashboard, storefront) as a single service-based architecture. This repository contains only one deployable unit - a Django monolith. The Django app structure (order/, webhook/, etc.) represents modular boundaries within a single application, making it a Modular Monolith with Layered internal organization."
+    },
+    {
+      "entry": "sample-spring-microservices-new.yaml",
+      "verdict": "classified",
+      "validation_verdict": "reclassified",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Previous classification as 'Indeterminate/Modular Monolith' was incorrect. Deep context reveals this is a textbook Microservices architecture: 6 independently deployable services, API Gateway pattern (gateway-service), Service Discovery (discovery-service with Eureka), centralized configuration (config-service), and business services (employee/department/organization) that communicate via OpenFeign. The project name 'sample-spring-microservices-new' accurately describes its architecture. The automated discovery missed key signals because it counted Docker/container-orchestration but didn't recognize the Spring Cloud microservices patterns."
+    },
+    {
+      "entry": "self-hosted.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Deep context confirms the classification. The docker-compose.yml explicitly shows 15+ containerized services (smtp, memcached, redis, postgres, pgbouncer, kafka, sentry, snuba, clickhouse, symbolicator, relay, seaweedfs, nginx) with inter-service dependencies and health checks. Kafka configuration (confluentinc/cp-kafka:7.6.6) with DEFAULT_BROKERS pointing to kafka:9092 in snuba-defaults confirms Event-Driven pattern. The repository is a deployment packaging layer, not the application source, but still demonstrates valid microservices and event-driven architecture patterns."
+    },
+    {
+      "entry": "serverless-express.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing 'Indeterminate' classification. While the catalog metadata listed 'Serverless' as architecture_styles from automated discovery signals (SAM templates, Lambda references in examples), the actual repository is a library/adapter, not an application. The serverless architecture signals come from example projects demonstrating library usage, not from the library itself having architectural structure."
+    },
+    {
+      "entry": "shopware.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.88,
+      "validation_notes": "Deep context confirms the existing classification. The single monolithic src/ directory (12,923 files), Symfony framework foundation with bundle/plugin extensibility, combined with extensive event infrastructure (421 messaging signals, explicit event ADRs) and domain governance (144 ADRs, domain exception patterns) validates all three styles identified in the catalog metadata."
+    },
+    {
+      "entry": "spree.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Layered"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Deep context confirms the existing Layered classification. The repository structure clearly shows Rails MVC layering (controllers, models, views). Docker Compose provides development infrastructure (postgres, redis, mailpit) for a single monolithic web application, not microservices orchestration. The spree/ Rails Engine is packaged as a gem and mounted into the server/ application - this is Rails framework architecture, not separate deployable services. The absence of multiple Dockerfiles, service discovery, API gateways, or inter-service messaging confirms this is a monolithic Layered architecture."
+    },
+    {
+      "entry": "spring-petclinic-microservices.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices"
+      ],
+      "confidence": 0.95,
+      "validation_notes": "Deep context definitively confirms Microservices architecture. The docker-compose.yml shows multiple independently deployable services (customers-service, visits-service, vets-service, genai-service, api-gateway, config-server, discovery-server, admin-server) each as separate Docker containers. Spring Cloud Gateway provides API Gateway pattern, Eureka enables service discovery, and Spring Cloud Config centralizes configuration. Each service has its own Maven module (9 package manifests detected). This is a canonical Spring microservices reference implementation. Confidence upgraded from 0.8 to 0.95 based on comprehensive structural evidence from source files."
+    },
+    {
+      "entry": "strapi.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Layered"
+      ],
+      "confidence": 0.85,
+      "validation_notes": "Deep context confirms Modular Monolith classification. The repository structure shows a monorepo with internal packages (plugins, core modules), a unified test infrastructure (tests/ with cli, api, e2e subdirectories), and no microservices patterns (no Kubernetes, Docker Compose only for dev, no message brokers). Layered is added as secondary style due to typical MVC patterns in CMS frameworks (controllers/services pattern mentioned in catalog review_notes). The 60 package manifests signal combined with zero orchestration/messaging is the definitive signature of a modular monolith."
+    },
+    {
+      "entry": "temporal.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Microservices",
+        "Event-Driven"
+      ],
+      "confidence": 0.92,
+      "validation_notes": "Deep context confirms the catalog metadata classification. The existing classification showed 'Indeterminate' but the catalog metadata correctly identified Event-Driven + Microservices. Source structure confirms: (1) Microservices - multiple service directories in ./service/, Docker deployment artifacts, gRPC inter-service communication via 52 proto files; (2) Event-Driven - Kafka-based event store, event sourcing pattern for workflow durability, chasm/ component for event-driven state machines. The workflow orchestration domain inherently requires both patterns."
+    },
+    {
+      "entry": "traefik.yaml",
+      "verdict": "classified",
+      "validation_verdict": "confirmed",
+      "override_decision": "auto-accept",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Deep context confirms Modular Monolith classification. Dockerfile shows single binary deployment (COPY ./dist/$TARGETPLATFORM/traefik). Makefile builds from single entry point (./cmd/traefik). The pkg/ directory contains modular packages (providers, middleware, routing) within a single deployable unit. Previous classification correctly identified this as a single Go application with internal modularity, not microservices."
+    },
+    {
+      "entry": "zammad.yaml",
+      "verdict": "classified",
+      "validation_verdict": "promoted",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Modular Monolith",
+        "Event-Driven",
+        "Domain-Driven Design"
+      ],
+      "confidence": 0.82,
+      "validation_notes": "Previous 'Indeterminate' classification was overly conservative. Deep context clearly shows: single deployable unit (one Dockerfile, Rails monolith), modular domain organization in app/models/ with subdirectories for each bounded context, and event-driven patterns via triggers_subscriptions.rb and transaction/ handlers. The catalog metadata already identified these styles; source structure confirms them."
+    },
+    {
+      "entry": "Zappa.yaml",
+      "verdict": "unclassifiable",
+      "validation_verdict": "confirmed",
+      "override_decision": "defer",
+      "existing_styles": "",
+      "new_styles": [],
+      "confidence": 0,
+      "validation_notes": "Deep context confirms the existing classification. The previous review correctly identified that Zappa is a library/tool, not a deployable application with architecture patterns. The directory structure shows a typical Python library layout (source module, tests, example, docs) rather than any architectural style like microservices, hexagonal, or layered architecture."
+    },
+    {
+      "entry": "zuul.yaml",
+      "verdict": "classified",
+      "validation_verdict": "downgraded",
+      "override_decision": "flag-for-review",
+      "existing_styles": "",
+      "new_styles": [
+        "Pipe-and-Filter"
+      ],
+      "confidence": 0.9,
+      "validation_notes": "Deep context confirms Pipe-and-Filter as the definitive architectural pattern - the ZuulFilter chain is Zuul's core mechanism for request processing. Service-Based classification removed because Zuul is a framework/library, not an application composed of 2-5 coarse-grained services. The repository structure (zuul-core, zuul-discovery, zuul-processor, zuul-sample) represents build modules of a single framework, not independently deployable services."
+    }
+  ]
+}

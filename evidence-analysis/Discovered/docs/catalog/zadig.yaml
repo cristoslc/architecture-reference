@@ -1,58 +1,54 @@
 project_name: zadig
 source: Discovered
-source_url: "https://github.com/koderover/zadig"
-project_url: "https://github.com/koderover/zadig"
+source_url: https://github.com/koderover/zadig
+project_url: https://github.com/koderover/zadig
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:24:07Z"
+discovered_at: '2026-03-04T06:24:07Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: DevOps
 language: Go
-languages:
-
+languages: null
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - Domain-Driven Design
+- Microservices
+- Event-Driven
 key_technologies:
-  - Node.js
-  - Go modules
-  - Maven
-  - Gradle
-  - Python/pip
-  - .NET
-  - Docker
-  - Kubernetes
-  - RabbitMQ
-  - gRPC
-  - GitHub Actions
+- Node.js
+- Go modules
+- Maven
+- Gradle
+- Python/pip
+- .NET
+- Docker
+- Kubernetes
+- RabbitMQ
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
+- Scalability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go project exhibiting Microservices, Event-Driven, Domain-Driven Design patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Cloud-native DevOps platform with multiple independently deployable
+  microservices communicating via event-driven patterns with RabbitMQ
 discovery_metadata:
-  confidence: 0.9
+  confidence: 0.88
   signals_detected: 159
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 0.8
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 0.8
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Microservices
+    score: 0.8
+  - style: Event-Driven
+    score: 0.6
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 23
     container_orchestration: 129
@@ -64,3 +60,11 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 1
+review_notes: 'Evidence: cmd/ directory contains 16 separate service entry points
+  (aslan, cron, executor, hub-agent, hub-server, init, jenkins-plugin, packager-plugin,
+  predator-plugin, ua, user, warpdrive, zadig-agent, zgctl, reaper, jobexecutor);
+  docker/ directory contains 18 dedicated Dockerfiles for each service; Makefile explicitly
+  defines MICROSERVICE_TARGETS list; RabbitMQ listed in key_technologies; hub-server/hub-agent
+  service naming pattern suggests event hub architecture; pkg/microservice/ structure
+  confirmed by Makefile swag commands showing service-level organization'
+review_required: false

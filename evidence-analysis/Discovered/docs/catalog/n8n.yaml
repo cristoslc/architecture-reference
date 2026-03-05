@@ -35,14 +35,14 @@ notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
 one_line_summary: n8n is a workflow automation platform built as a modular monolith
-  with event-driven execution and a pipe-and-filter processing model for workflow
-  nodes
+  with event-driven task execution and an intrinsic pipe-and-filter processing model
+  for workflow nodes
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.88
   signals_detected: 152
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.75
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -62,15 +62,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence from catalog and public knowledge: (1) Modular Monolith —
-  n8n is a well-known monorepo (single deployable unit) with internal packages for
-  core, nodes, cli, editor-ui etc., high package_manifest count (65) consistent with
-  a monorepo of internal modules rather than independently deployed microservices;
-  (2) Pipe-and-Filter — the core product is a workflow engine where data flows through
-  a sequence of nodes (filters/transformers), which is textbook pipe-and-filter; (3)
-  Event-Driven — Kafka and RabbitMQ are listed as key technologies and n8n supports
-  queue-mode execution with workers consuming job events, giving it an event-driven
-  execution backbone; Microservices score of 0.5 is not high enough given single-deployment
-  nature of the core product; DDD score of 0.3 is low and not corroborated by directory
-  signals; 152 signals detected with strong CI/CD (58) and package manifests (65)
-  further support a large but cohesive monorepo codebase.'
+review_notes: 'Evidence: (1) Modular Monolith - pnpm-workspace.yaml at root confirms
+  monorepo structure, single main Dockerfile (docker/images/n8n/Dockerfile) bundles
+  entire application into one deployment unit at /usr/local/lib/node_modules/n8n,
+  65 package manifests indicate internal packages not microservices; (2) Event-Driven
+  - Task runner Dockerfiles (docker/images/runners/) for JavaScript and Python runners
+  enable async sandboxed execution, catalog notes queue-mode with workers consuming
+  job events; (3) Pipe-and-Filter - n8n''s core function IS workflow automation where
+  data flows through sequential nodes (filters/transformers), this is the fundamental
+  processing model of the product'

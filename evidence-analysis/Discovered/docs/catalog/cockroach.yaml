@@ -1,64 +1,59 @@
 project_name: cockroach
 source: Discovered
-source_url: "https://github.com/cockroachdb/cockroach"
-project_url: "https://github.com/cockroachdb/cockroach"
+source_url: https://github.com/cockroachdb/cockroach
+project_url: https://github.com/cockroachdb/cockroach
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:10:15Z"
+discovered_at: '2026-03-04T06:10:15Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Database
 language: Go
-languages:
-
+languages: null
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - Pipe-and-Filter
+- Layered
 key_technologies:
-  - Node.js
-  - Go modules
-  - Maven
-  - Python/pip
-  - .NET
-  - Docker
-  - Kubernetes
-  - Docker Compose
-  - Terraform
-  - Kafka
-  - RabbitMQ
-  - OpenAPI
-  - gRPC
-  - GitHub Actions
+- Node.js
+- Go modules
+- Maven
+- Python/pip
+- .NET
+- Docker
+- Kubernetes
+- Docker Compose
+- Terraform
+- Kafka
+- RabbitMQ
+- OpenAPI
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
-  - Observability
+- Scalability
+- Deployability
+- Observability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Architecture diagrams (C4/PlantUML)
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Architecture diagrams (C4/PlantUML)
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go project exhibiting Microservices, Event-Driven, Pipe-and-Filter patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: CockroachDB is a distributed SQL database built as a single deployable
+  unit with modular internal layering (SQL, KV, storage, replication layers)
 discovery_metadata:
-  confidence: 1.0
+  confidence: 0.85
   signals_detected: 268
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 1.0
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 1.1
-    -
-      style: Event-Driven
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Microservices
+    score: 1.1
+  - style: Event-Driven
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 19
     container_orchestration: 39
@@ -70,3 +65,9 @@ discovery_metadata:
     test_structure: 3
     documentation: 1
     directory_structure: 3
+review_notes: 'Evidence: Single deployment binary in build/deploy/Dockerfile; pkg/
+  directory contains 18,000+ Go files organized in layers (pkg/sql, pkg/kv, pkg/storage,
+  pkg/roachpb); no multiple independent services; Raft consensus for replication not
+  event-driven messaging; distributed SQL processing exists but not as separate pipe-filter
+  architecture'
+review_required: false

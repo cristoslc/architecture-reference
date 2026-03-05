@@ -30,15 +30,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: dotnet/eShop is a .NET reference e-commerce application built with
-  microservices communicating via RabbitMQ events and gRPC, organized around domain-driven
-  bounded contexts with CQRS patterns
+one_line_summary: A .NET Aspire-based e-commerce reference application with microservices
+  architecture, event-driven communication via RabbitMQ, DDD bounded contexts (Catalog,
+  Ordering, Basket), and CQRS pattern within services
 discovery_metadata:
-  confidence: 0.78
+  confidence: 0.92
   signals_detected: 72
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.78
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -62,13 +62,10 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence from catalog: (1) RabbitMQ + gRPC as key technologies (39
-  messaging signals, 2 API specs) strongly indicates Event-Driven Microservices; (2)
-  25 package manifests suggest multiple independently deployable services each with
-  their own project/dependencies; (3) DDD score 0.4 and CQRS score 0.4 from heuristic
-  candidates align with the well-known dotnet/eShop reference architecture which explicitly
-  uses bounded contexts (Catalog, Ordering, Basket, Identity, Payment) and CQRS/MediatR
-  within services; (4) This is a well-known Microsoft reference application — the
-  dotnet/eShop repo is the successor to eShopOnContainers, which is publicly documented
-  as a microservices reference architecture using these exact patterns. Hexagonal
-  architecture signals (0.3) are weaker and not included as a primary style.'
+review_notes: 'Evidence: (1) Multiple service boundaries confirmed via test structure:
+  Catalog.FunctionalTests, Ordering.FunctionalTests/UnitTests, Basket.UnitTests; (2)
+  Event-driven infrastructure: src/IntegrationEventLogEF/ with EventStateEnum.cs,
+  IntegrationEventLogEntry.cs, IntegrationEventLogService.cs; src/EventBus/ directory;
+  (3) DDD aggregates: tests/Ordering.UnitTests/Domain/BuyerAggregateTest.cs, OrderAggregateTest.cs,
+  SeedWork/ directory; (4) CQRS: Application/Domain test separation, NewOrderCommandHandlerTest.cs,
+  SetStockRejectedOrderStatusCommandTest.cs, IdentifiedCommandHandlerTest.cs'

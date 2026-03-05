@@ -30,15 +30,15 @@ notable_gaps:
 - No architecture decision records found
 - No test infrastructure detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Sentry self-hosted deployment - a complex distributed observability
-  platform consisting of multiple independently deployed services (Python/Node.js)
-  communicating via message queues (Kafka, RabbitMQ) orchestrated with Docker Compose
+one_line_summary: Sentry self-hosted deployment packaging a distributed observability
+  platform with ~15+ services orchestrated via Docker Compose, using Kafka for event-driven
+  async processing
 discovery_metadata:
-  confidence: 0.8
+  confidence: 0.85
   signals_detected: 19
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.8
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -56,8 +56,9 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: container_orchestration=7 (strong), ci_cd=8 (GitHub Actions),
-  messaging=2 (Kafka+RabbitMQ). Sentry''s self-hosted version packages ~20+ services
-  (web, worker, cron, relay, clickhouse, kafka, redis, postgres, etc.) as Docker containers.
-  Event-driven architecture evident from Kafka/RabbitMQ for async task processing.
-  This is not a library but an application deployment package.'
+review_notes: 'Evidence: docker-compose.yml defines multiple independent services
+  (sentry, snuba, relay, symbolicator, kafka, redis, postgres, clickhouse, memcached,
+  smtp, pgbouncer, seaweedfs, nginx) with health checks and service dependencies.
+  Kafka configured with DEFAULT_BROKERS for Snuba event processing. Each service has
+  dedicated configuration (sentry/, relay/, symbolicator/, clickhouse/ directories).
+  This is a deployment orchestration repo that packages Sentry''s distributed architecture.'

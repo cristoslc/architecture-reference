@@ -87,6 +87,15 @@ fi
 
 mkdir -p "$REPORTS_DIR"
 
+# ── Portability: timeout command ──────────────────────────────────────────────
+if command -v gtimeout &>/dev/null; then
+  TIMEOUT_CMD="gtimeout"
+elif command -v timeout &>/dev/null; then
+  TIMEOUT_CMD="timeout"
+else
+  TIMEOUT_CMD=""
+fi
+
 # ── Logging ───────────────────────────────────────────────────────────────────
 log() { echo "[$(date +%H:%M:%S)] $*" >&2; }
 verbose() { [[ "$VERBOSE" == "true" ]] && log "$*" || true; }
@@ -165,7 +174,7 @@ ensure_clone() {
   # On-demand shallow clone to temp dir (60s timeout)
   local tmp_dir
   tmp_dir=$(mktemp -d)
-  if timeout 60 git clone --depth 1 --quiet "$repo_url" "$tmp_dir/$repo_name" 2>/dev/null; then
+  if ${TIMEOUT_CMD:+$TIMEOUT_CMD 60} git clone --depth 1 --quiet "$repo_url" "$tmp_dir/$repo_name" 2>/dev/null; then
     echo "$tmp_dir/$repo_name"
   else
     rm -rf "$tmp_dir"

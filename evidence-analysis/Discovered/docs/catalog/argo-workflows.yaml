@@ -1,60 +1,57 @@
 project_name: argo-workflows
 source: Discovered
-source_url: "https://github.com/argoproj/argo-workflows"
-project_url: "https://github.com/argoproj/argo-workflows"
+source_url: https://github.com/argoproj/argo-workflows
+project_url: https://github.com/argoproj/argo-workflows
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:34:04Z"
+discovered_at: '2026-03-04T06:34:04Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Workflow Orchestration
 language: Go
-languages:
-
+languages: null
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - Domain-Driven Design
+- Layered
 key_technologies:
-  - Node.js
-  - Go modules
-  - Maven
-  - Python/pip
-  - Docker
-  - Kubernetes
-  - Kafka
-  - RabbitMQ
-  - NATS
-  - OpenAPI
-  - gRPC
-  - GitHub Actions
+- Node.js
+- Go modules
+- Maven
+- Python/pip
+- Docker
+- Kubernetes
+- Kafka
+- RabbitMQ
+- NATS
+- OpenAPI
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Scalability
-  - Deployability
+- Scalability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - Comprehensive test infrastructure
-  - CI/CD automation present
-  - Multi-style composition (3 styles)
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (3 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go project exhibiting Microservices, Event-Driven, Domain-Driven Design patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Argo Workflows is a Kubernetes-native workflow orchestration engine
+  implemented as a monolithic Go application with a separate React UI frontend. The
+  codebase has clear layered organization (cmd, server, workflow, pkg, util directories)
+  and is NOT a microservices or event-driven system.
 discovery_metadata:
-  confidence: 1.0
+  confidence: 0.85
   signals_detected: 111
   signals_evaluated: 10
-  classification_method: heuristic
-  primary_style_confidence: 1.0
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
   heuristic_candidates:
-    -
-      style: Microservices
-      score: 1.0
-    -
-      style: Event-Driven
-      score: 0.6
-    -
-      style: Domain-Driven Design
-      score: 0.3
+  - style: Microservices
+    score: 1.0
+  - style: Event-Driven
+    score: 0.6
+  - style: Domain-Driven Design
+    score: 0.3
   signal_breakdown:
     package_manifests: 11
     container_orchestration: 58
@@ -66,3 +63,14 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
+review_notes: 'Evidence: Single `go.mod` at root, single multi-stage Dockerfile building
+  all components (argoexec, workflow-controller, argo, argo-ui) from unified codebase.
+  Directory structure shows layered architecture: `cmd/` (entry points), `server/`
+  (API layer), `workflow/` (business logic - 324 files), `pkg/` (shared packages),
+  `util/` (utilities). No evidence of: (1) microservices - no separate service directories,
+  no Kubernetes manifests for multiple services; (2) event-driven - no message brokers
+  (Kafka/RabbitMQ/NATS) visible, no event schema definitions; (3) DDD - no explicit
+  domain/aggregates/entities pattern. The signal_breakdown shows 58 container_orchestration
+  signals (Kubernetes-related) but this is a single Kubernetes CRD controller, not
+  microservices.'
+review_required: false

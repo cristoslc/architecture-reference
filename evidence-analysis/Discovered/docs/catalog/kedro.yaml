@@ -26,14 +26,14 @@ notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
 one_line_summary: Kedro is a Python data pipeline framework whose core abstraction
-  is a DAG of nodes (Pipe-and-Filter), organized internally as a modular monolith
-  with well-separated framework components (pipeline, io, config, runner, extras)
+  is Pipeline + Node (Pipe-and-Filter), organized internally as a modular monolith
+  with well-separated framework components
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.9
   signals_detected: 26
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.85
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -53,11 +53,9 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence: Kedro''s primary user-facing abstraction is Pipeline + Node
-  — data flows through a sequence of transforming nodes, a textbook Pipe-and-Filter
-  pattern. Internally the codebase is a single deployable package with well-defined
-  submodules (kedro.pipeline, kedro.io, kedro.config, kedro.runner, kedro.framework)
-  consistent with Modular Monolith. Kafka signal in catalog likely reflects kedro-datasets
-  or streaming dataset support in extras. Heuristic candidates (Pipe-and-Filter: 0.3,
-  Modular Monolith: 0.4) corroborate this classification. This is a framework/library
-  repo, but its own internal architecture is classifiable.'
+review_notes: 'Evidence: kedro/pipeline/ module with test_pipeline.py, test_node.py
+  confirms Pipeline+Node abstraction; kedro/ directory structure shows modular organization
+  (pipeline/, io/, config/, runner/, framework/) with corresponding test directories
+  (tests/pipeline/, tests/runner/, tests/io/, tests/config/, tests/framework/); single
+  pyproject.toml and pyproject.toml confirms single deployable unit; README explicitly
+  describes ''Pipeline Abstraction'' as core feature for data transformation pipelines'

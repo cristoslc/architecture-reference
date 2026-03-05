@@ -29,15 +29,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Apache Geode is an open-source distributed in-memory data grid providing
-  space-based architecture with in-memory data partitioning, event-driven cache notifications,
-  and a large Gradle multi-module codebase organized as a modular monolith
+one_line_summary: Apache Geode is a distributed in-memory data grid implementing space-based
+  architecture with in-memory data partitioning, event-driven cache notifications,
+  WAN replication, organized as a large modular monolith with 35+ Gradle modules
 discovery_metadata:
-  confidence: 0.78
+  confidence: 0.95
   signals_detected: 110
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.78
+  classification_method: deep-validation
+  primary_style_confidence: 0.95
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -57,9 +57,10 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence: Domain explicitly tagged ''Data Grid''; messaging signals=37
-  (cache listeners, WAN queues, async event queues); container_orchestration=13 (locator/server
-  topology); 56 package manifests indicate large Gradle multi-module project; Apache
-  Geode is the upstream of Pivotal GemFire — a canonical space-based/in-memory data
-  grid; Event-Driven confirmed by Geode''s CacheListener/CacheWriter/AsyncEventQueue
-  subsystems; Modular Monolith from Gradle multi-project single-repo structure'
+review_notes: 'Evidence: geode-core/ (5711 files) as central processing unit; geode-wan/
+  for cross-cluster event propagation; geode-cq/ for continuous query event subscriptions;
+  geode-membership/ for distributed node coordination; single Dockerfile template
+  in docker/ and geode-assembly/ for unified deployment; README explicitly describes
+  ''in-memory data grid'', ''data partitioning'', ''dynamic replication'', ''asynchronous
+  event notifications''; locator/server topology provides virtualized middleware;
+  processing units pattern with cache members scaling to thousands of nodes'

@@ -30,15 +30,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Tekton Pipelines is a Kubernetes-native CI/CD engine that models
-  build/deploy workflows as composable pipelines of Tasks and Steps, deployed as Kubernetes
-  controllers/operators
+one_line_summary: Tekton Pipelines is a Kubernetes-native CI/CD engine implementing
+  pipe-and-filter architecture through composable Task→Pipeline abstractions, deployed
+  as multiple independent Kubernetes controllers
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.88
   signals_detected: 143
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.75
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.7
@@ -56,14 +56,11 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Classification based on domain knowledge of Tekton + catalog signals:
-  (1) Pipe-and-Filter is the primary conceptual architecture — Tekton''s core abstraction
-  is a directed pipeline of Steps→Tasks→Pipelines, each transforming inputs to outputs,
-  which is a canonical pipe-and-filter pattern; (2) Microservices signals are strong
-  (score 0.7) — Tekton runs as multiple Kubernetes controllers (pipeline controller,
-  webhook, etc.) each independently deployable, consistent with 30 container_orchestration
-  signals and 92 api_specs signals (CRD OpenAPI schemas); (3) the CI/CD domain and
-  Kubernetes deployment model strongly reinforce both styles; heuristic_candidates
-  confirmed Pipe-and-Filter (0.3) and Microservices (0.7) as the automated classifier''s
-  top candidates, with domain knowledge elevating Pipe-and-Filter to primary since
-  it is the defining user-facing abstraction of the system.'
+review_notes: 'Evidence: (1) Pipe-and-Filter primary - CRDs in config/300-crds/ define
+  Pipeline, Task, PipelineRun showing canonical pipeline pattern; Steps execute in
+  sequence within Tasks, Tasks form Pipelines with directed data flow; (2) Microservices
+  - four independent controllers: cmd/controller/main.go (pipeline controller), cmd/webhook/main.go
+  (admission webhook), cmd/resolvers/main.go (remote resolution), cmd/events/main.go
+  (event handling); each has separate deployment YAMLs in config/ with independent
+  scaling via HPA (config/webhook-hpa.yaml); CRDs serve as API contracts between services;
+  ko build produces separate container images per cmd/'

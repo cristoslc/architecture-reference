@@ -27,15 +27,15 @@ notable_strengths:
 - Multi-style composition (4 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Discourse is a Ruby-based community forum platform built as a modular
-  monolith on Rails with traditional layered MVC structure and a plugin architecture
-  for extensibility
+one_line_summary: Discourse is a Ruby on Rails community forum platform built as a
+  modular monolith with explicit plugin architecture for extensibility, using traditional
+  Rails MVC layering
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.92
   signals_detected: 76
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.75
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
@@ -57,13 +57,12 @@ discovery_metadata:
     documentation: 1
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence from catalog: (1) Heuristic top candidate is Modular Monolith
-  (score 0.7), with Layered as secondary (score 0.3). (2) 55 package manifests indicate
-  a large, single-deployment Ruby application rather than multiple independently deployable
-  services. (3) Zero container orchestration signals rules out Microservices. (4)
-  Single messaging signal (RabbitMQ/similar) is insufficient for Event-Driven classification.
-  (5) Discourse is a well-known open-source forum platform — it is a Rails monolith
-  with an explicit plugin system providing module-level boundaries, and standard Rails
-  MVC layering (controllers/models/services/views) underneath. (6) ''Modularity''
-  listed as a quality attribute corroborates Modular Monolith. (7) No Kubernetes,
-  Helm, API Gateway, or service discovery signals present.'
+review_notes: 'Evidence: (1) plugins/ directory with 9794 files provides explicit
+  module boundaries - core indicator of Modular Monolith with plugin system; (2) app/models/
+  with 100+ Rails ActiveRecord models, app/mailers/, app/queries/ follow standard
+  Rails layered MVC structure; (3) Single deployable Rails application with shared
+  PostgreSQL database; (4) No Kubernetes, Docker Compose for multiple services, or
+  service discovery; (5) lib/ directory (753 files) supports monolithic architecture;
+  (6) db/ with 1685 migration files indicates single database schema evolution; (7)
+  README confirms ''Ruby on Rails back end API'' with ''Ember.js front end'' - classic
+  monolithic web app structure'

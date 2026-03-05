@@ -23,14 +23,15 @@ notable_gaps:
 - No test infrastructure detected
 - No CI/CD configuration detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: CQRSlite is a lightweight C# framework/library implementing CQRS,
-  event sourcing, and domain-driven design patterns for .NET applications
+one_line_summary: CQRSlite is a lightweight .NET framework implementing CQRS with
+  Event Sourcing, providing the essential building blocks for command/query separation
+  and event-driven domain modeling
 discovery_metadata:
-  confidence: 0.82
+  confidence: 0.9
   signals_detected: 7
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.82
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -52,11 +53,10 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: The project name 'CQRSlite' is itself strong direct evidence of CQRS
-  as the primary style. As a well-known open-source .NET CQRS framework, it implements
-  command/query separation, domain events, and event-driven messaging patterns. The
-  heuristic signals confirm CQRS (0.4), Event-Driven (0.3), and DDD (0.3) candidates.
-  The 6 package manifests suggest multiple projects (e.g., core library, extensions,
-  sample app). The messaging signal (1) supports Event-Driven classification. Being
-  a framework/library rather than an end-user application is noted, but it is an architecture
-  exemplar by design.
+review_notes: 'Evidence: Framework/CQRSlite/Commands/ (ICommand, ICommandHandler,
+  ICommandSender) and Framework/CQRSlite/Queries/ (IQuery, IQueryHandler, IQueryProcessor)
+  directories confirm CQRS separation. Framework/CQRSlite/Events/ (IEvent, IEventHandler,
+  IEventPublisher, IEventStore) confirms Event-Driven architecture. Framework/CQRSlite/Domain/
+  (AggregateRoot, Repository, ISession) provides DDD building blocks. Sample/CQRSCode/
+  demonstrates WriteModel/ReadModel separation with Commands, Domain, Handlers on
+  write side and Queries, Dtos, Events on read side.'

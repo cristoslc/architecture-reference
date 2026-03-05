@@ -1,63 +1,56 @@
 project_name: nifi
 source: Discovered
-source_url: "https://github.com/apache/nifi"
-project_url: "https://github.com/apache/nifi"
+source_url: https://github.com/apache/nifi
+project_url: https://github.com/apache/nifi
 evidence_type: automated-discovery
-discovered_at: "2026-03-04T06:33:39Z"
+discovered_at: '2026-03-04T06:33:39Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Integration
 language: Java/Kotlin
-languages:
-
+languages: null
 architecture_styles:
-  - Event-Driven
-  - Microservices
-  - Domain-Driven Design
-  - Hexagonal Architecture
-  - Pipe-and-Filter
+- Pipe-and-Filter
+- Event-Driven
 key_technologies:
-  - Node.js
-  - Maven
-  - Python/pip
-  - Docker
-  - Kafka
-  - RabbitMQ
-  - OpenAPI
-  - gRPC
-  - GitHub Actions
+- Node.js
+- Maven
+- Python/pip
+- Docker
+- Kafka
+- RabbitMQ
+- OpenAPI
+- gRPC
+- GitHub Actions
 quality_attributes:
-  - Deployability
+- Deployability
 notable_strengths:
-  - Rich signal profile with strong architectural indicators
-  - CI/CD automation present
-  - Multi-style composition (5 styles)
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (5 styles)
 notable_gaps:
-  - No architecture decision records found
-  - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project exhibiting Event-Driven, Microservices, Domain-Driven Design patterns
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Apache NiFi is a data integration platform built on Pipe-and-Filter
+  architecture where FlowFiles flow through processor nodes in a directed graph. Event-Driven
+  patterns support provenance and streaming.
 discovery_metadata:
-  confidence: 1.0
+  confidence: 0.9
   signals_detected: 847
   signals_evaluated: 10
-  classification_method: heuristic
+  classification_method: deep-validation
   primary_style_confidence: 0.9
   heuristic_candidates:
-    -
-      style: Event-Driven
-      score: 0.9
-    -
-      style: Microservices
-      score: 0.8
-    -
-      style: Domain-Driven Design
-      score: 0.4
-    -
-      style: Hexagonal Architecture
-      score: 0.3
-    -
-      style: Pipe-and-Filter
-      score: 0.3
+  - style: Event-Driven
+    score: 0.9
+  - style: Microservices
+    score: 0.8
+  - style: Domain-Driven Design
+    score: 0.4
+  - style: Hexagonal Architecture
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
   signal_breakdown:
     package_manifests: 707
     container_orchestration: 9
@@ -69,3 +62,14 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 4
+review_notes: 'Evidence: The core architecture is Pipe-and-Filter - NiFi''s fundamental
+  design is a visual dataflow engine where processors (filters) transform FlowFiles
+  connected via connections (pipes). The directory structure shows numerous processor
+  bundles (nifi-extension-bundles/*/nifi-*-processors) implementing transformation
+  logic. Event-Driven signals (114 messaging signals in heuristics) include provenance
+  tracking, event streams, and integration with Kafka/RabbitMQ. Microservices is incorrect
+  - NiFi is a monolithic platform with extension bundles, not independent services
+  with separate data stores. DDD and Hexagonal Architecture are not strongly evident
+  - the extension bundles are feature/organization-based, not domain-driven bounded
+  contexts with clear ports/adapters separation.'
+review_required: false

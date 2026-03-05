@@ -25,15 +25,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Redis is a single-process in-memory data structure server written
-  in C, organized as a modular monolith with well-separated internal subsystems (networking,
-  persistence, clustering, replication, commands) compiled into one deployable binary
+one_line_summary: Redis is a single-process in-memory data structure server compiled
+  into one deployable binary with well-separated internal subsystems (networking,
+  persistence, clustering, replication, command handlers)
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.92
   signals_detected: 14
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
@@ -49,11 +49,9 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence from catalog: heuristic_candidates scores Modular Monolith
-  at 0.70; domain is ''Data Grid''; language is C/C++ which is typical of a single
-  compiled binary; no container_orchestration, no messaging bus signals, no api_specs
-  — all ruling out Microservices or Event-Driven; test_structure signals (3) and ci_cd
-  signals (9) consistent with a mature single-unit project; Redis is well-known publicly
-  as a single-process server with internal modules (ae.c event loop, rdb.c/aof.c persistence,
-  cluster.c, replication.c, t_*.c data type handlers) forming a cohesive monolith
-  with clear internal boundaries'
+review_notes: 'Evidence: Makefile compiles src/ into single redis-server binary; src/
+  contains 128 C files with clear functional separation (ae.c event loop, rdb.c/aof.c
+  persistence, cluster.c, replication.c, t_*.c data type handlers); modules/ provides
+  optional extensions but core remains monolithic; no Dockerfiles per service, no
+  Kubernetes manifests, no API gateway configs; tests/ contains 217 TCL integration
+  tests confirming single-unit deployment model'

@@ -10,7 +10,7 @@ domain: Developer Tools
 language: Java/Kotlin
 languages: null
 architecture_styles:
-- Modular Monolith
+- Microservices
 key_technologies:
 - Maven
 - Docker
@@ -23,16 +23,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin project with Maven/Docker that appears to be a modular
-  application but lacks definitive microservices infrastructure signals. Contains
-  multiple modules (7 package manifests) but no messaging systems, API specs, or extensive
-  container orchestration to support a full Microservices classification.
+one_line_summary: Spring Cloud microservices demo with API Gateway (Zuul), service
+  discovery (Eureka), centralized config, and three business microservices communicating
+  via OpenFeign
 discovery_metadata:
-  confidence: 0.55
+  confidence: 0.95
   signals_detected: 11
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.55
+  classification_method: deep-validation
+  primary_style_confidence: 0.95
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -48,11 +47,9 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Evidence: The catalog shows Indeterminate classification with only
-  0.4 confidence. Heuristic candidate is Modular Monolith (0.4). Key signals: 7 package_manifests
-  (multiple modules), 2 container_orchestration (limited Docker use), 1 ci_cd. Critical
-  absences: 0 messaging, 0 api_specs, 0 infrastructure_as_code. The project name mentions
-  ''microservices'' but the structural signals strongly suggest a monolithic or modular
-  structure rather than true microservices. Without the ability to examine directory
-  structure or docker-compose.yml, the Modular Monolith classification is the most
-  consistent with the limited evidence available.'
+review_notes: 'Evidence: docker-compose.yml defines 6 independent services (gateway-service,
+  config-service, discovery-service, employee-service, department-service, organization-service)
+  each with separate Docker images; README confirms Spring Cloud Netflix stack with
+  Eureka discovery, Zuul gateway, and OpenFeign inter-service communication; service
+  dependencies managed via health checks and service_healthy conditions; Zipkin for
+  distributed tracing'

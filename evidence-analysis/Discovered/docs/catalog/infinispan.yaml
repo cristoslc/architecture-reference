@@ -27,15 +27,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Infinispan is a distributed in-memory data grid platform (Java)
-  organized as a modular monolith with event-driven internals and space-based distributed
-  processing capabilities
+one_line_summary: Infinispan is a distributed in-memory data grid platform implementing
+  Space-Based architecture with modular monolith deployment and event-driven cluster
+  coordination
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.92
   signals_detected: 229
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.75
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -59,15 +59,10 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Infinispan is a well-known open-source distributed in-memory data grid/cache
-  platform. Key architectural evidence from catalog: (1) Space-Based — Infinispan
-  is definitively a data grid product (catalog domain: ''Data Grid''), implementing
-  in-memory distributed data storage with clustering, which is the canonical Space-Based
-  architecture pattern; (2) Modular Monolith — heuristic candidate score 0.4 with
-  121 package manifests suggesting many Maven submodules in a single deployable ecosystem,
-  consistent with Infinispan''s known structure of core + modules (server, client,
-  query, persistence, etc.); (3) Event-Driven — 53 messaging signals detected, consistent
-  with Infinispan''s internal cluster event bus, cache listeners, and distributed
-  notifications via JGroups; gRPC (25 API specs) supports the Hot Rod/Protobuf remote
-  client protocol. The heuristic was inconclusive due to the platform''s complexity
-  spanning multiple styles simultaneously.'
+review_notes: 'Evidence: (1) Space-Based - README explicitly states ''in-memory database''
+  with ''elastically scalable clusters''; core/ module (3028 Java files) implements
+  distributed data grid; Dockerfile shows single server deployment with AOT compilation;
+  (2) Modular Monolith - 121 Maven POMs in multi-module structure (core, server, client,
+  commons, query, persistence, spring, hibernate, cdi modules); server/runtime builds
+  unified distribution; (3) Event-Driven - 53 messaging signals detected; cluster
+  coordination via JGroups; cache event listeners and distributed notifications'

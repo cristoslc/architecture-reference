@@ -29,15 +29,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Dify is an LLM application development platform composed of multiple
-  independently deployable services communicating via RabbitMQ, containerized with
-  Docker and orchestrated via Docker Compose
+one_line_summary: Dify is an LLM application development platform with multiple independently
+  deployable services (API, web, worker, sandbox) orchestrated via Docker Compose,
+  using RabbitMQ for async task queuing between services
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.88
   signals_detected: 34
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.72
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -59,13 +59,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence from catalog: (1) RabbitMQ listed as key technology — strong
-  Event-Driven signal; (2) Docker + Docker Compose with 6 container_orchestration
-  signals suggests multiple services; (3) 3 package_manifests suggest separate service
-  codebases (likely API backend in Python, web frontend in TypeScript, and worker
-  service); (4) heuristic_candidates score Microservices 0.5 as top candidate; (5)
-  Dify is publicly known as a multi-service LLM platform with separate api, web, worker,
-  and sandbox containers. Event-Driven secondary style supported by RabbitMQ usage
-  (typically used for async task queuing between api and worker services in Dify).
-  DDD and Pipe-and-Filter signals (both 0.3) are likely internal implementation patterns
-  rather than primary architectural styles.'
+review_notes: 'Evidence: (1) Multiple separate Dockerfiles - api/Dockerfile (Python/Flask
+  backend), web/Dockerfile (Node.js/Next.js frontend), docker/couchbase-server/Dockerfile;
+  (2) Makefile with explicit service separation: build-web, build-api, push-web, push-api
+  as independent targets; (3) docker/docker-compose.yaml and docker-compose.middleware.yaml
+  for multi-service orchestration; (4) api/ directory with 2687 Python files, web/
+  directory with 6959 TypeScript/TSX files - clearly separate codebases; (5) RabbitMQ
+  listed as key technology for async communication between API and worker services;
+  (6) Kubernetes/Helm deployment options available via community charts; (7) nginx
+  reverse proxy configuration in docker/nginx/ for service routing'

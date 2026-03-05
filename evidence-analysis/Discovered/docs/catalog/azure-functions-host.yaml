@@ -34,11 +34,11 @@ one_line_summary: The Azure Functions runtime host — a C# platform that execut
   function workloads triggered by events (HTTP, Kafka, RabbitMQ, timers) through an
   extensible middleware pipeline
 discovery_metadata:
-  confidence: 0.82
+  confidence: 0.88
   signals_detected: 68
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.82
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -62,11 +62,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Evidence: (1) Project identity — azure-functions-host is the canonical
-  OSS serverless runtime for Azure Functions; (2) 25 messaging signals confirm Kafka/RabbitMQ
-  event-trigger support as first-class; (3) gRPC API specs align with known out-of-process
-  worker protocol used since Functions v4; (4) Pipe-and-Filter present in Azure Functions
-  middleware/invocation pipeline architecture; (5) Zero container orchestration signals
-  rules out Microservices classification despite high package count; (6) Heuristic
-  candidates show Event-Driven and Serverless tied at 0.6 — both are correct as they
-  describe different layers of the same system (execution model vs. trigger model)'
+review_notes: 'Evidence: (1) Serverless — this IS the Azure Functions runtime host
+  itself (README: ''code for the runtime host used by the Azure Functions service''),
+  implementing the serverless execution model with function-level deployment and event
+  triggers; (2) Event-Driven — triggers/bindings model is core architecture, 25 messaging
+  signals in discovery metadata, test directories for EventHubs integration confirm
+  event-driven triggers; (3) Pipe-and-Filter — middleware pipeline architecture confirmed
+  by src/WebJobs.Script.WebHost/Middleware/ containing HostWarmupMiddleware, HttpThrottleMiddleware,
+  ExceptionMiddleware, CorsConfigurationMiddleware etc., with function invocations
+  flowing through sequential processing stages'
