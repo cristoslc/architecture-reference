@@ -11,6 +11,7 @@
 | SPEC-010 | LLM Review Script | Core llm-review.sh script for automating Pass 2 LLM classification — system prompt, context assembly, response parsing, tier filtering. | 2026-03-04 | 707de32 |
 | SPEC-011 | Multi-Turn Escalation Protocol | Structured info requests (file/tree/glob/grep), fulfillment logic, and conversation management for multi-turn LLM classification. | 2026-03-04 | 707de32 |
 | SPEC-012 | Quality Validation | Gold standard curation, accuracy measurement (>=85%), confusion matrix, confidence calibration, and regression testing for LLM classifications. | 2026-03-04 | 707de32 |
+| SPEC-013 | Deep-Context Validation Script | Re-run classification with cloned repos and deep context assembly (config files, source structure, architecture docs). Produces verification verdicts per entry. | 2026-03-05 | 761b204 |
 
 ## Active
 
@@ -26,7 +27,6 @@
 | SPEC-003 | Comparative Analysis Engine | Compare a user's repo architecture against the expanded catalog, generating evidence-grounded comparison reports. Depends on SPEC-002. | 2026-03-03 | b63f031 |
 | SPEC-008 | Evidence Cross-Source Update | Rewrite evidence/by-architecture-style.md and evidence/by-quality-attribute.md (1025 lines) with cross-source evidence tables. | 2026-03-03 | 1032e4b |
 | SPEC-009 | Synthesis Cross-Source Update | Rewrite problem-solution-matrix.md and decision-navigator.md (662 lines) with production-system evidence in all cells and paths. | 2026-03-03 | 1032e4b |
-| SPEC-013 | Deep-Context Validation Script | Re-run classification with cloned repos and deep context assembly (config files, source structure, architecture docs). Produces verification verdicts per entry. | 2026-03-04 | — |
 | SPEC-014 | Override Rules & Disagreement Report | Deterministic rules for when to accept deep-validation results over existing classifications, plus disagreement markdown report. | 2026-03-04 | — |
 | SPEC-015 | Expanded Gold Standard & Three-Way Report | Expand gold standard from 17 to 40+ entries; three-way comparison across heuristic, llm-review, and deep-validation methods. | 2026-03-04 | — |
 | SPEC-016 | Validation Run Execution | Operational run plan for deep-context validation across all four priority populations, with gate criteria, pilot run, and post-run review checklists. | 2026-03-04 | — |

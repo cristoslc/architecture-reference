@@ -126,3 +126,4 @@ Options:
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-04 | — | Initial creation under EPIC-006 |
+| Implemented | 2026-03-05 | 761b204 | Validation campaign complete: 163 entries, 94% classification rate. Prompt debiasing and docker-compose glob fixes shipped. |
