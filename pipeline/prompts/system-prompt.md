@@ -57,7 +57,7 @@ Use when the repo is not a software architecture exemplar (data-only, documentat
 
 ## Architecture styles
 
-Classify into one or more of these 12 canonical styles. Multi-style composition is normal (73% of real systems use 2+ styles).
+Classify into one or more of these 12 canonical styles. You MUST only use styles from this list — do not invent new categories (e.g., "Monorepo", "Distributed System", "Client-Server"). If a repo does not fit any canonical style, mark it unclassifiable. Multi-style composition is normal (73% of real systems use 2+ styles).
 
 ### Microservices
 Multiple independently deployable services, each owning its data, communicating via APIs or messaging. **Key signals:** multiple Dockerfiles in separate service directories, Kubernetes/Helm manifests, API Gateway config, multiple OpenAPI/gRPC specs, contract tests, service discovery.

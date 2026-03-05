@@ -65,6 +65,7 @@ DEEP_CONFIG_GLOBS=(
   "k8s/*.yaml" "kubernetes/*.yaml" "deploy/*.yaml"
   "terraform/*.tf"
   "*/Dockerfile"
+  "*/docker-compose.yml" "*/docker-compose.yaml"
   "docs/adr/*.md" "docs/ADR/*.md"
 )
 
@@ -378,9 +379,19 @@ assemble_deep_context() {
   local clone_path="$2"
   local context=""
 
-  # Catalog YAML with existing classification
+  # Catalog YAML with existing classification (strip review_notes and
+  # one_line_summary to prevent anchoring bias — the LLM must form its
+  # own judgment from source code, not prior reviewer reasoning)
   context+="## Catalog Entry (YAML)\n\n\`\`\`yaml\n"
-  context+="$(cat "$yaml_file")"
+  context+="$(python3 -c "
+import sys, re
+text = open(sys.argv[1]).read()
+# Remove top-level YAML keys that carry prior reasoning
+for key in ['review_notes', 'one_line_summary']:
+    # Match key: value (possibly multiline with indented continuation)
+    text = re.sub(r'^' + key + r':.*?(?=\n[^ \n]|\Z)', '', text, flags=re.MULTILINE | re.DOTALL)
+print(text.strip())
+" "$yaml_file")"
   context+="\n\`\`\`\n\n"
 
   if [[ -z "$clone_path" || ! -d "$clone_path" ]]; then
@@ -425,7 +436,7 @@ assemble_deep_context() {
 build_validation_prompt() {
   local yaml_file="$1"
 
-  local existing_styles existing_confidence existing_method existing_notes
+  local existing_styles existing_confidence existing_method
 
   existing_styles=$(get_styles "$yaml_file")
   [[ -z "$existing_styles" ]] && existing_styles="Indeterminate"
@@ -436,8 +447,9 @@ build_validation_prompt() {
   existing_method=$(get_classification_method "$yaml_file")
   [[ -z "$existing_method" ]] && existing_method="heuristic"
 
-  existing_notes=$(grep "^review_notes:" "$yaml_file" 2>/dev/null | head -1 | sed 's/^review_notes: *//' | tr -d '"')
-  [[ -z "$existing_notes" ]] && existing_notes="none"
+  # NOTE: We intentionally do NOT pass existing review_notes to the LLM.
+  # The validation pass must form an independent judgment from source code
+  # without anchoring on prior reasoning.
 
   # Read template and substitute
   local prompt
@@ -445,7 +457,6 @@ build_validation_prompt() {
   prompt="${prompt//\{\{EXISTING_STYLES\}\}/$existing_styles}"
   prompt="${prompt//\{\{EXISTING_CONFIDENCE\}\}/$existing_confidence}"
   prompt="${prompt//\{\{EXISTING_METHOD\}\}/$existing_method}"
-  prompt="${prompt//\{\{EXISTING_NOTES\}\}/$existing_notes}"
 
   echo "$prompt"
 }

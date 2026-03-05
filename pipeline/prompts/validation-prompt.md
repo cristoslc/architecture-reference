@@ -5,7 +5,6 @@ You are validating an existing architecture classification. A previous pass clas
 - **Styles:** {{EXISTING_STYLES}}
 - **Confidence:** {{EXISTING_CONFIDENCE}}
 - **Method:** {{EXISTING_METHOD}}
-- **Notes:** {{EXISTING_NOTES}}
 
 ## Your Task
 
@@ -58,7 +57,8 @@ Use when the repo is not a software architecture exemplar even with deep context
 
 ## Validation Guidance
 
-1. **Deep context is authoritative.** You have actual source files — trust what you see over metadata-only signals.
+1. **Use only canonical styles.** You must classify using only the 12 styles defined in the system prompt. Do not invent categories like "Monorepo" (a repo layout, not a runtime architecture) or "Distributed System" (a deployment characteristic, not a style). If no canonical style fits, use the `unclassifiable` verdict.
+2. **Deep context is authoritative.** You have actual source files — trust what you see over metadata-only signals.
 2. **Be conservative with reclassification.** Only reclassify if the deep context clearly shows a different architecture. Minor style additions (e.g., adding DDD to an existing Hexagonal classification) are upgrades, not reclassifications.
 3. **Cite specific files.** Reference exact paths from the deep context that support your assessment.
 4. **Explain disagreements.** If you disagree with the existing classification, explain why the previous evidence was insufficient or misleading.
