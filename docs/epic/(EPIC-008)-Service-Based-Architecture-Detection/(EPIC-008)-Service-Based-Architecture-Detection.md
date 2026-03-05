@@ -162,11 +162,7 @@ Update `classify.py`:
 
 ## Child Specs
 
-To be created as SPEC artifacts under this epic:
-
-- **SPEC-014**: SBA Signal Extraction (new signals in extract-signals.sh)
-- **SPEC-015**: SBA and Plugin Scorer Improvements (classify.py updates)
-- **SPEC-016**: Conflict Resolution and Re-classification (pipeline re-run + validation)
+- **SPEC-017**: Pipeline Re-extraction and Re-classification (re-run pipeline with new signals, selective merge, comparison report)
 
 ## Key Dependencies
 

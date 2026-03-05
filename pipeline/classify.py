@@ -324,9 +324,9 @@ def score_layered(s):
 def score_service_based(s):
     c = 0.0
     # Strong signals — SBA-specific indicators
-    # Monorepo packages: 2-8 coarse-grained service packages (SBA hallmark)
+    # Monorepo packages: 2+ coarse-grained service packages (SBA hallmark)
     monorepo_pkgs = sig(s, "service_based", "monorepo_packages")
-    if 2 <= monorepo_pkgs <= 8:
+    if monorepo_pkgs >= 2:
         c += 0.3
     # Shared database configs (SBA hallmark: services share databases)
     db_configs = sig(s, "service_based", "db_config_count")
