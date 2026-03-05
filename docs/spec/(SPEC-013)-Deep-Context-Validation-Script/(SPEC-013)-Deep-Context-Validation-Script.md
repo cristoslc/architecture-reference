@@ -1,10 +1,10 @@
 ---
 title: "Deep-Context Validation Script"
 artifact: SPEC-013
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-04
-last-updated: 2026-03-04
+last-updated: 2026-03-05
 parent-epic: EPIC-006
 depends-on:
   - SPEC-010
@@ -68,7 +68,7 @@ Beyond the standard Turn 1 context from `llm-review.sh`, the validation script a
 | Config files | serverless.yml, k8s manifests, terraform/*.tf | ~200 lines each |
 | Source structure | Top-level src dirs with file counts per language | ~50 lines |
 | Architecture docs | ARCHITECTURE.md, docs/adr/*.md | ~300 lines |
-| Existing classification | Current styles, confidence, method, notes | Inline in prompt |
+| Existing classification | Current styles, confidence, method (notes stripped to prevent anchoring) | Inline in prompt |
 
 ### Priority Population Selection
 
