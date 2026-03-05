@@ -13,7 +13,6 @@ architecture_styles:
 - Pipe-and-Filter
 - Modular Monolith
 - Event-Driven
-- Domain-Driven Design
 key_technologies:
 - Gradle
 - Python/pip
@@ -32,15 +31,14 @@ notable_strengths:
 notable_gaps:
 - No architecture documentation (ARCHITECTURE.md)
 one_line_summary: Nextflow is a scientific workflow orchestration engine built as
-  a modular monolith whose core model is Pipe-and-Filter (processes connected by channels),
-  with event-driven dataflow communication and DDD-style domain modeling of workflow
-  concepts
+  a modular monolith whose core execution model is Pipe-and-Filter (processes connected
+  by dataflow channels), with event-driven reactive channel communication
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.85
   signals_detected: 45
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.75
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Microservices
     score: 0.4
@@ -60,10 +58,19 @@ discovery_metadata:
     documentation: 4
     directory_structure: 2
 review_required: false
-review_notes: 'Evidence: Pipe-and-Filter inferred from Nextflow''s well-known channel/process
-  pipeline model; Modular Monolith from 18 package manifests + Gradle multi-module
-  structure + no API gateway/service-discovery signals; Event-Driven from 3 messaging
-  signals and reactive channel dataflow; DDD from 4 ADRs + explicit domain concepts
-  (Process, Channel, Executor, Pipeline); Microservices candidate (0.4) rejected —
-  Docker signals indicate container orchestration of workflow tasks, not application
-  decomposition'
+review_notes: 'Pipe-and-Filter: Nextflow''s fundamental programming model is dataflow/channel-based
+  pipelines where processes consume and emit data through channels — confirmed by
+  README (''based on the dataflow programming model''), test files (topic-channel.nf,
+  collect-and-merge.nf, splitLetters.nf, subworkflow.nf), and the Henri Bal quote
+  about dataflow variables. Modular Monolith: single Gradle multi-module build with
+  a plugins/ directory containing nf-amazon, nf-azure, nf-google, nf-k8s, nf-wave,
+  nf-tower, nf-seqera, nf-cloudcache, nf-codecommit, nf-console — each with their
+  own build.gradle and VERSION, all part of one deployable system with no API gateway
+  or service discovery. Event-Driven: messaging signals (3), reactive dataflow channels
+  between processes, GPars concurrency library (mentioned in README credits) which
+  is actor/dataflow-based; channel operators drive reactive data propagation. DDD
+  dropped from primary styles — while ADRs exist (adr/ directory with 4 entries) and
+  domain concepts (Process, Channel, Executor) are present, DDD is more of an organizational
+  approach here rather than a structural pattern; the three primary styles are well-evidenced.
+  Docker signals are for workflow task execution environments (tests/Dockerfile, docker/
+  directory), not application decomposition.'

@@ -10,9 +10,8 @@ domain: Messaging
 language: TypeScript
 languages: null
 architecture_styles:
-- Microservices
-- Event-Driven
 - Modular Monolith
+- Layered
 key_technologies:
 - Node.js
 - Go modules
@@ -30,15 +29,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Mattermost is a team messaging platform built as a monorepo combining
-  a modular server core with microservices plugins/integrations, using RabbitMQ for
-  event-driven communication between components
+one_line_summary: Mattermost is a self-hosted team messaging platform built as a single
+  Go binary (server) + React SPA (webapp), organized as a modular monolith with well-defined
+  internal service modules and traditional layered structure
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.88
   signals_detected: 61
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.72
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -56,14 +55,18 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Classification based on public knowledge of Mattermost''s well-documented
-  architecture combined with catalog signals: (1) Microservices — 11 container orchestration
-  signals, 16 package manifests, and Docker suggest multiple independently deployable
-  units consistent with Mattermost''s known plugin/service architecture; (2) Event-Driven
-  — RabbitMQ listed as key technology indicates async pub/sub messaging between components;
-  (3) Modular Monolith — Mattermost server is publicly known to be a single Go binary
-  with well-defined internal module boundaries (api, app, store layers), consistent
-  with the single strong directory_structure signal and Go modules entry. The heuristic
-  candidates flagged Microservices (0.5) and Event-Driven (0.3) which aligns with
-  this assessment. The Node.js/TypeScript signals likely correspond to the webapp
-  and/or plugin SDK layer.'
+review_notes: 'Evidence strongly points to Modular Monolith + Layered, NOT Microservices:
+  (1) README explicitly states ''runs as a single Linux binary'' — the definitive
+  signal against microservices; (2) docker-compose.yaml shows a single ''mattermost-server''
+  process deployed as leader/follower/follower2 replicas (horizontal scaling of one
+  binary) behind nginx, with all other containers being infrastructure dependencies
+  (postgres, redis, elasticsearch, minio, etc.) — not independently deployed business
+  services; (3) server/platform/services/ contains internal service modules (cache,
+  searchengine, remotecluster, sharedchannel, telemetry, imageproxy, etc.) all co-located
+  in a single Go module (server/go.mod) — classic modular monolith with bounded internal
+  modules; (4) server/platform/shared/ provides shared cross-cutting concerns (mail,
+  filestore, mfa, templates); (5) webapp/channels/src/ shows traditional React layering:
+  stores/, utils/, plugins/, types/ — a layered frontend; (6) The cluster setup (MM_CLUSTERSETTINGS_ENABLE)
+  confirms this is a single binary running in clustered mode, not separate microservices;
+  (7) RabbitMQ in catalog was likely from plugin/integration tooling, not core inter-service
+  messaging; Event-Driven signals are weak and not structural.'

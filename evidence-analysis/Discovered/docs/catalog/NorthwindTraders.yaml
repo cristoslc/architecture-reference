@@ -10,8 +10,9 @@ domain: E-Commerce
 language: C#
 languages: null
 architecture_styles:
-- Layered
-- Modular Monolith
+- Hexagonal Architecture
+- CQRS
+- Domain-Driven Design
 key_technologies:
 - Node.js
 - .NET
@@ -23,15 +24,15 @@ notable_gaps:
 - No architecture decision records found
 - No CI/CD configuration detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: C# E-Commerce application (Northwind Traders) with traditional Layered/MVC
-  architecture and modular internal organization, using .NET with 11 package manifests
-  in a single deployable unit
+one_line_summary: NorthwindTraders is a Clean Architecture e-commerce reference app
+  using CQRS with feature-sliced command/query handlers and DDD building blocks, deployed
+  as a single .NET unit with an Angular frontend
 discovery_metadata:
-  confidence: 0.7
+  confidence: 0.95
   signals_detected: 12
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.7
+  primary_style_confidence: 0.95
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -55,11 +56,11 @@ discovery_metadata:
     documentation: 0
     directory_structure: 5
 review_required: false
-review_notes: 'Evidence: The heuristic candidates all score 0.4 (Modular Monolith,
-  DDD, Hexagonal, Layered, CQRS). Signal breakdown shows 11 package_manifests but
-  zero container_orchestration, messaging, or API specs - indicating a single deployed
-  unit rather than microservices. The mixed Node.js/.NET technologies suggest a frontend/backend
-  split within a monolith. Northwind Traders is a classic sample e-commerce app. Without
-  clear ports/adapters or bounded context boundaries visible in metadata, Layered
-  (MVC + services + repositories) is the dominant pattern, with modular organization
-  within the single deployment unit supporting Modular Monolith secondary classification.'
+review_notes: 'Hexagonal/Clean Architecture: explicit Domain/Application/Infrastructure/Persistence/WebUI
+  layer separation with dependency inversion (inner layers unaware of outer). CQRS:
+  every feature under Src/Application/ (Customers, Products, Employees, etc.) contains
+  Commands/ and Queries/ subdirectories with separate handler classes (e.g., GetCustomersListQueryHandler.cs,
+  DeleteCustomerCommandHandler.cs). DDD: Src/Domain/Entities/, Src/Domain/ValueObjects/,
+  Src/Domain/Common/, domain events (CustomerCreated.cs). Single deployable unit with
+  no container orchestration confirms this is not microservices. README explicitly
+  states ''Clean Architecture with .NET Core''.'

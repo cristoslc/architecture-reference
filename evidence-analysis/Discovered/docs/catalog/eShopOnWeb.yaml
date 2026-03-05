@@ -10,8 +10,8 @@ domain: E-Commerce
 language: C#
 languages: null
 architecture_styles:
-- Modular Monolith
 - Layered
+- Domain-Driven Design
 key_technologies:
 - .NET
 - Docker
@@ -27,15 +27,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: eShopOnWeb is Microsoft's reference e-commerce application built
-  on ASP.NET Core, structured as a modular monolith with traditional layered (N-Tier)
-  architecture — a well-known .NET architecture sample
+one_line_summary: Microsoft's reference ASP.NET Core e-commerce application structured
+  as a single-process monolith with clean layered architecture (Web/ApplicationCore/Infrastructure)
+  and DDD-influenced domain modeling
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.9
   signals_detected: 23
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.75
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Microservices
     score: 0.4
@@ -53,13 +53,10 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Based on prior knowledge: dotnet-architecture/eShopOnWeb is a widely
-  referenced Microsoft sample app demonstrating clean architecture in a single deployable
-  ASP.NET Core web application. It uses a layered structure (Web/ApplicationCore/Infrastructure
-  projects) with DDD-influenced domain modeling, not true microservices. The heuristic
-  signals for Microservices (0.4) and Event-Driven (0.3) are likely false positives
-  from Docker/Kafka config that may have been added as supplementary examples. The
-  10 package manifests correspond to multiple .csproj files within a single solution
-  (monolith), not independent services. The catalog''s ''Indeterminate'' classification
-  reflects the automated classifier''s inability to distinguish this from microservices
-  based purely on file counts.'
+review_notes: 'Clear layered structure: src/Web (presentation/controllers/views/pages),
+  src/ApplicationCore (domain entities, interfaces, specifications, services), src/Infrastructure
+  (data, identity, logging). DDD signals: src/ApplicationCore/Entities, src/ApplicationCore/Specifications,
+  src/ApplicationCore/Interfaces, plus MediatorHandlers in tests. README explicitly
+  states ''single-process (monolithic) application architecture''. Two Dockerfiles
+  (Web and PublicApi) represent a simple split for admin API, not independent microservices.
+  The PublicApi is a companion app for Blazor admin, not a separate bounded service.'

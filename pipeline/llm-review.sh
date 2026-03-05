@@ -310,7 +310,11 @@ fulfill_requests() {
         fulfilled+="\n### Requested glob: $req_pattern\n"
         fulfilled+="(Reason: $req_reason)\n\n"
         local matches
-        matches=$(cd "$clone_path" && find . -path "./.git" -prune -o -name "$req_pattern" -print 2>/dev/null | head -20)
+        if [[ "$req_pattern" == */* ]]; then
+          matches=$(cd "$clone_path" && find . -path "./.git" -prune -o -path "./$req_pattern" -print 2>/dev/null | head -20)
+        else
+          matches=$(cd "$clone_path" && find . -path "./.git" -prune -o -name "$req_pattern" -print 2>/dev/null | head -20)
+        fi
         if [[ -n "$matches" ]]; then
           fulfilled+="Matching files:\n\`\`\`\n$matches\n\`\`\`\n"
           # Cat the first match
@@ -517,12 +521,12 @@ Please classify this repository now." | llm $model_flag -c 2>/dev/null || echo '
       local reason
       reason=$(echo "$json" | python3 -c "import sys,json; print(json.load(sys.stdin).get('reason',''))" 2>/dev/null)
       log "  Unclassifiable: $reason"
-      # Mark as reviewed but keep Indeterminate
-      local unclass_confidence
-      unclass_confidence=$(echo "$json" | python3 -c "import sys,json; print(json.load(sys.stdin).get('confidence',0.5))" 2>/dev/null)
+      # Mark as needing review — force confidence to 0 so apply-review.py
+      # correctly sets review_required: true (the LLM's confidence score
+      # means "confident it IS unclassifiable", not classification confidence)
       python3 "${SCRIPT_DIR}/apply-review.py" \
         --entry "$yaml_file" \
-        --confidence "$unclass_confidence" \
+        --confidence 0.0 \
         --notes "LLM review: unclassifiable — $reason" >&2
       result_status="unclassifiable"
       ;;

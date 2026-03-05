@@ -31,14 +31,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A Go Clean Architecture template project demonstrating Hexagonal/Ports-and-Adapters
-  patterns with event-driven messaging via RabbitMQ and NATS
+one_line_summary: A Go Clean Architecture template demonstrating Hexagonal/Ports-and-Adapters
+  patterns with multiple adapter types (REST, gRPC, AMQP RPC, NATS RPC) and event-driven
+  messaging via RabbitMQ and NATS
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.9
   signals_detected: 11
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.75
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Microservices
     score: 0.7
@@ -56,14 +57,11 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Strong evidence: (1) Project name ''go-clean-template'' directly signals
-  Clean Architecture / Hexagonal intent; (2) Go clean architecture templates universally
-  use ports/adapters + domain/usecase layering; (3) RabbitMQ + NATS signals (messaging
-  score: 2) indicate event-driven communication patterns; (4) OpenAPI + gRPC (api_specs:
-  3) are typical adapter-layer contracts in Hexagonal Architecture; (5) Single Docker/Docker
-  Compose setup (container_orchestration: 3 likely includes compose + dockerfile)
-  suggests single deployable unit rather than multiple microservices — despite Microservices
-  scoring 0.7 in heuristics, this is likely because of the API/messaging signals rather
-  than actual multi-service decomposition; (6) The heuristic was inconclusive (classification_method:
-  heuristic-inconclusive) but the project name and technology stack strongly point
-  to a Hexagonal template with event-driven adapters'
+review_notes: 'Hexagonal Architecture: clear separation into internal/usecase (application
+  core), internal/controller (inbound adapters: restapi, grpc, amqp_rpc, nats_rpc),
+  internal/repo (outbound adapters: persistent, webapi), internal/entity (domain),
+  and internal/usecase/contracts.go + internal/repo/contracts.go defining ports (interfaces).
+  Event-Driven: pkg/rabbitmq/rmq_rpc and pkg/nats/nats_rpc for RabbitMQ/NATS messaging
+  with Request-Reply pattern. Single Dockerfile confirms single deployable unit (not
+  microservices). Dependency injection via constructors enforces dependency inversion
+  principle central to Hexagonal Architecture.'

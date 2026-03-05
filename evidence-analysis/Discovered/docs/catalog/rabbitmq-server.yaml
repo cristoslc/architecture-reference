@@ -10,8 +10,8 @@ domain: Messaging
 language: JavaScript
 languages: null
 architecture_styles:
-- Event-Driven
 - Modular Monolith
+- Event-Driven
 key_technologies:
 - Node.js
 - Maven
@@ -31,17 +31,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: RabbitMQ message broker server - infrastructure software with modular
-  internal architecture. Multiple package manifests (14) and high CI/CD (17) indicate
-  a large codebase with multiple components. High container orchestration (9) and
-  IaC (9) suggest container-based deployment. As a message broker itself, Event-Driven
-  is intrinsic to its purpose.
+one_line_summary: RabbitMQ server — a multi-protocol messaging and streaming broker
+  implemented as a modular monolith of Erlang/OTP applications (plugins), with event-driven
+  message routing as its core architectural purpose
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.92
   signals_detected: 52
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.75
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -59,12 +57,16 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: domain is ''Messaging'' - this is RabbitMQ server, the message
-  broker infrastructure itself. Signal breakdown shows 14 package_manifests (multiple
-  components), 9 container_orchestration, 9 infrastructure_as_code, 17 ci_cd. The
-  heuristic candidates were Microservices (0.5) and Event-Driven (0.3). However, this
-  is the broker software, not a consumer application. The Event-Driven classification
-  applies because RabbitMQ IS an event/message broker - that''s its core purpose.
-  The multi-language support (JS, Python, .NET, Java/Maven) suggests multiple client
-  libraries and server components, pointing to a Modular Monolith structure. Not true
-  microservices as this is the infrastructure itself, not a system built ON RabbitMQ.'
+review_notes: 'Evidence: AGENTS.md explicitly describes 40+ components under deps/
+  (deps/rabbit as core, deps/rabbitmq_mqtt, deps/rabbitmq_stomp, deps/rabbitmq_stream,
+  deps/rabbitmq_management, deps/rabbitmq_prometheus, etc.), each as independently
+  developed Erlang/OTP applications with their own Makefiles (confirmed by glob showing
+  deps/rabbitmq_auth_backend_oauth2/Makefile, deps/rabbitmq_shovel/Makefile, etc.).
+  All components are built and deployed as a single broker unit — there is one packaging/docker-image/Dockerfile
+  for the whole server. This is a textbook Modular Monolith: clear internal module
+  boundaries (OTP apps/plugins), shared runtime, single deployment unit. Event-Driven
+  is intrinsic: RabbitMQ IS a message broker implementing AMQP, MQTT, STOMP, and Stream
+  Protocol — its entire purpose is routing events/messages between producers and consumers.
+  deps/rabbitmq_event_exchange exposes internal broker events to AMQP clients. The
+  multi-language signals (JS in selenium/, Maven in authorization-server/) are test
+  infrastructure, not separate services.'

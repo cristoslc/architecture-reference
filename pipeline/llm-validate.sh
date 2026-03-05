@@ -14,6 +14,7 @@
 #   --entry <name.yaml>       Process a single specific entry
 #   --model <ID>              LLM model (default: from llm config)
 #   --clone-dir <PATH>        Directory for cached repo clones
+#   --max-turns <N>           Max multi-turn LLM rounds (default: 8)
 #   --dry-run                 List entries without processing
 #   --catalog <PATH>          Catalog directory
 #   --verbose                 Show detailed progress
@@ -26,6 +27,8 @@ LIMIT=0
 SINGLE_ENTRY=""
 MODEL=""
 CLONE_DIR=""
+MAX_TURNS=8
+FALLBACK_MODELS=("openrouter/moonshotai/kimi-k2.5" "openrouter/z-ai/glm-5")
 DRY_RUN=false
 CATALOG_DIR="evidence-analysis/Discovered/docs/catalog"
 VERBOSE=false
@@ -77,6 +80,7 @@ while [[ $# -gt 0 ]]; do
     --entry)      SINGLE_ENTRY="$2"; shift 2 ;;
     --model)      MODEL="$2"; shift 2 ;;
     --clone-dir)  CLONE_DIR="$2"; shift 2 ;;
+    --max-turns)  MAX_TURNS="$2"; shift 2 ;;
     --dry-run)    DRY_RUN=true; shift ;;
     --catalog)    CATALOG_DIR="$2"; shift 2 ;;
     --verbose)    VERBOSE=true; shift ;;
@@ -295,6 +299,95 @@ repo_map() {
   eval "find \"$target_dir\" -maxdepth \"$depth\" \\( $prune_expr \\) -prune -o -print" 2>/dev/null \
     | head -300 \
     | sed "s|$clone_path/||"
+}
+
+# ── fulfill_requests: handle needs_info responses (SPEC-011) ──────────────────
+fulfill_requests() {
+  local requests_json="$1"
+  local clone_path="$2"
+  local fulfilled=""
+
+  if [[ -z "$clone_path" || ! -d "$clone_path" ]]; then
+    echo "Cannot fulfill info requests: no local clone available."
+    return
+  fi
+
+  local count
+  count=$(echo "$requests_json" | python3 -c "import sys,json; print(len(json.load(sys.stdin)))" 2>/dev/null || echo "0")
+
+  for ((i=0; i<count; i++)); do
+    local req_type req_path req_pattern req_reason req_depth
+
+    req_type=$(echo "$requests_json" | python3 -c "import sys,json; r=json.load(sys.stdin)[$i]; print(r.get('type',''))" 2>/dev/null)
+    req_reason=$(echo "$requests_json" | python3 -c "import sys,json; r=json.load(sys.stdin)[$i]; print(r.get('reason',''))" 2>/dev/null)
+
+    case "$req_type" in
+      file)
+        req_path=$(echo "$requests_json" | python3 -c "import sys,json; r=json.load(sys.stdin)[$i]; print(r.get('path',''))" 2>/dev/null)
+        fulfilled+="\n### Requested file: $req_path\n"
+        fulfilled+="(Reason: $req_reason)\n\n"
+        if [[ -f "$clone_path/$req_path" ]]; then
+          fulfilled+="\`\`\`\n$(head -500 "$clone_path/$req_path")\n\`\`\`\n"
+        else
+          fulfilled+="(File not found: $req_path)\n"
+        fi
+        ;;
+
+      tree)
+        req_path=$(echo "$requests_json" | python3 -c "import sys,json; r=json.load(sys.stdin)[$i]; print(r.get('path','.'))" 2>/dev/null)
+        req_depth=$(echo "$requests_json" | python3 -c "import sys,json; r=json.load(sys.stdin)[$i]; print(r.get('depth',2))" 2>/dev/null)
+        fulfilled+="\n### Requested tree: $req_path (depth $req_depth)\n"
+        fulfilled+="(Reason: $req_reason)\n\n"
+        fulfilled+="\`\`\`\n$(repo_map "$clone_path" "$req_path" "$req_depth")\n\`\`\`\n"
+        ;;
+
+      glob)
+        req_pattern=$(echo "$requests_json" | python3 -c "import sys,json; r=json.load(sys.stdin)[$i]; print(r.get('pattern',''))" 2>/dev/null)
+        fulfilled+="\n### Requested glob: $req_pattern\n"
+        fulfilled+="(Reason: $req_reason)\n\n"
+        local matches
+        if [[ "$req_pattern" == */* ]]; then
+          matches=$(cd "$clone_path" && find . -path "./.git" -prune -o -path "./$req_pattern" -print 2>/dev/null | head -20)
+        else
+          matches=$(cd "$clone_path" && find . -path "./.git" -prune -o -name "$req_pattern" -print 2>/dev/null | head -20)
+        fi
+        if [[ -n "$matches" ]]; then
+          fulfilled+="Matching files:\n\`\`\`\n$matches\n\`\`\`\n"
+          # Cat the first match
+          local first_match
+          first_match=$(echo "$matches" | head -1)
+          if [[ -f "$clone_path/$first_match" ]]; then
+            fulfilled+="\nContents of $first_match:\n\`\`\`\n$(head -500 "$clone_path/$first_match")\n\`\`\`\n"
+          fi
+        else
+          fulfilled+="(No files matching pattern: $req_pattern)\n"
+        fi
+        ;;
+
+      grep)
+        req_pattern=$(echo "$requests_json" | python3 -c "import sys,json; r=json.load(sys.stdin)[$i]; print(r.get('pattern',''))" 2>/dev/null)
+        req_path=$(echo "$requests_json" | python3 -c "import sys,json; r=json.load(sys.stdin)[$i]; print(r.get('path','.'))" 2>/dev/null)
+        fulfilled+="\n### Requested grep: '$req_pattern' in $req_path\n"
+        fulfilled+="(Reason: $req_reason)\n\n"
+        local grep_results
+        grep_results=$(grep -rn "$req_pattern" "$clone_path/$req_path" 2>/dev/null \
+          | grep -v "\.git/" \
+          | head -50 \
+          | sed "s|$clone_path/||")
+        if [[ -n "$grep_results" ]]; then
+          fulfilled+="\`\`\`\n$grep_results\n\`\`\`\n"
+        else
+          fulfilled+="(No matches for pattern: $req_pattern)\n"
+        fi
+        ;;
+
+      *)
+        fulfilled+="\n(Unknown request type: $req_type)\n"
+        ;;
+    esac
+  done
+
+  echo -e "$fulfilled"
 }
 
 # ── deep_context_files: collect config files and architecture docs ───────────
@@ -655,7 +748,7 @@ process_entry() {
   clone_path=$(ensure_clone "$yaml_file")
   if [[ -z "$clone_path" || ! -d "$clone_path" ]]; then
     log "  SKIP: could not clone repository"
-    echo "{\"entry\":\"$(basename "$yaml_file")\",\"verdict\":\"clone_failed\",\"validation_verdict\":\"error\",\"override_decision\":\"defer\",\"styles\":[],\"confidence\":0}"
+    echo "{\"entry\":\"$(basename "$yaml_file")\",\"verdict\":\"clone_failed\",\"validation_verdict\":\"error\",\"override_decision\":\"defer\",\"styles\":[],\"confidence\":0,\"turns\":0}"
     return
   fi
   verbose "Clone: $clone_path"
@@ -676,17 +769,90 @@ process_entry() {
 
 $val_prompt"
 
-  # Call LLM
-  verbose "Calling LLM..."
+  # Build model fallback chain: explicit model (if set), then fallback models
+  local -a model_chain=()
+  if [[ -n "$MODEL" ]]; then
+    model_chain+=("$MODEL")
+  else
+    model_chain+=("")  # default model
+  fi
+  for fm in "${FALLBACK_MODELS[@]}"; do
+    model_chain+=("$fm")
+  done
+
+  local turn=1
+  local current_model_idx=0
+  local active_model="${model_chain[0]}"
   local model_flag=""
-  [[ -n "$MODEL" ]] && model_flag="-m $MODEL"
-  local response
+  [[ -n "$active_model" ]] && model_flag="-m $active_model"
+  local response json verdict
+
+  verbose "Turn $turn: calling LLM${active_model:+ ($active_model)}..."
   response=$(echo "$context" | llm $model_flag -s "$combined_system" 2>/dev/null || echo '{"verdict":"error"}')
 
-  local json verdict
   json=$(parse_response "$response")
   verdict=$(get_verdict "$json")
-  verbose "LLM verdict: $verdict"
+  verbose "Turn $turn verdict: $verdict"
+
+  # On error, try fallback models before entering multi-turn loop
+  while [[ "$verdict" == "error" && $((current_model_idx + 1)) -lt ${#model_chain[@]} ]]; do
+    current_model_idx=$((current_model_idx + 1))
+    active_model="${model_chain[$current_model_idx]}"
+    model_flag="-m $active_model"
+    log "  Fallback: retrying with $active_model"
+
+    response=$(echo "$context" | llm $model_flag -s "$combined_system" 2>/dev/null || echo '{"verdict":"error"}')
+
+    json=$(parse_response "$response")
+    verdict=$(get_verdict "$json")
+    verbose "Turn $turn verdict: $verdict (via $active_model)"
+  done
+
+  # Multi-turn loop: fulfill needs_info requests
+  while [[ "$verdict" == "needs_info" && $turn -lt $MAX_TURNS ]]; do
+    turn=$((turn + 1))
+
+    local requests
+    requests=$(echo "$json" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin).get('requests',[])))" 2>/dev/null)
+
+    local fulfilled
+    fulfilled=$(fulfill_requests "$requests" "$clone_path")
+
+    verbose "Turn $turn: fulfilling requests and calling LLM${active_model:+ ($active_model)}..."
+    response=$(echo "Here is the additional information you requested:
+
+$fulfilled
+
+Please provide your validation verdict now." | llm $model_flag -c 2>/dev/null || echo '{"verdict":"error"}')
+
+    json=$(parse_response "$response")
+    verdict=$(get_verdict "$json")
+    verbose "Turn $turn verdict: $verdict"
+
+    # On error mid-conversation, try fallback models (fresh conversation)
+    if [[ "$verdict" == "error" ]]; then
+      while [[ $((current_model_idx + 1)) -lt ${#model_chain[@]} ]]; do
+        current_model_idx=$((current_model_idx + 1))
+        active_model="${model_chain[$current_model_idx]}"
+        model_flag="-m $active_model"
+        log "  Fallback: retrying with $active_model (fresh)"
+
+        # Restart from scratch with new model
+        turn=1
+        response=$(echo "$context" | llm $model_flag -s "$combined_system" 2>/dev/null || echo '{"verdict":"error"}')
+
+        json=$(parse_response "$response")
+        verdict=$(get_verdict "$json")
+        verbose "Turn $turn verdict: $verdict (via $active_model)"
+        [[ "$verdict" != "error" ]] && break
+      done
+    fi
+  done
+
+  # Handle exhausted turns
+  if [[ "$verdict" == "needs_info" ]]; then
+    log "  Escalation failure: max turns ($MAX_TURNS) exceeded"
+  fi
 
   # Compute validation verdict
   local validation_verdict
@@ -702,6 +868,12 @@ $val_prompt"
     if [[ "$override_decision" == "auto-accept" ]]; then
       apply_classification "$yaml_file" "$json"
     fi
+  fi
+
+  # Terminal needs_info: max turns exhausted
+  if [[ "$verdict" == "needs_info" ]]; then
+    validation_verdict="error"
+    override_decision="defer"
   fi
 
   # Clean up temp clone if we created one (not in CLONE_DIR)
@@ -722,7 +894,7 @@ $val_prompt"
   local validation_notes
   validation_notes=$(echo "$json" | python3 -c "import sys,json; print(json.load(sys.stdin).get('validation_notes',''))" 2>/dev/null || echo "")
 
-  echo "{\"entry\":\"$(basename "$yaml_file")\",\"verdict\":\"$verdict\",\"validation_verdict\":\"$validation_verdict\",\"override_decision\":\"$override_decision\",\"existing_styles\":\"$existing_styles_str\",\"new_styles\":$styles_json,\"confidence\":$conf,\"validation_notes\":\"$validation_notes\"}"
+  echo "{\"entry\":\"$(basename "$yaml_file")\",\"verdict\":\"$verdict\",\"validation_verdict\":\"$validation_verdict\",\"override_decision\":\"$override_decision\",\"existing_styles\":\"$existing_styles_str\",\"new_styles\":$styles_json,\"confidence\":$conf,\"turns\":$turn,\"validation_notes\":\"$validation_notes\"}"
 }
 
 # ── generate_disagreement_report: markdown report for flagged entries ────────
@@ -768,6 +940,7 @@ main() {
   log "  Model: ${MODEL:-default ($(llm models default 2>/dev/null || echo 'unknown'))}"
   log "  Priority: $PRIORITY"
   log "  Catalog: $CATALOG_DIR"
+  log "  Max turns: $MAX_TURNS"
   [[ -n "$CLONE_DIR" ]] && log "  Clone dir: $CLONE_DIR"
   [[ -n "$SINGLE_ENTRY" ]] && log "  Single entry: $SINGLE_ENTRY"
   [[ "$DRY_RUN" == "true" ]] && log "  Mode: DRY RUN"

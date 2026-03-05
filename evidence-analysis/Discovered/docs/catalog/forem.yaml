@@ -33,11 +33,11 @@ one_line_summary: Forem is a Rails-based social media platform (powers dev.to) b
   as a modular monolith with classic MVC layering and event-driven background processing
   via Sidekiq/Redis
 discovery_metadata:
-  confidence: 0.78
+  confidence: 0.85
   signals_detected: 19
   signals_evaluated: 10
-  classification_method: deep-validation
-  primary_style_confidence: 0.78
+  classification_method: llm-review
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -57,12 +57,13 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Evidence: (1) Single Dockerfile with multi-stage builds (production,
-  testing, development) confirms monolithic deployment; (2) docker-compose.yml shows
-  single forem image used across all services (web, sidekiq, rails) with no Kubernetes/Helm;
-  (3) Classic Rails layered structure: app/models (1003 rb files), app/forms, app/queries,
-  app/mailers, plus 730 erb view templates; (4) Modular organization via namespaced
-  model directories: app/models/articles/, app/models/users/, app/models/settings/,
-  app/models/ahoy/, app/models/concerns/; (5) Query objects organized by domain: app/queries/articles/,
-  app/queries/users/, app/queries/organizations/; (6) Event-driven component: sidekiq
-  service in docker-compose.yml with Redis for background job processing'
+review_notes: 'Evidence: (1) Single Dockerfile with multi-stage builds and single
+  docker-compose.yml confirm monolithic deployment unit; (2) Classic Rails layered
+  structure: app/models (100+ files), app/forms, app/queries, app/mailers, app/decorators,
+  app/uploaders, app/sanitizers with ERB view templates — clear presentation/business
+  logic/data access separation; (3) Modular organization via namespaced directories:
+  app/models/articles/, app/models/users/, app/models/settings/, app/models/ahoy/,
+  app/queries/articles/, app/queries/users/, app/queries/organizations/ — domain-scoped
+  modules within a single deployable; (4) Event-driven component: Sidekiq worker service
+  in docker-compose.yml with Redis for async background job processing; (5) RabbitMQ
+  listed as key technology suggesting additional messaging/event capabilities'

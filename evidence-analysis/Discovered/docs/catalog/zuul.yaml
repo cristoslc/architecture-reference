@@ -10,8 +10,8 @@ domain: Infrastructure
 language: Java/Kotlin
 languages: null
 architecture_styles:
-- Service-Based
 - Pipe-and-Filter
+- Modular Monolith
 key_technologies:
 - Gradle
 - GitHub Actions
@@ -24,16 +24,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Netflix Zuul is an API Gateway that acts as a reverse proxy with
-  filter-based request processing. It exhibits Service-Based architecture (coarse-grained
-  gateway service) combined with Pipe-and-Filter (ZuulFilter chain for cross-cutting
-  concerns like auth, rate-limiting, routing).
+one_line_summary: Netflix Zuul is an L7 API Gateway that processes requests through
+  a chain of filters (pipe-and-filter), structured as a modular monolith with distinct
+  internal modules (zuul-core, zuul-processor, zuul-discovery, zuul-sample)
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.85
   signals_detected: 18
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.75
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -55,10 +54,11 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Evidence: 6 package manifests indicate modular structure; 4 messaging
-  signals; 7 CI/CD signals. This is a well-known Netflix OSS API Gateway project that
-  uses filter chains for request processing - a classic pipe-and-filter pattern. The
-  gateway sits in front of backend services, representing a single coarse-grained
-  service (Service-Based) rather than multiple microservices. No Kubernetes/container
-  orchestration present, and no API specs - consistent with a gateway service rather
-  than microservices.'
+review_notes: 'Pipe-and-Filter: Zuul''s core design is a ZuulFilter chain for request/response
+  processing (routing, auth, rate-limiting, monitoring) — this is the defining architectural
+  pattern. Modular Monolith: single Gradle build with multiple internal modules (zuul-core,
+  zuul-processor, zuul-discovery, zuul-sample, zuul-integration-test) in a multi-project
+  Gradle structure (settings.gradle), no separate Dockerfiles per service, no Kubernetes/container
+  orchestration. Service-Based is not applicable here — Zuul itself is a library/framework,
+  not a deployed service cluster. The 4 messaging signals likely reflect Netty/async
+  I/O internals rather than an event-driven architecture.'

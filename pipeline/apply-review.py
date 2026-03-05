@@ -81,8 +81,17 @@ def apply_review(entry_path, styles, confidence, summary, notes,
     if notes:
         entry["review_notes"] = notes
 
-    # Update review_required
-    entry["review_required"] = False
+    # Update review_required — only clear the flag when classification succeeded.
+    # Unclassifiable entries (confidence forced to 0 by llm-review.sh) and
+    # low-confidence entries remain flagged for human review.
+    if notes and "unclassifiable" in notes.lower():
+        entry["review_required"] = True
+    elif styles:
+        entry["review_required"] = False
+    elif confidence >= 0.85:
+        entry["review_required"] = False
+    else:
+        entry["review_required"] = True
 
     # Update entry_type if provided
     if entry_type:

@@ -11,6 +11,7 @@ language: ''
 languages: null
 architecture_styles:
 - Serverless
+- Event-Driven
 key_technologies: null
 quality_attributes: null
 notable_strengths: null
@@ -19,14 +20,15 @@ notable_gaps:
 - No test infrastructure detected
 - No CI/CD configuration detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Airline booking application built on AWS serverless services (Lambda,
-  API Gateway, DynamoDB) demonstrating event-driven serverless architecture
+one_line_summary: Complete airline booking web application built on AWS serverless
+  services (Lambda, AppSync/GraphQL, DynamoDB, Step Functions, SNS) demonstrating
+  serverless and event-driven architecture
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.82
   signals_detected: 0
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.75
+  primary_style_confidence: 0.82
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -42,8 +44,10 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: Classification based on project name 'aws-serverless-airline-booking'
-  from aws-samples repository. The explicit naming indicates AWS Serverless architecture
-  though automated signal detection found 0 signals. AWS samples typically use SAM
-  or Serverless Framework with Lambda functions, API Gateway, and managed database
-  services. This is a canonical serverless demo application pattern.
+review_notes: 'README explicitly describes: Lambda functions per service (Booking,
+  Payment, Loyalty, Catalog), AppSync as GraphQL API Hub, Step Functions for booking
+  workflow orchestration, SNS for service-to-service messaging (Event-Driven signal).
+  Directory tree is minimal (archived repo) but README and stack description are unambiguous.
+  Services use Python, TypeScript confirming multiple Lambda functions. Stripe integration
+  via SAR app, Cognito for auth, Amplify for frontend integration — all canonical
+  serverless patterns.'

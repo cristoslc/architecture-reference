@@ -27,16 +27,15 @@ notable_strengths:
 - Multi-style composition (2 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Temporal is a workflow orchestration platform written in Go that
-  uses Kafka as its event store to manage durable executions. The system communicates
-  via gRPC and deploys multiple services (frontend, history, matching, worker) using
-  Docker Compose.
+one_line_summary: Temporal is a durable workflow execution platform built around event
+  sourcing, with independently deployable internal services (Frontend, History, Matching,
+  Worker) communicating via gRPC
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.92
   signals_detected: 93
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.75
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -54,12 +53,14 @@ discovery_metadata:
     documentation: 1
     directory_structure: 1
 review_required: false
-review_notes: 'Classification based on catalog metadata: key technologies include
-  Kafka (messaging), Docker Compose (container orchestration), and gRPC (API communication).
-  The signal breakdown shows high API specs (67) and container orchestration signals
-  (2), while heuristic candidates scored Microservices (0.5) and Event-Driven (0.3).
-  Given Temporal''s domain as a workflow orchestration engine that persists workflow
-  state as events in Kafka and coordinates across multiple services, both Event-Driven
-  (event sourcing pattern) and Microservices (multiple deployable components) apply.
-  The confidence is elevated because Temporal is a well-known production system with
-  documented architecture.'
+review_notes: 'Event-Driven: Architecture doc explicitly states ''the system functions
+  via event sourcing: an append-only history of events is stored for each workflow
+  execution''; service/history/ contains event sourcing infrastructure including historybuilder/,
+  events/, replication/, and queues/. Microservices: Four independently deployable
+  services each with their own service.go, fx.go, handler.go, and configs/ directory:
+  service/frontend/, service/history/, service/matching/, service/worker/; docker-compose.cdc.yml
+  and multiple Dockerfiles in docker/targets/ (server.Dockerfile, admin-tools.Dockerfile)
+  confirm independent deployment; gRPC-based inter-service communication (67 API spec
+  signals); service/history/ manages workflow state shards, service/matching/ manages
+  task queues, service/frontend/ handles external gRPC/HTTP API, service/worker/ handles
+  background jobs — each with distinct responsibilities and bounded contexts.'

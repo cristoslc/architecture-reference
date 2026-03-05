@@ -31,15 +31,15 @@ notable_gaps:
 - No architecture decision records found
 - No test infrastructure detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A .NET Clean Architecture reference implementation combining microservices,
-  DDD, CQRS, and hexagonal architecture patterns, with Docker-based deployment and
-  CI/CD
+one_line_summary: A .NET 6 Clean Architecture reference implementation with multiple
+  independently deployable microservices (Product, Customer, Setting, Gateway, IdentityServer)
+  organized around DDD, CQRS via MediatR, and hexagonal layering (Api/AppCore/Infrastructure)
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.88
   signals_detected: 30
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.72
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Domain-Driven Design
     score: 0.6
@@ -61,13 +61,17 @@ discovery_metadata:
     documentation: 1
     directory_structure: 5
 review_required: false
-review_notes: 'Evidence from catalog metadata: (1) Project name ''clean-architecture-dotnet''
-  and C4/PlantUML architecture diagrams strongly signal Hexagonal/Clean Architecture;
-  (2) Heuristic candidates rank DDD (0.6), Microservices (0.5), CQRS (0.4), Event-Driven
-  (0.3); (3) 4 container orchestration signals + Docker/Docker Compose in key_technologies
-  suggest multiple deployable service units (Microservices); (4) 4 messaging signals
-  suggest event/command bus usage consistent with CQRS and Event-Driven patterns;
-  (5) 20 package manifest signals across likely multiple projects indicate per-service
-  .csproj files; (6) Domain-driven design is the near-universal companion to Clean
-  Architecture in .NET ecosystems. Event-Driven excluded from primary styles as score
-  was lowest and messaging signals could be internal command bus rather than a broker.'
+review_notes: 'Evidence: (1) Microservices — separate service directories under samples/
+  (Product, Customer, Setting, AppGateway, IdentityServer, WebBlazor) each with Dockerfile
+  and independent .csproj files; YARP API Gateway at samples/AppGateway; tye.yaml
+  orchestration; (2) DDD — N8T.Core/Domain/ with Entities.cs, Events.cs; domain aggregates
+  in ProductService.AppCore/Core/ (Product.cs, ProductCode.cs); Specification pattern
+  (ISpecification.cs, SpecificationBase.cs); Repository pattern (IRepository.cs);
+  (3) CQRS — explicit Commands/ and Queries/ directories in each service''s AppCore/UseCases/
+  (e.g. ProductService.AppCore/UseCases/Commands/CreateProduct.cs, /Queries/GetProductById.cs);
+  MediatR in tech stack; N8T.Core/Domain/Cqrs.cs; (4) Hexagonal Architecture — each
+  service split into three projects: *.Api (adapters-in), *.AppCore (application core
+  with use cases), *.Infrastructure (adapters-out with EF Core data layer); Bus/IEventBus.cs
+  port with Dapr adapter in N8T.Infrastructure/Bus/Dapr/; (5) Dapr pubsub.yaml and
+  CoolStore.IntegrationEvents signal event-driven messaging between services; transactional
+  outbox pattern in N8T.Infrastructure/TransactionalOutbox/'

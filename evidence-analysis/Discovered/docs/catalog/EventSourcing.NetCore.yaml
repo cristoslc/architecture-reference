@@ -13,7 +13,6 @@ architecture_styles:
 - Event-Driven
 - CQRS
 - Domain-Driven Design
-- Microservices
 key_technologies:
 - .NET
 - Docker
@@ -31,15 +30,15 @@ notable_gaps:
 - No architecture decision records found
 - No test infrastructure detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A .NET educational/sample repository demonstrating Event Sourcing
-  patterns with Event-Driven architecture, CQRS, DDD, and microservices using Kafka
-  and RabbitMQ
+one_line_summary: An educational .NET repository demonstrating Event Sourcing patterns
+  with Event-Driven architecture, CQRS, and DDD through multiple samples and workshop
+  exercises
 discovery_metadata:
-  confidence: 0.78
+  confidence: 0.92
   signals_detected: 207
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.78
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -61,12 +60,13 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Project name ''EventSourcing.NetCore'' strongly signals Event Sourcing
-  as the central pattern, which canonically pairs with Event-Driven architecture and
-  CQRS. Heuristic candidates confirm: Event-Driven (0.6), Microservices (0.5), CQRS
-  (0.4), DDD (0.3). Key technologies include Kafka and RabbitMQ (messaging infrastructure
-  = Event-Driven signal), Docker/Docker Compose (containerized services = Microservices
-  signal). 181 package manifests and 15 container orchestration signals suggest multiple
-  independently deployable service projects. The domain (Developer Tools) and project
-  naming pattern (oskardudycz is well-known for event sourcing educational content)
-  support a multi-style sample/showcase repo demonstrating all four styles together.'
+review_notes: 'Strong evidence for Event-Driven: Core/Events/ directory with EventBus,
+  IEventHandler, IEventBatchHandler, EventEnvelope, domain events, IExternalEvent;
+  process managers (Core/ProcessManagers/); event store integrations (Marten, EventStoreDB).
+  Strong CQRS signals: separate Core/Commands/ and Core/Queries/ directories, ICommandBus/IQueryBus,
+  ICommandHandler/IQueryHandler, InMemoryCommandBus, QueryBus. DDD signals: Core/Aggregates/
+  with IAggregate/Aggregate base, Core/Decider/, Core/ProcessManagers/, domain event
+  classes throughout samples. Repository is a monorepo of multiple sample projects
+  (not independently deployable services), so Microservices is not appropriate despite
+  Docker Compose presence — these are infrastructure dependencies (Marten/EventStoreDB/Kafka/RabbitMQ),
+  not separate application services.'

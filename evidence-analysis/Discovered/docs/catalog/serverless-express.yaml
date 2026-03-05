@@ -27,15 +27,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A JavaScript library/adapter that enables running Express.js (and
-  other Node.js frameworks) inside serverless environments such as AWS Lambda and
-  Azure Functions
+one_line_summary: A Node.js adapter library that bridges Express.js (and other frameworks)
+  to serverless runtime environments including AWS Lambda (API Gateway V1/V2, ALB,
+  Lambda@Edge, VPC Lattice) and Azure Functions
 discovery_metadata:
-  confidence: 0.82
+  confidence: 0.92
   signals_detected: 30
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.82
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Serverless
     score: 0.7
@@ -55,11 +55,11 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence from catalog: key_technologies includes ''Serverless Framework''
-  and ''Azure Functions'', heuristic_candidates rank Serverless at 0.7 (highest score),
-  infrastructure_as_code signals=6 and package_manifests=19 are consistent with a
-  multi-provider serverless adapter library. The project name ''serverless-express''
-  and known public identity of vendia/serverless-express confirm this is a bridge
-  library for deploying Express apps as serverless functions. Modular Monolith (0.4)
-  and Event-Driven (0.3) scores are likely noise from the large number of example/test
-  packages and the Kafka signal respectively.'
+review_notes: 'Evidence: multiple SAM templates (examples/*/sam-template.yaml), Azure
+  Function configs (examples/azure-http-function-v3/function.json, host.json), serverless.yml
+  in examples/basic-starter-nestjs, Lambda handler wrappers throughout examples (lambda.js
+  files), AWS Lambda and Azure Functions as primary deployment targets per README,
+  event source test fixtures (api-gateway-event.json, alb-event.json, etc.), GitHub
+  Actions CI/CD (.github/workflows/). This is a library/adapter rather than an application,
+  but its entire purpose and structure is to enable serverless deployments, making
+  Serverless the correct architectural classification.'

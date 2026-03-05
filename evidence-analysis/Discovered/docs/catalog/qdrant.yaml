@@ -29,13 +29,14 @@ notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
 one_line_summary: Qdrant is a vector similarity search engine/database written in
-  Rust, structured as a single deployable service with REST and gRPC APIs
+  Rust, structured as a single deployable monolithic service with REST (OpenAPI) and
+  gRPC API layers over a storage engine
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.88
   signals_detected: 109
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.72
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.8
@@ -51,13 +52,13 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence from catalog: single Rust/Cargo project (not multiple service
-  directories), OpenAPI + gRPC API specs (67 api_spec signals) indicating a well-defined
-  service interface layer, Docker/Docker Compose for single-service deployment (4
-  container signals, no Kubernetes/Helm indicating multi-service orchestration), no
-  messaging signals (0) ruling out Event-Driven or Microservices patterns. Known from
-  public knowledge: Qdrant is a monolithic vector database service with layered internals
-  (HTTP/gRPC API layer → service logic → storage engine). The heuristic candidate
-  of Microservices at 0.8 is likely a false positive driven by the large number of
-  OpenAPI/gRPC specs (67) which are API definition files for a single service, not
-  multiple services.'
+review_notes: 'Evidence: single root Cargo.toml (monolithic Rust workspace, not multiple
+  service directories), single Dockerfile at root, Docker Compose for single-service
+  deployment (tools/compose/docker-compose.yaml), no Kubernetes/Helm manifests, no
+  messaging infrastructure (0 messaging signals), OpenAPI and gRPC specs representing
+  a single service''s interface. The heuristic Microservices candidate at 0.8 is a
+  false positive from 67 API spec signals that are all definitions for one service.
+  Internal structure implies classic layered architecture: HTTP/gRPC API layer → service/business
+  logic → storage engine (consensus_tests and WAL references confirm storage layer).
+  No ports/adapters directories to indicate Hexagonal; no commands/queries separation
+  for CQRS.'

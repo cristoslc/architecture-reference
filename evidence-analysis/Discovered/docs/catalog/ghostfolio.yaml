@@ -12,6 +12,7 @@ languages: null
 architecture_styles:
 - Modular Monolith
 - Event-Driven
+- Layered
 key_technologies:
 - Node.js
 - Docker
@@ -27,14 +28,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Ghostfolio is a TypeScript-based personal finance/portfolio tracker
-  that appears to be a modular monolith with event-driven messaging via RabbitMQ
+one_line_summary: Ghostfolio is an open-source personal wealth management web app
+  built as a NestJS/Angular Nx monorepo, structured as a modular monolith with internal
+  event-driven messaging and layered (controller/service/repository) organization
+  within each module
 discovery_metadata:
-  confidence: 0.62
+  confidence: 0.88
   signals_detected: 8
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.62
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -52,16 +55,16 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence from catalog metadata: (1) Modular Monolith candidate score
-  0.4 — single package manifest signal, TypeScript/Node.js stack typical of NestJS
-  monorepos with internal module separation; (2) Event-Driven candidate score 0.3
-  — RabbitMQ is listed as a key technology, indicating async messaging between internal
-  components; (3) Docker Compose present (container_orchestration: 2) but no Kubernetes/Helm
-  signals, suggesting a small number of co-deployed containers rather than independently
-  deployable microservices; (4) no API specs or service discovery signals detected,
-  which argues against full Microservices. Ghostfolio is a well-known open-source
-  project built on NestJS with an Angular frontend, organized as an Nx monorepo with
-  internal libraries/modules — consistent with Modular Monolith. RabbitMQ is used
-  for background job processing (e.g. portfolio data sync), consistent with Event-Driven
-  as a secondary style. Confidence is below ideal threshold due to absence of direct
-  file evidence.'
+review_notes: 'Modular Monolith: single Dockerfile, Nx workspace with apps/api + apps/client
+  + libs/common + libs/ui, no service discovery or API gateway, all modules co-deployed.
+  Each domain area (order, portfolio, account, user, auth, import, export, etc.) has
+  its own module/controller/service triple under apps/api/src/app/ — classic NestJS
+  modular structure. Event-Driven (secondary): apps/api/src/events/ contains portfolio-changed.event.ts,
+  asset-profile-changed.event.ts, portfolio-changed.listener.ts, asset-profile-changed.listener.ts,
+  and events.module.ts — NestJS internal event bus; apps/api/src/app/admin/queue/
+  indicates Bull/queue-based async job processing. Layered (secondary): consistent
+  controller → service → Prisma (repository) pattern across every module (e.g. order.controller.ts
+  / order.service.ts, portfolio.controller.ts / portfolio.service.ts); interceptors/,
+  middlewares/, decorators/ directories reinforce horizontal layering. Redis caching
+  via redis-cache module. No Kubernetes, no separate service deployments, no API gateway
+  — rules out Microservices.'

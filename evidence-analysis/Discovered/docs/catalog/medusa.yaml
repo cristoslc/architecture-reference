@@ -27,15 +27,17 @@ notable_strengths:
 - Multi-style composition (3 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Medusa is an open-source e-commerce platform built as a modular
-  monolith in TypeScript/Node.js, organized around domain-driven business modules
-  (cart, order, product, customer, etc.) with a plugin/module system for extensibility
+one_line_summary: Medusa is an open-source e-commerce platform built as a monorepo
+  with multiple commerce modules (promotion, order, auth, payment, etc.), each following
+  Domain-Driven Design with models, services, migrations, and types organized within
+  bounded contexts. The system is a single deployable unit (not microservices) with
+  clear module boundaries.
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.9
   signals_detected: 129
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.75
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
@@ -55,13 +57,10 @@ discovery_metadata:
     documentation: 1
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence from catalog: 108 package manifests strongly suggest a monorepo
-  with many internal packages/modules rather than independently deployed microservices
-  (no container orchestration signals at all). Zero messaging/broker signals rules
-  out Event-Driven or pure Microservices. The e-commerce domain (orders, products,
-  customers, inventory) is inherently DDD-aligned. CQRS score of 0.3 is plausible
-  as a secondary pattern within modules. Medusa''s well-known architecture (as of
-  v2) is explicitly a modular commerce platform where each domain (cart, payment,
-  fulfillment, etc.) is an isolated module sharing a single deployment unit - consistent
-  with Modular Monolith + DDD classification. ''Modularity'' listed as a quality attribute
-  and ''Architecture documentation present'' further support this.'
+review_notes: 'Evidence: (1) packages/modules/ contains 20+ commerce modules (promotion,
+  order, auth, payment, notification, etc.) each with self-contained structure (models/,
+  services/, migrations/, types/, utils/); (2) Each module has domain models (e.g.,
+  packages/modules/promotion/src/models/ with Promotion, Campaign, CampaignBudget
+  entities); (3) Single deployment via @medusajs/medusa npm package - no separate
+  Dockerfiles or Kubernetes manifests; (4) turbo.json monorepo orchestration; (5)
+  Module pattern via Module() wrapper with service declaration.'

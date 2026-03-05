@@ -35,14 +35,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 one_line_summary: GitLab is a large Ruby on Rails DevOps platform structured as a
-  modular monolith with event-driven async processing (Kafka/RabbitMQ) and CQRS-like
-  read/write separation via GraphQL and REST APIs
+  modular monolith with event-driven async processing (Kafka/RabbitMQ/Sidekiq) and
+  CQRS-like separation via GraphQL queries and REST/OpenAPI writes
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.85
   signals_detected: 1111
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.75
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -66,16 +66,12 @@ discovery_metadata:
     documentation: 1
     directory_structure: 6
 review_required: false
-review_notes: 'Evidence from catalog: (1) Modular Monolith — single primary Ruby/Rails
-  codebase with ''Modularity'' listed as quality attribute and 5-style composition
-  suggesting internal decomposition rather than separate services; (2) Event-Driven
-  — Kafka AND RabbitMQ both present in key_technologies (4 messaging signals detected),
-  consistent with GitLab''s known use of async workers and background job processing;
-  (3) CQRS — 1057 api_specs signals plus both GraphQL and OpenAPI present strongly
-  suggest separate read (GraphQL queries) and write (REST/OpenAPI commands) paths;
-  (4) Docker/Docker Compose present but no Kubernetes/Helm signals in key_technologies,
-  arguing against full Microservices decomposition; (5) Architecture documentation
-  confirmed present (1 documentation signal); (6) ''Deployability'' as quality attribute
-  and GitLab CI present but single-repo structure points to monorepo modular monolith
-  rather than independent microservices. DDD and Pipe-and-Filter candidates scored
-  too low (0.3) to include with confidence.'
+review_notes: 'Evidence: (1) Modular Monolith — single Ruby on Rails codebase with
+  single Gemfile, no separate service directories, ''Modularity'' quality attribute,
+  `/ee` extension pattern for enterprise features; (2) Event-Driven — Kafka and RabbitMQ
+  both present in key_technologies (4 messaging signals), consistent with GitLab''s
+  known Sidekiq background workers and async job processing pipelines; (3) CQRS —
+  1057 API spec signals with both GraphQL (tooling/graphql/) and OpenAPI present,
+  GraphQL used for read queries while REST/OpenAPI handles mutations/writes; Docker/Docker
+  Compose present but no Kubernetes/Helm signals, ruling out full Microservices; architecture
+  documentation confirmed present'

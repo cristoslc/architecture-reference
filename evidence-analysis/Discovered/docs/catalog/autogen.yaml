@@ -12,6 +12,7 @@ languages: null
 architecture_styles:
 - Multi-Agent
 - Modular Monolith
+- Event-Driven
 key_technologies:
 - Node.js
 - Python/pip
@@ -28,15 +29,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Microsoft AutoGen is a multi-agent AI framework providing a modular
-  monorepo of components for building, orchestrating, and deploying autonomous AI
-  agents that collaborate to solve tasks
+one_line_summary: Microsoft AutoGen is a multi-language monorepo framework for building
+  multi-agent AI applications, organized into layered packages (autogen-core, autogen-agentchat,
+  autogen-ext) with event-driven message passing and distributed runtime support via
+  gRPC
 discovery_metadata:
-  confidence: 0.82
+  confidence: 0.88
   signals_detected: 116
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.82
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.8
@@ -52,16 +54,17 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence: (1) AutoGen is a well-known Microsoft open-source framework
-  specifically designed for multi-agent conversation and coordination patterns — agents
-  with defined roles communicating via structured protocols. (2) Heuristic candidate:
-  Microservices score 0.8, but given the domain (AI agent framework) and 85 package
-  manifests suggesting a multi-package monorepo rather than independently deployed
-  services, Modular Monolith + Multi-Agent is more accurate. (3) 85 package manifests
-  strongly suggest a monorepo with multiple Python packages (autogen-core, autogen-agentchat,
-  autogen-ext, etc.) sharing a single codebase — characteristic of Modular Monolith.
-  (4) gRPC presence supports inter-agent or inter-component communication. (5) 11
-  API specs support structured agent communication interfaces. (6) Docker/Docker Compose
-  signals (score 6) are consistent with development tooling rather than full microservices
-  deployment. (7) Node.js and .NET presence alongside Python indicates multi-language
-  SDKs/extensions within the same monorepo.'
+review_notes: 'Evidence: (1) Multi-Agent: Core design is explicitly agent-based with
+  AssistantAgent, AgentTool, group chats, and orchestration patterns; agent_worker.proto
+  and cloudevent.proto define inter-agent communication protocols; docs/design/01-03
+  describe programming model, topics, and agent worker protocol. (2) Modular Monolith:
+  Single monorepo with well-separated Python packages (autogen-core, autogen-agentchat,
+  autogen-ext, autogenstudio, agbench, magentic-one-cli) under python/packages/, plus
+  dotnet/src/ with multiple .NET packages — all deployed independently but developed
+  together. (3) Event-Driven: protos/agent_worker.proto and protos/cloudevent.proto
+  indicate event-based agent communication; docs/design mentions topics and event-driven
+  agents; README explicitly states ''Core API implements message passing, event-driven
+  agents''; the presence of cloudevent.proto (CloudEvents standard) confirms event-driven
+  patterns. (4) gRPC: python/samples/core_grpc_worker_runtime and dotnet NuGet packages
+  include Core.Grpc and RuntimeGateway.Grpc, supporting distributed runtime. (5) Multi-language:
+  Python packages + .NET packages + Node.js MCP tooling all coexist in the monorepo.'

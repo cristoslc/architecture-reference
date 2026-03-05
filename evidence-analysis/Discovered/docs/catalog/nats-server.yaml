@@ -26,15 +26,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: NATS server — a high-performance messaging system implemented as
-  a single deployable Go binary with internal modules handling pub/sub, clustering,
-  JetStream (event streaming), and routing
+one_line_summary: NATS server is a high-performance messaging broker implemented as
+  a single deployable Go binary with well-defined internal modules (server, logger,
+  internal, util) handling pub/sub, JetStream streaming, clustering, MQTT, WebSocket,
+  and routing
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.88
   signals_detected: 11
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.72
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -52,15 +53,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence from catalog: (1) Single Go module (package_manifests:1, single
-  Docker container) indicates a single deployable unit consistent with Modular Monolith.
-  (2) NATS is a core messaging/pub-sub broker — the system is itself an Event-Driven
-  infrastructure component with built-in support for pub/sub, streaming (JetStream),
-  and message routing, consistent with Event-Driven signals (messaging:1). (3) No
-  service discovery, multiple Dockerfiles, or API gateway signals present, ruling
-  out Microservices. (4) No serverless.yml, no pipeline/stages directories noted.
-  (5) NATS server is well-known publicly as a single-process, internally-modular Go
-  application with distinct subsystems (core server, JetStream, cluster/routing, leaf
-  nodes, auth) — consistent with Modular Monolith + Event-Driven classification. Heuristic
-  candidates from catalog (Modular Monolith 0.4, Event-Driven 0.3) align with this
-  assessment.'
+review_notes: 'Single Go module (go.mod) and single Dockerfile confirm single deployable
+  unit. The `server/` package is the core monolith containing all major subsystems:
+  jetstream.go, jetstream_cluster.go, accounts.go, gateway.go, mqtt.go, auth.go, store.go,
+  monitor.go — all within one package. Internal modules (`internal/ldap`, `internal/ocsp`,
+  `internal/fastrand`) and `logger/` provide clear module boundaries. Event-Driven
+  classification is well-supported: NATS is itself a pub/sub messaging infrastructure;
+  `server/jetstream_events.go`, `server/events_test.go`, and the overall pub/sub/streaming
+  architecture confirm event-driven patterns as a first-class concern. No multiple
+  Dockerfiles, no Kubernetes manifests, no API gateway config — ruling out Microservices.'

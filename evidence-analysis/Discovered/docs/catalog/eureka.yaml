@@ -24,15 +24,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Netflix Eureka is a service registry and discovery infrastructure
-  component built as a modular Java monolith with event-driven registration/heartbeat
-  notification patterns
+one_line_summary: Netflix Eureka is a RESTful service registry and discovery infrastructure
+  component built as a multi-module Gradle monolith with internal event-driven patterns
+  for registry lifecycle notifications
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.82
   signals_detected: 19
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.72
+  primary_style_confidence: 0.82
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -52,12 +52,11 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Classification based on well-known public knowledge of Netflix Eureka
-  combined with catalog signals: (1) Modular Monolith - Eureka is a well-documented
-  multi-module Gradle project (eureka-core, eureka-client, eureka-server, eureka-resources)
-  deployed as a single WAR/JAR unit with no service discovery or API gateway of its
-  own; (2) Event-Driven - catalog signals show messaging score of 5, consistent with
-  Eureka''s internal event bus for registry change notifications (EurekaEvent, EurekaEventListener),
-  instance registration/cancellation/renewal lifecycle events; heuristic_candidates
-  align with this assessment (Modular Monolith 0.4, Event-Driven 0.3); no container
-  orchestration or IaC signals rule out Microservices/Serverless'
+review_notes: 'Modular Monolith: clear multi-module Gradle project structure with
+  self-contained modules (eureka-core, eureka-client, eureka-server, eureka-resources,
+  eureka-core-jersey2, eureka-client-jersey2, eureka-client-archaius2, eureka-server-governator,
+  eureka-test-utils) defined in settings.gradle, no Dockerfiles or service discovery
+  infrastructure of its own, single deployable WAR/JAR unit. Event-Driven: catalog
+  signals show messaging score of 5, consistent with Eureka''s internal EurekaEvent/EurekaEventListener
+  bus for instance registration, cancellation, and heartbeat renewal lifecycle events.
+  No container orchestration or IaC signals rule out Microservices or Serverless.'

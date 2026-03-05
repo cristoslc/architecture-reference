@@ -12,7 +12,6 @@ languages: null
 architecture_styles:
 - Modular Monolith
 - Event-Driven
-- Domain-Driven Design
 key_technologies:
 - Node.js
 - Python/pip
@@ -30,15 +29,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: OrchardCore is a .NET CMS platform built as a modular monolith where
-  features are packaged as independently loadable modules, with internal event-driven
-  communication and domain-oriented module boundaries
+one_line_summary: OrchardCore is an ASP.NET Core CMS and application framework built
+  as a modular monolith where features are packaged as independently loadable modules
+  with internal event-driven communication via IEventBus/IEventHandler patterns
 discovery_metadata:
-  confidence: 0.78
+  confidence: 0.88
   signals_detected: 391
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.78
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
@@ -64,16 +63,14 @@ discovery_metadata:
     documentation: 0
     directory_structure: 5
 review_required: false
-review_notes: 'Evidence from catalog: (1) Modular Monolith is the top heuristic candidate
-  (score 0.70) — OrchardCore is publicly known to use an ASP.NET Core module/tenant
-  system where each feature is a self-contained module; (2) 94 messaging signals detected
-  strongly suggests internal event bus usage, consistent with OrchardCore''s known
-  IEventBus/IEventHandler pattern for decoupled inter-module communication (Event-Driven
-  secondary style); (3) 278 package manifests indicate many independent module-level
-  .csproj files, corroborating modular decomposition; (4) DDD score of 0.3 aligns
-  with OrchardCore''s domain-oriented module boundaries (Content, Users, Roles, Workflows,
-  etc.); (5) CQRS score of 0.4 is notable but insufficient to elevate above secondary
-  without direct evidence of separate read/write models; (6) Single deployment unit
-  (no Kubernetes, minimal container orchestration signals) rules out Microservices;
-  (7) Public knowledge of OrchardCore''s architecture as a modular CMS with tenant
-  isolation and feature modules corroborates the heuristic top candidate.'
+review_notes: 'Evidence: (1) src/OrchardCore.Modules/ contains 20+ self-contained
+  feature modules (Redis, Title, Search, Widgets, Lists, Navigation, OpenId, etc.)
+  — classic modular monolith decomposition; (2) Single Dockerfile and single .slnx
+  solution file confirm single deployable unit, not microservices; (3) 94 messaging
+  signals detected in automated scan corroborate known IEventBus/IEventHandler inter-module
+  communication pattern; (4) 278 package manifests (.csproj files) confirm module-level
+  project decomposition; (5) README explicitly states ''modular, multi-tenant application
+  framework''; (6) No Kubernetes manifests, no API gateway config, no service discovery
+  — rules out Microservices; (7) AGENTS.md and .agents/ directory present but this
+  appears to be AI coding assistant configuration, not a multi-agent architecture
+  pattern'

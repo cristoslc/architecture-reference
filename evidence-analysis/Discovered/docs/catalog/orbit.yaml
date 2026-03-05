@@ -10,7 +10,8 @@ domain: Developer Tools
 language: Java/Kotlin
 languages: null
 architecture_styles:
-- Microservices
+- Modular Monolith
+- Layered
 key_technologies:
 - Gradle
 - Docker
@@ -28,14 +29,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Java/Kotlin developer tooling platform built as microservices, using
-  gRPC for inter-service communication and Kubernetes/Docker for orchestration
+one_line_summary: Orbit is an actor-based distributed computing framework (by EA)
+  built as a Gradle multi-module monolith with a single deployable server, gRPC client-server
+  communication, and modular internal components for client, server, shared logic,
+  and extensions
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.82
   signals_detected: 31
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.72
+  primary_style_confidence: 0.82
   heuristic_candidates:
   - style: Microservices
     score: 0.7
@@ -53,12 +56,12 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence from catalog metadata: Kubernetes + Docker Compose (container_orchestration
-  score: 9) strongly indicate multi-service deployment; gRPC listed as key technology
-  suggests inter-service communication contracts; api_specs score of 7 corroborates
-  multiple service endpoints; package_manifests score of 11 suggests multiple independent
-  build units (consistent with Gradle multi-project or per-service builds); CI/CD
-  automation present. Pipe-and-Filter scored 0.3 but without directory tree evidence
-  of pipeline/stage structures, Microservices (0.7) is the stronger candidate. Confidence
-  capped at 0.72 due to absence of directory tree, docker-compose.yml, and README
-  to confirm service count and boundaries.'
+review_notes: 'Evidence for Modular Monolith: single `./docker/server/Dockerfile`,
+  single `docker-compose.yml`, single Helm chart (`./charts/orbit/`), single `build.gradle.kts`
+  at root with `settings.gradle.kts` coordinating all modules — classic Gradle multi-project
+  monolith. Modules (`orbit-server`, `orbit-client`, `orbit-proto`, `orbit-shared`,
+  `orbit-util`, `orbit-server-etcd`, `orbit-server-prometheus`, `orbit-application`)
+  are internal build units, not independently deployed services. Layered signals:
+  `orbit-application`, `orbit-server`, `orbit-client`, `orbit-shared` suggest presentation/application/infrastructure
+  layering within the monolith. gRPC via `orbit-proto` is client-server actor protocol,
+  not microservice inter-communication.'

@@ -11,8 +11,8 @@ language: C#
 languages: null
 architecture_styles:
 - Modular Monolith
-- Event-Driven
 - Layered
+- Event-Driven
 - Domain-Driven Design
 key_technologies:
 - Node.js
@@ -30,15 +30,15 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: nopCommerce is a well-known open-source ASP.NET Core e-commerce
-  platform built as a modular monolith with plugin architecture, layered internals,
-  domain-driven design patterns, and RabbitMQ-based event messaging
+one_line_summary: nopCommerce is an open-source ASP.NET Core e-commerce platform built
+  as a modular monolith with plugin architecture, classic N-tier layering, domain
+  event messaging (RabbitMQ), and DDD patterns across e-commerce bounded contexts
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.88
   signals_detected: 107
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.72
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -62,13 +62,14 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence from catalog and domain knowledge: (1) nopCommerce is publicly
-  known to use a plugin/module architecture with a single deployable unit — classic
-  Modular Monolith; (2) RabbitMQ listed as key technology (64 messaging signals detected)
-  strongly supports Event-Driven messaging for domain events; (3) 39 package manifests
-  and layered ASP.NET MVC structure (controllers/services/repositories) indicate Layered
-  (N-Tier); (4) The e-commerce domain with bounded contexts (catalog, orders, customers,
-  payments) and the DDD score of 0.3 from heuristics support DDD as a secondary style;
-  (5) No Kubernetes/Helm or multiple Dockerfiles detected, ruling out Microservices;
-  (6) Single deployment unit confirmed by absence of service discovery or API gateway
-  signals'
+review_notes: 'Evidence: (1) Modular Monolith — single Dockerfile at root, `src/Plugins/`
+  directory with 30+ independently scoped plugins (ExternalAuth, Payments, Shipping,
+  Tax, Widgets, etc.), single deployable unit with no service discovery or API gateway;
+  (2) Layered — `src/Libraries/Nop.Core`, `src/Libraries/Nop.Services`, `src/Libraries/Nop.Data`
+  form classic Core/Service/Data layers, `src/Presentation/Nop.Web` and `Nop.Web.Framework`
+  form the presentation layer — textbook N-Tier; (3) Event-Driven — RabbitMQ listed
+  as key technology, 64 messaging signals detected, docker-compose.yml + multiple
+  DB variants (mysql-docker-compose.yml, postgresql-docker-compose.yml) support event
+  bus integration; (4) DDD — e-commerce bounded contexts (catalog, orders, customers,
+  payments, shipping, tax) visible in plugin and service naming; no Kubernetes/Helm
+  or multiple independent Dockerfiles, ruling out Microservices'

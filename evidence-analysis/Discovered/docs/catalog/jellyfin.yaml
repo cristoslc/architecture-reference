@@ -12,6 +12,7 @@ languages: null
 architecture_styles:
 - Modular Monolith
 - Layered
+- Domain-Driven Design
 key_technologies:
 - .NET
 - GitHub Actions
@@ -25,14 +26,14 @@ notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
 one_line_summary: Jellyfin is an open-source media server built as a modular monolith
-  with layered architecture, organized into discrete C# projects (API, Core, Controller,
-  Data, Model layers) deployed as a single unit
+  with layered architecture, organized into discrete C# projects (API, Controller,
+  Model, Providers, Implementations) deployed as a single .NET unit
 discovery_metadata:
-  confidence: 0.75
+  confidence: 0.85
   signals_detected: 55
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.75
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -54,13 +55,15 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Based on public knowledge of the Jellyfin repository: it is structured
-  as a single deployable .NET application with multiple C# projects (Jellyfin.Server,
-  MediaBrowser.Controller, MediaBrowser.Model, MediaBrowser.Common, Emby.Server.Implementations,
-  Jellyfin.Api, Jellyfin.Data) each representing distinct modules with clear layer
-  boundaries (API layer, controller/business logic layer, data/model layer). No Kubernetes/Docker
-  multi-service orchestration, no message broker configuration. The 42 package manifests
-  signal multiple .csproj files (modular project separation), and the single messaging
-  signal is consistent with internal eventing rather than external broker. Heuristic
-  candidates of Modular Monolith (0.4) and DDD (0.3) from catalog align with the known
-  project-per-concern structure.'
+review_notes: 'Evidence: Multiple distinct .csproj-based modules visible in directory
+  tree: Jellyfin.Server.Implementations (data/infrastructure layer with repositories
+  like BaseItemRepository, UserManager), MediaBrowser.Providers (provider/service
+  layer), Emby.Naming (domain parsing logic), Emby.Photos (photo feature module).
+  Repository pattern evident in Jellyfin.Server.Implementations/Item/ (BaseItemRepository,
+  MediaStreamRepository, ChapterRepository). Internal event system at Jellyfin.Server.Implementations/Events/EventManager.cs
+  and EventingServiceCollectionExtensions.cs. Domain-oriented naming: TV, Music, Movies,
+  Books, Photos subdomains in MediaBrowser.Providers. No Kubernetes, no service discovery,
+  no message broker config. Single deployable unit via dotnet run --project Jellyfin.Server.
+  42 package manifests correspond to multiple .csproj files representing modular separation.
+  Layer boundaries: API (Jellyfin.Api), business/controller (MediaBrowser.Controller),
+  implementations (Jellyfin.Server.Implementations), model (MediaBrowser.Model).'

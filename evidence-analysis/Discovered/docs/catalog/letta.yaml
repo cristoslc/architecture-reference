@@ -10,8 +10,8 @@ domain: AI/ML
 language: Python
 languages: null
 architecture_styles:
-- Microservices
-- Event-Driven
+- Layered
+- Modular Monolith
 key_technologies:
 - Node.js
 - Python/pip
@@ -30,14 +30,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Letta is a Python-based AI/ML platform with microservices architecture
-  and event-driven communication via Kafka/RabbitMQ
+one_line_summary: 'Letta is a stateful AI agent platform (formerly MemGPT) structured
+  as a modular monolith with clear layered organization: REST/WebSocket API server,
+  agent logic, schemas, managers, and data access — all deployed as a single service
+  backed by PostgreSQL'
 discovery_metadata:
-  confidence: 0.72
+  confidence: 0.85
   signals_detected: 43
   signals_evaluated: 10
   classification_method: llm-review
-  primary_style_confidence: 0.72
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Microservices
     score: 0.5
@@ -55,11 +57,15 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence from catalog: (1) Microservices signals — multiple Dockerfiles/container
-  orchestration configs (score 4), OpenAPI spec present (api_specs: 1), package manifests
-  across multiple services (4); (2) Event-Driven signals — Kafka and RabbitMQ listed
-  as key technologies (messaging: 2); (3) CI/CD automation (30 signals) consistent
-  with independently deployable services; heuristic_candidates explicitly list Microservices
-  (0.5) and Event-Driven (0.3) as top candidates. The combination of container orchestration,
-  multiple package manifests, messaging brokers (both Kafka and RabbitMQ), and OpenAPI
-  specs strongly suggests a microservices system with event-driven inter-service communication.'
+review_notes: 'Evidence against Microservices/Event-Driven: dev-compose.yaml shows
+  exactly 2 containers (letta_db + letta_server) — a single app server and its database,
+  with no Kafka, RabbitMQ, or messaging broker present whatsoever. The automated classifier''s
+  Kafka/RabbitMQ signals appear to be false positives (possibly from test files or
+  CI config). Evidence for Modular Monolith + Layered: single Dockerfile, single pyproject.toml,
+  single deployable service; clear internal module boundaries: letta/server/rest_api
+  (presentation), letta/agents (business logic), letta/schemas (domain models), letta/groups
+  (multi-agent coordination), letta/server/server.py (application server), letta/server/db.py
+  (data access); letta/otel/ for observability; letta/server/rest_api/routers + letta/server/ws_api
+  for API layer. The structure is a well-organized monolith with domain-aligned modules
+  (agents, groups, schemas, managers) following a layered pattern (REST routers →
+  server/business logic → DB).'
