@@ -1,18 +1,19 @@
 # Architecture Decision Navigator
 
-A practitioner-facing guide for navigating from problem characteristics to evidence-based architectural recommendations. Every recommendation is backed by evidence from 225 entries across 5 sources: 78 KataLog competition submissions, 12 AOSA production systems, 5 RealWorldASPNET production apps, 8 reference implementations, and 122 Discovered open-source repositories.
+A practitioner-facing guide for navigating from problem characteristics to evidence-based architectural recommendations. Every recommendation is grounded in statistical analysis of 122 open-source repositories (Discovered), validated by 17 production systems (AOSA + RealWorld), and enriched with qualitative reasoning from 78 competition teams (KataLog). Total evidence base: 225 entries across 5 sources.
+
+> **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker -> Deployability, module boundaries -> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected. KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
 
 ---
 
 ## How to Use This Guide
 
 1. **Answer the 8 questions in Step 1** to classify your problem across key dimensions.
-2. **Follow the matching path in Step 2** based on your answers. Each path gives you a recommended architecture approach, the evidence behind it, and specific teams to study.
-3. **Validate with quality attributes in Step 3** to strengthen your approach for your specific priorities.
-4. **Choose your documentation strategy in Step 4** to prioritize the artifacts that will have the highest impact for your context.
-5. **Check the Quick Reference Card** at the end for a one-page summary.
+2. **Follow the matching path in Step 2** based on your answers. Each path opens with statistical evidence from 122 codebases, then production validation, then team reasoning explaining why the pattern works.
+3. **Validate with quality attributes in Step 3** to strengthen your approach using Discovered detection data and team insights.
+4. **Check the Quick Reference Card** at the end for a one-page summary ranked by Discovered frequency.
 
-This guide is designed for sequential use -- work through Steps 1 through 4 in order. The entire process should take 15-30 minutes and will give you a specific, evidence-backed starting point for your architecture.
+This guide is designed for sequential use -- work through Steps 1 through 3 in order. The entire process should take 15-30 minutes and will give you a specific, evidence-backed starting point for your architecture.
 
 ---
 
@@ -63,7 +64,7 @@ Answer these questions about YOUR system. Circle or check the answer that best f
 
 ## Step 2: Follow Your Path
 
-Find the path that best matches your answer profile. If you match multiple paths, read all of them and synthesize -- winners in the dataset frequently combined insights from multiple problem dimensions.
+Find the path that best matches your answer profile. If you match multiple paths, read all of them and synthesize -- successful architects frequently combine insights from multiple problem dimensions.
 
 ---
 
@@ -72,19 +73,17 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Modular Monolith with documented evolution path to Service-Based or Microservices**
 
-**Competition Evidence (KataLog)**: Modular Monolith has the highest average placement score (3.00) of any architecture style in the dataset. All 3 first-place Modular Monolith teams won their respective competitions. In budget-constrained contexts specifically, the "start simple, evolve deliberately" approach is undefeated.
+**Statistical basis:** In the Discovered corpus, Modular Monolith appears in 64 of 122 repos (52%) -- the most frequently observed architecture style. It co-occurs with Event-Driven in 38 repos (31% of the entire corpus), suggesting internal event-driven communication within modular boundaries is the single most common architectural configuration in production codebases.
+
+**Production validation:** Orchard Core (RealWorld) is a production CMS built as a Modular Monolith with a Plugin system, demonstrating successful module isolation and extensibility without the operational overhead of distributed services. The modular-monolith-with-ddd reference implementation (RefArch) provides a canonical example of Modular Monolith with DDD boundaries, confirming that this pattern translates from design to production with well-defined bounded contexts.
+
+**Why this works -- team reasoning:** In KataLog competition, Modular Monolith has the highest average placement score (3.00) of any architecture style. All 3 first-place Modular Monolith teams won their respective competitions. Judges consistently rewarded cost-realism over architectural ambition in non-profit and startup contexts. Teams that defaulted to microservices in budget-constrained settings averaged lower placement scores.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
 | ArchColider | 1st | Farmacy Food | Modular monolith + event sourcing + DDD | Three-scenario cost model: $12K--$23K/year. Won against 9 teams, 6 of which chose microservices. |
 | PegasuZ | 1st | Spotlight Platform | Modular monolith MVP evolving to microservices + event-driven | Asked "Why build a fortress if no one will live in it?" Defined quantum boundaries for later extraction. |
 | MonArch | 1st | Hey Blue! | Modular monolith initial phase evolving to microservices | Projected $2,780/month on GCP for 50K MAU. Began modular, planned service extraction. |
-
-**Production Evidence**: The Modular Monolith pattern is validated at production scale beyond competition settings. Orchard Core (RealWorld) is a production CMS built as a Modular Monolith with a Plugin system, demonstrating successful module isolation and extensibility without the operational overhead of distributed services. The modular-monolith-with-ddd reference implementation (RefArch) provides a canonical example of Modular Monolith with DDD boundaries, confirming that this pattern translates directly from competition to production with well-defined bounded contexts.
-
-**Code-Level Evidence**: 64 Discovered repositories use the Modular Monolith pattern, making it the most common architecture style in the open-source catalog. This broad adoption confirms that Modular Monolith is not merely a competition-winning strategy but a widely practiced production pattern across the open-source ecosystem.
-
-**Why this works**: Judges consistently rewarded cost-realism over architectural ambition in non-profit and startup contexts. Teams that defaulted to microservices in budget-constrained settings averaged lower placement scores. The modular monolith reduces infrastructure cost, operational complexity, and time-to-market while preserving the ability to extract services later. Production systems like Orchard Core confirm this: module isolation within a single deployment unit delivers extensibility without distributed-system tax.
 
 **Critical documentation**: Include a concrete cost analysis. In non-profit/startup challenges, every first-place winner included some form of cost analysis. Feasibility analysis is the strongest single predictor of placement: teams with it are 4.5x more likely to place in the top 2.
 
@@ -97,7 +96,11 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Event-Driven Architecture + Service-Based (NOT microservices-first)**
 
-**Competition Evidence (KataLog)**: The combination of Event-Driven + Service-Based averages 2.57 placement points per team with 3 first-place wins out of 7 teams. Event-Driven + Microservices, despite being the most common combination (17 teams), averages only 1.29 points per team. This is the single largest performance gap between any two style combinations in the dataset.
+**Statistical basis:** In the Discovered corpus, Event-Driven appears in 63 of 122 repos (52%), tied with Modular Monolith as the most prevalent style. Service-Based appears in 4 repos (3%) -- its low Discovered count reflects detection difficulty (fewer structural signals than microservices), not low adoption. Critically, Microservices (26 repos, 21%) has zero production systems in the evidence base despite moderate code presence, while Event-Driven is validated by 5 production systems (NGINX, Twisted, ZeroMQ, Squidex, Bitwarden).
+
+**Production validation:** NGINX (AOSA) uses Event-Driven architecture to handle the C10K problem and beyond, serving over 30% of internet traffic using an asynchronous, non-blocking event loop. Bitwarden (RealWorld) combines Service-Based + Event-Driven patterns for a security-critical password management platform. Graphite (AOSA) uses Pipeline + Service-Based architecture for high-volume metrics ingestion, processing millions of metrics per minute.
+
+**Why this works -- team reasoning:** In KataLog competition, Event-Driven + Service-Based averages 2.57 placement points per team with 3 first-place wins out of 7 teams. Event-Driven + Microservices, despite being the most common combination (17 teams), averages only 1.29 points per team -- the single largest performance gap between any two style combinations in the dataset.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
@@ -106,15 +109,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 | Team Seven | 1st | Sysops Squad | Service-based with event-driven message queues | 12 ADRs, phased migration plan with transition architecture |
 | Profitero Data Alchemists | 1st | Road Warrior | Pure event-driven | Rozanski/Woods viewpoints, 15 ADRs, chose evolvability over elasticity |
 
-**Production Evidence**: NGINX (AOSA) uses an Event-Driven architecture to handle the C10K problem and beyond, proving EDA at extreme scale -- it serves over 30% of internet traffic using an asynchronous, non-blocking event loop rather than thread-per-connection. Bitwarden (RealWorld) combines Service-Based + Event-Driven patterns at production scale for a security-critical password management platform. Graphite (AOSA) uses Pipeline + Service-Based architecture for high-volume metrics ingestion, processing millions of metrics per minute through its Carbon/Whisper/Graphite-web pipeline.
+**Watch out for**: The "Scalability Trap." Scalability is cited by 68% of runners-up but only 55% of first-place winners. Do not let scalability drive your entire architecture. Address it through targeted mechanisms (scaling groups, CQRS, queue-based decoupling) rather than choosing an entire architecture style for scalability alone. Microservices without event-driven architecture is an anti-pattern -- pure synchronous microservices create tight coupling through REST chains. EDA-only teams averaged 2.44 points; microservices-only teams (no EDA) averaged 1.70.
 
-**Code-Level Evidence**: 63 Discovered repositories use Event-Driven architecture, representing 52% of the catalog. This is the second most common pattern after Modular Monolith, confirming EDA's broad applicability across production systems.
-
-**Why this works**: Service-based architecture provides coarser-grained services that are simpler to operate than microservices, while event-driven patterns provide the asynchronous decoupling needed at scale. Microservices-only teams (no EDA) averaged just 1.70 points. EDA-only teams (no microservices) averaged 2.44. Microservices without event-driven architecture is an anti-pattern -- pure synchronous microservices create tight coupling through REST chains. NGINX's production success with event-driven processing at internet scale validates this principle: asynchronous event handling outperforms thread-per-request models under high load.
-
-**Watch out for**: The "Scalability Trap." Scalability is cited by 68% of runners-up but only 55% of first-place winners. Do not let scalability drive your entire architecture. Address it through targeted mechanisms (scaling groups, CQRS, queue-based decoupling) rather than choosing an entire architecture style for scalability alone.
-
-**Also study**: Iconites (2nd, Road Warrior) combined microservices + event-driven + space-based with Cosmos DB global distribution for the highest-scale challenge. BluzBrothers (1st, MonitorMe) used pure event-driven with Kafka to meet critical latency requirements.
+**Also study**: Iconites (2nd, Road Warrior) combined microservices + event-driven + space-based with Cosmos DB global distribution. BluzBrothers (1st, MonitorMe) used pure event-driven with Kafka to meet critical latency requirements.
 
 ---
 
@@ -123,7 +120,11 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Service-Based Architecture with phased transition plan**
 
-**Competition Evidence (KataLog)**: In the Sysops Squad challenge (the only pure brownfield-migration kata), 6 of 7 teams chose service-based architecture. The top 3 placements (1st, 2nd, 3rd) all used service-based. In the Certifiable Inc. challenge (brownfield extension), 6 of 7 teams also chose service-based, and the 1st and 2nd place teams both used it.
+**Statistical basis:** Brownfield migration evidence is inherently thin in open-source catalogs -- most repositories represent a single architectural snapshot rather than a migration journey. Service-Based appears in 4 of 122 Discovered repos (3%), but this reflects detection difficulty: service-based architecture is harder to detect from structural signals than microservices (fewer Docker Compose services) or event-driven (no message broker config). The 3 production systems (Selenium, Graphite, Bitwarden) confirm it is underdetected, not underused.
+
+**Production validation:** nopCommerce (RealWorld) demonstrates successful brownfield evolution over a 17-year lifespan, migrating from original ASP.NET to modern .NET while maintaining backward compatibility and a large plugin ecosystem. Selenium (AOSA) evolved from its monolithic RC (Remote Control) architecture to the distributed WebDriver architecture -- a production-scale brownfield migration that replaced the core execution model while preserving the public API contract.
+
+**Why this works -- team reasoning:** In the Sysops Squad challenge (the only pure brownfield-migration kata), 6 of 7 KataLog teams chose service-based architecture. The top 3 placements all used service-based. In Certifiable Inc. (brownfield extension), 6 of 7 teams also chose service-based. The cross-cutting analysis states: "The transition architecture matters more than the target architecture."
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
@@ -131,12 +132,6 @@ Find the path that best matches your answer profile. If you match multiple paths
 | ArchElekt | 2nd | Sysops Squad | Service-based | Documented migration from monolith with operational continuity |
 | Sever Crew | 2nd | Farmacy Family | Service-based with event-driven Kafka integration layer | Extended an existing system with event-driven bridge |
 | ZAITects | 1st | Certifiable Inc. | Service-based + event-driven | Extended existing SoftArchCert platform with AI grading capabilities |
-
-**Production Evidence**: nopCommerce (RealWorld) demonstrates successful brownfield evolution over a 17-year lifespan, migrating from the original ASP.NET framework to modern .NET while maintaining backward compatibility and a large plugin ecosystem. This is a real-world example of the "evolve, don't rewrite" principle. Selenium (AOSA) evolved from its monolithic RC (Remote Control) architecture to the distributed WebDriver architecture -- a production-scale brownfield migration that replaced the core execution model while preserving the public API contract.
-
-**Code-Level Evidence**: Brownfield migration evidence is inherently thin in open-source catalogs, as most repositories represent a single architectural snapshot rather than a migration journey. The strongest brownfield evidence comes from the competition and production systems above.
-
-**Why this works**: The cross-cutting analysis explicitly states: "The transition architecture matters more than the target architecture." Service-based architecture decomposes the monolith into a manageable number of coarse-grained services (typically 5-12) rather than attempting a big-bang migration to dozens of microservices. This makes incremental migration feasible. nopCommerce's 17-year evolution and Selenium's RC-to-WebDriver migration both confirm that successful brownfield migrations preserve external contracts while incrementally replacing internals.
 
 **Critical documentation**: Include a transition architecture showing the phased migration path from current state to target state. Teams that proposed only a target-state architecture without a phased migration plan rarely placed in the top 2. 73% of first-place winners propose phased approaches.
 
@@ -151,7 +146,11 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Event-Driven Architecture, on-premises deployment**
 
-**Competition Evidence (KataLog)**: All 7 MonitorMe teams chose event-driven architecture -- the strongest per-challenge consensus in the dataset. The winner proved quantitative compliance with latency SLAs.
+**Statistical basis:** In the Discovered corpus, Event-Driven appears in 63 of 122 repos (52%). Among Observability-focused repos, 3 implement telemetry pipeline patterns analogous to medical monitoring -- continuous high-frequency data ingestion with event-driven processing. No direct healthcare repos appear in the Discovered corpus; the statistical basis here is the general EDA prevalence and its dominance in streaming/pipeline workloads.
+
+**Production validation:** Graphite (AOSA) is a production monitoring pipeline handling high-frequency metrics at scale, architecturally analogous to medical monitoring systems. Its Carbon daemon ingests continuous time-series data streams, Whisper provides fixed-size time-series storage, and the pipeline processes heterogeneous metric streams with different collection intervals -- the same fundamental pattern as vital sign monitoring with varied cadences (heart rate at 500ms, ECG at 1s, blood pressure at 1hr).
+
+**Why this works -- team reasoning:** All 7 MonitorMe KataLog teams chose event-driven architecture -- the strongest per-challenge consensus in the dataset. The winner proved quantitative compliance with latency SLAs.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
@@ -159,13 +158,7 @@ Find the path that best matches your answer profile. If you match multiple paths
 | Mighty Orbots | 2nd | MonitorMe | Microservices + event-driven | ELT pipeline prioritizing data integrity by loading raw data immediately. |
 | LowCode | 3rd (tied) | MonitorMe | Distributed hardware with event-driven | 3-node role-based failover: Coordinator/Monitor/Analyzer. Mapped graceful degradation at each failure level. |
 
-**Production Evidence**: Graphite (AOSA) is a production monitoring pipeline handling high-frequency metrics at scale, architecturally analogous to medical monitoring systems. Its Carbon daemon ingests continuous time-series data streams, Whisper provides fixed-size time-series storage, and the pipeline processes heterogeneous metric streams with different collection intervals -- the same fundamental pattern as vital sign monitoring with varied cadences (heart rate at 500ms, ECG at 1s, blood pressure at 1hr).
-
-**Code-Level Evidence**: 3 Observability-focused repositories in the Discovered catalog implement similar telemetry pipeline patterns, confirming that continuous high-frequency data ingestion with event-driven processing is a well-established production approach.
-
 **Note on evidence coverage**: No direct healthcare production systems appear in the AOSA or RealWorld sources. Competition evidence from MonitorMe (7 teams, unanimous EDA choice) provides the most domain-specific guidance. Graphite validates the underlying architectural pattern (continuous event ingestion at scale) without the healthcare-specific compliance context.
-
-**Why this works**: Medical monitoring generates continuous high-frequency events (heart rate at 500ms, ECG at 1s, blood pressure at 1hr). Event-driven architecture is the natural fit for processing heterogeneous event streams with different cadences. On-premises deployment removes cloud latency from the critical path. Graphite's production success with similar continuous-ingestion patterns validates the EDA approach for high-frequency time-series workloads.
 
 **Critical documentation**: Include quantitative fitness functions. BluzBrothers won by proving their architecture met the SLA through calculations, not claims. Also design explicit graceful degradation -- LowCode's 3-node/2-node/1-node failure state mapping was more valuable than generic "high availability" claims.
 
@@ -180,7 +173,11 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Service-Based Architecture + Human-in-the-Loop + Deterministic Boundaries**
 
-**Competition Evidence (KataLog)**: Across the three AI-centric challenges (ShopWise AI, ClearView, Certifiable Inc.), service-based architecture was the most successful foundation. In Certifiable Inc., 6 of 7 teams chose service-based; in ClearView, the winner (Pragmatic) used service-based + selective event-driven. Every team in the high-stakes Certifiable Inc. challenge implemented human-in-the-loop oversight -- no team proposed fully autonomous AI.
+**Statistical basis:** In the Discovered corpus, 6 AI/ML repositories include 4 using the Multi-Agent pattern (4% of corpus). AI-as-core-product is the newest architectural pattern with the thinnest statistical basis -- 6 repos out of 122. This is an area where competition evidence provides the most current and relevant guidance, as the AOSA corpus (2011-2012 vintage) predates modern AI systems entirely.
+
+**Production validation:** No production AI systems appear in the AOSA or RealWorld catalogs. This is the weakest production evidence of any path. The 6 Discovered AI/ML repos confirm multi-agent as an emerging but not yet dominant production pattern.
+
+**Why this works -- team reasoning:** Across three AI-centric KataLog challenges (ShopWise AI, ClearView, Certifiable Inc.), service-based architecture was the most successful foundation. Every team in the high-stakes Certifiable Inc. challenge implemented human-in-the-loop oversight -- no team proposed fully autonomous AI. AI systems need deterministic boundaries around non-deterministic components. The winners built architecture TO CONSTRAIN the AI, not just to enable it.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
@@ -188,12 +185,6 @@ Find the path that best matches your answer profile. If you match multiple paths
 | Pragmatic | 1st | ClearView | Service-based + selective event-driven | Deterministic matching: extract features with LLM, then match deterministically. Reduced LLM calls from O(n*m) to O(n+m). 22 ADRs. |
 | ZAITects | 1st | Certifiable Inc. | Service-based + event-driven | Separated Grader from Judge (LLM-as-a-Judge pattern). Projected 80% cost reduction. OWASP Top 10 for LLM security. Langwatch for LLM observability. |
 | Litmus | 2nd | Certifiable Inc. | Service-based | Confidence-based escalation to human reviewers. |
-
-**Code-Level Evidence**: 6 AI/ML repositories in the Discovered catalog include 4 using the Multi-Agent pattern. This confirms multi-agent as an emerging but not yet dominant production pattern for AI systems.
-
-**Note on evidence coverage**: No production AI systems appear in the AOSA corpus (2011-2012 vintage) or the RealWorld ASP.NET catalog. AI-as-core-product is the newest architectural pattern with the thinnest production evidence. Competition evidence from ShopWise AI, ClearView, and Certifiable Inc. provides the most relevant and current guidance for this rapidly evolving space.
-
-**Why this works**: AI systems need deterministic boundaries around non-deterministic components. Service-based architecture provides clear service boundaries where AI behavior can be constrained, monitored, and overridden. The winners built architecture TO CONSTRAIN the AI, not just to enable it.
 
 **Critical documentation for AI systems**:
 - LLM evaluation framework with quantitative metrics (ConnectedAI used Ragas; ZAITects used Langwatch)
@@ -215,7 +206,11 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Event-Driven core with pragmatic monolith deployment at the edge**
 
-**Competition Evidence (KataLog)**: The Wildlife Watcher and MonitorMe challenges both required edge/offline capability. The winners diverged in style (CELUS Ceals used microservices; BluzBrothers used pure event-driven), but the consistent pattern was: event-driven communication between edge and cloud, with pragmatic deployment (not microservices) at the edge.
+**Statistical basis:** In the Discovered corpus, Event-Driven appears in 63 of 122 repos (52%). Among Developer Tools (36 repos) and Infrastructure (7 repos) categories, offline operation and eventual synchronization are common requirements. Edge/offline patterns -- store-and-forward, converge-on-connect, local-first operation -- appear across these categories, confirming event-driven communication as the standard approach for intermittently connected systems.
+
+**Production validation:** Git (AOSA) is a fully offline-capable distributed system, proving offline-first architecture at massive scale. Every Git clone is a complete repository that operates without any network connectivity, synchronizing changes only when connectivity is available -- the canonical "store-and-forward" pattern. Bitwarden (RealWorld) supports offline vault access. Puppet (AOSA) implements a converge-on-connect pattern where nodes operate independently with their last-known configuration and reconcile state when they reconnect -- directly analogous to IoT edge nodes that must function during connectivity gaps.
+
+**Why this works -- team reasoning:** The Wildlife Watcher and MonitorMe KataLog challenges both required edge/offline capability. The winners diverged in style (CELUS Ceals used microservices; BluzBrothers used pure event-driven), but the consistent pattern was: event-driven communication between edge and cloud, with pragmatic deployment (not microservices) at the edge. Edge constraints are physical, not just architectural -- bandwidth, power, and compute limitations demand quantitative analysis.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
@@ -224,12 +219,6 @@ Find the path that best matches your answer profile. If you match multiple paths
 | BluzBrothers | 1st | MonitorMe | Pure event-driven on-premises | 20 ADRs, duplicate instances for availability, all processing on local appliance hardware |
 | LowCode | 3rd (tied) | MonitorMe | Distributed hardware with role-based failover | Auto-configuration for plug-and-play appliance replacement. 3-node graceful degradation. |
 | Wonderous Toys | 3rd | Wildlife Watcher | Modular monolith + microkernel | Chose modular monolith for cost-effectiveness; microkernel for integration extensibility |
-
-**Production Evidence**: Git (AOSA) is a fully offline-capable distributed system, proving offline-first architecture at massive scale. Every Git clone is a complete repository that operates without any network connectivity, synchronizing changes only when connectivity is available -- the canonical "store-and-forward" pattern for intermittently connected systems. Bitwarden (RealWorld) supports offline vault access, allowing users to read cached credentials without network connectivity. Puppet (AOSA) implements a converge-on-connect pattern where nodes operate independently with their last-known configuration and reconcile state when they reconnect to the Puppet master -- directly analogous to IoT edge nodes that must function during connectivity gaps.
-
-**Code-Level Evidence**: Edge/offline patterns appear across multiple Discovered repositories, particularly in the Developer Tools and Infrastructure categories where offline operation and eventual synchronization are common requirements.
-
-**Why this works**: Edge constraints are physical, not just architectural. The bandwidth, power, and compute limitations of edge hardware demand quantitative analysis, not abstract design. Event-driven architecture handles the inherently asynchronous nature of edge-to-cloud communication (cameras upload when connectivity permits; appliances buffer when network drops). Production systems validate this: Git's offline-first design, Puppet's converge-on-connect pattern, and Bitwarden's offline vault all demonstrate that successful edge systems treat connectivity as a luxury, not a requirement.
 
 **Critical documentation**: Quantify your physical constraints. Rapid Response's bandwidth calculation (31KB over LoRaWAN = 240 seconds) drove real design decisions that abstract analysis would have missed. LowCode's graceful degradation mapping (full function with 3 nodes, full function with 2, alerting-only with 1) addressed operational reality.
 
@@ -242,7 +231,11 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Per-quantum style selection with adapter/connector patterns**
 
-**Competition Evidence (KataLog)**: When integration complexity is the dominant concern, the most successful teams selected architecture styles at the bounded-context (quantum) level rather than imposing a single system-wide style.
+**Statistical basis:** In the Discovered corpus, 36 Developer Tools repositories consistently surface extensibility as a key architectural tension. Plugin and Adapter patterns appear frequently in this category as the solution for unbounded integration requirements. Pipe-and-Filter (19 repos, 16%) co-occurs with Event-Driven, confirming that pipeline-based processing is a common integration backbone in production codebases.
+
+**Production validation:** LLVM (AOSA) uses Pipeline + Plugin architecture to handle dozens of language frontends and hardware backends through a stable Intermediate Representation (IR). GStreamer (AOSA) uses a Plugin architecture to handle thousands of codecs, devices, and protocols. Selenium (AOSA) uses an Adapter pattern per browser unified behind a single WebDriver API. Jellyfin (RealWorld) uses a Plugin system for metadata providers, subtitle sources, and client applications.
+
+**Why this works -- team reasoning:** When integration complexity is the dominant concern, the most successful KataLog teams selected architecture styles at the bounded-context (quantum) level rather than imposing a single system-wide style. High integration complexity means different external systems have different communication patterns, data formats, authentication mechanisms, and reliability characteristics. A single system-wide style cannot optimize for all of them.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
@@ -250,12 +243,6 @@ Find the path that best matches your answer profile. If you match multiple paths
 | Pragmatic | 1st | ClearView | Adapter-based HR integration with event-driven triggers | Named interoperability as top quality attribute. Designed adapter per HR system type. |
 | CELUS Ceals | 1st | Wildlife Watcher | Comparative analysis of all 8+ external platforms | Evaluated labeling platforms across deployment model, API availability, upload mechanisms |
 | Wonderous Toys | 3rd | Wildlife Watcher | Microkernel/plugin for integration extensibility | Plugin architecture so new integrations can be added without core changes |
-
-**Production Evidence**: LLVM (AOSA) uses Pipeline + Plugin architecture to handle dozens of language frontends and hardware backends through a stable Intermediate Representation (IR). This is a production-proven approach to high integration complexity: a stable core with pluggable adapters for each integration point. GStreamer (AOSA) uses a Plugin architecture to handle thousands of codecs, devices, and protocols -- each new media format or hardware device is a plugin, not a core change. Selenium (AOSA) uses an Adapter pattern per browser (ChromeDriver, GeckoDriver, etc.) unified behind a single WebDriver API, proving that adapter-per-integration scales to a diverse and evolving ecosystem. Jellyfin (RealWorld) uses a Plugin system for metadata providers, subtitle sources, and client applications, demonstrating extensible integration in a production media server.
-
-**Code-Level Evidence**: 36 Developer Tools repositories in the Discovered catalog consistently surface extensibility as a key architectural tension, with Plugin and Adapter patterns appearing frequently as the solution for unbounded integration requirements.
-
-**Why this works**: High integration complexity means different external systems have different communication patterns, data formats, authentication mechanisms, and reliability characteristics. A single system-wide style cannot optimize for all of them. Per-quantum style selection matches the architecture to the integration requirements of each bounded context. Production systems validate this at scale: LLVM handles 20+ language frontends through its plugin architecture, GStreamer handles thousands of codecs, and Selenium adapts to every major browser -- all without monolithic coupling.
 
 **Critical documentation**: Produce a comparative analysis of all external systems you must integrate with. CELUS Ceals' platform-by-platform evaluation (API availability, deployment model, upload mechanism) was cited as a key differentiator. Also document vendor research as an architectural activity -- Jaikaturi (2nd, Farmacy Food) discovered ChefTec integration costs ranged from $500 to $5,000+ only by contacting the vendor directly.
 
@@ -271,7 +258,11 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Modular Monolith MVP with evolutionary roadmap OR Service-Based + Selective Event-Driven**
 
-**Competition Evidence (KataLog)**: Five kata challenges served non-profit organizations (Spotlight, Hey Blue!, Wildlife Watcher, ClearView, and the original Farmacy challenges for a startup). In every non-profit challenge, cost analysis separated winners from runners-up. The pattern that won most consistently: start with the simplest viable architecture, document the evolution path.
+**Statistical basis:** In the Discovered corpus, Modular Monolith appears in 64 of 122 repos (52%). Among these, the co-occurrence with Event-Driven in 38 repos demonstrates that the "start modular, add event-driven communication" evolution path is the most common configuration in real codebases. Non-profit-specific repos are not separately tagged in Discovered, but the general pattern -- modular boundaries with low operational overhead -- aligns with the cost constraints of civic platforms.
+
+**Production validation:** Production evidence for non-profit platforms is limited across all 5 sources. Orchard Core (RealWorld) as a modular monolith CMS demonstrates the pattern at production scale, though not in a non-profit context specifically.
+
+**Why this works -- team reasoning:** Five KataLog challenges served non-profit organizations (Spotlight, Hey Blue!, Wildlife Watcher, ClearView, and the original Farmacy challenges). In every non-profit challenge, cost analysis separated winners from runners-up. Non-profit budgets cannot absorb infrastructure over-engineering. Judges rewarded cost-realism above architectural sophistication.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
@@ -280,11 +271,7 @@ Find the path that best matches your answer profile. If you match multiple paths
 | Pragmatic | 1st | ClearView | Service-based + selective event-driven | Token cost estimation with AI expert interview |
 | CELUS Ceals | 1st | Wildlife Watcher | Microservices (justified by integration complexity) | Integration analysis was the differentiator, not the style choice |
 
-**Note on evidence coverage**: Production evidence for non-profit platforms is limited across all 5 sources. The competition evidence from 5 non-profit challenges provides the most relevant guidance, as non-profit architectural concerns (cost sensitivity, volunteer-maintainable systems, phased rollout to limited user bases) are rarely the focus of production case studies.
-
-**Why this works**: Non-profit budgets cannot absorb infrastructure over-engineering. Judges in these contexts rewarded cost-realism above architectural sophistication. The per-user cost numbers (TheGlobalVariables' $0.002/user/month, Katamarans' $0.06/candidate, MonArch's $2,780/month) made architectures credible to non-profit stakeholders.
-
-**Critical documentation**: A concrete cost analysis is mandatory for non-profit contexts. Also consider partnership-over-build: Architects++ (3rd, Farmacy Family) chose Facebook Groups, Eventbrite, and WordPress over custom development, reducing the custom code surface area.
+**Critical documentation**: A concrete cost analysis is mandatory for non-profit contexts. The per-user cost numbers (TheGlobalVariables' $0.002/user/month, Katamarans' $0.06/candidate, MonArch's $2,780/month) made architectures credible to non-profit stakeholders. Also consider partnership-over-build: Architects++ (3rd, Farmacy Family) chose Facebook Groups, Eventbrite, and WordPress over custom development, reducing the custom code surface area.
 
 ---
 
@@ -293,19 +280,17 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Event-Driven + Microservices with multi-region deployment**
 
-**Competition Evidence (KataLog)**: The Road Warrior challenge demanded 99.99% availability (max 5 minutes unplanned downtime/month) for 15M users. 8 of 9 teams chose event-driven architecture.
+**Statistical basis:** In the Discovered corpus, Event-Driven appears in 63 of 122 repos (52%) and co-occurs with Microservices in repos targeting high-scale domains. Among Infrastructure repos (7), high-availability patterns -- replication, partitioning, circuit breakers, bulkheads -- appear as standard production practices. Space-Based appears in 5 repos (4%), confirming it is a niche pattern reserved for extreme scale requirements.
+
+**Production validation:** NGINX (AOSA) serves over 30% of internet traffic through its event-driven, non-blocking architecture. Its master/worker process model allows zero-downtime configuration reloads and binary upgrades. Riak (AOSA) uses a masterless design that eliminates single points of failure, with tunable consistency that allows operators to trade consistency for availability per request. HDFS (AOSA) uses triple replication across racks, tolerating any two simultaneous failures while maintaining data availability.
+
+**Why this works -- team reasoning:** The Road Warrior KataLog challenge demanded 99.99% availability for 15M users. 8 of 9 teams chose event-driven architecture. 99.99% availability requires fault isolation (event-driven decoupling), independent scaling (microservices or service-based), and geographic distribution. Event-driven architecture ensures that component failures do not cascade through synchronous call chains.
 
 | Team | Placement | Challenge | Approach | Key Detail |
 |------|-----------|-----------|----------|------------|
 | Profitero Data Alchemists | 1st | Road Warrior | Pure event-driven with Rozanski/Woods viewpoints | 15 ADRs, chose evolvability over elasticity, security perspective covering 10 practice areas |
 | Iconites | 2nd | Road Warrior | Microservices + event-driven + space-based | Cosmos DB global distribution, tiered business model, $496.95/month initial infrastructure |
 | The Mad Katas | 3rd | Road Warrior | Zero trust with performance-aware authentication | Balanced security against performance; GDPR compliance |
-
-**Production Evidence**: NGINX (AOSA) serves over 30% of internet traffic, providing production-proven extreme availability through its event-driven, non-blocking architecture. Its master/worker process model allows zero-downtime configuration reloads and binary upgrades. Riak (AOSA) uses a masterless design that eliminates single points of failure entirely, with tunable consistency that allows operators to trade consistency for availability on a per-request basis -- a direct implementation of the CAP theorem trade-off for systems that must stay available. HDFS (AOSA) uses triple replication across racks, tolerating any two simultaneous failures (two DataNode failures or one DataNode + one rack failure) while maintaining data availability.
-
-**Code-Level Evidence**: High-availability patterns (replication, partitioning, circuit breakers, bulkheads) appear across Infrastructure and Platform repositories in the Discovered catalog, confirming these as standard production practices.
-
-**Why this works**: 99.99% availability requires fault isolation (event-driven decoupling), independent scaling (microservices or service-based), and geographic distribution. Event-driven architecture ensures that component failures do not cascade through synchronous call chains. Production systems validate each mechanism: NGINX proves event-driven fault isolation at internet scale, Riak proves masterless availability under partition, and HDFS proves replication-based durability under hardware failure.
 
 **Caution about space-based**: Space-based architecture appeared only in Road Warrior (Iconites, 2nd place), which was the only challenge with extreme scale and availability requirements. It is appropriate only when you genuinely need in-memory data grids and partitioned caching at massive scale.
 
@@ -318,7 +303,11 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Architecture style driven by other factors, with compliance addressed through specific ADRs and structural separation**
 
-**Competition Evidence (KataLog)**: In the cross-cutting analysis, compliance load correlates with ADR quality importance, not with architecture style choice. In high-compliance challenges, top teams documented compliance decisions with specific ADRs rather than letting compliance drive the entire architecture style.
+**Statistical basis:** In the Discovered corpus, Banking/Finance repositories (4 repos) consistently prioritize Modularity alongside Deployability, confirming that compliance-heavy domains favor clear module boundaries for audit scope isolation over any particular architecture style choice. Compliance is a constraint on the architecture, not a driver of style selection.
+
+**Production validation:** Bitwarden (RealWorld) maintains SOC 2 Type II, GDPR, CCPA, and HIPAA compliance in production on a Service-Based + Event-Driven architecture, demonstrating that compliance is achievable as a layered concern. Puppet (AOSA) implements compliance-as-code through idempotent configuration management with full auditability -- every configuration change is versioned, logged, and reproducible.
+
+**Why this works -- team reasoning:** In KataLog competition, compliance load correlates with ADR quality importance, not architecture style choice. The Archangels (1st) used event-driven; ArchColider (1st) used modular monolith; Pragmatic (1st) used service-based. All addressed compliance through ADRs and structural patterns layered on top of their primary style. Teams that mentioned compliance as a quality attribute without specific architectural responses consistently placed lower.
 
 | Team | Placement | Challenge | Compliance Approach | Key Detail |
 |------|-----------|-----------|---------------------|------------|
@@ -328,13 +317,7 @@ Find the path that best matches your answer profile. If you match multiple paths
 | ZAITects | 1st | Certifiable Inc. | OWASP Top 10 for LLM security analysis | Certification integrity through confidence-based human escalation |
 | Wildlife Watchers | Runner-up | Wildlife Watcher | Internal CA with Mutual TLS for camera auth | Geoprivacy for endangered species locations |
 
-**Production Evidence**: Bitwarden (RealWorld) maintains SOC 2 Type II, GDPR, CCPA, and HIPAA compliance in production, demonstrating that compliance is achievable as a layered concern on top of a Service-Based + Event-Driven architecture rather than requiring a compliance-specific architecture style. Puppet (AOSA) implements compliance-as-code through idempotent configuration management with full auditability -- every configuration change is versioned, logged, and reproducible, providing the audit trail that compliance regimes demand.
-
-**Code-Level Evidence**: Banking/Finance repositories in the Discovered catalog (4 repos) consistently prioritize Modularity alongside Deployability, confirming that compliance-heavy domains favor clear module boundaries (for audit scope isolation) over architectural style choices.
-
-**Why this works**: Compliance is a constraint on the architecture, not a driver of style selection. The Archangels (1st) used event-driven; ArchColider (1st) used modular monolith; Pragmatic (1st) used service-based. All addressed compliance through ADRs and structural patterns layered on top of their primary style. Bitwarden's production compliance across four regulatory frameworks on a service-based architecture confirms this: compliance lives in ADRs, encryption boundaries, and audit mechanisms -- not in the architecture style itself.
-
-**Critical documentation**: Specific ADRs addressing concrete security and compliance decisions. Reference specific standards (NIST 800-111, HIPAA-eligible AWS services, OWASP Top 10). Teams that mentioned compliance as a quality attribute without specific architectural responses consistently placed lower.
+**Critical documentation**: Specific ADRs addressing concrete security and compliance decisions. Reference specific standards (NIST 800-111, HIPAA-eligible AWS services, OWASP Top 10). Teams that mentioned compliance as a quality attribute without backing it with concrete decisions consistently placed lower.
 
 **Anti-pattern**: Listing "security" as a quality attribute without backing it with concrete decisions. Security appeared in 37 of 78 submissions but predicted placement only when backed by specific ADRs.
 
@@ -342,20 +325,24 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 ## Step 3: Validate with Quality Attributes
 
-After choosing your architecture path, identify your top 3 quality attributes and use this table to strengthen your approach. The "Predictive Power" column indicates how strongly prioritizing this attribute correlates with high placement. The "Production Examples" column shows which AOSA/RealWorld systems validate the recommended approach.
+After choosing your architecture path, identify your top 3 quality attributes and use this table to strengthen your approach. The "Discovered Detection" column shows how frequently this QA appears in the 122-repo corpus. The "Production Examples" column shows which AOSA/RealWorld systems validate the recommended approach.
 
-| If your top priority is... | Avg Placement Score | Predictive Power | Strengthen with... | Production Examples | Watch out for... | Study this team |
-|---------------------------|--------------------|--------------------|-------------------|---------------------|-----------------|-----------------|
-| **Cost/Feasibility** | 2.00 | Very Strong (3.2x winner ratio) | Modular monolith (avg 3.0 for cost-focused teams), concrete cost projections, partnership-over-build | Orchard Core (RealWorld): modular monolith in production; 64 Discovered MM repos | Hidden cloud costs; LLM API cost runaway in AI systems | ArchColider ($12K-$23K/yr scenarios), TheGlobalVariables ($0.002/user/mo) |
-| **Data Integrity** | 2.20 | Strong (60% top-3 rate) | Service-based (avg 2.5 for integrity-focused teams), explicit consistency trade-off documentation | Riak (AOSA): tunable consistency per request; HDFS (AOSA): triple replication | Claiming strong consistency in distributed systems without addressing the implications | Pragmatic (ADR-004: deliberately downplayed integrity with documented rationale) |
-| **Interoperability** | 2.07 | Strong (60% top-3 rate) | Event-driven (avg 2.33 for interop-focused teams), adapter-based integration, comparative platform analysis | LLVM (AOSA): plugin-based multi-frontend; Selenium (AOSA): adapter-per-browser; Jellyfin (RealWorld): plugin extensibility | Underestimating integration effort for diverse external APIs | CELUS Ceals (platform-by-platform comparative analysis), Pragmatic (adapter-based HR integration) |
-| **Performance** | 1.93 | Moderate (49% top-3 rate) | Event-driven (avg 2.0), time-series databases for high-frequency data, quantitative fitness functions | NGINX (AOSA): event-driven C10K+; Graphite (AOSA): high-frequency metrics pipeline | Assuming instead of measuring; listing performance without calculations | BluzBrothers (693ms proof), Street Fighters (25 req/s + 1,000 updates/s analysis) |
-| **Evolvability** | 1.89 | Moderate (43% top-3 rate) | Modular monolith (avg 4.0), hexagonal ports, plugin architectures, explicit extraction points | nopCommerce (RealWorld): 17-year evolution; GStreamer (AOSA): plugin-based extensibility | Premature abstraction; building for evolution you never execute | Software Architecture Guild (microkernel for 6 parallel AI variants), Wonderous Toys (microkernel for integration plugins) |
-| **Security** | 1.82 | Moderate (38% top-3 rate) | Modular monolith (avg 3.25 for security-focused teams), zero-trust, separate security groups, specific ADRs | Bitwarden (RealWorld): SOC 2/GDPR/HIPAA compliant; Puppet (AOSA): compliance-as-code | Listing security generically without concrete decisions | ArchColider (ADR-006: zero trust), The Archangels (crypto-shredding, ADR-005) |
-| **Availability** | 1.79 | Moderate (40% top-3 rate) | Modular monolith (avg 3.67), event-driven (avg 1.86), explicit graceful degradation design | NGINX (AOSA): 30%+ internet traffic; Riak (AOSA): masterless, no SPOF; HDFS (AOSA): triple replication | Binary availability claims without degradation mapping | LowCode (3-node/2-node/1-node graceful degradation), BluzBrothers (ADR-018/020: duplicate instances) |
-| **Scalability** | 1.75 | Weak (33% top-3 rate) | Targeted mechanisms (scaling groups, CQRS, queue decoupling) rather than whole-system style | NGINX (AOSA): event-driven scaling; Graphite (AOSA): pipeline scaling | The "Scalability Trap" -- 68% of runners-up cite it vs. 55% of winners | BluzBrothers (ADR-008: deliberately scoped to 500-patient ceiling) |
-| **Simplicity** | 1.83 | Moderate (50% top-3 rate) | Modular monolith (avg 2.33), service-based, buy-over-build decisions | Orchard Core (RealWorld): modular monolith simplicity; Git (AOSA): simple object model | False economy of "simple" microservices; simplicity does not mean under-engineering | Wonderous Toys (modular monolith + microkernel), Architects++ (Facebook Groups + Eventbrite over custom build) |
-| **Observability** | 2.00 | Moderate (46% top-3 rate) | Service-based (avg 2.25), LLM-specific observability (LangFuse, Langwatch) in AI systems | Graphite (AOSA): production observability pipeline; 3 Observability Discovered repos | Treating observability as an afterthought; addressed by <20% of teams | ConnectedAI (LangFuse for LLM tracing), ZAITects (Langwatch for LLM observability) |
+> **Detection bias note:** Discovered QA detection relies on filesystem signals. Deployability (89%) is inflated by Docker/CI prevalence. Performance, Testability, and Interoperability are underdetected -- the absence of Discovered signal does not mean the QA is unimportant. KataLog competition evidence fills this gap by documenting QA priorities that are invisible in code.
+
+| If your top priority is... | Discovered Detection | Predictive Power (KataLog) | Strengthen with... | Production Examples | Watch out for... | Study this team |
+|---------------------------|---------------------|---------------------------|-------------------|---------------------|-----------------|-----------------|
+| **Cost/Feasibility** | Not directly detectable | Very Strong (3.2x winner ratio) | Modular monolith (avg 3.0 for cost-focused teams), concrete cost projections, partnership-over-build | Orchard Core (RealWorld): modular monolith in production; 64 Discovered MM repos | Hidden cloud costs; LLM API cost runaway in AI systems | ArchColider ($12K-$23K/yr scenarios), TheGlobalVariables ($0.002/user/mo) |
+| **Deployability** | 108 repos (89%) | -- | Docker/CI pipelines (standard practice in 89% of repos); container orchestration | NGINX (AOSA): zero-downtime reloads; Bitwarden (RealWorld): containerized deployment | Over-investing in deployment automation for simple systems | All paths -- deployability is table stakes |
+| **Modularity** | 41 repos (34%) | -- | Clear module boundaries, DDD bounded contexts | Orchard Core (RealWorld): plugin-based modularity; 64 Discovered MM repos co-occurring with modularity signals | Module boundaries without enforcement; boundary erosion over time | PegasuZ (quantum-level architecture), ArchColider (DDD boundaries) |
+| **Data Integrity** | Not directly detectable | Strong (60% top-3 rate) | Service-based (avg 2.5 for integrity-focused teams), explicit consistency trade-off documentation | Riak (AOSA): tunable consistency per request; HDFS (AOSA): triple replication | Claiming strong consistency in distributed systems without addressing the implications | Pragmatic (ADR-004: deliberately downplayed integrity with documented rationale) |
+| **Scalability** | 33 repos (27%) | Weak (33% top-3 rate) | Targeted mechanisms (scaling groups, CQRS, queue decoupling) rather than whole-system style | NGINX (AOSA): event-driven scaling; Graphite (AOSA): pipeline scaling | The "Scalability Trap" -- 68% of runners-up cite it vs. 55% of winners | BluzBrothers (ADR-008: deliberately scoped to 500-patient ceiling) |
+| **Interoperability** | Not directly detectable | Strong (60% top-3 rate) | Event-driven (avg 2.33 for interop-focused teams), adapter-based integration, comparative platform analysis | LLVM (AOSA): plugin-based multi-frontend; Selenium (AOSA): adapter-per-browser; Jellyfin (RealWorld): plugin extensibility | Underestimating integration effort for diverse external APIs | CELUS Ceals (platform-by-platform analysis), Pragmatic (adapter-based HR integration) |
+| **Fault Tolerance** | 18 repos (15%) | Moderate (1.5x winner ratio) | Event-driven decoupling, circuit breakers, graceful degradation mapping | NGINX (AOSA): master/worker fault isolation; Riak (AOSA): masterless design | Binary availability claims without degradation mapping | LowCode (3-node/2-node/1-node graceful degradation) |
+| **Performance** | Not directly detectable | Moderate (49% top-3 rate) | Event-driven (avg 2.0), time-series databases for high-frequency data, quantitative fitness functions | NGINX (AOSA): event-driven C10K+; Graphite (AOSA): high-frequency metrics pipeline | Assuming instead of measuring; listing performance without calculations | BluzBrothers (693ms proof), Street Fighters (25 req/s + 1,000 updates/s analysis) |
+| **Evolvability** | 2 repos (2%) -- underdetected | Moderate (43% top-3 rate) | Modular monolith (avg 4.0), hexagonal ports, plugin architectures, explicit extraction points | nopCommerce (RealWorld): 17-year evolution; GStreamer (AOSA): plugin-based extensibility | Premature abstraction; building for evolution you never execute | Software Architecture Guild (microkernel for 6 AI variants), Wonderous Toys (microkernel for plugins) |
+| **Security** | Not directly detectable | Moderate (38% top-3 rate) | Modular monolith (avg 3.25 for security-focused teams), zero-trust, specific ADRs | Bitwarden (RealWorld): SOC 2/GDPR/HIPAA compliant; Puppet (AOSA): compliance-as-code | Listing security generically without concrete decisions | ArchColider (ADR-006: zero trust), The Archangels (crypto-shredding, ADR-005) |
+| **Simplicity** | Not directly detectable | Moderate (50% top-3 rate) | Modular monolith (avg 2.33), service-based, buy-over-build decisions | Orchard Core (RealWorld): modular monolith simplicity; Git (AOSA): simple object model | False economy of "simple" microservices; simplicity does not mean under-engineering | Wonderous Toys (modular monolith + microkernel), Architects++ (Facebook Groups + Eventbrite over custom build) |
+| **Observability** | 4 repos (3%) -- underdetected | Moderate (46% top-3 rate) | Service-based (avg 2.25), LLM-specific observability (LangFuse, Langwatch) in AI systems | Graphite (AOSA): production observability pipeline; 3 Observability Discovered repos | Treating observability as an afterthought; addressed by <20% of teams | ConnectedAI (LangFuse for LLM tracing), ZAITects (Langwatch for LLM observability) |
 
 ### The Quality Attribute Decision: What Winners Do Differently
 
@@ -370,64 +357,24 @@ The weakest signal: **Scalability**. It is the most commonly cited attribute ove
 
 ---
 
-## Step 4: Choose Your Documentation Strategy
-
-Based on the cross-cutting analysis, documentation completeness strongly predicts placement. Here is what to prioritize based on your context.
-
-### Universal Must-Haves (all contexts)
-
-These artifacts are correlated with winning regardless of problem type:
-
-| Artifact | Top-2 Rate | Runner-up Rate | Impact | Threshold |
-|----------|-----------|---------------|--------|-----------|
-| **ADRs (12+)** | 73% of winners have 12+ | 27% of runners-up meet this | Very Strong | Target 15 ADRs. Mean for 1st-place: 15.0; mean for runners-up: 8.5 |
-| **Feasibility/Cost Analysis** | 50% of top-2 | 11% of runners-up | Very Strong (4.5x) | Include quantitative numbers, not just qualitative assessment |
-| **Deployment View** | 82% of 1st place, 77% of top-2 | 50% of runners-up | Strong | Table stakes for winning. Missing = significant negative signal |
-| **C4 Diagrams** | 55% of top-2 | 32% of runners-up | Strong | At least C1 (Context) + C2 (Container). C3 (Component) for core domains |
-| **Evolutionary/Phased Approach** | 73% of 1st place | 52% of runners-up | Strong | MVP-to-target roadmap with clear phase boundaries |
-
-### Context-Specific Differentiators
-
-| Your Context | Must-Have Artifacts | Differentiating Artifacts | Evidence Team |
-|-------------|--------------------|--------------------------|--------------|
-| **Budget-constrained** | Cost analysis with dollar amounts, ADRs | Multi-scenario cost models (MIN/PROJECTED/RAPID), vendor research with actual calls to vendors | ArchColider (3-scenario cost model), Jaikaturi (ChefTec vendor research: $500--$5K) |
-| **Scale-heavy** | Fitness functions, volumetric analysis | Quantitative load testing proof, infrastructure sizing calculations | BluzBrothers (693ms fitness function), It Depends (140 TPS, 2800 notifications/s), Street Fighters (4,000 email requests/s) |
-| **Compliance-heavy** | Security ADRs referencing specific standards, data flow diagrams | Crypto-shredding or similar privacy-by-design patterns, threat modeling | The Archangels (crypto-shredding, RAID log), Street Fighters (comprehensive GDPR ADR) |
-| **AI-centric** | LLM evaluation framework, cost projections for API usage, human-in-the-loop design | Model comparison benchmarks, working prototype, AI-specific observability | ConnectedAI (Ragas evaluation, working prototype), ZAITects (OWASP Top 10 for LLM, 80% cost reduction projection) |
-| **Legacy migration** | Transition architecture (current to target), phased migration plan | Before/after comparison, sequence diagrams for migration steps, risk assessment | Team Seven (transition architecture centered), Hey Dragon (3-stage: Monolith to Service-Based to Microservices) |
-| **IoT/Edge** | Physical constraint quantification, edge deployment architecture | Bandwidth calculations, graceful degradation mapping, device protocol analysis | Rapid Response (31KB image = 240s on LoRaWAN), LowCode (3-node graceful degradation) |
-| **High integration** | Comparative analysis of external platforms, adapter/connector architecture | Vendor research, API capability assessment, data format mapping | CELUS Ceals (8+ platform comparative analysis), IPT (Microkernel Dispatcher for varied integration capabilities) |
-
-### Documentation Anti-Patterns
-
-| Anti-Pattern | Evidence | Impact |
-|-------------|----------|--------|
-| Zero ADRs | 2 teams with zero ADRs: neither placed higher than runner-up/3rd | Very Strong negative |
-| 0-1 documentation artifacts total | All 12 teams with 0-1 artifacts were runners-up or 3rd | Very Strong negative |
-| Technology-first documentation (listing services without reasoning) | Los Ingenials (21 ADRs, runner-up) flagged as "possibly over-engineered" | Moderate negative |
-| Generic quality attribute claims without backing decisions | 37 teams list "security" but <15 provide substantive security architecture | Moderate negative |
-| Target architecture only (no migration/evolution path) | "Big-bang" approaches without phased migration consistently placed lower | Strong negative |
-
----
-
 ## Quick Reference Card
 
-One-page summary of the most common paths with recommendation and top team to study.
+One-page summary ranked by Discovered frequency -- how architects actually build software in the 122-repo corpus.
 
 ### Architecture Selection by Problem Profile
 
-| Your Situation | Recommended Approach | Avg Score | Top Team to Study | Production Validation | Key Artifact to Include |
-|---------------|---------------------|-----------|-------------------|----------------------|------------------------|
-| Startup/nonprofit, small-medium scale | Modular Monolith with evolution path | 3.00 | ArchColider (1st, Farmacy Food) | Orchard Core (RealWorld), 64 Discovered MM repos | Cost analysis with dollar amounts |
-| Large scale, event-heavy | Event-Driven + Service-Based | 2.57 | Pragmatic (1st, ClearView) | NGINX (AOSA), Bitwarden (RealWorld), Graphite (AOSA) | Volumetric analysis with load calculations |
-| Legacy migration | Service-Based + phased transition | 2.00 | Team Seven (1st, Sysops Squad) | nopCommerce (RealWorld), Selenium (AOSA) | Transition architecture diagram |
-| Healthcare/medical, real-time | Event-Driven, on-premises | 2.00 | BluzBrothers (1st, MonitorMe) | Graphite (AOSA) -- analogous pipeline pattern | Fitness functions with latency proof |
-| AI is the core product | Service-Based + human-in-the-loop | -- | ZAITects (1st, Certifiable Inc.) | Limited -- newest pattern; 6 AI/ML Discovered repos | LLM evaluation framework + cost projection |
-| IoT/Edge with offline | Event-Driven core, pragmatic edge deployment | -- | CELUS Ceals (1st, Wildlife Watcher) | Git (AOSA), Puppet (AOSA), Bitwarden (RealWorld) | Physical constraint quantification |
-| High integration complexity | Per-quantum style selection | -- | CELUS Ceals (1st, Wildlife Watcher) | LLVM (AOSA), GStreamer (AOSA), Selenium (AOSA), Jellyfin (RealWorld) | Comparative external platform analysis |
-| Non-profit platform | Modular Monolith MVP or Service-Based | 3.00 | PegasuZ (1st, Spotlight) | Limited -- competition evidence is primary | Per-user cost calculation |
-| 99.99%+ availability | Event-Driven + Microservices | 2.00 | Profitero Data Alchemists (1st, Road Warrior) | NGINX (AOSA), Riak (AOSA), HDFS (AOSA) | Rozanski/Woods multi-viewpoint framework |
-| Compliance-heavy (HIPAA, GDPR) | Style per other factors + compliance ADRs | -- | The Archangels (1st, Farmacy Family) | Bitwarden (RealWorld), Puppet (AOSA) | Compliance-specific ADRs citing standards |
+| Your Situation | Recommended Approach | Discovered Frequency | Top Team to Study | Production Validation | Key Artifact to Include |
+|---------------|---------------------|---------------------|-------------------|----------------------|------------------------|
+| Startup/nonprofit, small-medium scale | Modular Monolith with evolution path | 64 repos (52%) | ArchColider (1st, Farmacy Food) | Orchard Core (RealWorld) | Cost analysis with dollar amounts |
+| Large scale, event-heavy | Event-Driven + Service-Based | 63 EDA repos (52%) | Pragmatic (1st, ClearView) | NGINX (AOSA), Bitwarden (RealWorld), Graphite (AOSA) | Volumetric analysis with load calculations |
+| Legacy migration | Service-Based + phased transition | 4 repos (3%) -- underdetected | Team Seven (1st, Sysops Squad) | nopCommerce (RealWorld), Selenium (AOSA) | Transition architecture diagram |
+| Healthcare/medical, real-time | Event-Driven, on-premises | 63 EDA repos (52%) | BluzBrothers (1st, MonitorMe) | Graphite (AOSA) -- analogous pipeline pattern | Fitness functions with latency proof |
+| AI is the core product | Service-Based + human-in-the-loop | 6 AI/ML repos (5%) | ZAITects (1st, Certifiable Inc.) | Limited -- newest pattern | LLM evaluation framework + cost projection |
+| IoT/Edge with offline | Event-Driven core, pragmatic edge deployment | 63 EDA repos (52%) | CELUS Ceals (1st, Wildlife Watcher) | Git (AOSA), Puppet (AOSA), Bitwarden (RealWorld) | Physical constraint quantification |
+| High integration complexity | Per-quantum style selection | 36 DevTools repos (30%) | CELUS Ceals (1st, Wildlife Watcher) | LLVM (AOSA), GStreamer (AOSA), Selenium (AOSA), Jellyfin (RealWorld) | Comparative external platform analysis |
+| Non-profit platform | Modular Monolith MVP or Service-Based | 64 MM repos (52%) | PegasuZ (1st, Spotlight) | Limited -- competition evidence is primary | Per-user cost calculation |
+| 99.99%+ availability | Event-Driven + Microservices | 63 EDA + 26 MS repos | Profitero Data Alchemists (1st, Road Warrior) | NGINX (AOSA), Riak (AOSA), HDFS (AOSA) | Rozanski/Woods multi-viewpoint framework |
+| Compliance-heavy (HIPAA, GDPR) | Style per other factors + compliance ADRs | 4 Banking/Finance repos | The Archangels (1st, Farmacy Family) | Bitwarden (RealWorld), Puppet (AOSA) | Compliance-specific ADRs citing standards |
 
 ### The Five Things Winners Always Do
 
@@ -436,23 +383,24 @@ Based on the statistically derived "Winning Formula" (80% retrospective accuracy
 1. **Document 15+ decisions** with well-structured ADRs showing trade-off reasoning
 2. **Include feasibility analysis** demonstrating cost awareness and practical constraints (4.5x placement impact)
 3. **Use C4 diagrams** at multiple levels to communicate architecture at different granularities
-4. **Adopt event-driven patterns** as a primary or supporting style (73% of winners, 50% of runners-up)
+4. **Adopt event-driven patterns** as a primary or supporting style -- 63 of 122 Discovered repos (52%) and 73% of KataLog winners use EDA
 5. **Propose evolutionary approaches** with phased roadmaps from MVP to target state (73% of winners)
 
 ### Style Combinations Cheat Sheet
 
-| Combination | Avg Score | Production Examples | Verdict |
-|-------------|-----------|---------------------|---------|
-| Event-Driven + Service-Based | 2.57 | Bitwarden (RealWorld), Graphite (AOSA) | Best-performing common combination |
+| Combination | Discovered Co-occurrence | Production Examples | Verdict |
+|-------------|------------------------|---------------------|---------|
+| Modular Monolith + Event-Driven | 38 repos (31% of corpus) | Orchard Core (RealWorld) | Most common configuration in real codebases |
+| Event-Driven + Service-Based | -- | Bitwarden (RealWorld), Graphite (AOSA) | Best-performing KataLog combination (2.57 avg) |
 | Event-Driven + Pipeline | -- | NGINX (AOSA), GStreamer (AOSA) | Production-validated at extreme scale |
 | Plugin + Pipeline | -- | LLVM (AOSA), GStreamer (AOSA) | Production-validated for extensible processing |
 | Plugin + Layered | -- | SQLAlchemy (AOSA), nopCommerce (RealWorld) | Production-validated for extensible platforms |
-| CQRS + Event Sourcing | -- | Squidex (RealWorld) | Production-validated for content management |
-| Modular Monolith + Plugin | 3.00+ | Orchard Core (RealWorld) | Production-validated; undefeated in competition when evolution path is documented |
-| Modular Monolith + any distributed target | 3.00+ | -- | Undefeated when evolution path is documented |
-| 3+ complementary styles | 2.36--2.67 | LLVM (AOSA): Pipeline + Plugin + Layered | Outperforms single-style and two-style approaches |
-| Event-Driven + Microservices | 1.29 | -- | Most common but worst-performing combo per team |
-| Microservices alone (no EDA) | 1.70 | -- | Anti-pattern: microservices without async decoupling |
+| CQRS + Event Sourcing | 18 CQRS repos co-occur with EDA | Squidex (RealWorld) | Production-validated for content management |
+| Modular Monolith + Plugin | -- | Orchard Core (RealWorld) | Production-validated; undefeated in KataLog when evolution path documented |
+| Layered + Modular Monolith | 18 repos | nopCommerce (RealWorld) | Layered internal structure within modular boundaries |
+| 3+ complementary styles | Common in Discovered | LLVM (AOSA): Pipeline + Plugin + Layered | Outperforms single-style and two-style approaches in KataLog (2.36-2.67 avg) |
+| Event-Driven + Microservices | -- | -- | Most common KataLog combo but worst-performing (1.29 avg); 0 production systems |
+| Microservices alone (no EDA) | 26 MS repos, 0 production systems | -- | Anti-pattern: microservices without async decoupling (1.70 avg) |
 
 ---
 
