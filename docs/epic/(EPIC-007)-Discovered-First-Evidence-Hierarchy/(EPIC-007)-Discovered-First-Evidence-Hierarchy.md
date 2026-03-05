@@ -152,4 +152,4 @@ To be created as SPEC artifacts under this epic:
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Proposed | 2026-03-05 | _pending_ | Initial creation |
+| Proposed | 2026-03-05 | 690dfff | Initial creation |
