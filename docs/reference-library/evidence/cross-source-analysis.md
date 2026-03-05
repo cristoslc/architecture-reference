@@ -1,4 +1,4 @@
-# Cross-Source Analysis: Triangulating Evidence Across 276 Architecture Sources
+# Cross-Source Analysis: Triangulating Evidence Across 225 Architecture Sources
 
 ## Purpose
 
@@ -18,12 +18,12 @@ Each evidence source observes architecture from a different vantage point in the
    TheKataLog (78)    →   Reference Impls (8)   →   AOSA (12) + RealWorldASPNET (5)
    "What judges reward"   "How to build it"         "What survives at scale"
                                ↑
-                       Discovered (173)
+                       Discovered (122)
                        "What developers actually build"
 
    Competition designs      Teaching codebases         Real users, real failures,
    with placement data      with sample domains        real operational pressure
-                            + 173 open-source repos
+                            + 122 open-source repos
                             classified from structural
                             signals (Docker, APIs,
                             message queues, directory
@@ -32,7 +32,7 @@ Each evidence source observes architecture from a different vantage point in the
 
 A pattern validated at all three lifecycle stages carries fundamentally higher confidence than one validated at only one. The framework classifies each insight by **evidence depth** — the number of independent sources that support it.
 
-The addition of Discovered (173 repos) dramatically expands the CODE stage from 8 reference implementations to 181 code-level entries, filling the most significant gap in the original four-source model.
+The addition of Discovered (122 repos) expands the CODE stage from 8 reference implementations to 130 code-level entries, filling the most significant gap in the original four-source model.
 
 ### Evidence Depth Tiers
 
@@ -68,14 +68,14 @@ The cross-source analysis examines five dimensions:
 | **AOSA** | NGINX (30% of web traffic), Twisted (Python networking), ZeroMQ (financial trading) |
 | **RealWorldASPNET** | Squidex (event sourcing), Bitwarden (AMQP cross-service events) |
 | **RefArch** | eShopOnContainers, eShop, Modular Monolith w/DDD, Serverless Microservices, Wild Workouts |
-| **Discovered** | 100 of 173 repos (58%) — the most common style by a wide margin. Spans Kafka-based stream processing, RabbitMQ message buses, event sourcing frameworks, and reactive systems |
+| **Discovered** | 63 of 122 repos (52%) — tied with Modular Monolith as the most common style. Spans Kafka-based stream processing, RabbitMQ message buses, event sourcing frameworks, and reactive systems |
 
 **Cross-source insight**: Event-Driven is universally adopted, but its *role* shifts across the lifecycle:
 
 - In **design** (KataLog): chosen as the primary organizing principle — "our system is event-driven"
 - In **teaching** (RefArch): demonstrated as an integration pattern between bounded contexts
 - In **production** (AOSA/RealWorld): used for specific technical purposes — non-blocking I/O (NGINX reactor, Twisted reactor), immutable audit trails (Squidex event sourcing), cross-service coordination (Bitwarden AMQP)
-- In **open-source code** (Discovered): the dominant structural signal — message queues, event buses, and pub/sub patterns appear in 58% of all classified repositories
+- In **open-source code** (Discovered): the dominant structural signal — message queues, event buses, and pub/sub patterns appear in 52% of all classified repositories
 
 The evidence suggests that teams proposing "Event-Driven Architecture" as a primary style should specify *which aspect* they mean: event-based communication, event sourcing as data model, event-loop concurrency, or integration pattern. Production systems use events tactically; competition teams often adopt the label strategically. Discovered confirms this: most repos classified as Event-Driven use message brokers (Kafka, RabbitMQ, NATS) for inter-service communication, not event sourcing as a primary data model.
 
@@ -85,27 +85,27 @@ The evidence suggests that teams proposing "Event-Driven Architecture" as a prim
 
 | Style | Sources | Missing From | Cross-Source Insight |
 |-------|---------|-------------|---------------------|
-| **Modular Monolith** | KataLog (6), RealWorld (1), RefArch (1), Discovered (42) | AOSA | Highest KataLog win rate (83.3%). Discovered adds massive code-level validation: 42 repos including Django apps, Go monoliths, and modular .NET systems. Still no AOSA-era production exemplar. |
-| **CQRS/Event Sourcing** | KataLog (3), RealWorld (1), RefArch (3), Discovered (30) | AOSA | 30 Discovered repos (AxonFramework, EventStoreDB, Marten, etc.) confirm deep code-level adoption. Production evidence remains thin (Squidex only). |
-| **Microservices** | KataLog (39), RefArch (5), Discovered (54) | AOSA, RealWorld | The sharpest design-production divergence, now with code-level confirmation: 54 Discovered repos make it the 2nd-most-built pattern. Still zero production evidence. |
-| **DDD** | KataLog (4), RefArch (3), Discovered (51) | AOSA, RealWorld | 51 Discovered repos make DDD the 3rd-most common Discovered style — far exceeding its thin KataLog/RefArch representation. Massive code adoption but zero production validation. |
-| **Hexagonal/Clean** | KataLog (4), RefArch (3), Discovered (15) | AOSA, RealWorld | 15 Discovered repos add code-level breadth. Still no production evidence. |
-| **Serverless** | KataLog (8), RefArch (1), Discovered (10) | AOSA, RealWorld | 10 Discovered repos (mostly AWS SAM/CDK). Still no production evidence. |
+| **Modular Monolith** | KataLog (6), RealWorld (1), RefArch (1), Discovered (64) | AOSA | Highest KataLog win rate (83.3%). Discovered adds massive code-level validation: 64 repos (the most common Discovered style) including Django apps, Go monoliths, and modular .NET systems. Still no AOSA-era production exemplar. |
+| **CQRS/Event Sourcing** | KataLog (3), RealWorld (1), RefArch (3), Discovered (18) | AOSA | 18 Discovered repos (AxonFramework, EventStoreDB, Marten, etc.) confirm code-level adoption. Production evidence remains thin (Squidex only). |
+| **Microservices** | KataLog (39), RefArch (5), Discovered (26) | AOSA, RealWorld | Design-production divergence persists: 26 Discovered repos (down from 54 after pruning tutorials/samples). Still zero production evidence. |
+| **DDD** | KataLog (4), RefArch (3), Discovered (27) | AOSA, RealWorld | 27 Discovered repos confirm code adoption beyond its thin KataLog/RefArch representation. Zero production validation. |
+| **Hexagonal/Clean** | KataLog (4), RefArch (3), Discovered (16) | AOSA, RealWorld | 16 Discovered repos add code-level breadth. Still no production evidence. |
+| **Serverless** | KataLog (8), RefArch (1), Discovered (6) | AOSA, RealWorld | 6 Discovered repos (mostly AWS SAM/CDK). Below the n>=10 target after pruning. Still no production evidence. |
 
 ### T3: Styles Validated Across Three Sources
 
 | Style | Sources | Missing From | Cross-Source Insight |
 |-------|---------|-------------|---------------------|
 | **Plugin/Microkernel** | KataLog (2), AOSA (3), RealWorld (3) | RefArch, Discovered | Production workhorse (6 production systems) that is **invisible to automated discovery**. Zero Discovered entries because plugin architectures are defined by runtime extension points, not directory structure. This is the only style with strong production evidence but zero code-level automated detection. |
-| **Pipeline / Pipe-and-Filter** | AOSA (5), RealWorld (1), Discovered (47) | KataLog, RefArch | 47 Discovered repos (data pipelines, ETL systems, stream processors) massively reinforce AOSA's production evidence. Code-level and production-level evidence converge here more strongly than for any other style. Still zero design-phase representation. |
-| **Space-Based** | KataLog (2), AOSA (1: Riak), Discovered (10) | RealWorld, RefArch | Discovered adds 10 repos (Hazelcast, Orleans, actor frameworks, distributed caches) — the first code-level evidence for this style. Thin but now present at design, code, and production stages. |
+| **Pipeline / Pipe-and-Filter** | AOSA (5), RealWorld (1), Discovered (19) | KataLog, RefArch | 19 Discovered repos (data pipelines, ETL systems, stream processors) reinforce AOSA's production evidence. Code-level and production-level evidence converge here. Still zero design-phase representation. |
+| **Space-Based** | KataLog (2), AOSA (1: Riak), Discovered (5) | RealWorld, RefArch | Discovered adds 5 repos (Hazelcast, Orleans, actor frameworks, distributed caches). Thin but now present at design, code, and production stages. |
 
 ### T2: Styles Validated by Two Sources
 
 | Style | Sources | Evidence | Assessment |
 |-------|---------|----------|------------|
-| **Multi-Agent** | KataLog (3), Discovered (10) | Design + code only | Emerged in AI Winter 2024. Discovered adds 10 repos (AutoGPT, CrewAI, LangGraph, CAMEL, smolagents) — the first code-level validation. Still no production, teaching, or production evidence. |
-| **Layered Architecture** | RealWorld (1: nopCommerce), Discovered (44) | Production + code | 44 Discovered repos (Django apps, Spring Boot, Rails) fill the code gap. Combined with nopCommerce's production evidence, Layered now has the second-most Discovered entries but still minimal curated validation. |
+| **Multi-Agent** | KataLog (3), Discovered (5) | Design + code only | Emerged in AI Winter 2024. Discovered adds 5 repos (AutoGPT, CrewAI, LangGraph, CAMEL, smolagents) — the first code-level validation. Below n>=10 target after pruning. Still no production or teaching evidence. |
+| **Layered Architecture** | RealWorld (1: nopCommerce), Discovered (29) | Production + code | 29 Discovered repos (Django apps, Spring Boot, Rails) fill the code gap. Combined with nopCommerce's production evidence, Layered has solid code-level breadth but still minimal curated validation. |
 
 ---
 
@@ -117,14 +117,14 @@ The most consequential finding from cross-source analysis: **the patterns teams 
 
 | Style | KataLog Adoption | Production Adoption | Discovered Code Adoption | Gap Direction |
 |-------|-----------------|--------------------|----|---|
-| **Pipeline** | 0% (0/78 teams) | 35% (6/17 production) | 27% (47/173 repos) | Massively under-proposed; code validates production |
-| **Plugin/Microkernel** | 2.6% (2/78 teams) | 35% (6/17 production) | 0% (0/173 repos) | Under-proposed; invisible in code |
-| **Microservices** | 50% (39/78 teams) | 0% (0/17 production) | 31% (54/173 repos) | Over-proposed; code breadth without production proof |
-| **Serverless** | 10% (8/78 teams) | 0% (0/17 production) | 6% (10/173 repos) | Over-proposed |
-| **Event-Driven** | 60% (47/78 teams) | 29% (5/17 production) | 58% (100/173 repos) | Over-proposed (but present everywhere) |
-| **Service-Based** | 32% (25/78 teams) | 18% (3/17 production) | 6% (10/173 repos) | Roughly aligned in design + production; thin in code |
-| **Modular Monolith** | 8% (6/78 teams) | 6% (1/17 production) | 24% (42/173 repos) | Under-proposed; code-heavy |
-| **DDD** | 5% (4/78 teams) | 0% (0/17 production) | 29% (51/173 repos) | Massively under-proposed; code-heavy but unproven |
+| **Pipeline** | 0% (0/78 teams) | 35% (6/17 production) | 16% (19/122 repos) | Massively under-proposed; code validates production |
+| **Plugin/Microkernel** | 2.6% (2/78 teams) | 35% (6/17 production) | 0% (0/122 repos) | Under-proposed; invisible in code |
+| **Microservices** | 50% (39/78 teams) | 0% (0/17 production) | 21% (26/122 repos) | Over-proposed; code presence without production proof |
+| **Serverless** | 10% (8/78 teams) | 0% (0/17 production) | 5% (6/122 repos) | Over-proposed |
+| **Event-Driven** | 60% (47/78 teams) | 29% (5/17 production) | 52% (63/122 repos) | Over-proposed (but present everywhere) |
+| **Service-Based** | 32% (25/78 teams) | 18% (3/17 production) | 3% (4/122 repos) | Roughly aligned in design + production; thin in code |
+| **Modular Monolith** | 8% (6/78 teams) | 6% (1/17 production) | 52% (64/122 repos) | Under-proposed; dominates well-structured code |
+| **DDD** | 5% (4/78 teams) | 0% (0/17 production) | 22% (27/122 repos) | Under-proposed; code-heavy but unproven |
 
 ### The Three-Way Gap
 
@@ -132,9 +132,9 @@ Adding the Discovered code dimension reveals a third axis of divergence. Three d
 
 **1. Production-validated but code-invisible: Plugin/Microkernel.** 35% of production systems, 2.6% of competition designs, 0% of Discovered repos. This pattern exists in production code but is architecturally invisible to structural signal detection. Plugin systems are identified by their runtime behavior (host/plugin contracts, extension points, dynamic loading) not by their directory structure.
 
-**2. Code-heavy but production-unvalidated: Microservices, DDD.** These patterns have massive open-source presence (54 and 51 Discovered repos) and significant competition representation (39 and 4 KataLog teams) but zero production exemplars. The gap suggests that developers enjoy *building* these patterns but the evidence base hasn't captured them *surviving* production pressure.
+**2. Code-present but production-unvalidated: Microservices, DDD.** These patterns have significant open-source presence (26 and 27 Discovered repos after pruning tutorials/SDKs) and competition representation (39 and 4 KataLog teams) but zero production exemplars. The gap suggests that developers enjoy *building* these patterns but the evidence base hasn't captured them *surviving* production pressure.
 
-**3. Code-and-production-validated but design-invisible: Pipeline.** 47 Discovered repos + 6 production systems but 0 KataLog teams. Both the code and production evidence converge: pipeline/pipe-and-filter is widely built and production-proven, yet teams don't propose it in design exercises.
+**3. Code-and-production-validated but design-invisible: Pipeline.** 19 Discovered repos + 6 production systems but 0 KataLog teams. Both the code and production evidence converge: pipeline/pipe-and-filter is widely built and production-proven, yet teams don't propose it in design exercises.
 
 ### Why the Gap Exists
 
@@ -142,7 +142,7 @@ Four structural factors explain the divergence (updated from three with Discover
 
 **1. Recency bias in competition.** Microservices and Serverless became named patterns in the mid-2010s and dominate architecture conference talks, books, and certification curricula. Competition teams draw from this recent discourse. AOSA projects (2011--2012) predate the microservices naming, and RealWorldASPNET projects evolved organically rather than being designed from a pattern catalog.
 
-**2. Problem-domain mismatch.** KataLog challenges describe user-facing business systems (e-commerce, healthcare, travel, HR) where Microservices and Event-Driven map intuitively. AOSA covers infrastructure software (web servers, compilers, databases) where Pipeline and Plugin solve the actual problems. Discovered spans both domains, which is why it shows high counts for *both* competition-popular patterns (Microservices: 54) and production-popular patterns (Pipeline: 47).
+**2. Problem-domain mismatch.** KataLog challenges describe user-facing business systems (e-commerce, healthcare, travel, HR) where Microservices and Event-Driven map intuitively. AOSA covers infrastructure software (web servers, compilers, databases) where Pipeline and Plugin solve the actual problems. Discovered spans both domains, which is why it shows counts for *both* competition-popular patterns (Microservices: 26) and production-popular patterns (Pipeline: 19).
 
 **3. Operational complexity filter.** Production systems shed patterns that don't justify their operational cost. Microservices require service mesh, distributed tracing, independent CI/CD pipelines, and a platform team to sustain. Production teams that could use these patterns (Bitwarden with 9 services) choose simpler decomposition (Service-Based) because the operational overhead of full microservice independence isn't worth it.
 
@@ -210,9 +210,9 @@ The cross-source analysis reveals a systematic disconnect: **the practices that 
 
 | Practice | KataLog Evidence | RefArch Support | Production Exemplars | Discovered Support | Gap |
 |----------|-----------------|-----------------|---------------------|-------------------|-----|
-| **Feasibility/Cost Analysis** | Strongest single predictor (4.5x top-2 likelihood) | 0 of 8 include it | 0 of 17 include it | 0 of 173 include it | **Critical** |
-| **ADR Discipline (15+ ADRs)** | 2nd-strongest predictor (73% of winners) | 1 of 8 has ADRs | N/A (different format) | ~5 of 173 have ADR directories | **Critical** |
-| **Fitness Functions** | 55% of 1st-place winners | 1 of 8 (ArchUnit tests) | 0 of 17 include them | ~3 of 173 have ArchUnit/fitness tests | **Severe** |
+| **Feasibility/Cost Analysis** | Strongest single predictor (4.5x top-2 likelihood) | 0 of 8 include it | 0 of 17 include it | 0 of 122 include it | **Critical** |
+| **ADR Discipline (15+ ADRs)** | 2nd-strongest predictor (73% of winners) | 1 of 8 has ADRs | N/A (different format) | ~5 of 122 have ADR directories | **Critical** |
+| **Fitness Functions** | 55% of 1st-place winners | 1 of 8 (ArchUnit tests) | 0 of 17 include them | ~3 of 122 have ArchUnit/fitness tests | **Severe** |
 | **C4 Diagrams** | 55% of top-2 teams | N/A (code, not diagrams) | N/A | N/A | Moderate |
 | **Evolutionary/Phased Approach** | 73% of winners propose 2+ styles | eShopOnContainers → eShop | Multiple AOSA refactors | Some repos show migration patterns | Low (implicitly supported) |
 
@@ -222,9 +222,9 @@ The three highest-impact practices in KataLog — feasibility analysis, ADR disc
 
 - **0 of 8** Reference Architectures (for feasibility; 1 of 8 for ADRs; 1 of 8 for fitness functions)
 - **0 of 17** production systems
-- **~5 of 173** Discovered repos (only a handful include ADR directories; fitness function adoption is negligible)
+- **~5 of 122** Discovered repos (only a handful include ADR directories; fitness function adoption is negligible)
 
-Discovered data confirms what the four-source analysis suggested: the gap is real and systemic. Even in a sample of 173 open-source repositories — many of which are well-engineered projects with thousands of stars — meta-architectural practices are nearly absent. Teams learn *what* to build from reference implementations and open-source examples but not *why* to build it, *what it costs to run*, or *how to verify it stays healthy*. The cross-source evidence strongly suggests that the largest opportunity for improving architecture outcomes is not adopting a different pattern but adopting these meta-practices.
+Discovered data confirms what the four-source analysis suggested: the gap is real and systemic. Even in a sample of 122 open-source repositories — many of which are well-engineered projects with thousands of stars — meta-architectural practices are nearly absent. Teams learn *what* to build from reference implementations and open-source examples but not *why* to build it, *what it costs to run*, or *how to verify it stays healthy*. The cross-source evidence strongly suggests that the largest opportunity for improving architecture outcomes is not adopting a different pattern but adopting these meta-practices.
 
 ---
 
@@ -234,33 +234,33 @@ Each architecture style has evidence at different lifecycle stages. This map sho
 
 | Style | Design (KataLog) | Code (RefArch + Discovered) | Production (AOSA + RealWorld) | Assessment |
 |-------|:-:|:-:|:-:|---|
-| **Event-Driven** | 47 teams | 5 + 100 = 105 repos | 5 systems | Full lifecycle coverage; strongest code-level evidence |
-| **Microservices** | 39 teams | 5 + 54 = 59 repos | 0 systems | Design + code only; massive code base, zero production |
-| **Service-Based** | 25 teams | 1 + 10 = 11 repos | 3 systems | Full lifecycle coverage; code gap partially filled |
-| **Pipeline / Pipe-and-Filter** | 0 teams | 0 + 47 = 47 repos | 6 systems | Code + production; Discovered fills the code gap |
+| **Event-Driven** | 47 teams | 5 + 63 = 68 repos | 5 systems | Full lifecycle coverage; strongest code-level evidence |
+| **Microservices** | 39 teams | 5 + 26 = 31 repos | 0 systems | Design + code only; zero production |
+| **Service-Based** | 25 teams | 1 + 4 = 5 repos | 3 systems | Full lifecycle coverage; code evidence thin |
+| **Pipeline / Pipe-and-Filter** | 0 teams | 0 + 19 = 19 repos | 6 systems | Code + production; Discovered fills the code gap |
 | **Plugin/Microkernel** | 2 teams | 0 + 0 = 0 repos | 6 systems | Design + production only; code detection blind spot |
-| **Modular Monolith** | 6 teams | 1 + 42 = 43 repos | 1 system | Full lifecycle; code gap massively filled |
-| **CQRS/Event Sourcing** | 3 teams | 3 + 30 = 33 repos | 1 system | Full lifecycle; code-heavy |
-| **Domain-Driven Design** | 4 teams | 3 + 51 = 54 repos | 0 systems | Design + code; strongest code:production imbalance |
-| **Hexagonal/Clean** | 4 teams | 3 + 15 = 18 repos | 0 systems | Design + code; no production evidence |
-| **Serverless** | 8 teams | 1 + 10 = 11 repos | 0 systems | Design + code; no production evidence |
-| **Layered Architecture** | 0 teams | 0 + 44 = 44 repos | 1 system | Code + production; Discovered fills the code gap |
-| **Space-Based** | 2 teams | 0 + 10 = 10 repos | 1 system | Full lifecycle; Discovered fills the code gap |
-| **Multi-Agent** | 3 teams | 0 + 10 = 10 repos | 0 systems | Design + code; Discovered fills the code gap |
+| **Modular Monolith** | 6 teams | 1 + 64 = 65 repos | 1 system | Full lifecycle; highest code-level count |
+| **CQRS/Event Sourcing** | 3 teams | 3 + 18 = 21 repos | 1 system | Full lifecycle; code-heavy |
+| **Domain-Driven Design** | 4 teams | 3 + 27 = 30 repos | 0 systems | Design + code; code:production imbalance |
+| **Hexagonal/Clean** | 4 teams | 3 + 16 = 19 repos | 0 systems | Design + code; no production evidence |
+| **Serverless** | 8 teams | 1 + 6 = 7 repos | 0 systems | Design + code; no production evidence |
+| **Layered Architecture** | 0 teams | 0 + 29 = 29 repos | 1 system | Code + production; Discovered fills the code gap |
+| **Space-Based** | 2 teams | 0 + 5 = 5 repos | 1 system | Full lifecycle; thin across all stages |
+| **Multi-Agent** | 3 teams | 0 + 5 = 5 repos | 0 systems | Design + code; thin |
 
 ### Lifecycle Coverage Changes from Discovered
 
 The most impactful contribution of Discovered is filling the **CODE stage gap** that was the weakest link in the four-source model:
 
 **Styles that gained full lifecycle coverage (Design + Code + Production):**
-- **Modular Monolith** (was 3-stage but thin code; now 43 code-level repos)
-- **CQRS/Event Sourcing** (was 3-stage but thin code; now 33 code-level repos)
-- **Space-Based** (was 2-stage — no code evidence; now 10 code-level repos)
+- **Modular Monolith** (was 3-stage but thin code; now 65 code-level repos — highest of any style)
+- **CQRS/Event Sourcing** (was 3-stage but thin code; now 21 code-level repos)
+- **Space-Based** (was 2-stage — no code evidence; now 5 code-level repos)
 
 **Styles where code gap was filled but production gap remains:**
-- **Pipeline** (was production-only; now 47 code repos — code + production without design)
-- **Layered** (was production-only; now 44 code repos — code + production without design)
-- **Multi-Agent** (was design-only; now 10 code repos — design + code without production)
+- **Pipeline** (was production-only; now 19 code repos — code + production without design)
+- **Layered** (was production-only; now 29 code repos — code + production without design)
+- **Multi-Agent** (was design-only; now 5 code repos — design + code without production)
 
 **Style with persistent code detection blind spot:**
 - **Plugin/Microkernel** — 0 code-level repos despite being the #2 curated style (6 production systems). Plugin architecture is defined by runtime extension points (host/plugin contracts, dynamic loading, extension registries) that don't manifest as structural signals in directory layout, Docker configs, or message broker references. This is the only style where automated discovery systematically fails.
@@ -268,23 +268,23 @@ The most impactful contribution of Discovered is filling the **CODE stage gap** 
 ### Remaining Lifecycle Gaps
 
 **Patterns with strong production evidence but no design support:**
-- Pipeline (6 production, 47 code, 0 design)
+- Pipeline (6 production, 19 code, 0 design)
 - Plugin (6 production, 0 code, 2 design — structurally invisible)
 
 These patterns need: inclusion in architecture kata guidance so teams consider them, and (for Plugin) reference implementations that make the pattern explicit.
 
 **Patterns with strong design/code evidence but no production validation:**
-- Microservices (39 design, 59 code, 0 production)
-- DDD (4 design, 54 code, 0 production)
-- Hexagonal/Clean (4 design, 18 code, 0 production)
-- Serverless (8 design, 11 code, 0 production)
+- Microservices (39 design, 31 code, 0 production)
+- DDD (4 design, 30 code, 0 production)
+- Hexagonal/Clean (4 design, 19 code, 0 production)
+- Serverless (8 design, 7 code, 0 production)
 
 These patterns need: production case studies demonstrating operational viability at scale. Discovered confirms they are widely *built* — the evidence gap is specifically at the production lifecycle stage.
 
 **Pattern with evidence at all stages but thin production:**
-- Modular Monolith (6 design, 43 code, 1 production)
+- Modular Monolith (6 design, 65 code, 1 production)
 
-Despite the highest KataLog win rate (83.3%) and now 43 Discovered code repos, the production evidence is still a single system (Orchard Core). This is the strongest candidate for expanded production evidence collection.
+Despite the highest KataLog win rate (83.3%) and now 65 code repos (highest of any style), the production evidence is still a single system (Orchard Core). This is the strongest candidate for expanded production evidence collection.
 
 ---
 
@@ -298,9 +298,9 @@ The two most common production patterns (Pipeline: 6/17, Plugin: 6/17) are the t
 
 ### Finding 2: The Microservices Inversion
 
-Microservices is the #2 pattern by competition popularity (39/78 teams), #1 by reference implementation count (5 repos), and now **#2 by Discovered code count (54/173 repos)** — but has **zero production evidence** across 17 production systems spanning AOSA and RealWorldASPNET. Even Bitwarden, with 9 independently versioned services, identifies as Service-Based.
+Microservices is the #2 pattern by competition popularity (39/78 teams), #1 by reference implementation count (5 repos), and present in **26 Discovered repos (21% of 122)** — but has **zero production evidence** across 17 production systems spanning AOSA and RealWorldASPNET. Even Bitwarden, with 9 independently versioned services, identifies as Service-Based.
 
-Discovered strengthens this finding: the Microservices code base is enormous (54 repos spanning eShop clones, Spring Cloud apps, Go microservices, and tutorial projects), yet none have production validation in the evidence base. The pattern is massively built but unproven at production scale.
+Even after pruning tutorials and sample apps (which reduced Discovered Microservices from 54 to 26), the pattern retains significant code presence without production validation. The pattern is widely built but unproven at production scale within the evidence base.
 
 This does not mean Microservices doesn't work in production (Netflix, Amazon, and Google famously use it). It means the evidence base lacks production exemplars for this style, which remains the highest-priority gap for future collection.
 
@@ -321,7 +321,7 @@ Teams should specify *which* Event-Driven they mean: messaging topology, data mo
 
 ### Finding 4: The Practice-Evidence Gap
 
-The three practices most predictive of KataLog success — feasibility analysis (4.5x top-2 likelihood), ADR discipline (winners average 15 ADRs), and fitness functions (55% of winners) — have near-zero representation in teaching, production, and code-level materials. Discovered data confirms this across 173 repos: fewer than 5 include ADR directories and fewer than 3 include fitness function tests.
+The three practices most predictive of KataLog success — feasibility analysis (4.5x top-2 likelihood), ADR discipline (winners average 15 ADRs), and fitness functions (55% of winners) — have near-zero representation in teaching, production, and code-level materials. Discovered data confirms this across 122 repos: fewer than 5 include ADR directories and fewer than 3 include fitness function tests.
 
 Teams learn *what* to build from reference implementations and open-source examples but not *why* to build it, *what it costs*, or *how to verify it stays healthy*.
 
@@ -337,11 +337,11 @@ Production systems that survive a decade need to accommodate uses their creators
 
 ### Finding 6: Modular Monolith — Strongest Signal, Broadest Code Validation
 
-Modular Monolith has the highest KataLog win rate (83.3%), has production validation (Orchard Core), has code-level references (kgrzybek's project), and now has **42 Discovered repos** — making it the 5th-most common Discovered style. The evidence base has grown from 8 entries (four sources) to 50 entries (five sources), with Discovered providing the largest single increase.
+Modular Monolith has the highest KataLog win rate (83.3%), has production validation (Orchard Core), has code-level references (kgrzybek's project), and now has **64 Discovered repos** — making it the **most common Discovered style** (52% of all entries). The evidence base has grown dramatically, with Discovered providing the largest single increase.
 
-The Discovered evidence shows Modular Monolith implemented across multiple languages and frameworks (Django, Spring Boot, .NET, Go), confirming it is not a .NET-only phenomenon. This breadth strengthens the signal that was previously thin but directionally strong.
+The Discovered evidence shows Modular Monolith implemented across multiple languages and frameworks (Django, Spring Boot, .NET, Go), confirming it is not a .NET-only phenomenon. The pruning of unclassifiable libraries amplified this signal: well-structured applications overwhelmingly exhibit modular monolith patterns.
 
-The remaining gap is production depth: only 1 production exemplar (Orchard Core) despite 6 design teams, 1 reference implementation, and 42 Discovered repos. Expanding production evidence for Modular Monolith remains the highest-priority collection target.
+The remaining gap is production depth: only 1 production exemplar (Orchard Core) despite 6 design teams, 1 reference implementation, and 64 Discovered repos. Expanding production evidence for Modular Monolith remains the highest-priority collection target.
 
 **Evidence depth**: T4 (KataLog + RealWorld + RefArch + Discovered). High confidence — directionally strong with broad code validation. Missing: AOSA production exemplar.
 
@@ -354,18 +354,18 @@ The remaining gap is production depth: only 1 production exemplar (Orchard Core)
   - `evidence-analysis/AOSA/docs/analysis/source-analysis.md` (12 projects)
   - `evidence-analysis/ReferenceArchitectures/docs/analysis/source-analysis.md` (8 repos)
   - `evidence-analysis/RealWorldASPNET/docs/analysis/source-analysis.md` (5 projects)
-  - `evidence-analysis/Discovered/_index.yaml` and `quality-report.md` (173 repos)
+  - `evidence-analysis/Discovered/_index.yaml` and `quality-report.md` (122 repos, pruned from 173)
 - **Weighted scoring**: The Combined Weighted Scoreboard in [cross-source-reference.md](cross-source-reference.md) uses point weights for the four curated sources. Discovered is shown as entry counts (not point-weighted) because automated classification has inherently lower confidence than expert curation. See the "Discovered evidence: breadth, not depth" section in the reference for rationale.
-- **Triangulation counting**: "Production systems" counts combine AOSA (12) and RealWorldASPNET (5) for a total of 17. Production adoption percentages use this base. "Code-level repos" counts combine RefArch (8) and Discovered (173) for a total of 181.
+- **Triangulation counting**: "Production systems" counts combine AOSA (12) and RealWorldASPNET (5) for a total of 17. Production adoption percentages use this base. "Code-level repos" counts combine RefArch (8) and Discovered (122) for a total of 130.
 - **Style name mapping**: Discovered uses "Pipe-and-Filter" as the canonical name for the same pattern AOSA calls "Pipeline." Both names appear in this document depending on context.
 - **Limitations**:
   - The production evidence base (17 systems) is small. Pipeline at 6/17 is directionally strong but not statistically conclusive.
   - AOSA projects (2011--2012) predate Microservices, Serverless, and cloud-native patterns. Their absence from AOSA may partly reflect era rather than production unsuitability.
   - RealWorldASPNET is .NET-only. Production patterns in Go, Java, Python, and Rust ecosystems may differ.
   - KataLog competition scoring varies by season and judge panel. Cross-season comparisons should be treated as approximate.
-  - Discovered entries are classified by automated structural signal detection with LLM review. Classification accuracy is high (median confidence 0.92) but not expert-grade. Multi-style assignments (each repo averages ~2.4 styles) may introduce counting artifacts.
+  - Discovered entries are classified by automated structural signal detection with multi-turn LLM validation. Classification accuracy is high (median confidence 0.88) but not expert-grade. Multi-style assignments (each repo averages ~2.3 styles) may introduce counting artifacts.
   - Discovered has a structural detection bias: patterns with visible signals (Docker Compose, message brokers, directory conventions) are overrepresented; patterns expressed through runtime behavior (Plugin extension points, Pipeline pass managers) are underrepresented or missing entirely.
 
 ---
 
-*Generated: 2026-03-03. Derived from structured YAML catalogs and source analyses across all five evidence sources (276 total entries).*
+*Generated: 2026-03-05. Derived from structured YAML catalogs and source analyses across all five evidence sources (225 total entries).*
