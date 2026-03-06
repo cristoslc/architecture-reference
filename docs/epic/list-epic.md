@@ -5,6 +5,7 @@
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | EPIC-006 | Deep-Context Classification Validation | Re-validate all catalog classifications by cloning repos and feeding deep context (source files, configs, architecture docs) to the LLM. Produces verification verdicts, override rules, and expanded gold standard. | 2026-03-04 | — |
+| EPIC-009 | Heuristic Pipeline Improvements | Improve the heuristic classification pipeline based on SPEC-019 findings: add 9 missing style detectors, fix Microservices/Service-Based false positives, add library detection, improve confidence calibration. Target: 60%+ agreement with deep-validation (currently 14.7%). | 2026-03-06 | — |
 
 ## Active
 

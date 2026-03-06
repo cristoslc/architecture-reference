@@ -15,7 +15,15 @@ depends-on:
 
 ## Problem Statement
 
-After SPEC-017 re-extracts signals and re-classifies the 122 Discovered repos, the SBA and Plugin/Microkernel detection counts will change. The 6 reference library documents and 2 cross-source evidence documents still show the old statistics (e.g., SBA at 4 repos, Plugin at 0). These documents were restructured by EPIC-007 to lead with Discovered statistics as primary evidence — stale numbers in the primary ranking tables directly mislead readers.
+SPEC-019 deep-validated all 163 Discovered repos, producing ground-truth classifications that differ dramatically from the heuristic pipeline. The 6 reference library documents and 2 cross-source evidence documents still show pre-deep-validation statistics. These documents were restructured by EPIC-007 to lead with Discovered statistics as primary evidence — stale numbers in the primary ranking tables directly mislead readers.
+
+Key statistics changes (deep-validation ground truth):
+- Modular Monolith: largest style at 65 repos (was underrepresented)
+- Event-Driven: 47 repos (secondary style in most cases)
+- Plugin/Microkernel: 33 repos (was 0)
+- Microservices: 16 repos (was 45 — heuristic over-classified by 3x)
+- Service-Based: 11 repos (was 43 — heuristic over-classified by 4x)
+- 9 styles now detected that were previously invisible to the pipeline
 
 ### Why this is a separate spec
 
