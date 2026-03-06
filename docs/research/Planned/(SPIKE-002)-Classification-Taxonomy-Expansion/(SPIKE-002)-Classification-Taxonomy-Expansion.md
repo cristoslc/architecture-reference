@@ -111,4 +111,4 @@ Design a lightweight annotation system (e.g., `styles: [Microservices]` + `varia
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Planned | 2026-03-06 | — | Initial creation; pre-implementation gate for EPIC-009 taxonomy decisions |
+| Planned | 2026-03-06 | c526f34 | Initial creation; pre-implementation gate for EPIC-009 taxonomy decisions |

@@ -90,4 +90,4 @@ Draft 2-3 candidate formats for how ecosystem data appears in reference library 
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Planned | 2026-03-06 | — | Initial creation; pre-implementation gate for EPIC-010 |
+| Planned | 2026-03-06 | c526f34 | Initial creation; pre-implementation gate for EPIC-010 |

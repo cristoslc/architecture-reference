@@ -79,4 +79,4 @@ The current architecture-advisor skill treats every query as an application-leve
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Proposed | 2026-03-06 | — | Initial creation; enhances advisor skill with platform/application context awareness |
+| Proposed | 2026-03-06 | 52a5089 | Initial creation; enhances advisor skill with platform/application context awareness |
