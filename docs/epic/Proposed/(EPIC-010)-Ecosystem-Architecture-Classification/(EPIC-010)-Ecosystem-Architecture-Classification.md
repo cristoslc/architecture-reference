@@ -26,18 +26,84 @@ Extend the evidence catalog to capture architectural patterns that emerge from t
 
 Our catalog classifies elasticsearch as "Modular Monolith + Plugin/Microkernel" — correct for the single repo. But the ELK *stack* (Elasticsearch + Logstash + Kibana + Beats) is a Pipe-and-Filter architecture where each component is a stage in a data processing pipeline. That emergent pattern is invisible to single-repo analysis.
 
-### Known ecosystem gaps
+### Catalog ecosystem audit
 
-| Ecosystem | Member Repos | Individual Classifications | Emergent Architecture |
-|-----------|-------------|--------------------------|----------------------|
-| **\*arr media stack** | Sonarr, Radarr, Bazarr, Prowlarr, Lidarr, Readarr, Overseerr | Each: Layered/Modular Monolith | Service-Based with shared API contracts + event flows |
-| **ELK stack** | Elasticsearch, Logstash, Kibana, Beats, APM Server | Each: Modular Monolith/Plugin | Pipe-and-Filter data pipeline |
-| **Grafana LGTM** | Grafana, Loki, Tempo, Mimir, Prometheus | Each: Plugin/Modular Monolith | Service-Based observability stack |
-| **HashiCorp stack** | Consul, Vault, Nomad, Terraform, Waypoint | Each: Modular Monolith | Service-Based infrastructure platform |
-| **Kubernetes ecosystem** | kubernetes, etcd, CoreDNS, containerd, kube-proxy | Each: various | Microservices with sidecar pattern |
-| **Spring Cloud** | spring-cloud-gateway, eureka, spring-cloud-config | Each: various | Microservices infrastructure |
-| **Apache data stack** | Kafka, Flink, Spark, Airflow, Beam | Each: various | Pipe-and-Filter / Event-Driven data mesh |
-| **Home automation** | Home Assistant, ESPHome, Zigbee2MQTT, Node-RED | Each: Plugin/Event-Driven | Event-Driven + Plugin/Microkernel IoT platform |
+Of our 163 repos, **77 belong to identifiable ecosystems** with 99 missing companion repos. 35 runtime ecosystems identified across the catalog.
+
+#### Data & Messaging (6 repos in catalog, 7 missing)
+
+| Ecosystem | Have | Missing | Emergent Architecture |
+|-----------|------|---------|----------------------|
+| **Apache Data Ecosystem** | kafka, flink, spark, beam, airflow, nifi | hive, cassandra, zookeeper, storm, druid, superset, iceberg | Pipe-and-Filter / Event-Driven data mesh |
+| **Apache Data Grid** | geode, ignite | — | Space-Based in-memory compute grid |
+| **ELK / Elastic Stack** | elasticsearch | kibana, logstash, beats, apm-server | Pipe-and-Filter (ingest -> store -> visualize) |
+| **Messaging Platforms** | kafka, pulsar, rabbitmq-server, nats-server, redpanda | — | Event-Driven backbone (each independently deployable) |
+
+#### Observability (2 repos, 9 missing)
+
+| Ecosystem | Have | Missing | Emergent Architecture |
+|-----------|------|---------|----------------------|
+| **Grafana LGTM Stack** | grafana | loki, tempo, mimir, prometheus, alloy, pyroscope | Service-Based observability platform |
+| **Sentry Self-Hosted** | self-hosted | sentry, snuba, relay | Microservices error tracking |
+
+#### Infrastructure & Service Mesh (5 repos, 11 missing)
+
+| Ecosystem | Have | Missing | Emergent Architecture |
+|-----------|------|---------|----------------------|
+| **HashiCorp Stack** | consul | vault, nomad, terraform, waypoint, packer, boundary | Service-Based infrastructure platform |
+| **Istio / Envoy** | istio, envoy | — | Sidecar proxy (envoy=data plane, istio=control plane) |
+| **Linkerd** | linkerd2 | linkerd2-proxy | Sidecar proxy pattern |
+| **Kubernetes** | — | kubernetes, etcd, coredns, containerd, kube-proxy, cri-o | Microservices container orchestration |
+
+#### CI/CD & DevOps (4 repos, 8 missing)
+
+| Ecosystem | Have | Missing | Emergent Architecture |
+|-----------|------|---------|----------------------|
+| **Argo** | argo-workflows | argo-cd, argo-rollouts, argo-events | Event-Driven GitOps platform |
+| **Tekton** | pipeline | triggers, dashboard, results | Pipe-and-Filter CI/CD |
+| **GitLab** | gitlabhq | gitlab-runner, gitlab-pages, gitaly | Modular Monolith + Service-Based satellites |
+| **Backstage** | backstage | — | Plugin/Microkernel developer portal |
+
+#### E-Commerce (5 repos, 10 missing)
+
+| Ecosystem | Have | Missing | Emergent Architecture |
+|-----------|------|---------|----------------------|
+| **Saleor** | saleor | saleor-dashboard, saleor-storefront, saleor-apps | Service-Based headless commerce |
+| **Medusa** | medusa | medusa-admin, nextjs-starter-medusa | Plugin/Microkernel headless commerce |
+| **Shopware** | shopware | shopware-pwa, shopware-frontends | Plugin/Microkernel commerce platform |
+| **Spree** | spree | spree_auth_devise, spree_gateway, spree_frontend | Modular Monolith with plugin extensions |
+
+#### AI/ML (12 repos, 3 missing)
+
+| Ecosystem | Have | Missing | Emergent Architecture |
+|-----------|------|---------|----------------------|
+| **LangChain** | langchain, llama_index | langserve, langsmith, langgraph | Multi-Agent / Pipe-and-Filter LLM orchestration |
+| **Agent Frameworks** | AutoGPT, crewAI, autogen, MetaGPT, smolagents, swarm, semantic-kernel, camel, letta, phidata | — | Multi-Agent framework ecosystem |
+
+#### Media & Communication (6 repos, 14 missing)
+
+| Ecosystem | Have | Missing | Emergent Architecture |
+|-----------|------|---------|----------------------|
+| **\*arr Media Stack** | overseerr | sonarr, radarr, bazarr, prowlarr, lidarr, readarr | Service-Based media automation |
+| **Jellyfin** | jellyfin | jellyfin-web, jellyfin-vue, jellyfin-sdk-typescript | Plugin/Microkernel media server |
+| **Fediverse** | mastodon, discourse, forem | pleroma, misskey, lemmy | Federated Service-Based (ActivityPub) |
+| **Mattermost** | mattermost | mattermost-webapp, mattermost-mobile | Plugin/Microkernel team messaging |
+
+#### BaaS & Platforms (4 repos, 5 missing)
+
+| Ecosystem | Have | Missing | Emergent Architecture |
+|-----------|------|---------|----------------------|
+| **Supabase** | supabase, nhost | supabase-auth, supabase-storage, supabase-realtime, postgrest, gotrue | Microservices BaaS |
+| **Low-Code CMS** | nocodb, directus, strapi, appwrite | baserow, budibase, tooljet | Plugin/Microkernel platforms |
+
+#### Workflow & Runtime (3 repos, 12 missing)
+
+| Ecosystem | Have | Missing | Emergent Architecture |
+|-----------|------|---------|----------------------|
+| **Dapr** | dapr | dapr-components-contrib, dapr-workflows, dapr-cli | Sidecar pattern with pluggable components |
+| **Temporal** | temporal | temporal-sdk-go, temporal-sdk-java, temporal-sdk-typescript, temporal-ui | Service-Based workflow runtime |
+| **Home Automation** | n8n | home-assistant, esphome, zigbee2mqtt, node-red, mosquitto | Event-Driven + Plugin IoT platform |
+| **Spring Cloud** | spring-petclinic, spring-petclinic-microservices, sample-spring-microservices-new | spring-cloud-gateway, spring-cloud-config, spring-cloud-netflix | Microservices infrastructure |
 
 ### Why this matters for the reference library
 
