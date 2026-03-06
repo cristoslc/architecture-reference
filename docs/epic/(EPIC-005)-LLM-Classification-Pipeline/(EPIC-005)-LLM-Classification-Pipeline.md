@@ -12,8 +12,7 @@ success-criteria:
   - Pipeline is idempotent and re-runnable — always targets any entry with review_required=true
   - Classification accuracy >= 85% when validated against manually reviewed samples
   - Integrates with existing apply-review.py without breaking the catalog schema
-depends-on:
-  - EPIC-003
+depends-on: []
 ---
 
 # LLM Classification Pipeline

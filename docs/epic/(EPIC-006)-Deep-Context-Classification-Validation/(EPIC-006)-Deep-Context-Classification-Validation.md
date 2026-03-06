@@ -14,7 +14,6 @@ success-criteria:
   - Validation accuracy >= 90% against expanded gold standard
 depends-on:
   - EPIC-005
-  - EPIC-003
 ---
 
 # Deep-Context Classification Validation
