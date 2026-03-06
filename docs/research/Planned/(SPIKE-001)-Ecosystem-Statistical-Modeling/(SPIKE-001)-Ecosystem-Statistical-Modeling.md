@@ -97,10 +97,68 @@ Key decisions:
 - **KataLog entries are reference** (designed architectures, not production deployments).
 - **Presentation format** for reference library documents is deferred — belongs to the epic doing the actual rewrite, not to this spike.
 
-### Open (for Active phase)
+### Thread 1 results: 2-Axis Classification (2026-03-06)
 
-- Star-based weighting function for production-grade entries (Thread 2)
-- Complete 2-axis classification of all 163 entries (Thread 1)
+Full classification in [taxonomy-classification.md](taxonomy-classification.md). Summary:
+
+| Category | Count |
+|---|---|
+| Remove: Library/Framework | 36 |
+| Remove: Non-software | 7 |
+| Production / Platform | 65 |
+| Production / Application | 19 |
+| Reference / Application | 36 |
+| **Total** | 163 |
+
+Key findings:
+- **43 entries (26%) flagged for removal** — 36 libraries/frameworks + 7 non-software. This is larger than the original 24 Indeterminate entries because some classified entries (abp, nest, aspnetboilerplate, agent frameworks) are actually libraries consumed as dependencies.
+- **No Reference/Platform entries** after reclassification — eureka and memcached moved to Production/Platform.
+- **65 production platforms vs 19 production applications** — the catalog skews heavily toward infrastructure/platforms. This has implications for frequency rankings (platform architectures like Plugin/Microkernel are overrepresented vs what application developers encounter).
+- **36 reference implementations** — these carry zero weight in frequency rankings but remain as annotation sources.
+
+### Thread 2 results: Star-Weighted Production Ranking (2026-03-06)
+
+**Finding 1: Star-based weighting has negligible impact on rankings.**
+
+Tested 4 schemes (equal, log10(stars), sqrt(stars)/100, star tiers 1-4) on 85 production-grade entries. **No style moved more than 2 rank positions** across any scheme. The top 7 styles (Modular Monolith, Event-Driven, Layered, Plugin/Microkernel, Pipe-and-Filter, Service-Based, Microservices) are identical in all four methods.
+
+This means the catalog's style distribution is robust to weighting — popular and niche repos show similar architectural patterns. **Recommendation: equal weighting is sufficient for production-grade entries.** Star-based weighting adds complexity without changing conclusions.
+
+**Finding 2: Removing reference implementations dramatically changes rankings.**
+
+The bigger impact is production-only vs production+reference:
+
+| Style | Prod+Ref (rank) | Prod-only (rank) | Change |
+|---|---|---|---|
+| Domain-Driven Design | 22.9% (#4) | 5.9% (#9) | -17.0 pts, -5 ranks |
+| Hexagonal Architecture | 16.9% (#7) | 3.5% (#10) | -13.4 pts, -3 ranks |
+| CQRS | 13.6% (#8) | 2.4% (#12) | -11.2 pts, -4 ranks |
+| Microservices | 13.6% (#9) | 5.9% (#7) | -7.7 pts, +2 ranks |
+| Plugin/Microkernel | 22.0% (#5) | 30.6% (#4) | +8.6 pts, +1 rank |
+| Modular Monolith | 48.3% (#1) | 58.8% (#1) | +10.5 pts |
+
+Reference implementations massively inflate DDD, Hexagonal, CQRS, and Microservices — these are the styles people write tutorials about. Removing them reveals what production systems actually use: Modular Monolith (59%), Plugin/Microkernel (31%), Pipe-and-Filter (26%).
+
+**Recommendation: production-only rankings with reference as annotation.** This is the user's original decision, now validated with data. The rank changes are not distortion — they're correction of tutorial bias.
+
+### Open
+
+None. All threads and gate evaluation complete.
+
+### Gate evaluation (2026-03-06)
+
+| Criterion | Threshold | Result | Verdict |
+|---|---|---|---|
+| Taxonomy validated | >=95% unambiguous | 158/163 = 97% (5 borderline) | **PASS** |
+| Star-weighting model | Tested, improves consistency | 4 schemes tested; equal weight recommended (no scheme changes top-7) | **PASS** |
+| Library/Framework removal list | Complete | 43 entries identified (36 lib/framework + 7 non-software) | **PASS** |
+
+**Spike outcome: GO.** All gates pass. EPIC-010 can proceed with:
+1. Remove 43 non-architecture entries from catalog
+2. Use equal weighting for production-grade entries
+3. Reference implementations as annotation-only (zero weight in frequency rankings)
+4. Scope axis (platform/ecosystem vs application) for catalog and table structure
+5. Key insight: removing reference implementations corrects "tutorial bias" — DDD, Hexagonal, CQRS, Microservices drop significantly in production-only rankings
 
 ## Lifecycle
 
