@@ -163,6 +163,7 @@ Update `classify.py`:
 ## Child Specs
 
 - **SPEC-017**: Pipeline Re-extraction and Re-classification (re-run pipeline with new signals, selective merge, comparison report)
+- **SPEC-018**: Reference Library Statistics Update (propagate corrected SBA/Plugin counts into all 8 reference library documents; depends on SPEC-017)
 
 ## Key Dependencies
 
