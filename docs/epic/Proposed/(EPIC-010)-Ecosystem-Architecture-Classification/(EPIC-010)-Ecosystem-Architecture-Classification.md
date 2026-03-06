@@ -82,4 +82,4 @@ Our catalog classifies elasticsearch as "Modular Monolith + Plugin/Microkernel" 
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Proposed | 2026-03-06 | — | Initial creation; identified ecosystem gap in SPEC-019 analysis |
+| Proposed | 2026-03-06 | 78f8e36 | Initial creation; identified ecosystem gap in SPEC-019 analysis |
