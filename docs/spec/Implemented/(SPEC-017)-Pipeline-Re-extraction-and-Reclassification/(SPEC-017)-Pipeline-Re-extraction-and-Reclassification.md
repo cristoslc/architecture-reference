@@ -128,4 +128,5 @@ This step is the long pole — estimate ~2-4 hours depending on LLM rate limits.
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Draft | 2026-03-05 | — | Initial creation |
+| Draft | 2026-03-05 | beb158f | Initial creation |
+| Implemented | 2026-03-06 | e99ac10 | 163 repos re-extracted with SBA/Plugin signals, re-classified, LLM reviewed. Comparison report generated. |
