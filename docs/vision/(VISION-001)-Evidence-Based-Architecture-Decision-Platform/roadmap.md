@@ -45,5 +45,5 @@ graph LR
 
 | Research | Gate For | Status |
 |----------|----------|--------|
-| [SPIKE-001](../../research/Planned/(SPIKE-001)-Ecosystem-Statistical-Modeling/(SPIKE-001)-Ecosystem-Statistical-Modeling.md) | EPIC-010, EPIC-011 | Planned |
+| [SPIKE-001](../../research/Complete/(SPIKE-001)-Ecosystem-Statistical-Modeling/(SPIKE-001)-Ecosystem-Statistical-Modeling.md) | EPIC-010, EPIC-011 | **Complete** |
 | [SPIKE-002](../../research/Planned/(SPIKE-002)-Classification-Taxonomy-Expansion/(SPIKE-002)-Classification-Taxonomy-Expansion.md) | EPIC-009, EPIC-010 | Planned |
