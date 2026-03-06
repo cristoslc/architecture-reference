@@ -332,6 +332,14 @@ def score_service_based(s):
     db_configs = sig(s, "service_based", "db_config_count")
     if db_configs >= 1:
         c += 0.2
+    # Shared library directory (shared/, common/, libs/ with code)
+    # SBA services share code through common libraries; MS avoids this
+    if sig_bool(s, "service_based", "has_shared_library"):
+        c += 0.2
+    # Monorepo workspace config (pnpm, lerna, nx, turbo, rush)
+    # Interconnected packages in a monorepo — strong SBA signal
+    if sig_bool(s, "service_based", "has_workspace_config"):
+        c += 0.2
     # Docker Compose services without k8s (SBA uses compose, MS uses k8s)
     compose_services = sig(s, "container_orchestration", "docker_compose_services")
     k8s = sig(s, "container_orchestration", "k8s_manifests")
@@ -341,7 +349,7 @@ def score_service_based(s):
     # Service projects in moderate range (coarse-grained, not micro)
     service_projects = sig(s, "directory_patterns", "service_projects")
     if 2 <= service_projects <= 8:
-        c += 0.2
+        c += 0.1
     # Supporting signal
     if sig_bool(s, "directory_patterns", "services_dir") and k8s == 0:
         c += 0.1

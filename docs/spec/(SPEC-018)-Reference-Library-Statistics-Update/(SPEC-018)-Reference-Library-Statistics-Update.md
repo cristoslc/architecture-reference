@@ -48,6 +48,7 @@ SPEC-017 produces corrected evidence data in `evidence-analysis/Discovered/`. Th
 4. No statistical inconsistencies between documents — all cite the same counts for each style
 5. Detection bias caveats updated if SBA/Plugin bias notes change
 6. Each changed document passes the 6 prose clarity heuristics from EPIC-007
+7. When citing or defining architectural styles, include notable real-world projects as examples — selected by GitHub star count or industry recognition to give readers immediate concrete referents (e.g., "Service-Based: Shopware (3.2k stars), Medusa (27k stars)" rather than abstract descriptions alone)
 
 ## Scope & Constraints
 
@@ -72,6 +73,15 @@ Read `_index.yaml` and `reclassification-comparison.md` from SPEC-017 outputs. C
 - New style rank order
 - SBA and Plugin-specific statistics (which repos, which domains, co-occurring styles)
 - QA distribution changes (if any)
+
+### Step 1b: Identify notable projects per style
+
+For each architectural style, select 2-4 notable projects from the Discovered catalog to use as concrete examples when citing the style. Selection criteria:
+- **Primary:** GitHub star count (prefer projects with 5k+ stars for reader recognition)
+- **Secondary:** Industry recognition, adoption breadth, or domain diversity
+- Source star counts from `_index.yaml` metadata or live GitHub API queries
+
+These project names and star counts will be embedded in style profiles, evidence tables, and decision navigator paths — giving readers immediate real-world referents instead of abstract style descriptions.
 
 ### Step 2: Update documents (parallelizable)
 

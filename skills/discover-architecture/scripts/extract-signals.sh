@@ -319,9 +319,29 @@ done
 DB_CONFIG_COUNT=0
 DB_CONFIG_COUNT=$(grep -rl $SEARCH_EXTS 'DATABASE_URL\|connectionString\|dataSource\|datasource\|DB_HOST\|db\.host\|spring\.datasource' . --exclude-dir=.git --exclude-dir=node_modules --exclude-dir=vendor --exclude-dir=dist --exclude-dir=build 2>/dev/null | wc -l | tr -d ' ')
 
-# Deployment unit ratio: Docker Compose services vs Dockerfiles
-# SBA: many compose services, fewer separate Dockerfiles (shared deployment)
-# Already have DOCKER_COMPOSE_SERVICES and DOCKERFILES from section 2
+# Shared library directory: shared/, common/, libs/, core/ alongside service dirs
+# SBA services share code through common libraries; MS avoids this
+HAS_SHARED_LIBRARY=false
+for slib in shared common libs core lib; do
+  if [ -d "$slib" ]; then
+    # Only count if it contains actual code (not just config)
+    slib_files=$(find "$slib" -path './.git' -prune -o -type f \( -name '*.ts' -o -name '*.js' -o -name '*.py' -o -name '*.java' -o -name '*.cs' -o -name '*.go' -o -name '*.rs' \) -print 2>/dev/null | wc -l | tr -d ' ')
+    if [ "$slib_files" -gt 0 ]; then
+      HAS_SHARED_LIBRARY=true
+      break
+    fi
+  fi
+done
+
+# Monorepo workspace config: pnpm-workspace.yaml, lerna.json, nx.json, turbo.json, rush.json
+# Indicates interconnected packages in a monorepo — strong SBA signal when combined with service dirs
+HAS_WORKSPACE_CONFIG=false
+WORKSPACE_TYPE=""
+if [ -f "pnpm-workspace.yaml" ]; then HAS_WORKSPACE_CONFIG=true; WORKSPACE_TYPE="pnpm"; fi
+if [ -f "lerna.json" ]; then HAS_WORKSPACE_CONFIG=true; WORKSPACE_TYPE="lerna"; fi
+if [ -f "nx.json" ]; then HAS_WORKSPACE_CONFIG=true; WORKSPACE_TYPE="nx"; fi
+if [ -f "turbo.json" ]; then HAS_WORKSPACE_CONFIG=true; WORKSPACE_TYPE="turbo"; fi
+if [ -f "rush.json" ]; then HAS_WORKSPACE_CONFIG=true; WORKSPACE_TYPE="rush"; fi
 
 # 12. Plugin/Microkernel signals
 HAS_PLUGIN_DIRS=false
@@ -457,6 +477,9 @@ signals:
   service_based:
     monorepo_packages: ${MONOREPO_PACKAGES}
     db_config_count: ${DB_CONFIG_COUNT}
+    has_shared_library: ${HAS_SHARED_LIBRARY}
+    has_workspace_config: ${HAS_WORKSPACE_CONFIG}
+    workspace_type: "${WORKSPACE_TYPE}"
 
   plugin_microkernel:
     has_plugin_dirs: ${HAS_PLUGIN_DIRS}

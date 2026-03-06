@@ -117,6 +117,8 @@ Rules for classifying architecture styles from filesystem signals. Applied in or
 |--------|-----------------|-------------------|
 | Monorepo packages | `packages/`, `apps/`, `services/` with 2+ subdirectories | Coarse-grained service boundaries (**Service-Based** signal) |
 | Shared database | `DATABASE_URL`, `connectionString`, `spring.datasource` in configs | Shared data layer across services (**Service-Based** signal) |
+| Shared library | `shared/`, `common/`, `libs/`, `core/` with source code | Cross-service code sharing (**Service-Based** signal; MS avoids this) |
+| Workspace config | `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `rush.json` | Interconnected monorepo packages (**Service-Based** signal) |
 | Docker Compose services | 3+ services in compose files | Multi-service orchestration without K8s (**Service-Based** signal) |
 
 ### 12. Plugin/Microkernel signals
@@ -251,14 +253,16 @@ Rules are applied after all signals are collected. Confidence scores are cumulat
 
 ### Service-Based
 
-**Strong signals (confidence += 0.2 each):**
-- Monorepo packages: 2+ top-level package/app/service directories (coarse-grained services)
-- `services/` or `apps/` directory present
-- Docker Compose with 3+ services (SBA uses compose for multi-service orchestration)
+**Strong signals (confidence += 0.2-0.3 each):**
+- Monorepo packages: 2+ top-level package/app/service directories (coarse-grained services) (+0.3)
+- Shared database: database config files present (SBA shares databases across services) (+0.2)
+- Shared library: `shared/`, `common/`, `libs/`, `core/` directories with source code (SBA shares code; MS avoids this) (+0.2)
+- Workspace config: `pnpm-workspace.yaml`, `lerna.json`, `nx.json`, `turbo.json`, `rush.json` (interconnected monorepo packages) (+0.2)
+- Docker Compose with 3+ services and no K8s (SBA uses compose for orchestration) (+0.2)
 
 **Supporting signals (confidence += 0.1 each):**
-- Service project directories (any count >= 1)
-- Database config files present (SBA shares databases across services)
+- Service project directories in moderate range (2-8)
+- `services/` or `apps/` directory present (without K8s)
 
 **Threshold:** Classify as Service-Based if confidence >= 0.3
 **Conflict rule:** If Microservices also signals, apply discriminating heuristics: fewer than 8 Dockerfiles + Docker Compose services >= 3 + no Kubernetes + service projects <= 5 → favor SBA. Otherwise, higher score wins.
