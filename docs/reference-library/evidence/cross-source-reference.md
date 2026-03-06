@@ -1,8 +1,8 @@
 # Cross-Source Architecture Evidence Reference
 
-Maps the library's architecture styles to weighted evidence across all five sources. Production evidence from real-world applications is weighted most heavily; automated discovery from 122 open-source repositories adds code-level breadth.
+Maps the library's architecture styles to weighted evidence across all five sources. Production evidence from real-world applications is weighted most heavily; deep-validated discovery from 163 open-source repositories (SPEC-019, source-code-inspected) adds code-level breadth.
 
-Generated: 2026-03-05
+Generated: 2026-03-06
 
 ---
 
@@ -31,7 +31,7 @@ Not all evidence is equal. A pattern proven at production scale is stronger evid
 
 ### Discovered evidence: breadth, not depth
 
-The Discovered source (122 open-source repositories classified by automated signal detection with multi-turn LLM validation) is not included in the Combined Weighted Scoreboard. These are working codebases on GitHub, but the classification is automated, the quality varies (production systems mixed with tutorials and samples), and we cannot verify production deployment. Rather than assign an arbitrary point weight that would distort the curated scoreboard, Discovered entry counts are shown as a separate column for breadth context.
+The Discovered source (163 open-source repositories, deep-validated via source code inspection per SPEC-019) is not included in the Combined Weighted Scoreboard. These are working codebases on GitHub with style classifications validated through actual source code review -- a significant improvement over prior automated filesystem detection. However, the quality varies (production systems mixed with tutorials and samples), and we cannot verify production deployment. Rather than assign an arbitrary point weight that would distort the curated scoreboard, Discovered entry counts are shown as a separate column for breadth context.
 
 The Discovered column answers: *"How many open-source codebases exhibit this pattern?"* The Combined score answers: *"How strong is the expert-validated evidence for this pattern?"* Both questions matter; they measure different things.
 
@@ -41,19 +41,19 @@ The Discovered column answers: *"How many open-source codebases exhibit this pat
 
 | Rank | Style | KataLog | AOSA | RealWorld | Ref Impls | Combined | Entries | Discovered | vs KataLog-only |
 |------|-------|---------|------|-----------|-----------|----------|---------|------------|-----------------|
-| 1 | **Event-Driven** | 94 | 60 | 40 | 9 | **203** | 57 | 63 | -- |
-| 2 | **Plugin/Microkernel** | 4 | 60 | 60 | 0 | **124** | 8 | 0 | **+9** (was #11) |
-| 3 | **Pipeline** | 0 | 100 | 20 | 0 | **120** | 6 | 19 | **NEW** |
-| 4 | **Service-Based** | 43 | 40 | 20 | 2 | **105** | 29 | 4 | -1 (was #3) |
-| 5 | **Microservices** | 67 | 0 | 0 | 9 | **76** | 44 | 26 | -3 (was #2) |
-| 6 | **Modular Monolith** | 18 | 0 | 20 | 2 | **40** | 8 | 64 | -2 (was #4) |
-| 7 | **CQRS/Event Sourcing** | 8 | 0 | 20 | 5 | **33** | 7 | 18 | **+1** (was #8) |
+| 1 | **Event-Driven** | 94 | 60 | 40 | 9 | **203** | 57 | 47 | -- |
+| 2 | **Plugin/Microkernel** | 4 | 60 | 60 | 0 | **124** | 8 | 33 | **+9** (was #11) |
+| 3 | **Pipeline** | 0 | 100 | 20 | 0 | **120** | 6 | 26 | **NEW** |
+| 4 | **Service-Based** | 43 | 40 | 20 | 2 | **105** | 29 | 11 | -1 (was #3) |
+| 5 | **Microservices** | 67 | 0 | 0 | 9 | **76** | 44 | 16 | -3 (was #2) |
+| 6 | **Modular Monolith** | 18 | 0 | 20 | 2 | **40** | 8 | 65 | -2 (was #4) |
+| 7 | **CQRS/Event Sourcing** | 8 | 0 | 20 | 5 | **33** | 7 | 17 | **+1** (was #8) |
 | 8 | **Space-Based** | 4 | 20 | 0 | 0 | **24** | 3 | 5 | +2 (was #10) |
-| 9 | **Layered Architecture** | 0 | 0 | 20 | 0 | **20** | 1 | 29 | **NEW** |
-| 10 | **Domain-Driven Design** | 11 | 0 | 0 | 5 | **16** | 7 | 27 | -4 (was #6) |
-| 11 | **Hexagonal/Clean** | 10 | 0 | 0 | 6 | **16** | 7 | 16 | -4 (was #7) |
-| 12 | **Serverless** | 12 | 0 | 0 | 2 | **14** | 9 | 6 | -7 (was #5) |
-| 13 | **Multi-Agent** | 8 | 0 | 0 | 0 | **8** | 3 | 5 | -4 (was #9) |
+| 9 | **Layered Architecture** | 0 | 0 | 20 | 0 | **20** | 1 | 35 | **NEW** |
+| 10 | **Domain-Driven Design** | 11 | 0 | 0 | 5 | **16** | 7 | 29 | -4 (was #6) |
+| 11 | **Hexagonal/Clean** | 10 | 0 | 0 | 6 | **16** | 7 | 20 | -4 (was #7) |
+| 12 | **Serverless** | 12 | 0 | 0 | 2 | **14** | 9 | 3 | -7 (was #5) |
+| 13 | **Multi-Agent** | 8 | 0 | 0 | 0 | **8** | 3 | 11 | -4 (was #9) |
 
 ### What changed with production-weighted scoring (20 pts)
 
@@ -75,17 +75,17 @@ With production systems at 20 pts each (up from 6), a single production system n
 
 ### What the Discovered column reveals
 
-The Discovered column adds 122 open-source repositories (pruned from 173 by removing unclassifiable libraries/frameworks/SDKs) classified from structural signals (Docker configs, message queues, API specs, directory structure). Comparing code-level breadth against the curated scoreboard exposes several patterns:
+The Discovered column now reflects 163 open-source repositories deep-validated via source code inspection per SPEC-019 (up from 122 repos classified by automated filesystem signals). This deep validation resolved several prior detection blind spots and provides significantly more accurate style counts. 24 repos (14.7%) remain Indeterminate (libraries/frameworks without clear architectural style). Comparing code-level breadth against the curated scoreboard:
 
-1. **Modular Monolith dominates the pruned Discovered catalog.** 64 repos (52% of Discovered entries) — the highest count for any single style. Yet it ranks only #6 in the curated scoreboard (40 pts). The pruning revealed that well-structured open-source applications overwhelmingly exhibit modular monolith patterns; the removed entries were disproportionately tutorials and SDKs that inflated other styles.
+1. **Modular Monolith remains the most prevalent Discovered style.** 65 repos (39.9%) — the highest count for any single style. Notable projects: AutoGPT (182k stars), n8n (177k), langchain (128k), elasticsearch (76k), nest (74k), redis (73k). Yet it ranks only #6 in the curated scoreboard (40 pts). Well-structured open-source applications overwhelmingly exhibit modular monolith patterns.
 
-2. **Pipeline/Pipe-and-Filter is confirmed.** 19 Discovered repos (data processing pipelines, ETL systems, stream processors) reinforce AOSA's production evidence. This is the style where code-level breadth and production-level depth converge.
+2. **Plugin/Microkernel blind spot resolved.** 33 repos (20.2%) — up from zero under automated detection. The #2 curated style (124 pts, 97% production) is now also confirmed at the code level. Notable projects: n8n (177k stars), elasticsearch (76k), nest (74k), redis (73k), grafana (72k). Deep source-code inspection revealed plugin extension points invisible to directory-structure analysis.
 
-3. **Plugin/Microkernel has zero Discovered entries.** The #2 curated style (124 pts, 97% production) is structurally undetectable by automated discovery because plugin architectures are defined by runtime extension points and host-plugin contracts, not by directory structure or container orchestration. This is a blind spot in signal-based classification.
+3. **Pipeline/Pipe-and-Filter is confirmed and expanded.** 26 Discovered repos (16.0%) — up from 19 — reinforce AOSA's production evidence. Notable projects: dify (131k), langchain (128k), localstack (64k), traefik (62k), airflow (44k). This is the style where code-level breadth and production-level depth converge.
 
-4. **Microservices shows moderate code presence but zero production.** 26 Discovered repos (21% of discoveries) vs. 0 production systems. The pruning removed many microservices tutorials and sample apps, but the design-production gap remains stark.
+4. **Microservices drops sharply after deep validation.** 16 Discovered repos (9.8%) — down from 26 (21%) under automated detection. Many repos previously classified as Microservices were reclassified as Service-Based or Modular Monolith after source-code inspection. The design-production gap remains: zero production systems. Notable MS projects: supabase (98k), dapr (25k), microservices-demo (19k).
 
-5. **Event-Driven's breadth is proportional to its depth.** 63 Discovered repos (52% of discoveries) aligns with Event-Driven's #1 curated ranking. Unlike Microservices, where code breadth outpaces production evidence, Event-Driven is consistently the most common pattern at every evidence tier.
+5. **Event-Driven remains broadly validated.** 47 Discovered repos (28.8%) — down from 63 (52%) after deep validation corrected over-classification from message broker presence. Event-Driven's #1 curated ranking is still supported across all evidence tiers. Notable projects: AutoGPT (182k), n8n (177k), dify (131k), elasticsearch (76k).
 
 ### Production Evidence Share
 
@@ -107,7 +107,7 @@ Percentage of each style's combined score from production sources (AOSA + RealWo
 | Serverless | 0% | (no production evidence) |
 | Multi-Agent | 0% | (no production evidence) |
 
-**Remaining gaps:** Five styles have zero production evidence: Microservices, DDD, Hexagonal/Clean, Serverless, and Multi-Agent. Discovered evidence shows all five have active open-source implementations (26, 27, 16, 6, and 5 repos respectively), confirming they are widely *built* but not yet *validated at production scale* within this evidence base. DDD (27 Discovered repos) has the widest gap between code presence and production adoption. Microservices (26 Discovered repos, #2 in KataLog) remains a high-priority gap for future production evidence collection.
+**Remaining gaps:** Five styles have zero production evidence: Microservices, DDD, Hexagonal/Clean, Serverless, and Multi-Agent. Discovered evidence shows all five have active open-source implementations (16, 29, 20, 3, and 11 repos respectively), confirming they are widely *built* but not yet *validated at production scale* within this evidence base. DDD (29 Discovered repos) has the widest gap between code presence and production adoption. Microservices (16 Discovered repos after deep validation, #2 in KataLog) remains a high-priority gap for future production evidence collection.
 
 ---
 
@@ -115,23 +115,23 @@ Percentage of each style's combined score from production sources (AOSA + RealWo
 
 | Style | KataLog | AOSA | RealWorldASPNET | Ref Impls | Discovered | Total |
 |-------|---------|------|-----------------|-----------|------------|-------|
-| **Event-Driven** | 47 | 3 (NGINX, Twisted, ZeroMQ) | 2 (Squidex, Bitwarden) | 5 | 63 | 120 |
-| **Modular Monolith** | 6 | 0 | 1 (Orchard Core) | 1 | 64 | 72 |
-| **Microservices** | 39 | 0 | 0 | 5 | 26 | 70 |
-| **Domain-Driven Design** | 4 | 0 | 0 | 3 | 27 | 34 |
-| **Layered Architecture** | 0 | 0 | 1 (nopCommerce) | 0 | 29 | 30 |
-| **Service-Based** | 25 | 2 (Selenium, Graphite) | 1 (Bitwarden) | 1 | 4 | 33 |
-| **Pipeline / Pipe-and-Filter** | 0 | 5 (NGINX, LLVM, ZeroMQ, Graphite, GStreamer) | 1 (Jellyfin) | 0 | 19 | 25 |
-| **CQRS/Event Sourcing** | 3 | 0 | 1 (Squidex) | 3 | 18 | 25 |
-| **Hexagonal/Clean** | 4 | 0 | 0 | 3 | 16 | 23 |
-| **Serverless** | 8 | 0 | 0 | 1 | 6 | 15 |
+| **Modular Monolith** | 6 | 0 | 1 (Orchard Core) | 1 | 65 | 73 |
+| **Event-Driven** | 47 | 3 (NGINX, Twisted, ZeroMQ) | 2 (Squidex, Bitwarden) | 5 | 47 | 104 |
+| **Microservices** | 39 | 0 | 0 | 5 | 16 | 60 |
+| **Layered Architecture** | 0 | 0 | 1 (nopCommerce) | 0 | 35 | 36 |
+| **Plugin/Microkernel** | 2 | 3 (LLVM, SQLAlchemy, GStreamer) | 3 (Jellyfin, Orchard Core, nopCommerce) | 0 | 33 | 41 |
+| **Domain-Driven Design** | 4 | 0 | 0 | 3 | 29 | 36 |
+| **Pipeline / Pipe-and-Filter** | 0 | 5 (NGINX, LLVM, ZeroMQ, Graphite, GStreamer) | 1 (Jellyfin) | 0 | 26 | 32 |
+| **Service-Based** | 25 | 2 (Selenium, Graphite) | 1 (Bitwarden) | 1 | 11 | 40 |
+| **Hexagonal/Clean** | 4 | 0 | 0 | 3 | 20 | 27 |
+| **CQRS/Event Sourcing** | 3 | 0 | 1 (Squidex) | 3 | 17 | 24 |
+| **Multi-Agent** | 3 | 0 | 0 | 0 | 11 | 14 |
 | **Space-Based** | 2 | 1 (Riak) | 0 | 0 | 5 | 8 |
-| **Plugin/Microkernel** | 2 | 3 (LLVM, SQLAlchemy, GStreamer) | 3 (Jellyfin, Orchard Core, nopCommerce) | 0 | 0 | 8 |
-| **Multi-Agent** | 3 | 0 | 0 | 0 | 5 | 8 |
+| **Serverless** | 8 | 0 | 0 | 1 | 3 | 12 |
 
-**Source totals:** KataLog 78 teams, AOSA 12 projects, RealWorldASPNET 5 projects, Reference Impls 8 repos, Discovered 122 repos = **225 entries** across all five sources.
+**Source totals:** KataLog 78 teams, AOSA 12 projects, RealWorldASPNET 5 projects, Reference Impls 8 repos, Discovered 163 repos = **266 entries** across all five sources.
 
-Note: Entry counts per style sum to more than total entries because each entry may exhibit multiple styles (e.g., a Discovered repo classified as both Event-Driven and Microservices counts once in each row). Discovered uses "Pipe-and-Filter" as the canonical name for the same pattern AOSA calls "Pipeline."
+Note: Entry counts per style sum to more than total entries because each entry may exhibit multiple styles (e.g., a Discovered repo classified as both Event-Driven and Microservices counts once in each row). Discovered uses "Pipe-and-Filter" as the canonical name for the same pattern AOSA calls "Pipeline." 24 Discovered repos (14.7%) are Indeterminate (libraries/frameworks).
 
 ---
 
@@ -202,13 +202,13 @@ Maps cloud provider design pattern documentation to the library's architecture s
 
 | Dimension | TheKataLog | AOSA | RealWorldASPNET | Reference Impls | Discovered |
 |-----------|-----------|------|-----------------|-----------------|------------|
-| **Evidence type** | Competition design proposals | Book-chapter narratives by creators | Production apps with real users | Working code, sample domain | Working open-source code, auto-classified |
+| **Evidence type** | Competition design proposals | Book-chapter narratives by creators | Production apps with real users | Working code, sample domain | Working open-source code, deep-validated via source code inspection (SPEC-019) |
 | **Evidence weight** | **1-4 pts** (placement) | **20 pts** (production) | **20 pts** (production) | **1-2 pts** (template) | Not weighted (breadth context) |
-| **Entries** | 78 teams | 12 projects | 5 projects | 8 repos | 122 repos |
+| **Entries** | 78 teams | 12 projects | 5 projects | 8 repos | 163 repos |
 | **Has running code?** | No | No (describes existing code) | Yes | Yes | Yes |
 | **Has real users?** | No | Yes (millions) | Yes (thousands to millions) | No (developers only) | Varies (some production, some tutorial) |
 | **Covers production scale?** | No (theoretical) | Yes | Yes | No (sample domains) | Unknown (not verified) |
-| **Architecture styles** | 12 canonical + variants | Pipeline, Plugin, Event-Driven | CQRS/ES, Plugin, Modular Monolith | Microservices, Hexagonal, DDD | 12 canonical styles (8 with n >= 10; 4 below target after pruning) |
+| **Architecture styles** | 12 canonical + variants | Pipeline, Plugin, Event-Driven | CQRS/ES, Plugin, Modular Monolith | Microservices, Hexagonal, DDD | 13 styles detected; all with meaningful counts after deep validation |
 | **Language diversity** | N/A (design only) | C, C++, Python, Java, Erlang | C# (.NET) | C#, Java, Go | Go, Java, Python, C#, TypeScript, Rust, Kotlin, Ruby, Elixir |
-| **Strengths** | Large sample, placement data | Real-world, production insights | Modern .NET, actively maintained | Executable, testable | Massive breadth, all 12 styles, multi-language, includes ecosystems |
-| **Limitations** | Competition bias, no code | Dated (2011-2012) | .NET-only, 5 entries | Sample domains, vendor-specific | Automated classification, quality varies, production status unverified |
+| **Strengths** | Large sample, placement data | Real-world, production insights | Modern .NET, actively maintained | Executable, testable | Massive breadth, all styles, multi-language, deep-validated via source code inspection |
+| **Limitations** | Competition bias, no code | Dated (2011-2012) | .NET-only, 5 entries | Sample domains, vendor-specific | Deep-validated but quality varies, production status unverified, 14.7% Indeterminate |

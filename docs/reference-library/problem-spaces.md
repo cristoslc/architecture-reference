@@ -1,12 +1,12 @@
 # Problem Space Taxonomy
 
-A reference classification of problem profiles derived from 122 production codebases across 35 domains, validated by 17 production-narrated systems and structured competition reasoning from 78 team submissions. Use this document to find the problem profile that most closely resembles your own, then study the corresponding solution patterns in the [Solution Space Taxonomy](solution-spaces.md) and [Problem-Solution Matrix](problem-solution-matrix.md).
+A reference classification of problem profiles derived from 163 deep-validated production codebases (SPEC-019) across multiple domains, validated by 17 production-narrated systems and structured competition reasoning from 78 team submissions. Use this document to find the problem profile that most closely resembles your own, then study the corresponding solution patterns in the [Solution Space Taxonomy](solution-spaces.md) and [Problem-Solution Matrix](problem-solution-matrix.md).
 
 ---
 
 ## How to Use This Document
 
-1. **Start with the Discovered domain distribution.** The Classification Matrix opens with statistical evidence from 122 real codebases organized into 35 domains. Find the domain cluster closest to your problem. The "Top Styles" column shows which architecture styles actually appear in production systems solving that kind of problem.
+1. **Start with the Discovered domain distribution.** The Classification Matrix opens with statistical evidence from 163 deep-validated codebases (SPEC-019). Find the domain cluster closest to your problem. The "Top Styles" column shows which architecture styles actually appear in production systems solving that kind of problem.
 
 2. **Check for production-validated depth.** If an AOSA or RealWorld production system matches your domain, read its Detailed Problem Profile. These 17 systems have published architectural reasoning from their creators -- the highest-authority evidence in the library.
 
@@ -18,7 +18,7 @@ A reference classification of problem profiles derived from 122 production codeb
 
 6. **Cross-reference other library docs.** The [Evidence by Architecture Style](evidence/by-architecture-style.md) and [Evidence by Quality Attribute](evidence/by-quality-attribute.md) documents provide complementary views. The [Cross-Source Analysis](evidence/cross-source-analysis.md) shows where evidence sources agree or disagree.
 
-> **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker -> Deployability, module boundaries -> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected. KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
+> **Validation methodology:** Discovered statistics are derived from deep-validated source code inspection (SPEC-019, 163 repos). Each repository was classified through multi-turn analysis of actual source code structure, not heuristic filesystem signals. 24 repos (14.7%) are classified as Indeterminate -- libraries and frameworks with no classifiable application architecture. QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) remain underdetected. KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
 
 ---
 
@@ -41,30 +41,29 @@ A reference classification of problem profiles derived from 122 production codeb
 
 ## Classification Matrix
 
-### Discovered Domain Distribution (122 repos, 35 domains)
+### Discovered Domain Distribution (163 repos, SPEC-019 deep-validated)
 
-Evidence type: **automated discovery** -- architecture signals extracted from 122 public GitHub repositories via the dataset scaling pipeline. This is the primary problem taxonomy: domains derived from actual production codebases answer the question "what problems do real systems solve?"
+Evidence type: **deep-validated source code inspection** -- architecture styles classified through multi-turn analysis of actual source code in 163 public GitHub repositories (SPEC-019). This is the primary problem taxonomy: domains derived from actual production codebases answer the question "what problems do real systems solve?"
 
 | Domain Cluster | Repos | Top Styles | Representative Repos |
 |----------------|-------|------------|---------------------|
-| **Developer Tools** | 36 | Event-Driven (21), DDD (13), CQRS (11), Hexagonal (10), Modular Monolith (9), Layered (9) | ABP, Backstage, Dapr, GitLab, Supabase, Appwrite, LocalStack, serverless frameworks, clean architecture templates |
-| **E-Commerce** | 11 | Event-Driven (6), CQRS (4), Microservices (4), Modular Monolith (4), DDD (3) | eShop, eShopOnContainers, Medusa, nopCommerce, Saleor, Shopware, Spree |
-| **Infrastructure** | 7 | Microservices (4), Event-Driven (4), Pipe-and-Filter (4) | Consul, Envoy, Istio, Linkerd2, Traefik, Zuul, Eureka |
-| **AI/ML** | 6 | Event-Driven (5), Multi-Agent (4), Layered (3) | AutoGPT, autogen, camel, crewAI, dify, letta |
-| **Data Grid** | 6 | Space-Based (5), Event-Driven (4), Modular Monolith (2) | Redis, Dragonfly, Hazelcast, Ignite, Infinispan, Geode |
-| **Workflow Orchestration** | 5 | Event-Driven (5), Microservices (4), DDD (4) | Airflow, Argo Workflows, Conductor, Prefect, Temporal |
-| **Data Processing** | 5 | Microservices (5), Event-Driven (5), Pipe-and-Filter (4) | Apache Beam, Apache Flink, Dagster, Mage AI, Pachyderm |
-| **Messaging** | 5 | Event-Driven (4), Modular Monolith (2), Microservices (2) | NATS, Pulsar, RabbitMQ, Redpanda, Mattermost |
-| **CMS** | 4 | Modular Monolith (3), Layered (2), Event-Driven (2) | Squidex, OrchardCore, Directus, Strapi |
-| **Social Media** | 4 | Event-Driven (4), Layered (3), Modular Monolith (2) | ddd-forum, Discourse, Forem, Mastodon |
-| **Observability** | 3 | Microservices (2), Event-Driven (2), Pipe-and-Filter (2) | Grafana, Elasticsearch, Sentry (self-hosted) |
-| *25 more domains* | 30 | Varies | Banking (2), Customer Support (2), Database (2), Data Integration (2), Food Delivery (2), Finance (2), + 19 single-repo domains |
+| **Developer Tools** | 53 | Modular Monolith, Plugin/Microkernel, Layered, Event-Driven | ABP, Backstage, Dapr, Supabase, Appwrite, LocalStack, nest (74k stars), strapi (71k), n8n (177k), elasticsearch (76k), grafana (72k) |
+| **AI/ML** | 16 | Multi-Agent, Pipe-and-Filter, Event-Driven, Modular Monolith | AutoGPT (182k), langchain (128k), dify (131k), autogen (55k), crewAI (45k), llama_index (47k), semantic-kernel (27k) |
+| **E-Commerce** | 12 | Modular Monolith, Event-Driven, CQRS, DDD | eShop, Medusa, nopCommerce, Saleor, Shopware, Spree, saleor (22k) |
+| **Data Processing** | 8 | Pipe-and-Filter, Event-Driven, Modular Monolith | Apache Beam, Apache Flink, Dagster, Mage AI, Pachyderm, airflow (44k), localstack (64k) |
+| **Infrastructure** | 7 | Pipe-and-Filter, Service-Based, Event-Driven | Consul, Envoy, Istio, Linkerd2, Traefik (62k), Zuul, Eureka |
+| **Data Grid** | 6 | Space-Based, Event-Driven, Modular Monolith | Redis (73k), Dragonfly (30k), Hazelcast, Ignite, Infinispan, Geode |
+| **Messaging** | 6 | Event-Driven, Modular Monolith, Plugin/Microkernel | NATS, Pulsar, RabbitMQ, Redpanda, Mattermost |
+| **Workflow Orchestration** | 5 | Event-Driven, Service-Based, Pipe-and-Filter | Airflow, Argo Workflows, Conductor, Prefect, Temporal (18k) |
+| **Social Media** | 5 | Layered, Event-Driven, Modular Monolith, Service-Based | Discourse (46k), Mastodon (49k), ddd-forum, Forem |
+| **CMS** | 4 | Modular Monolith, Plugin/Microkernel, Layered | Squidex, OrchardCore, Directus, Strapi (71k) |
 
 **Key statistical findings:**
-- 36 of 122 repos (30%) are Developer Tools, the dominant domain. Architecture frameworks and templates are the most common open-source contribution pattern
-- E-Commerce is the most cross-validated domain (evidence from 4 of 5 sources)
-- Event-Driven appears in the top styles for 9 of the 10 largest domain clusters
-- The long tail of 25 domains with 1-3 repos each accounts for 25% of the corpus, reflecting the diversity of real-world problem spaces
+- 53 of 163 repos (32.5%) are Developer Tools, the dominant domain. Deep validation expanded this cluster as more repos were correctly classified
+- AI/ML grew from 6 to 16 repos (9.8%), reflecting the rapid expansion of the AI ecosystem. Multi-Agent is the dominant primary style in this cluster
+- E-Commerce remains the most cross-validated domain (evidence from 4 of 5 sources)
+- Plugin/Microkernel now appears as a top style in Developer Tools, Messaging, and CMS -- previously invisible in heuristic classification
+- Event-Driven appears as a co-occurring style across all major domain clusters, confirming its cross-cutting nature
 
 ---
 
@@ -94,7 +93,7 @@ Evidence type: **production narrative** -- architectural descriptions written by
 
 **Discovered domain coverage of production systems:** 12 of 17 production systems have Discovered repos in matching domains. This cross-validation strengthens confidence in both Discovered patterns and production narratives.
 
-Matching domain sizes: Developer Tools (36 repos), E-Commerce (11), Infrastructure (7), Messaging (5), CMS (4), Observability (3).
+Matching domain sizes: Developer Tools (53 repos), AI/ML (16), E-Commerce (12), Data Processing (8), Infrastructure (7), Data Grid (6), Messaging (6), CMS (4).
 
 ---
 
@@ -139,25 +138,25 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 ### Discovered Domain Cluster Profiles
 
-#### Developer Tools Cluster (36 repos) [CODE-LEVEL EVIDENCE]
+#### Developer Tools Cluster (53 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 36 of 122 repos (30%) -- the largest domain cluster in the corpus. Event-Driven is the most common style (21 repos), followed by DDD (13), CQRS (11), Hexagonal (10), Modular Monolith (9), and Layered (9).
+**Discovered prevalence**: 53 of 163 repos (32.5%) -- the largest domain cluster in the corpus. Modular Monolith and Plugin/Microkernel are the most common styles, followed by Layered and Event-Driven. Deep validation revealed extensive plugin architectures previously invisible to heuristic classification.
 
-**Representative projects**: ABP, Backstage, Dapr, GitLab, Supabase, Appwrite, NocoDB, Gitpod, LocalStack, serverless frameworks, clean architecture templates (11 repos across C#, Go, Java, TypeScript).
+**Representative projects**: ABP, Backstage, Dapr, Supabase, Appwrite, NocoDB, Gitpod, LocalStack, n8n (177k stars), elasticsearch (76k), nest (74k), redis (73k), grafana (72k), strapi (71k), clean architecture templates.
 
-**Problem profile**: Developer tools and frameworks face a unique problem: they must be extensible enough for diverse use cases while maintaining opinionated enough defaults to be useful out of the box. The 36 repos split into two sub-clusters:
-- **Framework/platform tools** (ABP, Backstage, Dapr, Supabase, Appwrite): Microservices or Service-Based with Event-Driven integration. These are tools developers deploy as infrastructure.
-- **Clean architecture templates** (11+ repos): Hexagonal Architecture, DDD, CQRS. These are educational/starter implementations that demonstrate patterns.
+**Problem profile**: Developer tools and frameworks face a unique problem: they must be extensible enough for diverse use cases while maintaining opinionated enough defaults to be useful out of the box. The 53 repos split into two sub-clusters:
+- **Framework/platform tools** (n8n, elasticsearch, nest, redis, grafana, strapi, Backstage, Dapr, Supabase, Appwrite): Modular Monolith + Plugin/Microkernel with Event-Driven integration. These are tools developers deploy as infrastructure. Deep validation confirmed that plugin architecture is the defining trait of successful developer platforms.
+- **Clean architecture templates**: Hexagonal Architecture, DDD, CQRS. These are educational/starter implementations that demonstrate patterns.
 
-**Key tension**: Framework extensibility vs. opinionated conventions. The most successful tools (Backstage at confidence 1.0, Dapr at 1.0) achieve both through plugin/extension models.
+**Key tension**: Framework extensibility vs. opinionated conventions. Deep validation confirms that the most successful developer tools achieve both through plugin/extension models -- n8n (177k stars), elasticsearch (76k), grafana (72k), and strapi (71k) all exhibit Plugin/Microkernel as a primary or secondary style.
 
 **Production depth**: AOSA provides the foundational production evidence -- Git (developer tool), SQLAlchemy (developer framework), GStreamer (plugin-based framework) all demonstrate how successful developer tools balance extensibility with coherence. RefArch's Clean Architecture Template serves the same audience as the Discovered template repos.
 
 ---
 
-#### E-Commerce Cluster (11 repos) [CODE-LEVEL EVIDENCE]
+#### E-Commerce Cluster (12 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 11 of 122 repos (9%). The most cross-validated domain, with evidence from 4 of 5 sources. Top styles: Event-Driven (6 repos), CQRS (4), Microservices (4), Modular Monolith (4), DDD (3).
+**Discovered prevalence**: 12 of 163 repos (7.4%). The most cross-validated domain, with evidence from 4 of 5 sources. Top styles: Modular Monolith, Event-Driven, CQRS, DDD.
 
 **Representative projects**: eShop, eShopOnContainers, eShopOnWeb, go-ecommerce-microservices, Medusa, NorthwindTraders, nopCommerce, Saleor, Shopware, Spree, microservices-demo.
 
@@ -173,7 +172,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Infrastructure Cluster (7 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 7 repos (6% of corpus). Microservices (4), Event-Driven (4), Pipe-and-Filter (4). All operate at Very Large scale with High real-time performance requirements.
+**Discovered prevalence**: 7 repos (4.3% of corpus). Pipe-and-Filter, Service-Based, and Event-Driven are the dominant styles after deep validation. All operate at Very Large scale with High real-time performance requirements.
 
 **Representative projects**: Consul, Envoy, Istio, Linkerd2, Traefik, Zuul, Eureka.
 
@@ -185,17 +184,17 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 ---
 
-#### AI/ML Cluster (6 repos) [CODE-LEVEL EVIDENCE]
+#### AI/ML Cluster (16 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 6 of 122 repos (5%) -- the newest domain cluster. Event-Driven (5 repos), Multi-Agent (4), Layered (3).
+**Discovered prevalence**: 16 of 163 repos (9.8%) -- the fastest-growing domain cluster, nearly tripling from the previous count of 6. Multi-Agent and Pipe-and-Filter are the dominant styles, with Event-Driven and Modular Monolith as common secondary traits.
 
-> **Domain signal.** Multi-Agent appears in 4 of 6 repos in this cluster and does not appear in any other domain.
+> **Domain signal.** Multi-Agent appears in 10 of 11 total Multi-Agent repos; it remains nearly exclusive to this cluster.
 
-**Representative projects**: AutoGPT, autogen, camel, crewAI, dify, letta.
+**Representative projects**: AutoGPT (182k stars), langchain (128k), dify (131k), autogen (55k), crewAI (45k), llama_index (47k), semantic-kernel (27k).
 
-**Problem profile**: AI agent frameworks and platforms that orchestrate LLM-powered agents for complex tasks. All repos emerged post-2023. The Multi-Agent style is unique to this cluster.
+**Problem profile**: AI agent frameworks and platforms that orchestrate LLM-powered agents for complex tasks. All repos emerged post-2023. Two distinct sub-patterns emerged in deep validation: Multi-Agent coordination (AutoGPT, autogen, crewAI) and Pipe-and-Filter chain orchestration (langchain, dify, llama_index).
 
-**Key tension**: Multi-agent coordination vs. single-agent simplicity. AutoGPT and crewAI represent the multi-agent extreme; dify represents the pipeline/workflow approach to AI orchestration.
+**Key tension**: Multi-agent coordination vs. pipeline simplicity. AutoGPT (182k stars) and crewAI (45k) represent the multi-agent extreme; langchain (128k) and dify (131k) represent the pipeline/workflow approach to AI orchestration.
 
 **Competition reasoning**: KataLog's AI katas (ShopWise AI, ClearView, Certifiable Inc.) explored this same tension through competition designs. ShopWise AI's multi-agent vs. pipeline comparison, ClearView's deterministic boundaries around non-deterministic AI, and Certifiable Inc.'s LLM-as-a-Judge pattern provide the qualitative reasoning for trade-offs that Discovered's code-level evidence cannot capture.
 
@@ -203,11 +202,11 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Data Grid Cluster (6 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 6 of 122 repos (5%). Space-Based (5 repos), Event-Driven (4), Modular Monolith (2).
+**Discovered prevalence**: 6 of 163 repos (3.7%). Space-Based (5 repos), Event-Driven, Modular Monolith.
 
-> **Domain signal.** 5 of 7 total Space-Based repos in the corpus are data grids. Space-Based architecture is nearly exclusive to this cluster.
+> **Domain signal.** All 5 Space-Based repos in the corpus are data grids. Space-Based architecture is exclusive to this cluster.
 
-**Representative projects**: Redis, Dragonfly, Hazelcast, Apache Ignite, Infinispan, Apache Geode.
+**Representative projects**: Redis (73k stars), Dragonfly (30k), Hazelcast (6k), Apache Ignite (5k), Infinispan, Apache Geode.
 
 **Problem profile**: In-memory data grids and caching systems that provide sub-millisecond data access at extreme scale. These systems prioritize memory efficiency and data distribution over persistence durability.
 
@@ -221,7 +220,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Workflow Orchestration Cluster (5 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 5 repos (4% of corpus). Event-Driven (5 repos), Microservices (4), DDD (4). The cluster splits between DAG-based orchestrators (Airflow, Argo, Prefect) and event-driven workflow engines (Temporal, Conductor).
+**Discovered prevalence**: 5 repos (3.1% of corpus). Event-Driven, Service-Based, and Pipe-and-Filter are the dominant styles after deep validation. The cluster splits between DAG-based orchestrators (Airflow, Argo, Prefect) and event-driven workflow engines (Temporal, Conductor).
 
 **Representative projects**: Airflow, Argo Workflows, Conductor, Prefect, Temporal.
 
@@ -235,9 +234,9 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 ---
 
-#### Data Processing Cluster (5 repos) [CODE-LEVEL EVIDENCE]
+#### Data Processing Cluster (8 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 5 repos (4% of corpus). Microservices (5 repos), Event-Driven (5), Pipe-and-Filter (4), DDD (2). Pipe-and-Filter is the defining pattern, reflecting the domain's inherent nature: data flows through transformation stages.
+**Discovered prevalence**: 8 repos (4.9% of corpus). Pipe-and-Filter and Event-Driven are the defining patterns, reflecting the domain's inherent nature: data flows through transformation stages. Notable projects include localstack (64k stars) and airflow (44k).
 
 **Representative projects**: Apache Beam, Apache Flink, Dagster, Mage AI, Pachyderm.
 
@@ -249,9 +248,9 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 ---
 
-#### Messaging Cluster (5 repos) [CODE-LEVEL EVIDENCE]
+#### Messaging Cluster (6 repos) [CODE-LEVEL EVIDENCE]
 
-**Discovered prevalence**: 5 repos (4% of corpus). Event-Driven (4 repos), Modular Monolith (2), Microservices (2). The cluster splits between high-throughput log-based brokers (Pulsar, Redpanda) and traditional message brokers (RabbitMQ, NATS).
+**Discovered prevalence**: 6 repos (3.7% of corpus). Event-Driven, Modular Monolith, and Plugin/Microkernel are the top styles. The cluster splits between high-throughput log-based brokers (Pulsar, Redpanda) and traditional message brokers (RabbitMQ, NATS).
 
 **Representative projects**: NATS, Apache Pulsar, RabbitMQ, Redpanda, Mattermost.
 
@@ -269,7 +268,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### LLVM -- Compiler Infrastructure [PRODUCTION-VALIDATED]
 
-**Discovered prevalence**: Compiler infrastructure as a domain is not directly represented in the Discovered corpus. Pipe-and-Filter (the underlying pattern) appears in 32 of 122 repos across Data Processing, Infrastructure, and Developer Tools domains.
+**Discovered prevalence**: Compiler infrastructure as a domain is not directly represented in the Discovered corpus. Pipe-and-Filter (the underlying pattern) appears in 26 of 163 repos (16.0%) across Data Processing, AI/ML, Infrastructure, and Developer Tools domains.
 
 **Domain**: Compiler infrastructure serving dozens of language frontends and hardware targets.
 **Architecture styles**: Pipeline, Modular Architecture, Plugin Architecture.
@@ -337,7 +336,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Git -- Version Control [PRODUCTION-VALIDATED]
 
-**Discovered prevalence**: Developer Tools is the largest Discovered domain (36 repos). Git's content-addressable storage model and offline-first design influenced many tools in this cluster.
+**Discovered prevalence**: Developer Tools is the largest Discovered domain (53 repos). Git's content-addressable storage model and offline-first design influenced many tools in this cluster.
 
 **Domain**: Distributed version control system.
 **Architecture styles**: Content-Addressable Storage, Directed Acyclic Graph (DAG).
@@ -349,7 +348,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### ZeroMQ -- Messaging Infrastructure [PRODUCTION-VALIDATED]
 
-**Discovered prevalence**: The Messaging cluster (5 repos: NATS, Pulsar, RabbitMQ, Redpanda, Mattermost) are all broker-based, contrasting with ZeroMQ's broker-less approach. The broker vs. broker-less trade-off is a fundamental messaging architecture decision.
+**Discovered prevalence**: The Messaging cluster (6 repos) includes NATS, Pulsar, RabbitMQ, Redpanda, and Mattermost -- all broker-based, contrasting with ZeroMQ's broker-less approach. The broker vs. broker-less trade-off is a fundamental messaging architecture decision.
 
 **Domain**: High-performance asynchronous messaging library.
 **Architecture styles**: Broker-less Messaging, Pipeline, Actor Model (socket-as-actor).
@@ -360,7 +359,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Twisted -- Networking Framework [PRODUCTION-VALIDATED]
 
-**Discovered prevalence**: Event-Driven is the most prevalent style in the Discovered corpus (63 of 122 repos, 52%). Many of these repos trace their architectural lineage to patterns proven by Twisted and NGINX.
+**Discovered prevalence**: Event-Driven appears in 47 of 163 repos (28.8%) in any position -- a cross-cutting concern that co-occurs with other primary styles. Many repos trace their architectural lineage to patterns proven by Twisted and NGINX.
 
 **Domain**: Event-driven networking engine for Python.
 **Architecture styles**: Event-Driven, Reactor Pattern.
@@ -371,7 +370,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### SQLAlchemy -- Database/ORM [PRODUCTION-VALIDATED]
 
-**Discovered prevalence**: 29 of 122 repos (24%) exhibit Layered Architecture. SQLAlchemy's approach -- layers that can be used independently -- is the production-validated version of what many Discovered repos implement (ABP, ASP.NET Boilerplate, eShopOnWeb).
+**Discovered prevalence**: 35 of 163 repos (21.5%) exhibit Layered Architecture. SQLAlchemy's approach -- layers that can be used independently -- is the production-validated version of what many Discovered repos implement (ABP, ASP.NET Boilerplate, eShopOnWeb).
 
 **Domain**: SQL toolkit and Object-Relational Mapper for Python.
 **Architecture styles**: Layered Architecture, Plugin Architecture.
@@ -427,7 +426,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Jellyfin -- Media Server [PRODUCTION-VALIDATED]
 
-**Discovered prevalence**: Jellyfin appears in both RealWorld and Discovered catalogs (cross-validated). The Media domain has 1 Discovered repo, but Pipeline + Plugin patterns appear across Data Processing (5 repos) and Infrastructure (7 repos).
+**Discovered prevalence**: Jellyfin appears in both RealWorld and Discovered catalogs (cross-validated). The Media domain has 1 Discovered repo, but Pipeline + Plugin patterns appear across Data Processing (8 repos) and Infrastructure (7 repos).
 
 **Architecture styles**: Plugin Architecture, Pipeline, Client-Server.
 **Scale**: ~38,000 GitHub stars, the largest project in the RealWorld source by community size.
@@ -478,7 +477,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### Sysops Squad (Spring 2021)
 
-**Discovered context**: No direct domain match in Discovered, but the monolith-to-microservices migration pattern is extensively documented in the E-Commerce cluster (11 repos showing the full spectrum from monolith to microservices).
+**Discovered context**: No direct domain match in Discovered, but the monolith-to-microservices migration pattern is extensively documented in the E-Commerce cluster (12 repos showing the full spectrum from monolith to microservices).
 
 **Domain**: Enterprise IT / Field service management
 **Scale trajectory**: Existing nationwide operation -- large-scale consumer electronics retailer.
@@ -580,7 +579,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### MonitorMe (Winter 2024)
 
-**Discovered context**: No direct MedTech domain match in Discovered. The Data Processing cluster (5 repos) provides pipeline patterns applicable to vital sign processing. GStreamer (AOSA) demonstrates real-time pipeline processing for heterogeneous data sources. Competition evidence is the primary source for life-critical latency reasoning.
+**Discovered context**: No direct MedTech domain match in Discovered. The Data Processing cluster (8 repos) provides pipeline patterns applicable to vital sign processing. GStreamer (AOSA) demonstrates real-time pipeline processing for heterogeneous data sources. Competition evidence is the primary source for life-critical latency reasoning.
 
 **Domain**: Healthcare / Medical device monitoring
 **Scale trajectory**: Medium -- up to 500 patients per installation, 4,000 events/sec.
@@ -597,7 +596,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### ShopWise AI Assistant (AI Winter 2024)
 
-**Discovered context**: The AI/ML cluster (6 repos) demonstrates that Multi-Agent is the emerging dominant pattern for AI orchestration. The E-Commerce domain (11 repos) provides the transactional patterns underlying the product catalog.
+**Discovered context**: The AI/ML cluster (16 repos) demonstrates that Multi-Agent and Pipe-and-Filter are the dominant patterns for AI orchestration. The E-Commerce domain (12 repos) provides the transactional patterns underlying the product catalog.
 
 **Domain**: Retail / E-commerce / AI chatbot
 **Scale trajectory**: Small -- single e-commerce store.
@@ -614,7 +613,7 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 #### ClearView (Fall 2024)
 
-**Discovered context**: The AI/ML cluster (6 repos) and the Adapter Pattern in Developer Tools (Backstage, Dapr) and Data Integration (Debezium, NiFi) provide code-level evidence for ClearView's two core patterns: AI orchestration and HR system integration.
+**Discovered context**: The AI/ML cluster (16 repos) and the Adapter Pattern in Developer Tools (Backstage, Dapr) and Data Integration (Debezium, NiFi) provide code-level evidence for ClearView's two core patterns: AI orchestration and HR system integration.
 
 **Domain**: HR / AI for bias reduction in recruitment
 **Scale trajectory**: Medium -- Equihire Architects scoped to 5,000 candidates.
@@ -650,37 +649,37 @@ Evidence type: **reference implementation** -- curated repositories serving as c
 
 ### By Domain Type
 
-**Discovered domain statistics drive this section.** The 35 domains observed in 122 production codebases reveal where real systems concentrate. KataLog competition challenges fill gaps in domains not well-represented in the Discovered corpus (Healthcare, Civic Tech, Conservation/IoT).
+**Discovered domain statistics drive this section.** The domains observed in 163 deep-validated production codebases reveal where real systems concentrate. KataLog competition challenges fill gaps in domains not well-represented in the Discovered corpus (Healthcare, Civic Tech, Conservation/IoT).
 
-**Developer Tools** (Discovered: 36 repos -- 30% of corpus)
-The dominant domain by volume. Developer tools and frameworks split into platform tools (ABP, Backstage, Dapr, Supabase) using Microservices/Service-Based + Event-Driven, and clean architecture templates (11+ repos) using Hexagonal/DDD/CQRS. The key insight: framework extensibility vs. opinionated conventions is the universal tension. Production depth: AOSA provides Git, SQLAlchemy, GStreamer as foundational evidence.
+**Developer Tools** (Discovered: 53 repos -- 32.5% of corpus)
+The dominant domain by volume. Developer tools and frameworks split into platform tools (n8n 177k stars, elasticsearch 76k, nest 74k, redis 73k, grafana 72k, strapi 71k) using Modular Monolith + Plugin/Microkernel with Event-Driven integration, and clean architecture templates using Hexagonal/DDD/CQRS. Deep validation revealed Plugin/Microkernel as the defining pattern for successful developer platforms -- previously invisible in heuristic classification. Production depth: AOSA provides Git, SQLAlchemy, GStreamer as foundational evidence.
 
-**E-Commerce** (Discovered: 11 repos; RealWorld: nopCommerce; RefArch: eShop*; KataLog: ShopWise AI, Farmacy Food)
+**E-Commerce** (Discovered: 12 repos; RealWorld: nopCommerce; RefArch: eShop*; KataLog: ShopWise AI, Farmacy Food)
 The most cross-validated domain (4 of 5 sources). The Discovered cluster reveals the full monolith-to-microservices spectrum. nopCommerce proves plugin-based e-commerce at 17-year production scale. KataLog tested AI engineering (text-to-SQL, multi-agent) in the e-commerce context.
 
 **Infrastructure / Service Mesh** (Discovered: 7 repos; AOSA: NGINX)
 Service mesh, proxy, and discovery tools in the critical path of every microservices request. NGINX (AOSA) proved the event-driven model; Envoy, Istio, and Traefik extend it with modern service mesh capabilities.
 
-**AI/ML** (Discovered: 6 repos; KataLog: ShopWise AI, ClearView, Certifiable Inc.)
-The newest and fastest-growing domain. Discovered shows Multi-Agent as the emerging dominant pattern (4 of 6 repos). KataLog provides the strongest trade-off analysis -- competition teams documented reasoning about AI non-determinism, cost optimization, and human-in-the-loop patterns that are invisible in code.
+**AI/ML** (Discovered: 16 repos; KataLog: ShopWise AI, ClearView, Certifiable Inc.)
+The fastest-growing domain, nearly tripling from 6 to 16 repos. Discovered shows Multi-Agent and Pipe-and-Filter as the dominant patterns. Notable projects: AutoGPT (182k stars), langchain (128k), dify (131k), autogen (55k), crewAI (45k). KataLog provides the strongest trade-off analysis -- competition teams documented reasoning about AI non-determinism, cost optimization, and human-in-the-loop patterns that are invisible in code.
 
 **Data Grid / In-Memory** (Discovered: 6 repos; AOSA: HDFS, Riak)
-Space-Based architecture is nearly exclusive to this cluster (5 of 7 total Space-Based repos). Provides sub-millisecond data access at extreme scale. AOSA's HDFS and Riak demonstrate the consistency-vs-availability trade-off at the database level.
+Space-Based architecture is exclusive to this cluster (all 5 Space-Based repos). Notable projects: Redis (73k stars), Dragonfly (30k). Provides sub-millisecond data access at extreme scale. AOSA's HDFS and Riak demonstrate the consistency-vs-availability trade-off at the database level.
 
 **Workflow Orchestration** (Discovered: 5 repos; AOSA: Puppet)
 DAG-based orchestrators vs. event-driven workflow engines. Puppet (AOSA) demonstrates the declarative-vs-imperative tension. KataLog profiles with complex workflows (Sysops Squad, Certifiable Inc.) face similar decisions.
 
-**Data Processing** (Discovered: 5 repos; AOSA: LLVM, Graphite, GStreamer)
-Pipe-and-Filter is the defining pattern (4 of 5 repos). AOSA provides the foundational Pipeline evidence across three different domains (compilation, metrics, multimedia).
+**Data Processing** (Discovered: 8 repos; AOSA: LLVM, Graphite, GStreamer)
+Pipe-and-Filter is the defining pattern. Notable projects: localstack (64k stars), airflow (44k). AOSA provides the foundational Pipeline evidence across three different domains (compilation, metrics, multimedia).
 
-**Messaging** (Discovered: 5 repos; AOSA: ZeroMQ)
-Broker-based (RabbitMQ, Pulsar, Redpanda, NATS) vs. broker-less (ZeroMQ). KataLog teams extensively used messaging: Kafka in 5/7 Farmacy Family submissions.
+**Messaging** (Discovered: 6 repos; AOSA: ZeroMQ)
+Broker-based (RabbitMQ, Pulsar, Redpanda, NATS) vs. broker-less (ZeroMQ). Deep validation detected Plugin/Microkernel patterns in messaging infrastructure. KataLog teams extensively used messaging: Kafka in 5/7 Farmacy Family submissions.
 
 **CMS / Content Management** (Discovered: 4 repos; RealWorld: Squidex, Orchard Core)
 Modular Monolith dominates (3 of 4 Discovered repos). Squidex proves CQRS/Event Sourcing for CMS; Orchard Core proves Modular Monolith.
 
-**Social Media** (Discovered: 4 repos)
-Event-Driven is universal (4 of 4 repos). Layered (3) and Modular Monolith (2) also prevalent. Representatives: ddd-forum, Discourse, Forem, Mastodon.
+**Social Media** (Discovered: 5 repos)
+Layered, Event-Driven, Modular Monolith, and Service-Based are the top styles. Notable projects: Mastodon (49k stars), Discourse (46k). Representatives: ddd-forum, Discourse, Forem, Mastodon.
 
 **Food / Logistics** (KataLog: Farmacy Food; Discovered: 2 Food Delivery repos)
 Domain-specific constraints: physical-digital bridge (RFID, smart fridges, POS), food safety. Event-driven inventory propagation is universal when physical goods are involved. Competition reasoning fills gaps not visible in the 2 Discovered Food Delivery repos.
@@ -757,9 +756,9 @@ Profiles ordered from smallest to largest expected scale, grounded in Discovered
 
 **Architectural transitions by scale tier (Discovered statistics + production validation):**
 - **Small**: Single-process or monolithic architectures are not only acceptable but preferred. Layered and Hexagonal repos in the Discovered corpus tend to be smaller-scale. Production evidence: BuckPal (RefArch), clean architecture templates (Discovered).
-- **Medium**: Modular Monolith is the sweet spot. 64 of 122 Discovered repos (52%) exhibit it, often combined with Event-Driven. Production evidence: Squidex (RealWorld), Orchard Core (RealWorld). Competition evidence: winners at Spotlight Platform and Farmacy Food both chose modular monolith.
-- **Large**: Microservices become justified. 26 of 122 Discovered repos exhibit them. Event-Driven becomes pervasive. Production evidence: nopCommerce (RealWorld), Jellyfin (RealWorld), Graphite (AOSA), Riak (AOSA).
-- **Very Large**: Space-Based patterns, in-memory data grids, event-driven pipelines, and aggressive caching become necessary. 7 Discovered repos exhibit Space-Based, concentrated in the Data Grid cluster. Production evidence: NGINX (AOSA), HDFS (AOSA), Git (AOSA), Bitwarden (RealWorld), Redis/Dragonfly (Discovered).
+- **Medium**: Modular Monolith is the sweet spot. 65 of 163 Discovered repos (39.9%) exhibit it, often combined with Event-Driven or Plugin/Microkernel. Production evidence: Squidex (RealWorld), Orchard Core (RealWorld). Competition evidence: winners at Spotlight Platform and Farmacy Food both chose modular monolith.
+- **Large**: Service-Based or Plugin/Microkernel become justified. 16 of 163 Discovered repos exhibit Microservices (9.8%), while 11 exhibit Service-Based (6.7%) and 33 exhibit Plugin/Microkernel (20.2%). Event-Driven becomes pervasive. Production evidence: nopCommerce (RealWorld), Jellyfin (RealWorld), Graphite (AOSA), Riak (AOSA).
+- **Very Large**: Space-Based patterns, in-memory data grids, event-driven pipelines, and aggressive caching become necessary. 5 Discovered repos exhibit Space-Based, concentrated in the Data Grid cluster. Production evidence: NGINX (AOSA), HDFS (AOSA), Git (AOSA), Bitwarden (RealWorld), Redis/Dragonfly (Discovered).
 
 ---
 
@@ -793,10 +792,10 @@ Profiles ordered from smallest to largest expected scale, grounded in Discovered
 | **Very High** | Data Processing Cluster | Discovered | Connectors for all sources | Connector framework (Beam, Flink, Debezium) |
 
 **Patterns by integration tier (Discovered statistics + production evidence):**
-- **Low**: Direct API calls with abstraction layers. 16 Discovered repos exhibit Hexagonal Architecture, providing the port/adapter pattern. Production: Git's protocol-based integration (AOSA).
-- **Medium**: Adapter pattern, dedicated integration services. Event-Driven is the dominant integration pattern in 63 Discovered repos. Production: Puppet's agent-catalog model (AOSA), Squidex's webhook-based events (RealWorld).
-- **High**: Event-driven integration backbone, dedicated modules per system. DDD appears in 27 of 122 Discovered repos, providing bounded context isolation for integration boundaries. Production: NGINX's module system (AOSA), nopCommerce's plugin ecosystem (RealWorld).
-- **Very High**: Microkernel/plugin architecture for extensibility; protocol-based abstraction. Pipe-and-Filter (19 Discovered repos) and Microservices (26 repos) combine for connector frameworks. Production: Selenium's wire protocol (AOSA), GStreamer's pipeline-of-plugins (AOSA).
+- **Low**: Direct API calls with abstraction layers. 20 Discovered repos (12.3%) exhibit Hexagonal Architecture, providing the port/adapter pattern. Production: Git's protocol-based integration (AOSA).
+- **Medium**: Adapter pattern, dedicated integration services. Event-Driven is the dominant integration pattern in 47 Discovered repos (28.8%). Production: Puppet's agent-catalog model (AOSA), Squidex's webhook-based events (RealWorld).
+- **High**: Event-driven integration backbone, dedicated modules per system. DDD appears in 29 of 163 Discovered repos (17.8%), providing bounded context isolation for integration boundaries. Plugin/Microkernel appears in 33 repos (20.2%). Production: NGINX's module system (AOSA), nopCommerce's plugin ecosystem (RealWorld).
+- **Very High**: Microkernel/plugin architecture for extensibility; protocol-based abstraction. Pipe-and-Filter (26 Discovered repos, 16.0%) and Plugin/Microkernel (33 repos, 20.2%) combine for connector frameworks. Production: Selenium's wire protocol (AOSA), GStreamer's pipeline-of-plugins (AOSA).
 
 ---
 
@@ -828,7 +827,7 @@ Profiles ordered from smallest to largest expected scale, grounded in Discovered
 
 ### By AI/ML Component
 
-**Discovered context**: The AI/ML cluster (6 repos) emerged entirely post-2023, representing 5% of the corpus. Multi-Agent (4 repos) is the dominant pattern, unique to this cluster.
+**Discovered context**: The AI/ML cluster (16 repos) emerged entirely post-2023, representing 9.8% of the corpus -- nearly tripling from 6 repos in heuristic classification. Multi-Agent (10 primary repos) and Pipe-and-Filter are the dominant patterns. Notable projects: AutoGPT (182k stars), langchain (128k), dify (131k), autogen (55k), crewAI (45k).
 
 The evolution of AI across all sources traces a clear arc:
 
@@ -846,8 +845,8 @@ The evolution of AI across all sources traces a clear arc:
 
 **Phase 3: AI as the Product (2024-2025)**
 - KataLog: ShopWise AI (text-to-SQL, multi-agent), ClearView (bias-free hiring), Certifiable Inc. (high-stakes grading)
-- Discovered AI/ML cluster (6 repos): AutoGPT, autogen, camel, crewAI, dify, letta
-- Multi-Agent emerges as the dominant pattern for AI orchestration
+- Discovered AI/ML cluster (16 repos): AutoGPT (182k), langchain (128k), dify (131k), autogen (55k), crewAI (45k), llama_index (47k), semantic-kernel (27k), and 9 more
+- Multi-Agent (10 primary repos) and Pipe-and-Filter (langchain, dify, llama_index) emerge as the two dominant patterns for AI orchestration
 
 **What changed architecturally with AI (cross-source evidence):**
 
@@ -882,9 +881,9 @@ Similarity is organized into clusters of profiles that share 3+ problem dimensio
 
 ### Cluster 2: AI-Centric Systems
 
-**Members**: ShopWise AI (KataLog), ClearView (KataLog), Certifiable Inc. (KataLog), AutoGPT (Discovered), crewAI (Discovered), autogen (Discovered), dify (Discovered), letta (Discovered), camel (Discovered)
+**Members**: ShopWise AI (KataLog), ClearView (KataLog), Certifiable Inc. (KataLog), AutoGPT (Discovered, 182k stars), langchain (Discovered, 128k), dify (Discovered, 131k), autogen (Discovered, 55k), crewAI (Discovered, 45k), llama_index (Discovered, 47k), semantic-kernel (Discovered, 27k), and 9 more Discovered repos
 
-**Discovered grounding**: 6 Discovered repos form the statistical basis. Multi-Agent appears in 4 of 6, Event-Driven in 5 of 6. KataLog provides the trade-off reasoning invisible in code (cost projections, non-determinism management, human-in-the-loop decisions).
+**Discovered grounding**: 16 Discovered repos form the statistical basis -- nearly tripled from previous count. Multi-Agent (10 primary repos) and Pipe-and-Filter are the dominant patterns. KataLog provides the trade-off reasoning invisible in code (cost projections, non-determinism management, human-in-the-loop decisions).
 
 **Shared dimensions**: Central AI/ML component, LLM integration, non-deterministic output management, cost optimization.
 
@@ -894,13 +893,13 @@ Similarity is organized into clusters of profiles that share 3+ problem dimensio
 - ShopWise AI / Certifiable Inc. (score 4): Both AI-centric with text understanding. Certifiable adds high-stakes accountability.
 - ClearView / Certifiable Inc. (score 3): Both require AI to make consequential decisions about people's lives/careers.
 - ShopWise AI / ClearView (score 3): Both LLM-integrated, both face cost optimization challenges.
-- Discovered AI repos form a tight sub-cluster: 4 of 6 use Multi-Agent architecture, all use Event-Driven.
+- Discovered AI repos form a tight sub-cluster: 10 of 16 use Multi-Agent as their primary architecture, with Pipe-and-Filter as the alternative pattern for chain-based orchestration (langchain, dify, llama_index).
 
 ### Cluster 3: E-Commerce / Transactional Systems
 
 **Members**: Farmacy Food (KataLog), ShopWise AI (KataLog), nopCommerce (RealWorld), eShopOnContainers (RefArch), eShop (RefArch), eShopOnWeb (Discovered), go-ecommerce-microservices (Discovered), Medusa (Discovered), Saleor (Discovered), Shopware (Discovered), Spree (Discovered), microservices-demo (Discovered), NorthwindTraders (Discovered), BuckPal (RefArch)
 
-**Discovered grounding**: 11 Discovered repos -- the strongest statistical basis of any cluster. Event-Driven (6), CQRS (4), Microservices (4), Modular Monolith (4) are the top styles.
+**Discovered grounding**: 12 Discovered repos -- the strongest statistical basis of any non-DevTools cluster. Modular Monolith, Event-Driven, CQRS, DDD are the top styles.
 
 **Shared dimensions**: Transactional integrity, payment processing (PCI), catalog/inventory management, plugin-based extensibility.
 
@@ -920,7 +919,7 @@ Similarity is organized into clusters of profiles that share 3+ problem dimensio
 
 **Shared dimensions**: Severe budget constraints, non-profit or startup context, cost-per-user as a primary architectural driver.
 
-**Why this cluster matters**: Six of 11 KataLog challenges operate under tight budget constraints. The winning pattern across all of them is evolutionary architecture: start with the simplest viable architecture (modular monolith or service-based) and plan for growth rather than building for scale on day one. Discovered evidence supports this -- 64 of 122 repos (52%) exhibit Modular Monolith, often as the foundation for systems that later evolved.
+**Why this cluster matters**: Six of 11 KataLog challenges operate under tight budget constraints. The winning pattern across all of them is evolutionary architecture: start with the simplest viable architecture (modular monolith or service-based) and plan for growth rather than building for scale on day one. Discovered evidence supports this -- 65 of 163 repos (39.9%) exhibit Modular Monolith, often as the foundation for systems that later evolved.
 
 **Key cost benchmarks from competition evidence**:
 - $0.002/user/month (Spotlight Platform, TheGlobalVariables)
@@ -933,7 +932,7 @@ Similarity is organized into clusters of profiles that share 3+ problem dimensio
 
 **Members**: MonitorMe (KataLog), Road Warrior (KataLog), Hey Blue! (KataLog), NGINX (AOSA), ZeroMQ (AOSA), GStreamer (AOSA), Twisted (AOSA), Jellyfin (RealWorld), Data Grid cluster (Discovered), Messaging cluster (Discovered), Infrastructure cluster (Discovered)
 
-**Discovered grounding**: Event-Driven is the most prevalent style in the Discovered corpus -- 63 of 122 repos (52%). The Data Grid (6 repos), Messaging (5 repos), and Infrastructure (7 repos) clusters provide the statistical basis: 18 Discovered repos focused on real-time performance.
+**Discovered grounding**: Event-Driven appears in 47 of 163 repos (28.8%) -- a pervasive cross-cutting concern. The Data Grid (6 repos), Messaging (6 repos), and Infrastructure (7 repos) clusters provide the statistical basis: 19 Discovered repos focused on real-time performance.
 
 **Shared dimensions**: Sub-second latency requirements, high concurrency, event-driven architecture as the dominant pattern.
 
@@ -941,19 +940,19 @@ Similarity is organized into clusters of profiles that share 3+ problem dimensio
 
 ### Cluster 6: Developer Platforms / Extensible Frameworks
 
-**Members**: Developer Tools cluster (36 Discovered repos), Selenium (AOSA), SQLAlchemy (AOSA), GStreamer (AOSA), LLVM (AOSA), Puppet (AOSA), nopCommerce (RealWorld), Orchard Core (RealWorld), Jellyfin (RealWorld), Clean Architecture Template (RefArch)
+**Members**: Developer Tools cluster (53 Discovered repos), Selenium (AOSA), SQLAlchemy (AOSA), GStreamer (AOSA), LLVM (AOSA), Puppet (AOSA), nopCommerce (RealWorld), Orchard Core (RealWorld), Jellyfin (RealWorld), Clean Architecture Template (RefArch)
 
-**Discovered grounding**: 36 Discovered repos -- the largest statistical basis. Plugin/extension architecture is the unifying pattern. Event-Driven (21 repos), DDD (13), CQRS (11) are the top styles in the Developer Tools domain.
+**Discovered grounding**: 53 Discovered repos -- the largest statistical basis. Plugin/extension architecture is the unifying pattern -- now confirmed by deep validation with 33 Plugin/Microkernel repos (20.2% of corpus), many concentrated in this cluster. Modular Monolith, Plugin/Microkernel, Layered, and Event-Driven are the top styles.
 
 **Shared dimensions**: Plugin/extension architecture, framework extensibility, multi-platform support, developer experience as a quality attribute.
 
-**Why this cluster matters**: Plugin Architecture is one of the most cross-validated patterns in the catalog. AOSA provides the deepest production narratives (GStreamer, LLVM, SQLAlchemy). RealWorld proves it in .NET contexts (Jellyfin, nopCommerce, Orchard Core). Discovered shows it at scale across 36 developer tool repos.
+**Why this cluster matters**: Plugin Architecture is one of the most cross-validated patterns in the catalog. AOSA provides the deepest production narratives (GStreamer, LLVM, SQLAlchemy). RealWorld proves it in .NET contexts (Jellyfin, nopCommerce, Orchard Core). Deep-validated Discovered data confirms it at scale across developer tool repos with the highest GitHub star counts: n8n (177k), elasticsearch (76k), nest (74k), redis (73k), grafana (72k), strapi (71k).
 
 ### Cluster 7: Distributed Data / Storage Systems
 
 **Members**: HDFS (AOSA), Riak (AOSA), Data Grid cluster (Discovered: Redis, Dragonfly, Hazelcast, Ignite, Infinispan, Geode), Messaging cluster (Discovered: Pulsar, Redpanda, RabbitMQ, NATS), CockroachDB (Discovered), qdrant (Discovered)
 
-**Discovered grounding**: 13 Discovered repos across Data Grid (6), Messaging (5), and Database (2) domains. Space-Based (5 repos in Data Grid) and Event-Driven (universal) are the dominant styles.
+**Discovered grounding**: 14 Discovered repos across Data Grid (6), Messaging (6), and Database (2) domains. Space-Based (5 repos in Data Grid) and Event-Driven (cross-cutting) are the dominant styles.
 
 **Shared dimensions**: Data distribution, replication strategies, consistency vs. availability trade-offs, partition tolerance.
 
@@ -990,9 +989,9 @@ For the 11 KataLog challenges, the full pairwise similarity scores (0-5 scale):
 2. **Check Discovered domain coverage**: If your domain has Discovered repos, the style distribution for that domain shows what real systems actually use.
 3. **Add production depth**: A problem validated in AOSA or RealWorld has architectural reasoning from the system creators -- the highest-authority evidence.
 4. **Add competition reasoning**: KataLog challenges provide structured problem decomposition (cost projections, constraint documentation, judge commentary) that production systems rarely publish.
-5. **Use Discovered statistics for pattern frequency**: Event-Driven in 63 of 122 repos, Modular Monolith in 64, Microservices in 26 -- these are statistically significant code-level signals.
+5. **Use Discovered statistics for pattern frequency**: Modular Monolith in 65 of 163 repos (39.9%), Event-Driven in 47 (28.8%), Layered in 35 (21.5%), Plugin/Microkernel in 33 (20.2%) -- these are statistically significant code-level signals from deep-validated source inspection.
 6. **Cross-reference solution evidence**: The [Solution Space Taxonomy](solution-spaces.md) maps these problem profiles to specific architecture styles. The [Problem-Solution Matrix](problem-solution-matrix.md) provides the direct cross-reference. The [Evidence by Architecture Style](evidence/by-architecture-style.md) provides per-style evidence depth.
 
 ---
 
-*Problem taxonomy derived from 122 real systems across 35 domains (Discovered), validated by 17 production-narrated systems (12 AOSA, 5 RealWorld), structured by 11 competition challenges with 78 team submissions (KataLog), and illustrated by 8 reference implementations (RefArch). Total catalog: 158 unique projects (225 entries including cross-source overlap). Source data: `evidence-analysis/*/docs/catalog/_index.yaml`, `docs/analysis/challenges/*.md`, `docs/analysis/cross-cutting.md`.*
+*Problem taxonomy derived from 163 deep-validated systems (SPEC-019 Discovered), validated by 17 production-narrated systems (12 AOSA, 5 RealWorld), structured by 11 competition challenges with 78 team submissions (KataLog), and illustrated by 8 reference implementations (RefArch). Total catalog: 266 entries including cross-source overlap. Source data: `evidence-analysis/*/docs/catalog/_index.yaml`, `docs/analysis/challenges/*.md`, `docs/analysis/cross-cutting.md`.*

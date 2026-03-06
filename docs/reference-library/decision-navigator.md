@@ -1,8 +1,8 @@
 # Architecture Decision Navigator
 
-A practitioner-facing guide for navigating from problem characteristics to evidence-based architectural recommendations. Every recommendation is grounded in statistical analysis of 122 open-source repositories (Discovered), validated by 17 production systems (AOSA + RealWorld), and enriched with qualitative reasoning from 78 competition teams (KataLog). Total evidence base: 225 entries across 5 sources.
+A practitioner-facing guide for navigating from problem characteristics to evidence-based architectural recommendations. Every recommendation is grounded in deep-validated statistical analysis of 163 open-source repositories (Discovered, SPEC-019 source-code-inspected), validated by 17 production systems (AOSA + RealWorld), and enriched with qualitative reasoning from 78 competition teams (KataLog). Total evidence base: 266 entries across 5 sources.
 
-> **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker -> Deployability, module boundaries -> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected.
+> **Methodology update (SPEC-019):** Discovered statistics are now derived from deep-validated source code inspection (163 repos), not automated filesystem analysis alone. This resolved several prior detection blind spots -- notably Plugin/Microkernel (0 -> 33 repos, 20.2%) and Service-Based (4 -> 11 repos, 6.7%). Styles and QAs that are architectural decisions invisible in directory structure may still be underdetected.
 >
 > KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
 
@@ -11,7 +11,7 @@ A practitioner-facing guide for navigating from problem characteristics to evide
 ## How to Use This Guide
 
 1. **Answer the 8 questions in Step 1** to classify your problem across key dimensions.
-2. **Follow the matching path in Step 2** based on your answers. Each path opens with statistical evidence from 122 codebases, then production validation, then team reasoning explaining why the pattern works.
+2. **Follow the matching path in Step 2** based on your answers. Each path opens with statistical evidence from 163 deep-validated codebases, then production validation, then team reasoning explaining why the pattern works.
 3. **Validate with quality attributes in Step 3** to strengthen your approach using Discovered detection data and team insights.
 4. **Check the Quick Reference Card** at the end for a one-page summary ranked by Discovered frequency.
 
@@ -75,7 +75,7 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Modular Monolith with documented evolution path to Service-Based or Microservices**
 
-**Statistical basis:** Modular Monolith appears in 64 of 122 Discovered repos (52%) -- the most frequently observed architecture style. It co-occurs with Event-Driven in 38 repos (31% of the entire corpus). This suggests internal event-driven communication within modular boundaries is the single most common architectural configuration in production codebases.
+**Statistical basis:** Modular Monolith appears in 65 of 163 deep-validated Discovered repos (39.9%) -- the most frequently observed architecture style. Notable projects: AutoGPT (182k stars), n8n (177k), langchain (128k), elasticsearch (76k), nest (74k), redis (73k). It co-occurs with Event-Driven in 25 repos (the top co-occurring pair) and with Plugin/Microkernel in 19 repos (the second most common pair). This suggests modular boundaries with event-driven communication and plugin extensibility are the most common architectural configurations in production codebases.
 
 **Production validation:** Orchard Core (RealWorld) is a production CMS built as a Modular Monolith with a Plugin system, demonstrating successful module isolation and extensibility without the operational overhead of distributed services. The modular-monolith-with-ddd reference implementation (RefArch) provides a canonical example of Modular Monolith with DDD boundaries, confirming that this pattern translates from design to production with well-defined bounded contexts.
 
@@ -98,9 +98,9 @@ Find the path that best matches your answer profile. If you match multiple paths
 
 **Recommended: Event-Driven Architecture + Service-Based (NOT microservices-first)**
 
-**Statistical basis:** Event-Driven appears in 63 of 122 Discovered repos (52%) -- the joint most prevalent style. It co-occurs with Service-Based patterns across multiple domains. Five production systems validate this combination: NGINX, Twisted, ZeroMQ, Squidex, and Bitwarden.
+**Statistical basis:** Event-Driven appears in 47 of 163 deep-validated Discovered repos (28.8%) -- the second most prevalent style. Notable projects: AutoGPT (182k stars), n8n (177k), dify (131k), elasticsearch (76k), appwrite (55k). It co-occurs with Service-Based patterns across multiple domains. Five production systems validate this combination: NGINX, Twisted, ZeroMQ, Squidex, and Bitwarden.
 
-Service-Based has only 4 Discovered repos (3%), but three production systems (Selenium, Graphite, Bitwarden) confirm it is underdetected, not underused. Detection note: service boundaries leave fewer filesystem signals than microservices or event brokers.
+Service-Based now shows 11 Discovered repos (6.7%) after deep validation -- up from 4 repos under automated detection. Notable projects: dify (131k stars), mastodon (49k), temporal (18k), linkerd2 (11k). Three production systems (Selenium, Graphite, Bitwarden) provide additional validation.
 
 **Production validation:** NGINX (AOSA) uses Event-Driven architecture to handle the C10K problem and beyond, serving over 30% of internet traffic using an asynchronous, non-blocking event loop. Bitwarden (RealWorld) combines Service-Based + Event-Driven patterns for a security-critical password management platform. Graphite (AOSA) uses Pipeline + Service-Based architecture for high-volume metrics ingestion, processing millions of metrics per minute.
 
@@ -115,7 +115,7 @@ Service-Based has only 4 Discovered repos (3%), but three production systems (Se
 
 **Watch out for**: The "Scalability Trap." Scalability is cited by 68% of runners-up but only 55% of first-place winners. Do not let scalability drive your entire architecture. Address it through targeted mechanisms (scaling groups, CQRS, queue-based decoupling) rather than choosing an entire architecture style for scalability alone.
 
-Microservices without event-driven architecture is an anti-pattern -- pure synchronous microservices create tight coupling through REST chains. 26 Discovered repos (21%) use Microservices, yet zero have production-system validation. EDA-only teams averaged 2.44 points; microservices-only teams (no EDA) averaged 1.70.
+Microservices without event-driven architecture is an anti-pattern -- pure synchronous microservices create tight coupling through REST chains. Deep-validated Discovered shows only 16 repos (9.8%) use Microservices -- far fewer than prior automated detection suggested. Notable MS projects: supabase (98k stars), dapr (25k), microservices-demo (19k). Zero have production-system validation. EDA-only teams averaged 2.44 points; microservices-only teams (no EDA) averaged 1.70.
 
 **Also study**: Iconites (2nd, Road Warrior) combined microservices + event-driven + space-based with Cosmos DB global distribution. BluzBrothers (1st, MonitorMe) used pure event-driven with Kafka to meet critical latency requirements.
 
@@ -126,9 +126,9 @@ Microservices without event-driven architecture is an anti-pattern -- pure synch
 
 **Recommended: Service-Based Architecture with phased transition plan**
 
-**Statistical basis:** Service-Based appears in 4 of 122 Discovered repos (3%). Three production systems (Selenium, Graphite, Bitwarden) confirm it is underdetected, not underused.
+**Statistical basis:** Service-Based now appears in 11 of 163 deep-validated Discovered repos (6.7%) -- up from 4 repos under automated detection. Notable projects: dify (131k stars), mastodon (49k), temporal (18k), linkerd2 (11k). Three production systems (Selenium, Graphite, Bitwarden) provide additional validation.
 
-Brownfield migration evidence is inherently thin in open-source catalogs -- most repositories represent a single architectural snapshot rather than a migration journey. Detection note: service-based architecture leaves fewer structural signals than microservices (fewer Docker Compose services) or event-driven (no message broker config).
+Brownfield migration evidence is inherently thin in open-source catalogs -- most repositories represent a single architectural snapshot rather than a migration journey.
 
 **Production validation:** nopCommerce (RealWorld) demonstrates successful brownfield evolution over a 17-year lifespan, migrating from original ASP.NET to modern .NET while maintaining backward compatibility and a large plugin ecosystem. Selenium (AOSA) evolved from its monolithic RC (Remote Control) architecture to the distributed WebDriver architecture -- a production-scale brownfield migration that replaced the core execution model while preserving the public API contract.
 
@@ -154,7 +154,7 @@ Brownfield migration evidence is inherently thin in open-source catalogs -- most
 
 **Recommended: Event-Driven Architecture, on-premises deployment**
 
-**Statistical basis:** Event-Driven appears in 63 of 122 Discovered repos (52%). Among Observability-focused repos, 3 implement telemetry pipeline patterns analogous to medical monitoring -- continuous high-frequency data ingestion with event-driven processing.
+**Statistical basis:** Event-Driven appears in 47 of 163 deep-validated Discovered repos (28.8%). Notable projects: AutoGPT (182k stars), n8n (177k), dify (131k), elasticsearch (76k). Among Observability-focused and Data Processing repos, telemetry pipeline patterns analogous to medical monitoring -- continuous high-frequency data ingestion with event-driven processing -- are common.
 
 No direct healthcare repos appear in the Discovered corpus. The statistical basis here is EDA's general prevalence and its dominance in streaming/pipeline workloads.
 
@@ -183,11 +183,11 @@ No direct healthcare repos appear in the Discovered corpus. The statistical basi
 
 **Recommended: Service-Based Architecture + Human-in-the-Loop + Deterministic Boundaries**
 
-**Statistical basis:** 6 AI/ML repositories appear in the Discovered corpus. 4 of these use the Multi-Agent pattern (4% of the full corpus).
+**Statistical basis:** 16 AI/ML repositories appear in the deep-validated Discovered corpus -- the second-largest domain cluster. Multi-Agent appears in 11 repos (6.7% of corpus). Notable Multi-Agent projects: AutoGPT (182k stars), langchain (128k), autogen (55k), crewAI (45k). The expanded AI/ML cluster now provides meaningful statistical basis.
 
-AI-as-core-product is the newest architectural pattern with the thinnest statistical basis. Competition evidence provides the most current guidance, as the AOSA corpus (2011-2012 vintage) predates modern AI systems entirely.
+AI-as-core-product is the newest architectural pattern with growing but still evolving evidence. Competition evidence provides the most current guidance, as the AOSA corpus (2011-2012 vintage) predates modern AI systems entirely.
 
-**Production validation:** No production AI systems appear in the AOSA or RealWorld catalogs. This is the weakest production evidence of any path. The 6 Discovered AI/ML repos confirm multi-agent as an emerging but not yet dominant production pattern.
+**Production validation:** No production AI systems appear in the AOSA or RealWorld catalogs. This is the weakest production evidence of any path. The 16 Discovered AI/ML repos confirm multi-agent as an emerging pattern with significant open-source momentum.
 
 **Why this works -- team reasoning:** Across three AI-centric KataLog challenges (ShopWise AI, ClearView, Certifiable Inc.), service-based architecture was the most successful foundation. Every team in the high-stakes Certifiable Inc. challenge implemented human-in-the-loop oversight -- no team proposed fully autonomous AI. AI systems need deterministic boundaries around non-deterministic components. The winners built architecture TO CONSTRAIN the AI, not just to enable it.
 
@@ -218,7 +218,7 @@ AI-as-core-product is the newest architectural pattern with the thinnest statist
 
 **Recommended: Event-Driven core with pragmatic monolith deployment at the edge**
 
-**Statistical basis:** Event-Driven appears in 63 of 122 Discovered repos (52%). Among Developer Tools (36 repos) and Infrastructure (7 repos) categories, offline operation and eventual synchronization are common requirements.
+**Statistical basis:** Event-Driven appears in 47 of 163 deep-validated Discovered repos (28.8%). Among Developer Tools (53 repos) and Infrastructure (7 repos) categories, offline operation and eventual synchronization are common requirements.
 
 Edge/offline patterns -- store-and-forward, converge-on-connect, local-first operation -- appear across these categories. This confirms event-driven communication as the standard approach for intermittently connected systems.
 
@@ -245,9 +245,9 @@ Edge/offline patterns -- store-and-forward, converge-on-connect, local-first ope
 
 **Recommended: Per-quantum style selection with adapter/connector patterns**
 
-**Statistical basis:** 36 Developer Tools repositories in the Discovered corpus consistently surface extensibility as a key architectural tension. Plugin and Adapter patterns appear frequently in this category as the solution for unbounded integration requirements.
+**Statistical basis:** 53 Developer Tools repositories in the deep-validated Discovered corpus consistently surface extensibility as a key architectural tension. Plugin/Microkernel appears in 33 repos (20.2%) -- the 4th most common style overall. Notable Plugin projects: n8n (177k stars), elasticsearch (76k), nest (74k), redis (73k), grafana (72k). Plugin and Adapter patterns appear frequently as the solution for unbounded integration requirements.
 
-Pipe-and-Filter appears in 19 repos (16%) and co-occurs with Event-Driven. This confirms pipeline-based processing as a common integration backbone in production codebases.
+Pipe-and-Filter appears in 26 repos (16.0%) and co-occurs with Event-Driven. Notable projects: dify (131k), langchain (128k), localstack (64k), traefik (62k), airflow (44k). This confirms pipeline-based processing as a common integration backbone in production codebases.
 
 **Production validation:** LLVM (AOSA) uses Pipeline + Plugin architecture to handle dozens of language frontends and hardware backends through a stable Intermediate Representation (IR). GStreamer (AOSA) uses a Plugin architecture to handle thousands of codecs, devices, and protocols. Selenium (AOSA) uses an Adapter pattern per browser unified behind a single WebDriver API. Jellyfin (RealWorld) uses a Plugin system for metadata providers, subtitle sources, and client applications.
 
@@ -274,7 +274,7 @@ Pipe-and-Filter appears in 19 repos (16%) and co-occurs with Event-Driven. This 
 
 **Recommended: Modular Monolith MVP with evolutionary roadmap OR Service-Based + Selective Event-Driven**
 
-**Statistical basis:** Modular Monolith appears in 64 of 122 Discovered repos (52%). It co-occurs with Event-Driven in 38 repos, making the "start modular, add event-driven communication" evolution path the most common configuration in real codebases.
+**Statistical basis:** Modular Monolith appears in 65 of 163 deep-validated Discovered repos (39.9%). It co-occurs with Event-Driven in 25 repos (the top co-occurring pair), making the "start modular, add event-driven communication" evolution path the most common configuration in real codebases.
 
 Non-profit-specific repos are not separately tagged in Discovered, but the general pattern -- modular boundaries with low operational overhead -- aligns with the cost constraints of civic platforms.
 
@@ -298,9 +298,9 @@ Non-profit-specific repos are not separately tagged in Discovered, but the gener
 
 **Recommended: Event-Driven + Microservices with multi-region deployment**
 
-**Statistical basis:** Event-Driven appears in 63 of 122 Discovered repos (52%) and co-occurs with Microservices in repos targeting high-scale domains. Among Infrastructure repos (7), high-availability patterns -- replication, partitioning, circuit breakers, bulkheads -- appear as standard production practices.
+**Statistical basis:** Event-Driven appears in 47 of 163 deep-validated Discovered repos (28.8%) and co-occurs with Microservices in repos targeting high-scale domains. Among Infrastructure repos (7), high-availability patterns -- replication, partitioning, circuit breakers, bulkheads -- appear as standard production practices.
 
-Space-Based appears in 5 repos (4%). It is a niche pattern reserved for extreme scale requirements.
+Space-Based appears in 5 repos (3.1%) -- dragonfly (30k stars), hazelcast (6k), ignite (5k). It is a niche pattern reserved for extreme scale requirements.
 
 **Production validation:** NGINX (AOSA) serves over 30% of internet traffic through its event-driven, non-blocking architecture. Its master/worker process model allows zero-downtime configuration reloads and binary upgrades. Riak (AOSA) uses a masterless design that eliminates single points of failure, with tunable consistency that allows operators to trade consistency for availability per request. HDFS (AOSA) uses triple replication across racks, tolerating any two simultaneous failures while maintaining data availability.
 
@@ -323,7 +323,7 @@ Space-Based appears in 5 repos (4%). It is a niche pattern reserved for extreme 
 
 **Recommended: Architecture style driven by other factors, with compliance addressed through specific ADRs and structural separation**
 
-**Statistical basis:** 4 Banking/Finance repositories in the Discovered corpus consistently prioritize Modularity alongside Deployability. Compliance-heavy domains favor clear module boundaries for audit scope isolation over any particular architecture style choice.
+**Statistical basis:** Banking/Finance repositories in the deep-validated Discovered corpus consistently prioritize Modularity alongside Deployability. DDD (29 repos, 17.8%) and Hexagonal (20 repos, 12.3%) provide compliance-friendly bounded contexts. Compliance-heavy domains favor clear module boundaries for audit scope isolation over any particular architecture style choice.
 
 Compliance is a constraint on the architecture, not a driver of style selection.
 
@@ -347,21 +347,21 @@ Compliance is a constraint on the architecture, not a driver of style selection.
 
 ## Step 3: Validate with Quality Attributes
 
-After choosing your architecture path, identify your top 3 quality attributes and use this table to strengthen your approach. The "Discovered Detection" column shows how frequently this QA appears in the 122-repo corpus. The "Production Examples" column shows which AOSA/RealWorld systems validate the recommended approach.
+After choosing your architecture path, identify your top 3 quality attributes and use this table to strengthen your approach. The "Discovered Detection" column shows how frequently this QA appears in the 163-repo deep-validated corpus. The "Production Examples" column shows which AOSA/RealWorld systems validate the recommended approach.
 
 > **Detection bias note:** Discovered QA detection relies on filesystem signals. Deployability (89%) is inflated by Docker/CI prevalence. Performance, Testability, and Interoperability are underdetected -- the absence of Discovered signal does not mean the QA is unimportant. KataLog competition evidence fills this gap by documenting QA priorities that are invisible in code.
 
 | If your top priority is... | Discovered Detection | Predictive Power (KataLog) | Strengthen with... | Production Examples | Watch out for... | Study this team |
 |---------------------------|---------------------|---------------------------|-------------------|---------------------|-----------------|-----------------|
-| **Cost/Feasibility** | Not directly detectable | Very Strong (3.2x winner ratio) | Modular monolith (avg 3.0 for cost-focused teams), concrete cost projections, partnership-over-build | Orchard Core (RealWorld): modular monolith in production; 64 Discovered MM repos | Hidden cloud costs; LLM API cost runaway in AI systems | ArchColider ($12K-$23K/yr scenarios), TheGlobalVariables ($0.002/user/mo) |
+| **Cost/Feasibility** | Not directly detectable | Very Strong (3.2x winner ratio) | Modular monolith (avg 3.0 for cost-focused teams), concrete cost projections, partnership-over-build | Orchard Core (RealWorld): modular monolith in production; 65 Discovered MM repos (39.9%) | Hidden cloud costs; LLM API cost runaway in AI systems | ArchColider ($12K-$23K/yr scenarios), TheGlobalVariables ($0.002/user/mo) |
 | **Deployability** | 108 repos (89%) | -- | Docker/CI pipelines (standard practice in 89% of repos); container orchestration | NGINX (AOSA): zero-downtime reloads; Bitwarden (RealWorld): containerized deployment | Over-investing in deployment automation for simple systems | All paths -- deployability is table stakes |
-| **Modularity** | 41 repos (34%) | -- | Clear module boundaries, DDD bounded contexts | Orchard Core (RealWorld): plugin-based modularity; 64 Discovered MM repos co-occurring with modularity signals | Module boundaries without enforcement; boundary erosion over time | PegasuZ (quantum-level architecture), ArchColider (DDD boundaries) |
+| **Modularity** | 41 repos (34%) | -- | Clear module boundaries, DDD bounded contexts | Orchard Core (RealWorld): plugin-based modularity; 65 Discovered MM repos + 33 Plugin repos with modularity signals | Module boundaries without enforcement; boundary erosion over time | PegasuZ (quantum-level architecture), ArchColider (DDD boundaries) |
 | **Data Integrity** | Not directly detectable | Strong (60% top-3 rate) | Service-based (avg 2.5 for integrity-focused teams), explicit consistency trade-off documentation | Riak (AOSA): tunable consistency per request; HDFS (AOSA): triple replication | Claiming strong consistency in distributed systems without addressing the implications | Pragmatic (ADR-004: deliberately downplayed integrity with documented rationale) |
 | **Scalability** | 33 repos (27%) | Weak (33% top-3 rate) | Targeted mechanisms (scaling groups, CQRS, queue decoupling) rather than whole-system style | NGINX (AOSA): event-driven scaling; Graphite (AOSA): pipeline scaling | The "Scalability Trap" -- 68% of runners-up cite it vs. 55% of winners | BluzBrothers (ADR-008: deliberately scoped to 500-patient ceiling) |
-| **Interoperability** | Not directly detectable | Strong (60% top-3 rate) | Event-driven (avg 2.33 for interop-focused teams), adapter-based integration, comparative platform analysis | LLVM (AOSA): plugin-based multi-frontend; Selenium (AOSA): adapter-per-browser; Jellyfin (RealWorld): plugin extensibility | Underestimating integration effort for diverse external APIs | CELUS Ceals (platform-by-platform analysis), Pragmatic (adapter-based HR integration) |
+| **Interoperability** | Plugin/Microkernel: 33 repos (20.2%) | Strong (60% top-3 rate) | Event-driven (avg 2.33 for interop-focused teams), adapter-based integration, comparative platform analysis | LLVM (AOSA): plugin-based multi-frontend; Selenium (AOSA): adapter-per-browser; Jellyfin (RealWorld): plugin extensibility; n8n (177k), elasticsearch (76k) | Underestimating integration effort for diverse external APIs | CELUS Ceals (platform-by-platform analysis), Pragmatic (adapter-based HR integration) |
 | **Fault Tolerance** | 18 repos (15%) | Moderate (1.5x winner ratio) | Event-driven decoupling, circuit breakers, graceful degradation mapping | NGINX (AOSA): master/worker fault isolation; Riak (AOSA): masterless design | Binary availability claims without degradation mapping | LowCode (3-node/2-node/1-node graceful degradation) |
 | **Performance** | Not directly detectable | Moderate (49% top-3 rate) | Event-driven (avg 2.0), time-series databases for high-frequency data, quantitative fitness functions | NGINX (AOSA): event-driven C10K+; Graphite (AOSA): high-frequency metrics pipeline | Assuming instead of measuring; listing performance without calculations | BluzBrothers (693ms proof), Street Fighters (25 req/s + 1,000 updates/s analysis) |
-| **Evolvability** | 2 repos (2%) -- underdetected | Moderate (43% top-3 rate) | Modular monolith (avg 4.0), hexagonal ports, plugin architectures, explicit extraction points | nopCommerce (RealWorld): 17-year evolution; GStreamer (AOSA): plugin-based extensibility | Premature abstraction; building for evolution you never execute | Software Architecture Guild (microkernel for 6 AI variants), Wonderous Toys (microkernel for plugins) |
+| **Evolvability** | DDD: 29 repos (17.8%); Hexagonal: 20 repos (12.3%) | Moderate (43% top-3 rate) | Modular monolith (avg 4.0), hexagonal ports, plugin architectures, explicit extraction points | nopCommerce (RealWorld): 17-year evolution; GStreamer (AOSA): plugin-based extensibility; 33 Discovered Plugin repos | Premature abstraction; building for evolution you never execute | Software Architecture Guild (microkernel for 6 AI variants), Wonderous Toys (microkernel for plugins) |
 | **Security** | Not directly detectable | Moderate (38% top-3 rate) | Modular monolith (avg 3.25 for security-focused teams), zero-trust, specific ADRs | Bitwarden (RealWorld): SOC 2/GDPR/HIPAA compliant; Puppet (AOSA): compliance-as-code | Listing security generically without concrete decisions | ArchColider (ADR-006: zero trust), The Archangels (crypto-shredding, ADR-005) |
 | **Simplicity** | Not directly detectable | Moderate (50% top-3 rate) | Modular monolith (avg 2.33), service-based, buy-over-build decisions | Orchard Core (RealWorld): modular monolith simplicity; Git (AOSA): simple object model | False economy of "simple" microservices; simplicity does not mean under-engineering | Wonderous Toys (modular monolith + microkernel), Architects++ (Facebook Groups + Eventbrite over custom build) |
 | **Observability** | 4 repos (3%) -- underdetected | Moderate (46% top-3 rate) | Service-based (avg 2.25), LLM-specific observability (LangFuse, Langwatch) in AI systems | Graphite (AOSA): production observability pipeline; 3 Observability Discovered repos | Treating observability as an afterthought; addressed by <20% of teams | ConnectedAI (LangFuse for LLM tracing), ZAITects (Langwatch for LLM observability) |
@@ -381,22 +381,22 @@ The weakest signal: **Scalability**. It is the most commonly cited attribute ove
 
 ## Quick Reference Card
 
-One-page summary ranked by Discovered frequency -- how architects actually build software in the 122-repo corpus.
+One-page summary ranked by Discovered frequency -- how architects actually build software in the 163-repo deep-validated corpus.
 
 ### Architecture Selection by Problem Profile
 
 | Your Situation | Recommended Approach | Discovered Frequency | Top Team to Study | Production Validation | Key Artifact to Include |
 |---------------|---------------------|---------------------|-------------------|----------------------|------------------------|
-| Startup/nonprofit, small-medium scale | Modular Monolith with evolution path | 64 repos (52%) | ArchColider (1st, Farmacy Food) | Orchard Core (RealWorld) | Cost analysis with dollar amounts |
-| Large scale, event-heavy | Event-Driven + Service-Based | 63 EDA repos (52%) | Pragmatic (1st, ClearView) | NGINX (AOSA), Bitwarden (RealWorld), Graphite (AOSA) | Volumetric analysis with load calculations |
-| Legacy migration | Service-Based + phased transition | 4 repos (3%) -- underdetected | Team Seven (1st, Sysops Squad) | nopCommerce (RealWorld), Selenium (AOSA) | Transition architecture diagram |
-| Healthcare/medical, real-time | Event-Driven, on-premises | 63 EDA repos (52%) | BluzBrothers (1st, MonitorMe) | Graphite (AOSA) -- analogous pipeline pattern | Fitness functions with latency proof |
-| AI is the core product | Service-Based + human-in-the-loop | 6 AI/ML repos (5%) | ZAITects (1st, Certifiable Inc.) | Limited -- newest pattern | LLM evaluation framework + cost projection |
-| IoT/Edge with offline | Event-Driven core, pragmatic edge deployment | 63 EDA repos (52%) | CELUS Ceals (1st, Wildlife Watcher) | Git (AOSA), Puppet (AOSA), Bitwarden (RealWorld) | Physical constraint quantification |
-| High integration complexity | Per-quantum style selection | 36 DevTools repos (30%) | CELUS Ceals (1st, Wildlife Watcher) | LLVM (AOSA), GStreamer (AOSA), Selenium (AOSA), Jellyfin (RealWorld) | Comparative external platform analysis |
-| Non-profit platform | Modular Monolith MVP or Service-Based | 64 MM repos (52%) | PegasuZ (1st, Spotlight) | Limited -- competition evidence is primary | Per-user cost calculation |
-| 99.99%+ availability | Event-Driven + Microservices | 63 EDA + 26 MS repos | Profitero Data Alchemists (1st, Road Warrior) | NGINX (AOSA), Riak (AOSA), HDFS (AOSA) | Rozanski/Woods multi-viewpoint framework |
-| Compliance-heavy (HIPAA, GDPR) | Style per other factors + compliance ADRs | 4 Banking/Finance repos | The Archangels (1st, Farmacy Family) | Bitwarden (RealWorld), Puppet (AOSA) | Compliance-specific ADRs citing standards |
+| Startup/nonprofit, small-medium scale | Modular Monolith with evolution path | 65 repos (39.9%) | ArchColider (1st, Farmacy Food) | Orchard Core (RealWorld). Notable: AutoGPT (182k), n8n (177k) | Cost analysis with dollar amounts |
+| Large scale, event-heavy | Event-Driven + Service-Based | 47 EDA repos (28.8%), 11 SB repos (6.7%) | Pragmatic (1st, ClearView) | NGINX (AOSA), Bitwarden (RealWorld), Graphite (AOSA) | Volumetric analysis with load calculations |
+| Legacy migration | Service-Based + phased transition | 11 repos (6.7%) | Team Seven (1st, Sysops Squad) | nopCommerce (RealWorld), Selenium (AOSA) | Transition architecture diagram |
+| Healthcare/medical, real-time | Event-Driven, on-premises | 47 EDA repos (28.8%) | BluzBrothers (1st, MonitorMe) | Graphite (AOSA) -- analogous pipeline pattern | Fitness functions with latency proof |
+| AI is the core product | Service-Based + human-in-the-loop | 16 AI/ML repos (9.8%), 11 Multi-Agent repos (6.7%) | ZAITects (1st, Certifiable Inc.) | Notable: AutoGPT (182k), langchain (128k), autogen (55k) | LLM evaluation framework + cost projection |
+| IoT/Edge with offline | Event-Driven core, pragmatic edge deployment | 47 EDA repos (28.8%) | CELUS Ceals (1st, Wildlife Watcher) | Git (AOSA), Puppet (AOSA), Bitwarden (RealWorld) | Physical constraint quantification |
+| High integration complexity | Per-quantum style selection, Plugin/Microkernel | 53 DevTools repos (32.5%), 33 Plugin repos (20.2%) | CELUS Ceals (1st, Wildlife Watcher) | LLVM (AOSA), GStreamer (AOSA), Selenium (AOSA), Jellyfin (RealWorld) | Comparative external platform analysis |
+| Non-profit platform | Modular Monolith MVP or Service-Based | 65 MM repos (39.9%) | PegasuZ (1st, Spotlight) | Limited -- competition evidence is primary | Per-user cost calculation |
+| 99.99%+ availability | Event-Driven + Microservices | 47 EDA + 16 MS repos | Profitero Data Alchemists (1st, Road Warrior) | NGINX (AOSA), Riak (AOSA), HDFS (AOSA) | Rozanski/Woods multi-viewpoint framework |
+| Compliance-heavy (HIPAA, GDPR) | Style per other factors + compliance ADRs | DDD: 29 repos (17.8%), Hexagonal: 20 repos (12.3%) | The Archangels (1st, Farmacy Family) | Bitwarden (RealWorld), Puppet (AOSA) | Compliance-specific ADRs citing standards |
 
 ### The Five Things Winners Always Do
 
@@ -405,25 +405,25 @@ Based on the statistically derived "Winning Formula" (80% retrospective accuracy
 1. **Document 15+ decisions** with well-structured ADRs showing trade-off reasoning
 2. **Include feasibility analysis** demonstrating cost awareness and practical constraints (4.5x placement impact)
 3. **Use C4 diagrams** at multiple levels to communicate architecture at different granularities
-4. **Adopt event-driven patterns** as a primary or supporting style -- 63 of 122 Discovered repos (52%) use EDA, and 73% of KataLog winners do the same
+4. **Adopt event-driven patterns** as a primary or supporting style -- 47 of 163 Discovered repos (28.8%) use EDA, and 73% of KataLog winners do the same
 5. **Propose evolutionary approaches** with phased roadmaps from MVP to target state (73% of winners)
 
 ### Style Combinations Cheat Sheet
 
 | Combination | Discovered Co-occurrence | Production Examples | Verdict |
 |-------------|------------------------|---------------------|---------|
-| Modular Monolith + Event-Driven | 38 repos (31% of corpus) | Orchard Core (RealWorld) | Most common configuration in real codebases |
-| Event-Driven + Service-Based | -- | Bitwarden (RealWorld), Graphite (AOSA) | Best-performing KataLog combination (2.57 avg) |
-| Event-Driven + Pipeline | -- | NGINX (AOSA), GStreamer (AOSA) | Production-validated at extreme scale |
-| Plugin + Pipeline | -- | LLVM (AOSA), GStreamer (AOSA) | Production-validated for extensible processing |
-| Plugin + Layered | -- | SQLAlchemy (AOSA), nopCommerce (RealWorld) | Production-validated for extensible platforms |
-| CQRS + Event Sourcing | 18 CQRS repos co-occur with EDA | Squidex (RealWorld) | Production-validated for content management |
-| Modular Monolith + Plugin | -- | Orchard Core (RealWorld) | Production-validated; undefeated in KataLog when evolution path documented |
-| Layered + Modular Monolith | 18 repos | nopCommerce (RealWorld) | Layered internal structure within modular boundaries |
+| Event-Driven + Modular Monolith | 25 repos (top co-occurring pair) | Orchard Core (RealWorld) | Most common configuration in real codebases |
+| Modular Monolith + Plugin/Microkernel | 19 repos (2nd most common pair) | Orchard Core, Jellyfin, n8n (177k), elasticsearch (76k) | Deep-validated; invisible under prior automated detection |
+| Layered + Modular Monolith | 16 repos | nopCommerce (RealWorld) | Layered internal structure within modular boundaries |
+| DDD + Hexagonal | 15 repos | CleanArchitecture (19k), domain-driven-hexagon (14k) | Clean boundaries for complex domains |
+| CQRS + DDD | 15 repos | CleanArchitecture (19k), modular-monolith-with-ddd (13k) | Production-validated for content management |
+| Event-Driven + Service-Based | Across domains | Bitwarden (RealWorld), Graphite (AOSA) | Best-performing KataLog combination (2.57 avg) |
+| Event-Driven + Pipeline | Across domains | NGINX (AOSA), GStreamer (AOSA) | Production-validated at extreme scale |
+| Plugin + Pipeline | Now detectable via deep validation | LLVM (AOSA), GStreamer (AOSA) | Production-validated for extensible processing |
 | 3+ complementary styles | Common in Discovered | LLVM (AOSA): Pipeline + Plugin + Layered | Outperforms single-style and two-style approaches in KataLog (2.36-2.67 avg) |
-| Event-Driven + Microservices | -- | -- | Most common KataLog combo but worst-performing (1.29 avg); 0 production systems |
-| Microservices alone (no EDA) | 26 MS repos, 0 production systems | -- | Anti-pattern: microservices without async decoupling (1.70 avg) |
+| Event-Driven + Microservices | Less common than prior estimates | -- | Most common KataLog combo but worst-performing (1.29 avg); 0 production systems |
+| Microservices alone (no EDA) | 16 MS repos (9.8%), 0 production systems | -- | Anti-pattern: microservices without async decoupling (1.70 avg) |
 
 ---
 
-*Generated: 2026-03-05 from structured metadata of 225 entries across 5 sources: 78 KataLog competition submissions (Fall 2020 -- Winter 2025), 12 AOSA production systems, 5 RealWorldASPNET production apps, 8 reference implementations, and 122 Discovered open-source repositories. Source data: `docs/reference-library/problem-spaces.md`, `docs/reference-library/solution-spaces.md`, `docs/reference-library/evidence/by-quality-attribute.md`, `docs/analysis/cross-cutting.md`.*
+*Generated: 2026-03-06 from structured metadata of 266 entries across 5 sources: 78 KataLog competition submissions (Fall 2020 -- Winter 2025), 12 AOSA production systems, 5 RealWorldASPNET production apps, 8 reference implementations, and 163 Discovered open-source repositories (deep-validated via source code inspection per SPEC-019). Source data: `docs/reference-library/problem-spaces.md`, `docs/reference-library/solution-spaces.md`, `docs/reference-library/evidence/by-quality-attribute.md`, `docs/analysis/cross-cutting.md`.*

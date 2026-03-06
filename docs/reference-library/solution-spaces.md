@@ -1,6 +1,6 @@
 # Solution Space Taxonomy
 
-A cross-source, evidence-based catalog of architectural approaches ranked by frequency in 122 production codebases (Discovered), validated by 17 production systems (AOSA + RealWorld), and enriched with qualitative reasoning from 78 competition teams (KataLog). Total evidence base: 225 entries across 5 sources.
+A cross-source, evidence-based catalog of architectural approaches ranked by frequency in 163 production codebases (Discovered), validated by 17 production systems (AOSA + RealWorld), and enriched with qualitative reasoning from 78 competition teams (KataLog). Total evidence base: 266 entries across 5 sources.
 
 > **Cross-references.** For the raw evidence tables and weighting methodology, see [Cross-Source Evidence Reference](evidence/cross-source-reference.md). For the analytical framework, gap analysis, and lifecycle-stage mapping, see [Cross-Source Analysis](evidence/cross-source-analysis.md). For per-style KataLog breakdowns, see [Evidence by Architecture Style](evidence/by-architecture-style.md). For the problem-domain perspective (which challenges favor which styles), see [Problem Spaces](problem-spaces.md).
 
@@ -12,7 +12,7 @@ This document maps the **solution space** of software architecture: which archit
 
 **Evidence hierarchy (Discovered-first):**
 
-1. **Discovered Frequency Scoreboard** (PRIMARY). Statistical ranking by frequency in 122 open-source repositories classified through automated signal detection with multi-turn LLM validation. This answers "what do real codebases actually use?" and is the primary ranking because it represents the largest, most diverse evidence sample.
+1. **Discovered Frequency Scoreboard** (PRIMARY). Statistical ranking by frequency in 163 open-source repositories classified through deep-validated source code inspection (SPEC-019). This answers "what do real codebases actually use?" and is the primary ranking because it represents the largest, most diverse evidence sample.
 
 2. **Production Evidence Highlights**. Deep narratives from 12 AOSA production systems and 5 RealWorldASPNET applications. Small sample (17 systems) but highest individual authority -- these are systems built, deployed, and operated under real-world conditions by their creators.
 
@@ -21,16 +21,15 @@ This document maps the **solution space** of software architecture: which archit
 4. **Alternative Ranking: Production-Weighted Score**. The Combined Weighted Scoreboard (production systems at 20 pts each) is preserved as an alternative weighting methodology for readers who want to weight curated production evidence most heavily.
 
 **Reading each style profile:**
-- **Statistical basis** opens every profile: "In 122 codebases, [Style] appears in N% of repos, co-occurring with [X] in M repos."
+- **Statistical basis** opens every profile: "In 163 codebases, [Style] appears in N% of repos, co-occurring with [X] in M repos."
 - **Production evidence** (AOSA + RealWorld) provides depth validation from systems with published architectural reasoning.
 - **Why this works** presents KataLog team reasoning, judge feedback, and ADR excerpts that explain the qualitative reasoning behind statistical patterns.
 - **Reference implementations** (RefArch) confirm recommended patterns with working code.
 - **Quality attributes** are drawn from all sources, with Discovered detection data and production-observed attributes taking precedence.
 
-> **Detection bias:** Discovered statistics are derived from automated filesystem analysis. Styles and QAs that leave strong filesystem signals (Docker -> Deployability, module boundaries -> Modularity) are overrepresented. Styles and QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) are underdetected. KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
+> **Validation methodology:** Discovered statistics are derived from deep-validated source code inspection (SPEC-019, 163 repos). Each repository was classified through multi-turn analysis of actual source code structure, not heuristic filesystem signals. 24 repos (14.7%) are classified as Indeterminate -- libraries and frameworks (AxonFramework, MediatR, typeorm, etc.) with no classifiable application architecture. QAs that are architectural decisions invisible in code (Performance tuning, Testability strategies, Interoperability contracts) remain underdetected. KataLog competition evidence fills this gap -- teams documented these invisible decisions in ADRs and presentations.
 
 **Limitations:**
-- Discovered classification is automated; quality varies (production systems mixed with tutorials and samples). Pruning removed 51 unclassifiable entries (libraries, frameworks, SDKs) from the original 173.
 - Correlation is not causation. Style frequency does not prove effectiveness.
 - Each repo and KataLog team may exhibit multiple styles; counts are not mutually exclusive.
 - The KataLog dataset is 78 teams across 11 challenges. Some styles have very small sample sizes (n < 5).
@@ -42,35 +41,68 @@ This document maps the **solution space** of software architecture: which archit
 
 ## Discovered Frequency Scoreboard (PRIMARY RANKING)
 
-Styles ranked by frequency in 122 real codebases. This is the primary ranking because it represents the largest, most structurally diverse evidence sample -- how architects actually build software in practice.
+Styles ranked by frequency in 163 deep-validated repositories (SPEC-019). This is the primary ranking because it represents the largest, most structurally diverse evidence sample -- how architects actually build software in practice. Each repository was classified through source code inspection, not heuristic signal detection. 24 repos (14.7%) are Indeterminate (libraries/frameworks with no classifiable application architecture).
 
-| Rank | Style | Discovered Repos | % of Corpus | Top Co-occurring Style | Production Systems |
-|------|-------|-----------------|-------------|----------------------|-------------------|
-| 1 | **Modular Monolith** | 64 | 52% | Event-Driven (38 repos) | Orchard Core |
-| 2 | **Event-Driven** | 63 | 52% | Modular Monolith (38 repos) | NGINX, Twisted, ZeroMQ, Squidex, Bitwarden |
-| 3 | **Layered** | 29 | 24% | Modular Monolith (18 repos) | nopCommerce |
-| 4 | **Domain-Driven Design** | 27 | 22% | Event-Driven | (none in evidence base) |
-| 5 | **Microservices** | 26 | 21% | Event-Driven | (none in evidence base) |
-| 6 | **Pipe-and-Filter** | 19 | 16% | Event-Driven | NGINX, LLVM, ZeroMQ, Graphite, GStreamer, Jellyfin |
-| 7 | **CQRS/Event Sourcing** | 18 | 15% | Event-Driven | Squidex |
-| 8 | **Hexagonal/Clean** | 16 | 13% | Event-Driven | (none in evidence base) |
-| 9 | **Serverless** | 6 | 5% | Event-Driven | (none in evidence base) |
-| 10 | **Multi-Agent** | 5 | 4% | Event-Driven | (none in evidence base) |
-| 11 | **Space-Based** | 5 | 4% | Event-Driven | Riak |
-| 12 | **Service-Based** | 4 | 3% | Event-Driven | Selenium, Graphite, Bitwarden |
-| — | **Plugin/Microkernel** | 0 | 0% | — | LLVM, SQLAlchemy, GStreamer, Jellyfin, Orchard Core, nopCommerce |
+**Any-Position Frequency** (repos tagged with a style in any position):
+
+| Rank | Style | Repos | % of 163 | Top Co-occurring Style | Notable Projects (GitHub stars) |
+|------|-------|-------|----------|----------------------|-------------------------------|
+| 1 | **Modular Monolith** | 65 | 39.9% | Event-Driven (25 repos) | AutoGPT (182k), n8n (177k), langchain (128k), elasticsearch (76k), nest (74k), redis (73k) |
+| 2 | **Event-Driven** | 47 | 28.8% | Modular Monolith (25 repos) | AutoGPT (182k), n8n (177k), dify (131k), elasticsearch (76k), appwrite (55k), mastodon (49k) |
+| 3 | **Layered** | 35 | 21.5% | Modular Monolith (16 repos) | nocodb (62k), traefik (62k), maybe (54k), mastodon (49k), discourse (46k), outline (37k) |
+| 4 | **Plugin/Microkernel** | 33 | 20.2% | Modular Monolith (19 repos) | n8n (177k), elasticsearch (76k), nest (74k), redis (73k), grafana (72k), strapi (71k) |
+| 5 | **Domain-Driven Design** | 29 | 17.8% | Hexagonal (15 repos) | saleor (22k), CleanArchitecture (19k), server (18k), domain-driven-hexagon (14k), abp (14k) |
+| 6 | **Pipe-and-Filter** | 26 | 16.0% | Event-Driven | dify (131k), langchain (128k), localstack (64k), traefik (62k), llama_index (47k), airflow (44k) |
+| 7 | **Hexagonal Architecture** | 20 | 12.3% | DDD (15 repos) | jellyfin (49k), keycloak (33k), CleanArchitecture (19k), domain-driven-hexagon (14k) |
+| 8 | **CQRS** | 17 | 10.4% | DDD (15 repos) | CleanArchitecture (19k), domain-driven-hexagon (14k), modular-monolith-with-ddd (13k), eShop (10k) |
+| 9 | **Microservices** | 16 | 9.8% | Event-Driven | supabase (98k), dapr (25k), microservices-demo (19k), server (18k), gitpod (13k) |
+| 10 | **Multi-Agent** | 11 | 6.7% | Event-Driven | AutoGPT (182k), langchain (128k), autogen (55k), crewAI (45k), semantic-kernel (27k) |
+| 11 | **Service-Based** | 11 | 6.7% | Event-Driven | dify (131k), mastodon (49k), temporal (18k), linkerd2 (11k), nhost (9k) |
+| 12 | **Space-Based** | 5 | 3.1% | Event-Driven | dragonfly (30k), hazelcast (6k), ignite (5k), geode (2k), infinispan (1k) |
+| 13 | **Serverless** | 3 | 1.8% | Event-Driven | aws-serverless-airline-booking (2k), azure-functions-host (2k) |
+
+**Primary-Only Frequency** (repos where the style is the primary classification):
+
+| Rank | Style | Primary Repos | % of 163 |
+|------|-------|---------------|----------|
+| 1 | **Modular Monolith** | 38 | 23.3% |
+| 2 | **Plugin/Microkernel** | 15 | 9.2% |
+| 3 | **Microservices** | 15 | 9.2% |
+| 4 | **Pipe-and-Filter** | 14 | 8.6% |
+| 5 | **Multi-Agent** | 10 | 6.1% |
+| 6 | **Hexagonal Architecture** | 10 | 6.1% |
+| 7 | **Service-Based** | 8 | 4.9% |
+| 8 | **Layered** | 8 | 4.9% |
+| 9 | **Event-Driven** | 7 | 4.3% |
+| 10 | **Space-Based** | 5 | 3.1% |
+| 11 | **CQRS** | 4 | 2.5% |
+| 12 | **Serverless** | 3 | 1.8% |
+| 13 | **Domain-Driven Design** | 2 | 1.2% |
+
+**Top Co-occurring Pairs:**
+
+| Pair | Co-occurrences |
+|------|---------------|
+| Event-Driven + Modular Monolith | 25 |
+| Modular Monolith + Plugin/Microkernel | 19 |
+| Layered + Modular Monolith | 16 |
+| DDD + Hexagonal | 15 |
+| CQRS + DDD | 15 |
+| DDD + Event-Driven | 14 |
 
 **Key statistical findings:**
 
-1. **Modular Monolith and Event-Driven are equally prevalent at 52% each.** 64 of 122 repos exhibit Modular Monolith; 63 of 122 exhibit Event-Driven. These two styles co-occur in 38 repos (31% of the entire corpus), suggesting they are complementary rather than competing. Event-Driven communication within a Modular Monolith host is the single most common architectural configuration.
+1. **Modular Monolith is the most prevalent style at 39.9%.** 65 of 163 repos exhibit Modular Monolith in any position; 38 repos (23.3%) use it as their primary style. It co-occurs with Event-Driven in 25 repos and with Plugin/Microkernel in 19 repos, confirming that modular boundaries host both event-driven communication and plugin extensibility.
 
-2. **Layered, DDD, and Microservices form a second tier (21-24%).** 29 repos are Layered, 27 are DDD, and 26 are Microservices. Layered + Modular Monolith co-occur in 18 repos, suggesting layered internal structure within modular boundaries.
+2. **Event-Driven is a cross-cutting concern, not a primary style.** 47 repos (28.8%) exhibit Event-Driven in any position, but only 7 repos (4.3%) use it as their primary style. Event-Driven is the architectural equivalent of a secondary trait -- it co-occurs with other styles rather than standing alone. This distinction was invisible in earlier heuristic-based classification.
 
-3. **Plugin/Microkernel has zero Discovered entries.** Plugin architectures are defined by runtime extension points and host-plugin contracts, not by directory structure or container orchestration. This is a known blind spot in signal-based detection. 6 production systems (LLVM, SQLAlchemy, GStreamer, Jellyfin, Orchard Core, nopCommerce) confirm the pattern is heavily used but structurally undetectable.
+3. **Plugin/Microkernel is now the #4 any-position style (20.2%) and #2 primary style (9.2%).** Deep source code inspection detected 33 repos with plugin architectures -- previously undetectable through automated filesystem analysis. Projects like n8n (177k stars), elasticsearch (76k), nest (74k), redis (73k), and grafana (72k) confirm the pattern is one of the most widely used in high-star repositories.
 
-4. **Service-Based has thin code presence: 4 of 122 repos (3%).** Yet 3 production systems (Selenium, Graphite, Bitwarden) confirm it is under-detected, not under-used. Service-based architecture is harder to detect from structural signals than microservices (fewer Docker Compose services) or event-driven (no message broker config).
+4. **Service-Based Architecture has grown from 4 to 11 repos (6.7%).** Deep validation detected service-based decomposition in projects like dify (131k stars), mastodon (49k), and temporal (18k). Combined with 3 production systems (Selenium, Graphite, Bitwarden), the pattern is well-validated.
 
-5. **Microservices shows moderate code presence but zero production evidence.** 26 of 122 repos (21%) exhibit microservices patterns. 0 of 17 production systems rely on it. Pruning removed many tutorials and sample apps from the original 54, but the design-production gap remains stark.
+5. **Microservices dropped from 21% to 9.8%.** Deep validation reclassified many repos previously tagged as microservices. 16 repos exhibit microservices patterns, with 15 as primary. The design-production gap persists: 0 of 17 production systems rely on microservices as a primary style.
+
+6. **Multi-Agent more than doubled from 5 to 11 repos (6.7%).** AutoGPT (182k stars), langchain (128k), autogen (55k), crewAI (45k), and semantic-kernel (27k) anchor this rapidly growing category. 10 repos use Multi-Agent as their primary style.
 
 ---
 
@@ -137,7 +169,7 @@ Percentage of each style's production-weighted combined score from production so
 | Serverless | 0% | (no production evidence) |
 | Multi-Agent | 0% | (no production evidence) |
 
-**Remaining gaps:** Five styles have zero production evidence: Microservices (26 repos), DDD (27 repos), Hexagonal/Clean (16 repos), Serverless (6 repos), and Multi-Agent (5 repos). All five have active open-source implementations, confirming they are widely *built* but not yet *validated at production scale* within this evidence base.
+**Remaining gaps:** Five styles have zero production evidence: DDD (29 repos), Hexagonal/Clean (20 repos), Microservices (16 repos), Multi-Agent (11 repos), and Serverless (3 repos). All five have active open-source implementations, confirming they are widely *built* but not yet *validated at production scale* within this evidence base.
 
 ---
 
@@ -169,7 +201,7 @@ KataLog competition data is valued for a specific purpose: teams explain *why* t
 
 Competition teams provide three types of insight unavailable in code analysis:
 
-1. **Explicit reasoning via ADRs.** Winners average 15+ ADRs documenting architectural decisions, trade-offs, and alternatives considered. Only ~5 of 122 Discovered repos have ADR directories.
+1. **Explicit reasoning via ADRs.** Winners average 15+ ADRs documenting architectural decisions, trade-offs, and alternatives considered. Only ~5 of 163 Discovered repos have ADR directories.
 2. **Cost and feasibility analysis.** Teams like ArchColider (1st, Farmacy Food) documented 3 growth scenarios with cost projections. TheGlobalVariables (3rd, Spotlight) calculated $0.002/user/month for serverless. This reasoning is invisible in codebases.
 3. **Judge feedback on trade-offs.** Expert judges evaluated trade-off thinking, not just pattern selection. Their commentary reveals *why* certain combinations succeed and others fail.
 
@@ -191,21 +223,21 @@ Competition teams provide three types of insight unavailable in code analysis:
 
 The Combined Weighted Scoreboard uses a production-weighted methodology where a single production system (20 pts) outweighs an entire Kata competition season (~13 pts). This is an alternative ranking that weights curated production evidence most heavily. See the full methodology in [cross-source-reference.md](evidence/cross-source-reference.md#evidence-weighting-methodology).
 
-| Rank | Style | KataLog | AOSA | RealWorld | Ref Impls | Combined | Production % | Discovered | vs KataLog-only |
-|------|-------|---------|------|-----------|-----------|----------|-------------|------------|-----------------|
-| 1 | **Event-Driven** | 94 | 60 | 40 | 9 | **203** | 49% | 63 | -- |
-| 2 | **Plugin/Microkernel** | 4 | 60 | 60 | 0 | **124** | 97% | 0 | +9 (was #11) |
-| 3 | **Pipeline** | 0 | 100 | 20 | 0 | **120** | 100% | 19 | NEW |
-| 4 | **Service-Based** | 43 | 40 | 20 | 2 | **105** | 57% | 4 | -1 (was #3) |
-| 5 | **Microservices** | 67 | 0 | 0 | 9 | **76** | 0% | 26 | -3 (was #2) |
-| 6 | **Modular Monolith** | 18 | 0 | 20 | 2 | **40** | 50% | 64 | -2 (was #4) |
-| 7 | **CQRS/Event Sourcing** | 8 | 0 | 20 | 5 | **33** | 61% | 18 | +1 (was #8) |
-| 8 | **Space-Based** | 4 | 20 | 0 | 0 | **24** | 83% | 5 | +2 (was #10) |
-| 9 | **Layered** | 0 | 0 | 20 | 0 | **20** | 100% | 29 | NEW |
-| 10 | **Domain-Driven Design** | 11 | 0 | 0 | 5 | **16** | 0% | 27 | -4 (was #6) |
-| 11 | **Hexagonal/Clean** | 10 | 0 | 0 | 6 | **16** | 0% | 16 | -4 (was #7) |
-| 12 | **Serverless** | 12 | 0 | 0 | 2 | **14** | 0% | 6 | -7 (was #5) |
-| 13 | **Multi-Agent** | 8 | 0 | 0 | 0 | **8** | 0% | 5 | -4 (was #9) |
+| Rank | Style | KataLog | AOSA | RealWorld | Ref Impls | Combined | Production % | Discovered (163 repos) | vs KataLog-only |
+|------|-------|---------|------|-----------|-----------|----------|-------------|----------------------|-----------------|
+| 1 | **Event-Driven** | 94 | 60 | 40 | 9 | **203** | 49% | 47 (28.8%) | -- |
+| 2 | **Plugin/Microkernel** | 4 | 60 | 60 | 0 | **124** | 97% | 33 (20.2%) | +9 (was #11) |
+| 3 | **Pipeline** | 0 | 100 | 20 | 0 | **120** | 100% | 26 (16.0%) | NEW |
+| 4 | **Service-Based** | 43 | 40 | 20 | 2 | **105** | 57% | 11 (6.7%) | -1 (was #3) |
+| 5 | **Microservices** | 67 | 0 | 0 | 9 | **76** | 0% | 16 (9.8%) | -3 (was #2) |
+| 6 | **Modular Monolith** | 18 | 0 | 20 | 2 | **40** | 50% | 65 (39.9%) | -2 (was #4) |
+| 7 | **CQRS/Event Sourcing** | 8 | 0 | 20 | 5 | **33** | 61% | 17 (10.4%) | +1 (was #8) |
+| 8 | **Space-Based** | 4 | 20 | 0 | 0 | **24** | 83% | 5 (3.1%) | +2 (was #10) |
+| 9 | **Layered** | 0 | 0 | 20 | 0 | **20** | 100% | 35 (21.5%) | NEW |
+| 10 | **Domain-Driven Design** | 11 | 0 | 0 | 5 | **16** | 0% | 29 (17.8%) | -4 (was #6) |
+| 11 | **Hexagonal/Clean** | 10 | 0 | 0 | 6 | **16** | 0% | 20 (12.3%) | -4 (was #7) |
+| 12 | **Serverless** | 12 | 0 | 0 | 2 | **14** | 0% | 3 (1.8%) | -7 (was #5) |
+| 13 | **Multi-Agent** | 8 | 0 | 0 | 0 | **8** | 0% | 11 (6.7%) | -4 (was #9) |
 
 ### Scoring Methodology
 
@@ -224,13 +256,13 @@ Each entry receives points based on evidence quality:
 
 **What the production weighting reveals:**
 
-1. **Plugin/Microkernel surges to #2 (was #11 in KataLog-only).** 6 production systems across compilers, ORMs, multimedia, media servers, CMS, and e-commerce. 97% production evidence. Only 2 of 78 Kata teams ever used this pattern.
-2. **Pipeline rises to #3 (invisible in KataLog).** 5 AOSA projects plus Jellyfin. 100% production evidence. 0 of 78 Kata teams proposed pipeline as a primary style.
-3. **Microservices drops to #5 (was #2).** 0 production systems across all sources. Every point comes from competition designs and reference templates.
-4. **Serverless drops to #12 (was #5).** 0 production systems. The gap between competition popularity and production adoption is second only to Microservices.
-5. **Layered enters at #9 (invisible in KataLog).** 29 Discovered repos plus nopCommerce's four-layer architecture. 100% production evidence in the curated score.
+1. **Plugin/Microkernel surges to #2 (was #11 in KataLog-only).** 6 production systems across compilers, ORMs, multimedia, media servers, CMS, and e-commerce. 97% production evidence. Deep validation now also detects 33 repos (20.2%) in the Discovered corpus -- projects like n8n (177k stars), elasticsearch (76k), and grafana (72k).
+2. **Pipeline rises to #3 (invisible in KataLog).** 5 AOSA projects plus Jellyfin. 100% production evidence. 0 of 78 Kata teams proposed pipeline as a primary style. Deep validation detects 26 repos (16.0%) including dify (131k stars) and langchain (128k).
+3. **Microservices drops to #5 (was #2).** 0 production systems across all sources. Every point comes from competition designs and reference templates. Deep validation reduced Discovered presence from 26 to 16 repos (9.8%).
+4. **Serverless drops to #12 (was #5).** 0 production systems. Deep validation reduced Discovered presence to 3 repos (1.8%). The gap between competition popularity and production adoption is the widest of any style.
+5. **Layered enters at #9 (invisible in KataLog).** 35 Discovered repos (21.5%) plus nopCommerce's four-layer architecture. 100% production evidence in the curated score.
 
-**How this ranking compares to Discovered frequency:** Event-Driven ranks #1 in both systems. The biggest divergences are Plugin/Microkernel (#2 production-weighted, undetectable in Discovered) and Modular Monolith (#1 Discovered, #6 production-weighted). Together, the two rankings provide complementary views. Discovered shows what architects actually build. Production-weighted scoring shows what has survived the deepest scrutiny.
+**How this ranking compares to Discovered frequency:** Modular Monolith ranks #1 in Discovered frequency (39.9%); Event-Driven ranks #1 in production-weighted scoring. The biggest divergences are Modular Monolith (#1 Discovered, #6 production-weighted) and Event-Driven (#1 production-weighted, #2 Discovered but only #9 as a primary style at 4.3%). Together, the two rankings provide complementary views. Discovered shows what architects actually build. Production-weighted scoring shows what has survived the deepest scrutiny.
 
 ---
 
@@ -242,7 +274,7 @@ Each profile opens with its statistical basis from the Discovered corpus, then p
 
 ### #1 (Discovered) / #6 (Production-Weighted) -- Modular Monolith
 
-**In 122 codebases, Modular Monolith appears in 64 repos (52%) -- the most commonly adopted architecture style in practice.** It co-occurs with Event-Driven in 38 repos (31% of the entire corpus) and with Layered in 18 repos. This is the default architecture of competently-built software.
+**In 163 codebases, Modular Monolith appears in 65 repos (39.9%) -- the most commonly adopted architecture style in practice.** It is the primary style in 38 repos (23.3%). It co-occurs with Event-Driven in 25 repos, with Plugin/Microkernel in 19 repos, and with Layered in 16 repos. Notable projects: AutoGPT (182k stars), n8n (177k), langchain (128k), elasticsearch (76k), nest (74k), redis (73k).
 
 **Evidence tier**: T4 (KataLog, RealWorld, RefArch, Discovered) | **Production-weighted score**: 40 pts (50% production)
 
@@ -263,9 +295,9 @@ Each profile opens with its statistical basis from the Discovered corpus, then p
 **Quality attributes supported**: Cognitive Simplicity, Cost Efficiency, Deployability, Testability, Modifiability
 **Quality attributes traded off**: Scalability (initially), Elasticity (initially), Independent Deployability
 
-**Cross-source insight**: 64 of 122 repos (52%) exhibit Modular Monolith -- the most common pattern in the Discovered corpus. It ranks only #6 in production-weighted scoring (40 pts), revealing that well-structured open-source applications overwhelmingly exhibit modular monolith patterns even without deep production narratives. The KataLog win rate is 83.3%, the highest of any style. The "start simple, evolve deliberately" approach is the strongest single architectural signal in the competition dataset.
+**Cross-source insight**: 65 of 163 repos (39.9%) exhibit Modular Monolith -- the most common pattern in the Discovered corpus. It ranks only #6 in production-weighted scoring (40 pts), revealing that well-structured open-source applications overwhelmingly exhibit modular monolith patterns even without deep production narratives. The KataLog win rate is 83.3%, the highest of any style. The "start simple, evolve deliberately" approach is the strongest single architectural signal in the competition dataset. Deep validation confirms that the most-starred repositories (AutoGPT 182k, n8n 177k, langchain 128k) use Modular Monolith as their foundation.
 
-**When to use**: Nearly all greenfield projects should start as a modular monolith. In 122 codebases, it is the most common pattern. Every winning KataLog team that used it proposed it as an intentional initial phase with a documented evolution path. Especially effective when combined with DDD (ArchColider) or plugin architecture (Orchard Core).
+**When to use**: Nearly all greenfield projects should start as a modular monolith. In 163 codebases, it is the most common pattern. Every winning KataLog team that used it proposed it as an intentional initial phase with a documented evolution path. Especially effective when combined with DDD (ArchColider), plugin architecture (Orchard Core, n8n, elasticsearch), or event-driven communication (AutoGPT, langchain).
 
 **When NOT to use**: Very small KataLog sample (n=6). Notably absent from Road Warrior (2M active users) and MonitorMe (medical device monitoring) -- challenges with strict latency and throughput requirements that may exceed a monolith's initial capacity.
 
@@ -273,7 +305,7 @@ Each profile opens with its statistical basis from the Discovered corpus, then p
 
 ### #2 (Discovered) / #1 (Production-Weighted) -- Event-Driven Architecture
 
-**In 122 codebases, Event-Driven appears in 63 repos (52%) -- tied with Modular Monolith as the most prevalent style.** It co-occurs with Modular Monolith in 38 repos. Kafka-based stream processing, RabbitMQ message buses, event sourcing frameworks, and reactive systems dominate the Discovered sample.
+**In 163 codebases, Event-Driven appears in 47 repos (28.8%) in any position but only 7 repos (4.3%) as the primary style.** Event-Driven is a cross-cutting concern that co-occurs with other styles rather than standing alone. It co-occurs with Modular Monolith in 25 repos and with DDD in 14 repos. Notable projects: AutoGPT (182k stars), n8n (177k), dify (131k), elasticsearch (76k), appwrite (55k), mastodon (49k).
 
 **Evidence tier**: T5 (all 5 sources) | **Production-weighted score**: 203 pts (49% production)
 
@@ -301,11 +333,11 @@ Each profile opens with its statistical basis from the Discovered corpus, then p
 **Quality attributes supported**: Scalability, Fault Tolerance, Availability, Evolvability, Performance, Responsiveness
 **Quality attributes traded off**: Simplicity, Cognitive Simplicity, Consistency (eventual consistency trade-off)
 
-**Cross-source insight**: Event-Driven is universally adopted across every evidence tier. 63 of 122 codebases (52%) exhibit it. 47 of 78 competition teams (60%) use it. 5 of 17 production systems rely on it.
+**Cross-source insight**: Event-Driven is universally adopted across every evidence tier -- but deep validation reveals it functions primarily as a secondary trait. 47 of 163 codebases (28.8%) exhibit it in any position, but only 7 (4.3%) use it as their primary style. 47 of 78 competition teams (60%) use it. 5 of 17 production systems rely on it.
 
-Its *role* shifts across the lifecycle. In competition designs, it is the primary organizing principle. In production (NGINX, Twisted), it solves specific technical problems -- non-blocking I/O, event-loop concurrency, immutable audit trails. Teams proposing "Event-Driven Architecture" should specify which aspect they mean: event-based communication, event sourcing as data model, event-loop concurrency, or integration pattern.
+Its *role* shifts across the lifecycle. In competition designs, it is the primary organizing principle. In production (NGINX, Twisted), it solves specific technical problems -- non-blocking I/O, event-loop concurrency, immutable audit trails. In the deep-validated Discovered corpus, it most frequently appears as a communication mechanism within another primary style (Modular Monolith, Plugin/Microkernel, DDD). Teams proposing "Event-Driven Architecture" should specify which aspect they mean: event-based communication, event sourcing as data model, event-loop concurrency, or integration pattern.
 
-**When to use**: Systems requiring asynchronous decoupling, high throughput, fault tolerance, or temporal decoupling between producers and consumers. Appears in 52% of real codebases -- the most adopted architectural pattern alongside Modular Monolith.
+**When to use**: Systems requiring asynchronous decoupling, high throughput, fault tolerance, or temporal decoupling between producers and consumers. Appears in 28.8% of real codebases as a co-occurring style. Strongest when paired with Modular Monolith (25 repos) or DDD (14 repos).
 
 **When NOT to use**: Event-driven appeared at high rates across all KataLog placements (50% of runners-up also use it). It is necessary but not sufficient. Teams that adopted EDA without complementary patterns (event storming, proper ADR documentation, feasibility analysis) did not consistently place well. In the Wildlife Watcher challenge, EDA teams averaged only 1.3 -- suggesting it may be over-applied in IoT/edge contexts where simpler patterns suffice.
 
@@ -313,7 +345,7 @@ Its *role* shifts across the lifecycle. In competition designs, it is the primar
 
 ### #3 (Discovered) / #9 (Production-Weighted) -- Layered Architecture
 
-**In 122 codebases, Layered appears in 29 repos (24%).** It co-occurs with Modular Monolith in 18 repos, suggesting layered internal structure within modular boundaries. Django applications, Spring Boot services, Rails applications, and traditional n-tier codebases dominate this segment.
+**In 163 codebases, Layered appears in 35 repos (21.5%) in any position and 8 repos (4.9%) as primary.** It co-occurs with Modular Monolith in 16 repos, suggesting layered internal structure within modular boundaries. Notable projects: nocodb (62k stars), traefik (62k), maybe (54k), mastodon (49k), discourse (46k), outline (37k).
 
 **Evidence tier**: T2 (RealWorld, Discovered) | **Production-weighted score**: 20 pts (100% production)
 
@@ -321,16 +353,16 @@ Its *role* shifts across the lifecycle. In competition designs, it is the primar
 - **nopCommerce** (RealWorld): E-commerce platform with a classic four-layer architecture: Presentation (web UI/API) -> Services (business logic) -> Data (persistence) -> Core (domain entities/interfaces). Layers enforce dependency direction -- upper layers depend on lower layers, never the reverse. 17-year production track record, ~9,500 GitHub stars. Also classified as Plugin (plugin system for extensions operates within the layered structure).
 
 **Why this works -- team reasoning (KataLog):**
-- **Usage**: 0 of 78 teams. Layered architecture was not proposed as a primary style by any competition team. This likely reflects the perception that layered architecture is "too simple" for a competition context where judges reward architectural sophistication, even though layered architecture demonstrably works in long-lived production systems and appears in 24% of real codebases.
+- **Usage**: 0 of 78 teams. Layered architecture was not proposed as a primary style by any competition team. This likely reflects the perception that layered architecture is "too simple" for a competition context where judges reward architectural sophistication, even though layered architecture demonstrably works in long-lived production systems and appears in 21.5% of real codebases.
 
 **Reference implementations:** None.
 
 **Quality attributes supported**: Simplicity, Separation of Concerns, Testability (per-layer), Maintainability, Onboarding Speed
 **Quality attributes traded off**: Performance (cross-layer overhead), Scalability (monolithic deployment), Flexibility (rigid layer boundaries)
 
-**Cross-source insight**: 29 of 122 Discovered repos (24%) exhibit Layered architecture. Its production evidence share is 100% (nopCommerce alone). Combined with Plugin architecture (as in nopCommerce), layered systems can achieve extensibility while maintaining structural clarity.
+**Cross-source insight**: 35 of 163 Discovered repos (21.5%) exhibit Layered architecture. Its production evidence share is 100% (nopCommerce alone). Combined with Plugin architecture (as in nopCommerce), layered systems can achieve extensibility while maintaining structural clarity. Deep validation confirms that high-star projects like nocodb (62k), traefik (62k), and mastodon (49k) use layered patterns.
 
-> **Competition blind spot.** A pattern used by nearly a quarter of real codebases receives zero competition attention and has no reference implementations.
+> **Competition blind spot.** A pattern used by over a fifth of real codebases receives zero competition attention and has no reference implementations.
 
 **When to use**: Business applications where separation of concerns, team onboarding speed, and maintainability are primary concerns. Effective as the internal structure within each module of a modular monolith. nopCommerce demonstrates that layered + plugin is a viable long-term production combination.
 
@@ -338,11 +370,11 @@ Its *role* shifts across the lifecycle. In competition designs, it is the primar
 
 ---
 
-### #4 (Discovered) / #10 (Production-Weighted) -- Domain-Driven Design
+### #5 (Discovered) / #10 (Production-Weighted) -- Domain-Driven Design
 
-**In 122 codebases, DDD appears in 27 repos (22%).** It co-occurs most frequently with Event-Driven and Microservices. DDD patterns are widely implemented in open source.
+**In 163 codebases, DDD appears in 29 repos (17.8%) in any position but only 2 repos (1.2%) as primary.** It co-occurs most frequently with Hexagonal (15 repos), CQRS (15 repos), and Event-Driven (14 repos). Notable projects: saleor (22k stars), CleanArchitecture (19k), server (18k), domain-driven-hexagon (14k), abp (14k). Like Event-Driven, DDD functions primarily as a secondary structural approach rather than a primary style.
 
-> **Evidence gap.** 27 Discovered repos but zero production systems -- the widest gap between code presence and production adoption of any style. DDD remains unvalidated at production scale within this evidence base.
+> **Evidence gap.** 29 Discovered repos but zero production systems -- the widest gap between code presence and production adoption of any style. DDD remains unvalidated at production scale within this evidence base.
 
 **Evidence tier**: T4 (KataLog, RefArch, Discovered; no AOSA/RealWorld) | **Production-weighted score**: 16 pts (0% production)
 
@@ -367,17 +399,17 @@ None. DDD has zero production evidence across both production sources. However, 
 **Quality attributes supported**: Extensibility, Modifiability, Domain Alignment, Cognitive Clarity
 **Quality attributes traded off**: Time-to-market (upfront analysis cost), Simplicity (for simple domains)
 
-**When to use**: Complex business domains with rich domain logic, especially greenfield projects. Appears in 22% of real codebases. KataLog teams that used DDD placed competitively (avg 2.75). No DDD team placed poorly.
+**When to use**: Complex business domains with rich domain logic, especially greenfield projects. Appears in 17.8% of real codebases (any position). KataLog teams that used DDD placed competitively (avg 2.75). No DDD team placed poorly. Strongest when paired with Hexagonal (15 co-occurrences) or CQRS (15 co-occurrences).
 
 **When NOT to use**: DDD is under-reported in both Discovered (automated detection struggles with strategic design patterns) and KataLog (many teams use DDD concepts without listing it). The upfront analysis cost is significant. Avoid for simple CRUD domains or systems where the primary complexity is technical rather than domain-based.
 
 ---
 
-### #5 (Discovered) / #5 (Production-Weighted) -- Microservices
+### #9 (Discovered) / #5 (Production-Weighted) -- Microservices
 
-**In 122 codebases, Microservices appears in 26 repos (21%).** It co-occurs most frequently with Event-Driven (the majority of microservices repos also exhibit event-driven patterns). 0 of 17 production systems in the evidence base use microservices as a primary style.
+**In 163 codebases, Microservices appears in 16 repos (9.8%) in any position and 15 repos (9.2%) as primary.** It co-occurs most frequently with Event-Driven. 0 of 17 production systems in the evidence base use microservices as a primary style. Notable projects: supabase (98k stars), dapr (25k), microservices-demo (19k), server (18k), gitpod (13k).
 
-> **Detection note.** The original corpus contained 54 microservices repos. Pruning removed tutorials and sample apps, confirming that much of the "microservices" presence in open source is educational rather than production-grade.
+> **Deep-validation reclassification.** Deep source code inspection reduced Microservices from 26 repos (21%) in heuristic classification to 16 repos (9.8%). Many repos previously tagged as microservices were reclassified to more specific primary styles (Service-Based, Plugin/Microkernel, Modular Monolith) upon code-level review.
 
 **Evidence tier**: T4 (KataLog, RefArch, Discovered; no AOSA/RealWorld) | **Production-weighted score**: 76 pts (0% production)
 
@@ -405,7 +437,7 @@ None. Microservices has zero production evidence across both production sources.
 **Quality attributes supported**: Scalability, Elasticity, Deployability, Evolvability, Fault Isolation
 **Quality attributes traded off**: Simplicity, Cost, Cognitive Load, Data Consistency, Operational Complexity
 
-**Cross-source insight**: Microservices has the largest design-production gap in the evidence base. 26 of 122 codebases (21%) exhibit microservices patterns -- but many are educational. 39 of 78 competition teams (50%) use it. 0 of 17 production systems rely on it.
+**Cross-source insight**: Microservices has the largest design-production gap in the evidence base. 16 of 163 codebases (9.8%) exhibit microservices patterns after deep validation. 39 of 78 competition teams (50%) use it. 0 of 17 production systems rely on it. The gap widened with deep validation: many repos previously classified as microservices were reclassified to Service-Based, Plugin/Microkernel, or Modular Monolith upon source code inspection.
 
 The gap exists because:
 1. AOSA projects predate the microservices naming convention.
@@ -420,7 +452,7 @@ The gap exists because:
 
 ### #6 (Discovered) / #3 (Production-Weighted) -- Pipeline / Pipe-and-Filter
 
-**In 122 codebases, Pipe-and-Filter appears in 19 repos (16%).** Data processing pipelines, ETL systems, and stream processors. Code-level and production-level evidence converge for this style -- 6 production systems confirm the Discovered pattern.
+**In 163 codebases, Pipe-and-Filter appears in 26 repos (16.0%) in any position and 14 repos (8.6%) as primary.** Data processing pipelines, ETL systems, AI orchestration chains, and stream processors. Notable projects: dify (131k stars), langchain (128k), localstack (64k), traefik (62k), llama_index (47k), airflow (44k). Code-level and production-level evidence converge for this style -- 6 production systems confirm the Discovered pattern.
 
 **Evidence tier**: T3 (AOSA, RealWorld, Discovered) | **Production-weighted score**: 120 pts (100% production)
 
@@ -440,15 +472,15 @@ The gap exists because:
 **Quality attributes supported**: Throughput, Composability, Independent Stage Evolution, Testability (per-stage), Reusability of stages
 **Quality attributes traded off**: Latency (multi-stage overhead for single items), Complexity (error handling across stages), Interactivity (pipeline assumes unidirectional flow)
 
-**When to use**: Systems where data flows through ordered transformation stages: compilers, media processing, HTTP request handling, ETL/data ingestion, metrics pipelines, CI/CD systems. Appears in 16% of real codebases. Especially powerful when combined with Plugin architecture (LLVM, GStreamer) so that pipeline stages are independently replaceable.
+**When to use**: Systems where data flows through ordered transformation stages: compilers, media processing, HTTP request handling, ETL/data ingestion, metrics pipelines, CI/CD systems, AI orchestration chains. Appears in 16.0% of real codebases and 8.6% as a primary style. AI/ML platforms (dify 131k stars, langchain 128k, llama_index 47k) increasingly adopt pipe-and-filter for LLM chain orchestration. Especially powerful when combined with Plugin architecture (LLVM, GStreamer) so that pipeline stages are independently replaceable.
 
 **When NOT to use**: Interactive or request-response systems where bidirectional communication is primary. Pipeline assumes unidirectional data flow; forcing interactive patterns into a pipeline creates unnecessary complexity.
 
 ---
 
-### #7 (Discovered) / #7 (Production-Weighted) -- CQRS/Event Sourcing
+### #8 (Discovered) / #7 (Production-Weighted) -- CQRS/Event Sourcing
 
-**In 122 codebases, CQRS/Event Sourcing appears in 18 repos (15%).** AxonFramework, EventStoreDB integrations, Marten-based systems, and other event sourcing frameworks.
+**In 163 codebases, CQRS appears in 17 repos (10.4%) in any position and 4 repos (2.5%) as primary.** It co-occurs with DDD in 15 repos. Notable projects: CleanArchitecture (19k stars), domain-driven-hexagon (14k), modular-monolith-with-ddd (13k), eShop (10k).
 
 **Evidence tier**: T4 (KataLog, RealWorld, RefArch, Discovered) | **Production-weighted score**: 33 pts (61% production)
 
@@ -469,20 +501,20 @@ The gap exists because:
 **Quality attributes supported**: Auditability, Scalability (independent read/write scaling), Event Replay, Data Integrity, Temporal Query
 **Quality attributes traded off**: Complexity, Eventual Consistency, Learning Curve
 
-**When to use**: Systems requiring full audit trails, temporal queries, or independent read/write scaling. Appears in 15% of real codebases. Squidex demonstrates that CQRS/ES is viable for content management where every change must be tracked and replayed. Strongest when paired with DDD and Event-Driven.
+**When to use**: Systems requiring full audit trails, temporal queries, or independent read/write scaling. Appears in 10.4% of real codebases. Squidex demonstrates that CQRS/ES is viable for content management where every change must be tracked and replayed. Strongest when paired with DDD (15 co-occurrences) and Event-Driven.
 
 **When NOT to use**: KataLog evidence shows CQRS/ES only appeared in Farmacy Food and Spotlight challenges. Teams in 2023-2025 seasons did not adopt it, suggesting perceived complexity without sufficient payoff for most challenge contexts. Avoid unless the domain genuinely requires immutable event histories or independent read/write models.
 
 ---
 
-### #8 (Discovered) / #11 (Production-Weighted) -- Hexagonal/Clean Architecture
+### #7 (Discovered) / #11 (Production-Weighted) -- Hexagonal/Clean Architecture
 
-**In 122 codebases, Hexagonal/Clean appears in 16 repos (13%).** Clean Architecture templates, hexagonal examples across Java, C#, Go, and TypeScript.
+**In 163 codebases, Hexagonal Architecture appears in 20 repos (12.3%) in any position and 10 repos (6.1%) as primary.** It co-occurs with DDD in 15 repos. Notable projects: jellyfin (49k stars), keycloak (33k), CleanArchitecture (19k), domain-driven-hexagon (14k).
 
 **Evidence tier**: T4 (KataLog, RefArch, Discovered; no AOSA/RealWorld) | **Production-weighted score**: 16 pts (0% production)
 
 **Production evidence:**
-None. Hexagonal/Clean has zero production evidence. However, 16 Discovered repos and strong RefArch presence (3 repos, highest point contribution of any style from RefArch alone) suggest it is widely taught and implemented as a within-service structural pattern.
+None. Hexagonal/Clean has zero production evidence. However, 20 Discovered repos (including jellyfin at 49k stars and keycloak at 33k) and strong RefArch presence (3 repos, highest point contribution of any style from RefArch alone) suggest it is widely adopted as a within-service structural pattern.
 
 **Why this works -- team reasoning (KataLog):**
 - **Usage**: 4 of 78 teams (5.1%)
@@ -501,15 +533,15 @@ None. Hexagonal/Clean has zero production evidence. However, 16 Discovered repos
 **Quality attributes supported**: Testability, Maintainability, Domain Isolation, Replaceability
 **Quality attributes traded off**: Simplicity (additional layers), Initial Development Speed
 
-**When to use**: As a within-service structural pattern for domain isolation and testability. Appears in 13% of real codebases. Functions best inside a broader system-level architecture (MonArch applied hexagonal within each microservice). All 4 KataLog teams placed competitively.
+**When to use**: As a within-service structural pattern for domain isolation and testability. Appears in 12.3% of real codebases (any position) and 6.1% as primary. Co-occurs strongly with DDD (15 repos). Functions best inside a broader system-level architecture (MonArch applied hexagonal within each microservice). All 4 KataLog teams placed competitively.
 
 **When NOT to use**: Small KataLog sample (n=4), all teams placed competitively -- no clear negative signal. The pattern adds structural overhead that may not be justified for simple CRUD services or short-lived systems.
 
 ---
 
-### #9 (Discovered) / #12 (Production-Weighted) -- Serverless
+### #13 (Discovered) / #12 (Production-Weighted) -- Serverless
 
-**In 122 codebases, Serverless appears in 6 repos (5%).** Mostly AWS SAM/CDK deployments. Below the n>=10 target for robust classification.
+**In 163 codebases, Serverless appears in 3 repos (1.8%).** Notable projects: aws-serverless-airline-booking (2k stars), azure-functions-host (2k). The least prevalent style in the deep-validated corpus.
 
 **Evidence tier**: T4 (KataLog, RefArch, Discovered; no AOSA/RealWorld) | **Production-weighted score**: 14 pts (0% production)
 
@@ -532,17 +564,15 @@ None. Serverless has zero production evidence across both production sources. No
 **Quality attributes supported**: Elasticity, Cost Efficiency (pay-per-use), Deployability, Automatic Scalability
 **Quality attributes traded off**: Performance (cold starts), Control, Vendor Lock-in, Debugging Complexity
 
-**When to use**: As a supporting pattern within a broader architecture, especially for event-triggered background processing, scheduled tasks, or lightweight APIs. Appears in 5% of real codebases. Cost-effective for variable-load workloads.
+**When to use**: As a supporting pattern within a broader architecture, especially for event-triggered background processing, scheduled tasks, or lightweight APIs. Appears in only 1.8% of real codebases after deep validation. Cost-effective for variable-load workloads.
 
-**When NOT to use**: Serverless as the primary/sole style (Berlin Bears, Team Pacman) consistently produced runner-up KataLog results. The gap between competition popularity (8 teams) and production adoption (0%) mirrors the Microservices gap. The style performs better as a supporting pattern than as the primary structural approach.
+**When NOT to use**: Serverless as the primary/sole style (Berlin Bears, Team Pacman) consistently produced runner-up KataLog results. The gap between competition popularity (8 teams) and production adoption (0%) is the widest of any style. Deep validation reduced Discovered presence from 6 to 3 repos, confirming that serverless is primarily a deployment model rather than an architecture style detectable in source code.
 
 ---
 
 ### #10 (Discovered) / #13 (Production-Weighted) -- Multi-Agent
 
-**In 122 codebases, Multi-Agent appears in 5 repos (4%).** AutoGPT, CrewAI, LangGraph-based systems, CAMEL, smolagents. This is the first code-level validation of this emerging pattern.
-
-> **Sample size note.** 5 repos is below the n>=10 target for robust classification.
+**In 163 codebases, Multi-Agent appears in 11 repos (6.7%) in any position and 10 repos (6.1%) as primary.** Notable projects: AutoGPT (182k stars), langchain (128k), autogen (55k), crewAI (45k), semantic-kernel (27k). Deep validation more than doubled the count from 5 to 11 repos, confirming this as the fastest-growing architecture style.
 
 **Evidence tier**: T2 (KataLog, Discovered) | **Production-weighted score**: 8 pts (0% production)
 
@@ -564,15 +594,15 @@ None. Multi-Agent is the newest style in the taxonomy (first appeared Fall 2024)
 **Quality attributes supported**: Accuracy (specialized agents), Extensibility (add new agents), Responsible AI (separation of concerns per agent)
 **Quality attributes traded off**: Complexity, Latency (multi-hop), Cost (multiple LLM calls), Debugging Difficulty
 
-**When to use**: AI-focused systems where different reasoning capabilities (retrieval, analysis, planning, execution) benefit from specialized agents. Appears in 4% of real codebases. Requires an AI-centric problem context.
+**When to use**: AI-focused systems where different reasoning capabilities (retrieval, analysis, planning, execution) benefit from specialized agents. Appears in 6.7% of real codebases (any position) and 6.1% as primary. Deep validation confirms the pattern is anchored by the highest-starred AI projects: AutoGPT (182k), langchain (128k), autogen (55k), crewAI (45k). Requires an AI-centric problem context.
 
 **When NOT to use**: This is an AI-era-specific pattern (first appeared Fall 2024). In the Certifiable Inc. challenge, where the problem was more structured (certification grading), a multi-agent approach placed as runner-up while simpler service-based approaches won 1st and 2nd.
 
 ---
 
-### #11 (Discovered) / #8 (Production-Weighted) -- Space-Based Architecture
+### #12 (Discovered) / #8 (Production-Weighted) -- Space-Based Architecture
 
-**In 122 codebases, Space-Based appears in 5 repos (4%).** Hazelcast integrations, Orleans-based systems, actor frameworks, distributed caches.
+**In 163 codebases, Space-Based appears in 5 repos (3.1%).** All 5 use it as their primary style. Notable projects: dragonfly (30k stars), hazelcast (6k), ignite (5k), geode (2k), infinispan (1k).
 
 **Evidence tier**: T3 (KataLog, AOSA, Discovered) | **Production-weighted score**: 24 pts (83% production)
 
@@ -593,17 +623,17 @@ None. Multi-Agent is the newest style in the taxonomy (first appeared Fall 2024)
 **Quality attributes supported**: Extreme Scalability, Low Latency, High Throughput, Elasticity
 **Quality attributes traded off**: Complexity, Cost, Data Consistency (eventual)
 
-**When to use**: Systems demanding extreme scalability, near-zero latency, and elastic capacity. Appears in 4% of real codebases. Riak demonstrates the pattern at database infrastructure level. Only appropriate when traffic patterns require in-memory data partitioning across distributed nodes.
+**When to use**: Systems demanding extreme scalability, near-zero latency, and elastic capacity. Appears in 3.1% of real codebases. Riak demonstrates the pattern at database infrastructure level. Dragonfly (30k stars) is a modern Redis-compatible in-memory store validating the style. Only appropriate when traffic patterns require in-memory data partitioning across distributed nodes.
 
 **When NOT to use**: Extremely rare in practice (5 Discovered repos, 2 KataLog teams, 1 AOSA system). The complexity and cost overhead are unjustified for most application architectures.
 
 ---
 
-### #12 (Discovered) / #4 (Production-Weighted) -- Service-Based Architecture
+### #11 (Discovered) / #4 (Production-Weighted) -- Service-Based Architecture
 
-**In 122 codebases, Service-Based appears in 4 repos (3%).** It co-occurs with Event-Driven in the majority of cases. 3 production systems (Selenium, Graphite, Bitwarden) confirm the pattern is widely used.
+**In 163 codebases, Service-Based appears in 11 repos (6.7%) in any position and 8 repos (4.9%) as primary.** Notable projects: dify (131k stars), mastodon (49k), temporal (18k), linkerd2 (11k), nhost (9k). It co-occurs with Event-Driven in the majority of cases. 3 production systems (Selenium, Graphite, Bitwarden) confirm the pattern is widely used.
 
-> **Detection bias.** Service-based architecture is harder to detect from structural signals than microservices (fewer Docker Compose services) or event-driven (no message broker config). Its thin Discovered presence is a detection artifact, not a reflection of actual adoption.
+> **Deep-validation improvement.** Deep source code inspection nearly tripled the Service-Based count from 4 to 11 repos. Heuristic-based classification struggled to distinguish Service-Based from Microservices; source-level review correctly identifies coarser-grained service decomposition with shared data stores.
 
 **Evidence tier**: T5 (all 5 sources) | **Production-weighted score**: 105 pts (57% production)
 
@@ -629,7 +659,7 @@ None. Multi-Agent is the newest style in the taxonomy (first appeared Fall 2024)
 **Quality attributes supported**: Maintainability, Reliability, Availability, Testability, Cost Efficiency
 **Quality attributes traded off**: Scalability (bounded), Elasticity (less granular), Independent Deployability (limited vs. microservices)
 
-**Cross-source insight**: Service-Based is one of only two styles (with Event-Driven) that has evidence across all five source types. 4 of 122 Discovered repos (3%) contrasts sharply with 3 production systems (57% production evidence).
+**Cross-source insight**: Service-Based is one of only two styles (with Event-Driven) that has evidence across all five source types. 11 of 163 Discovered repos (6.7%) -- nearly tripled from heuristic classification -- combined with 3 production systems (57% production evidence) now provides strong cross-validated evidence.
 
 Bitwarden's explicit choice of service-based over microservices -- citing operational overhead -- validates the KataLog finding: Event-Driven + Service-Based averages 2.57 placement points while Event-Driven + Microservices averages 1.29. Coarser-grained service decomposition with a shared database is a deliberate, pragmatic choice, not a compromise.
 
@@ -639,13 +669,11 @@ Bitwarden's explicit choice of service-based over microservices -- citing operat
 
 ---
 
-### Not Discovered / #2 (Production-Weighted) -- Plugin/Microkernel
+### #4 (Discovered) / #2 (Production-Weighted) -- Plugin/Microkernel
 
-**In 122 codebases, Plugin/Microkernel appears in 0 repos (0%).** Despite zero Discovered presence, 6 production systems across compilers, ORMs, multimedia, media servers, CMS, and e-commerce validate this as one of the most production-proven patterns.
+**In 163 codebases, Plugin/Microkernel appears in 33 repos (20.2%) in any position and 15 repos (9.2%) as primary.** Notable projects: n8n (177k stars), elasticsearch (76k), nest (74k), redis (73k), grafana (72k), strapi (71k). It co-occurs with Modular Monolith in 19 repos. Deep source code inspection resolved the previous detection blind spot -- this is now the #4 any-position style, confirming what 6 production systems already demonstrated.
 
-> **Detection bias.** Plugin architectures are defined by runtime extension points and host-plugin contracts, not by directory structure or container orchestration. This is a known blind spot in automated structural detection -- the #2 production-weighted style is structurally undetectable.
-
-**Evidence tier**: T3 (KataLog, AOSA, RealWorld) | **Production-weighted score**: 124 pts (97% production)
+**Evidence tier**: T5 (all 5 sources) | **Production-weighted score**: 124 pts (97% production)
 
 **Production evidence:**
 - **LLVM** (AOSA Vol. 1): Compiler infrastructure with a plugin/pass architecture. Each optimization and transformation is a plugin that slots into the compilation pipeline. Used by Apple (Clang/Swift), Rust, and hundreds of language frontends.
@@ -668,11 +696,11 @@ Bitwarden's explicit choice of service-based over microservices -- citing operat
 **Quality attributes supported**: Extensibility, Independent Evolution, Experimentation (A/B testing of plugins), Vendor Neutrality, Long-Term Adaptability
 **Quality attributes traded off**: Plugin Interface Stability, Integration Testing Complexity, Plugin Isolation
 
-**Cross-source insight**: Plugin/Microkernel is the largest rank correction in the dataset (+9 positions from KataLog-only to production-weighted). 6 production systems demonstrate that plugin architecture is how long-lived systems achieve extensibility.
+**Cross-source insight**: Plugin/Microkernel was the largest rank correction in the dataset (+9 positions from KataLog-only to production-weighted). Deep validation resolved the detection blind spot: 33 repos (20.2%) now confirm what 6 production systems demonstrated -- plugin architecture is how long-lived systems achieve extensibility. The co-occurrence with Modular Monolith (19 repos) confirms the complementary relationship: the monolith provides the host, plugins provide extensibility.
 
-> **Detection blind spot.** Competition teams almost never propose this pattern, and automated code discovery cannot detect it. This is the strongest example of a detection bias blind spot: invisible to both automated analysis and competition culture, yet proven at massive scale.
+> **Detection breakthrough.** Previously undetectable through automated filesystem analysis, deep source code inspection identified Plugin/Microkernel in 33 repos. Competition teams still rarely propose this pattern (2 of 78 teams), making it the style with the largest gap between actual adoption and competition culture awareness.
 
-**When to use**: Systems requiring third-party extensibility, independent feature evolution, or the ability to accommodate uses the creators never imagined. Especially strong for platforms (LLVM, GStreamer, Orchard Core) and products with ecosystem strategies (nopCommerce payment gateways, Jellyfin metadata providers).
+**When to use**: Systems requiring third-party extensibility, independent feature evolution, or the ability to accommodate uses the creators never imagined. Appears in 20.2% of real codebases (any position) and 9.2% as primary. The highest-starred Plugin/Microkernel projects (n8n 177k, elasticsearch 76k, nest 74k, redis 73k, grafana 72k, strapi 71k) are all developer platforms -- confirming this pattern's strength for ecosystem-driven products. Also strong for domain-specific platforms (LLVM, GStreamer, Orchard Core) and products with plugin marketplaces (nopCommerce payment gateways, Jellyfin metadata providers).
 
 **When NOT to use**: Systems without clear extension points or where all functionality is first-party. Plugin architecture adds interface design overhead that is wasted if no third-party or independent-team extension is planned.
 
@@ -808,19 +836,19 @@ Maps cloud provider design pattern documentation to the library's architecture s
 Based on evidence from all five sources, these patterns consistently correlate with poor outcomes.
 
 ### 1. Microservices Without Event-Driven Architecture
-**Statistical basis**: 26 of 122 codebases exhibit Microservices. The majority co-occur with Event-Driven. Teams that separate these patterns struggle.
+**Statistical basis**: 16 of 163 codebases exhibit Microservices (9.8%) after deep validation. The majority co-occur with Event-Driven. Teams that separate these patterns struggle.
 **KataLog evidence**: 10 teams used Microservices without EDA, averaging 1.70 placement points. EDA teams overall average 2.00. Only 1 first-place win among the 10.
 **Production evidence**: Systems that could adopt microservices (Bitwarden with 9 services) choose service-based with event-driven instead. Zero production systems in the evidence base use microservices as a primary style.
 **Why it fails**: Pure synchronous microservices create tight coupling through REST chains. Production systems demonstrate that asynchronous decoupling is essential for the quality attributes microservices are supposed to deliver.
 
 ### 2. Over-Reliance on Scalability as Primary Quality Attribute
-**Statistical basis**: Deployability signals appear in 109 of 122 codebases (89%). Scalability signals appear in only 33 of 122 (27%). Most real systems prioritize deployment over scaling.
+**Statistical basis**: Deployability signals appear in 144 of 163 codebases (88.3%). Scalability signals appear in only 37 of 163 (22.7%). Most real systems prioritize deployment over scaling.
 **KataLog evidence**: 68% of runners-up cite Scalability, but only 55% of first-place winners do. The "Scalability Trap."
 **Production evidence**: AOSA and RealWorldASPNET systems achieve scalability through *specific mechanisms* (HDFS block replication, Riak consistent hashing, NGINX event loops, nopCommerce caching layers) rather than through architecture style selection.
 **Why it fails**: Choosing Microservices "for scalability" is the design equivalent of choosing Kubernetes "for reliability" -- the abstraction level is wrong.
 
 ### 3. Zero ADRs or Minimal Decision Documentation
-**Statistical basis**: Roughly 5 of 122 Discovered repos have ADR directories. 1 of 8 Reference Architectures includes ADRs. The practice most correlated with competition success has minimal representation in real codebases.
+**Statistical basis**: Roughly 5 of 163 Discovered repos have ADR directories. 1 of 8 Reference Architectures includes ADRs. The practice most correlated with competition success has minimal representation in real codebases.
 **KataLog evidence**: Teams with zero ADRs never placed higher than Runner-up/3rd. Teams averaging fewer than 5 ADRs rarely place in top 2.
 **Why it fails**: ADRs demonstrate architectural reasoning. Without them, judges cannot evaluate trade-off thinking. The gap between competition best practice and real-codebase practice is stark.
 
@@ -830,19 +858,19 @@ Based on evidence from all five sources, these patterns consistently correlate w
 **Why it fails**: Listing AWS services or naming every framework does not demonstrate architectural judgment. Winners focus on the "why" (quality attribute trade-offs) rather than the "what" (specific products).
 
 ### 5. Big-Bang Architecture Without Evolution Path
-**Statistical basis**: 64 of 122 codebases (52%) exhibit Modular Monolith. 26 of 122 (21%) exhibit Microservices. Most real systems start with simpler architectures -- evolution is the norm.
+**Statistical basis**: 65 of 163 codebases (39.9%) exhibit Modular Monolith. 16 of 163 (9.8%) exhibit Microservices. Most real systems start with simpler architectures -- evolution is the norm.
 **KataLog evidence**: 73% of winners list two or more architecture styles and propose phased approaches. Teams proposing only a target-state architecture rarely placed in top 2.
 **Production evidence**: Production systems evolved organically. LLVM's pass/plugin architecture enables incremental addition of language frontends and optimization passes. Orchard Core's module system allows features to be added without modifying the host.
 **Why it fails**: Judges value pragmatism. A perfect target without a realistic path from the present is less valuable than an achievable initial architecture with a clear evolution roadmap.
 
 ### 6. Ignoring Production-Proven Patterns
-**Statistical basis**: 19 of 122 repos (16%) exhibit Pipeline; it ranks #3 production-weighted. Plugin is undetectable in code but has 6 production systems. Both are invisible in competition.
+**Statistical basis**: 26 of 163 repos (16.0%) exhibit Pipeline; it ranks #3 production-weighted. 33 of 163 repos (20.2%) exhibit Plugin/Microkernel -- now detectable through deep validation. Both remain invisible in competition.
 **Cross-source evidence**: Teams defaulting to Microservices + Event-Driven without considering Pipeline (for data flow problems) or Plugin (for extensibility problems) miss patterns validated at massive scale.
 **Why it fails**: Competition discourse creates a recency bias toward named patterns (Microservices, Serverless). The most battle-tested patterns (Pipeline in NGINX/LLVM/GStreamer, Plugin in LLVM/SQLAlchemy/Jellyfin) predate modern architecture naming conventions but solve real problems more effectively.
 
 ### 7. Missing Deployment View
 **KataLog evidence**: 82% of first-place teams include a deployment view vs. 50% of runners-up.
-**Production evidence**: Every AOSA and RealWorld system has a concrete deployment model. In 122 Discovered repos, Deployability signals (Docker, CI) appear in 89% -- the most detected quality attribute.
+**Production evidence**: Every AOSA and RealWorld system has a concrete deployment model. In 163 Discovered repos, Deployability signals (Docker, CI) appear in 88.3% (144 repos) -- the most detected quality attribute.
 **Why it fails**: A deployment view demonstrates that the architecture has been thought through to implementation level. Its absence suggests the architecture exists only in the abstract.
 
 ---
@@ -943,4 +971,4 @@ Based on evidence from all five sources, these patterns consistently correlate w
 
 ---
 
-*Generated: 2026-03-05 from 225 entries across 5 evidence sources: 78 KataLog competition submissions (Fall 2020 -- Winter 2025), 12 AOSA production systems (Volumes 1-2, 2011-2012), 5 RealWorldASPNET production applications, 8 reference implementations, and 122 Discovered open-source repositories.*
+*Generated: 2026-03-06 from 266 entries across 5 evidence sources: 78 KataLog competition submissions (Fall 2020 -- Winter 2025), 12 AOSA production systems (Volumes 1-2, 2011-2012), 5 RealWorldASPNET production applications, 8 reference implementations, and 163 deep-validated open-source repositories (SPEC-019).*
