@@ -1,7 +1,7 @@
 ---
 title: "Ecosystem Statistical Modeling"
 artifact: SPIKE-001
-status: Planned
+status: Complete
 author: cristos
 created: 2026-03-06
 last-updated: 2026-03-06
