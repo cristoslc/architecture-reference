@@ -147,4 +147,4 @@ Work completed directly via commits c24d038, 3400331, 634f67a without child spec
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-05 | 690dfff | Initial creation |
-| Complete | 2026-03-05 | — | All 6 reference library docs restructured with Discovered-first hierarchy |
+| Complete | 2026-03-05 | fdc0ef9 | All 6 reference library docs restructured with Discovered-first hierarchy |

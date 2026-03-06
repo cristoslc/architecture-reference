@@ -72,4 +72,4 @@ The `docs/reference-library/problem-spaces.md` document (1500+ lines) is 98% Kat
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | — | Initial creation |
 | Active | 2026-03-04 | ec39055 | Dependencies satisfied (SPEC-004, SPEC-005 implemented) |
-| Abandoned | 2026-03-05 | — | Superseded by EPIC-007 restructuring + SPEC-018 statistics update |
+| Abandoned | 2026-03-05 | fdc0ef9 | Superseded by EPIC-007 restructuring + SPEC-018 statistics update |

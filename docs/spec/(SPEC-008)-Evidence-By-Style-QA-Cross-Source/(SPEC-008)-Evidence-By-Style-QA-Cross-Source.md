@@ -67,4 +67,4 @@ The two evidence synthesis documents (`evidence/by-architecture-style.md` at 487
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | — | Initial creation |
-| Abandoned | 2026-03-05 | — | Superseded by EPIC-007 restructuring + SPEC-018 statistics update |
+| Abandoned | 2026-03-05 | fdc0ef9 | Superseded by EPIC-007 restructuring + SPEC-018 statistics update |
