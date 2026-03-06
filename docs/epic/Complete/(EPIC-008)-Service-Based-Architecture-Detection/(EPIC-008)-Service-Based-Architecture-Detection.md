@@ -1,7 +1,7 @@
 ---
 title: "Service-Based Architecture Detection"
 artifact: EPIC-008
-status: Active
+status: Complete
 author: cristos
 created: 2026-03-05
 last-updated: 2026-03-05
