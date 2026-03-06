@@ -15,20 +15,24 @@
 
 ## Active
 
-| ID | Title | Summary | Last Updated | Commit |
-|----|-------|---------|--------------|--------|
-| SPEC-006 | Problem-Spaces Cross-Source Rewrite | Rewrite problem-spaces.md (1500+ lines) to classify problems from all 5 sources, expanding KataLog-only profiles to cross-source system profiles. Now blocked on SPEC-013. | 2026-03-04 | 0cc423c |
-| SPEC-007 | Solution-Spaces Cross-Source Rewrite | Rewrite solution-spaces.md (528 lines) with production-weighted scoring methodology (20 pts per production system vs 1-4 pts per KataLog placement). Now blocked on SPEC-013. | 2026-03-04 | 0cc423c |
+(No active specs.)
 
 ## Draft
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | SPEC-003 | Comparative Analysis Engine | Compare a user's repo architecture against the expanded catalog, generating evidence-grounded comparison reports. Depends on SPEC-002. | 2026-03-03 | b63f031 |
-| SPEC-008 | Evidence Cross-Source Update | Rewrite evidence/by-architecture-style.md and evidence/by-quality-attribute.md (1025 lines) with cross-source evidence tables. | 2026-03-03 | 1032e4b |
-| SPEC-009 | Synthesis Cross-Source Update | Rewrite problem-solution-matrix.md and decision-navigator.md (662 lines) with production-system evidence in all cells and paths. | 2026-03-03 | 1032e4b |
 | SPEC-014 | Override Rules & Disagreement Report | Deterministic rules for when to accept deep-validation results over existing classifications, plus disagreement markdown report. | 2026-03-04 | — |
 | SPEC-015 | Expanded Gold Standard & Three-Way Report | Expand gold standard from 17 to 40+ entries; three-way comparison across heuristic, llm-review, and deep-validation methods. | 2026-03-04 | — |
 | SPEC-016 | Validation Run Execution | Operational run plan for deep-context validation across all four priority populations, with gate criteria, pilot run, and post-run review checklists. | 2026-03-04 | — |
 | SPEC-017 | Pipeline Re-extraction and Re-classification | Re-run signal extraction on all 122 Discovered repos with new SBA/Plugin signals, selectively re-classify, produce comparison report. | 2026-03-05 | — |
 | SPEC-018 | Reference Library Statistics Update | Propagate corrected SBA/Plugin counts from SPEC-017 into all 8 reference library and cross-source documents. | 2026-03-05 | — |
+
+## Abandoned
+
+| ID | Title | Summary | Last Updated | Commit |
+|----|-------|---------|--------------|--------|
+| SPEC-006 | Problem-Spaces Cross-Source Rewrite | Rewrite problem-spaces.md (1500+ lines) to classify problems from all 5 sources. Superseded by EPIC-007 restructuring + SPEC-018 statistics update. | 2026-03-05 | fdc0ef9 |
+| SPEC-007 | Solution-Spaces Cross-Source Rewrite | Rewrite solution-spaces.md (528 lines) with production-weighted scoring. Superseded by EPIC-007 restructuring + SPEC-018 statistics update. | 2026-03-05 | fdc0ef9 |
+| SPEC-008 | Evidence Cross-Source Update | Rewrite evidence/by-architecture-style.md and evidence/by-quality-attribute.md with cross-source evidence tables. Superseded by EPIC-007 restructuring + SPEC-018 statistics update. | 2026-03-05 | fdc0ef9 |
+| SPEC-009 | Synthesis Cross-Source Update | Rewrite problem-solution-matrix.md and decision-navigator.md with production-system evidence. Superseded by EPIC-007 restructuring + SPEC-018 statistics update. | 2026-03-05 | fdc0ef9 |
