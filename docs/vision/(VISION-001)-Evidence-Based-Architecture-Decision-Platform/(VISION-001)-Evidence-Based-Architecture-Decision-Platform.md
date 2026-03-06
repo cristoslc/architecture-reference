@@ -4,7 +4,7 @@ artifact: VISION-001
 status: Active
 author: cristos
 created: 2026-03-03
-last-updated: 2026-03-03
+last-updated: 2026-03-06
 depends-on: []
 ---
 
@@ -18,12 +18,16 @@ Software architects, engineering leaders, and development teams making architect
 
 Replace opinion-driven architecture selection with evidence-grounded guidance. By cataloging what actually worked across hundreds of real architecture projects — competition submissions, production open-source systems, cloud provider reference architectures, and academic datasets — and making that evidence searchable, comparable, and actionable through both human-readable docs and AI-consumable tools, architects can make confident decisions backed by data rather than convention or hype.
 
+Architecture patterns exist at two scales: **application-level** (how a single deployable system is organized) and **ecosystem/platform-level** (how independently-developed repos compose into a coherent system). The evidence library and advisor skill must serve both contexts, recognizing that different architectural concerns, trade-offs, and style distributions apply at each scale.
+
 ## Success Metrics
 
 - Evidence base covers 200+ cataloged projects across 4+ complementary sources (up from 78 from a single source)
 - Architecture advisor skill installable and functional in external repos via remote-skill-manager
-- All 12 architecture styles have statistically meaningful sample sizes (n >= 10)
+- All architecture styles in the taxonomy have statistically meaningful sample sizes (n >= 10)
 - Cross-source analysis published, triangulating findings across competition, production, and reference sources
+- Ecosystem-level entries captured alongside single-repo entries, with clear statistical separation
+- Advisor skill distinguishes platform-centric from application-centric contexts when providing guidance
 
 ## Non-Goals
 
