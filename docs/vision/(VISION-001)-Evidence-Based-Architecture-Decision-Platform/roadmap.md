@@ -12,7 +12,7 @@ graph LR
     E1 --> E5[EPIC-005<br/>LLM Classification Pipeline<br/>COMPLETE]
     E3 --> E6[EPIC-006<br/>Deep-Context Validation]
     E3 --> E7[EPIC-007<br/>Discovered-First Hierarchy<br/>COMPLETE]
-    E3 --> E8[EPIC-008<br/>Service-Based Detection]
+    E3 --> E8[EPIC-008<br/>Service-Based Detection<br/>COMPLETE]
     E3 --> E9[EPIC-009<br/>Heuristic Pipeline Improvements]
     E3 --> E10[EPIC-010<br/>Ecosystem Classification]
     E2 --> E11[EPIC-011<br/>Platform-Aware Advising]
@@ -22,6 +22,7 @@ graph LR
     style E4 fill:#2d6a4f,color:#fff
     style E5 fill:#2d6a4f,color:#fff
     style E7 fill:#2d6a4f,color:#fff
+    style E8 fill:#2d6a4f,color:#fff
 ```
 
 ## Status
@@ -35,7 +36,7 @@ graph LR
 | [EPIC-005](../../epic/Complete/(EPIC-005)-LLM-Classification-Pipeline/(EPIC-005)-LLM-Classification-Pipeline.md) | **Complete** | Automate Pass 2 LLM review of Indeterminate entries | Builds on EPIC-003 |
 | [EPIC-006](../../epic/Proposed/(EPIC-006)-Deep-Context-Classification-Validation/(EPIC-006)-Deep-Context-Classification-Validation.md) | Proposed | Re-validate all classifications with deep context | Builds on EPIC-003 |
 | [EPIC-007](../../epic/Complete/(EPIC-007)-Discovered-First-Evidence-Hierarchy/(EPIC-007)-Discovered-First-Evidence-Hierarchy.md) | **Complete** | Restructure reference library docs to lead with Discovered evidence | Builds on EPIC-003 |
-| [EPIC-008](../../epic/Active/(EPIC-008)-Service-Based-Architecture-Detection/(EPIC-008)-Service-Based-Architecture-Detection.md) | **Active** | Fix Service-Based and Plugin/Microkernel detection blind spots | Builds on EPIC-003 |
+| [EPIC-008](../../epic/Complete/(EPIC-008)-Service-Based-Architecture-Detection/(EPIC-008)-Service-Based-Architecture-Detection.md) | **Complete** | Fix Service-Based and Plugin/Microkernel detection blind spots | Builds on EPIC-003 |
 | [EPIC-009](../../epic/Proposed/(EPIC-009)-Heuristic-Pipeline-Improvements/(EPIC-009)-Heuristic-Pipeline-Improvements.md) | Proposed | Improve heuristic pipeline to 60%+ agreement with deep-validation | Builds on SPEC-019 |
 | [EPIC-010](../../epic/Proposed/(EPIC-010)-Ecosystem-Architecture-Classification/(EPIC-010)-Ecosystem-Architecture-Classification.md) | Proposed | Capture cross-repo ecosystem architecture patterns | Builds on SPEC-019 |
 | [EPIC-011](../../epic/Proposed/(EPIC-011)-Platform-Aware-Architecture-Advising/(EPIC-011)-Platform-Aware-Architecture-Advising.md) | Proposed | Enhance advisor skill to distinguish platform vs application contexts | Builds on EPIC-002, EPIC-010 |
