@@ -15,7 +15,6 @@ success-criteria:
   - Updated Discovered statistics flow through to all 6 reference library documents
 depends-on:
   - EPIC-005
-  - EPIC-007
 ---
 
 # Service-Based Architecture Detection
@@ -168,7 +167,7 @@ Update `classify.py`:
 ## Key Dependencies
 
 - **EPIC-005** (Complete) — LLM Classification Pipeline provides the multi-turn review framework. SBA detection improvements feed new heuristic scores into the same pipeline.
-- **EPIC-007** (Active) — Discovered-first evidence hierarchy depends on accurate Discovered statistics. Corrected SBA/Plugin detection directly improves the primary evidence layer.
+- **EPIC-007** (Complete) — Discovered-first evidence hierarchy established. Corrected SBA/Plugin detection directly improves the primary evidence layer.
 - **EPIC-006** (Proposed) — Deep-context validation could further improve SBA classification by reading source code, but this epic targets heuristic-level improvements that don't require deep context.
 
 ## Lifecycle

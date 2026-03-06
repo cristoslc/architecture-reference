@@ -1,7 +1,7 @@
 ---
 title: "Synthesis Cross-Source Update"
 artifact: SPEC-009
-status: Draft
+status: Abandoned
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -67,3 +67,4 @@ The two synthesis documents (`problem-solution-matrix.md` at 248 lines/85% KataL
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | — | Initial creation |
+| Abandoned | 2026-03-05 | — | Superseded by EPIC-007 restructuring + SPEC-018 statistics update |

@@ -1,7 +1,7 @@
 ---
 title: "Discovered-First Evidence Hierarchy"
 artifact: EPIC-007
-status: Proposed
+status: Complete
 author: cristos
 created: 2026-03-05
 last-updated: 2026-03-05
@@ -13,8 +13,7 @@ success-criteria:
   - Each document's opening sections, ranking tables, and classification matrices present Discovered statistical distributions before any other source
   - KataLog-specific constructs (placement scores, win rates, average ADR counts) appear in clearly labeled secondary sections, not in primary rankings
   - No document section uses KataLog placement scores as the primary basis for architectural recommendations
-depends-on:
-  - EPIC-004
+depends-on: []
 ---
 
 # Discovered-First Evidence Hierarchy
@@ -136,12 +135,7 @@ Layer ordering (same dependency chain as EPIC-004):
 
 ## Child Specs
 
-To be created as SPEC artifacts under this epic:
-
-- **SPEC-010**: Discovered-First Scoreboard and Rankings (solution-spaces.md restructure)
-- **SPEC-011**: Statistical-First Evidence Sections (by-architecture-style.md + by-quality-attribute.md)
-- **SPEC-012**: Domain-Statistical Classification Matrix (problem-spaces.md + problem-solution-matrix.md)
-- **SPEC-013**: Statistical-First Decision Navigator (decision-navigator.md)
+Work completed directly via commits c24d038, 3400331, 634f67a without child spec artifacts. Statistics refresh handled by SPEC-018 under EPIC-008.
 
 ## Key Dependencies
 
@@ -153,3 +147,4 @@ To be created as SPEC artifacts under this epic:
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-05 | 690dfff | Initial creation |
+| Complete | 2026-03-05 | — | All 6 reference library docs restructured with Discovered-first hierarchy |
