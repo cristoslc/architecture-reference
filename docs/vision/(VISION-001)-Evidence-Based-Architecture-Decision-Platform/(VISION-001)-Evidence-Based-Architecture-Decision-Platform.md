@@ -35,6 +35,7 @@ Architecture patterns exist at two scales: **application-level** (how a single d
 - Not a prescriptive enforcement engine — the library classifies what IS, the user decides what SHOULD BE
 - Not a replacement for architectural judgment — evidence informs, it does not dictate
 - Not a project management or execution tracking system
+- Not a catalog of library or framework architectures — the evidence base is scoped to platforms/ecosystems and applications with deployable architectures. Libraries and frameworks may be added in a future scope expansion.
 
 ## Lifecycle
 

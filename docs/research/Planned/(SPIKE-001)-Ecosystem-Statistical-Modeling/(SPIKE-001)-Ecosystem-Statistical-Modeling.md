@@ -5,12 +5,12 @@ status: Planned
 author: cristos
 created: 2026-03-06
 last-updated: 2026-03-06
-question: "How should the reference library's statistical model represent and weight ecosystem-level architectures (multi-repo platforms) vs. single-repo applications, and how do ecosystem entries affect style frequency rankings?"
-gate: "Pre-implementation gate for EPIC-010 — must resolve before adding ecosystem entries to the catalog"
+question: "How should the reference library's statistical model weight production-grade vs. reference entries, and how should ecosystem-scope entries coexist with application-scope entries in frequency rankings?"
+gate: "Pre-implementation gate for EPIC-010 — must resolve weighting model and validate taxonomy before adding ecosystem entries to the catalog"
 risks-addressed:
   - "Ecosystem entries may double-count styles already represented by member repos"
-  - "Weighting ecosystems equally with single repos could skew frequency rankings"
-  - "The distinction between 'ecosystem' and 'collection of related tools' is subjective"
+  - "Star-based weighting may over-represent popular ecosystems at the expense of architectural diversity"
+  - "Library/Framework entries currently in catalog have no deployable architecture and must be removed"
 depends-on:
   - EPIC-010
 linked-research:
@@ -21,70 +21,86 @@ linked-research:
 
 ## Question
 
-How should the reference library's statistical model represent and weight ecosystem-level architectures (multi-repo platforms) vs. single-repo applications, and how do ecosystem entries affect style frequency rankings?
+How should the reference library's statistical model weight production-grade vs. reference entries, and how should ecosystem-scope entries coexist with application-scope entries in frequency rankings?
 
-The current catalog treats every entry equally — elasticsearch counts the same as a small CQRS demo app. Adding ecosystem entries (ELK stack, *arr stack, Grafana LGTM) raises several modeling questions:
+The catalog needs a 2-axis taxonomy:
 
-1. **Double-counting.** If elasticsearch is classified as Modular Monolith + Plugin and the ELK ecosystem is classified as Pipe-and-Filter, do we count both? The Pipe-and-Filter count goes up, but elasticsearch's individual styles still count too. Is this additive or should ecosystem membership suppress individual counting?
+| | Production-grade | Reference |
+|---|---|---|
+| **Platform/Ecosystem** | ELK stack, Grafana LGTM, *arr stack | KataLog ecosystem proposals |
+| **Application** | Backstage, Grafana, Saleor | clean-architecture-example, ddd-forum |
 
-2. **Weighting.** Should an ecosystem entry carry more weight than a single-repo entry? The ELK stack represents far more real-world deployment than a sample CQRS app. Options:
-   - Equal weight (simplest — 1 entry = 1 entry)
-   - Star-weighted (sum of member repo stars)
-   - Deployment-weighted (ecosystem = N where N is member count)
-   - Tiered (ecosystem, production app, reference implementation, library)
+This taxonomy resolves several previously-open questions:
 
-3. **Entry taxonomy.** What *kinds* of entries should the catalog distinguish?
-   - **Application**: single deployable with classifiable architecture (backstage, grafana, saleor)
-   - **Ecosystem/Platform**: multi-repo composition with emergent architecture (ELK, *arr, Grafana LGTM)
-   - **Library/Framework**: no application architecture, Indeterminate (AxonFramework, MediatR, typeorm)
-   - **Reference Implementation**: educational, demonstrates a pattern (clean-architecture-example, ddd-forum)
+1. **Double-counting (resolved).** Ecosystem-scope entries (ELK) and their application-scope members (Elasticsearch) are at different scopes. Both count — no double-counting within a scope.
 
-4. **Frequency reporting.** How do the reference library documents present ecosystem data?
-   - Separate "Ecosystem Frequency" table alongside "Repo Frequency"?
-   - Combined table with a source column?
-   - Ecosystem entries flagged in existing tables?
+2. **Weighting (partially resolved).** Only production-grade entries carry weight in frequency rankings. Reference implementations are annotation-only — they provide explanatory examples but don't count toward style frequencies. The remaining question: should production-grade weighting be a function of GitHub stars? And if so, what function?
 
-5. **Cross-source interaction.** KataLog teams propose architectures for challenges — these are "designed ecosystems." How do we compare designed ecosystems (KataLog) with observed ecosystems (Discovered)?
+3. **Entry taxonomy (resolved).** Two orthogonal axes — scope (platform/ecosystem | application) and use-type (production-grade | reference). Library/Framework entries have no deployable architecture and should be removed from the catalog entirely.
+
+4. **Frequency reporting (deferred).** Scope axis drives table structure (platform vs application rows), use-type drives emphasis (lead with production-grade). Exact format is out of scope — belongs to the epic doing the actual reference library rewrite.
+
+5. **Cross-source interaction (partially resolved).** AOSA entries describe production systems → production-grade. KataLog entries are designed architectures → reference. Each evidence source maps naturally onto the use-type axis.
 
 ## Go / No-Go Criteria
 
 | Criterion | Threshold | Measurement |
 |-----------|-----------|-------------|
-| Taxonomy is well-defined | Entry types have clear, non-overlapping definitions with >=90% agreement on test set | Classify 20 sample entries using proposed taxonomy; measure inter-rater agreement |
-| Double-counting impact quantified | Understand how many style counts change and by how much under each weighting scheme | Run 3 weighting schemes against current catalog + 10 candidate ecosystems; compare frequency tables |
-| Frequency table format validated | Proposed format is readable and non-misleading | Review with user; format must be unambiguous about what is being counted |
+| Taxonomy validated | 2-axis classification (scope × use-type) produces unambiguous assignment for >=95% of catalog entries | Classify all 163 entries; flag ambiguous cases |
+| Star-weighting model defined | A weighting function of GitHub stars is proposed and tested | Compare unweighted vs star-weighted frequency tables; validate that weighting improves consistency with cross-source evidence |
+| Library/Framework entries identified | Complete list of entries to remove from catalog | Classify current Indeterminate entries + scan for misclassified libraries |
 
 ## Pivot Recommendation
 
-If no clean taxonomy emerges, fall back to a simpler approach: add ecosystem entries as a separate "Ecosystems" evidence source (like KataLog, AOSA, etc.) with its own column in the Combined Weighted Scoreboard. This avoids contaminating the Discovered repo-level statistics while still capturing ecosystem evidence.
+If star-based weighting proves distortive (e.g., a single mega-repo dominates rankings), fall back to equal weighting within the production-grade tier. The taxonomy and scope decisions stand regardless of weighting outcome.
 
 ## Investigation Threads
 
-### Thread 1: Taxonomy Definition
+### Thread 1: 2-Axis Catalog Classification
 
-Classify all 163 current catalog entries into proposed categories (Application, Library/Framework, Reference Implementation). This establishes the baseline before adding ecosystems.
+Classify all 163 current catalog entries on both axes:
+- **Scope:** platform/ecosystem | application
+- **Use-type:** production-grade | reference
 
-Current data:
-- 24 repos already classified as Indeterminate — most are libraries/frameworks
+Identify Library/Framework entries (no deployable architecture) for removal. Current data:
+- 24 repos already classified as Indeterminate — most are likely libraries/frameworks
 - Unknown number of "reference implementations" (clean-architecture-example, ddd-forum, etc.) currently counted equally with production applications
 
-### Thread 2: Weighting Simulation
+Output: complete classification spreadsheet with per-entry rationale, plus a removal list for library/framework entries.
 
-Take 10 candidate ecosystems from EPIC-010's audit. For each weighting scheme, compute the resulting frequency table and compare with the current table. Key metrics:
+### Thread 2: Star-Weighted Production Ranking
+
+Design and test a weighting function based on GitHub stars for production-grade entries. Key questions:
+- What function? Linear stars, log(stars), star tiers, or normalized percentiles?
+- Does star-weighting improve or degrade consistency with KataLog/AOSA rankings?
+- Does any single mega-repo (e.g., tensorflow, kubernetes) distort the rankings?
+
+Reference entries carry zero weight in frequency rankings — they appear as annotations only.
+
+Compare: unweighted (1 entry = 1 entry) vs star-weighted frequency tables. Key metrics:
 - Which styles move more than 2 rank positions?
 - Does any style's percentage change by more than 5 points?
-- Does the ranking become more or less consistent with other evidence sources (KataLog, AOSA)?
-
-### Thread 3: Presentation Format
-
-Draft 2-3 candidate formats for how ecosystem data appears in reference library documents. Test each for:
-- Clarity (can a reader understand what's being counted?)
-- Comparability (can you compare Discovered ecosystems with KataLog designed architectures?)
-- Actionability (does the data help an architect make decisions?)
 
 ## Findings
 
-*(Populated during Active phase.)*
+### Resolved (pre-Active)
+
+**Taxonomy model decided (2026-03-06).** Two orthogonal axes replace the original flat 4-category proposal:
+- **Scope axis:** platform/ecosystem | application
+- **Use-type axis:** production-grade | reference
+
+Key decisions:
+- **Production-grade entries carry all weight** in frequency rankings. Reference implementations are annotation-only — they explain patterns but don't count toward frequencies.
+- **Library/Framework entries are out of scope** for the architecture catalog (no deployable architecture). They should be removed from the catalog. This may warrant a VISION-001 non-goal clarification.
+- **Double-counting is a non-issue** under this model. Ecosystem-scope and application-scope entries are at different scopes; both count without overlap.
+- **AOSA entries are production-grade** (they describe real production systems) and may additionally serve as annotation sources.
+- **KataLog entries are reference** (designed architectures, not production deployments).
+- **Presentation format** for reference library documents is deferred — belongs to the epic doing the actual rewrite, not to this spike.
+
+### Open (for Active phase)
+
+- Star-based weighting function for production-grade entries (Thread 2)
+- Complete 2-axis classification of all 163 entries (Thread 1)
 
 ## Lifecycle
 
