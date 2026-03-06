@@ -3,15 +3,17 @@ source: Discovered
 source_url: https://github.com/crewAIInc/crewAI
 project_url: https://github.com/crewAIInc/crewAI
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:40:15Z'
+discovered_at: '2026-03-06T06:05:13Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: AI/ML
 language: Python
-languages: null
+languages:
+- Python
+- JavaScript
 architecture_styles:
 - Multi-Agent
-- Pipe-and-Filter
+- Event-Driven
 - Modular Monolith
 key_technologies:
 - Python/pip
@@ -23,14 +25,12 @@ quality_attributes:
 notable_strengths:
 - Rich signal profile with strong architectural indicators
 - CI/CD automation present
-- Multi-style composition (3 styles)
+- Multi-style composition (4 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: CrewAI is a Python framework for orchestrating autonomous AI agents
-  organized into crews, with agents collaborating on tasks through defined roles and
-  sequential/hierarchical processes, implemented as a single deployable package with
-  well-bounded internal modules
+one_line_summary: Python framework for orchestrating autonomous multi-agent AI systems
+  with event-driven Flows and collaborative Crews
 discovery_metadata:
   confidence: 0.92
   signals_detected: 21
@@ -39,6 +39,8 @@ discovery_metadata:
   primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Modular Monolith
+    score: 0.4
+  - style: Service-Based
     score: 0.4
   - style: Event-Driven
     score: 0.3
@@ -56,12 +58,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence: (1) README explicitly describes ''Multi-AI Agent orchestration
-  framework'' with core abstractions Agent, Crew, Task, and Process; (2) agents.yaml
-  and tasks.yaml configurations show role-based agent definitions and task assignments;
-  (3) Sequential and hierarchical process patterns where agent outputs feed into subsequent
-  tasks confirm Pipe-and-Filter; (4) Single PyPI package (crewai) with 1003 Python
-  files in lib/ directory, no service discovery or distributed deployment patterns
-  confirms Modular Monolith; (5) Flows feature provides event-driven workflow capabilities;
-  (6) lib/ directory structure shows organized internal modules for agents, tasks,
-  crews, tools, and flows'
+review_notes: 'Evidence: lib/crewai/src/crewai/agents/ (crew_agent_executor, agent_builder),
+  a2a/ agent-to-agent protocol, flows/ for event-driven control, single Python package
+  with agents/crews/tasks/tools/memory modules'

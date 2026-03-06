@@ -1,0 +1,64 @@
+project_name: self-hosted
+source: Discovered
+source_url: https://github.com/getsentry/self-hosted
+project_url: https://github.com/getsentry/self-hosted
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:23:50Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Observability
+language: Python
+languages: null
+architecture_styles:
+- Microservices
+- Event-Driven
+key_technologies:
+- Node.js
+- Python/pip
+- Docker
+- Docker Compose
+- Kafka
+- RabbitMQ
+- GitHub Actions
+quality_attributes:
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (2 styles)
+notable_gaps:
+- No architecture decision records found
+- No test infrastructure detected
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Sentry self-hosted deployment packaging a distributed observability
+  platform with ~15+ services orchestrated via Docker Compose, using Kafka for event-driven
+  async processing
+discovery_metadata:
+  confidence: 0.85
+  signals_detected: 19
+  signals_evaluated: 10
+  classification_method: deep-validation
+  primary_style_confidence: 0.85
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.5
+  - style: Event-Driven
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 2
+    container_orchestration: 7
+    infrastructure_as_code: 0
+    messaging: 2
+    api_specs: 0
+    adrs: 0
+    ci_cd: 8
+    test_structure: 0
+    documentation: 0
+    directory_structure: 0
+review_required: false
+review_notes: 'Evidence: docker-compose.yml defines multiple independent services
+  (sentry, snuba, relay, symbolicator, kafka, redis, postgres, clickhouse, memcached,
+  smtp, pgbouncer, seaweedfs, nginx) with health checks and service dependencies.
+  Kafka configured with DEFAULT_BROKERS for Snuba event processing. Each service has
+  dedicated configuration (sentry/, relay/, symbolicator/, clickhouse/ directories).
+  This is a deployment orchestration repo that packages Sentry''s distributed architecture.'

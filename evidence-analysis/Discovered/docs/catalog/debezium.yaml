@@ -3,14 +3,18 @@ source: Discovered
 source_url: https://github.com/debezium/debezium
 project_url: https://github.com/debezium/debezium
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:07:09Z'
+discovered_at: '2026-03-06T05:26:33Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Integration
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
+- Go
 architecture_styles:
 - Event-Driven
+- Plugin/Microkernel
+- Pipe-and-Filter
 key_technologies:
 - Go modules
 - Maven
@@ -32,15 +36,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Debezium is a change data capture (CDC) platform built on Kafka/Kafka
-  Connect that captures database row-level changes as events and streams them to Kafka
-  topics for consumption by downstream applications.
+one_line_summary: Change data capture platform with pluggable database connectors,
+  event-driven streaming via Kafka Connect, and transform pipeline
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.88
   signals_detected: 149
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.95
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 1.0
@@ -61,11 +64,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 3
-review_notes: 'Evidence: README explicitly states Debezium ''achieves its durability,
-  reliability, and fault tolerance qualities by reusing Kafka and Kafka Connect''
-  and ''recording them in one or more Kafka topics''. The connector modules (debezium-connector-postgres,
-  debezium-connector-mongodb, debezium-connector-oracle, etc.) are Kafka Connect plugins,
-  not independent microservices. Signal breakdown shows 38 messaging signals (Kafka-centric).
-  The debezium-storage/ directory contains kafka, rocketmq storage implementations
-  confirming event-driven architecture.'
+review_notes: 'Evidence: debezium-connector-mysql/postgres/mongodb/oracle/sqlserver
+  are Kafka Connect plugins, debezium-core defines plugin SPI, debezium-transforms
+  for SMT pipeline stages, debezium-server for standalone deployment. Core+connector
+  plugin architecture.'
 review_required: false

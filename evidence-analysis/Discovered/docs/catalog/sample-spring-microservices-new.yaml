@@ -3,12 +3,13 @@ source: Discovered
 source_url: https://github.com/piomin/sample-spring-microservices-new
 project_url: https://github.com/piomin/sample-spring-microservices-new
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:06:03Z'
+discovered_at: '2026-03-06T05:25:04Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
 architecture_styles:
 - Microservices
 key_technologies:
@@ -20,12 +21,12 @@ quality_attributes:
 notable_strengths:
 - Moderate signal profile with identifiable patterns
 - CI/CD automation present
+- Multi-style composition (2 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Spring Cloud microservices demo with API Gateway (Zuul), service
-  discovery (Eureka), centralized config, and three business microservices communicating
-  via OpenFeign
+one_line_summary: Spring Cloud microservices demo with config-service, discovery-service,
+  gateway-service, and domain services
 discovery_metadata:
   confidence: 0.95
   signals_detected: 11
@@ -34,6 +35,8 @@ discovery_metadata:
   primary_style_confidence: 0.95
   heuristic_candidates:
   - style: Modular Monolith
+    score: 0.4
+  - style: Service-Based
     score: 0.4
   signal_breakdown:
     package_manifests: 7
@@ -47,9 +50,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Evidence: docker-compose.yml defines 6 independent services (gateway-service,
-  config-service, discovery-service, employee-service, department-service, organization-service)
-  each with separate Docker images; README confirms Spring Cloud Netflix stack with
-  Eureka discovery, Zuul gateway, and OpenFeign inter-service communication; service
-  dependencies managed via health checks and service_healthy conditions; Zipkin for
-  distributed tracing'
+review_notes: 'Evidence: {config-service,discovery-service,gateway-service,employee-service,department-service,organization-service}/
+  each with own pom.xml and src/; docker-compose.yml deploys all independently; Eureka
+  discovery + Spring Cloud Config'

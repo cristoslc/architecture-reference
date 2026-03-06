@@ -3,13 +3,17 @@ source: Discovered
 source_url: https://github.com/spree/spree
 project_url: https://github.com/spree/spree
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:11:03Z'
+discovered_at: '2026-03-06T05:31:28Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: Ruby
-languages: null
+languages:
+- Ruby
+- TypeScript
+- JavaScript
 architecture_styles:
+- Modular Monolith
 - Layered
 key_technologies:
 - Node.js
@@ -25,18 +29,17 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Spree is a Ruby on Rails e-commerce platform deployed as a monolithic
-  Rails application with traditional MVC layering and a Rails Engine architecture
-  for the core commerce functionality.
+one_line_summary: Spree is a Ruby on Rails e-commerce platform organized as a modular
+  monolith with core/admin/api/emails gems and standard MVC layering
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.88
   signals_detected: 15
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.85
+  primary_style_confidence: 0.88
   heuristic_candidates:
-  - style: Microservices
-    score: 0.4
+  - style: Service-Based
+    score: 1.0
   - style: Layered
     score: 0.3
   - style: Pipe-and-Filter
@@ -52,10 +55,8 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 3
+review_notes: 'Evidence: spree/ directory contains core, admin, api, emails as separate
+  gems (common_spree_dependencies.rb, spree.gemspec), server/ is a Rails app with
+  app/models, app/controllers, app/views (MVC layering). packages/ contains cli, sdk,
+  create-spree-app. Single deployment, docker-compose.yml present.'
 review_required: false
-review_notes: 'Evidence: server/app/controllers/, server/app/models/, server/app/views/
-  directories confirm classic Rails MVC layering; single Dockerfile (server/Dockerfile)
-  indicates monolithic deployment; docker-compose.yml runs single web service + worker
-  + database/redis for development convenience; spree/ directory (2806 files, 1740
-  Ruby files) is a Rails Engine gem mounted into the server application; Sidekiq worker
-  handles background jobs within the monolith, not inter-service communication.'

@@ -1,0 +1,78 @@
+project_name: redpanda
+source: Discovered
+source_url: https://github.com/vectorizedio/redpanda
+project_url: https://github.com/vectorizedio/redpanda
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:07:34Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Messaging
+language: C/C++
+languages: null
+architecture_styles:
+- Event-Driven
+- Pipe-and-Filter
+key_technologies:
+- Node.js
+- Go modules
+- Maven
+- Gradle
+- Python/pip
+- Rust/Cargo
+- Docker
+- Kubernetes
+- Docker Compose
+- Kafka
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Scalability
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Redpanda is a Kafka-compatible streaming data platform (single deployable
+  C++ binary) implementing event-driven messaging with internal pipe-and-filter data
+  processing pipelines
+discovery_metadata:
+  confidence: 0.85
+  signals_detected: 227
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.85
+  heuristic_candidates:
+  - style: Microservices
+    score: 1.1
+  - style: Event-Driven
+    score: 0.6
+  - style: Pipe-and-Filter
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 45
+    container_orchestration: 11
+    infrastructure_as_code: 0
+    messaging: 4
+    api_specs: 136
+    adrs: 0
+    ci_cd: 29
+    test_structure: 2
+    documentation: 0
+    directory_structure: 2
+review_required: false
+review_notes: 'Redpanda is fundamentally a streaming/messaging broker — it IS the
+  event infrastructure, not a consumer of it. It''s Kafka-API compatible (proto/redpanda/core,
+  buf.yaml, gRPC specs, 136 API specs detected), built as a single deployable unit
+  (Bazel monobuild, single Dockerfile, no separate service directories), making Microservices
+  classification inappropriate. Event-Driven is primary: the entire product is a pub/sub
+  event streaming platform (Kafka-compatible, topic partitions, consumer groups seen
+  in tools/offline_log_viewer/consumer_groups.py, consumer_offsets.py). Pipe-and-Filter
+  is secondary: internal data flow through sequential processing stages is characteristic
+  of streaming broker internals (tiered storage, schema registry, data lake via proto/redpanda/datalake).
+  The extensive tooling (tools/offline_log_viewer, tools/rp_storage_tool, tools/schema_registry_tools)
+  and test infrastructure (tests/rptest) are all part of a single product codebase.
+  No separate service directories, no API gateway, no service discovery configs —
+  ruling out Microservices as a primary style.'

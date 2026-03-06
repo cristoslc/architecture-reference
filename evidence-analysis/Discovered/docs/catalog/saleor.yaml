@@ -3,15 +3,17 @@ source: Discovered
 source_url: https://github.com/saleor/saleor
 project_url: https://github.com/saleor/saleor
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:17:48Z'
+discovered_at: '2026-03-06T05:38:27Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: Python
-languages: null
+languages:
+- Python
 architecture_styles:
 - Modular Monolith
-- Layered
+- Event-Driven
+- Domain-Driven Design
 key_technologies:
 - Node.js
 - Python/pip
@@ -28,17 +30,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Saleor is a headless GraphQL e-commerce API backend built as a Django
-  modular monolith, with domain modules (order, payment, product, webhook, plugins)
-  organized in a traditional layered pattern
+one_line_summary: Headless e-commerce platform with domain-organized modules, webhook-based
+  event system, and DDD patterns
 discovery_metadata:
-  confidence: 0.88
+  confidence: 0.9
   signals_detected: 28
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.88
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
-  - style: Microservices
+  - style: Service-Based
     score: 0.5
   - style: CQRS
     score: 0.3
@@ -56,10 +57,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence: (1) Single Dockerfile at root = single deployable unit, (2)
-  saleor/ package with ~20 domain modules each containing models/migrations/tests
-  = modular monolith, (3) celeryconf.py for async tasks, (4) saleor/plugins/ with
-  base_plugin.py + manager.py = plugin architecture within monolith, (5) saleor/asgi/
-  = ASGI Django app, (6) saleor/webhook/ handles outbound webhooks to external apps
-  (not internal event bus), (7) pyproject.toml = single Python package. Dashboard
-  and Storefront are separate repos referenced in README but not present here.'
+review_notes: 'Evidence: saleor/{account,checkout,channel,discount,giftcard,graphql,order,payment,product,shipping,tax,warehouse,webhook}
+  = domain modules; saleor/plugins/ + saleor/webhook/ = event system; GraphQL API;
+  single Django deployment; DDD-style bounded contexts'

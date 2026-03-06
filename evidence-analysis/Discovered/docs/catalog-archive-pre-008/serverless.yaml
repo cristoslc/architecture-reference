@@ -1,0 +1,79 @@
+project_name: serverless
+source: Discovered
+source_url: https://github.com/serverless/serverless
+project_url: https://github.com/serverless/serverless
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:28:06Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Developer Tools
+language: JavaScript
+languages: null
+architecture_styles:
+- Serverless
+- Pipe-and-Filter
+key_technologies:
+- Node.js
+- Go modules
+- Maven
+- Python/pip
+- Docker
+- Terraform
+- Serverless Framework
+- Kafka
+- RabbitMQ
+- GraphQL
+- GitHub Actions
+quality_attributes:
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: The Serverless Framework — an open-source developer tool and CLI
+  for deploying serverless applications across cloud providers (AWS Lambda, Azure,
+  GCP, etc.), using a plugin-based pipeline architecture
+discovery_metadata:
+  confidence: 0.85
+  signals_detected: 366
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.85
+  heuristic_candidates:
+  - style: Event-Driven
+    score: 0.6
+  - style: Serverless
+    score: 0.6
+  - style: Microservices
+    score: 0.4
+  - style: Domain-Driven Design
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 111
+    container_orchestration: 16
+    infrastructure_as_code: 201
+    messaging: 21
+    api_specs: 8
+    adrs: 0
+    ci_cd: 7
+    test_structure: 2
+    documentation: 0
+    directory_structure: 0
+review_required: false
+review_notes: 'This is the well-known ''serverless/serverless'' GitHub repository
+  — the Serverless Framework itself. It is a developer toolchain that: (1) deploys
+  user code as serverless functions (Lambda etc.), making Serverless the primary architectural
+  style of the *applications it manages*; (2) internally uses a plugin/hook pipeline
+  to transform service configs through sequential stages (parse → validate → package
+  → deploy), fitting Pipe-and-Filter. Key evidence from catalog: Serverless Framework
+  listed as a key technology (self-referential — this IS the framework), 201 IaC signals
+  (CloudFormation/Terraform generation), 111 package manifests (examples across Node.js,
+  Python, Go, Maven for multi-runtime support), 21 messaging signals (Kafka/RabbitMQ
+  event source examples in scaffolding templates), 8 API specs (API Gateway integration
+  templates). The heuristic candidates of Serverless (0.6) and Event-Driven (0.6)
+  reflect the example/template content rather than the framework''s own internal architecture.
+  The framework itself is a single Node.js CLI tool with a plugin pipeline — not a
+  microservices system — so Microservices (0.4) is noise from example templates.'

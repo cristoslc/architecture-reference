@@ -3,14 +3,18 @@ source: Discovered
 source_url: https://github.com/redis/redis
 project_url: https://github.com/redis/redis
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:38:49Z'
+discovered_at: '2026-03-06T06:03:30Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Grid
 language: C/C++
-languages: null
+languages:
+- C/C++
+- Python
+- Ruby
 architecture_styles:
 - Modular Monolith
+- Plugin/Microkernel
 key_technologies:
 - Python/pip
 - GitHub Actions
@@ -25,15 +29,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Redis is a single-process in-memory data structure server compiled
-  into one deployable binary with well-separated internal subsystems (networking,
-  persistence, clustering, replication, command handlers)
+one_line_summary: In-memory data store with modular C codebase and runtime-loadable
+  module system
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.88
   signals_detected: 14
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.92
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
@@ -49,9 +52,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence: Makefile compiles src/ into single redis-server binary; src/
-  contains 128 C files with clear functional separation (ae.c event loop, rdb.c/aof.c
-  persistence, cluster.c, replication.c, t_*.c data type handlers); modules/ provides
-  optional extensions but core remains monolithic; no Dockerfiles per service, no
-  Kubernetes manifests, no API gateway configs; tests/ contains 217 TCL integration
-  tests confirming single-unit deployment model'
+review_notes: 'Evidence: src/ single C codebase; modules/{redisbloom,redisearch,redisjson,redistimeseries,vector-sets}
+  = loadable modules (plugin system); single Makefile build; no Dockerfile; server
+  binary with module loading API'

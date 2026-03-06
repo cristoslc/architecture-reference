@@ -3,21 +3,21 @@ source: Discovered
 source_url: https://github.com/eventuate-tram/eventuate-tram-core
 project_url: https://github.com/eventuate-tram/eventuate-tram-core
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:07:25Z'
+discovered_at: '2026-03-06T05:26:52Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
 architecture_styles:
 - Event-Driven
-- Modular Monolith
 key_technologies:
 - Gradle
 - Docker
 - Kafka
 - RabbitMQ
-quality_attributes: null
+quality_attributes: []
 notable_strengths:
 - Rich signal profile with strong architectural indicators
 - Multi-style composition (3 styles)
@@ -25,15 +25,14 @@ notable_gaps:
 - No architecture decision records found
 - No CI/CD configuration detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A transactional messaging framework providing event-driven communication
-  primitives through well-organized Gradle modules supporting multiple message brokers
-  and frameworks
+one_line_summary: Java transactional messaging framework for event-driven microservices
+  with Kafka/RabbitMQ/Redis support
 discovery_metadata:
-  confidence: 0.88
+  confidence: 0.9
   signals_detected: 102
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.88
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
@@ -53,12 +52,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: (1) Event-Driven - modules named *-events, *-commands, *-consumer-*,
-  *-producer-* with implementations for Kafka, RabbitMQ, ActiveMQ, Redis (eventuate-tram-consumer-kafka/,
-  eventuate-tram-consumer-rabbitmq/, eventuate-tram-jdbc-rabbitmq/); (2) Modular Monolith
-  - 50+ Gradle modules organized by concern (commands, events, messaging, consumers,
-  producers) with framework-specific variants (spring, micronaut, reactive) that ship
-  as a cohesive library; (3) docker-compose-*.yml files for testing combinations (mysql-binlog-kafka,
-  postgres-wal-rabbitmq); (4) activemq/Dockerfile for test infrastructure; (5) No
-  microservices indicators - no service discovery, API gateway, or Kubernetes manifests
-  for separate services'
+review_notes: 'Evidence: eventuate-tram-commands/, eventuate-tram-events/, eventuate-tram-consumer-kafka/rabbitmq/redis/activemq;
+  aggregate-domain-events; framework library implementing Event-Driven patterns for
+  distributed systems'

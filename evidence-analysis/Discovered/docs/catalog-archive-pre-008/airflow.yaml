@@ -1,0 +1,80 @@
+project_name: airflow
+source: Discovered
+source_url: https://github.com/apache/airflow
+project_url: https://github.com/apache/airflow
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:31:17Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Workflow Orchestration
+language: Python
+languages: null
+architecture_styles:
+- Pipe-and-Filter
+- Modular Monolith
+key_technologies:
+- Node.js
+- Go modules
+- Maven
+- Python/pip
+- Docker
+- Kubernetes
+- Docker Compose
+- Terraform
+- Kafka
+- RabbitMQ
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Scalability
+- Deployability
+- Observability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Architecture diagrams (C4/PlantUML)
+- Multi-style composition (5 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Apache Airflow is a workflow orchestration platform that executes
+  DAG-based pipelines (Pipe-and-Filter) as a single monolithic application with modular
+  provider packages
+discovery_metadata:
+  confidence: 0.92
+  signals_detected: 242
+  signals_evaluated: 10
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.8
+  - style: Event-Driven
+    score: 0.6
+  - style: CQRS
+    score: 0.4
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 137
+    container_orchestration: 63
+    infrastructure_as_code: 3
+    messaging: 5
+    api_specs: 1
+    adrs: 0
+    ci_cd: 30
+    test_structure: 2
+    documentation: 1
+    directory_structure: 3
+review_notes: 'Evidence: 1) DAG-based task execution is inherently Pipe-and-Filter
+  where tasks form a directed acyclic graph of processors - this is the core execution
+  model visible in task-sdk/src/airflow/sdk and airflow-core/src/airflow; 2) Single
+  `airflow-core/` source tree (2475 files) with no service decomposition; 3) `providers/`
+  directory (7028 files) contains pluggable modules distributed with main application
+  - not independently deployed services; 4) Multiple Dockerfiles exist for build-time
+  segmentation (multi-stage builder pattern), not service decomposition; 5) No Kubernetes
+  manifests for independent service deployment, no service discovery, no API gateway
+  - all indicators of a monolith, not microservices'
+review_required: false

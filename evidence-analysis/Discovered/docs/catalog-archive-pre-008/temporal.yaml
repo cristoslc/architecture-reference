@@ -1,0 +1,66 @@
+project_name: temporal
+source: Discovered
+source_url: https://github.com/temporalio/temporal
+project_url: https://github.com/temporalio/temporal
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:24:16Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Workflow Orchestration
+language: Go
+languages: null
+architecture_styles:
+- Event-Driven
+- Microservices
+key_technologies:
+- Go modules
+- Docker Compose
+- Kafka
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Architecture documentation present
+- Multi-style composition (2 styles)
+notable_gaps:
+- No architecture decision records found
+one_line_summary: Temporal is a durable workflow execution platform built around event
+  sourcing, with independently deployable internal services (Frontend, History, Matching,
+  Worker) communicating via gRPC
+discovery_metadata:
+  confidence: 0.92
+  signals_detected: 93
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.92
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.5
+  - style: Event-Driven
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 1
+    container_orchestration: 2
+    infrastructure_as_code: 0
+    messaging: 1
+    api_specs: 67
+    adrs: 0
+    ci_cd: 19
+    test_structure: 2
+    documentation: 1
+    directory_structure: 1
+review_required: false
+review_notes: 'Event-Driven: Architecture doc explicitly states ''the system functions
+  via event sourcing: an append-only history of events is stored for each workflow
+  execution''; service/history/ contains event sourcing infrastructure including historybuilder/,
+  events/, replication/, and queues/. Microservices: Four independently deployable
+  services each with their own service.go, fx.go, handler.go, and configs/ directory:
+  service/frontend/, service/history/, service/matching/, service/worker/; docker-compose.cdc.yml
+  and multiple Dockerfiles in docker/targets/ (server.Dockerfile, admin-tools.Dockerfile)
+  confirm independent deployment; gRPC-based inter-service communication (67 API spec
+  signals); service/history/ manages workflow state shards, service/matching/ manages
+  task queues, service/frontend/ handles external gRPC/HTTP API, service/worker/ handles
+  background jobs — each with distinct responsibilities and bounded contexts.'

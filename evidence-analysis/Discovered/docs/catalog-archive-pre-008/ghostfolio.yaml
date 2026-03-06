@@ -1,0 +1,70 @@
+project_name: ghostfolio
+source: Discovered
+source_url: https://github.com/ghostfolio/ghostfolio
+project_url: https://github.com/ghostfolio/ghostfolio
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:20:52Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Finance
+language: TypeScript
+languages: null
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Layered
+key_technologies:
+- Node.js
+- Docker
+- Docker Compose
+- RabbitMQ
+- GitHub Actions
+quality_attributes:
+- Deployability
+notable_strengths:
+- Moderate signal profile with identifiable patterns
+- CI/CD automation present
+- Multi-style composition (2 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Ghostfolio is an open-source personal wealth management web app
+  built as a NestJS/Angular Nx monorepo, structured as a modular monolith with internal
+  event-driven messaging and layered (controller/service/repository) organization
+  within each module
+discovery_metadata:
+  confidence: 0.88
+  signals_detected: 8
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.88
+  heuristic_candidates:
+  - style: Modular Monolith
+    score: 0.4
+  - style: Event-Driven
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 1
+    container_orchestration: 2
+    infrastructure_as_code: 0
+    messaging: 1
+    api_specs: 0
+    adrs: 0
+    ci_cd: 3
+    test_structure: 1
+    documentation: 0
+    directory_structure: 1
+review_required: false
+review_notes: 'Modular Monolith: single Dockerfile, Nx workspace with apps/api + apps/client
+  + libs/common + libs/ui, no service discovery or API gateway, all modules co-deployed.
+  Each domain area (order, portfolio, account, user, auth, import, export, etc.) has
+  its own module/controller/service triple under apps/api/src/app/ — classic NestJS
+  modular structure. Event-Driven (secondary): apps/api/src/events/ contains portfolio-changed.event.ts,
+  asset-profile-changed.event.ts, portfolio-changed.listener.ts, asset-profile-changed.listener.ts,
+  and events.module.ts — NestJS internal event bus; apps/api/src/app/admin/queue/
+  indicates Bull/queue-based async job processing. Layered (secondary): consistent
+  controller → service → Prisma (repository) pattern across every module (e.g. order.controller.ts
+  / order.service.ts, portfolio.controller.ts / portfolio.service.ts); interceptors/,
+  middlewares/, decorators/ directories reinforce horizontal layering. Redis caching
+  via redis-cache module. No Kubernetes, no separate service deployments, no API gateway
+  — rules out Microservices.'

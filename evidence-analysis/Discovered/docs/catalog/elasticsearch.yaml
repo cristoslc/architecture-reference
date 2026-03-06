@@ -3,16 +3,17 @@ source: Discovered
 source_url: https://github.com/elastic/elasticsearch
 project_url: https://github.com/elastic/elasticsearch
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:25:56Z'
+discovered_at: '2026-03-06T05:49:08Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Observability
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
 architecture_styles:
 - Modular Monolith
-- Layered
-- Pipe-and-Filter
+- Plugin/Microkernel
+- Event-Driven
 key_technologies:
 - Node.js
 - Gradle
@@ -28,23 +29,24 @@ quality_attributes:
 notable_strengths:
 - Rich signal profile with strong architectural indicators
 - CI/CD automation present
-- Multi-style composition (5 styles)
+- Multi-style composition (6 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Elasticsearch is a distributed search and analytics engine built
-  as a modular monolith with layered internal architecture and pipeline-based query/indexing
-  processing
+one_line_summary: Distributed search engine built as modular monolith with rich plugin
+  system and event-driven cluster coordination
 discovery_metadata:
-  confidence: 0.92
-  signals_detected: 560
+  confidence: 0.9
+  signals_detected: 561
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.92
+  primary_style_confidence: 0.9
   heuristic_candidates:
+  - style: Service-Based
+    score: 0.7
   - style: Event-Driven
     score: 0.6
-  - style: Microservices
+  - style: Plugin/Microkernel
     score: 0.5
   - style: CQRS
     score: 0.4
@@ -60,16 +62,11 @@ discovery_metadata:
     api_specs: 1
     adrs: 0
     ci_cd: 4
-    test_structure: 1
+    test_structure: 2
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence: (1) Modular Monolith - single deployment artifact (elasticsearch.tar.gz
-  in all Dockerfiles under distribution/docker/), multi-module Gradle structure with
-  520+ package manifests, clear module boundaries: server/ (8012 files, 7491 Java),
-  libs/ (1066 files), modules/ (2703 files), plugins/ (474 files), x-pack/ (18693
-  files); (2) Layered - client/ for API layer, rest-api-spec/ (1100 API spec files),
-  server/ for core engine, distribution/ for packaging; (3) Pipe-and-Filter - analysis
-  plugins (analysis-ukrainian, analysis-phonetic, analysis-nori, analysis-kuromoji,
-  analysis-smartcn) implement text analysis chains with tokenizers/filters, modules/
-  contains query parsing and indexing pipeline components'
+review_notes: 'Evidence: single Node.java wires all via Guice, ./modules/ (40+ modules),
+  ./plugins/ directory, PluginsService/Plugin interface for microkernel extension.
+  ClusterStateListener/ClusterChangedEvent for event-driven coordination. Single node
+  binary deployment.'

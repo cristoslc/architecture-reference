@@ -3,12 +3,14 @@ source: Discovered
 source_url: https://github.com/getsentry/self-hosted
 project_url: https://github.com/getsentry/self-hosted
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:23:50Z'
+discovered_at: '2026-03-06T05:46:25Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Observability
 language: Python
-languages: null
+languages:
+- Python
+- JavaScript
 architecture_styles:
 - Microservices
 - Event-Driven
@@ -30,18 +32,17 @@ notable_gaps:
 - No architecture decision records found
 - No test infrastructure detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Sentry self-hosted deployment packaging a distributed observability
-  platform with ~15+ services orchestrated via Docker Compose, using Kafka for event-driven
-  async processing
+one_line_summary: Sentry self-hosted deployment with 20+ Docker Compose services including
+  Kafka, Redis, ClickHouse, and worker processes
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.92
   signals_detected: 19
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.85
+  primary_style_confidence: 0.92
   heuristic_candidates:
-  - style: Microservices
-    score: 0.5
+  - style: Service-Based
+    score: 0.4
   - style: Event-Driven
     score: 0.3
   signal_breakdown:
@@ -56,9 +57,7 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: docker-compose.yml defines multiple independent services
-  (sentry, snuba, relay, symbolicator, kafka, redis, postgres, clickhouse, memcached,
-  smtp, pgbouncer, seaweedfs, nginx) with health checks and service dependencies.
-  Kafka configured with DEFAULT_BROKERS for Snuba event processing. Each service has
-  dedicated configuration (sentry/, relay/, symbolicator/, clickhouse/ directories).
-  This is a deployment orchestration repo that packages Sentry''s distributed architecture.'
+review_notes: 'Evidence: docker-compose.yml with redis, kafka, pgbouncer, memcached,
+  snuba-api, symbolicator, vroom, seaweedfs, sentry web + workers + cron; Kafka for
+  event streaming; ClickHouse for analytics; this is a deployment orchestration of
+  Sentry''s microservices'

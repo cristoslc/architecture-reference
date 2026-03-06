@@ -3,15 +3,18 @@ source: Discovered
 source_url: https://github.com/zammad/zammad
 project_url: https://github.com/zammad/zammad
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:17:01Z'
+discovered_at: '2026-03-06T05:37:30Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Customer Support
 language: Ruby
-languages: null
+languages:
+- Ruby
+- TypeScript
+- JavaScript
 architecture_styles:
 - Modular Monolith
-- Event-Driven
+- Layered
 key_technologies:
 - Node.js
 - Docker
@@ -29,19 +32,19 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Zammad is an open-source helpdesk/customer support Rails application
-  structured as a modular monolith with event-driven async communication via RabbitMQ
+one_line_summary: Help desk and ticketing system as Rails monolith with domain-organized
+  modules and MVC layering
 discovery_metadata:
-  confidence: 0.82
+  confidence: 0.88
   signals_detected: 277
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.82
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
-  - style: Microservices
-    score: 0.5
+  - style: Service-Based
+    score: 0.6
   - style: Domain-Driven Design
     score: 0.3
   signal_breakdown:
@@ -49,22 +52,14 @@ discovery_metadata:
     container_orchestration: 7
     infrastructure_as_code: 0
     messaging: 5
-    api_specs: 250
+    api_specs: 251
     adrs: 0
     ci_cd: 4
-    test_structure: 4
+    test_structure: 3
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence for Modular Monolith: single Ruby/Rails codebase with app/models,
-  app/policies, app/mailers organized by domain concepts (ticket, user, organization,
-  knowledge_base, channel, sla, etc.) — all within one deployable unit. Docker Compose
-  (not Kubernetes/Helm per-service) for deployment. No separate service directories
-  or per-service Dockerfiles visible. Evidence for Event-Driven: RabbitMQ listed as
-  key technology, app/models/transaction directory suggests background transaction/event
-  processing, app/models/webhook.rb indicates async event dispatching, CI/CD signals
-  confirm automated deployment pipeline. DDD excluded as a primary style despite Rails
-  domain modeling conventions — the directory structure reflects standard Rails MVC
-  rather than explicit DDD constructs (no aggregates/, bounded-context directories,
-  or value objects). Note: README mentions Helm chart for Kubernetes at zammad/zammad-helm
-  (separate repo), so the core repo remains a monolith.'
+review_notes: 'Evidence: Classic Rails: app/controllers/{ai,ticket,knowledge_base,integration,...},
+  app/models/, app/frontend/; app/graphql/ modern API; lib/ with domain logic; single
+  Dockerfile; Gemfile; no event bus beyond Rails; no significant modular boundaries
+  warranting Event-Driven'

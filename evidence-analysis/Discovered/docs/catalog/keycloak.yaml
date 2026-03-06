@@ -3,15 +3,18 @@ source: Discovered
 source_url: https://github.com/keycloak/keycloak
 project_url: https://github.com/keycloak/keycloak
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:22:15Z'
+discovered_at: '2026-03-06T05:44:11Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Identity Management
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
+- TypeScript
+- JavaScript
 architecture_styles:
 - Modular Monolith
-- Layered
+- Hexagonal Architecture
 key_technologies:
 - Node.js
 - Maven
@@ -33,10 +36,8 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Keycloak is an Identity and Access Management system built as a
-  single Java/Quarkus application with well-organized internal modules. It is NOT
-  a microservices architecture - it is a modular monolith with layered architecture
-  patterns.
+one_line_summary: Identity and Access Management server built as modular monolith
+  on Quarkus with SPI-based hexagonal architecture
 discovery_metadata:
   confidence: 0.85
   signals_detected: 283
@@ -45,7 +46,7 @@ discovery_metadata:
   primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Microservices
-    score: 0.8
+    score: 0.7
   - style: Event-Driven
     score: 0.6
   - style: Domain-Driven Design
@@ -63,12 +64,8 @@ discovery_metadata:
     test_structure: 4
     documentation: 0
     directory_structure: 4
-review_notes: 'Evidence: The repository contains a single monolithic structure with
-  modules (core/, services/, model/, server-spi/, etc.) under a single Maven build.
-  Only ONE Dockerfile for the main server exists in quarkus/container/. There is no
-  evidence of multiple independently deployable services, no Kubernetes deployment
-  manifests, no API gateway, and no message broker configuration (RabbitMQ/Kafka)
-  visible. The existing classification incorrectly claims Microservices and Event-Driven
-  - these are not supported by the actual structure. Keycloak uses Quarkus and has
-  a Kubernetes operator, but the main application is a single deployable unit.'
 review_required: false
+review_notes: 'Evidence: single quarkus/container/Dockerfile, Maven modules (core,
+  server-spi, server-spi-private, services, crypto, scim), SPI interfaces via META-INF/services
+  ServiceLoader pattern implementing ports/adapters. Multiple crypto implementations
+  (default, elytron, fips1402) as adapters.'

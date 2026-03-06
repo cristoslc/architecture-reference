@@ -3,14 +3,15 @@ source: Discovered
 source_url: https://github.com/maybe-finance/maybe
 project_url: https://github.com/maybe-finance/maybe
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:14:12Z'
+discovered_at: '2026-03-06T05:35:22Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Finance
 language: Ruby
-languages: null
+languages:
+- Ruby
+- JavaScript
 architecture_styles:
-- Modular Monolith
 - Layered
 key_technologies:
 - Node.js
@@ -27,18 +28,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Maybe Finance is a Ruby on Rails personal finance application built
-  as a modular monolith following Rails MVC/layered conventions, with Docker-based
-  self-hosting deployment
+one_line_summary: Personal finance Rails application with classic MVC layered architecture
 discovery_metadata:
-  confidence: 0.88
+  confidence: 0.9
   signals_detected: 9
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.88
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
-  - style: Microservices
-    score: 0.4
+  - style: Service-Based
+    score: 0.5
   - style: Layered
     score: 0.3
   - style: Pipe-and-Filter
@@ -55,12 +54,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence: Single Rails app structure under app/ with controllers/,
-  models/, jobs/, mailers/, components/ — classic MVC layered pattern. Models show
-  domain groupings with subdirectories (account/, balance/, family/, transaction/,
-  etc.) indicating modular organization within a monolith. Background jobs (app/jobs/)
-  for async work. No separate service directories, no Kubernetes/Helm, no messaging
-  infrastructure (Kafka/RabbitMQ), no API gateway — ruling out Microservices and Event-Driven.
-  Docker Compose used for single-app deployment per README. The cursor rules files
-  (.cursor/rules/) suggest internal conventions enforcing module boundaries. PostgreSQL
-  as single shared database confirms modular monolith rather than microservices.'
+review_notes: 'Evidence: Classic Rails: app/controllers/ + app/models/ + app/views/
+  + app/services/; single Dockerfile; Gemfile; app/models/{account,transaction,holding,balance,import}
+  domain models; no modular boundaries beyond Rails conventions'

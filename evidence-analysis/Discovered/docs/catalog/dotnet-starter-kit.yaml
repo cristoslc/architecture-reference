@@ -3,16 +3,18 @@ source: Discovered
 source_url: https://github.com/fullstackhero/dotnet-starter-kit
 project_url: https://github.com/fullstackhero/dotnet-starter-kit
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:10:21Z'
+discovered_at: '2026-03-06T05:30:39Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: C#
-languages: null
+languages:
+- C#
+- JavaScript
 architecture_styles:
 - Modular Monolith
 - Domain-Driven Design
-- Event-Driven
+- CQRS
 key_technologies:
 - .NET
 - Terraform
@@ -28,15 +30,14 @@ notable_strengths:
 - Multi-style composition (4 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: A production-ready .NET 10 starter kit implementing a modular monolith
-  architecture with DDD tactical patterns and internal event-driven communication
-  via RabbitMQ
+one_line_summary: .NET 10 starter kit for multi-tenant SaaS APIs using modular monolith
+  with DDD primitives and CQRS via Mediator
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.88
   signals_detected: 88
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.92
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
@@ -58,13 +59,6 @@ discovery_metadata:
     documentation: 1
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence: (1) Modular Monolith confirmed by `src/Modules/` with self-contained
-  `Identity`, `Multitenancy`, `Auditing` modules each having runtime+contracts separation,
-  single deployable `Playground.Api` host, and architecture tests enforcing boundaries
-  (`ModuleArchitectureTests.cs`, `BuildingBlocksIndependenceTests.cs`); (2) DDD confirmed
-  by `BuildingBlocks/Core/Domain/` directory, persistence specifications pattern in
-  `BuildingBlocks/Persistence/Specifications/`, and module boundaries acting as bounded
-  contexts; (3) Event-Driven confirmed by `BuildingBlocks/Eventing/RabbitMq/` directory,
-  `IIntegrationEvent.cs`/`IEventBus.cs` abstractions, and Outbox/Inbox pattern implementations;
-  (4) No container orchestration per-service (ECS deployment is for the monolith,
-  not individual services)'
+review_notes: 'Evidence: single Playground.Api deployable, src/Modules/ (Identity,
+  Multitenancy, Auditing) with module loader, BuildingBlocks/ shared library, Architecture.Tests
+  enforcing module boundaries, Mediator for CQRS'

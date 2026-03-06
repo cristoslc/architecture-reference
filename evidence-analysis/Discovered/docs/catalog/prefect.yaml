@@ -3,15 +3,17 @@ source: Discovered
 source_url: https://github.com/PrefectHQ/prefect
 project_url: https://github.com/PrefectHQ/prefect
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:32:18Z'
+discovered_at: '2026-03-06T05:56:20Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Workflow Orchestration
 language: Python
-languages: null
+languages:
+- Python
+- TypeScript
+- JavaScript
 architecture_styles:
 - Pipe-and-Filter
-- Event-Driven
 - Layered
 key_technologies:
 - Node.js
@@ -31,15 +33,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Prefect is a Python workflow orchestration framework where user-defined
-  flows and tasks form pipe-and-filter pipelines, with an event-driven automation
-  engine and a layered server backend (API, orchestration, models, database)
+one_line_summary: Workflow orchestration platform with DAG-based task execution (pipe-and-filter)
+  and layered server architecture
 discovery_metadata:
-  confidence: 0.82
+  confidence: 0.88
   signals_detected: 90
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.82
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.8
@@ -58,15 +59,8 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 1
+review_notes: 'Evidence: src/prefect/ single Python package = monolith server; src/integrations/
+  are installable plugins not services; single Dockerfile; client/ SDK; ui/ + ui-v2/
+  frontends; workflow execution is pipe-and-filter; not microservices - single server
+  deployment'
 review_required: false
-review_notes: 'Pipe-and-Filter: core abstraction is flows composed of tasks — sequential/parallel
-  data processing stages with caching, retries, and state transitions; `src/prefect/tasks.py`,
-  `src/prefect/flow_runs.py`, `src/prefect/task_runs.py`, `src/prefect/runner/`, `src/prefect/cache_policies.py`.
-  Event-Driven: `src/prefect/server/events/` directory, event-based automations referenced
-  in README, `src/prefect/server/task_queue.py`, `src/prefect/_internal/websockets.py`,
-  deployment triggers reacting to events. Layered: the server is clearly layered —
-  `src/prefect/server/api/` (presentation/REST), `src/prefect/server/orchestration/`
-  (business logic), `src/prefect/server/models/` (data access), `src/prefect/server/database/`
-  (persistence), `src/prefect/server/schemas/` (DTOs). Not Microservices: single deployable
-  Python package with one Dockerfile, no service discovery, no API gateway splitting
-  services. Not DDD: no explicit aggregates/bounded-context/value-object directories.'

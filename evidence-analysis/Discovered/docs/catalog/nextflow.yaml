@@ -3,16 +3,17 @@ source: Discovered
 source_url: https://github.com/nextflow-io/nextflow
 project_url: https://github.com/nextflow-io/nextflow
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:35:28Z'
+discovered_at: '2026-03-06T06:00:16Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Bioinformatics
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
+- JavaScript
 architecture_styles:
 - Pipe-and-Filter
-- Modular Monolith
-- Event-Driven
+- Plugin/Microkernel
 key_technologies:
 - Gradle
 - Python/pip
@@ -27,19 +28,20 @@ notable_strengths:
 - Well-documented architecture decisions (ADRs)
 - Comprehensive test infrastructure
 - CI/CD automation present
-- Multi-style composition (3 styles)
+- Multi-style composition (4 styles)
 notable_gaps:
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Nextflow is a scientific workflow orchestration engine built as
-  a modular monolith whose core execution model is Pipe-and-Filter (processes connected
-  by dataflow channels), with event-driven reactive channel communication
+one_line_summary: Workflow engine for computational pipelines with plugin system for
+  cloud providers (AWS, Azure, Google, K8s)
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.92
   signals_detected: 45
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.85
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
+  - style: Plugin/Microkernel
+    score: 0.5
   - style: Microservices
     score: 0.4
   - style: Event-Driven
@@ -58,19 +60,7 @@ discovery_metadata:
     documentation: 4
     directory_structure: 2
 review_required: false
-review_notes: 'Pipe-and-Filter: Nextflow''s fundamental programming model is dataflow/channel-based
-  pipelines where processes consume and emit data through channels — confirmed by
-  README (''based on the dataflow programming model''), test files (topic-channel.nf,
-  collect-and-merge.nf, splitLetters.nf, subworkflow.nf), and the Henri Bal quote
-  about dataflow variables. Modular Monolith: single Gradle multi-module build with
-  a plugins/ directory containing nf-amazon, nf-azure, nf-google, nf-k8s, nf-wave,
-  nf-tower, nf-seqera, nf-cloudcache, nf-codecommit, nf-console — each with their
-  own build.gradle and VERSION, all part of one deployable system with no API gateway
-  or service discovery. Event-Driven: messaging signals (3), reactive dataflow channels
-  between processes, GPars concurrency library (mentioned in README credits) which
-  is actor/dataflow-based; channel operators drive reactive data propagation. DDD
-  dropped from primary styles — while ADRs exist (adr/ directory with 4 entries) and
-  domain concepts (Process, Channel, Executor) are present, DDD is more of an organizational
-  approach here rather than a structural pattern; the three primary styles are well-evidenced.
-  Docker signals are for workflow task execution environments (tests/Dockerfile, docker/
-  directory), not application decomposition.'
+review_notes: 'Evidence: modules/{nextflow,nf-commons,nf-httpfs,nf-lang,nf-lineage}
+  core modules; plugins/{nf-amazon,nf-azure,nf-google,nf-k8s,nf-wave,nf-seqera,nf-console,nf-codecommit,nf-cloudcache}
+  = clear plugin architecture; adr/ for architecture decisions; pipe-and-filter is
+  the workflow execution model'

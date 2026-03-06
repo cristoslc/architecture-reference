@@ -3,12 +3,15 @@ source: Discovered
 source_url: https://github.com/dotnet/eShop
 project_url: https://github.com/dotnet/eShop
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:05:52Z'
+discovered_at: '2026-03-06T05:24:57Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: C#
-languages: null
+languages:
+- C#
+- JavaScript
+- TypeScript
 architecture_styles:
 - Microservices
 - Event-Driven
@@ -30,23 +33,22 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A .NET Aspire-based e-commerce reference application with microservices
-  architecture, event-driven communication via RabbitMQ, DDD bounded contexts (Catalog,
-  Ordering, Basket), and CQRS pattern within services
+one_line_summary: .NET microservices reference app with event-driven messaging, DDD,
+  and CQRS in ordering service
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.95
   signals_detected: 72
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.92
+  primary_style_confidence: 0.95
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
-  - style: Microservices
-    score: 0.5
   - style: Domain-Driven Design
     score: 0.4
   - style: CQRS
+    score: 0.4
+  - style: Service-Based
     score: 0.4
   - style: Hexagonal Architecture
     score: 0.3
@@ -62,10 +64,7 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence: (1) Multiple service boundaries confirmed via test structure:
-  Catalog.FunctionalTests, Ordering.FunctionalTests/UnitTests, Basket.UnitTests; (2)
-  Event-driven infrastructure: src/IntegrationEventLogEF/ with EventStateEnum.cs,
-  IntegrationEventLogEntry.cs, IntegrationEventLogService.cs; src/EventBus/ directory;
-  (3) DDD aggregates: tests/Ordering.UnitTests/Domain/BuyerAggregateTest.cs, OrderAggregateTest.cs,
-  SeedWork/ directory; (4) CQRS: Application/Domain test separation, NewOrderCommandHandlerTest.cs,
-  SetStockRejectedOrderStatusCommandTest.cs, IdentifiedCommandHandlerTest.cs'
+review_notes: 'Evidence: src/ with Basket.API, Catalog.API, Identity.API, Ordering.API,
+  OrderProcessor, PaymentProcessor as separate services; EventBus/ and EventBusRabbitMQ/
+  for integration events; Ordering.Domain and Ordering.Infrastructure show DDD; eShop.AppHost
+  for .NET Aspire orchestration'

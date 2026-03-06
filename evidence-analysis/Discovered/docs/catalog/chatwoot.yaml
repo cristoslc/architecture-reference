@@ -3,16 +3,18 @@ source: Discovered
 source_url: https://github.com/chatwoot/chatwoot
 project_url: https://github.com/chatwoot/chatwoot
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:14:09Z'
+discovered_at: '2026-03-06T05:35:18Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Customer Support
 language: Ruby
-languages: null
+languages:
+- Ruby
+- JavaScript
 architecture_styles:
 - Modular Monolith
-- Layered
 - Event-Driven
+- Layered
 key_technologies:
 - Node.js
 - Docker
@@ -29,15 +31,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Chatwoot is a Ruby on Rails customer support platform deployed as
-  a single monolith with clear MVC/layered structure, internal module organization,
-  and event-driven background processing via Sidekiq/dispatchers
+one_line_summary: Ruby on Rails customer engagement platform with event-driven dispatchers
+  in a layered monolith
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.88
   signals_detected: 24
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.85
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.4
@@ -59,12 +60,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence for Modular Monolith: single Dockerfile (docker/dockerfiles/rails.Dockerfile),
-  single docker-compose.yaml, app/ directory with well-defined internal subdirectories
-  (builders/, finders/, presenters/, dispatchers/, policies/, actions/, mailboxes/).
-  Evidence for Layered: classic Rails MVC — app/models/, app/controllers (implied),
-  app/mailers/, app/jobs/, app/policies/. Evidence for Event-Driven: app/dispatchers/
-  (base_dispatcher.rb, async_dispatcher.rb, sync_dispatcher.rb, dispatcher.rb) and
-  app/jobs/event_dispatcher_job.rb signal an internal event/pub-sub system; app/jobs/
-  directory indicates background job processing (Sidekiq). No multiple service directories,
-  no API gateway, no service discovery — ruling out Microservices as a primary style.'
+review_notes: 'Evidence: app/ with controllers, models, channels, dispatchers, actions,
+  builders, finders, drops; event-driven via dispatchers and channels (ActionCable);
+  single Rails deployment; modular via domain groupings'

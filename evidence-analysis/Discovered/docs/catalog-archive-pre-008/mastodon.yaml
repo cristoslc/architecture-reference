@@ -1,0 +1,66 @@
+project_name: mastodon
+source: Discovered
+source_url: https://github.com/mastodon/mastodon
+project_url: https://github.com/mastodon/mastodon
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:11:19Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Social Media
+language: Ruby
+languages: null
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Service-Based
+key_technologies:
+- Node.js
+- Docker
+- Docker Compose
+- RabbitMQ
+- GitHub Actions
+quality_attributes:
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Mastodon is a federated social network platform built as a Ruby
+  on Rails modular monolith with a separate Node.js streaming service, using Sidekiq/Redis
+  for event-driven background processing
+discovery_metadata:
+  confidence: 0.88
+  signals_detected: 32
+  signals_evaluated: 10
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.5
+  - style: Event-Driven
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 2
+    container_orchestration: 5
+    infrastructure_as_code: 0
+    messaging: 1
+    api_specs: 0
+    adrs: 0
+    ci_cd: 22
+    test_structure: 2
+    documentation: 0
+    directory_structure: 4
+review_required: false
+review_notes: 'Evidence: (1) Modular Monolith - Single Rails application with 1199
+  Ruby files in app/, shared PostgreSQL database, domain-organized models in app/models/
+  (Account, Status, User, etc.); (2) Event-Driven - Sidekiq background workers, Redis
+  queueing, ActivityPub federation inherently event-based; (3) Service-Based - 2 coarse-grained
+  services: web (Rails monolith) and streaming (Node.js) with separate Dockerfiles
+  (./Dockerfile vs ./streaming/Dockerfile), docker-compose.yml shows shared db/redis
+  but separate deployments; (4) NOT microservices - single shared database, no service
+  discovery, no API gateway, only 2 services not 5+'

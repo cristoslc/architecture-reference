@@ -3,16 +3,17 @@ source: Discovered
 source_url: https://github.com/erxes/erxes
 project_url: https://github.com/erxes/erxes
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:14:57Z'
+discovered_at: '2026-03-06T05:36:15Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: CRM
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- JavaScript
 architecture_styles:
-- Microservices
-- Event-Driven
-- Modular Monolith
+- Plugin/Microkernel
+- Service-Based
 key_technologies:
 - Node.js
 - Docker
@@ -25,22 +26,22 @@ quality_attributes:
 notable_strengths:
 - Rich signal profile with strong architectural indicators
 - CI/CD automation present
-- Multi-style composition (5 styles)
+- Multi-style composition (6 styles)
 notable_gaps:
 - No architecture decision records found
 - No test infrastructure detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: erxes is an open-source CRM/business platform built as an Nx-powered
-  monorepo with a microservices/plugin architecture, using GraphQL Federation for
-  API composition, RabbitMQ/BullMQ for event-driven messaging, and Module Federation
-  for micro-frontends
+one_line_summary: CRM/business platform with plugin-based backend architecture and
+  API gateway
 discovery_metadata:
   confidence: 0.88
   signals_detected: 80
   signals_evaluated: 10
-  classification_method: llm-review
+  classification_method: deep-validation
   primary_style_confidence: 0.88
   heuristic_candidates:
+  - style: Service-Based
+    score: 0.8
   - style: Event-Driven
     score: 0.6
   - style: Modular Monolith
@@ -62,18 +63,7 @@ discovery_metadata:
     test_structure: 0
     documentation: 0
     directory_structure: 4
+review_notes: 'Evidence: backend/plugins/ with 11 plugins (accounting_api, sales_api,
+  loyalty_api, etc.); backend/core-api as kernel; backend/gateway as router; frontend/plugins/;
+  nx monorepo; clear Plugin/Microkernel with each plugin as a loadable service'
 review_required: false
-review_notes: 'Evidence: (1) Microservices: Multiple independent services each with
-  their own Dockerfile — backend/core-api/Dockerfile, backend/gateway/Dockerfile,
-  frontend/core-ui/Dockerfile, apps/frontline-widgets/Dockerfile, apps/posclient-front/Dockerfile;
-  API Gateway at backend/gateway/ using Apollo Router; 10+ distinct plugin APIs in
-  backend/plugins/ (sales_api, frontline_api, accounting_api, etc.); per-service CI
-  workflows in .github/workflows/ (ci-api-sales.yml, ci-api-gateway.yml, etc.). (2)
-  Event-Driven: RabbitMQ listed as key technology; backend/services/automations and
-  backend/services/logs are standalone event-processing services; BullMQ in tech stack
-  for async job queues. (3) Modular Monolith: Nx monorepo (nx.json, pnpm-workspace.yaml)
-  with well-bounded plugin modules; frontend/plugins/ and backend/plugins/ mirror
-  each other; shared libraries in backend/erxes-api-shared/ and frontend/libs/; each
-  plugin self-contained with its own GraphQL schema, tRPC endpoints, DB models, and
-  UI remote (Module Federation micro-frontends). README explicitly states ''Nx Monorepo
-  + Plugin Architecture + GraphQL Federation + Module Federation''.'

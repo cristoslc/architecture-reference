@@ -3,14 +3,18 @@ source: Discovered
 source_url: https://github.com/mattermost/mattermost
 project_url: https://github.com/mattermost/mattermost
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:12:13Z'
+discovered_at: '2026-03-06T05:32:58Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Messaging
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- Go
+- JavaScript
 architecture_styles:
 - Modular Monolith
+- Plugin/Microkernel
 - Layered
 key_technologies:
 - Node.js
@@ -29,17 +33,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Mattermost is a self-hosted team messaging platform built as a single
-  Go binary (server) + React SPA (webapp), organized as a modular monolith with well-defined
-  internal service modules and traditional layered structure
+one_line_summary: Team messaging platform as modular monolith with rich plugin system
+  and layered server architecture
 discovery_metadata:
-  confidence: 0.88
+  confidence: 0.9
   signals_detected: 61
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.88
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
-  - style: Microservices
+  - style: Service-Based
     score: 0.5
   - style: Event-Driven
     score: 0.3
@@ -55,18 +58,7 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence strongly points to Modular Monolith + Layered, NOT Microservices:
-  (1) README explicitly states ''runs as a single Linux binary'' — the definitive
-  signal against microservices; (2) docker-compose.yaml shows a single ''mattermost-server''
-  process deployed as leader/follower/follower2 replicas (horizontal scaling of one
-  binary) behind nginx, with all other containers being infrastructure dependencies
-  (postgres, redis, elasticsearch, minio, etc.) — not independently deployed business
-  services; (3) server/platform/services/ contains internal service modules (cache,
-  searchengine, remotecluster, sharedchannel, telemetry, imageproxy, etc.) all co-located
-  in a single Go module (server/go.mod) — classic modular monolith with bounded internal
-  modules; (4) server/platform/shared/ provides shared cross-cutting concerns (mail,
-  filestore, mfa, templates); (5) webapp/channels/src/ shows traditional React layering:
-  stores/, utils/, plugins/, types/ — a layered frontend; (6) The cluster setup (MM_CLUSTERSETTINGS_ENABLE)
-  confirms this is a single binary running in clustered mode, not separate microservices;
-  (7) RabbitMQ in catalog was likely from plugin/integration tooling, not core inter-service
-  messaging; Event-Driven signals are weak and not structural.'
+review_notes: 'Evidence: server/channels/{api4,app,store,web,wsapi,jobs} = layered;
+  server/public/plugin + server/public/pluginapi = plugin system; server/platform/services
+  = shared services; webapp/ frontend; single deployment; server/enterprise/ = modular
+  enterprise features'

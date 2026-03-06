@@ -3,15 +3,16 @@ source: Discovered
 source_url: https://github.com/istio/istio
 project_url: https://github.com/istio/istio
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:04:51Z'
+discovered_at: '2026-03-06T05:23:46Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Go
-languages: null
+languages:
+- Go
 architecture_styles:
-- Service-Based
-- Distributed System
+- Modular Monolith
+- Pipe-and-Filter
 key_technologies:
 - Node.js
 - Go modules
@@ -34,12 +35,11 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No CI/CD configuration detected
-one_line_summary: Istio is a service mesh providing traffic management, security,
-  and observability for microservices. It consists of a unified control plane (istiod)
-  and distributed data plane proxies (Envoy/Ztunnel) deployed as sidecars.
+one_line_summary: Service mesh control plane built as single istiod binary with pipe-and-filter
+  Envoy sidecar configuration and modular internal packages
 discovery_metadata:
   confidence: 0.85
-  signals_detected: 448
+  signals_detected: 449
   signals_evaluated: 10
   classification_method: deep-validation
   primary_style_confidence: 0.85
@@ -52,7 +52,7 @@ discovery_metadata:
     score: 0.3
   signal_breakdown:
     package_manifests: 9
-    container_orchestration: 424
+    container_orchestration: 425
     infrastructure_as_code: 0
     messaging: 1
     api_specs: 9
@@ -61,11 +61,8 @@ discovery_metadata:
     test_structure: 4
     documentation: 1
     directory_structure: 2
-review_notes: 'Evidence: The repository has a single unified control plane (pilot/
-  contains istiod), not multiple independently deployable microservices. The 424 ''container
-  orchestration'' signals come from Kubernetes deployment infrastructure, not from
-  a microservices architecture. Key directories: pilot/ (control plane), security/,
-  istioctl/, operator/, cni/ represent coarse-grained service components, not microservices.
-  The xDS protocol provides push-based config distribution (event-like), but this
-  is infrastructure communication, not domain events.'
+review_notes: 'Evidence: single go.mod, pilot/cmd produces istiod binary. Formerly
+  multiple services (pilot, citadel, galley) now consolidated into single istiod.
+  425 K8s manifests are CRDs and operator configs, not service decomposition. Envoy
+  sidecar filter chain is pipe-and-filter.'
 review_required: false

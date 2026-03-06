@@ -8,6 +8,7 @@ last-updated: 2026-03-05
 parent-epic: EPIC-008
 depends-on:
   - SPEC-017
+  - SPEC-019
 ---
 
 # Reference Library Statistics Update
@@ -22,7 +23,7 @@ SPEC-017 produces corrected evidence data in `evidence-analysis/Discovered/`. Th
 
 ## External Behavior
 
-**Input:** Corrected statistics from SPEC-017 outputs:
+**Input:** Deep-validated statistics from SPEC-019 (which builds on SPEC-017's re-extraction):
 - `evidence-analysis/Discovered/_index.yaml` (updated style/QA distributions)
 - `evidence-analysis/Discovered/docs/analysis/reclassification-comparison.md` (what changed and why)
 - `evidence-analysis/Discovered/quality-report.md` (recomputed statistics)

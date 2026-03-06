@@ -3,14 +3,17 @@ source: Discovered
 source_url: https://github.com/ThreeDotsLabs/wild-workouts-go-ddd-example
 project_url: https://github.com/ThreeDotsLabs/wild-workouts-go-ddd-example
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:10:25Z'
+discovered_at: '2026-03-06T05:30:44Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Fitness
 language: Go
-languages: null
+languages:
+- Go
+- JavaScript
 architecture_styles:
 - Microservices
+- Domain-Driven Design
 - Hexagonal Architecture
 key_technologies:
 - Node.js
@@ -19,7 +22,7 @@ key_technologies:
 - Docker Compose
 - Terraform
 - gRPC
-quality_attributes: null
+quality_attributes: []
 notable_strengths:
 - Rich signal profile with strong architectural indicators
 - Multi-style composition (2 styles)
@@ -27,15 +30,14 @@ notable_gaps:
 - No architecture decision records found
 - No CI/CD configuration detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go DDD fitness booking application with three independently deployed
-  microservices (trainings, users, trainer), each following hexagonal architecture
-  with ports/adapters separation and internal CQRS pattern
+one_line_summary: Go DDD example with separate trainer, trainings, and users microservices
+  each using hexagonal architecture
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.92
   signals_detected: 27
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.95
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Microservices
     score: 0.9
@@ -52,9 +54,7 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 2
-review_notes: 'Evidence: 6 separate services in docker-compose.yml (trainer-http,
-  trainer-grpc, trainings-http, users-http, users-grpc); each has own go.mod; terraform
-  deploys to separate Cloud Run services; internal/ has 3 service directories each
-  with ports/adapters/domain structure; Makefile uses go-cleanarch to enforce hexagonal
-  boundaries'
+review_notes: 'Evidence: docker-compose.yml has trainer-http, trainer-grpc, trainings-http,
+  trainings-grpc, users-http, users-grpc = 6 containers for 3 services; internal/{trainer,trainings,users}
+  each with domain/, adapters/, ports/, app/ = hex arch per service; go.work multi-module'
 review_required: false

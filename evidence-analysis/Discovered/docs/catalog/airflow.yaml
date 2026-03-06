@@ -3,13 +3,18 @@ source: Discovered
 source_url: https://github.com/apache/airflow
 project_url: https://github.com/apache/airflow
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:31:17Z'
+discovered_at: '2026-03-06T05:55:04Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Workflow Orchestration
 language: Python
-languages: null
+languages:
+- Python
+- TypeScript
+- Go
+- JavaScript
 architecture_styles:
+- Plugin/Microkernel
 - Pipe-and-Filter
 - Modular Monolith
 key_technologies:
@@ -37,15 +42,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Apache Airflow is a workflow orchestration platform that executes
-  DAG-based pipelines (Pipe-and-Filter) as a single monolithic application with modular
-  provider packages
+one_line_summary: Workflow orchestration platform with plugin/provider architecture,
+  DAG-based pipe-and-filter execution, deployed as modular monolith
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.88
   signals_detected: 242
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.92
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 0.8
@@ -68,13 +72,8 @@ discovery_metadata:
     test_structure: 2
     documentation: 1
     directory_structure: 3
-review_notes: 'Evidence: 1) DAG-based task execution is inherently Pipe-and-Filter
-  where tasks form a directed acyclic graph of processors - this is the core execution
-  model visible in task-sdk/src/airflow/sdk and airflow-core/src/airflow; 2) Single
-  `airflow-core/` source tree (2475 files) with no service decomposition; 3) `providers/`
-  directory (7028 files) contains pluggable modules distributed with main application
-  - not independently deployed services; 4) Multiple Dockerfiles exist for build-time
-  segmentation (multi-stage builder pattern), not service decomposition; 5) No Kubernetes
-  manifests for independent service deployment, no service discovery, no API gateway
-  - all indicators of a monolith, not microservices'
+review_notes: 'Evidence: airflow-core/src/airflow/ is single deployable with providers/
+  directory (100+ provider plugins for AWS, GCP, etc.), DAGs define pipe-and-filter
+  workflows, single Dockerfile, Helm chart for K8s deployment. Not microservices -
+  scheduler+webserver+worker share same codebase.'
 review_required: false

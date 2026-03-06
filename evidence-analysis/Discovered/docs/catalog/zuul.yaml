@@ -3,15 +3,15 @@ source: Discovered
 source_url: https://github.com/Netflix/zuul
 project_url: https://github.com/Netflix/zuul
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:05:42Z'
+discovered_at: '2026-03-06T05:24:46Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
 architecture_styles:
 - Pipe-and-Filter
-- Modular Monolith
 key_technologies:
 - Gradle
 - GitHub Actions
@@ -24,15 +24,13 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Netflix Zuul is an L7 API Gateway that processes requests through
-  a chain of filters (pipe-and-filter), structured as a modular monolith with distinct
-  internal modules (zuul-core, zuul-processor, zuul-discovery, zuul-sample)
+one_line_summary: Netflix API gateway using filter chain pattern for request processing
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.92
   signals_detected: 18
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.85
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -54,11 +52,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Pipe-and-Filter: Zuul''s core design is a ZuulFilter chain for request/response
-  processing (routing, auth, rate-limiting, monitoring) — this is the defining architectural
-  pattern. Modular Monolith: single Gradle build with multiple internal modules (zuul-core,
-  zuul-processor, zuul-discovery, zuul-sample, zuul-integration-test) in a multi-project
-  Gradle structure (settings.gradle), no separate Dockerfiles per service, no Kubernetes/container
-  orchestration. Service-Based is not applicable here — Zuul itself is a library/framework,
-  not a deployed service cluster. The 4 messaging signals likely reflect Netty/async
-  I/O internals rather than an event-driven architecture.'
+review_notes: 'Evidence: Zuul is the canonical Pipe-and-Filter example - requests
+  flow through pre-filters, routing filters, and post-filters; Gradle build; single
+  deployable gateway; Layered is secondary to the primary filter architecture'

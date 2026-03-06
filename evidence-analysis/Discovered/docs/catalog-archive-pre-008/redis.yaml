@@ -1,0 +1,57 @@
+project_name: redis
+source: Discovered
+source_url: https://github.com/redis/redis
+project_url: https://github.com/redis/redis
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:38:49Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Data Grid
+language: C/C++
+languages: null
+architecture_styles:
+- Modular Monolith
+key_technologies:
+- Python/pip
+- GitHub Actions
+quality_attributes:
+- Fault Tolerance
+- Deployability
+- Modularity
+notable_strengths:
+- Moderate signal profile with identifiable patterns
+- Comprehensive test infrastructure
+- CI/CD automation present
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Redis is a single-process in-memory data structure server compiled
+  into one deployable binary with well-separated internal subsystems (networking,
+  persistence, clustering, replication, command handlers)
+discovery_metadata:
+  confidence: 0.92
+  signals_detected: 14
+  signals_evaluated: 10
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
+  heuristic_candidates:
+  - style: Modular Monolith
+    score: 0.7
+  signal_breakdown:
+    package_manifests: 2
+    container_orchestration: 0
+    infrastructure_as_code: 0
+    messaging: 0
+    api_specs: 0
+    adrs: 0
+    ci_cd: 9
+    test_structure: 3
+    documentation: 0
+    directory_structure: 1
+review_required: false
+review_notes: 'Evidence: Makefile compiles src/ into single redis-server binary; src/
+  contains 128 C files with clear functional separation (ae.c event loop, rdb.c/aof.c
+  persistence, cluster.c, replication.c, t_*.c data type handlers); modules/ provides
+  optional extensions but core remains monolithic; no Dockerfiles per service, no
+  Kubernetes manifests, no API gateway configs; tests/ contains 217 TCL integration
+  tests confirming single-unit deployment model'

@@ -3,15 +3,16 @@ source: Discovered
 source_url: https://github.com/Netflix/eureka
 project_url: https://github.com/Netflix/eureka
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:05:44Z'
+discovered_at: '2026-03-06T05:24:49Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
+- JavaScript
 architecture_styles:
 - Modular Monolith
-- Event-Driven
 key_technologies:
 - Gradle
 - GitHub Actions
@@ -24,15 +25,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Netflix Eureka is a RESTful service registry and discovery infrastructure
-  component built as a multi-module Gradle monolith with internal event-driven patterns
-  for registry lifecycle notifications
+one_line_summary: Netflix service discovery library with modular client/core/server
+  components
 discovery_metadata:
-  confidence: 0.82
+  confidence: 0.8
   signals_detected: 19
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.82
+  classification_method: deep-validation
+  primary_style_confidence: 0.8
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -52,11 +52,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Modular Monolith: clear multi-module Gradle project structure with
-  self-contained modules (eureka-core, eureka-client, eureka-server, eureka-resources,
-  eureka-core-jersey2, eureka-client-jersey2, eureka-client-archaius2, eureka-server-governator,
-  eureka-test-utils) defined in settings.gradle, no Dockerfiles or service discovery
-  infrastructure of its own, single deployable WAR/JAR unit. Event-Driven: catalog
-  signals show messaging score of 5, consistent with Eureka''s internal EurekaEvent/EurekaEventListener
-  bus for instance registration, cancellation, and heartbeat renewal lifecycle events.
-  No container orchestration or IaC signals rule out Microservices or Serverless.'
+review_notes: 'Evidence: eureka-client/, eureka-core/, eureka-server/ as Gradle subprojects;
+  library/infrastructure component for microservices; modular internal structure but
+  primarily a library'

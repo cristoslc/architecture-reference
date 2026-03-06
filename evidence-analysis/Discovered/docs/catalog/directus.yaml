@@ -3,15 +3,17 @@ source: Discovered
 source_url: https://github.com/directus/directus
 project_url: https://github.com/directus/directus
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:19:20Z'
+discovered_at: '2026-03-06T05:40:21Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: CMS
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- JavaScript
 architecture_styles:
+- Plugin/Microkernel
 - Modular Monolith
-- Layered
 key_technologies:
 - Node.js
 - Docker
@@ -25,20 +27,21 @@ quality_attributes:
 notable_strengths:
 - Rich signal profile with strong architectural indicators
 - CI/CD automation present
-- Multi-style composition (3 styles)
+- Multi-style composition (4 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Directus is an open-source headless CMS/data platform built as a
-  modular monolith with a layered API, organized into discrete top-level packages
-  (api, app, sdk) with classical layered internals (controllers/services/middleware/database)
+one_line_summary: Headless CMS with plugin-based extension system and modular package
+  architecture
 discovery_metadata:
-  confidence: 0.88
+  confidence: 0.9
   signals_detected: 60
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.88
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
+  - style: Service-Based
+    score: 1.0
   - style: Modular Monolith
     score: 0.7
   - style: Layered
@@ -56,14 +59,7 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 3
+review_notes: 'Evidence: api/ (backend), app/ (frontend), packages/ with extensions/,
+  extensions-sdk/, storage-driver-*; create-directus-extension tooling; clear core+plugin
+  architecture; single deployment'
 review_required: false
-review_notes: 'Evidence: (1) Single Dockerfile at root with docker-compose.yml confirms
-  single deployable unit; (2) Top-level packages api/, app/, sdk/ represent well-defined
-  internal modules — classic modular monolith structure; (3) api/src/ contains explicit
-  layered structure: controllers/, services/, middleware/, database/, auth/, storage/,
-  permissions/ — textbook Layered Architecture; (4) 39 package manifests with pnpm-lock.yaml
-  confirms monorepo with multiple internal packages but no independent service deployment;
-  (5) api/src/bus/ and RabbitMQ signal suggest internal event bus for async flows
-  (webhook/automation feature), not a primary Event-Driven architecture; (6) Single
-  OpenAPI spec corroborates unified API surface; (7) ecosystem.config.cjs (PM2 config)
-  confirms single-process deployment model'

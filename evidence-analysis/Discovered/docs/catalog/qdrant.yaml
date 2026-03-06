@@ -3,14 +3,19 @@ source: Discovered
 source_url: https://github.com/qdrant/qdrant
 project_url: https://github.com/qdrant/qdrant
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:09:35Z'
+discovered_at: '2026-03-06T05:29:33Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Database
 language: Rust
-languages: null
+languages:
+- Rust
+- Python
+- C/C++
+- JavaScript
 architecture_styles:
 - Layered
+- Modular Monolith
 key_technologies:
 - Node.js
 - Python/pip
@@ -28,18 +33,17 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Qdrant is a vector similarity search engine/database written in
-  Rust, structured as a single deployable monolithic service with REST (OpenAPI) and
-  gRPC API layers over a storage engine
+one_line_summary: Vector similarity search engine built as modular Rust application
+  with layered library architecture
 discovery_metadata:
   confidence: 0.88
   signals_detected: 109
   signals_evaluated: 10
-  classification_method: llm-review
+  classification_method: deep-validation
   primary_style_confidence: 0.88
   heuristic_candidates:
-  - style: Microservices
-    score: 0.8
+  - style: Service-Based
+    score: 0.4
   signal_breakdown:
     package_manifests: 23
     container_orchestration: 4
@@ -52,13 +56,7 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: single root Cargo.toml (monolithic Rust workspace, not multiple
-  service directories), single Dockerfile at root, Docker Compose for single-service
-  deployment (tools/compose/docker-compose.yaml), no Kubernetes/Helm manifests, no
-  messaging infrastructure (0 messaging signals), OpenAPI and gRPC specs representing
-  a single service''s interface. The heuristic Microservices candidate at 0.8 is a
-  false positive from 67 API spec signals that are all definitions for one service.
-  Internal structure implies classic layered architecture: HTTP/gRPC API layer → service/business
-  logic → storage engine (consensus_tests and WAL references confirm storage layer).
-  No ports/adapters directories to indicate Hexagonal; no commands/queries separation
-  for CQRS.'
+review_notes: 'Evidence: lib/{api,collection,common,edge} + lib/segment/ + lib/sparse/
+  + lib/storage/ = well-defined Cargo workspace modules; src/ server entry; single
+  Dockerfile; openapi/ specs; Rust Cargo.toml workspace; modular internal structure
+  with clear boundaries'

@@ -3,15 +3,18 @@ source: Discovered
 source_url: https://github.com/discourse/discourse
 project_url: https://github.com/discourse/discourse
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:11:48Z'
+discovered_at: '2026-03-06T05:32:24Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Social Media
 language: Ruby
-languages: null
+languages:
+- Ruby
+- JavaScript
 architecture_styles:
-- Modular Monolith
+- Plugin/Microkernel
 - Layered
+- Event-Driven
 key_technologies:
 - Node.js
 - RabbitMQ
@@ -27,20 +30,19 @@ notable_strengths:
 - Multi-style composition (4 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Discourse is a Ruby on Rails community forum platform built as a
-  modular monolith with explicit plugin architecture for extensibility, using traditional
-  Rails MVC layering
+one_line_summary: Community forum platform with rich plugin system, Rails MVC layered
+  architecture, and event-driven background jobs
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.88
   signals_detected: 76
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.92
+  primary_style_confidence: 0.88
   heuristic_candidates:
-  - style: Modular Monolith
-    score: 0.7
   - style: Service-Based
-    score: 0.4
+    score: 0.8
+  - style: Plugin/Microkernel
+    score: 0.5
   - style: Layered
     score: 0.3
   - style: Event-Driven
@@ -56,13 +58,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 1
     directory_structure: 4
+review_notes: 'Evidence: plugins/ directory with 40+ official plugins (discourse-ai,
+  discourse-calendar, discourse-chat-integration, etc.), app/ with standard Rails
+  MVC layers (controllers, models, services, jobs). Plugin API is the primary extension
+  mechanism. Sidekiq for async event-driven jobs.'
 review_required: false
-review_notes: 'Evidence: (1) plugins/ directory with 9794 files provides explicit
-  module boundaries - core indicator of Modular Monolith with plugin system; (2) app/models/
-  with 100+ Rails ActiveRecord models, app/mailers/, app/queries/ follow standard
-  Rails layered MVC structure; (3) Single deployable Rails application with shared
-  PostgreSQL database; (4) No Kubernetes, Docker Compose for multiple services, or
-  service discovery; (5) lib/ directory (753 files) supports monolithic architecture;
-  (6) db/ with 1685 migration files indicates single database schema evolution; (7)
-  README confirms ''Ruby on Rails back end API'' with ''Ember.js front end'' - classic
-  monolithic web app structure'

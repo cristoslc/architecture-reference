@@ -3,15 +3,18 @@ source: Discovered
 source_url: https://github.com/opf/openproject
 project_url: https://github.com/opf/openproject
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:15:42Z'
+discovered_at: '2026-03-06T05:37:06Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Project Management
 language: Ruby
-languages: null
+languages:
+- Ruby
+- TypeScript
+- JavaScript
 architecture_styles:
-- Layered
 - Modular Monolith
+- Layered
 key_technologies:
 - Node.js
 - Docker
@@ -28,9 +31,9 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: OpenProject is a Rails-based project management application with
-  classic layered MVC architecture and internal modular organization within a single
-  deployable unit.
+one_line_summary: OpenProject is a web-based project management application built
+  as a modular monolith on Ruby on Rails, with 25+ self-contained feature modules
+  and a traditional MVC layered structure within the core app
 discovery_metadata:
   confidence: 0.88
   signals_detected: 50
@@ -38,8 +41,8 @@ discovery_metadata:
   classification_method: deep-validation
   primary_style_confidence: 0.88
   heuristic_candidates:
-  - style: Microservices
-    score: 0.4
+  - style: Service-Based
+    score: 0.5
   - style: Event-Driven
     score: 0.3
   - style: CQRS
@@ -58,9 +61,5 @@ discovery_metadata:
     documentation: 0
     directory_structure: 5
 review_required: false
-review_notes: 'Evidence: `app/` directory with 3316 files showing standard Rails layering
-  (forms/, contracts/, mailers/, uploaders/); `modules/` directory with 6584 files
-  indicating internal modular boundaries; single production Dockerfile (docker/prod/Dockerfile)
-  confirming single deployable unit; docker-compose.yml shows one backend + one frontend
-  + one worker service with supporting infrastructure (postgres, memcached) - not
-  microservices decomposition; good_job for background jobs (not event-driven messaging).'
+review_notes: 'Evidence: confirmed via prior deep review. modules/ directory with
+  25+ Rails engines, single Dockerfile, standard MVC layering.'

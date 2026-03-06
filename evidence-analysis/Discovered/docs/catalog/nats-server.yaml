@@ -3,14 +3,15 @@ source: Discovered
 source_url: https://github.com/nats-io/nats-server
 project_url: https://github.com/nats-io/nats-server
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:06:32Z'
+discovered_at: '2026-03-06T05:25:45Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Messaging
 language: Go
-languages: null
+languages:
+- Go
 architecture_styles:
-- Modular Monolith
+- Layered
 - Event-Driven
 key_technologies:
 - Go modules
@@ -26,15 +27,13 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: NATS server is a high-performance messaging broker implemented as
-  a single deployable Go binary with well-defined internal modules (server, logger,
-  internal, util) handling pub/sub, JetStream streaming, clustering, MQTT, WebSocket,
-  and routing
+one_line_summary: High-performance messaging server with internal layered architecture
+  and event-driven message routing
 discovery_metadata:
   confidence: 0.88
   signals_detected: 11
   signals_evaluated: 10
-  classification_method: llm-review
+  classification_method: deep-validation
   primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Modular Monolith
@@ -53,12 +52,7 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Single Go module (go.mod) and single Dockerfile confirm single deployable
-  unit. The `server/` package is the core monolith containing all major subsystems:
-  jetstream.go, jetstream_cluster.go, accounts.go, gateway.go, mqtt.go, auth.go, store.go,
-  monitor.go — all within one package. Internal modules (`internal/ldap`, `internal/ocsp`,
-  `internal/fastrand`) and `logger/` provide clear module boundaries. Event-Driven
-  classification is well-supported: NATS is itself a pub/sub messaging infrastructure;
-  `server/jetstream_events.go`, `server/events_test.go`, and the overall pub/sub/streaming
-  architecture confirm event-driven patterns as a first-class concern. No multiple
-  Dockerfiles, no Kubernetes manifests, no API gateway config — ruling out Microservices.'
+review_notes: 'Evidence: main.go entry; server/ contains core logic (server.go, client.go,
+  route.go, jetstream.go); internal/ has helper packages; logger/ separate; single
+  binary deployment; no modular boundaries - it is a cohesive server; Event-Driven
+  as it IS a messaging system'

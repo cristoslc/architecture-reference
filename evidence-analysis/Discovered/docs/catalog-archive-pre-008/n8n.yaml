@@ -1,0 +1,73 @@
+project_name: n8n
+source: Discovered
+source_url: https://github.com/n8n-io/n8n
+project_url: https://github.com/n8n-io/n8n
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:21:23Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Workflow Automation
+language: TypeScript
+languages: null
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Pipe-and-Filter
+key_technologies:
+- Node.js
+- Python/pip
+- Docker
+- Docker Compose
+- Terraform
+- Kafka
+- RabbitMQ
+- OpenAPI
+- GitHub Actions
+quality_attributes:
+- Deployability
+- Modularity
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (3 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: n8n is a workflow automation platform built as a modular monolith
+  with event-driven task execution and an intrinsic pipe-and-filter processing model
+  for workflow nodes
+discovery_metadata:
+  confidence: 0.88
+  signals_detected: 152
+  signals_evaluated: 10
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
+  heuristic_candidates:
+  - style: Event-Driven
+    score: 0.6
+  - style: Microservices
+    score: 0.5
+  - style: Domain-Driven Design
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 65
+    container_orchestration: 12
+    infrastructure_as_code: 7
+    messaging: 5
+    api_specs: 1
+    adrs: 0
+    ci_cd: 58
+    test_structure: 4
+    documentation: 0
+    directory_structure: 3
+review_required: false
+review_notes: 'Evidence: (1) Modular Monolith - pnpm-workspace.yaml at root confirms
+  monorepo structure, single main Dockerfile (docker/images/n8n/Dockerfile) bundles
+  entire application into one deployment unit at /usr/local/lib/node_modules/n8n,
+  65 package manifests indicate internal packages not microservices; (2) Event-Driven
+  - Task runner Dockerfiles (docker/images/runners/) for JavaScript and Python runners
+  enable async sandboxed execution, catalog notes queue-mode with workers consuming
+  job events; (3) Pipe-and-Filter - n8n''s core function IS workflow automation where
+  data flows through sequential nodes (filters/transformers), this is the fundamental
+  processing model of the product'

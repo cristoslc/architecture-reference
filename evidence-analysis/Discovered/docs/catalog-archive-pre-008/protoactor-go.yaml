@@ -1,0 +1,66 @@
+project_name: protoactor-go
+source: Discovered
+source_url: https://github.com/asynkron/protoactor-go
+project_url: https://github.com/asynkron/protoactor-go
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:39:52Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Developer Tools
+language: Go
+languages: null
+architecture_styles:
+- Multi-Agent
+- Event-Driven
+key_technologies:
+- Go modules
+- Docker
+- Kubernetes
+- Docker Compose
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Scalability
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: protoactor-go is a Go actor-model framework providing distributed,
+  message-passing concurrency via autonomous actors communicating through asynchronous
+  messages, with gRPC-based clustering and Kubernetes integration
+discovery_metadata:
+  confidence: 0.88
+  signals_detected: 97
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.88
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.7
+  signal_breakdown:
+    package_manifests: 47
+    container_orchestration: 9
+    infrastructure_as_code: 0
+    messaging: 0
+    api_specs: 36
+    adrs: 0
+    ci_cd: 3
+    test_structure: 2
+    documentation: 0
+    directory_structure: 0
+review_required: false
+review_notes: 'Primary style is Multi-Agent: the entire framework is built around
+  autonomous actors (agents) that communicate via message passing — `actor/` package,
+  `Receive(context actor.Context)` pattern, actor lifecycle events (Started/Stopping/Stopped),
+  supervision hierarchies, and spawn/send primitives. Event-Driven is strongly present:
+  `eventstream/` package, pub/sub patterns in `cluster/pubsub*.go`, protobuf message
+  definitions (`.proto` files throughout), gossip protocol in `cluster/gossip*.go`,
+  and async message delivery. The cluster module (`cluster/clusterproviders/k8s`,
+  `k8s`, `consul`, `etcd`, `zk`) and gRPC remoting support distributed deployment,
+  but this is a framework/library rather than a deployed microservices application
+  — the Microservices label fits the examples (e.g., `examples/cluster-grain/docker-compose.yml`,
+  multi-node examples) but not the core architecture style. This is fundamentally
+  a Multi-Agent + Event-Driven framework.'

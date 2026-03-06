@@ -3,15 +3,19 @@ source: Discovered
 source_url: https://github.com/mage-ai/mage-ai
 project_url: https://github.com/mage-ai/mage-ai
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:34:23Z'
+discovered_at: '2026-03-06T05:59:02Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Processing
 language: Python
-languages: null
+languages:
+- Python
+- JavaScript
+- TypeScript
 architecture_styles:
-- Pipe-and-Filter
 - Modular Monolith
+- Pipe-and-Filter
+- Event-Driven
 key_technologies:
 - Node.js
 - Python/pip
@@ -32,14 +36,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A data pipeline development platform (ETL/orchestration tool) built
-  as a modular monolith with pipeline-based processing architecture
+one_line_summary: Data pipeline platform with block-based pipe-and-filter execution,
+  event-driven streaming, deployed as single Python application
 discovery_metadata:
-  confidence: 0.88
+  confidence: 0.85
   signals_detected: 28
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.88
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Microservices
     score: 0.8
@@ -58,8 +62,8 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 2
-review_notes: 'Evidence: mage_ai/ package with cache/, kernels/, settings/, frontend/
-  as internal modules; docker-compose.yml shows single deployable unit (server + app
-  + database); integrations/ contains deployment variants, not separate services;
-  pipeline/block structure in codebase confirms Pipe-and-Filter pattern'
+review_notes: 'Evidence: mage_ai/ single package with orchestration/, data/, streaming/,
+  server/, services/ modules. Pipelines built from blocks (data_loader -> transformer
+  -> data_exporter). Single Dockerfile, docker-compose shows single mage service.
+  Not microservices.'
 review_required: false

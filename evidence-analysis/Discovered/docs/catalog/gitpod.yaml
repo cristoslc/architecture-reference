@@ -3,14 +3,19 @@ source: Discovered
 source_url: https://github.com/gitpod-io/gitpod
 project_url: https://github.com/gitpod-io/gitpod
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:24:01Z'
+discovered_at: '2026-03-06T05:46:40Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Go
-languages: null
+languages:
+- Go
+- TypeScript
+- Java/Kotlin
+- JavaScript
 architecture_styles:
 - Microservices
+- Event-Driven
 key_technologies:
 - Node.js
 - Go modules
@@ -31,15 +36,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Gitpod is a cloud-based developer platform with 20+ independently
-  deployable services (server, ws-manager, image-builder, public-api, etc.) communicating
-  via gRPC/REST APIs, deployed on Kubernetes.
+one_line_summary: Cloud development environment platform with genuine microservices
+  architecture - 30+ independently deployable components
 discovery_metadata:
-  confidence: 0.9
+  confidence: 0.88
   signals_detected: 252
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.9
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 1.1
@@ -58,7 +62,8 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 4
-review_notes: 'Evidence: 20+ component directories each with own main.go/cmd, multiple
-  leeway.Dockerfiles, gRPC proto definitions, Kubernetes installer in install/installer.
-  No docker-compose (uses Kubernetes).'
+review_notes: 'Evidence: components/ directory with 30+ services (blobserve, content-service,
+  dashboard, gitpod-db, ide-proxy, public-api-server, registry-facade, ws-daemon,
+  ws-manager, ws-proxy, etc.) each with own BUILD.yaml. gRPC APIs between services,
+  K8s deployment.'
 review_required: false

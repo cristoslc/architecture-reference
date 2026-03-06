@@ -3,15 +3,17 @@ source: Discovered
 source_url: https://github.com/linkerd/linkerd2
 project_url: https://github.com/linkerd/linkerd2
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:04:56Z'
+discovered_at: '2026-03-06T05:23:51Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Go
-languages: null
+languages:
+- Go
+- Rust
+- JavaScript
 architecture_styles:
-- Microservices
-- Event-Driven
+- Service-Based
 key_technologies:
 - Node.js
 - Go modules
@@ -33,16 +35,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Linkerd2 is a Kubernetes service mesh with multiple independently
-  deployable components (controller, viz, multicluster, web, cli, policy-controller)
-  that communicate via gRPC and use message-based event patterns for distributed state
-  management
+one_line_summary: Service mesh control plane with coarse-grained services (destination,
+  identity, proxy-injector, heartbeat) deployed via Helm charts on Kubernetes
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.85
   signals_detected: 186
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.95
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Microservices
     score: 1.3
@@ -59,10 +59,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 0
-review_notes: 'Evidence: Multiple independent services with separate Dockerfiles (web/,
-  cli/, viz/tap/, viz/metrics-api/, policy-controller/), Helm charts for Kubernetes
-  deployment (charts/linkerd-control-plane/, charts/linkerd-crds/, charts/linkerd2-cni/),
-  gRPC APIs in proto/, RabbitMQ in key technologies, 150 container orchestration signals.
-  The policy-controller uses Rust while main components use Go, demonstrating polyglot
-  microservices.'
+review_notes: 'Evidence: controller/cmd/{destination,identity,proxy-injector,heartbeat,sp-validator}
+  = 5 control plane services; single go.mod monorepo; Helm charts for deployment;
+  policy-controller in Rust; not a typical microservices app - it IS service mesh
+  infrastructure'
 review_required: false

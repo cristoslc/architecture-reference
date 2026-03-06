@@ -3,14 +3,16 @@ source: Discovered
 source_url: https://github.com/appwrite/appwrite
 project_url: https://github.com/appwrite/appwrite
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:20:45Z'
+discovered_at: '2026-03-06T05:42:11Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: PHP
-languages: null
+languages:
+- PHP
+- TypeScript
+- JavaScript
 architecture_styles:
-- Microservices
 - Event-Driven
 - Modular Monolith
 key_technologies:
@@ -24,23 +26,23 @@ quality_attributes:
 notable_strengths:
 - Rich signal profile with strong architectural indicators
 - CI/CD automation present
-- Multi-style composition (5 styles)
+- Multi-style composition (6 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Appwrite is an open-source Backend-as-a-Service (BaaS) platform
-  structured as containerized microservices (appwrite core, workers, realtime, executor)
-  communicating via message queues/events, with the PHP codebase internally organized
-  as a modular monolith
+one_line_summary: PHP backend-as-a-service with event-driven worker architecture in
+  a modular monolith deployment
 discovery_metadata:
   confidence: 0.88
   signals_detected: 27
   signals_evaluated: 10
-  classification_method: llm-review
+  classification_method: deep-validation
   primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
+  - style: Service-Based
+    score: 0.5
   - style: Layered
     score: 0.3
   - style: Event-Driven
@@ -61,13 +63,7 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence for Microservices: single Dockerfile at root, docker-compose
-  deployment model described in README, multiple distinct service entry points (app/http.php,
-  app/worker.php, app/realtime.php, app/cli.php), README explicitly states ''microservices
-  architecture''. Evidence for Event-Driven: app/config/events.php defines system
-  events, tests/unit/Event/ directory, worker.php consuming background queues for
-  async tasks (emails, webhooks, builds) as described in README and CONTRIBUTING.
-  Evidence for Modular Monolith: app/controllers/api/ with multiple domain subdirectories,
-  docs/references/ with per-domain subdirectories (account, databases, storage, functions,
-  messaging, teams, users, etc.), app/config/ with per-domain configs, all within
-  a single deployable PHP container image.'
+review_notes: 'Evidence: src/Appwrite/ with Databases, Functions, Messaging, Auth,
+  etc. as functional modules; docker-compose runs single codebase as multiple workers
+  (appwrite-worker-databases, appwrite-worker-functions); shared codebase, not independent
+  microservices; Event class for pub/sub between components'

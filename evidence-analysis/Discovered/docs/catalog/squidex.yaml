@@ -3,14 +3,16 @@ source: Discovered
 source_url: https://github.com/squidex/squidex
 project_url: https://github.com/squidex/squidex
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:29:22Z'
+discovered_at: '2026-03-06T05:52:32Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: CMS
 language: C#
-languages: null
+languages:
+- C#
+- TypeScript
+- JavaScript
 architecture_styles:
-- Modular Monolith
 - CQRS
 - Event-Driven
 - Domain-Driven Design
@@ -34,9 +36,8 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Squidex is a headless CMS built as a single deployable ASP.NET Core
-  application with CQRS and Event Sourcing, organized around domain concepts with
-  well-defined module boundaries.
+one_line_summary: Squidex is a headless CMS built with CQRS and event sourcing patterns,
+  organized around DDD bounded contexts with a single deployable backend
 discovery_metadata:
   confidence: 0.9
   signals_detected: 89
@@ -65,11 +66,9 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 5
-review_notes: 'Evidence: Single Dockerfile produces Squidex.dll (line 67: ''dotnet
-  publish src/Squidex/Squidex.csproj''); README explicitly states ''built with ASP.NET
-  Core and CQRS''; backend/tests/Squidex.Infrastructure.Tests/EventSourcing/ and Commands/
-  directories confirm CQRS pattern; backend/tests/Squidex.Domain.Apps.Entities.Tests/,
-  backend/tests/Squidex.Domain.Apps.Core.Tests/, backend/tests/Squidex.Domain.Users.Tests/
-  show domain-driven bounded contexts; backend/tests/Squidex.Web.Tests/ and backend/tests/Squidex.Infrastructure.Tests/
-  show layered separation'
+review_notes: 'Evidence: backend/src/ contains Squidex.Domain.Apps.Events (event sourcing),
+  Squidex.Domain.Apps.Entities (read models/projections), Squidex.Domain.Apps.Core.Model
+  and Core.Operations (domain layer), Squidex.Infrastructure (CQRS infrastructure),
+  Squidex.Web/CommandMiddlewares (command handling). Single Dockerfile confirms not
+  microservices. Clear DDD: Contents, Schemas, Assets, Rules, Apps bounded contexts.'
 review_required: false

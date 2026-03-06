@@ -3,15 +3,16 @@ source: Discovered
 source_url: https://github.com/temporalio/temporal
 project_url: https://github.com/temporalio/temporal
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:24:16Z'
+discovered_at: '2026-03-06T05:47:01Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Workflow Orchestration
 language: Go
-languages: null
+languages:
+- Go
 architecture_styles:
+- Service-Based
 - Event-Driven
-- Microservices
 key_technologies:
 - Go modules
 - Docker Compose
@@ -27,18 +28,17 @@ notable_strengths:
 - Multi-style composition (2 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Temporal is a durable workflow execution platform built around event
-  sourcing, with independently deployable internal services (Frontend, History, Matching,
-  Worker) communicating via gRPC
+one_line_summary: Durable execution platform with coarse-grained internal services
+  (history, matching, frontend, worker) and event-sourced workflows
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.9
   signals_detected: 93
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
-  - style: Microservices
-    score: 0.5
+  - style: Service-Based
+    score: 0.7
   - style: Event-Driven
     score: 0.3
   signal_breakdown:
@@ -53,14 +53,7 @@ discovery_metadata:
     documentation: 1
     directory_structure: 1
 review_required: false
-review_notes: 'Event-Driven: Architecture doc explicitly states ''the system functions
-  via event sourcing: an append-only history of events is stored for each workflow
-  execution''; service/history/ contains event sourcing infrastructure including historybuilder/,
-  events/, replication/, and queues/. Microservices: Four independently deployable
-  services each with their own service.go, fx.go, handler.go, and configs/ directory:
-  service/frontend/, service/history/, service/matching/, service/worker/; docker-compose.cdc.yml
-  and multiple Dockerfiles in docker/targets/ (server.Dockerfile, admin-tools.Dockerfile)
-  confirm independent deployment; gRPC-based inter-service communication (67 API spec
-  signals); service/history/ manages workflow state shards, service/matching/ manages
-  task queues, service/frontend/ handles external gRPC/HTTP API, service/worker/ handles
-  background jobs — each with distinct responsibilities and bounded contexts.'
+review_notes: 'Evidence: service/ directory with internal services; api/{historyservice,matchingservice,adminservice}
+  = coarse services within single go.mod; components/ shared; single binary with service
+  roles; event-sourced workflow execution; not independently deployed microservices;
+  CQRS not clearly evidenced in code'

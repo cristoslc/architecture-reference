@@ -3,12 +3,14 @@ source: Discovered
 source_url: https://github.com/spring-petclinic/spring-petclinic-microservices
 project_url: https://github.com/spring-petclinic/spring-petclinic-microservices
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:04:30Z'
+discovered_at: '2026-03-06T05:23:18Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Veterinary
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
+- JavaScript
 architecture_styles:
 - Microservices
 key_technologies:
@@ -24,9 +26,8 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Spring PetClinic reference microservices application with 7 independently
-  deployable services (customers, visits, vets, genai, api-gateway, config-server,
-  discovery-server) using Spring Cloud stack and orchestrated via Docker Compose
+one_line_summary: Spring Cloud microservices demo with config-server, discovery-server,
+  API gateway, and domain services for pet clinic
 discovery_metadata:
   confidence: 0.95
   signals_detected: 15
@@ -34,7 +35,7 @@ discovery_metadata:
   classification_method: deep-validation
   primary_style_confidence: 0.95
   heuristic_candidates:
-  - style: Microservices
+  - style: Service-Based
     score: 0.5
   signal_breakdown:
     package_manifests: 9
@@ -48,10 +49,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence: docker-compose.yml defines 11 containers including 7 application
-  services; spring-petclinic-api-gateway/ implements Spring Cloud Gateway; spring-petclinic-discovery-server/
-  provides Eureka service registry; spring-petclinic-config-server/ centralizes configuration;
-  each business service (customers-service, visits-service, vets-service, genai-service)
-  has own Maven module with pom.xml, separate database schemas in db/mysql/, and dedicated
-  Docker image; README explicitly describes microservices decomposition with architecture
-  diagram at docs/microservices-architecture-diagram.jpg'
+review_notes: 'Evidence: spring-petclinic-{customers-service,vets-service,visits-service,api-gateway,config-server,discovery-server,admin-server,genai-service}/
+  each independently deployable; docker-compose.yml with all services; Eureka + Spring
+  Cloud Config'

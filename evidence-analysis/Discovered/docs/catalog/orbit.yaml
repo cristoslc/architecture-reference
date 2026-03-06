@@ -3,15 +3,15 @@ source: Discovered
 source_url: https://github.com/orbit/orbit
 project_url: https://github.com/orbit/orbit
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:39:33Z'
+discovered_at: '2026-03-06T06:04:23Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
 architecture_styles:
-- Modular Monolith
-- Layered
+- Service-Based
 key_technologies:
 - Gradle
 - Docker
@@ -29,15 +29,13 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Orbit is an actor-based distributed computing framework (by EA)
-  built as a Gradle multi-module monolith with a single deployable server, gRPC client-server
-  communication, and modular internal components for client, server, shared logic,
-  and extensions
+one_line_summary: Virtual actor framework with client-server architecture deployed
+  via Kubernetes Helm charts
 discovery_metadata:
   confidence: 0.82
   signals_detected: 31
   signals_evaluated: 10
-  classification_method: llm-review
+  classification_method: deep-validation
   primary_style_confidence: 0.82
   heuristic_candidates:
   - style: Microservices
@@ -56,12 +54,7 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence for Modular Monolith: single `./docker/server/Dockerfile`,
-  single `docker-compose.yml`, single Helm chart (`./charts/orbit/`), single `build.gradle.kts`
-  at root with `settings.gradle.kts` coordinating all modules — classic Gradle multi-project
-  monolith. Modules (`orbit-server`, `orbit-client`, `orbit-proto`, `orbit-shared`,
-  `orbit-util`, `orbit-server-etcd`, `orbit-server-prometheus`, `orbit-application`)
-  are internal build units, not independently deployed services. Layered signals:
-  `orbit-application`, `orbit-server`, `orbit-client`, `orbit-shared` suggest presentation/application/infrastructure
-  layering within the monolith. gRPC via `orbit-proto` is client-server actor protocol,
-  not microservice inter-communication.'
+review_notes: 'Evidence: src/orbit-server + src/orbit-client = client-server split;
+  src/orbit-proto gRPC definitions; src/orbit-server-etcd + orbit-server-prometheus
+  = server plugins; Helm charts for K8s deployment; single Gradle build; EA''s virtual
+  actor framework'

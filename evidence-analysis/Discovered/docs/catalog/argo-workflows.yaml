@@ -3,14 +3,19 @@ source: Discovered
 source_url: https://github.com/argoproj/argo-workflows
 project_url: https://github.com/argoproj/argo-workflows
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:34:04Z'
+discovered_at: '2026-03-06T05:58:32Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Workflow Orchestration
 language: Go
-languages: null
+languages:
+- Go
+- TypeScript
+- JavaScript
 architecture_styles:
-- Layered
+- Modular Monolith
+- Event-Driven
+- Pipe-and-Filter
 key_technologies:
 - Node.js
 - Go modules
@@ -35,10 +40,9 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Argo Workflows is a Kubernetes-native workflow orchestration engine
-  implemented as a monolithic Go application with a separate React UI frontend. The
-  codebase has clear layered organization (cmd, server, workflow, pkg, util directories)
-  and is NOT a microservices or event-driven system.
+one_line_summary: Kubernetes-native workflow engine with controller+server+executor
+  components sharing single Go module, event-driven K8s watch patterns, DAG-based
+  pipeline execution
 discovery_metadata:
   confidence: 0.85
   signals_detected: 111
@@ -63,14 +67,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
-review_notes: 'Evidence: Single `go.mod` at root, single multi-stage Dockerfile building
-  all components (argoexec, workflow-controller, argo, argo-ui) from unified codebase.
-  Directory structure shows layered architecture: `cmd/` (entry points), `server/`
-  (API layer), `workflow/` (business logic - 324 files), `pkg/` (shared packages),
-  `util/` (utilities). No evidence of: (1) microservices - no separate service directories,
-  no Kubernetes manifests for multiple services; (2) event-driven - no message brokers
-  (Kafka/RabbitMQ/NATS) visible, no event schema definitions; (3) DDD - no explicit
-  domain/aggregates/entities pattern. The signal_breakdown shows 58 container_orchestration
-  signals (Kubernetes-related) but this is a single Kubernetes CRD controller, not
-  microservices.'
+review_notes: 'Evidence: single go.mod, cmd/argo, cmd/argoexec, cmd/workflow-controller
+  are binaries from same codebase, not independent microservices. K8s manifests are
+  CRDs for the platform, not service decomposition. workflow/ pkg implements DAG/step-based
+  pipelines.'
 review_required: false

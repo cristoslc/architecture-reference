@@ -3,15 +3,18 @@ source: Discovered
 source_url: https://github.com/pachyderm/pachyderm
 project_url: https://github.com/pachyderm/pachyderm
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:35:10Z'
+discovered_at: '2026-03-06T05:59:57Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Processing
 language: Go
-languages: null
+languages:
+- Go
+- TypeScript
+- Python
+- JavaScript
 architecture_styles:
-- Microservices
-- Event-Driven
+- Service-Based
 - Pipe-and-Filter
 key_technologies:
 - Node.js
@@ -34,15 +37,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Pachyderm is a data pipeline automation platform built on Kubernetes
-  with containerized services (pachd, worker, pachctl), event-triggered data processing
-  pipelines, and multi-stage DAG-based data transformations
+one_line_summary: Data versioning and pipeline platform with coarse-grained services
+  (pachd, worker, console) and DAG-based pipeline execution
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.88
   signals_detected: 180
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.95
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 1.0
@@ -61,10 +63,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 2
-review_notes: 'Evidence: Dockerfile.pachd, Dockerfile.pachctl, Dockerfile.go-rabbitmq-spout
-  for containerized services; etc/helm/pachyderm/ for Kubernetes orchestration; src/
-  with 1088 Go files for pipeline system implementation; python-sdk/examples/spout/
-  demonstrating event ingress pattern; README explicitly describes ''multi-stage,
-  language-agnostic pipelines'' with ''data-driven pipelines automatically trigger
-  based on detecting data changes'''
+review_notes: 'Evidence: Dockerfile.pachd + Dockerfile.worker + Dockerfile.pachctl
+  + Dockerfile.console = 4 coarse services; src/{admin,auth,enterprise,identity,debug}
+  domain modules within pachd; console/{backend,frontend}; pipeline execution is pipe-and-filter
+  DAGs; single go.mod; fewer than typical microservices'
 review_required: false

@@ -3,14 +3,21 @@ source: Discovered
 source_url: https://github.com/envoyproxy/envoy
 project_url: https://github.com/envoyproxy/envoy
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:05:38Z'
+discovered_at: '2026-03-06T05:24:42Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: C/C++
-languages: null
+languages:
+- C/C++
+- Java/Kotlin
+- Swift
+- Python
+- Go
+- Rust
 architecture_styles:
 - Pipe-and-Filter
+- Layered
 key_technologies:
 - Go modules
 - Python/pip
@@ -32,18 +39,17 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Envoy is a cloud-native C++ proxy that processes inbound requests
-  through a configurable chain of filters - the classic Pipe-and-Filter architectural
-  pattern
+one_line_summary: Cloud-native proxy with pipe-and-filter request processing via pluggable
+  filter chains and layered internal structure
 discovery_metadata:
-  confidence: 0.95
-  signals_detected: 912
+  confidence: 0.88
+  signals_detected: 914
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.95
+  primary_style_confidence: 0.88
   heuristic_candidates:
-  - style: Microservices
-    score: 0.9
+  - style: Service-Based
+    score: 0.6
   - style: Event-Driven
     score: 0.3
   - style: Pipe-and-Filter
@@ -53,16 +59,13 @@ discovery_metadata:
     container_orchestration: 4
     infrastructure_as_code: 0
     messaging: 1
-    api_specs: 830
+    api_specs: 832
     adrs: 0
     ci_cd: 57
     test_structure: 3
     documentation: 0
     directory_structure: 4
-review_notes: 'Envoy is a single monolithic C++ binary (not microservices). The ''api_specs:
-  830'' signal represents protocol buffer definitions for Envoy''s xDS configuration
-  API, not inter-service APIs. Envoy''s core architecture is a chain of L3/L4 and
-  HTTP filters that process requests sequentially - this is the canonical Pipe-and-Filter
-  pattern. The internal event-driven behavior (using libevent) is implementation detail
-  of network proxies, not a distinct architectural style.'
 review_required: false
+review_notes: 'Evidence: listener filters -> network filters -> HTTP filters -> upstream
+  clusters pipeline, extensive protobuf xDS API in api/, single deployable binary.
+  Not microservices or service-based.'

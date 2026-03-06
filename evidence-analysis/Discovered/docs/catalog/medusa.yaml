@@ -3,15 +3,18 @@ source: Discovered
 source_url: https://github.com/medusajs/medusa
 project_url: https://github.com/medusajs/medusa
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:18:56Z'
+discovered_at: '2026-03-06T05:39:52Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- JavaScript
 architecture_styles:
 - Modular Monolith
-- Domain-Driven Design
+- Plugin/Microkernel
+- Event-Driven
 key_technologies:
 - Node.js
 - OpenAPI
@@ -24,14 +27,11 @@ notable_strengths:
 - Rich signal profile with strong architectural indicators
 - CI/CD automation present
 - Architecture documentation present
-- Multi-style composition (3 styles)
+- Multi-style composition (4 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Medusa is an open-source e-commerce platform built as a monorepo
-  with multiple commerce modules (promotion, order, auth, payment, etc.), each following
-  Domain-Driven Design with models, services, migrations, and types organized within
-  bounded contexts. The system is a single deployable unit (not microservices) with
-  clear module boundaries.
+one_line_summary: Medusa is a modular e-commerce platform with 30+ self-contained
+  commerce modules, plugin architecture, and event-bus messaging
 discovery_metadata:
   confidence: 0.9
   signals_detected: 129
@@ -39,6 +39,8 @@ discovery_metadata:
   classification_method: deep-validation
   primary_style_confidence: 0.9
   heuristic_candidates:
+  - style: Service-Based
+    score: 0.8
   - style: Modular Monolith
     score: 0.7
   - style: CQRS
@@ -56,11 +58,8 @@ discovery_metadata:
     test_structure: 1
     documentation: 1
     directory_structure: 4
+review_notes: 'Evidence: packages/modules/ contains 30+ domain modules (cart, order,
+  payment, product, fulfillment, etc.), packages/plugins/ for extensions, event-bus-local
+  and event-bus-redis modules for async events, single deployment (no docker-compose),
+  turbo.json monorepo orchestration'
 review_required: false
-review_notes: 'Evidence: (1) packages/modules/ contains 20+ commerce modules (promotion,
-  order, auth, payment, notification, etc.) each with self-contained structure (models/,
-  services/, migrations/, types/, utils/); (2) Each module has domain models (e.g.,
-  packages/modules/promotion/src/models/ with Promotion, Campaign, CampaignBudget
-  entities); (3) Single deployment via @medusajs/medusa npm package - no separate
-  Dockerfiles or Kubernetes manifests; (4) turbo.json monorepo orchestration; (5)
-  Module pattern via Module() wrapper with service declaration.'

@@ -3,12 +3,14 @@ source: Discovered
 source_url: https://github.com/vendia/serverless-express
 project_url: https://github.com/vendia/serverless-express
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:28:16Z'
+discovered_at: '2026-03-06T05:50:46Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: JavaScript
-languages: null
+languages:
+- JavaScript
+- TypeScript
 architecture_styles:
 - Serverless
 key_technologies:
@@ -27,14 +29,13 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A Node.js adapter library that bridges Express.js (and other frameworks)
-  to serverless runtime environments including AWS Lambda (API Gateway V1/V2, ALB,
-  Lambda@Edge, VPC Lattice) and Azure Functions
+one_line_summary: Library for running Express.js and other Node.js frameworks on AWS
+  Lambda, Azure Functions, and other serverless platforms
 discovery_metadata:
   confidence: 0.92
   signals_detected: 30
   signals_evaluated: 10
-  classification_method: llm-review
+  classification_method: deep-validation
   primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Serverless
@@ -55,11 +56,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: multiple SAM templates (examples/*/sam-template.yaml), Azure
-  Function configs (examples/azure-http-function-v3/function.json, host.json), serverless.yml
-  in examples/basic-starter-nestjs, Lambda handler wrappers throughout examples (lambda.js
-  files), AWS Lambda and Azure Functions as primary deployment targets per README,
-  event source test fixtures (api-gateway-event.json, alb-event.json, etc.), GitHub
-  Actions CI/CD (.github/workflows/). This is a library/adapter rather than an application,
-  but its entire purpose and structure is to enable serverless deployments, making
-  Serverless the correct architectural classification.'
+review_notes: 'Evidence: src/event-sources/{aws,azure}/ serverless platform adapters;
+  src/frameworks/ framework adapters; examples/ with Lambda, ALB, Azure Functions,
+  Lambda@Edge; this is a serverless adapter library'

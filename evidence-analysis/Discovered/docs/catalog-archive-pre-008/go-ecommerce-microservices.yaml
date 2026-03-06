@@ -1,0 +1,73 @@
+project_name: go-ecommerce-microservices
+source: Discovered
+source_url: https://github.com/mehdihadeli/go-ecommerce-microservices
+project_url: https://github.com/mehdihadeli/go-ecommerce-microservices
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:10:40Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: E-Commerce
+language: Go
+languages: null
+architecture_styles:
+- Microservices
+- Event-Driven
+- CQRS
+- Domain-Driven Design
+key_technologies:
+- Node.js
+- Go modules
+- Docker
+- Docker Compose
+- Kafka
+- RabbitMQ
+- OpenAPI
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (4 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Go food delivery system with three independently deployable microservices
+  using event-driven communication via RabbitMQ/EventStoreDB, CQRS pattern with separate
+  read/write services, and domain-driven design principles
+discovery_metadata:
+  confidence: 0.92
+  signals_detected: 34
+  signals_evaluated: 10
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.9
+  - style: Event-Driven
+    score: 0.3
+  - style: CQRS
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 5
+    container_orchestration: 5
+    infrastructure_as_code: 0
+    messaging: 2
+    api_specs: 18
+    adrs: 0
+    ci_cd: 3
+    test_structure: 1
+    documentation: 0
+    directory_structure: 4
+review_notes: 'Evidence: Three separate services in internal/services/ (catalogwriteservice,
+  catalogreadservice, orderservice), each with own Dockerfile, go.mod, Makefile for
+  independent deployment. Event-driven: internal/pkg/rabbitmq/ with bus/, producer/,
+  consumer/; internal/pkg/eventstroredb/ with event_store.go, aggregate_store.go,
+  projection_builder.go. CQRS: explicit catalogwriteservice vs catalogreadservice
+  separation; internal/pkg/core/cqrs/ package; Go-MediatR integration. DDD: internal/pkg/core/domain/
+  package; Event Sourcing in orderservice; README explicitly states DDD usage. gRPC
+  for inter-service communication.'
+review_required: false

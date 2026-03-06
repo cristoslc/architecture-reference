@@ -3,15 +3,17 @@ source: Discovered
 source_url: https://github.com/hashicorp/consul
 project_url: https://github.com/hashicorp/consul
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:05:18Z'
+discovered_at: '2026-03-06T05:24:20Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Go
-languages: null
+languages:
+- Go
+- JavaScript
 architecture_styles:
 - Modular Monolith
-- Event-Driven
+- Layered
 key_technologies:
 - Node.js
 - Go modules
@@ -34,10 +36,8 @@ notable_strengths:
 - Multi-style composition (4 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Consul is a distributed service discovery and configuration tool
-  that runs as a single Go binary (modular monolith) with internal components for
-  agent, command, connect, and API. Event-driven patterns are evident through gossip
-  protocol, health checking, and change notifications.
+one_line_summary: Service mesh and service discovery platform built as single Go binary
+  with layered agent/API/internal architecture
 discovery_metadata:
   confidence: 0.85
   signals_detected: 119
@@ -64,10 +64,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 1
     directory_structure: 3
-review_notes: 'Evidence: Single main Go binary (root go.mod, agent/ with 2623 files).
-  Not microservices - no multiple service directories or Kubernetes manifests. Modular
-  internal structure: agent/, command/, connect/, api/, internal/, lib/ packages.
-  Event-driven patterns: proto/pbsubscribe for subscriptions, gossip protocol (serf),
-  health checking events. DDD signals weak - no explicit domain/aggregates/entities
-  structure. Hexagonal architecture not evident - no ports/adapters separation.'
+review_notes: 'Evidence: single go.mod, single Dockerfile producing consul binary.
+  agent/ is the main runtime, api/ is client library, internal/ for subsystems. K8s/Terraform
+  support is deployment infra, not service decomposition. Not microservices - single
+  consul agent binary.'
 review_required: false

@@ -3,14 +3,18 @@ source: Discovered
 source_url: https://github.com/traefik/traefik
 project_url: https://github.com/traefik/traefik
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:05:01Z'
+discovered_at: '2026-03-06T05:23:58Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Infrastructure
 language: Go
-languages: null
+languages:
+- Go
+- TypeScript
+- JavaScript
 architecture_styles:
-- Modular Monolith
+- Pipe-and-Filter
+- Layered
 key_technologies:
 - Node.js
 - Go modules
@@ -29,21 +33,22 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Traefik is a Go-based reverse proxy/load balancer deployed as a
-  single binary with well-organized internal packages for providers, middleware, and
-  routing components.
+one_line_summary: Traefik is a modern HTTP reverse proxy and load balancer built as
+  a single deployable Go binary, using a pipe-and-filter architecture where incoming
+  requests flow through a chain of middleware processors, layered over provider-based
+  configuration aggregation
 discovery_metadata:
-  confidence: 0.9
-  signals_detected: 199
+  confidence: 0.82
+  signals_detected: 200
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.9
+  primary_style_confidence: 0.82
   heuristic_candidates:
   - style: Microservices
     score: 0.5
   signal_breakdown:
     package_manifests: 8
-    container_orchestration: 176
+    container_orchestration: 177
     infrastructure_as_code: 0
     messaging: 0
     api_specs: 1
@@ -53,8 +58,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence: Single Dockerfile copying dist/$TARGETPLATFORM/traefik binary;
-  Makefile builds single binary from ./cmd/traefik; pkg/ directory contains 1208 files
-  (672 Go files) organized into functional modules; cmd/ has single traefik entry
-  point; README explicitly states ''Packaged as a single binary file''. The 176 container_orchestration
-  signals in integration/ are deployment test configurations, not internal microservices.'
+review_notes: 'Evidence: confirmed via prior deep review. pkg/middlewares/ with 30+
+  filter stages, pkg/middlewares/chain/ for chaining, pkg/provider/ (config layer),
+  pkg/server/router/ (routing layer), pkg/proxy/ (forwarding layer).'

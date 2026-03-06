@@ -3,15 +3,18 @@ source: Discovered
 source_url: https://github.com/OrchardCMS/OrchardCore
 project_url: https://github.com/OrchardCMS/OrchardCore
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:29:45Z'
+discovered_at: '2026-03-06T05:53:04Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: CMS
 language: C#
-languages: null
+languages:
+- C#
+- JavaScript
+- TypeScript
 architecture_styles:
 - Modular Monolith
-- Event-Driven
+- Plugin/Microkernel
 key_technologies:
 - Node.js
 - Python/pip
@@ -25,22 +28,23 @@ quality_attributes:
 notable_strengths:
 - Rich signal profile with strong architectural indicators
 - CI/CD automation present
-- Multi-style composition (6 styles)
+- Multi-style composition (7 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: OrchardCore is an ASP.NET Core CMS and application framework built
-  as a modular monolith where features are packaged as independently loadable modules
-  with internal event-driven communication via IEventBus/IEventHandler patterns
+one_line_summary: ASP.NET Core modular CMS framework with extensive plugin/module
+  architecture
 discovery_metadata:
-  confidence: 0.88
+  confidence: 0.92
   signals_detected: 391
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.88
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
+  - style: Service-Based
+    score: 0.5
   - style: CQRS
     score: 0.4
   - style: Layered
@@ -63,14 +67,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 5
 review_required: false
-review_notes: 'Evidence: (1) src/OrchardCore.Modules/ contains 20+ self-contained
-  feature modules (Redis, Title, Search, Widgets, Lists, Navigation, OpenId, etc.)
-  — classic modular monolith decomposition; (2) Single Dockerfile and single .slnx
-  solution file confirm single deployable unit, not microservices; (3) 94 messaging
-  signals detected in automated scan corroborate known IEventBus/IEventHandler inter-module
-  communication pattern; (4) 278 package manifests (.csproj files) confirm module-level
-  project decomposition; (5) README explicitly states ''modular, multi-tenant application
-  framework''; (6) No Kubernetes manifests, no API gateway config, no service discovery
-  — rules out Microservices; (7) AGENTS.md and .agents/ directory present but this
-  appears to be AI coding assistant configuration, not a multi-agent architecture
-  pattern'
+review_notes: 'Evidence: src/OrchardCore.Modules/ with 40+ modules (Admin, Contents,
+  ContentTypes, Workflows, etc.); src/OrchardCore/ with Abstractions; src/OrchardCore.Themes/;
+  module loading and multi-tenancy; classic Plugin/Microkernel with core+extensions'

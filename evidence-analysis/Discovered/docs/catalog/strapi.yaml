@@ -3,15 +3,17 @@ source: Discovered
 source_url: https://github.com/strapi/strapi
 project_url: https://github.com/strapi/strapi
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:19:12Z'
+discovered_at: '2026-03-06T05:40:11Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: CMS
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- JavaScript
 architecture_styles:
+- Plugin/Microkernel
 - Modular Monolith
-- Layered
 key_technologies:
 - Node.js
 - GitHub Actions
@@ -22,20 +24,22 @@ notable_strengths:
 - Rich signal profile with strong architectural indicators
 - Comprehensive test infrastructure
 - CI/CD automation present
-- Multi-style composition (4 styles)
+- Multi-style composition (5 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Strapi is a headless CMS framework built as a modular monolith with
-  a plugin-based architecture, deployed as a single Node.js application with well-defined
-  internal module boundaries
+one_line_summary: Strapi is a headless CMS with a plugin/microkernel architecture
+  where the core provides extensibility through plugins for content management, GraphQL,
+  i18n, etc.
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.9
   signals_detected: 85
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.85
+  primary_style_confidence: 0.9
   heuristic_candidates:
+  - style: Service-Based
+    score: 0.8
   - style: Modular Monolith
     score: 0.7
   - style: Layered
@@ -55,9 +59,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 5
+review_notes: 'Evidence: packages/core/ contains the core CMS engine (strapi, database,
+  permissions, types, utils), packages/plugins/ has 7+ plugins (graphql, i18n, documentation,
+  cloud, sentry, users-permissions, color-picker). packages/providers/ for external
+  integrations. Single deployment, no docker-compose, monorepo with pnpm-workspace.yaml.'
 review_required: false
-review_notes: 'Evidence: monorepo structure with 60 package manifests (from signal_breakdown),
-  single deployment model confirmed by zero container_orchestration and zero messaging
-  signals, examples/ and tests/ directories show unified application structure, nx.json
-  and multiple jest configs indicate monorepo tooling, plugin system evident from
-  examples/plugins/ directory with workspace-plugin and todo-example plugins'

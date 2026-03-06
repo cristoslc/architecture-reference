@@ -3,20 +3,22 @@ source: Discovered
 source_url: https://github.com/JasonGT/NorthwindTraders
 project_url: https://github.com/JasonGT/NorthwindTraders
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:28:57Z'
+discovered_at: '2026-03-06T05:51:38Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: C#
-languages: null
+languages:
+- C#
+- TypeScript
+- JavaScript
 architecture_styles:
 - Hexagonal Architecture
-- CQRS
 - Domain-Driven Design
 key_technologies:
 - Node.js
 - .NET
-quality_attributes: null
+quality_attributes: []
 notable_strengths:
 - Moderate signal profile with identifiable patterns
 - Multi-style composition (5 styles)
@@ -24,15 +26,14 @@ notable_gaps:
 - No architecture decision records found
 - No CI/CD configuration detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: NorthwindTraders is a Clean Architecture e-commerce reference app
-  using CQRS with feature-sliced command/query handlers and DDD building blocks, deployed
-  as a single .NET unit with an Angular frontend
+one_line_summary: Archived .NET Clean Architecture demo with Domain, Application,
+  Infrastructure, and Persistence layers
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.9
   signals_detected: 12
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.95
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -56,11 +57,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 5
 review_required: false
-review_notes: 'Hexagonal/Clean Architecture: explicit Domain/Application/Infrastructure/Persistence/WebUI
-  layer separation with dependency inversion (inner layers unaware of outer). CQRS:
-  every feature under Src/Application/ (Customers, Products, Employees, etc.) contains
-  Commands/ and Queries/ subdirectories with separate handler classes (e.g., GetCustomersListQueryHandler.cs,
-  DeleteCustomerCommandHandler.cs). DDD: Src/Domain/Entities/, Src/Domain/ValueObjects/,
-  Src/Domain/Common/, domain events (CustomerCreated.cs). Single deployable unit with
-  no container orchestration confirms this is not microservices. README explicitly
-  states ''Clean Architecture with .NET Core''.'
+review_notes: 'Evidence: Src/Domain (Entities, ValueObjects, Exceptions), Src/Application
+  (feature folders: Customers, Products), Src/Infrastructure (Identity, Files), Src/Persistence,
+  Src/WebUI; dependency inversion pattern; no CQRS evidence beyond layer separation'

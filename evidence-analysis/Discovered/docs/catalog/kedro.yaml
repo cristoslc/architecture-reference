@@ -3,15 +3,17 @@ source: Discovered
 source_url: https://github.com/kedro-org/kedro
 project_url: https://github.com/kedro-org/kedro
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:35:14Z'
+discovered_at: '2026-03-06T06:00:02Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Science
 language: Python
-languages: null
+languages:
+- Python
+- JavaScript
 architecture_styles:
 - Pipe-and-Filter
-- Modular Monolith
+- Plugin/Microkernel
 key_technologies:
 - Python/pip
 - Kafka
@@ -25,9 +27,8 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Kedro is a Python data pipeline framework whose core abstraction
-  is Pipeline + Node (Pipe-and-Filter), organized internally as a modular monolith
-  with well-separated framework components
+one_line_summary: Python data pipeline framework with DAG-based pipe-and-filter execution
+  and plugin extensibility via hooks
 discovery_metadata:
   confidence: 0.9
   signals_detected: 26
@@ -53,9 +54,7 @@ discovery_metadata:
     documentation: 0
     directory_structure: 1
 review_required: false
-review_notes: 'Evidence: kedro/pipeline/ module with test_pipeline.py, test_node.py
-  confirms Pipeline+Node abstraction; kedro/ directory structure shows modular organization
-  (pipeline/, io/, config/, runner/, framework/) with corresponding test directories
-  (tests/pipeline/, tests/runner/, tests/io/, tests/config/, tests/framework/); single
-  pyproject.toml and pyproject.toml confirms single deployable unit; README explicitly
-  describes ''Pipeline Abstraction'' as core feature for data transformation pipelines'
+review_notes: 'Evidence: kedro/pipeline/node.py + pipeline.py = pipe-and-filter DAG;
+  kedro/runner/{sequential,parallel,thread}_runner.py; kedro/io/data_catalog.py; kedro/framework/hooks/
+  = plugin extension points; features/test_plugin = plugin system; not a Modular Monolith
+  deployment - it is a framework'

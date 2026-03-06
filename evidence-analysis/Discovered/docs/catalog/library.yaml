@@ -3,23 +3,24 @@ source: Discovered
 source_url: https://github.com/ddd-by-examples/library
 project_url: https://github.com/ddd-by-examples/library
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:08:55Z'
+discovered_at: '2026-03-06T05:28:45Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Library Management
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
 architecture_styles:
 - Modular Monolith
 - Domain-Driven Design
 - Hexagonal Architecture
-- Event-Driven
 - CQRS
+- Event-Driven
 key_technologies:
 - Maven
 - Docker
 - Docker Compose
-quality_attributes: null
+quality_attributes: []
 notable_strengths:
 - Moderate signal profile with identifiable patterns
 - Architecture documentation present
@@ -27,18 +28,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No CI/CD configuration detected
-one_line_summary: A library management reference implementation demonstrating DDD
-  principles as a modular monolith, with bounded contexts as packages, hexagonal architecture
-  in the core lending context, domain events for inter-aggregate communication, and
-  CQRS for read/write model separation
+one_line_summary: Library management system as modular monolith with DDD aggregates,
+  hexagonal architecture, CQRS read/write models, and domain event-driven communication
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.95
   signals_detected: 8
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: deep-validation
+  primary_style_confidence: 0.95
   heuristic_candidates:
-  - style: Microservices
+  - style: Service-Based
     score: 0.4
   - style: Event-Driven
     score: 0.3
@@ -56,15 +55,6 @@ discovery_metadata:
     documentation: 1
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: (1) Single pom.xml + single Dockerfile confirms single deployable
-  unit (Modular Monolith, not Microservices); (2) README explicitly states ''the system
-  is a modular monolith'' with bounded contexts as packages; (3) README describes
-  hexagonal architecture for the lending context with domain/application/infrastructure
-  separation, enforced via ArchUnit tests (`model_should_not_depend_on_infrastructure`);
-  (4) DDD signals: aggregates, domain events, repositories, value objects, bounded
-  contexts, EventStorming-driven design from ddd-by-examples org; (5) Event-Driven:
-  DomainEvents interface, JustForwardDomainEventPublisher, StoreAndForwardDomainEventPublisher
-  with event store, both immediate and eventual consistency patterns; (6) CQRS: README
-  explicitly mentions ''separate read and write models (CQRS)'' with Patron Profiles
-  and Daily Sheets as examples; (7) docker-compose.yml for infrastructure wiring,
-  not service orchestration'
+review_notes: 'Evidence: single pom.xml + Dockerfile; lending/catalogue bounded contexts;
+  commons/aggregates + commons/events; PatronProfiles + DailySheets as read models
+  (CQRS); ArchUnit tests enforce hex arch; docker-compose single app service'

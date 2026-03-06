@@ -3,15 +3,19 @@ source: Discovered
 source_url: https://github.com/langgenius/dify
 project_url: https://github.com/langgenius/dify
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:40:57Z'
+discovered_at: '2026-03-06T06:06:07Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: AI/ML
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- Python
+- JavaScript
 architecture_styles:
-- Microservices
+- Service-Based
 - Event-Driven
+- Pipe-and-Filter
 key_technologies:
 - Node.js
 - Python/pip
@@ -25,13 +29,12 @@ notable_strengths:
 - Rich signal profile with strong architectural indicators
 - Comprehensive test infrastructure
 - CI/CD automation present
-- Multi-style composition (4 styles)
+- Multi-style composition (5 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Dify is an LLM application development platform with multiple independently
-  deployable services (API, web, worker, sandbox) orchestrated via Docker Compose,
-  using RabbitMQ for async task queuing between services
+one_line_summary: LLM application platform with service-based architecture (API+worker+web+sandbox),
+  event-driven async processing via Celery, and RAG pipelines
 discovery_metadata:
   confidence: 0.88
   signals_detected: 34
@@ -39,8 +42,10 @@ discovery_metadata:
   classification_method: deep-validation
   primary_style_confidence: 0.88
   heuristic_candidates:
-  - style: Microservices
+  - style: Service-Based
     score: 0.5
+  - style: Plugin/Microkernel
+    score: 0.4
   - style: Event-Driven
     score: 0.3
   - style: Domain-Driven Design
@@ -59,12 +64,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence: (1) Multiple separate Dockerfiles - api/Dockerfile (Python/Flask
-  backend), web/Dockerfile (Node.js/Next.js frontend), docker/couchbase-server/Dockerfile;
-  (2) Makefile with explicit service separation: build-web, build-api, push-web, push-api
-  as independent targets; (3) docker/docker-compose.yaml and docker-compose.middleware.yaml
-  for multi-service orchestration; (4) api/ directory with 2687 Python files, web/
-  directory with 6959 TypeScript/TSX files - clearly separate codebases; (5) RabbitMQ
-  listed as key technology for async communication between API and worker services;
-  (6) Kubernetes/Helm deployment options available via community charts; (7) nginx
-  reverse proxy configuration in docker/nginx/ for service routing'
+review_notes: 'Evidence: docker-compose shows api, worker, web, sandbox, nginx - 5
+  coarse services sharing DB (Service-Based). Celery async tasks for event-driven.
+  api/tasks/rag_pipeline/ for pipe-and-filter RAG processing.'

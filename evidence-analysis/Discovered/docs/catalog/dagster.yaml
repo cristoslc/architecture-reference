@@ -3,15 +3,18 @@ source: Discovered
 source_url: https://github.com/dagster-io/dagster
 project_url: https://github.com/dagster-io/dagster
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:32:45Z'
+discovered_at: '2026-03-06T05:56:57Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Processing
 language: Python
-languages: null
+languages:
+- Python
+- TypeScript
 architecture_styles:
 - Modular Monolith
-- Layered
+- Pipe-and-Filter
+- Plugin/Microkernel
 key_technologies:
 - Node.js
 - Gradle
@@ -37,9 +40,8 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Dagster is a cloud-native data pipeline orchestrator platform built
-  as a modular monorepo with layered components (core engine, GraphQL API, web UI)
-  and extensive integration libraries
+one_line_summary: Data orchestration platform with pipe-and-filter asset/op graphs,
+  plugin-based integrations, deployed as modular monolith
 discovery_metadata:
   confidence: 0.85
   signals_detected: 282
@@ -66,10 +68,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
-review_notes: 'Evidence: python_modules/ contains core modules (dagster, dagster-graphql,
-  dagster-webserver, dagster-pipes) plus 30+ integration libraries under libraries/;
-  each module is self-contained with its own pyproject.toml, tests, and structure;
-  helm/ provides k8s deployment configs; js_modules/ contains the React-based web
-  UI. The architecture is a single framework with well-defined module boundaries,
-  not independent microservices.'
+review_notes: 'Evidence: python_modules/dagster/ core, python_modules/libraries/ for
+  plugin integrations (dagster-aws, dagster-k8s, dagster-dbt etc.), dagster-webserver
+  and dagster-graphql as co-deployed components. DAG-based pipeline execution model.
+  Single pip-installable package, not microservices.'
 review_required: false

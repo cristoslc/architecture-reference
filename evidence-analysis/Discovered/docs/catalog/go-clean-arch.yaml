@@ -3,15 +3,16 @@ source: Discovered
 source_url: https://github.com/bxcodec/go-clean-arch
 project_url: https://github.com/bxcodec/go-clean-arch
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:09:22Z'
+discovered_at: '2026-03-06T05:29:18Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Go
-languages: null
+languages:
+- Go
 architecture_styles:
 - Hexagonal Architecture
-- Layered
+- Domain-Driven Design
 key_technologies:
 - Go modules
 - Docker
@@ -25,15 +26,14 @@ notable_gaps:
 - No architecture decision records found
 - No test infrastructure detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A Go reference implementation of Clean Architecture with explicit
-  separation between domain entities, use cases (services), repositories, and delivery
-  layers following Uncle Bob's principles.
+one_line_summary: Go Clean Architecture example with hexagonal ports/adapters and
+  DDD domain model for article management
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.9
   signals_detected: 4
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.92
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -49,10 +49,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: `domain/` contains core entities (article.go, author.go,
-  errors.go) independent of external concerns; `article/service.go` implements use
-  case layer; `internal/repository/mysql/` provides data access adapters; `internal/rest/`
-  contains HTTP delivery layer with controllers; `article/mocks/` shows dependency
-  inversion with mock implementations. README explicitly states ''4 Domain layer:
-  Models Layer, Repository Layer, Usecase Layer, Delivery Layer'' matching Clean Architecture
-  diagram.'
+review_notes: 'Evidence: domain/ package (article.go, author.go), internal/repository/
+  and internal/rest/ as adapters, article/service.go for use cases, single Dockerfile.
+  README describes Clean Architecture layers.'

@@ -3,14 +3,17 @@ source: Discovered
 source_url: https://github.com/outline/outline
 project_url: https://github.com/outline/outline
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:21:50Z'
+discovered_at: '2026-03-06T05:43:37Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Knowledge Management
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- JavaScript
 architecture_styles:
 - Modular Monolith
+- Layered
 - Event-Driven
 key_technologies:
 - Node.js
@@ -23,12 +26,13 @@ quality_attributes:
 notable_strengths:
 - Moderate signal profile with identifiable patterns
 - CI/CD automation present
-- Multi-style composition (4 styles)
+- Multi-style composition (5 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Outline is a collaborative knowledge base/wiki application built
-  as a TypeScript modular monolith with event-driven internal communication via RabbitMQ
+one_line_summary: Outline is a collaborative knowledge base (wiki) built as a modular
+  monolith with a React/MobX frontend and Koa/Sequelize backend, organized into clear
+  horizontal layers with an async event bus backed by Redis/Bull queues
 discovery_metadata:
   confidence: 0.85
   signals_detected: 14
@@ -36,10 +40,12 @@ discovery_metadata:
   classification_method: deep-validation
   primary_style_confidence: 0.85
   heuristic_candidates:
+  - style: Plugin/Microkernel
+    score: 0.7
   - style: Event-Driven
     score: 0.6
-  - style: Microservices
-    score: 0.4
+  - style: Service-Based
+    score: 0.5
   - style: CQRS
     score: 0.4
   - style: Domain-Driven Design
@@ -56,12 +62,5 @@ discovery_metadata:
     documentation: 0
     directory_structure: 2
 review_required: false
-review_notes: 'Evidence: (1) Single Dockerfile deploying one application from build/server/index.js
-  confirms monolithic deployment. (2) docker-compose.yml only provisions infrastructure
-  (redis, postgres) with no additional application services. (3) Single package.json
-  at root (heuristic signal). (4) Clear modular separation: app/ (726 files, React
-  frontend), server/ (975 files, Node.js backend), shared/ (321 files), plugins/ (193
-  files). (5) RabbitMQ configuration signals event-driven patterns (messaging score:
-  3 from catalog). (6) EventsStore.ts and multiple domain stores suggest internal
-  event handling. (7) Docker Compose instead of Kubernetes confirms non-microservices
-  architecture.'
+review_notes: 'Evidence: confirmed via prior deep review. Single docker-compose with
+  Redis+Postgres, server/queues/ with async event processing, layered routes->commands->models.'

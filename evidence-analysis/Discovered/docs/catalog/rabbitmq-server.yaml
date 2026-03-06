@@ -3,14 +3,17 @@ source: Discovered
 source_url: https://github.com/rabbitmq/rabbitmq-server
 project_url: https://github.com/rabbitmq/rabbitmq-server
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:06:29Z'
+discovered_at: '2026-03-06T05:25:40Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Messaging
 language: JavaScript
-languages: null
+languages:
+- JavaScript
+- Python
+- Java/Kotlin
 architecture_styles:
-- Modular Monolith
+- Plugin/Microkernel
 - Event-Driven
 key_technologies:
 - Node.js
@@ -31,18 +34,17 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: RabbitMQ server — a multi-protocol messaging and streaming broker
-  implemented as a modular monolith of Erlang/OTP applications (plugins), with event-driven
-  message routing as its core architectural purpose
+one_line_summary: Message broker with extensive plugin architecture (30+ deps/rabbitmq_*
+  plugins) and event-driven core
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.9
   signals_detected: 52
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
-  - style: Microservices
-    score: 0.5
+  - style: Service-Based
+    score: 0.4
   - style: Event-Driven
     score: 0.3
   signal_breakdown:
@@ -57,16 +59,5 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: AGENTS.md explicitly describes 40+ components under deps/
-  (deps/rabbit as core, deps/rabbitmq_mqtt, deps/rabbitmq_stomp, deps/rabbitmq_stream,
-  deps/rabbitmq_management, deps/rabbitmq_prometheus, etc.), each as independently
-  developed Erlang/OTP applications with their own Makefiles (confirmed by glob showing
-  deps/rabbitmq_auth_backend_oauth2/Makefile, deps/rabbitmq_shovel/Makefile, etc.).
-  All components are built and deployed as a single broker unit — there is one packaging/docker-image/Dockerfile
-  for the whole server. This is a textbook Modular Monolith: clear internal module
-  boundaries (OTP apps/plugins), shared runtime, single deployment unit. Event-Driven
-  is intrinsic: RabbitMQ IS a message broker implementing AMQP, MQTT, STOMP, and Stream
-  Protocol — its entire purpose is routing events/messages between producers and consumers.
-  deps/rabbitmq_event_exchange exposes internal broker events to AMQP clients. The
-  multi-language signals (JS in selenium/, Maven in authorization-server/) are test
-  infrastructure, not separate services.'
+review_notes: 'Evidence: deps/rabbit core + deps/rabbitmq_{amqp1_0,auth_backend_cache,auth_backend_http,auth_backend_ldap,auth_backend_oauth2,cli,federation,management,mqtt,prometheus,shovel,stomp,web_dispatch,web_mqtt,web_stomp,...}
+  = classic microkernel with plugins; Erlang OTP application; Event-Driven is inherent'

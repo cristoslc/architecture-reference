@@ -3,16 +3,18 @@ source: Discovered
 source_url: https://github.com/ivanpaulovich/clean-architecture-manga
 project_url: https://github.com/ivanpaulovich/clean-architecture-manga
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:09:24Z'
+discovered_at: '2026-03-06T05:29:20Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Banking
 language: C#
-languages: null
+languages:
+- C#
+- JavaScript
 architecture_styles:
 - Hexagonal Architecture
 - Domain-Driven Design
-- Modular Monolith
+- Service-Based
 key_technologies:
 - Node.js
 - .NET
@@ -29,17 +31,16 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A C# Clean Architecture reference implementation for a banking/virtual
-  wallet domain, structured as a single deployable with explicit Domain/Application/Infrastructure/WebApi
-  layer separation following Ports & Adapters principles
+one_line_summary: Virtual wallet banking app implementing Clean/Hexagonal Architecture
+  with DDD, composed of a small set of services
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.92
   signals_detected: 18
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.95
+  primary_style_confidence: 0.92
   heuristic_candidates:
-  - style: Microservices
+  - style: Service-Based
     score: 0.5
   - style: Domain-Driven Design
     score: 0.4
@@ -57,12 +58,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 4
 review_required: false
-review_notes: 'Evidence: (1) accounts-api/src/ directory contains classic Hexagonal
-  structure: Domain/ (entities, value objects, repository interfaces), Application/
-  (use cases, services), Infrastructure/ (data access, external adapters), WebApi/
-  (presentation); (2) Domain layer has IAccountRepository.cs (port), ValueObjects/,
-  Credits/, Debits/ directories showing DDD patterns; (3) WebApi Dockerfile copies
-  all four layer projects into single deployable confirming Modular Monolith; (4)
-  docker-compose.yml orchestrates single API + SPA + IdentityServer + SQL Server (not
-  microservices); (5) README explicitly documents Architecture Styles including Hexagonal/Onion/Clean
-  Architecture and DDD patterns (Value Object, Entity, Aggregate Root, Repository)'
+review_notes: 'Evidence: accounts-api/src/ with Domain/Application/Infrastructure/WebApi
+  layers, docker-compose with accounts-api+identity-server+wallet-spa+nginx (Service-Based
+  pattern, 2-5 services sharing DB)'

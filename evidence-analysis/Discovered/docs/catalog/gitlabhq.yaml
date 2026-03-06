@@ -3,16 +3,19 @@ source: Discovered
 source_url: https://github.com/gitlabhq/gitlabhq
 project_url: https://github.com/gitlabhq/gitlabhq
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:13:49Z'
+discovered_at: '2026-03-06T05:34:55Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Ruby
-languages: null
+languages:
+- Ruby
+- JavaScript
+- Go
 architecture_styles:
 - Modular Monolith
+- Layered
 - Event-Driven
-- CQRS
 key_technologies:
 - Node.js
 - Go modules
@@ -34,21 +37,20 @@ notable_strengths:
 - Multi-style composition (5 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: GitLab is a large Ruby on Rails DevOps platform structured as a
-  modular monolith with event-driven async processing (Kafka/RabbitMQ/Sidekiq) and
-  CQRS-like separation via GraphQL queries and REST/OpenAPI writes
+one_line_summary: Large Rails monolith with domain-organized modules, classic MVC
+  layering, and async event processing via Sidekiq/Kafka
 discovery_metadata:
-  confidence: 0.85
-  signals_detected: 1111
+  confidence: 0.9
+  signals_detected: 1103
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.85
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Event-Driven
     score: 0.6
-  - style: Microservices
-    score: 0.5
   - style: CQRS
+    score: 0.4
+  - style: Service-Based
     score: 0.4
   - style: Domain-Driven Design
     score: 0.3
@@ -59,19 +61,13 @@ discovery_metadata:
     container_orchestration: 8
     infrastructure_as_code: 0
     messaging: 4
-    api_specs: 1057
+    api_specs: 1049
     adrs: 0
     ci_cd: 28
     test_structure: 2
     documentation: 1
     directory_structure: 6
 review_required: false
-review_notes: 'Evidence: (1) Modular Monolith — single Ruby on Rails codebase with
-  single Gemfile, no separate service directories, ''Modularity'' quality attribute,
-  `/ee` extension pattern for enterprise features; (2) Event-Driven — Kafka and RabbitMQ
-  both present in key_technologies (4 messaging signals), consistent with GitLab''s
-  known Sidekiq background workers and async job processing pipelines; (3) CQRS —
-  1057 API spec signals with both GraphQL (tooling/graphql/) and OpenAPI present,
-  GraphQL used for read queries while REST/OpenAPI handles mutations/writes; Docker/Docker
-  Compose present but no Kubernetes/Helm signals, ruling out full Microservices; architecture
-  documentation confirmed present'
+review_notes: 'Evidence: app/controllers + app/models + lib/gitlab/ domain modules;
+  docker-compose.yml single app image; Kafka + Sidekiq workers for async; GraphQL
+  1048 files'

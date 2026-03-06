@@ -1,0 +1,79 @@
+project_name: EventStore
+source: Discovered
+source_url: https://github.com/EventStore/EventStore
+project_url: https://github.com/EventStore/EventStore
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:06:59Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Developer Tools
+language: C#
+languages: null
+architecture_styles:
+- Event-Driven
+- CQRS
+- Modular Monolith
+key_technologies:
+- Node.js
+- .NET
+- Docker
+- Docker Compose
+- Kafka
+- RabbitMQ
+- OpenAPI
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Deployability
+- Modularity
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (6 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: KurrentDB (formerly EventStoreDB) is an append-only event streaming
+  database that embodies event-driven architecture internally, implements CQRS with
+  separate write (append) and read (projections) paths, and is structured as a modular
+  monolith with plugin-based extensibility
+discovery_metadata:
+  confidence: 0.92
+  signals_detected: 229
+  signals_evaluated: 10
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
+  heuristic_candidates:
+  - style: Modular Monolith
+    score: 0.7
+  - style: Event-Driven
+    score: 0.6
+  - style: CQRS
+    score: 0.4
+  - style: Layered
+    score: 0.3
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 85
+    container_orchestration: 4
+    infrastructure_as_code: 0
+    messaging: 20
+    api_specs: 108
+    adrs: 0
+    ci_cd: 11
+    test_structure: 1
+    documentation: 0
+    directory_structure: 5
+review_required: false
+review_notes: 'Evidence: (1) Event-Driven — proto/kurrentdb/protocol defines event
+  streaming APIs, docs/server/features/persistent-subscriptions.md describes pub/sub
+  patterns, the database IS an event store by design; (2) CQRS — docs/server/features/projections
+  shows read model subsystem, append-only write path distinct from projection queries;
+  (3) Modular Monolith — single Dockerfile builds KurrentDB.dll, src/ contains multiple
+  .csproj projects under one solution (KurrentDB.slnx), src/KurrentDB.Plugins.Api.V2
+  and src/KurrentDB.Auth.StreamPolicyPlugin show plugin boundaries, docker-compose.yml
+  shows 3-node cluster deployment of same monolith (not microservices), no service
+  discovery or API gateway patterns'

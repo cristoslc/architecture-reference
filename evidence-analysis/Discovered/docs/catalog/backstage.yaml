@@ -3,13 +3,16 @@ source: Discovered
 source_url: https://github.com/backstage/backstage
 project_url: https://github.com/backstage/backstage
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:21:45Z'
+discovered_at: '2026-03-06T05:43:30Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- JavaScript
 architecture_styles:
+- Plugin/Microkernel
 - Modular Monolith
 key_technologies:
 - Node.js
@@ -27,23 +30,24 @@ notable_strengths:
 - Rich signal profile with strong architectural indicators
 - CI/CD automation present
 - Architecture documentation present
-- Multi-style composition (4 styles)
+- Multi-style composition (5 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Backstage is a developer portal framework built as a monorepo with
-  a frontend, backend, and 100+ plugins. The architecture is a Modular Monolith with
-  plugin-based extensibility.
+one_line_summary: Developer portal framework built on plugin/microkernel architecture
+  with 200+ plugins as extensions around a core platform
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.9
   signals_detected: 316
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.85
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Microservices
     score: 1.0
   - style: Event-Driven
     score: 0.6
+  - style: Plugin/Microkernel
+    score: 0.5
   - style: Domain-Driven Design
     score: 0.3
   - style: Pipe-and-Filter
@@ -59,10 +63,8 @@ discovery_metadata:
     test_structure: 2
     documentation: 1
     directory_structure: 4
-review_notes: 'Evidence: This is a Yarn workspaces monorepo with packages/ (frontend,
-  backend, cli) and plugins/ directory containing 100+ plugins. There''s a single
-  backend Dockerfile in packages/backend/, not multiple service-specific Dockerfiles.
-  The architecture uses a plugin system for extensibility rather than microservices.
-  No separate service directories, no Kubernetes manifests for service orchestration,
-  no service discovery.'
+review_notes: 'Evidence: plugins/ directory with 200+ plugins (auth-backend-module-*,
+  catalog-*, scaffolder-*, techdocs-*, etc.), packages/ for core modules. Single deployment
+  via app-config.yaml. README explicitly describes ''open source plugins'' ecosystem.
+  Not microservices - monorepo packages are all in-process plugins.'
 review_required: false

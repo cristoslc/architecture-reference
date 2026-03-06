@@ -1,0 +1,67 @@
+project_name: go-clean-template
+source: Discovered
+source_url: https://github.com/evrone/go-clean-template
+project_url: https://github.com/evrone/go-clean-template
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:10:18Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Developer Tools
+language: Go
+languages: null
+architecture_styles:
+- Hexagonal Architecture
+- Event-Driven
+key_technologies:
+- Go modules
+- Docker
+- Docker Compose
+- RabbitMQ
+- NATS
+- OpenAPI
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Fault Tolerance
+- Deployability
+notable_strengths:
+- Moderate signal profile with identifiable patterns
+- CI/CD automation present
+- Multi-style composition (2 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: A Go Clean Architecture template demonstrating Hexagonal/Ports-and-Adapters
+  patterns with multiple adapter types (REST, gRPC, AMQP RPC, NATS RPC) and event-driven
+  messaging via RabbitMQ and NATS
+discovery_metadata:
+  confidence: 0.9
+  signals_detected: 11
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.9
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.7
+  - style: Event-Driven
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 1
+    container_orchestration: 3
+    infrastructure_as_code: 0
+    messaging: 2
+    api_specs: 3
+    adrs: 0
+    ci_cd: 1
+    test_structure: 1
+    documentation: 0
+    directory_structure: 0
+review_required: false
+review_notes: 'Hexagonal Architecture: clear separation into internal/usecase (application
+  core), internal/controller (inbound adapters: restapi, grpc, amqp_rpc, nats_rpc),
+  internal/repo (outbound adapters: persistent, webapi), internal/entity (domain),
+  and internal/usecase/contracts.go + internal/repo/contracts.go defining ports (interfaces).
+  Event-Driven: pkg/rabbitmq/rmq_rpc and pkg/nats/nats_rpc for RabbitMQ/NATS messaging
+  with Request-Reply pattern. Single Dockerfile confirms single deployable unit (not
+  microservices). Dependency injection via constructors enforces dependency inversion
+  principle central to Hexagonal Architecture.'

@@ -1,0 +1,78 @@
+project_name: nocodb
+source: Discovered
+source_url: https://github.com/nocodb/nocodb
+project_url: https://github.com/nocodb/nocodb
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:20:11Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Developer Tools
+language: TypeScript
+languages: null
+architecture_styles:
+- Modular Monolith
+- Layered
+- Event-Driven
+key_technologies:
+- Node.js
+- Docker
+- Kubernetes
+- Docker Compose
+- Kafka
+- RabbitMQ
+- OpenAPI
+- GitHub Actions
+quality_attributes:
+- Scalability
+- Deployability
+- Modularity
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- Comprehensive test infrastructure
+- CI/CD automation present
+- Multi-style composition (4 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: NocoDB is an open-source no-code database UI (Airtable alternative)
+  built as a TypeScript monorepo with modular internal packages, layered MVC architecture,
+  and optional event-driven messaging via Kafka/RabbitMQ for webhooks/automations
+discovery_metadata:
+  confidence: 0.82
+  signals_detected: 62
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.82
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.7
+  - style: Event-Driven
+    score: 0.6
+  - style: Domain-Driven Design
+    score: 0.3
+  - style: Pipe-and-Filter
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 11
+    container_orchestration: 14
+    infrastructure_as_code: 0
+    messaging: 4
+    api_specs: 1
+    adrs: 0
+    ci_cd: 29
+    test_structure: 3
+    documentation: 0
+    directory_structure: 4
+review_required: false
+review_notes: 'Evidence: (1) Modular Monolith — pnpm-workspace.yaml and lerna.json
+  indicate a monorepo with multiple internal packages (nc-gui, nocodb-sdk, etc. per
+  scripts referencing bumpNcGuiVersion, bumpNocodbSdkVersion, upgradeNcGui); single
+  Docker image deployment confirmed by README showing ''docker run nocodb/nocodb:latest'';
+  (2) Layered — REST API product with controllers/services/repository pattern implied
+  by OpenAPI spec (APIs.json), MVC structure typical of NocoDB''s backend; auto-upstall
+  deploys PostgreSQL+Redis+Minio+Traefik as supporting infrastructure around single
+  app container; (3) Event-Driven — Kafka and RabbitMQ in key_technologies with 4
+  messaging signals detected; App Store for Workflow Automations section in README
+  describes webhook/notification integrations (Slack, Discord, AWS SES) suggesting
+  event-driven hooks; Kubernetes/Helm charts (charts/nocodb/) are deployment tooling
+  for the single app, not evidence of microservices decomposition'

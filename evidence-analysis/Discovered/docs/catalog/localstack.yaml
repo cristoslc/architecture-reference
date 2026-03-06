@@ -3,14 +3,20 @@ source: Discovered
 source_url: https://github.com/localstack/localstack
 project_url: https://github.com/localstack/localstack
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:28:31Z'
+discovered_at: '2026-03-06T05:51:08Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Python
-languages: null
+languages:
+- Python
+- JavaScript
+- Java/Kotlin
+- Ruby
 architecture_styles:
 - Modular Monolith
+- Pipe-and-Filter
+- Plugin/Microkernel
 key_technologies:
 - Node.js
 - Go modules
@@ -38,17 +44,17 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: LocalStack is a single-container AWS service emulator with internally
-  modular service implementations, not itself a microservices/serverless architecture
+one_line_summary: Cloud service emulator with plugin-based AWS service loading, handler-chain
+  pipe-and-filter request processing, deployed as single container
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.88
   signals_detected: 72
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.85
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
-    score: 0.8
+    score: 0.7
   - style: Serverless
     score: 0.6
   - style: Event-Driven
@@ -64,8 +70,8 @@ discovery_metadata:
     test_structure: 2
     documentation: 0
     directory_structure: 2
-review_notes: 'Evidence: Single Dockerfile and docker-compose.yml; localstack-core/
-  is one Python package with internal service modules (services/lambda_, services/s3,
-  services/dynamodb, etc.); tests/aws/serverless/ and tests/aws/terraform/ are test
-  fixtures for users'' applications, not LocalStack''s own architecture'
 review_required: false
+review_notes: 'Evidence: single Dockerfile, plugins.py+plux plugin system loads AWS
+  services dynamically, aws/handlers/ with sequential stages (auth, cors, codec, validation,
+  routing, service, response, logging) forming explicit pipeline. localstack-core/localstack/aws/handlers/
+  confirms pipe-and-filter.'

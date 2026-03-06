@@ -3,14 +3,19 @@ source: Discovered
 source_url: https://github.com/apache/pulsar
 project_url: https://github.com/apache/pulsar
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:06:50Z'
+discovered_at: '2026-03-06T05:26:09Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Messaging
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
+- Python
+- Go
 architecture_styles:
 - Event-Driven
+- Modular Monolith
+- Plugin/Microkernel
 key_technologies:
 - Go modules
 - Maven
@@ -33,19 +38,19 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Apache Pulsar is a distributed pub-sub messaging platform that implements
-  event-driven architecture patterns at its core
+one_line_summary: Apache Pulsar is a distributed pub-sub messaging platform with pluggable
+  IO connectors and serverless functions, built as a modular Maven monorepo
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.9
   signals_detected: 203
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.85
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Event-Driven
     score: 0.9
-  - style: Microservices
-    score: 0.8
+  - style: Service-Based
+    score: 0.5
   - style: Domain-Driven Design
     score: 0.3
   signal_breakdown:
@@ -59,10 +64,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
-review_notes: 'Evidence: This is the source repository for Apache Pulsar itself -
-  a distributed messaging platform. Key signals include pulsar-broker/ (1430 files),
-  pulsar-functions/ (457 files), pulsar-io/ connectors (511 files), managed-ledger/
-  (167 files), websocket support, and extensive Docker deployment configurations.
-  The system is fundamentally event-driven with pub-sub semantics, message brokers,
-  and stream processing capabilities.'
+review_notes: 'Evidence: pulsar-broker (core messaging), pulsar-io/ with 30+ connector
+  plugins (kafka, redis, cassandra, elastic-search, etc.), pulsar-functions/ for serverless
+  processing, pulsar-proxy, pulsar-websocket. Single Maven build with well-separated
+  modules. Connector plugin system = Plugin/Microkernel. Core is event-driven messaging.'
 review_required: false

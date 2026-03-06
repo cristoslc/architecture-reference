@@ -1,0 +1,67 @@
+project_name: orbit
+source: Discovered
+source_url: https://github.com/orbit/orbit
+project_url: https://github.com/orbit/orbit
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:39:33Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Developer Tools
+language: Java/Kotlin
+languages: null
+architecture_styles:
+- Modular Monolith
+- Layered
+key_technologies:
+- Gradle
+- Docker
+- Kubernetes
+- Docker Compose
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Scalability
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (2 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Orbit is an actor-based distributed computing framework (by EA)
+  built as a Gradle multi-module monolith with a single deployable server, gRPC client-server
+  communication, and modular internal components for client, server, shared logic,
+  and extensions
+discovery_metadata:
+  confidence: 0.82
+  signals_detected: 31
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.82
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.7
+  - style: Pipe-and-Filter
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 11
+    container_orchestration: 9
+    infrastructure_as_code: 0
+    messaging: 0
+    api_specs: 7
+    adrs: 0
+    ci_cd: 3
+    test_structure: 1
+    documentation: 0
+    directory_structure: 1
+review_required: false
+review_notes: 'Evidence for Modular Monolith: single `./docker/server/Dockerfile`,
+  single `docker-compose.yml`, single Helm chart (`./charts/orbit/`), single `build.gradle.kts`
+  at root with `settings.gradle.kts` coordinating all modules — classic Gradle multi-project
+  monolith. Modules (`orbit-server`, `orbit-client`, `orbit-proto`, `orbit-shared`,
+  `orbit-util`, `orbit-server-etcd`, `orbit-server-prometheus`, `orbit-application`)
+  are internal build units, not independently deployed services. Layered signals:
+  `orbit-application`, `orbit-server`, `orbit-client`, `orbit-shared` suggest presentation/application/infrastructure
+  layering within the monolith. gRPC via `orbit-proto` is client-server actor protocol,
+  not microservice inter-communication.'

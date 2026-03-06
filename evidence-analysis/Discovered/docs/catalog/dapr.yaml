@@ -3,12 +3,16 @@ source: Discovered
 source_url: https://github.com/dapr/dapr
 project_url: https://github.com/dapr/dapr
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:04:40Z'
+discovered_at: '2026-03-06T05:23:30Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Go
-languages: null
+languages:
+- Go
+- Java/Kotlin
+- JavaScript
+- C#
 architecture_styles:
 - Microservices
 - Event-Driven
@@ -35,16 +39,14 @@ notable_strengths:
 - Multi-style composition (2 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Dapr is a distributed runtime that provides APIs for building microservices.
-  It consists of multiple independently deployable services (daprd sidecar, operator,
-  injector, placement, sentry, scheduler) that communicate via gRPC and HTTP, with
-  built-in event-driven pub/sub capabilities.
+one_line_summary: Distributed application runtime providing microservices building
+  blocks with event-driven pub/sub
 discovery_metadata:
-  confidence: 0.95
+  confidence: 0.88
   signals_detected: 183
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.95
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 1.0
@@ -61,11 +63,7 @@ discovery_metadata:
     test_structure: 2
     documentation: 1
     directory_structure: 1
-review_notes: 'Evidence: Multiple independent service binaries defined in Makefile
-  (BINARIES = daprd placement operator injector sentry scheduler). Each service has
-  its own cmd directory with main.go: cmd/daprd, cmd/scheduler, cmd/sentry, cmd/operator,
-  cmd/injector, cmd/placement. Kubernetes deployment via operator and injector. Event-Driven
-  shown in README: ''Event-driven Pub/Sub system with pluggable providers'', and components
-  include pub/sub implementations (pubsub_kafka.go, pubsub_rabbitmq.go, pubsub_redis.go,
-  etc.).'
+review_notes: 'Evidence: pkg/ with actors, components, messaging, api, channel, injector;
+  provides sidecar for microservices; built-in pub/sub and event-driven messaging;
+  K8s integration via injector; Go runtime for distributed systems'
 review_required: false

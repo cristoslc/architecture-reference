@@ -3,23 +3,29 @@ source: Discovered
 source_url: https://github.com/go-micro/go-micro
 project_url: https://github.com/go-micro/go-micro
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:04:32Z'
+discovered_at: '2026-03-06T05:23:21Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Go
-languages: null
+languages:
+- Go
+- Python
+- JavaScript
 architecture_styles:
-- Microservices
-- Event-Driven
+- Plugin/Microkernel
 key_technologies:
 - Go modules
 - Python/pip
+- Docker
+- Kubernetes
+- Docker Compose
 - RabbitMQ
 - NATS
 - gRPC
 - GitHub Actions
 quality_attributes:
+- Scalability
 - Deployability
 notable_strengths:
 - Rich signal profile with strong architectural indicators
@@ -28,35 +34,32 @@ notable_strengths:
 - Multi-style composition (2 styles)
 notable_gaps:
 - No architecture decision records found
-one_line_summary: Go Micro is a distributed systems framework providing microservices
-  infrastructure (service discovery, RPC, load balancing) with first-class event-driven
-  messaging support through pluggable broker implementations
+one_line_summary: Go framework for building microservices with pluggable components
+  for transport, broker, registry, and codec
 discovery_metadata:
-  confidence: 0.88
-  signals_detected: 18
+  confidence: 0.85
+  signals_detected: 29
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.88
+  primary_style_confidence: 0.85
   heuristic_candidates:
   - style: Microservices
-    score: 0.5
+    score: 1.2
   - style: Event-Driven
     score: 0.3
   signal_breakdown:
-    package_manifests: 4
-    container_orchestration: 0
+    package_manifests: 5
+    container_orchestration: 9
     infrastructure_as_code: 0
     messaging: 2
-    api_specs: 7
+    api_specs: 8
     adrs: 0
     ci_cd: 2
     test_structure: 2
     documentation: 1
     directory_structure: 1
+review_notes: 'Evidence: Top-level dirs are framework components: broker/{nats,rabbitmq},
+  client/grpc, codec/{json,proto,grpc}, registry/, transport/, server/, selector/
+  - classic microkernel with pluggable backends; examples/ shows usage; cmd/micro
+  is a CLI tool; not a deployable microservices app itself'
 review_required: false
-review_notes: 'Evidence: broker/rabbitmq/, broker/nats/ (event-driven messaging with
-  multiple broker implementations); registry/ (service discovery/registration); selector/
-  (client-side load balancing); client/ and server/ (RPC communication); transport/grpc/,
-  transport/http*, transport/nats/ (multiple transport protocols); auth/ (service
-  identity/authentication); README explicitly states ''PubSub is built in as a first
-  class citizen for asynchronous communication and event driven architectures'''

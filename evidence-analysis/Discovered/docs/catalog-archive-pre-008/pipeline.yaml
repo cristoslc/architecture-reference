@@ -1,0 +1,66 @@
+project_name: pipeline
+source: Discovered
+source_url: https://github.com/tektoncd/pipeline
+project_url: https://github.com/tektoncd/pipeline
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:33:53Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: CI/CD
+language: Go
+languages: null
+architecture_styles:
+- Pipe-and-Filter
+- Microservices
+key_technologies:
+- Go modules
+- Python/pip
+- Docker
+- Kubernetes
+- OpenAPI
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Scalability
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (2 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Tekton Pipelines is a Kubernetes-native CI/CD engine implementing
+  pipe-and-filter architecture through composable Task→Pipeline abstractions, deployed
+  as multiple independent Kubernetes controllers
+discovery_metadata:
+  confidence: 0.88
+  signals_detected: 143
+  signals_evaluated: 10
+  classification_method: deep-validation
+  primary_style_confidence: 0.88
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.7
+  - style: Pipe-and-Filter
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 5
+    container_orchestration: 30
+    infrastructure_as_code: 1
+    messaging: 0
+    api_specs: 92
+    adrs: 0
+    ci_cd: 14
+    test_structure: 1
+    documentation: 0
+    directory_structure: 1
+review_required: false
+review_notes: 'Evidence: (1) Pipe-and-Filter primary - CRDs in config/300-crds/ define
+  Pipeline, Task, PipelineRun showing canonical pipeline pattern; Steps execute in
+  sequence within Tasks, Tasks form Pipelines with directed data flow; (2) Microservices
+  - four independent controllers: cmd/controller/main.go (pipeline controller), cmd/webhook/main.go
+  (admission webhook), cmd/resolvers/main.go (remote resolution), cmd/events/main.go
+  (event handling); each has separate deployment YAMLs in config/ with independent
+  scaling via HPA (config/webhook-hpa.yaml); CRDs serve as API contracts between services;
+  ko build produces separate container images per cmd/'

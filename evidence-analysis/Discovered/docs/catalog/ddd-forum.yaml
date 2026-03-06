@@ -3,16 +3,18 @@ source: Discovered
 source_url: https://github.com/stemmlerjs/ddd-forum
 project_url: https://github.com/stemmlerjs/ddd-forum
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:09:00Z'
+discovered_at: '2026-03-06T05:28:51Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Social Media
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- JavaScript
 architecture_styles:
-- Modular Monolith
 - Domain-Driven Design
 - Hexagonal Architecture
+- Modular Monolith
 key_technologies:
 - Node.js
 - Docker
@@ -23,23 +25,24 @@ quality_attributes:
 - Modularity
 notable_strengths:
 - CI/CD automation present
-- Multi-style composition (4 styles)
+- Multi-style composition (5 styles)
 notable_gaps:
 - No architecture decision records found
 - No test infrastructure detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: A TypeScript Hacker News-style forum application built as a single
-  deployable modular monolith organized around DDD subdomains (users, forum) with
-  clean/hexagonal architecture (domain, application, adapter, infrastructure layers)
+one_line_summary: TypeScript DDD forum app with bounded contexts (forum, users) and
+  hexagonal architecture
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.9
   signals_detected: 6
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.92
+  classification_method: deep-validation
+  primary_style_confidence: 0.9
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.7
+  - style: Service-Based
+    score: 0.5
   - style: Event-Driven
     score: 0.3
   - style: Domain-Driven Design
@@ -58,13 +61,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence: (1) Single Dockerfile + docker-compose.yml = single deployable
-  unit → Modular Monolith. (2) src/modules/forum and src/modules/users = explicit
-  subdomain module boundaries. (3) README explicitly describes domain/application/adapter/infrastructure
-  layers per subdomain matching Hexagonal Architecture ports-and-adapters pattern
-  (IUserRepo as adapter, SequelizeUserRepo as infrastructure implementation). (4)
-  src/shared/domain directory + README describes aggregates (user), value objects
-  (userEmail), domain events (userCreated), repository pattern (IUserRepo) → strong
-  DDD signals. (5) README explicitly states ''Clean Architecture'' and ''Domain-Driven
-  Design best practices''. (6) No API gateway, service discovery, or multiple Dockerfiles
-  → rules out Microservices.'
+review_notes: 'Evidence: src/modules/forum and src/modules/users as bounded contexts;
+  src/shared/ for cross-cutting; single deployment with domain module separation;
+  DDD patterns demonstrated via entity/aggregate/repo structure'

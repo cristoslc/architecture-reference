@@ -1,7 +1,7 @@
 ---
 title: "Pipeline Re-extraction and Re-classification"
 artifact: SPEC-017
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-05
 last-updated: 2026-03-05

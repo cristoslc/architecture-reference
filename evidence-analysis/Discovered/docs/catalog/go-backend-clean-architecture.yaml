@@ -3,34 +3,36 @@ source: Discovered
 source_url: https://github.com/amitshekhariitbhu/go-backend-clean-architecture
 project_url: https://github.com/amitshekhariitbhu/go-backend-clean-architecture
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:09:21Z'
+discovered_at: '2026-03-06T05:29:17Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: Go
-languages: null
+languages:
+- Go
 architecture_styles:
 - Hexagonal Architecture
 - Layered
+- Domain-Driven Design
 key_technologies:
 - Go modules
 - Docker
 - Docker Compose
-quality_attributes: null
-notable_strengths: null
+quality_attributes: []
+notable_strengths: []
 notable_gaps:
 - No architecture decision records found
 - No test infrastructure detected
 - No CI/CD configuration detected
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go backend application implementing Clean Architecture with clear
-  separation between domain, use-case, repository, and API layers using Gin and MongoDB
+one_line_summary: 'Go backend template with Clean Architecture layers: domain, usecase,
+  repository, controller with port/adapter separation'
 discovery_metadata:
-  confidence: 0.88
+  confidence: 0.92
   signals_detected: 3
   signals_evaluated: 10
-  classification_method: llm-review
-  primary_style_confidence: 0.88
+  classification_method: deep-validation
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Modular Monolith
     score: 0.4
@@ -46,11 +48,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 0
 review_required: false
-review_notes: 'Evidence: directory structure shows classic Clean Architecture layering:
-  `domain/` (entities/interfaces), `usecase/` (application logic), `repository/` (data
-  access), `api/controller/` + `api/route/` + `api/middleware/` (presentation). The
-  `domain/` package defines interfaces (mocks generated for TaskRepository, UserRepository,
-  use-cases) acting as ports, while `repository/` and `mongo/` are adapters — confirming
-  Hexagonal/ports-and-adapters pattern. Single Dockerfile and single docker-compose.yaml
-  confirm a single deployable unit. No separate service directories, no message broker,
-  no microservices signals.'
+review_notes: 'Evidence: domain/ with interfaces (ports), repository/ as adapters,
+  usecase/ business logic, api/controller + api/route presentation; single Dockerfile;
+  docker-compose 2 services (app + mongodb)'

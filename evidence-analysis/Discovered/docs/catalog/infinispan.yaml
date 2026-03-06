@@ -3,16 +3,18 @@ source: Discovered
 source_url: https://github.com/infinispan/infinispan
 project_url: https://github.com/infinispan/infinispan
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:38:18Z'
+discovered_at: '2026-03-06T06:02:51Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Grid
 language: Java/Kotlin
-languages: null
+languages:
+- Java/Kotlin
+- JavaScript
+- Python
 architecture_styles:
 - Space-Based
 - Modular Monolith
-- Event-Driven
 key_technologies:
 - Maven
 - Docker
@@ -23,20 +25,21 @@ quality_attributes:
 notable_strengths:
 - Rich signal profile with strong architectural indicators
 - CI/CD automation present
-- Multi-style composition (5 styles)
+- Multi-style composition (6 styles)
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Infinispan is a distributed in-memory data grid platform implementing
-  Space-Based architecture with modular monolith deployment and event-driven cluster
-  coordination
+one_line_summary: In-memory distributed data grid/database with space-based architecture
+  organized as modular Maven monolith
 discovery_metadata:
-  confidence: 0.92
+  confidence: 0.85
   signals_detected: 229
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.92
+  primary_style_confidence: 0.85
   heuristic_candidates:
+  - style: Service-Based
+    score: 0.5
   - style: Modular Monolith
     score: 0.4
   - style: CQRS
@@ -59,10 +62,6 @@ discovery_metadata:
     documentation: 0
     directory_structure: 3
 review_required: false
-review_notes: 'Evidence: (1) Space-Based - README explicitly states ''in-memory database''
-  with ''elastically scalable clusters''; core/ module (3028 Java files) implements
-  distributed data grid; Dockerfile shows single server deployment with AOT compilation;
-  (2) Modular Monolith - 121 Maven POMs in multi-module structure (core, server, client,
-  commons, query, persistence, spring, hibernate, cdi modules); server/runtime builds
-  unified distribution; (3) Event-Driven - 53 messaging signals detected; cluster
-  coordination via JGroups; cache event listeners and distributed notifications'
+review_notes: 'Evidence: README states In-Memory Distributed Database with elastic
+  clusters, single pom.xml multi-module build (core, server/hotrod, server/rest, server/resp,
+  lock, commons, etc.), no separate microservice deployments.'

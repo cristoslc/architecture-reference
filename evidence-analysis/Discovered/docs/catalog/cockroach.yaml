@@ -3,13 +3,16 @@ source: Discovered
 source_url: https://github.com/cockroachdb/cockroach
 project_url: https://github.com/cockroachdb/cockroach
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:10:15Z'
+discovered_at: '2026-03-06T05:30:32Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Database
 language: Go
-languages: null
+languages:
+- Go
+- TypeScript
 architecture_styles:
+- Modular Monolith
 - Layered
 key_technologies:
 - Node.js
@@ -39,14 +42,14 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: CockroachDB is a distributed SQL database built as a single deployable
-  unit with modular internal layering (SQL, KV, storage, replication layers)
+one_line_summary: Distributed SQL database built as single Go binary with well-organized
+  internal packages and layered architecture (SQL/KV/storage)
 discovery_metadata:
-  confidence: 0.85
+  confidence: 0.88
   signals_detected: 268
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.85
+  primary_style_confidence: 0.88
   heuristic_candidates:
   - style: Microservices
     score: 1.1
@@ -65,9 +68,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 1
     directory_structure: 3
-review_notes: 'Evidence: Single deployment binary in build/deploy/Dockerfile; pkg/
-  directory contains 18,000+ Go files organized in layers (pkg/sql, pkg/kv, pkg/storage,
-  pkg/roachpb); no multiple independent services; Raft consensus for replication not
-  event-driven messaging; distributed SQL processing exists but not as separate pipe-filter
-  architecture'
+review_notes: 'Evidence: single go.mod, single binary output, pkg/ with kv/, sql/,
+  storage/, server/ forming horizontal layers. K8s manifests are for deploying the
+  database cluster, not decomposing it. Not microservices - single cockroach binary
+  handles all functions.'
 review_required: false

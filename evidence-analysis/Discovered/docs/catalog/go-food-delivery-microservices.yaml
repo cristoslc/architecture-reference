@@ -3,17 +3,19 @@ source: Discovered
 source_url: https://github.com/mehdihadeli/go-food-delivery-microservices
 project_url: https://github.com/mehdihadeli/go-food-delivery-microservices
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:06:01Z'
+discovered_at: '2026-03-06T05:25:03Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Food Delivery
 language: Go
-languages: null
+languages:
+- Go
+- JavaScript
 architecture_styles:
 - Microservices
 - Event-Driven
 - CQRS
-- Pipe-and-Filter
+- Domain-Driven Design
 key_technologies:
 - Node.js
 - Go modules
@@ -33,18 +35,17 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Go food delivery platform with three microservices (catalog write,
-  catalog read, orders) using RabbitMQ for async messaging, CQRS pattern with separate
-  read/write services, and vertical slice architecture with behavior pipelines
+one_line_summary: Go microservices for food delivery with CQRS (separate catalog read/write
+  services), event-driven messaging via Kafka/RabbitMQ, and DDD patterns
 discovery_metadata:
-  confidence: 0.9
+  confidence: 0.92
   signals_detected: 34
   signals_evaluated: 10
   classification_method: deep-validation
-  primary_style_confidence: 0.9
+  primary_style_confidence: 0.92
   heuristic_candidates:
   - style: Microservices
-    score: 0.9
+    score: 0.8
   - style: Event-Driven
     score: 0.3
   - style: CQRS
@@ -62,10 +63,8 @@ discovery_metadata:
     test_structure: 1
     documentation: 0
     directory_structure: 4
-review_notes: 'Evidence: Three separate services with individual Dockerfiles (catalogwriteservice,
-  catalogreadservice, orderservice) + RabbitMQ messaging in internal/pkg/rabbitmq/
-  + CQRS with MediatR in internal/pkg/core/cqrs/ + validation/logger pipelines in
-  internal/pkg/validation/pipeline and internal/pkg/logger/pipelines. README explicitly
-  mentions Event Driven Architecture on RabbitMQ, CQRS Pattern, Event Sourcing, and
-  vertical slice architecture.'
+review_notes: 'Evidence: internal/services/{catalogreadservice,catalogwriteservice,orderservice}
+  = separate services with CQRS split; api/protobuf + api/openapi per service; Kafka
+  + RabbitMQ; domain/usecase/repository layers per service; Pipe-and-Filter not supported
+  by actual code'
 review_required: false

@@ -3,14 +3,17 @@ source: Discovered
 source_url: https://github.com/nhost/nhost
 project_url: https://github.com/nhost/nhost
 evidence_type: automated-discovery
-discovered_at: '2026-03-04T06:23:47Z'
+discovered_at: '2026-03-06T05:46:21Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: TypeScript
-languages: null
+languages:
+- TypeScript
+- Go
+- JavaScript
 architecture_styles:
-- Microservices
+- Service-Based
 key_technologies:
 - Node.js
 - Go modules
@@ -33,9 +36,8 @@ notable_strengths:
 notable_gaps:
 - No architecture decision records found
 - No architecture documentation (ARCHITECTURE.md)
-one_line_summary: Nhost is an open-source Firebase alternative built as multiple independently
-  deployable services (Auth, Storage, Hasura, PostgreSQL) orchestrated via Docker
-  Compose with GraphQL API
+one_line_summary: Nhost is a backend-as-a-service platform composed of a few coarse-grained
+  services (auth, storage) plus CLI tooling and SDK packages
 discovery_metadata:
   confidence: 0.85
   signals_detected: 245
@@ -43,8 +45,8 @@ discovery_metadata:
   classification_method: deep-validation
   primary_style_confidence: 0.85
   heuristic_candidates:
-  - style: Microservices
-    score: 0.8
+  - style: Service-Based
+    score: 1.0
   - style: Event-Driven
     score: 0.6
   - style: Domain-Driven Design
@@ -60,9 +62,8 @@ discovery_metadata:
     test_structure: 3
     documentation: 0
     directory_structure: 1
-review_notes: 'Evidence: services/ directory with 524 files (296 Go, 54 SQL, 39 TS)
-  containing auth and storage services; services/auth/build/dev/conformance/auto-consent/Dockerfile
-  and services/storage/build/dev/docker/minio/Dockerfile show separate containerization;
-  README explicitly lists Auth and Storage as separate services; Docker Compose support
-  for self-hosting'
+review_notes: 'Evidence: services/auth (Go service with main.go, docker/, Makefile),
+  services/storage (Go service with main.go, controller/, middleware/), cli/ for local
+  dev, packages/nhost-js SDK. Two coarse services sharing infrastructure aligns with
+  Service-Based pattern, not microservices.'
 review_required: false

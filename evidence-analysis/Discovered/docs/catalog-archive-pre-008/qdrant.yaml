@@ -1,0 +1,64 @@
+project_name: qdrant
+source: Discovered
+source_url: https://github.com/qdrant/qdrant
+project_url: https://github.com/qdrant/qdrant
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:09:35Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Database
+language: Rust
+languages: null
+architecture_styles:
+- Layered
+key_technologies:
+- Node.js
+- Python/pip
+- Rust/Cargo
+- Docker
+- Docker Compose
+- OpenAPI
+- gRPC
+- GitHub Actions
+quality_attributes:
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Qdrant is a vector similarity search engine/database written in
+  Rust, structured as a single deployable monolithic service with REST (OpenAPI) and
+  gRPC API layers over a storage engine
+discovery_metadata:
+  confidence: 0.88
+  signals_detected: 109
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.88
+  heuristic_candidates:
+  - style: Microservices
+    score: 0.8
+  signal_breakdown:
+    package_manifests: 23
+    container_orchestration: 4
+    infrastructure_as_code: 0
+    messaging: 0
+    api_specs: 67
+    adrs: 0
+    ci_cd: 14
+    test_structure: 1
+    documentation: 0
+    directory_structure: 0
+review_required: false
+review_notes: 'Evidence: single root Cargo.toml (monolithic Rust workspace, not multiple
+  service directories), single Dockerfile at root, Docker Compose for single-service
+  deployment (tools/compose/docker-compose.yaml), no Kubernetes/Helm manifests, no
+  messaging infrastructure (0 messaging signals), OpenAPI and gRPC specs representing
+  a single service''s interface. The heuristic Microservices candidate at 0.8 is a
+  false positive from 67 API spec signals that are all definitions for one service.
+  Internal structure implies classic layered architecture: HTTP/gRPC API layer → service/business
+  logic → storage engine (consensus_tests and WAL references confirm storage layer).
+  No ports/adapters directories to indicate Hexagonal; no commands/queries separation
+  for CQRS.'

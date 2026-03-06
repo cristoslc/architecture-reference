@@ -1,0 +1,69 @@
+project_name: forem
+source: Discovered
+source_url: https://github.com/forem/forem
+project_url: https://github.com/forem/forem
+evidence_type: automated-discovery
+discovered_at: '2026-03-04T06:12:31Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+domain: Social Media
+language: Ruby
+languages: null
+architecture_styles:
+- Modular Monolith
+- Layered
+- Event-Driven
+key_technologies:
+- Node.js
+- Docker
+- Docker Compose
+- RabbitMQ
+- OpenAPI
+- GitHub Actions
+quality_attributes:
+- Deployability
+notable_strengths:
+- Rich signal profile with strong architectural indicators
+- CI/CD automation present
+- Multi-style composition (3 styles)
+notable_gaps:
+- No architecture decision records found
+- No architecture documentation (ARCHITECTURE.md)
+one_line_summary: Forem is a Rails-based social media platform (powers dev.to) built
+  as a modular monolith with classic MVC layering and event-driven background processing
+  via Sidekiq/Redis
+discovery_metadata:
+  confidence: 0.85
+  signals_detected: 19
+  signals_evaluated: 10
+  classification_method: llm-review
+  primary_style_confidence: 0.85
+  heuristic_candidates:
+  - style: Modular Monolith
+    score: 0.4
+  - style: Layered
+    score: 0.3
+  - style: Event-Driven
+    score: 0.3
+  signal_breakdown:
+    package_manifests: 2
+    container_orchestration: 2
+    infrastructure_as_code: 0
+    messaging: 1
+    api_specs: 1
+    adrs: 0
+    ci_cd: 11
+    test_structure: 2
+    documentation: 0
+    directory_structure: 2
+review_required: false
+review_notes: 'Evidence: (1) Single Dockerfile with multi-stage builds and single
+  docker-compose.yml confirm monolithic deployment unit; (2) Classic Rails layered
+  structure: app/models (100+ files), app/forms, app/queries, app/mailers, app/decorators,
+  app/uploaders, app/sanitizers with ERB view templates — clear presentation/business
+  logic/data access separation; (3) Modular organization via namespaced directories:
+  app/models/articles/, app/models/users/, app/models/settings/, app/models/ahoy/,
+  app/queries/articles/, app/queries/users/, app/queries/organizations/ — domain-scoped
+  modules within a single deployable; (4) Event-driven component: Sidekiq worker service
+  in docker-compose.yml with Redis for async background job processing; (5) RabbitMQ
+  listed as key technology suggesting additional messaging/event capabilities'
