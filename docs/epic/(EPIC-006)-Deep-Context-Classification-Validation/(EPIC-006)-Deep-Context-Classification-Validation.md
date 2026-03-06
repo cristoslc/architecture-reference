@@ -115,7 +115,7 @@ This EPIC runs a **second validation pass** using the same `llm` CLI + Minimax 2
 | [SPEC-014](../../spec/(SPEC-014)-Override-Rules-Disagreement-Report/(SPEC-014)-Override-Rules-Disagreement-Report.md) | Override Rules & Disagreement Report | Draft |
 | [SPEC-015](../../spec/(SPEC-015)-Expanded-Gold-Standard-Three-Way-Report/(SPEC-015)-Expanded-Gold-Standard-Three-Way-Report.md) | Expanded Gold Standard & Three-Way Report | Draft |
 | [SPEC-016](../../spec/(SPEC-016)-Validation-Run-Execution/(SPEC-016)-Validation-Run-Execution.md) | Validation Run Execution | Draft |
-| [SPEC-019](../../spec/(SPEC-019)-Deep-Context-Re-validation-Campaign/(SPEC-019)-Deep-Context-Re-validation-Campaign.md) | Deep-Context Re-validation Campaign | Draft |
+| [SPEC-019](../../spec/Implemented/(SPEC-019)-Deep-Context-Re-validation-Campaign/(SPEC-019)-Deep-Context-Re-validation-Campaign.md) | Deep-Context Re-validation Campaign | Implemented |
 
 ## Validation
 

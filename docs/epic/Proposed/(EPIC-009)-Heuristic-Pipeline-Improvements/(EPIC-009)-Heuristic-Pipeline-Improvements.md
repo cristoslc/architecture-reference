@@ -76,4 +76,4 @@ Specs will be decomposed when this epic is activated.
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Proposed | 2026-03-06 | — | Initial creation based on SPEC-019 findings |
+| Proposed | 2026-03-06 | 5a8fd36 | Initial creation based on SPEC-019 findings |
