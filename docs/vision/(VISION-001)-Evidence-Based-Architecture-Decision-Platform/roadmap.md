@@ -17,12 +17,14 @@ graph LR
     E3 --> E10[EPIC-010<br/>Ecosystem Classification]
     E2 --> E11[EPIC-011<br/>Platform-Aware Advising]
     E10 --> E11
+    S1[SPIKE-001<br/>Ecosystem Stats<br/>COMPLETE] --> E12[EPIC-012<br/>Catalog Rebalancing]
     style E1 fill:#2d6a4f,color:#fff
     style E2 fill:#2d6a4f,color:#fff
     style E4 fill:#2d6a4f,color:#fff
     style E5 fill:#2d6a4f,color:#fff
     style E7 fill:#2d6a4f,color:#fff
     style E8 fill:#2d6a4f,color:#fff
+    style S1 fill:#2d6a4f,color:#fff
 ```
 
 ## Status
@@ -40,6 +42,7 @@ graph LR
 | [EPIC-009](../../epic/Proposed/(EPIC-009)-Heuristic-Pipeline-Improvements/(EPIC-009)-Heuristic-Pipeline-Improvements.md) | Proposed | Improve heuristic pipeline to 60%+ agreement with deep-validation | Builds on SPEC-019 |
 | [EPIC-010](../../epic/Proposed/(EPIC-010)-Ecosystem-Architecture-Classification/(EPIC-010)-Ecosystem-Architecture-Classification.md) | Proposed | Capture cross-repo ecosystem architecture patterns | Builds on SPEC-019 |
 | [EPIC-011](../../epic/Proposed/(EPIC-011)-Platform-Aware-Architecture-Advising/(EPIC-011)-Platform-Aware-Architecture-Advising.md) | Proposed | Enhance advisor skill to distinguish platform vs application contexts | Builds on EPIC-002, EPIC-010 |
+| [EPIC-012](../../epic/Proposed/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion.md) | Proposed | Remove 43 non-architecture entries, add 30+ applications, recompute rankings | Builds on SPIKE-001, ADR-001 |
 
 ## Research Dependencies
 

@@ -8,6 +8,7 @@
 | EPIC-009 | Heuristic Pipeline Improvements | Improve the heuristic classification pipeline based on SPEC-019 findings: add 9 missing style detectors, fix Microservices/Service-Based false positives, add library detection, improve confidence calibration. Target: 60%+ agreement with deep-validation (currently 14.7%). | 2026-03-06 | — |
 | EPIC-010 | Ecosystem-Level Architecture Classification | Extend the catalog to capture cross-repo architectural patterns (ELK stack, *arr media stack, Grafana LGTM, etc.) that are invisible at the single-repo level. Curate 10+ ecosystems, add missing member repos, define ecosystem entry format. | 2026-03-06 | — |
 | EPIC-011 | Platform-Aware Architecture Advising | Enhance the architecture-advisor skill to detect whether the user's context is platform/ecosystem-centric or application-centric, and tailor guidance, trade-off analysis, and style recommendations accordingly. | 2026-03-06 | — |
+| EPIC-012 | Catalog Rebalancing and Application Expansion | Remove 43 library/non-software entries, tag all entries with scope/use-type taxonomy (ADR-001), add 30+ production applications to fix 3.4:1 platform-to-application skew, recompute production-only rankings. | 2026-03-06 | — |
 
 ## Active
 
