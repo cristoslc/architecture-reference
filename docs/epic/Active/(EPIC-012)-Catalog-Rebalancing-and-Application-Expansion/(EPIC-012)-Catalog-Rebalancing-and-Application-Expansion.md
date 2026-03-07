@@ -63,7 +63,7 @@ Until the catalog has a balanced mix of platforms and applications, style freque
 |----|-------|--------|-------|
 | [SPEC-020](../../../spec/Implemented/(SPEC-020)-Catalog-Cleanup-and-Taxonomy-Tagging/(SPEC-020)-Catalog-Cleanup-and-Taxonomy-Tagging.md) | Catalog Cleanup and Taxonomy Tagging | Implemented | Remove 43 entries, add scope/use_type fields to remaining |
 | [SPEC-021](../../../spec/Implemented/(SPEC-021)-Application-Discovery-and-Curation/(SPEC-021)-Application-Discovery-and-Curation.md) | Catalog Expansion and Ecosystem Completion | Implemented | 30 apps + 19 ecosystem entries, ratio 1.58:1 |
-| [SPEC-022](../../../spec/Draft/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation.md) | Pipeline Run and Frequency Recomputation | Draft | Recompute production-only rankings (depends on SPEC-020, SPEC-021) |
+| [SPEC-022](../../../spec/Implemented/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation.md) | Pipeline Run and Frequency Recomputation | Implemented | Production-only rankings: Modular Monolith 38.7%, Event-Driven 33.1% |
 | [SPEC-023](../../../spec/Draft/(SPEC-023)-Reference-Library-Rebalancing-Update/(SPEC-023)-Reference-Library-Rebalancing-Update.md) | Reference Library Rebalancing Update | Draft | Update all reference docs with corrected rankings (depends on SPEC-022) |
 
 ## Key Dependencies
