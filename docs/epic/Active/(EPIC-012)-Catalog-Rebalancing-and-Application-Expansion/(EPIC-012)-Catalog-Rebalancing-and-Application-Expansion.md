@@ -1,7 +1,7 @@
 ---
 title: "Catalog Rebalancing and Application Expansion"
 artifact: EPIC-012
-status: Proposed
+status: Active
 author: cristos
 created: 2026-03-06
 last-updated: 2026-03-06
@@ -61,10 +61,10 @@ Until the catalog has a balanced mix of platforms and applications, style freque
 
 | ID | Title | Status | Focus |
 |----|-------|--------|-------|
-| — | TBD: Catalog Cleanup and Taxonomy Tagging | — | Remove 43 entries, add scope/use_type fields to remaining |
-| — | TBD: Application Discovery and Curation | — | Find, vet, and add 30+ production applications |
-| — | TBD: Pipeline Run and Frequency Recomputation | — | Extract signals, classify, recompute production-only rankings |
-| — | TBD: Reference Library Rebalancing Update | — | Update all reference docs with corrected rankings |
+| [SPEC-020](../../spec/Draft/(SPEC-020)-Catalog-Cleanup-and-Taxonomy-Tagging/(SPEC-020)-Catalog-Cleanup-and-Taxonomy-Tagging.md) | Catalog Cleanup and Taxonomy Tagging | Draft | Remove 43 entries, add scope/use_type fields to remaining |
+| [SPEC-021](../../spec/Draft/(SPEC-021)-Application-Discovery-and-Curation/(SPEC-021)-Application-Discovery-and-Curation.md) | Application Discovery and Curation | Draft | Find, vet, and add 30+ production applications (depends on SPEC-020) |
+| [SPEC-022](../../spec/Draft/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation.md) | Pipeline Run and Frequency Recomputation | Draft | Recompute production-only rankings (depends on SPEC-020, SPEC-021) |
+| [SPEC-023](../../spec/Draft/(SPEC-023)-Reference-Library-Rebalancing-Update/(SPEC-023)-Reference-Library-Rebalancing-Update.md) | Reference Library Rebalancing Update | Draft | Update all reference docs with corrected rankings (depends on SPEC-022) |
 
 ## Key Dependencies
 

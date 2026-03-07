@@ -42,7 +42,7 @@ graph LR
 | [EPIC-009](../../epic/Proposed/(EPIC-009)-Heuristic-Pipeline-Improvements/(EPIC-009)-Heuristic-Pipeline-Improvements.md) | Proposed | Improve heuristic pipeline to 60%+ agreement with deep-validation | Builds on SPEC-019 |
 | [EPIC-010](../../epic/Proposed/(EPIC-010)-Ecosystem-Architecture-Classification/(EPIC-010)-Ecosystem-Architecture-Classification.md) | Proposed | Capture cross-repo ecosystem architecture patterns | Builds on SPEC-019 |
 | [EPIC-011](../../epic/Proposed/(EPIC-011)-Platform-Aware-Architecture-Advising/(EPIC-011)-Platform-Aware-Architecture-Advising.md) | Proposed | Enhance advisor skill to distinguish platform vs application contexts | Builds on EPIC-002, EPIC-010 |
-| [EPIC-012](../../epic/Proposed/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion.md) | Proposed | Remove 43 non-architecture entries, add 30+ applications, recompute rankings | Builds on SPIKE-001, ADR-001 |
+| [EPIC-012](../../epic/Active/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion.md) | **Active** | Remove 43 non-architecture entries, add 30+ applications, recompute rankings | Builds on SPIKE-001, ADR-001 |
 
 ## Research Dependencies
 
