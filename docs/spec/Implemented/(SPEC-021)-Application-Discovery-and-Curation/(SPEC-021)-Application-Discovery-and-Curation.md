@@ -1,10 +1,10 @@
 ---
 title: "Catalog Expansion and Ecosystem Completion"
 artifact: SPEC-021
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-06
-last-updated: 2026-03-06
+last-updated: 2026-03-07
 parent-epic: EPIC-012
 depends-on:
   - SPEC-020
