@@ -1,5 +1,5 @@
 ---
-title: "Application Discovery and Curation"
+title: "Catalog Expansion and Ecosystem Completion"
 artifact: SPEC-021
 status: Draft
 author: cristos
@@ -13,50 +13,82 @@ linked-adrs:
 execution-tracking: required
 ---
 
-# Application Discovery and Curation
+# Catalog Expansion and Ecosystem Completion
 
 ## Problem Statement
 
-After removing 43 non-architecture entries, the catalog has 65 production platforms vs 19 production applications (3.4:1 ratio). This skew means frequency rankings disproportionately reflect platform architectures (Plugin/Microkernel, Pipe-and-Filter) rather than application architectures — but application architects are the primary audience.
+After SPEC-020 cleanup, the catalog has three gaps:
+
+1. **Application skew** — 67 production platforms vs 21 production applications (3.2:1 ratio). Frequency rankings disproportionately reflect platform architectures (Plugin/Microkernel, Pipe-and-Filter) rather than application architectures — but application architects are the primary audience.
+
+2. **Incomplete ecosystems** — Several platforms are cataloged in isolation when they belong to multi-repo ecosystems. We have `elasticsearch` but not Kibana/Logstash/Beats. We have `consul` but not Vault/Nomad. We have `kafka` but not Connect/ksqlDB/Schema Registry. Incomplete ecosystem coverage understates Service-Based and Event-Driven patterns.
+
+3. **Uncataloged manifest repos** — 20 repos in `manifest.yaml` were never successfully processed by the pipeline. Some are libraries (will be triaged out per ADR-001), but others are legitimate platforms or reference apps.
 
 ## External Behavior
 
-**Input:** Curated candidate list of production-grade applications from GitHub search, awesome-lists, and domain-specific directories.
+**Three input streams:**
+
+| Stream | Source | Expected yield |
+|--------|--------|---------------|
+| New applications | GitHub search, awesome-lists, domain-specific directories | 30+ production applications |
+| Ecosystem completion | Companion repos for partially-cataloged ecosystems | 15–25 platform components |
+| Uncataloged manifest repos | 20 entries in `manifest.yaml` with no catalog entry | 10–15 after triage |
+
+**Known ecosystem gaps:**
+
+| Ecosystem | Have | Missing |
+|-----------|------|---------|
+| Elastic Stack | elasticsearch | kibana, logstash, beats |
+| Arr Stack | overseerr | sonarr, radarr, prowlarr, bazarr |
+| Sentry | self-hosted | sentry (backend), snuba, relay |
+| Kafka ecosystem | kafka | kafka-connect, ksqldb, schema-registry |
+| HashiCorp | consul | vault, nomad, terraform |
+| Supabase | supabase | gotrue, postgrest, realtime, storage-api |
 
 **Outputs:**
 
 | Output | Description |
 |--------|-------------|
-| 30+ new manifest entries | Added to `manifest.yaml` with repo URLs |
-| 30+ new catalog entries | YAML files in `docs/catalog/` with `scope: application`, `use_type: production` |
-| 30+ signal files | Extracted via `extract-signals.sh` |
-| 30+ classifications | Heuristic + LLM review + deep-validation |
+| 50+ new manifest entries | Added to `manifest.yaml` with repo URLs |
+| 50+ new catalog entries | YAML files in `docs/catalog/` with taxonomy tags |
+| 50+ signal files | Extracted via `extract-signals.sh` |
+| 50+ classifications | Heuristic + LLM review + deep-validation |
 | Discovery log | Rationale for inclusion/exclusion of candidate repos |
 
-**Selection criteria:**
+**Selection criteria (new applications):**
 - >1k GitHub stars (ensures active community and enough code to classify)
 - Active maintenance (commits within last 12 months)
 - Classifiable architecture (not a CLI tool, browser extension, or static site)
 - Scope = application (end-user facing, not infrastructure)
 - Domain diversity (target underrepresented: healthcare, fintech, logistics, education, government, productivity)
 
+**Selection criteria (ecosystem completion):**
+- Companion repo to an already-cataloged platform
+- Independently deployable (not a shared library consumed only by the parent)
+- Has its own identifiable architecture (not a thin wrapper or config repo)
+
 ## Acceptance Criteria
 
 1. At least 30 new production-grade application entries added to catalog
-2. Platform-to-application ratio no worse than 2:1 after additions
-3. At least 5 domains represented among new entries
-4. All new entries have full pipeline classification (signals + heuristic + LLM review + deep-validation)
-5. All new entries tagged with `scope: application`, `use_type: production`
-6. Discovery log documents why each candidate was included or rejected
+2. Platform-to-application ratio no worse than 2:1 after all additions
+3. At least 5 domains represented among new application entries
+4. All 6 identified ecosystem gaps addressed (companion repos added or documented as out-of-scope)
+5. All 20 uncataloged manifest repos triaged (cataloged, removed, or documented as unprocessable)
+6. All new entries have full pipeline classification (signals + heuristic + LLM review + deep-validation)
+7. All new entries tagged with `scope` and `use_type` per ADR-001
+8. Discovery log documents why each candidate was included or rejected
 
 ## Implementation Approach
 
-1. Search GitHub for production applications in underrepresented domains
-2. Filter candidates by selection criteria
-3. Add to manifest.yaml
-4. Run full pipeline: clone → extract signals → heuristic classify → LLM review → deep-validate
-5. Review classifications and tag taxonomy fields
-6. Document discovery rationale
+1. **Ecosystem completion** — add companion repos for the 6 identified ecosystem gaps to manifest
+2. **Uncataloged manifest triage** — attempt pipeline on 20 uncataloged repos; triage failures per ADR-001
+3. **Application discovery** — search GitHub for production applications in underrepresented domains
+4. Filter new application candidates by selection criteria
+5. Add all new repos to manifest.yaml
+6. Run full pipeline: clone → extract signals → heuristic classify → LLM review → deep-validate
+7. Review classifications and tag taxonomy fields
+8. Document discovery rationale
 
 ## Lifecycle
 

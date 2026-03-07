@@ -30,7 +30,7 @@
 | SPEC-015 | Expanded Gold Standard & Three-Way Report | Expand gold standard from 17 to 40+ entries; three-way comparison across heuristic, llm-review, and deep-validation methods. | 2026-03-04 | — |
 | SPEC-016 | Validation Run Execution | Operational run plan for deep-context validation across all four priority populations, with gate criteria, pilot run, and post-run review checklists. | 2026-03-04 | — |
 
-| SPEC-021 | Application Discovery and Curation | Find, vet, and add 30+ production-grade applications to fix 3.4:1 platform-to-application skew. Depends on SPEC-020. | 2026-03-06 | 23bed6f |
+| SPEC-021 | Catalog Expansion and Ecosystem Completion | Expand catalog with 30+ applications, complete 6 ecosystem gaps, and triage 20 uncataloged manifest repos. Depends on SPEC-020. | 2026-03-06 | 23bed6f |
 | SPEC-022 | Pipeline Run and Frequency Recomputation | Recompute frequency rankings using production-only entries with equal weighting. Depends on SPEC-020, SPEC-021. | 2026-03-06 | 23bed6f |
 | SPEC-023 | Reference Library Rebalancing Update | Update all 8 reference library documents with production-only rankings and platform/application splits. Depends on SPEC-022. | 2026-03-06 | 23bed6f |
 
