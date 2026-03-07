@@ -76,4 +76,4 @@ Adopt a two-axis taxonomy for all catalog entries:
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Adopted | 2026-03-06 | — | Skipped Draft/Proposed; decision fully developed in SPIKE-001 conversation |
+| Adopted | 2026-03-06 | 054dab0 | Skipped Draft/Proposed; decision fully developed in SPIKE-001 conversation |

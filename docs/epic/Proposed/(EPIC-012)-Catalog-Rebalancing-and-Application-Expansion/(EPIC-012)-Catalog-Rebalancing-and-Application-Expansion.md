@@ -76,4 +76,4 @@ Until the catalog has a balanced mix of platforms and applications, style freque
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Proposed | 2026-03-06 | — | Catalog skew identified in SPIKE-001; 65 platforms vs 19 applications |
+| Proposed | 2026-03-06 | 054dab0 | Catalog skew identified in SPIKE-001; 65 platforms vs 19 applications |
