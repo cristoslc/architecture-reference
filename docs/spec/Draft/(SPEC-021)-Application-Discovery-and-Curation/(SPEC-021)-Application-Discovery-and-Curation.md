@@ -45,6 +45,8 @@ After SPEC-020 cleanup, the catalog has three gaps:
 | Kafka ecosystem | kafka | kafka-connect, ksqldb, schema-registry |
 | HashiCorp | consul | vault, nomad, terraform |
 | Supabase | supabase | gotrue, postgrest, realtime, storage-api |
+| Grafana LGTM | grafana | loki, mimir, tempo |
+| GitLab | gitlabhq | gitaly |
 
 **Outputs:**
 
@@ -73,7 +75,7 @@ After SPEC-020 cleanup, the catalog has three gaps:
 1. At least 30 new production-grade application entries added to catalog
 2. Platform-to-application ratio no worse than 2:1 after all additions
 3. At least 5 domains represented among new application entries
-4. All 6 identified ecosystem gaps addressed (companion repos added or documented as out-of-scope)
+4. All 8 identified ecosystem gaps addressed (companion repos added or documented as out-of-scope)
 5. All 20 uncataloged manifest repos triaged (cataloged, removed, or documented as unprocessable)
 6. All new entries have full pipeline classification (signals + heuristic + LLM review + deep-validation)
 7. All new entries tagged with `scope` and `use_type` per ADR-001
