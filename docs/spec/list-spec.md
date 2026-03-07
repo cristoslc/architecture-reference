@@ -16,6 +16,7 @@
 | SPEC-018 | Reference Library Statistics Update | Propagate deep-validated statistics from SPEC-019 into all 8 reference library and cross-source documents. | 2026-03-06 | 1467f16 |
 | SPEC-019 | Deep-Context Re-validation Campaign | Re-run deep-context validation on all 163 repos post-SPEC-017, resolving 30 regressions and validating 41 new entries. Uses Claude Code subagents with Opus. | 2026-03-06 | beb158f |
 | SPEC-020 | Catalog Cleanup and Taxonomy Tagging | Remove 43 library/framework/non-software entries, add scope and use_type taxonomy fields to all remaining 120 entries per ADR-001. | 2026-03-06 | ff77e90 |
+| SPEC-021 | Catalog Expansion and Ecosystem Completion | Expand catalog with 30 applications across 10 domains, 19 ecosystem entries, triage 20 uncataloged repos. Production ratio 1.58:1. | 2026-03-07 | f64b466a |
 
 ## Active
 
@@ -30,7 +31,6 @@
 | SPEC-015 | Expanded Gold Standard & Three-Way Report | Expand gold standard from 17 to 40+ entries; three-way comparison across heuristic, llm-review, and deep-validation methods. | 2026-03-04 | — |
 | SPEC-016 | Validation Run Execution | Operational run plan for deep-context validation across all four priority populations, with gate criteria, pilot run, and post-run review checklists. | 2026-03-04 | — |
 
-| SPEC-021 | Catalog Expansion and Ecosystem Completion | Expand catalog with 30+ applications, complete 6 ecosystem gaps, and triage 20 uncataloged manifest repos. Depends on SPEC-020. | 2026-03-06 | 23bed6f |
 | SPEC-022 | Pipeline Run and Frequency Recomputation | Recompute frequency rankings using production-only entries with equal weighting. Depends on SPEC-020, SPEC-021. | 2026-03-06 | 23bed6f |
 | SPEC-023 | Reference Library Rebalancing Update | Update all 8 reference library documents with production-only rankings and platform/application splits. Depends on SPEC-022. | 2026-03-06 | 23bed6f |
 

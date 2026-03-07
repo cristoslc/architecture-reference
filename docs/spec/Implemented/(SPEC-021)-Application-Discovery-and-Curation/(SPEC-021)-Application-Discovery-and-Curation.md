@@ -97,3 +97,4 @@ After SPEC-020 cleanup, the catalog has three gaps:
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-06 | 23bed6f | Initial creation |
+| Implemented | 2026-03-07 | f64b466a | 30 apps + 19 ecosystem entries added, ratio 1.58:1, all ACs met |
