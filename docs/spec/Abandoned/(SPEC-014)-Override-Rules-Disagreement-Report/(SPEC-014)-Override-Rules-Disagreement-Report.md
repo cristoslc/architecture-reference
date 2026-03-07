@@ -1,7 +1,7 @@
 ---
 title: "Override Rules & Disagreement Report"
 artifact: SPEC-014
-status: Draft
+status: Abandoned
 author: cristos
 created: 2026-03-04
 last-updated: 2026-03-04
@@ -94,3 +94,4 @@ Entries flagged: 5
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-04 | — | Initial creation under EPIC-006 |
+| Abandoned | 2026-03-07 | — | Obsolete per ADR-002: heuristic classification dropped |

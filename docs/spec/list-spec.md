@@ -27,9 +27,6 @@
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | SPEC-003 | Comparative Analysis Engine | Compare a user's repo architecture against the expanded catalog, generating evidence-grounded comparison reports. Depends on SPEC-002. | 2026-03-03 | b63f031 |
-| SPEC-014 | Override Rules & Disagreement Report | Deterministic rules for when to accept deep-validation results over existing classifications, plus disagreement markdown report. | 2026-03-04 | — |
-| SPEC-015 | Expanded Gold Standard & Three-Way Report | Expand gold standard from 17 to 40+ entries; three-way comparison across heuristic, llm-review, and deep-validation methods. | 2026-03-04 | — |
-| SPEC-016 | Validation Run Execution | Operational run plan for deep-context validation across all four priority populations, with gate criteria, pilot run, and post-run review checklists. | 2026-03-04 | — |
 
 | SPEC-022 | Pipeline Run and Frequency Recomputation | Recompute production-only frequency rankings with platform/application splits. Reverted per ADR-002; blocked on SPEC-024. | 2026-03-07 | — |
 | SPEC-023 | Reference Library Rebalancing Update | Update all 8 reference library documents with production-only rankings and platform/application splits. Depends on SPEC-022. | 2026-03-06 | 23bed6f |
@@ -43,3 +40,6 @@
 | SPEC-007 | Solution-Spaces Cross-Source Rewrite | Rewrite solution-spaces.md (528 lines) with production-weighted scoring. Superseded by EPIC-007 restructuring + SPEC-018 statistics update. | 2026-03-05 | fdc0ef9 |
 | SPEC-008 | Evidence Cross-Source Update | Rewrite evidence/by-architecture-style.md and evidence/by-quality-attribute.md with cross-source evidence tables. Superseded by EPIC-007 restructuring + SPEC-018 statistics update. | 2026-03-05 | fdc0ef9 |
 | SPEC-009 | Synthesis Cross-Source Update | Rewrite problem-solution-matrix.md and decision-navigator.md with production-system evidence. Superseded by EPIC-007 restructuring + SPEC-018 statistics update. | 2026-03-05 | fdc0ef9 |
+| SPEC-014 | Override Rules & Disagreement Report | Deterministic rules for when to accept deep-validation results over existing classifications, plus disagreement markdown report. Obsolete per ADR-002. | 2026-03-07 | — |
+| SPEC-015 | Expanded Gold Standard & Three-Way Report | Expand gold standard from 17 to 40+ entries; three-way comparison across heuristic, llm-review, and deep-validation methods. Obsolete per ADR-002. | 2026-03-07 | — |
+| SPEC-016 | Validation Run Execution | Operational run plan for deep-context validation across all four priority populations, with gate criteria, pilot run, and post-run review checklists. Obsolete per ADR-002. | 2026-03-07 | — |

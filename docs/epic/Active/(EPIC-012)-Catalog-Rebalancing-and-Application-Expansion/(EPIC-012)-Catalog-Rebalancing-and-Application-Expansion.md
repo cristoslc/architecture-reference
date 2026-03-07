@@ -46,14 +46,14 @@ Until the catalog has a balanced mix of platforms and applications, style freque
    - Underrepresented domains: healthcare, fintech, logistics, education, government
    - Application types: SaaS products, internal tools, mobile backends, API-first services
    - Selection criteria: >1k GitHub stars, active maintenance, classifiable architecture
-4. **Signal extraction and classification** — run the full pipeline (extract signals, heuristic classify, LLM review, deep-validate) on new entries
+4. **Deep-analysis classification** — clone repos and run LLM-based source code analysis per ADR-002 (heuristic classification dropped)
 5. **Frequency recomputation** — rebuild rankings using production-only entries with equal weighting per ADR-001
 6. **Reference library update** — propagate corrected rankings into all reference library documents
 
 ### Out of scope
 
 - Adding ecosystem-level entries (EPIC-010 territory)
-- Changes to the classification pipeline itself (EPIC-009)
+- Changes to the classification pipeline itself (EPIC-009, now Abandoned per ADR-002)
 - Adding non-Discovered evidence sources
 - Library/framework architecture analysis (potential future vision expansion)
 

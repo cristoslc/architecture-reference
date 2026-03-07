@@ -6,7 +6,7 @@ author: cristos
 created: 2026-03-06
 last-updated: 2026-03-06
 question: "Do we need architectural classifications beyond the classic 12 styles from Richards & Ford, and if so, which ones have sufficient evidence to justify addition?"
-gate: "Pre-implementation gate for EPIC-009 and EPIC-010 — taxonomy changes affect heuristic scorers, deep-validation prompts, and reference library structure"
+gate: "Pre-implementation gate for EPIC-010 — taxonomy changes affect deep-validation prompts and reference library structure"
 risks-addressed:
   - "Current 12+2 taxonomy may force repos into ill-fitting categories"
   - "Missing classifications could mask real patterns in the evidence"
@@ -14,7 +14,6 @@ risks-addressed:
 depends-on:
   - SPEC-019
 linked-research:
-  - EPIC-009
   - EPIC-010
 ---
 
@@ -111,4 +110,4 @@ Design a lightweight annotation system (e.g., `styles: [Microservices]` + `varia
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Planned | 2026-03-06 | c526f34 | Initial creation; pre-implementation gate for EPIC-009 taxonomy decisions |
+| Planned | 2026-03-06 | c526f34 | Initial creation; pre-implementation gate for EPIC-010 taxonomy decisions |

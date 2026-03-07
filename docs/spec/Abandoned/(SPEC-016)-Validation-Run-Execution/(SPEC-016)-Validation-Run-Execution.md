@@ -1,7 +1,7 @@
 ---
 title: "Validation Run Execution"
 artifact: SPEC-016
-status: Draft
+status: Abandoned
 author: cristos
 created: 2026-03-04
 last-updated: 2026-03-04
@@ -129,3 +129,4 @@ ls -la pipeline/reports/disagreements-*.md
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-04 | — | Initial creation under EPIC-006 |
+| Abandoned | 2026-03-07 | — | Obsolete per ADR-002: heuristic classification dropped |

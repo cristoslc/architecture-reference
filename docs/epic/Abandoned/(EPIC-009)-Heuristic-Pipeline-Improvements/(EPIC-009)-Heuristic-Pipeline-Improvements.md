@@ -1,7 +1,7 @@
 ---
 title: "Heuristic Pipeline Improvements"
 artifact: EPIC-009
-status: Proposed
+status: Abandoned
 author: cristos
 created: 2026-03-06
 last-updated: 2026-03-06
@@ -77,3 +77,4 @@ Specs will be decomposed when this epic is activated.
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-06 | 5a8fd36 | Initial creation based on SPEC-019 findings |
+| Abandoned | 2026-03-07 | — | Obsolete per ADR-002: heuristic classification dropped |

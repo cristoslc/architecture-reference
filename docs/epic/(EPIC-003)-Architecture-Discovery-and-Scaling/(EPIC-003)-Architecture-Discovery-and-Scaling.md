@@ -30,7 +30,7 @@ Build automated tooling to discover and classify architecture patterns from sour
 
 ### Out of scope
 
-- ML-based architecture classification (heuristics + LLM, not trained models)
+- ML-based architecture classification (deep-analysis via LLM per ADR-002, not trained models)
 - Code quality / linting functionality (not competing with CodeScene or SonarQube)
 - Prescriptive architecture enforcement
 - Community contribution pipeline (future work beyond Phase 2)
@@ -46,7 +46,7 @@ The `/discover-architecture` skill would analyze a repository and produce a stru
 - **Signal extraction:** Module boundaries, dependency graphs, layer separation, messaging infrastructure, API gateway presence, event schemas, container orchestration, IaC patterns, CI/CD pipeline, ADR presence, test coverage structure, monitoring/observability, documentation completeness
 - **Classification output:** Primary style, secondary styles, quality attributes, maturity signals, confidence score
 - **Scope:** Top 5 ecosystems (JS/TS, Python, Java, Go, .NET)
-- **Approach:** Heuristic-based signal extraction + LLM-assisted classification (not ML models)
+- **Approach:** Signal extraction for metadata + deep-analysis via LLM source code inspection per ADR-002
 
 ### Key data sources for scaling
 

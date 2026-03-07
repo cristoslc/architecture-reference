@@ -9,9 +9,7 @@ parent-vision: VISION-001
 success-criteria:
   - All classifiable entries (100+) re-validated with cloned repo context
   - Verification report with per-entry verdicts (confirmed/reclassified/downgraded/upgraded)
-  - Heuristic over-classifications corrected where LLM disagrees
-  - Gold standard expanded from 17 to 40+ entries
-  - Validation accuracy >= 90% against expanded gold standard
+  - Deep-analysis is the sole classification source per ADR-002
 depends-on:
   - EPIC-005
 ---
@@ -34,25 +32,21 @@ This EPIC runs a **second validation pass** using the same `llm` CLI + Minimax 2
 - **Deep context assembly** — beyond Turn 1 basics: full `find` tree (depth 4), docker-compose.yml / Dockerfile contents, key config files (serverless.yml, k8s manifests, terraform), top-level source directory structure with file counts, architecture docs (ARCHITECTURE.md, ADRs)
 - **Validation prompt** — includes existing classification + evidence, asks LLM to verify or correct
 - **Comparison logic** — categorizes results as confirmed, reclassified, downgraded, upgraded, promoted
-- **Override rules** — when to accept the new classification over the old one
-- **Expanded gold standard** — grow from 17 to 40+ entries where all methods agree
-- **Three-way comparison report** — heuristic vs `llm-review` vs `deep-validation`
+- **Override rules** — superseded by ADR-002 (deep-analysis is sole source; no override needed)
+- **Gold standard / three-way comparison** — superseded by ADR-002 (no heuristic or LLM review stages to compare against)
 
 ### Out of scope
 
-- Changes to the heuristic classifier (`classify.py`)
+- Heuristic classification (dropped per ADR-002)
 - Training custom models
 - Modifying the catalog YAML schema
-- Re-running the original `llm-review.sh` pipeline
 
 ## Populations to Validate
 
 | Population | Count | Risk | Priority |
 |-----------|-------|------|----------|
-| Heuristic-only (never LLM-reviewed) | 43 | Highest — heuristic counts signals without semantic understanding | P1 |
-| LLM-classified (low confidence < 0.85) | ~20 | Medium — Minimax saw limited context | P2 |
-| LLM-classified (high confidence >= 0.85) | ~37 | Lower — but still metadata-only | P3 |
-| Unclassifiable | ~63 | Spot-check — some may be false negatives | P4 |
+| Not yet deep-validated | ~45 | Highest — heuristic-only, unreliable per ADR-002 | P1 |
+| Previously deep-validated (SPEC-019) | ~120 | Low — already classified via source code inspection | P2 (spot-check only) |
 
 ## Pipeline Design
 
@@ -110,10 +104,10 @@ This EPIC runs a **second validation pass** using the same `llm` CLI + Minimax 2
 
 | ID | Title | Status |
 |----|-------|--------|
-| [SPEC-013](../../spec/(SPEC-013)-Deep-Context-Validation-Script/(SPEC-013)-Deep-Context-Validation-Script.md) | Deep-Context Validation Script | Draft |
-| [SPEC-014](../../spec/(SPEC-014)-Override-Rules-Disagreement-Report/(SPEC-014)-Override-Rules-Disagreement-Report.md) | Override Rules & Disagreement Report | Draft |
-| [SPEC-015](../../spec/(SPEC-015)-Expanded-Gold-Standard-Three-Way-Report/(SPEC-015)-Expanded-Gold-Standard-Three-Way-Report.md) | Expanded Gold Standard & Three-Way Report | Draft |
-| [SPEC-016](../../spec/(SPEC-016)-Validation-Run-Execution/(SPEC-016)-Validation-Run-Execution.md) | Validation Run Execution | Draft |
+| [SPEC-013](../../spec/(SPEC-013)-Deep-Context-Validation-Script/(SPEC-013)-Deep-Context-Validation-Script.md) | Deep-Context Validation Script | Implemented |
+| ~~SPEC-014~~ | ~~Override Rules & Disagreement Report~~ | Abandoned (ADR-002) |
+| ~~SPEC-015~~ | ~~Expanded Gold Standard & Three-Way Report~~ | Abandoned (ADR-002) |
+| ~~SPEC-016~~ | ~~Validation Run Execution~~ | Abandoned (ADR-002) |
 | [SPEC-019](../../spec/Implemented/(SPEC-019)-Deep-Context-Re-validation-Campaign/(SPEC-019)-Deep-Context-Re-validation-Campaign.md) | Deep-Context Re-validation Campaign | Implemented |
 
 ## Validation

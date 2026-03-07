@@ -5,7 +5,6 @@
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | EPIC-006 | Deep-Context Classification Validation | Re-validate all catalog classifications by cloning repos and feeding deep context (source files, configs, architecture docs) to the LLM. Produces verification verdicts, override rules, and expanded gold standard. | 2026-03-04 | — |
-| EPIC-009 | Heuristic Pipeline Improvements | Improve the heuristic classification pipeline based on SPEC-019 findings: add 9 missing style detectors, fix Microservices/Service-Based false positives, add library detection, improve confidence calibration. Target: 60%+ agreement with deep-validation (currently 14.7%). | 2026-03-06 | — |
 | EPIC-010 | Ecosystem-Level Architecture Classification | Extend the catalog to capture cross-repo architectural patterns (ELK stack, *arr media stack, Grafana LGTM, etc.) that are invisible at the single-repo level. Curate 10+ ecosystems, add missing member repos, define ecosystem entry format. | 2026-03-06 | — |
 | EPIC-011 | Platform-Aware Architecture Advising | Enhance the architecture-advisor skill to detect whether the user's context is platform/ecosystem-centric or application-centric, and tailor guidance, trade-off analysis, and style recommendations accordingly. | 2026-03-06 | — |
 
@@ -26,3 +25,9 @@
 | EPIC-005 | LLM Classification Pipeline | Automates Pass 2 LLM review of 120 Indeterminate catalog entries via multi-turn llm CLI pipeline with structured escalation. | 2026-03-04 | 707de32 |
 | EPIC-007 | Discovered-First Evidence Hierarchy | Restructured all 6 reference library documents to lead with Discovered corpus statistical analysis as primary evidence. KataLog demoted to supplementary qualitative evidence. | 2026-03-05 | fdc0ef9 |
 | EPIC-008 | Service-Based Architecture Detection | Fix the two largest detection blind spots in the Discovered pipeline: Service-Based Architecture (4 detected vs. 23 expected) and Plugin/Microkernel (0 detected vs. 6+ production-validated). New signals, improved scorers, conflict resolution, and re-classification. | 2026-03-06 | 2dee9a7 |
+
+## Abandoned
+
+| ID | Title | Summary | Last Updated | Commit |
+|----|-------|---------|--------------|--------|
+| EPIC-009 | Heuristic Pipeline Improvements | Improve the heuristic classification pipeline based on SPEC-019 findings: add 9 missing style detectors, fix Microservices/Service-Based false positives, add library detection, improve confidence calibration. Target: 60%+ agreement with deep-validation (currently 14.7%). Obsolete per ADR-002. | 2026-03-07 | — |
