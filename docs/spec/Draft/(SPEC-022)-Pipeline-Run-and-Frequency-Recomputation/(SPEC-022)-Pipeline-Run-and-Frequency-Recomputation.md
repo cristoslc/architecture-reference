@@ -1,7 +1,7 @@
 ---
 title: "Pipeline Run and Frequency Recomputation"
 artifact: SPEC-022
-status: Implemented
+status: Draft
 author: cristos
 created: 2026-03-06
 last-updated: 2026-03-07
@@ -9,8 +9,10 @@ parent-epic: EPIC-012
 depends-on:
   - SPEC-020
   - SPEC-021
+  - SPEC-024
 linked-adrs:
   - ADR-001
+  - ADR-002
 execution-tracking: required
 ---
 
@@ -58,4 +60,5 @@ After catalog cleanup (SPEC-020) and application expansion (SPEC-021), the frequ
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-06 | 23bed6f | Initial creation |
-| Implemented | 2026-03-07 | 11e4f397 | Production-only frequency tables, platform/application splits, before/after comparison |
+| Implemented | 2026-03-07 | 11e4f397 | Premature — heuristic-only data for new entries |
+| Draft | 2026-03-07 | — | Reverted per ADR-002; blocked on SPEC-024 (deep-analysis campaign) |
