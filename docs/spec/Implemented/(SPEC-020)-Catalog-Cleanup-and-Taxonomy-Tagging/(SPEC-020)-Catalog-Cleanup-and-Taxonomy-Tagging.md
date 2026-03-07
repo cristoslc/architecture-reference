@@ -58,3 +58,4 @@ The Discovered catalog contains 43 entries that have no deployable architecture 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-06 | 23bed6f | Initial creation |
+| Implemented | 2026-03-06 | ff77e90 | 43 entries removed, 120 tagged with scope/use_type, manifest and index updated |
