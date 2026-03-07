@@ -75,4 +75,4 @@ The user chooses at the outset of each scan. The choice applies to all entries i
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Adopted | 2026-03-07 | — | Heuristic classification dropped; deep-analysis is sole classification source |
+| Adopted | 2026-03-07 | f2786ab4 | Heuristic classification dropped; deep-analysis is sole classification source |

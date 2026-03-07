@@ -66,4 +66,4 @@ SPEC-021 added 45 new catalog entries (30 applications, 15 ecosystem/other) that
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Draft | 2026-03-07 | — | Initial creation per ADR-002 |
+| Draft | 2026-03-07 | f2786ab4 | Initial creation per ADR-002 |

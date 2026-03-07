@@ -61,4 +61,4 @@ After catalog cleanup (SPEC-020) and application expansion (SPEC-021), the frequ
 |-------|------|--------|-------|
 | Draft | 2026-03-06 | 23bed6f | Initial creation |
 | Implemented | 2026-03-07 | 11e4f397 | Premature — heuristic-only data for new entries |
-| Draft | 2026-03-07 | — | Reverted per ADR-002; blocked on SPEC-024 (deep-analysis campaign) |
+| Draft | 2026-03-07 | f2786ab4 | Reverted per ADR-002; blocked on SPEC-024 (deep-analysis campaign) |
