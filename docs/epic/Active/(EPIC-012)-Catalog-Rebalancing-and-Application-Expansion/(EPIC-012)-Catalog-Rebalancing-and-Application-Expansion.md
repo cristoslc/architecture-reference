@@ -77,3 +77,4 @@ Until the catalog has a balanced mix of platforms and applications, style freque
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-06 | 054dab0 | Catalog skew identified in SPIKE-001; 65 platforms vs 19 applications |
+| Active | 2026-03-06 | 23bed6f | SPIKE-001 dependency satisfied; child specs SPEC-020 through SPEC-023 created |

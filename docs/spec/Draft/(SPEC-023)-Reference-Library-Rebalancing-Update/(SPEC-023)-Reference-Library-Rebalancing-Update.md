@@ -55,4 +55,4 @@ SPEC-022 produces corrected production-only frequency rankings with platform/app
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Draft | 2026-03-06 | — | Initial creation |
+| Draft | 2026-03-06 | 23bed6f | Initial creation |
