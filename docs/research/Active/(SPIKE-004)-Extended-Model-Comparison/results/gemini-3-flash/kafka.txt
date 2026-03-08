@@ -1,0 +1,24 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Layered
+CONFIDENCE: 0.9
+
+REASONING:
+Apache Kafka is structured as a **Modular Monolith** in its source repository. While it is a distributed system when deployed, the codebase itself is organized into distinct, highly decoupled modules that are compiled and managed within a single repository using a unified build system (Gradle).
+
+1.  **Modular Monolith**: The repository structure is explicitly broken down into functional components that manage specific boundaries of the system.
+    *   `core/`: Contains the main broker logic (historically Scala-based).
+    *   `clients/`: Contains the Java implementation of the Producer and Consumer APIs.
+    *   `storage/`: A dedicated module for the pluggable storage layer (`storage/api/`).
+    *   `group-coordinator/`, `share-coordinator/`, `transaction-coordinator/`: Separate modules handling specific cluster responsibilities, demonstrating functional decomposition within the monolith.
+    *   `server-common/` and `test-common/`: Shared libraries used across these modules to maintain DRY principles while enforcing boundaries.
+
+2.  **Event-Driven**: This is the core behavioral style of the application. The architecture is designed entirely around the production, consumption, and processing of streams of events.
+    *   The `streams/` directory contains the Kafka Streams library, which implements a functional, event-at-a-time processing model.
+    *   `clients/src/main/resources/common/message/`: Defines the binary protocol for asynchronous request/response and event propagation.
+
+3.  **Layered**: Within the specific modules (especially `core` and `server`), Kafka employs a layered approach to separate concerns between the network handling, request processing, and the storage engine.
+    *   Evidence of networking layers can be found in the documentation (`docs/implementation/network-layer.md`).
+    *   The separation of `storage/api` from the implementation suggests a formal abstraction layer between the high-level broker logic and the low-level disk I/O.
+
+Additional Context:
+While Kafka is often associated with "Microservices" because it *enables* them, the Kafka project itself is not built using microservices. It is a set of tightly coupled components and libraries that form a distributed infrastructure piece. The `bin/` directory contains various entry points (`kafka-server-start.sh`, `connect-standalone.sh`), but they share the same underlying core modules and codebase.

@@ -1,0 +1,23 @@
+PRIMARY_STYLE: Layered
+SECONDARY_STYLES: Event-Driven
+CONFIDENCE: 0.95
+
+REASONING:
+The repository exhibits a classic **Layered** architecture typical of Ruby on Rails applications. This structure is defined by the separation of concerns across distinct directories: Presentation (Controllers/Views), Business Logic (Services/Models), and Data Access (Models).
+
+**Evidence for Layered Architecture:**
+*   **MVC Structure:** The `app/` directory is strictly organized into the Model-View-Controller pattern.
+    *   **Controllers (Presentation/API Layer):** `app/controllers/` handles HTTP requests and responses (e.g., `app/controllers/api_controller.rb`, `app/controllers/conversations/`).
+    *   **Models (Data/Domain Layer):** `app/models/` encapsulates database logic and business rules using ActiveRecord (e.g., `app/models/conversation.rb`, `app/models/account.rb`).
+    *   **Views (Presentation Layer):** `app/views/` manages templates and UI rendering.
+*   **Service Objects (Business Logic Layer):** The `app/services/` directory extracts complex business logic out of controllers and models, further defining a specific layer for business operations. These are organized by domain (e.g., `app/services/conversations/`, `app/services/channels/`, `app/services/automation_rules/`).
+*   **Framework Dependency:** The `Gemfile` explicitly lists `gem 'rails', '~> 7.1'`, which inherently enforces a layered architectural pattern.
+
+**Evidence for Event-Driven Architecture (Secondary):**
+While the system is a monolith, it heavily utilizes an event-driven internal communication pattern to decouple components, specifically using the Wisper gem.
+*   **Pub/Sub Implementation:** The `Gemfile` includes `gem 'wisper', '2.0.0'` with the comment `# pubsub service`, indicating a dedicated event broadcasting mechanism.
+*   **Event Listeners:** The `app/listeners/` directory contains subscribers that react to domain events, such as `app/listeners/webhook_listener.rb`, `app/listeners/automation_rule_listener.rb`, and `app/listeners/notification_listener.rb`. This separates the trigger of an action from its side effects.
+*   **Dispatchers:** The `app/dispatchers/` directory (containing `async_dispatcher.rb` and `sync_dispatcher.rb`) manages how events are propagated.
+*   **Asynchronous Processing:** The `docker-compose.yaml` defines a dedicated `sidekiq` service, and `app/jobs/event_dispatcher_job.rb` indicates that events are handled asynchronously in the background, reinforcing the event-driven flow.
+
+The application is not a Microservices or Modular Monolith in the strictest sense (e.g., no bounded contexts with separate databases), but rather a Layered Monolith augmented with Event-Driven messaging patterns.

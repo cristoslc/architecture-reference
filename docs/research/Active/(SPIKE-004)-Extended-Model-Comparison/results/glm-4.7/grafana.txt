@@ -1,0 +1,27 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Microkernel
+CONFIDENCE: 0.95
+
+REASONING:
+The Grafana repository is architected as a **Modular Monolith**, where the application is deployed as a single unit but internally organized into distinct, loosely coupled modules aligned with business domains.
+
+**Evidence for Modular Monolith (Primary):**
+*   **Single Deployable Unit:** The `Dockerfile` and `Makefile` indicate that the entire system is compiled into a single `grafana-server` binary and deployed within a single container, rather than as a suite of independent microservices.
+*   **Domain-Driven Module Structure:** The source code is organized explicitly by functional domains in the `apps/` directory. Instead of a traditional layered structure where code is split strictly by technology (e.g., controllers, services), Grafana groups code by capability:
+    *   `apps/dashboard/`: Core dashboard functionality.
+    *   `apps/alerting/`: Alerting logic, further split into `alertenrichment`, `historian`, `notifications`, and `rules`.
+    *   `apps/iam/`: Identity and Access Management.
+    *   `apps/folder/`: Folder management.
+    *   `apps/playlist/`, `apps/quotas/`, `apps/annotation/`, etc.
+*   **Shared Kernel:** The `pkg/` directory acts as a shared library ("Shared Kernel" in DDD terms) containing cross-cutting concerns like `pkg/storage` (persistence), `pkg/api` (API definitions), and `pkg/server` (HTTP server infrastructure), which are utilized by the various `apps/` modules.
+
+**Evidence for Microkernel (Secondary):**
+*   **Plugin Architecture:** Grafana employs a plugin system (Microkernel pattern) where the core system provides a stable platform and extension points, while specific functionality is added dynamically via plugins.
+    *   `pkg/plugins/`: Contains the backend logic for plugin management, discovery, and loading.
+    *   `public/app/plugins/`: Dedicated directory for frontend plugins (panels, datasources).
+    *   `data/plugins-bundled`: The Dockerfile explicitly sets up this directory, indicating that the core application is designed to load and execute external binary modules (plugins) to extend its capabilities (e.g., adding support for specific datasources like Prometheus or Loki without modifying the core code).
+
+**Why not other styles?**
+*   **Microservices/Service-Based:** The build process produces a single monolithic binary (`grafana-server`), ruling out distributed service architectures.
+*   **Layered:** While layers exist (API, storage), the dominant organizational principle is the vertical slicing of domains in the `apps/` folder, which is the defining characteristic of a Modular Monolith.
+*   **Event-Driven:** While alerting involves events, the core architecture is request/response (HTTP/API) based, with the directory structure not indicating a primary event-driven flow.

@@ -1,0 +1,13 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Service-Based
+CONFIDENCE: 0.9
+
+REASONING:
+- **Modular Monolith**: While PostHog is transitioning toward more distributed components, the core of the repository is structured as a modular monolith. The `products/` directory is the clearest evidence of this, containing independent modules like `experiments/`, `feature_flags/`, `surveys/`, and `web_analytics/`. Each has its own `backend/`, `frontend/`, and `package.json`, yet they are housed within a single repository and largely share the same Django/Python runtime environment. The `docs/internal/monorepo-layout.md` (referenced in README) and the `turbo.json` file confirm a workspace-based monolithic management of these modules.
+- **Service-Based**: The system is not a pure monolith because it breaks out critical infrastructure into separate deployable units that communicate over the network. The `docker-compose.dev.yml` reveals several distinct services: `capture` (ingestion), `plugins` (node-based extensions), `worker` (Celery tasks), and `web` (the main Django UI/API). These are separate processes (often different languages/runtimes like Python and Node.js) but they are not fine-grained enough to be called "microservices" as they still share large portions of the data schema (PostgreSQL and ClickHouse).
+- **Event-Driven**: PostHog's core functionality is processing streams of events. The heavy reliance on **Kafka** (seen in `pyproject.toml` dependencies like `aiokafka`, `kafka-python` and `nodejs/src/kafka`) and **Redis** for ingestion and background processing defines its communication style. The `capture` service takes events, pushes them to Kafka, and various workers/plugins consume those events asynchronously.
+- **Evidence of Structure**: 
+    - `products/`: Contains domain-specific logic in a modular fashion.
+    - `nodejs/src/`: Contains specific high-performance services like `ingestion`, `session-recording`, and `cdp`.
+    - `docker-compose.dev.yml`: Explicitly defines the routing and separation between `capture:3307`, `feature-flags:3001`, `plugins:6738`, and the `web:8000` service via a Caddy proxy.
+    - `pyproject.toml` & `package.json`: Shows a mix of Celery (task queueing), Dagster (data orchestration), and Kafka (event streaming), which are hallmark technologies of service-based and event-driven architectures.

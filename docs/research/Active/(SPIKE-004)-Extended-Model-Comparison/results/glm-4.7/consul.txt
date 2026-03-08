@@ -1,0 +1,30 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Layered
+CONFIDENCE: 0.95
+
+REASONING:
+Consul is fundamentally a **Modular Monolith**. The repository produces a single deployable binary (as seen in `Dockerfile` which downloads/copies a single `consul` binary to `/bin/consul`), yet the codebase is explicitly organized into distinct, cohesive modules that are treated as separate logical units within the monolith.
+
+**Evidence for Modular Monolith:**
+*   **Single Deployment Unit:** The `Dockerfile` and the release process implied by `release/` directories confirm the system is deployed as a single executable, ruling out Microservices or Service-Based architectures.
+*   **Explicit Module Definition:** The `go.mod` file uses `replace` directives to treat subdirectories as distinct Go modules:
+    ```go
+    replace (
+        github.com/hashicorp/consul/api => ./api
+        github.com/hashicorp/consul/envoyextensions => ./envoyextensions
+        github.com/hashicorp/consul/proto-public => ./proto-public
+        github.com/hashicorp/consul/sdk => ./sdk
+        github.com/hashicorp/consul/troubleshoot => ./troubleshoot
+    )
+    ```
+    This structure separates the **API Client** (`api/`), the **SDK** (`sdk/`), **Envoy Extensions** (`envoyextensions/`), and **Troubleshooting tools** (`troubleshoot/`) from the core application logic.
+*   **Componentization:** These modules can be versioned and used independently (e.g., the `api` module is the standard Go client for Consul), yet they are compiled and shipped together as part of the main binary.
+
+**Evidence for Secondary Style (Layered):**
+*   **Structural Layering:** The internal organization of the core application follows a classic Layered pattern:
+    *   **Presentation/Entry Layer (`command/`):** Contains the CLI interfaces (e.g., `command/agent/`, `command/version/`) that parse user input and initiate the application.
+    *   **Application/Orchestration Layer (`agent/`):** The `agent` directory acts as the central orchestrator, managing the lifecycle of the system, whether running as a client or a server.
+    *   **Infrastructure/Cross-cutting Layer (`lib/`):** Contains reusable, low-level utilities like `lib/` (channels, files, mutexes, strings, etc.) that support the upper layers.
+*   **Separation of Concerns:** The `ui/` directory represents the User Interface layer, interacting with the backend via the API, while the `internal/` directory houses implementation details like `controller/` and `resource/`, which sit below the orchestration layer.
+
+The architecture is not a "Big Ball of Mud" because these modules have well-defined boundaries (interfaces), but it is not distributed (Microservices) because all modules run within the shared memory space of the single Consul binary process.

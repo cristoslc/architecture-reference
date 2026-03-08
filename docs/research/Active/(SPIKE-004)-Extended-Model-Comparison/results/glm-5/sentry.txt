@@ -1,0 +1,34 @@
+I need to examine the source code structure more closely to make an accurate classification. Let me look at the key source directories.
+
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Microkernel (Plugin), Event-Driven
+CONFIDENCE: 0.85
+
+REASONING:
+Based on my analysis of this Sentry repository, I identified the following architectural patterns:
+
+**PRIMARY: Modular Monolith**
+
+Evidence from directory structure:
+- `src/sentry/` contains the main application as a single deployable unit (Django application per `pyproject.toml` showing Django>=5.2.11 dependency)
+- `tests/sentry/` shows distinct functional modules organized within the monolith: `tests/sentry/integrations/`, `tests/sentry/services/`, `tests/sentry/tasks/`, `tests/sentry/models/`, `tests/sentry/api/`, `tests/sentry/workflow_engine/`, `tests/sentry/billing/`, `tests/sentry/ingest/`
+- The `Makefile` shows single-application deployment commands: `develop`, `create-db`, `apply-migrations` - typical of monolithic Django deployment
+- `src/sentry_plugins/` exists as integrated plugins within the same deployment unit, not separate services
+
+**SECONDARY: Microkernel (Plugin)**
+
+Evidence:
+- `tests/sentry_plugins/` directory contains discrete plugin modules: `gitlab/`, `jira/`, `slack/`, `github/`, `pagerduty/`, `asana/`, `trello/`, `bitbucket/`, `splunk/`, `twilio/`
+- `src/sentry_plugins/` (6 files per directory listing) indicates a plugin container architecture
+- These plugins extend Sentry's core functionality with third-party integrations that can be added/removed without modifying core code
+
+**SECONDARY: Event-Driven**
+
+Evidence:
+- `tests/sentry/consumers/` - Event consumers directory
+- `tests/sentry/eventstream/` - Event streaming infrastructure
+- `tests/sentry/tasks/` - Background task processing (Celery-based implied by Django task patterns)
+- `pyproject.toml` shows event-driven infrastructure: `confluent-kafka>=2.8.0`, `sentry-kafka-schemas>=2.1.24`, `sentry-arroyo>=2.38.1` (Kafka processing library)
+- `tests/snuba/` directory indicates Snuba integration (Sentry's event consumption/processing service)
+
+The architecture is NOT microservices because the main application appears to be a single Django monolith deployable. It's NOT pure layered because the modules are organized by business domain (integrations, billing, workflow_engine) rather than technical layers alone. The presence of Kafka and event consumers within a monolithic application demonstrates event-driven patterns embedded within the modular monolith.

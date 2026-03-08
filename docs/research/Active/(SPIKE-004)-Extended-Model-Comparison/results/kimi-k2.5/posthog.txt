@@ -1,0 +1,35 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Service-Based, Event-Driven
+CONFIDENCE: 0.85
+
+REASONING:
+
+**Primary: Modular Monolith**
+
+The repository exhibits a clear **Modular Monolith** architecture through its domain-oriented code organization:
+
+1. **Product-Based Modularity**: The `products/` directory (evident in paths like `products/feature_flags/`, `products/product_analytics/`, `products/surveys/`, `products/experiments/`) demonstrates vertical slicing by business domain. Each product contains its own `frontend/` and `backend/` subdirectories, representing self-contained modules within the larger application.
+
+2. **Shared Infrastructure**: The `pyproject.toml` shows a single Django application (`django~=4.2.28`) with dependencies for the entire platform, indicating a shared runtime rather than independent services. The `frontend/package.json` and build scripts (`frontend/build-products.mjs`) suggest a unified frontend build process that composes all product modules.
+
+3. **Monorepo Structure**: The presence of `pnpm-workspace.yaml` (implied by `pnpm-lock.yaml` and workspace references in package.json) and the `dist-workspace.toml` indicate a monorepo where modules share code (e.g., `common/hogvm/`, `common/esbuilder/`) while maintaining domain boundaries.
+
+**Secondary: Service-Based**
+
+While the codebase is organized as a modular monolith, the deployment architecture follows **Service-Based** patterns:
+
+1. **Independent Deployable Units**: The `docker-compose.dev.yml` defines multiple independently deployable services (`capture`, `plugins`, `web`, `feature-flags`, `replay-capture`, `capture-ai`) with separate port mappings (`3307:3000`, `6738:6738`, `3001:3001`), health checks, and scaling profiles.
+
+2. **Shared Data Stores**: The services share databases (Postgres `db`, ClickHouse, Redis `redis7`, Kafka) rather than owning their own data, which is characteristic of Service-Based architecture rather than Microservices.
+
+3. **Service-Specific Builds**: The `Dockerfile` shows distinct build stages for different runtime components (`frontend-build`, `node-scripts-build`, `posthog-build`), and the `docker-compose.dev.yml` references different images (`ghcr.io/posthog/posthog-node:master` for plugins), indicating service-specific deployment artifacts derived from the monorepo.
+
+**Secondary: Event-Driven**
+
+The architecture exhibits **Event-Driven** characteristics for data ingestion and processing:
+
+1. **Event Streaming Infrastructure**: The `docker-compose.dev.yml` includes `kafka` and `zookeeper` services, and the `nodejs/src/` directory contains `kafka/`, `ingestion/`, and `session-recording/` modules, indicating event streaming as a core communication mechanism.
+
+2. **Capture Services**: The dedicated `capture` service (port 3307) and `replay-capture` service (port 3306) are designed to ingest events and likely publish them to Kafka for downstream processing by the `plugins` service or ClickHouse, following event-driven patterns for high-volume data ingestion.
+
+3. **Celery Task Processing**: The `pyproject.toml` includes `celery` and `celery-redbeat`, indicating asynchronous task processing via message queues (likely Redis or Kafka), which is part of event-driven architecture for background job processing.

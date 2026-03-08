@@ -1,0 +1,18 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Microkernel
+CONFIDENCE: 0.9
+
+REASONING:
+The repository represents the core Sentry web application, which is a large-scale Django-based system that has evolved into a Modular Monolith to manage complexity and prepare for potential extraction of services.
+
+**Primary: Modular Monolith**
+*   **Domain-Based Organization:** While the application retains a traditional layered structure (API, Models, Web), the codebase is primarily organized by distinct business domains/modules. This is visible in the test directory structure (`tests/sentry/`), which mirrors the source code (`src/sentry/`), containing directories such as `issues`, `replays`, `monitors`, `incidents`, `profiling`, `uptime`, `dashboards`, and `performance`. This grouping by capability rather than just technical layer is the defining characteristic of a Modular Monolith.
+*   **Explicit Boundaries (Silos):** The presence of a `sentry/silo` module and a script `bin/split-silo-database` indicates a deliberate architectural effort to enforce boundaries within the monolith. Sentry's "Silo" architecture is a specific implementation of modular boundaries designed to isolate data and logic for multi-tenancy and scaling, confirming the Modular Monolith style.
+
+**Secondary: Event-Driven**
+*   **Event Streaming Infrastructure:** The architecture relies heavily on asynchronous event processing for ingestion and handling telemetry data. This is evidenced by dependencies in `pyproject.toml` such as `confluent-kafka` and `sentry-kafka-schemas`.
+*   **Dedicated Event Components:** The directory structure includes specific modules for event handling, such as `sentry/eventstream` (managing the flow of events), `sentry/consumers` (processing events from queues), and `sentry/ingest` (handling data intake). This indicates that internal communication between components is largely driven by events rather than just synchronous function calls.
+
+**Secondary: Microkernel (Plugin)**
+*   **Plugin Architecture:** The repository explicitly supports a plugin architecture to extend core functionality. The presence of the top-level directory `src/sentry_plugins/` and its corresponding test directory `tests/sentry_plugins/` (containing subdirectories for `jira`, `slack`, `github`, `pagerduty`, `gitlab`, etc.) demonstrates a core system (the kernel) that defines interfaces for integrations, which are then implemented as separate plugins.
+*   **Extensibility:** This structure allows the core Sentry application to remain decoupled from the specific implementations of third-party services, fitting the Microkernel pattern where a minimal core system is extended with pluggable components.

@@ -1,0 +1,18 @@
+ PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Domain-Driven Design
+CONFIDENCE: 0.85
+
+REASONING:
+The repository exhibits a **Modular Monolith** architecture. Evidence includes:
+
+1. **Multi-module Gradle structure**: The `build.gradle` references distinct modules like `:clients`, `:streams`, `:core`, `:server`, `:group-coordinator`, `:share-coordinator`, and `:storage` (evident from the `modulesNeedingJava11` list and directory structure). These are built as a single unit (`./gradlew jar`, `./gradlew releaseTarGz`) producing a unified deployable artifact.
+
+2. **Domain-aligned module boundaries**: The top-level directories reflect distinct bounded contexts—`group-coordinator/` manages consumer group semantics, `share-coordinator/` handles share groups, `storage/` abstracts the distributed log, `streams/` contains the stream processing engine, and `clients/` provides the external API. Each has its own `src/main` and `src/test`, indicating clear internal module boundaries within the monolithic deployment unit.
+
+3. **Single deployable unit**: The `bin/kafka-server-start.sh` script and Docker packaging (`docker/jvm/Dockerfile`) deploy the entire platform as one cohesive broker process, not as independently deployable services. The `releaseTarGz` task builds a single distribution containing all modules.
+
+4. **Import control enforcing modularity**: The `checkstyle/import-control-*.xml` files (e.g., `import-control-group-coordinator.xml`, `import-control-storage.xml`) enforce architectural boundaries between modules, preventing inappropriate cross-domain dependencies— a hallmark of modular monolith design.
+
+**Domain-Driven Design** is evident as a secondary style because the module structure directly maps to domain concepts (Groups, Shares, Storage, Streams) with explicit API modules (`group-coordinator-api`, `storage/api`) defining contracts between bounded contexts, consistent with DDD's anti-corruption layers and published language patterns.
+
+The system is not Microservices (components are not independently deployable), not Event-Driven in its internal architecture (modules use synchronous JVM calls, not event channels), and not Layered (the organization is domain-vertical rather than horizontal layers).

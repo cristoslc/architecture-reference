@@ -1,0 +1,37 @@
+PRIMARY_STYLE: Service-Based
+SECONDARY_STYLES: Modular Monolith, Event-Driven
+CONFIDENCE: 0.85
+
+REASONING:
+
+**Service-Based Architecture (Primary)**
+
+The repository clearly demonstrates a service-based architecture with multiple independently deployable services that share common infrastructure. Evidence from `docker-compose.dev.yml`:
+
+- **`capture`** service (port 3307) - Handles event ingestion at `/e`, `/batch`, `/capture` endpoints
+- **`plugins`** service (port 6738) - Handles webhooks and plugin execution at `/public/webhooks`
+- **`feature-flags`** service (port 3001) - Dedicated feature flag evaluation at `/flags`
+- **`replay-capture`** service (port 3306) - Session replay ingestion at `/s`
+- **`capture-ai`** service (port 3309) - AI-specific event capture at `/i/v0/ai`
+- **`web`** service (port 8000) - Main Django application for UI and API
+
+These services share databases (PostgreSQL, ClickHouse, Redis, Kafka) rather than each having isolated data stores—a key characteristic distinguishing service-based from microservices architecture. The `docker-compose.base.yml` extension pattern shows these are distinct deployable units orchestrated together.
+
+**Modular Monolith (Secondary)**
+
+Within the main Django application, there's a well-organized modular structure in the `products/` directory. Each of the 40+ product modules follows a consistent pattern:
+- `products/feature_flags/` with `frontend/`, `backend/`, `manifest.tsx`, `package.json`, `__init__.py`
+- `products/experiments/` with same structure
+- `products/surveys/`, `products/error_tracking/`, `products/batch_exports/`, etc.
+
+The `products/architecture.md` and `products/README.md` files document this intentional modular organization. All modules are built and deployed as a single unit (see Dockerfile's monolithic build stages), making the main web application a modular monolith.
+
+**Event-Driven (Secondary)**
+
+The architecture uses asynchronous event processing throughout:
+- **Kafka** is a core infrastructure component (`nodejs/src/kafka/` directory, `aiokafka~=0.12.0` in `pyproject.toml`, kafka service in docker-compose)
+- **Celery** for background task processing (`celery==5.3.6`, `celery-redbeat==2.1.1` dependencies)
+- The capture services ingest events into Kafka for async processing
+- `nodejs/src/ingestion/` and `nodejs/src/worker/` directories indicate event processing pipelines
+
+The flow is: Client → Proxy → Capture Service → Kafka → Worker Processing → Database, which is characteristic of event-driven architectures.

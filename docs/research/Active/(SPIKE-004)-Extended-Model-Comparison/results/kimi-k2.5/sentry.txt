@@ -1,0 +1,41 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Microkernel (Plugin)
+CONFIDENCE: 0.85
+
+REASONING:
+
+**Modular Monolith (Primary)**
+
+The repository exhibits a clear modular monolith architecture where a single deployable application is organized into distinct domain modules:
+
+1. **Directory Structure**: The `src/` directory contains the main application code with clear modular boundaries:
+   - `src/sentry/` - Core Django application (16 subdirectories representing domains)
+   - `src/sentry_plugins/` - Plugin modules (6 files)
+   - `src/social_auth/`, `src/sudo/`, `src/flagpole/` - Separate functional modules
+
+2. **Domain-Oriented Modules**: Within `src/sentry/` and `tests/sentry/`, the code is organized by business domain rather than technical layer:
+   - `integrations/`, `auth/`, `projects/`, `issues/`, `releases/`, `monitors/`, `replays/`, `profiling/`
+   - Each module contains its own models, API endpoints, and business logic
+
+3. **Shared Infrastructure**: The `pyproject.toml` shows a single dependency set and build configuration, indicating one deployable unit. The presence of Django (monolithic framework) and shared database connections (psycopg2, redis) confirms single-process deployment.
+
+4. **Test Organization**: Tests mirror the source structure (`tests/sentry/`, `tests/sentry_plugins/`) with domain-specific test suites, indicating the modules are tested as part of the whole system, not as independent services.
+
+**Microkernel/Plugin (Secondary)**
+
+The architecture exhibits a plugin-based extension mechanism:
+
+1. **Explicit Plugin Directory**: `src/sentry_plugins/` contains 6 plugin modules (GitHub, Slack, Jira, etc. based on test directories), indicating a dedicated extension point.
+
+2. **Plugin Test Structure**: `tests/sentry_plugins/` has subdirectories for specific integrations (amazon_sqs, gitlab, heroku, pagerduty, etc.), showing a formal plugin architecture where third-party integrations are isolated modules.
+
+3. **Integration Pattern**: The `tests/sentry/integrations/` and related directories show a plugin-like registration system for external services, characteristic of microkernel architectures where core functionality is extended via plugins.
+
+**Why Not Other Styles:**
+
+- **Not Microservices**: No separate service deployments in the repo; all code compiles into single Django application
+- **Not Service-Based**: While Sentry interacts with external services (Snuba, Relay, Symbolicator), these are infrastructure dependencies, not part of this codebase's architecture
+- **Not Event-Driven**: While Kafka/consumers exist (seen in dependencies), this is a communication pattern, not the primary structural architecture
+- **Not Layered**: While Django uses MTV pattern, the domain module organization dominates over technical layers
+
+**Confidence Note (0.85):** High confidence in Modular Monolith classification due to clear directory structure and Django monolithic patterns. Slight uncertainty about secondary style (could argue for Event-Driven given Kafka consumers in `tests/sentry/consumers/`, but Plugin architecture is more explicitly visible in directory structure).

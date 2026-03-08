@@ -1,0 +1,26 @@
+PRIMARY_STYLE: Microkernel (Plugin)
+SECONDARY_STYLES: Modular Monolith
+CONFIDENCE: 0.85
+
+REASONING:
+Grafana's architecture is primarily defined by its plugin system, which is fundamental to how the platform operates and extends.
+
+**Microkernel (Plugin) Evidence:**
+- `pkg/plugins/` directory (15 files) contains the plugin management infrastructure
+- `public/app/plugins` referenced in Dockerfile shows frontend plugin architecture
+- `e2e-playwright/test-plugins/` with test plugins like `grafana-test-datasource`, `grafana-test-panel`, `frontend-sandbox-app-test` demonstrates the plugin ecosystem
+- README explicitly states: "Panel plugins offer many different ways to visualize metrics and logs" and "Mix different data sources... works for even custom datasources"
+- Dockerfile creates `data/plugins-bundled` directory for bundled plugins
+- The entire platform extends through plugins: data sources (Prometheus, InfluxDB, etc.), visualization panels, and apps
+
+**Modular Monolith Evidence:**
+- `apps/` directory structure in Dockerfile reveals domain-organized bounded contexts:
+  - `apps/alerting/` with submodules (`alertenrichment/`, `historian/`, `notifications/`, `rules/`)
+  - `apps/dashboard/`, `apps/playlist/`, `apps/annotations/`
+  - `apps/folder/`, `apps/iam/`, `apps/provisioning/`
+  - `apps/logsdrilldown/`, `apps/advisor/`, `apps/scope/`
+- `pkg/services/` and `pkg/storage/` provide shared infrastructure
+- Single deployable artifact (Dockerfile produces one container image)
+- `go.mod` shows monolithic module structure (`module github.com/grafana/grafana`)
+
+The layered structure visible in `pkg/` (`api/` with 88 files, `middleware/` with 24 files, `services/`, `storage/`, `models/`) supports both the plugin system and modular organization, but is subsidiary to the primary patterns.

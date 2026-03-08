@@ -1,0 +1,48 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven
+CONFIDENCE: 0.85
+
+REASONING:
+
+## Primary: Modular Monolith
+
+This repository is a **single deployable Rails application** with well-organized domain modules, not a distributed system. Key evidence:
+
+1. **Single deployment unit**: The `docker-compose.yaml` shows one main application service (`rails`) plus a `sidekiq` worker for background jobs—both sharing the same codebase and database. There are no independently deployable services.
+
+2. **Shared database**: PostgreSQL is the single data store (`postgres: pgvector/pgvector:pg16`), accessed by both the web process and background workers. This eliminates microservices or service-based architecture.
+
+3. **Domain-organized service layer**: `app/services/` contains subdirectories organized by domain/channel:
+   - `app/services/twitter/`, `app/services/facebook/`, `app/services/instagram/`
+   - `app/services/whatsapp/`, `app/services/telegram/`, `app/services/line/`
+   - `app/services/conversations/`, `app/services/contacts/`, `app/services/account/`
+
+4. **Extension mechanism**: The `enterprise/` directory mirrors the `app/` structure (`enterprise/app/services/`, `enterprise/app/models/`, etc.), indicating a plugin-based extension architecture within the monolith for premium features.
+
+5. **Job organization by domain**: `app/jobs/` follows similar modular organization (`app/jobs/conversations/`, `app/jobs/campaigns/`, `app/jobs/agents/`).
+
+## Secondary: Event-Driven
+
+The application uses **internal event-driven communication** to decouple components within the monolith:
+
+1. **Listener pattern**: `app/listeners/` contains 12 listener files:
+   - `webhook_listener.rb`, `notification_listener.rb`, `automation_rule_listener.rb`
+   - `action_cable_listener.rb`, `csat_survey_listener.rb`, `campaign_listener.rb`
+   - `reporting_event_listener.rb`, `participation_listener.rb`
+
+2. **Dispatcher pattern**: `app/dispatchers/` with:
+   - `base_dispatcher.rb`, `async_dispatcher.rb`, `sync_dispatcher.rb`, `dispatcher.rb`
+
+3. **Pub/sub library**: The Gemfile explicitly includes `gem 'wisper', '2.0.0'` with the comment `##--- gems for pubsub service ---##`. Wisper is a Ruby pub/sub library for event-driven design.
+
+4. **Event dispatcher job**: `app/jobs/event_dispatcher_job.rb` handles asynchronous event processing.
+
+This allows, for example, a conversation event to trigger notifications, webhooks, automation rules, and reporting—all without tight coupling between these concerns.
+
+## Not Microservices or Service-Based
+
+The architecture is clearly monolithic—no service boundaries, no inter-service communication APIs, no separate databases per service. All code shares one Rails application context and one PostgreSQL database.
+
+## Not Pure Layered
+
+While Rails provides inherent layering (MVC + services), this goes beyond basic layering with intentional modular organization by domain and event-driven internal communication—qualifying it as a **Modular Monolith** rather than simply layered.

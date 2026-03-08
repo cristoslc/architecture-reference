@@ -1,0 +1,23 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Service-Based
+CONFIDENCE: 0.9
+
+REASONING:
+Sentry's architecture is a sophisticated **Modular Monolith** that is increasingly adopting **Service-Based** and **Hybrid Cloud** patterns to manage scale. While the codebase resides primarily in a single repository (`getsentry/sentry`), the internal structure is strictly partitioned into functional modules that represent distinct business domains.
+
+1.  **Modular Monolith (Primary):**
+    *   The core application logic lives within `src/sentry/`, which is organized into clear domain modules: `organizations/`, `projects/`, `monitors/`, `replays/`, `issues/`, and `teams/`. 
+    *   The presence of `bin/split-silo-database` and `tests/sentry/silo` indicates a "Silo" architecture, which is Sentry’s specific approach to modularity where data is partitioned into "Region" and "Control" silos to allow the monolith to scale across different geographic or logical boundaries while remaining a unified codebase.
+    *   The `tests/sentry/test_dependencies.py` and `tools/mypy_helpers/sort_stronger_modules.py` files suggest strict enforcement of dependency boundaries between these internal modules to prevent it from becoming a "Big Ball of Mud."
+
+2.  **Event-Driven (Secondary):**
+    *   Sentry relies heavily on asynchronous processing. The use of `confluent-kafka` and `sentry-arroyo` in `pyproject.toml`, along with directory structures like `src/sentry/eventstream/`, `src/sentry/consumers/`, and `src/sentry/ingest/`, demonstrates an architecture where data ingestion and post-processing are decoupled via message buses.
+    *   The existence of `tests/sentry/post_process_forwarder` and `src/sentry/receivers/` further points to a reactive pattern where actions (like triggering alerts) are driven by events flowing through the system.
+
+3.  **Service-Based (Secondary):**
+    *   Although much of Sentry.io is in this repo, it communicates with external dedicated services like **Snuba** (for search/analytics) and **Symbolicator** (for stack trace native symbols).
+    *   The `tests/snuba`, `tests/symbolicator`, and `tests/relay_integration` directories show that the monolith is designed to interact with these specialized, independently deployable services.
+    *   The `src/sentry/hybridcloud/` and `.agents/skills/hybrid-cloud-rpc` evidence a transition toward an internal RPC-based service architecture to bridge the gap between different silos (Control vs. Region).
+
+**Uncertainty Note:**
+While there are references to "Microservices" in modern software discussions, Sentry identifies more accurately as a Modular Monolith because the vast majority of the business logic across various domains (Billing, Issues, Auth) still shares the same Django-based framework and core library versions within the same repository. Truly independent Microservices would typically not share a `pyproject.toml` or a single `src/sentry/` root.

@@ -1,0 +1,10 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Microkernel (Plugin), Domain-Driven Design
+CONFIDENCE: 0.9
+
+REASONING:
+- **Modular Monolith**: Grafana is primarily a single executable (built via `pkg/cmd` and `packaging/wrappers`) that contains the entire application logic. However, the internal structure is strictly decomposed into functional modules. The repository uses an `apps/` directory (e.g., `apps/alerting/`, `apps/dashboard/`, `apps/iam/`, `apps/playlist/`) to isolate domain logic. This is supported by the `go.work` and `go.mod` files which manage dependencies across these internal boundaries, and the `pkg/` directory which separates infrastructure from application logic.
+- **Microkernel (Plugin)**: The core of Grafana's extensibility is its plugin architecture. The system provides a "kernel" that manages the lifecycle of external or bundled components. Evidence is found in `pkg/plugins/`, the extensive `e2e-playwright/test-plugins/` suite, and the `data/plugins-bundled` directory mentioned in the `Dockerfile`. The frontend similarly uses a plugin-based system for visualizations and data sources, as seen in `public/app/plugins`.
+- **Domain-Driven Design (DDD)**: The codebase demonstrates high-level tactical DDD patterns. The directory `apps/` uses bounded contexts (e.g., `alerting`, `iam`, `dashboard`). Furthermore, the use of `pkg/bus/` indicates a Command/Event bus pattern used to decouple domain handlers, and the `pkg/models/` directory centralized domain entities before the migration toward the more modular `apps/` structure. The presence of `kinds/` and `packages/grafana-schema` shows a strong emphasis on formalizing the domain model ("as-code").
+
+While there are directory references to `apiserver` and `microservices-like` naming conventions in development environments (`devenv/frontend-service`), the actual production deployment remains a monolith (the "grafana-server"). The communication between the `apps/` modules is largely in-process via Go interfaces or the internal bus rather than network calls.

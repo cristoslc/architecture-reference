@@ -1,0 +1,20 @@
+PRIMARY_STYLE: Service-Based
+SECONDARY_STYLES: Event-Driven
+CONFIDENCE: 0.85
+
+REASONING:
+The repository represents a **Service-Based** architecture, where the system is decomposed into multiple, coarse-grained services that are deployed separately but operate within a unified context.
+
+**Evidence for Service-Based:**
+*   **Distinct Deployable Services:** The `docker-compose.dev.yml` file explicitly defines several distinct services that make up the application: `proxy` (API gateway), `web` (the main Django application), `capture` (event ingestion), `plugins` (plugin server), and `feature-flags`.
+*   **Service Separation via Routing:** The `proxy` service configuration (Caddyfile) routes traffic based on functional boundaries to different backend services:
+    *   `/e`, `/batch`, `/capture` -> `capture:3307`
+    *   `/flags` -> `feature-flags:3001`
+    *   `/` -> `web:8000`
+    *   `/public/webhooks` -> `plugins:6738`
+*   **Technology Separation:** The architecture utilizes different technology stacks for different services. The `nodejs/` directory contains services for ingestion (`src/ingestion`) and workers (`src/worker`), separating them from the main Python/Django application found in the root and `products/` directories.
+*   **Modular "Web" Service:** The main `web` service functions internally as a **Modular Monolith** (or Domain-Driven Design structure), evidenced by the `products/` directory. This directory contains distinct, self-contained modules for specific business capabilities (e.g., `products/session_replay`, `products/feature_flags`, `products/surveys`), each with its own `backend` and `frontend` folders. However, since the overall system includes distinct, separately deployed processes like `capture` and `plugins`, the higher-level classification is Service-Based rather than a pure Modular Monolith.
+
+**Evidence for Event-Driven (Secondary):**
+*   **Asynchronous Messaging Infrastructure:** The `pyproject.toml` lists heavy dependencies for event-driven processing, including `aiokafka`, `celery`, and `kafka-python`.
+*   **Event Pipeline Components:** The `docker-compose.dev.yml` includes a `kafka` service. The `nodejs` directory structure specifically separates `src/ingestion` (event producers) from `src/worker` (event consumers), indicating a flow where data is captured, placed onto an event bus (Kafka), and processed asynchronously by workers. This decouples the ingestion of data from its processing and storage.

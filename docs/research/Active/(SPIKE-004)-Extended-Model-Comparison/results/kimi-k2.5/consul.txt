@@ -1,0 +1,38 @@
+ PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Domain-Driven Design
+CONFIDENCE: 0.85
+
+REASONING:
+
+**Modular Monolith (Primary):**
+The repository is organized as a single deployable unit (monolith) with strict internal modularization. Evidence includes:
+
+1. **Single Binary Deployment**: The `Dockerfile` (lines 10-85) builds a single `consul` binary that is deployed as one unit, copying `/bin/consul` into the container image. The build process produces one artifact despite the internal complexity.
+
+2. **Go Module Structure**: The root `go.mod` uses `replace` directives to include multiple logically separate modules within the same repository:
+   - `github.com/hashicorp/consul/api => ./api`
+   - `github.com/hashicorp/consul/envoyextensions => ./envoyextensions`
+   - `github.com/hashicorp/consul/sdk => ./sdk`
+   - `github.com/hashicorp/consul/troubleshoot => ./troubleshoot`
+   
+   This pattern allows independent versioning and boundaries between modules (API client, Envoy integration, troubleshooting tools) while compiling them into a single executable.
+
+3. **Domain-Based Package Organization**: The `internal/` directory (17 entries shown) contains domain-specific packages rather than technical layers:
+   - `internal/resource/` (27 files) - likely domain entities/aggregates
+   - `internal/controller/` (17 files) - domain controllers for managing state
+   - `internal/storage/` - persistence concerns
+   - `internal/gossip/` - distributed communication domain
+   - `internal/multicluster/` - multi-datacenter domain logic
+
+4. **Protocol Buffer Organization**: The `proto/private/` directory organizes protobuf definitions by domain context (`pbresource`, `pbconnect`, `pbacl`, `pbservice`), indicating domain boundaries are respected at the API/schema level.
+
+**Domain-Driven Design (Secondary):**
+The codebase exhibits DDD tactical patterns in its organization:
+
+1. **Bounded Contexts in Directory Structure**: The separation between `internal/resource/` (27 files), `internal/controller/` (17 files), and domain-specific proto packages (`proto/private/pbconnect`, `proto/private/pbservice`) suggests modeling around business domains (service mesh, service discovery, ACLs) rather than technical layers.
+
+2. **Domain-Specific Language**: Directory names like `resource`, `controller`, `multicluster`, and `gossip` reflect the ubiquitous language of distributed systems and service mesh domains, not generic technical terms (e.g., not "handlers", "utils", "managers").
+
+3. **Separate Modules per Domain**: The fact that `envoyextensions/` and `troubleshoot/` are separate Go modules with their own `go.mod` files indicates these are treated as distinct bounded contexts that could theoretically evolve independently, even though they compile into the main binary.
+
+The confidence is 0.85 rather than higher because while the modular structure is clear, I cannot verify the presence of all DDD patterns (entities, value objects, domain services) without examining the actual content of the `internal/resource/` and `internal/controller/` files to confirm they follow DDD implementation patterns rather than just anemic data models.

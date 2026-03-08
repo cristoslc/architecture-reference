@@ -11,6 +11,7 @@
 | ID | Title | Question | Gate | Last Updated | Commit |
 |----|-------|----------|------|--------------|--------|
 | SPIKE-003 | Classification Method Comparison | Which tool produces better classifications — Claude Code subagents (Sonnet 4.6) or `llm` CLI (Minimax M2.5)? | Pre-execution gate for SPEC-024 | 2026-03-07 | — |
+| SPIKE-004 | Extended Model Comparison | How do GLM-5, GLM-4.7, Kimi K2.5, Gemini 3 Flash Preview, and Opus 4.6 compare against the Sonnet 4.6 baseline? | Final model selection for SPEC-024 | 2026-03-07 | — |
 
 ## Planned
 

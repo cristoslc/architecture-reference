@@ -1,0 +1,22 @@
+ PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Layered, Microkernel (Plugin)
+CONFIDENCE: 0.90
+
+REASONING:
+
+**Modular Monolith (Primary):** Grafana is architected as a single deployable unit with clearly defined internal domain boundaries. Evidence includes:
+
+- **Single deployment artifact**: The `Dockerfile` shows a multi-stage build producing one container image combining both Go backend (`FROM go-builder`) and Node.js frontend (`FROM js-builder`) into a unified final stage. It produces a single binary/executable.
+- **Domain-oriented module structure**: The `apps/` directory contains distinct bounded contexts deployed together: `apps/dashboard/`, `apps/alerting/rules/`, `apps/alerting/notifications/`, `apps/folder/`, `apps/iam/`, `apps/playlist/`, `apps/quotas/`, etc. These represent internal service boundaries within the monolith.
+- **Shared codebase and dependencies**: Single `go.mod` at root with comprehensive backend dependencies, and single `package.json`/`yarn.lock` managing frontend dependencies across the entire repository using Yarn workspaces/Nx monorepo (`nx.json`, `project.json` present).
+- **In-process communication**: The `pkg/` directory structure shows internal APIs and services (`pkg/api/`, `pkg/services/`, implied by directory listing) communicating via function calls rather than network requests.
+
+**Layered (Secondary):** Traditional horizontal layering is evident throughout:
+- **Presentation Layer**: `public/` (static assets, compiled frontend), `packages/` (UI component libraries), `e2e-playwright/` (frontend testing)
+- **Business Logic Layer**: `pkg/services/`, `pkg/api/`, `apps/` domain logic
+- **Data/Infrastructure Layer**: `pkg/tsdb/` (time-series database abstractions), `pkg/storage/`, `pkg/middleware/`
+
+**Microkernel (Plugin) (Secondary):** Extensible plugin architecture:
+- **Core plugin system**: `pkg/plugins/` (15 files listed), `public/app/plugins/`, `apps/plugins/` directories
+- **Plugin SDK infrastructure**: `pkg/plugins/codegen/`, test plugins in `e2e-playwright/test-plugins/`
+- **Extension points**: The system supports datasource plugins, panel plugins, and application plugins as external additions to the core kernel, evidenced by the `plugin-e2e` test suites and `devenv/plugins.yaml` configuration.

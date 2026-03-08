@@ -1,0 +1,17 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Layered
+CONFIDENCE: 0.9
+
+REASONING:
+The repository is structured as a **Modular Monolith**, evident from the top-level directory organization and the Gradle build configuration. The codebase is partitioned into distinct, cohesive modules—specifically `clients`, `core`, `streams`, `storage`, `server-common`, `group-coordinator`, and `tools`—which correspond to separate Gradle subprojects. These modules are compiled together into a unified distribution (the "Monolith") but maintain clear boundaries, as seen in the build scripts allowing specific module execution (e.g., `./gradlew clients:test`, `./gradlew core:jar`).
+
+Within this modular structure, the system exhibits a **Layered** architecture regarding its dependencies. The `storage` module acts as the infrastructure/persistence layer, providing the API and implementation for the log (e.g., `storage/api/`). The `clients` module defines the network protocol and API layer used by producers and consumers. The `core` module serves as the business logic layer, orchestrating the broker's operations by utilizing the storage abstractions and handling the client protocols. This dependency hierarchy (API/Business Logic -> Data Access) is a classic trait of a Layered architecture.
+
+**Evidence:**
+*   **Modular Structure:** The root directory contains distinct functional modules: `clients/`, `core/`, `storage/`, `streams/`, `server-common/`, `group-coordinator/`.
+*   **Build Configuration:** The `build.gradle` and the directory depth 3 listing confirm these are separate buildable units (e.g., `clients/src/main`, `core/src/main`).
+*   **Layering:**
+    *   **Data/Storage Layer:** `storage/` directory containing `storage/api/` (interfaces) and implementation details.
+    *   **API Layer:** `clients/` directory containing the client libraries and protocol definitions.
+    *   **Core/Broker Layer:** `core/` directory which aggregates functionality to run the broker.
+    *   **Cross-cutting:** `server-common/` and `test-common/` provide shared utilities across layers.

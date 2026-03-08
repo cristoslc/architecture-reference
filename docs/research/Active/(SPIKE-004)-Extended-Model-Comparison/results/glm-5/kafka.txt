@@ -1,0 +1,22 @@
+PRIMARY_STYLE: Indeterminate
+SECONDARY_STYLES: none
+CONFIDENCE: 0.85
+
+REASONING:
+This repository is Apache Kafka, a distributed event streaming platform/framework, not a single application with a coherent architecture. The repository contains multiple distinct deliverables:
+
+1. **Client Libraries** (`clients/`, `streams/`): Reusable libraries providing producer/consumer APIs and stream processing DSL. These are libraries, not applications.
+
+2. **Broker Runtime** (`core/`): The Kafka broker server - this IS an application that could be classified separately (Layered architecture with network → request handling → business logic → storage layers), but represents only one component of the overall platform.
+
+3. **Modular Components with API/Implementation separation** (`storage/api` + `storage/src`, `group-coordinator/group-coordinator-api` + `group-coordinator/src`, `share-coordinator/`): These suggest potential Hexagonal patterns for individual modules, but they're subsystems of a larger platform.
+
+4. **Tools and Utilities** (`tools/`): Command-line utilities for administration.
+
+5. **Testing Infrastructure** (`trogdor/`, `tests/`): Testing frameworks and system test suites.
+
+The presence of import control files (`checkstyle/import-control-*.xml` for core, server, storage, clients, etc.) demonstrates module boundary enforcement between these separate deliverables, not architectural layering within a single application.
+
+The `build.gradle` explicitly defines multiple independent modules (`minClientJavaVersion = 11` for clients/streams vs `minNonClientJavaVersion = 17` for others), confirming these are separate artifacts built from one repository.
+
+Per the classification guidelines, "Indeterminate" applies when "the repo genuinely cannot be classified — e.g., it's a library, framework, or collection of utilities with no application architecture." Apache Kafka is precisely this: a framework/platform containing libraries, a server runtime, and tools—each with its own architecture patterns—but with no unified application architecture for the repository as a whole.

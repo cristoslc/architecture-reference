@@ -1,0 +1,18 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Domain-Driven Design, Hexagonal Architecture
+CONFIDENCE: 0.9
+
+REASONING:
+The repository contains the source code for Consul, which is distributed as a single comprehensive binary but is internally composed of strictly decoupled functional modules.
+
+1. **Modular Monolith**: While Consul facilitates microservices, the project itself is structured as a large-scale modular monolith. The `go.mod` file shows a sophisticated use of local workspace replacements for core components like `./api`, `./sdk`, `./envoyextensions`, and `./troubleshoot`. The top-level directory contains numerous self-contained logic packages (e.g., `tlsutil/`, `snapshot/`, `ipaddr/`) that are compiled into a single executable. The `Dockerfile` confirms this by producing one main `consul` binary that exposes multiple functional ports (8300 for RPC, 8301/8302 for Serf/Gossip).
+
+2. **Domain-Driven Design (DDD)**: The internal architecture heavily utilizes DDD patterns to manage complexity. Evidence is found in:
+    * **Internal Resources**: The `internal/resource/` directory (containing 27+ files) and `internal/controller/` suggest a pattern of managing domain objects through well-defined lifecycles.
+    * **Bounded Contexts**: The separation of `proto/private/` into folders like `pbacl`, `pbconnect`, `pbservice`, and `pbstorage` reflects clear bounded contexts for different parts of the system (Access Control, Service Mesh, Storage engine).
+    * **Ubiquitous Language**: Core domain concepts (Nodes, Services, Checks, Areas) are isolated in `types/` (e.g., `types/checks.go`, `types/node_id.go`).
+
+3. **Hexagonal Architecture (Ports and Adapters)**: Consul must interface with various external systems (DNS, HTTP APIs, Raft consensus, Gossip protocols, and Cloud Providers). 
+    * **Adapters**: The project includes extensive "adapters" for different environments, such as Cloud discovery in `github.com/hashicorp/go-discover` and various CA providers (AWS PCA, etc.) referenced in `go.mod`.
+    * **Ports**: The `proto/` directory defines the strict interfaces (GRPC/Protobuf) that act as the primary "ports" for the system's core logic, separating the transport layer from the business logic of service discovery and mesh management.
+    * **Decoupling**: The `envoyextensions/` directory shows how the core "Service Mesh" logic is adapted to interact with the Envoy proxy via XDS (e.g., `envoyextensions/xdscommon/proxysupport.go`).

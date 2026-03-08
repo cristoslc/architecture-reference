@@ -1,0 +1,34 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Layered
+CONFIDENCE: 0.9
+
+REASONING:
+
+**Primary: Modular Monolith**
+The repository is a single Ruby on Rails application deployed as a unified unit, but organized into distinct domain modules rather than a flat MVC structure.
+
+Evidence:
+- `enterprise/` directory mirrors the main `app/` structure with its own `app/models/`, `app/controllers/`, `app/services/`, etc., representing a clear module boundary within the monolith
+- `app/services/` is organized by domain/feature: `twitter/`, `facebook/`, `whatsapp/`, `instagram/`, `telegram/`, `line/`, `slack/`, `linear/`, `shopify/` - each encapsulating specific channel integrations
+- `app/jobs/` follows similar domain organization: `channels/`, `conversations/`, `contacts/`, `campaigns/`, `agents/`, etc.
+- Single deployment artifact via `docker/Dockerfile` and `docker-compose.yaml` with services (rails, sidekiq) sharing the same codebase and volumes
+
+**Secondary: Event-Driven**
+The application implements a publish-subscribe event architecture for loose coupling between components.
+
+Evidence:
+- `app/listeners/` directory with 12 listener files: `hook_listener.rb`, `webhook_listener.rb`, `notification_listener.rb`, `automation_rule_listener.rb`, `campaign_listener.rb`, `reporting_event_listener.rb`, etc.
+- `app/dispatchers/` with `async_dispatcher.rb`, `sync_dispatcher.rb`, `base_dispatcher.rb` handling event distribution
+- `Gemfile` includes `gem 'wisper', '2.0.0'` - a Ruby pub/sub library explicitly mentioned in comments as replacing ActiveRecord callbacks with publish/subscribe pattern
+- `app/models/concerns/` likely contains event publishing (though not fully visible in truncated output), consistent with Wisper integration patterns
+
+**Secondary: Layered**
+The foundation follows classic Rails MVC layering with clear separation of concerns.
+
+Evidence:
+- Traditional Rails structure: `app/models/` (50+ files), `app/controllers/` (14 subdirectories), `app/views/`
+- `app/controllers/api/` vs `app/controllers/platform/` vs `app/controllers/public/` - layered access patterns
+- `app/policies/` for authorization layer (Pundit), `app/presenters/` for presentation layer, `app/finders/` for data access abstraction
+- Database layer separation with `app/models/` (ActiveRecord) and service layer `app/services/` for business logic
+
+The architecture is not Microservices (single deployable unit), not Service-Based (no independently deployable services), not CQRS (no command/query split at architectural level), and not Hexagonal (no ports/adapters structure). The enterprise module separation and domain-organized services clearly indicate a Modular Monolith pattern.

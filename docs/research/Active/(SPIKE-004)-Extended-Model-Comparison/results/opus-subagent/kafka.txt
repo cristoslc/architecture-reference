@@ -1,0 +1,25 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Layered, Pipeline (Pipe-and-Filter)
+CONFIDENCE: 0.82
+
+REASONING:
+
+Apache Kafka is a distributed event streaming platform that, while it *enables* event-driven architectures for its users, is itself structured as a modular monolith.
+
+1. MODULAR MONOLITH (Primary):
+- Single Gradle multi-module project that compiles and ships as a unified system
+- Clearly separated modules with enforced boundaries: clients/, server/, server-common/, core/, storage/, streams/, group-coordinator/, share-coordinator/, metadata/, tools/, shell/
+- Checkstyle import-control files enforce strict inter-module dependency rules — a hallmark of modular monolith architecture
+- Build produces a single distributable artifact: core/build/distributions/ via ./gradlew clean releaseTarGz
+- All modules share a single version, build system, and release cycle
+
+2. LAYERED (Secondary):
+- Clear layering: clients/ (lowest-level API), server-common/ (shared abstractions), server//core/ (broker logic), storage/ (persistence)
+- Clients compile to Java 11 while server modules target Java 17, showing intentional API compatibility layering
+- Storage has its own storage/api/ sub-module for layered separation
+
+3. PIPELINE / Pipe-and-Filter (Secondary):
+- Kafka Streams implements topology-based processing (DAG of processing nodes)
+- Kafka Connect implements source-transform-sink pipeline pattern
+
+WHY NOT Event-Driven: While Kafka IS an event streaming platform, its internal architecture uses direct method calls, shared memory, and synchronous RPC. The event-driven nature is what it provides to consumers, not how it is built.

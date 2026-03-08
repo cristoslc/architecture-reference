@@ -1,0 +1,25 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: none
+CONFIDENCE: 0.70
+
+REASONING:
+Consul is a distributed infrastructure platform that is built and deployed as a single binary with well-organized internal modules. The architecture evidence is as follows:
+
+**Modular Organization Evidence:**
+- The `go.mod` file shows multiple replace directives indicating separate Go modules within the monorepo: `github.com/hashicorp/consul/api => ./api`, `github.com/hashicorp/consul/envoyextensions => ./envoyextensions`, `github.com/hashicorp/consul/proto-public => ./proto-public`, `github.com/hashicorp/consul/sdk => ./sdk`, and `github.com/hashicorp/consul/troubleshoot => ./troubleshoot`
+- Each module has clear separation of concerns: `api/` for client API, `sdk/` for testing utilities, `envoyextensions/` for Envoy proxy integration, `proto-public/` for public protobuf definitions, `troubleshoot/` for diagnostics tools
+
+**Single Deployable Unit Evidence:**
+- The `Dockerfile` produces a single `consul` binary: `cp /tmp/build/consul /bin/consul`
+- The `Makefile` has a single build target for the Consul binary with `GOLDFLAGS=-X $(GIT_IMPORT).GitCommit=$(GIT_COMMIT)$(GIT_DIRTY) -X $(GIT_IMPORT).BuildDate=$(GIT_DATE)`
+
+**Internal Service Boundaries (within the monolith):**
+- The `proto/private/` and `grpcmocks/proto-public/` directories define gRPC service boundaries: `pbacl/` (Access Control), `pbconnect/` (Service Mesh), `pbservice/` (Service Discovery), `pbstorage/` (Storage), `pbpeering/` (Multi-datacenter), `pbdns/` (DNS interface). These represent domain-separated components that communicate via gRPC but are deployed together.
+
+**Why not other styles:**
+- **Microservices**: Consul deploys as a single binary, not independently deployable services
+- **Layered**: No clear presentation/business/data layer separation in directory structure
+- **Event-Driven**: While Consul uses gossip protocols for cluster membership, this is an implementation detail, not the primary architecture
+- **Indeterminate**: While Consul is infrastructure software, it has a recognizable application architecture that can be classified
+
+The confidence is 0.70 because Consul is fundamentally a distributed systems platform whose architecture is driven by distributed systems concerns (Raft consensus, gossip protocol, CAP theorem trade-offs) rather than typical application architecture patterns. However, the Modular Monolith pattern best describes its code organization and deployment model.

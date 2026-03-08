@@ -9,10 +9,12 @@ parent-epic: EPIC-012
 depends-on:
   - SPEC-021
   - SPIKE-003
+  - SPIKE-004
 linked-adrs:
   - ADR-002
 linked-research:
   - SPIKE-003
+  - SPIKE-004
 execution-tracking: required
 ---
 
@@ -51,6 +53,33 @@ All existing analysis has been stripped from the catalog. Every entry now has `a
 4. No prior classification shown in the analysis prompt (clean-slate, no anchoring)
 5. Catalog YAML files updated in place with new classifications
 6. Classification method recorded as `deep-analysis` (not `deep-validation`)
+
+## Catalog YAML output format
+
+Each classified entry will include these fields (per SPIKE-003 findings):
+
+```yaml
+architecture_styles:
+  - <primary style>
+  - <secondary style(s)>
+classification_status: classified
+classification_method: deep-analysis
+classification_confidence: 0.85
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-07T12:00:00Z'
+classification_reasoning: |
+  <Full LLM reasoning text citing specific source code evidence.
+  References file paths, directory structures, config files,
+  and architectural patterns. Explains WHY each style applies.>
+```
+
+Fields:
+- `architecture_styles` — ordered list, primary first. From the 14-style taxonomy.
+- `classification_method` — always `deep-analysis` per ADR-002.
+- `classification_confidence` — 0.0-1.0, model's self-assessed certainty.
+- `classification_model` — model identifier used for this analysis.
+- `classification_date` — ISO 8601 timestamp of the analysis.
+- `classification_reasoning` — full reasoning preserved, not just results. Must cite specific file paths, directory structures, or code patterns as evidence.
 
 ## Scope & Constraints
 

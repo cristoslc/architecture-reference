@@ -1,0 +1,20 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Layered
+CONFIDENCE: 0.95
+
+REASONING:
+- **Modular Monolith**: Chatwoot is primarily a Ruby on Rails application that follows a "Modular Monolith" approach, particularly evidenced by its `enterprise/` directory. This directory replicates the `app/` structure (`enterprise/app/models`, `enterprise/app/services`, etc.), effectively acting as a separate module that is injected into the core application to provide premium features while sharing the same process and database. The `docker-compose.yaml` further confirms this as it defines a single `rails` service and a `sidekiq` worker service running from the exact same codebase, rather than a suite of independent microservices.
+
+- **Event-Driven**: The system extensively utilizes an internal pub-sub mechanism to decouple side effects from primary business logic. 
+    - **Evidence**: The `Gemfile` includes the `wisper` gem, specifically noting its use for the "publish/subscribe pattern and event-driven design."
+    - **Implementation**: There is a dedicated `app/listeners/` directory containing 12+ listeners (e.g., `app/listeners/webhook_listener.rb`, `app/listeners/notification_listener.rb`) and an `app/dispatchers/` directory (e.g., `app/dispatchers/async_dispatcher.rb`) that handle system events without blocking the main request cycle.
+    - **Background Jobs**: It uses `sidekiq` (see `config/sidekiq.yml` and `app/jobs/`) to process these events asynchronously.
+
+- **Layered Architecture**: While Chatwoot follows the standard Rails MVC pattern, it introduces several additional architectural layers to manage complexity, moving it beyond a simple "Model-View-Controller" setup:
+    - **Services Layer**: `app/services/` contains the heavy business logic (e.g., `whatsapp/`, `facebook/`, `conversations/`) to keep models and controllers lean.
+    - **Builders Layer**: `app/builders/` (e.g., `conversation_builder.rb`) handles complex object creation and initialization logic.
+    - **Policies Layer**: `app/policies/` uses the `pundit` gem to encapsulate authorization logic separately from the domain models.
+    - **Presenters Layer**: `app/presenters/` handles the logic for data transformation for views or API responses.
+    - **Finders Layer**: `app/finders/` (e.g., `conversation_finder.rb`) encapsulates complex database querying logic.
+
+The architecture is a classic example of a mature Rails application that has evolved into a well-structured monolith to maintain a large feature set (omnichannel support, AI agents, help centers) within a single deployable unit.
