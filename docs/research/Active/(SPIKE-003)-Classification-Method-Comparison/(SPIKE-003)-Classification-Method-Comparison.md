@@ -157,17 +157,27 @@ The most important finding is a systematic difference in *what* each tool classi
 
 For our catalog's purpose — understanding architectural patterns in codebases — the structural perspective is correct. We want to know how components are organized and communicate, not what business domain they serve.
 
+### Methodological limitation: one-shot vs multi-turn
+
+**The `llm` CLI tests were not a fair comparison.** Subagents made 5-10 tool calls each, browsing the actual cloned repo and reading additional files when initial context was insufficient. The `llm` CLI models received a single pre-assembled context dump with no ability to explore further.
+
+The pipeline already has a multi-turn protocol for `llm` CLI (`llm-review.sh` with SPEC-011 escalation): the model can request files, directory trees, globs, and greps from the cloned repo across up to 4-8 turns via `llm -c`. This gives the `llm`-called model the same iterative exploration capability that subagents have natively.
+
+**The SPIKE-003 tests bypassed this entirely.** The `llm` CLI models were handicapped — they could not request additional context when the pre-assembled dump was insufficient. The subagents' advantage in finding deep structural signals (import-control XMLs, plugin sandboxing tests, silo architecture hints) may be partially or fully explained by their ability to explore beyond the initial context.
+
+**Implication:** The accuracy gap between subagents and `llm` CLI is real but may be smaller than measured. A fair retest would use the multi-turn loop for `llm` CLI models. See SPIKE-004 for extended comparison with the same limitation noted.
+
 ### Recommendation
 
-**Use Claude Code subagents (Sonnet 4.6) for SPEC-024.** Rationale:
+**Subagents (Sonnet 4.6) remain the recommendation for SPEC-024**, but with caveats:
 
 1. **Higher accuracy** — won every disagreement case on closer examination
-2. **Better evidence** — finds deep structural signals (import-control files, plugin contracts, silo architecture)
+2. **Better evidence** — finds deep structural signals, though partly due to multi-turn exploration advantage
 3. **100% reliability** — no failures vs 1/6 failure rate for `llm` CLI
 4. **Correct framing** — classifies structure, not domain
 5. **Conservative confidence** — doesn't over-claim
 
-The speed disadvantage (~60s vs ~40s per repo) is negligible across 184 entries and is offset by not needing to re-run failures.
+The `llm` CLI with multi-turn escalation (SPEC-011) was not tested and may close the gap. If a future spike tests this, the recommendation may change.
 
 ### SPEC-024 output format update
 

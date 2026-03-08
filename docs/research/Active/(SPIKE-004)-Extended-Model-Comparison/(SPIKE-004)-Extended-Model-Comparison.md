@@ -160,30 +160,37 @@ Unlike SPIKE-003's Minimax M2.5 failure on Sentry, all 5 new models completed al
 | Kimi K2.5 | 0.87 | 0.85-0.90 | Slightly high but narrower range |
 | Gemini 3 Flash | 0.90 | 0.90-0.95 | Over-confident across the board |
 
+### Methodological limitation: one-shot vs multi-turn (same as SPIKE-003)
+
+**All `llm` CLI tests in both SPIKE-003 and SPIKE-004 were one-shot.** The models received a pre-assembled context dump and could not request additional information. Meanwhile, subagents (both Sonnet and Opus) made 5-10 tool calls each, browsing the actual cloned repo iteratively.
+
+The pipeline already has `llm-review.sh` with SPEC-011's multi-turn escalation protocol: the `llm`-called model can request files, trees, globs, and greps from the cloned repo across 4-8 turns via `llm -c`. This gives `llm` CLI models the same iterative exploration capability that subagents have natively. **Neither SPIKE-003 nor SPIKE-004 tested this.**
+
+The accuracy gap is real but the magnitude is uncertain. The subagents' advantage in finding deep structural signals (import-control XMLs, plugin sandboxing, silo architecture) may be partially explained by their ability to explore beyond initial context. Models like GLM-4.7 (which got 4/6 with one-shot) might match or approach subagent quality with multi-turn exploration.
+
 ### Recommendation
 
-**Use Claude Code subagents for SPEC-024. Model choice: Sonnet 4.6.**
+**Subagents (Sonnet 4.6) remain the recommendation for SPEC-024**, with caveats:
 
-Rationale:
+1. **Opus 4.6 has perfect accuracy but doesn't justify the cost.** Same primary style assignments as Sonnet on all 6 repos. Richer reasoning but marginal practical difference. 40% slower.
 
-1. **Opus 4.6 has perfect accuracy but doesn't justify the cost.** Its reasoning is richer (kafka internal architecture insight, consul strategy pattern nuance), but the primary and secondary style assignments are identical to Sonnet on 5/6 repos. The one difference (consul secondary: Layered vs Plugin) is debatable. For 184 entries, Sonnet's output is sufficient.
+2. **No `llm` CLI model matches subagent quality in one-shot mode.** Best performers hit 67% — below threshold. But this comparison was unfair to `llm` CLI models (see limitation above).
 
-2. **No `llm` CLI model matches subagent quality.** The best `llm` CLI performers (GLM-4.7, Kimi K2.5, Gemini 3 Flash) all hit 67% agreement — well below the 5/6 threshold. They systematically miss the two hardest classifications (Chatwoot as Layered, Grafana as Plugin).
+3. **Subagents have a native multi-turn advantage** that the existing pipeline's SPEC-011 escalation protocol could replicate for `llm` CLI. If cost becomes a concern for 184 entries, testing `llm` CLI with multi-turn is the logical next spike.
 
-3. **Subagents have a structural advantage.** They can browse the actual cloned repo during analysis (reading additional files if the context isn't sufficient), while `llm` CLI only sees the pre-assembled context. This explains why subagents find deeper signals like import-control XMLs and plugin sandboxing tests.
-
-4. **If budget allows, consider Opus 4.6 for a spot-check pass.** Run Opus on 10-20 entries where Sonnet's confidence is lowest, as a quality-assurance layer. But the bulk run should use Sonnet 4.6.
+4. **If budget allows, consider Opus 4.6 for a spot-check pass** on 10-20 low-confidence entries as a QA layer.
 
 ### Gate assessment
 
 | Criterion | Result |
 |-----------|--------|
-| New model matches baseline on 5/6 | **No** — best is 4/6 (GLM-4.7, Kimi K2.5, Gemini 3 Flash) |
+| New model matches baseline on 5/6 | **No** — best is 4/6, but `llm` CLI was tested one-shot only |
 | Opus 4.6 justifies higher cost | **Marginal** — same accuracy, richer reasoning, 40% slower |
 | All `llm` CLI models complete 6/6 | **Yes** — all completed without failures |
-| Sonnet 4.6 remains best choice | **Confirmed** — best accuracy-to-cost ratio |
+| Sonnet 4.6 remains best choice | **Confirmed** — best accuracy-to-cost ratio with current evidence |
+| Multi-turn `llm` CLI tested | **No** — open question; could change recommendation |
 
-**Gate result: GO with Sonnet 4.6 subagents.** No model switch warranted.
+**Gate result: GO with Sonnet 4.6 subagents.** No model switch warranted with current evidence. Multi-turn `llm` CLI remains an untested alternative.
 
 ## Lifecycle
 
