@@ -1,5 +1,5 @@
 ---
-title: "Confidence Calibration Prompting"
+  title: "Confidence Calibration Prompting"
 artifact: SPIKE-005
 status: Active
 author: cristos
