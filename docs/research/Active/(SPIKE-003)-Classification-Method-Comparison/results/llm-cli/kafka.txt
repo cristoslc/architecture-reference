@@ -1,0 +1,49 @@
+Let me explore the repository structure more thoroughly to understand the architecture.
+
+PRIMARY_STYLE: Event-Driven
+
+SECONDARY_STYLES: Modular Monolith
+
+CONFIDENCE: 0.95
+
+REASONING:
+
+## Primary Style: Event-Driven Architecture
+
+This is the unmistakable and dominant architecture of Apache Kafka. The entire system is built as a distributed event streaming platform where:
+
+1. **Event Publication**: Producers publish events to topics (files in `core/src/main/java/org/apache/kafka/server/`)
+2. **Event Consumption**: Consumers subscribe to topics and process events (in `clients/src/main/java/org/apache/kafka/clients/consumer/`)
+3. **Pub/Sub Pattern**: The broker implements a pub/sub messaging model with topic partitions
+4. **Event Persistence**: Events are persisted in a log-based structure (evidence in `core/src/main/scala/kafka/log/`)
+5. **Event Ordering**: Within partitions, events maintain ordering - a core tenet of event-driven systems
+
+The directory structure shows the event-centric design:
+- `clients/` - Event producers and consumers
+- `core/` - The event broker that routes events
+- `streams/` - Kafka Streams for event stream processing
+- `connect/` (implied) - Kafka Connect for event integration with external systems
+
+## Secondary Style: Modular Monolith
+
+The codebase exhibits modularity within a unified distributed system:
+
+1. **Separate Modules**: The Gradle build shows distinct modules (`clients`, `core`, `streams`, `connect`, `server`, `server-common`, `group-coordinator`, `share-coordinator`, `storage`, `shell`, `tools`)
+2. **Gradle Multi-Project Build**: The root `build.gradle` orchestrates these as sub-projects
+3. **Clear Boundaries**: Each module has distinct responsibility:
+   - `group-coordinator/` - Group membership and coordination
+   - `share-coordinator/` - Share consumer coordination  
+   - `storage/` - Storage layer abstraction
+   - `server-common/` - Shared server utilities
+4. **Single Deployment Unit**: Despite modularity, these are all part of the single Kafka broker deployment, NOT independently deployed microservices
+
+## Why Not Other Styles
+
+- **Microservices**: Incorrect - Kafka components are NOT independently deployed services; they're part of a single distributed system
+- **CQRS**: Not present - there's no separate command/query model
+- **DDD**: Not clearly evident as a primary architectural pattern
+- **Pipeline**: Not applicable - this isn't a pipe-and-filter system
+- **Space-Based**: Not applicable - no in-memory data grid
+- **Serverless**: Incorrect - Kafka runs as a server process
+
+The evidence is overwhelming: Kafka is fundamentally an **Event-Driven** system built as a **Modular Monolith**, where the modularity exists in code organization but deploys as a unified distributed platform.

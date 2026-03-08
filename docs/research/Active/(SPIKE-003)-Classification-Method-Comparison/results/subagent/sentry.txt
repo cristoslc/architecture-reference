@@ -1,0 +1,66 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Microkernel (Plugin)
+CONFIDENCE: 0.85
+
+REASONING:
+
+## Primary: Modular Monolith
+
+Sentry's core backend is a single Django application deployed as one unit, with its code organized into well-defined domain modules. The evidence is substantial:
+
+1. **Single deployment unit**: The entire backend lives under `src/sentry/` as a single Python package built on Django + Django REST Framework (pyproject.toml lists `django>=5.2.11`, `djangorestframework>=3.16.1`). There is one `pyproject.toml`, one application entry point, and one set of database migrations (`migrations_lockfile.txt`, `tools/migrations/`).
+
+2. **Domain-organized modules**: The test directory `tests/sentry/` reveals 70+ domain-specific modules, each representing a bounded functional area within the monolith:
+   - `monitors/` — cron/uptime monitoring
+   - `replays/` — session replay
+   - `profiling/`, `profiles/` — profiling
+   - `incidents/` — alerting/incidents
+   - `releases/` — release tracking
+   - `integrations/`, `sentry_apps/` — integration platform
+   - `workflow_engine/` — workflow automation
+   - `issues/`, `grouping/` — issue management
+   - `billing/` — billing
+   - `notifications/`, `digests/` — notification system
+   - `feedback/` — user feedback
+   - `insights/`, `discover/`, `explore/` — data exploration
+   - `dynamic_sampling/` — dynamic sampling configuration
+   - `uptime/` — uptime monitoring
+   - `search/` — search infrastructure
+   - `ingest/`, `processing/` — event ingestion pipeline
+
+3. **Silo architecture (emerging)**: The presence of `tests/sentry/silo/`, `tests/sentry/hybridcloud/`, and `bin/split-silo-database` indicates Sentry is evolving toward a multi-silo deployment model (control silo vs region silo), but the code remains in a single repository and single codebase. This is a modular monolith pattern where deployment topology is being separated while keeping code together.
+
+4. **Shared data layer**: The monolith uses a shared PostgreSQL database with Django ORM models (`tests/sentry/models/`, `tests/sentry/db/`), shared migrations, and common infrastructure (`tests/sentry/cache/`, `tests/sentry/buffer/`).
+
+5. **Frontend monolith**: The frontend is a single React SPA under `static/app/` with `views/`, `components/`, `stores/`, `utils/`, `actionCreators/` — a standard monolithic frontend structure.
+
+## Secondary: Event-Driven
+
+Sentry makes extensive use of event-driven architecture for its data pipeline, running alongside the synchronous Django request/response layer:
+
+1. **Kafka infrastructure**: `confluent-kafka` and `sentry-arroyo` (Sentry's own Kafka consumer framework) are core dependencies in pyproject.toml. `sentry-kafka-schemas` defines typed message schemas for Kafka topics.
+
+2. **Event stream and consumers**: `tests/sentry/eventstream/` and `tests/sentry/consumers/` indicate dedicated Kafka consumer processes that handle event ingestion, post-processing, and forwarding. `tests/sentry/post_process_forwarder/` handles event routing after initial ingestion.
+
+3. **Background task processing**: `tests/sentry/tasks/` and `tests/sentry/taskworker/` show Celery-based asynchronous task execution for deferred processing (alert evaluation, notifications, data export, etc.).
+
+4. **External event pipeline**: The Relay integration (`tests/relay_integration/`) and Snuba integration (`tests/snuba/`) demonstrate that Sentry's architecture relies on event streaming between services — Relay forwards events via Kafka, Snuba consumes from Kafka for query materialization.
+
+## Secondary: Microkernel (Plugin)
+
+Sentry has a well-defined plugin/extension system for third-party integrations:
+
+1. **Plugin package**: `src/sentry_plugins/` is a separate package containing integration plugins. `tests/sentry_plugins/` tests plugins for: Slack, Jira, GitHub, GitLab, PagerDuty, Splunk, Bitbucket, Asana, Trello, Twilio, Heroku, OpsGenie, VictorOps, Pushover, Pivotal, Redmine, Segment, SessionStack, and Amazon SQS.
+
+2. **Frontend plugins**: `static/app/plugins/` provides frontend plugin support.
+
+3. **Sentry Apps platform**: `tests/sentry/sentry_apps/` indicates a first-party app/extension platform where third parties can build integrations, functioning as a plugin marketplace.
+
+4. **Integration framework**: `tests/sentry/integrations/` contains a shared integration framework that provides a standard interface for external service connections.
+
+## Why not other styles
+
+- **Not Microservices**: While Sentry depends on external services (Relay, Snuba, Symbolicator, Seer), the core application in this repository is a single deployable Django application, not a collection of independently deployable services.
+- **Not Service-Based**: The silo architecture is emerging but not yet the primary deployment model; the codebase is still fundamentally a monolith.
+- **Not Layered**: While Django naturally has layers (URL routing -> views -> serializers -> models), the primary organizational principle is by domain/feature module, not by technical layer.
+- **Not CQRS**: Although Snuba serves as a separate read-optimized query store, this is an external service dependency rather than an internal architectural pattern within this codebase.

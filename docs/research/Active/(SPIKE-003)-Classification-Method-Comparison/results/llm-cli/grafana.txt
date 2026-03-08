@@ -1,0 +1,49 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Microkernel (Plugin), Domain-Driven Design
+
+CONFIDENCE: 0.85
+
+REASONING:
+
+## Primary Style: Modular Monolith
+
+Grafana is best classified as a **Modular Monolith**. The evidence:
+
+1. **Single unified build**: The Dockerfile shows a single application being built - both Go backend and JavaScript frontend are compiled into one artifact (`make build-go` produces a single binary). There's no evidence of separate deployment units or microservices communication.
+
+2. **Clear modular boundaries within the codebase**:
+   - `apps/` directory contains distinct domain applications: `apps/dashboard`, `apps/folder`, `apps/alerting`, `apps/iam`, `apps/provisioning`, `apps/playlist`, etc.
+   - `pkg/services/` contains service-level modules
+   - Each app in `apps/` appears to be independently structured with its own code
+
+3. **Shared infrastructure**: Common code is centralized in `pkg/` (pkg/plugins, pkg/services, pkg/infra, pkg/util) which is used by all modules.
+
+## Secondary Style 1: Microkernel (Plugin)
+
+Grafana's plugin architecture is a defining characteristic:
+
+1. **Plugin directories**: `public/app/plugins/` contains panel plugins, data source plugins, and app plugins. The `pkg/plugins/` directory contains backend plugin support.
+
+2. **Plugin system**: The codebase includes plugin loading, management, and rendering infrastructure - this is a core part of Grafana's extensibility model.
+
+3. **Evidence from Dockerfile**: Copies `public/app/plugins` as a distinct component during build.
+
+## Secondary Style 2: Domain-Driven Design
+
+The `apps/` directory shows clear domain boundaries:
+
+- `apps/dashboard/` - Dashboard domain
+- `apps/folder/` - Folder management
+- `apps/alerting/` - Alerting (with sub-apps: rules, notifications, historgraph)
+- `apps/iam/` - Identity and Access Management
+- `apps/provisioning/` - Data source provisioning
+- `apps/annotation/` - Annotation domain
+
+Each domain appears to have its own API, services, and models, which is characteristic of DDD bounded contexts.
+
+## Why not other styles:
+
+- **Microservices**: No evidence of independent deployment, service discovery, or inter-service communication protocols. It's built and deployed as a single unit.
+- **Event-Driven**: While Grafana has event handling internally, there's no dominant message broker or event sourcing pattern at the architectural level.
+- **CQRS**: Not clearly implemented as a dominant pattern.
+- **Serverless**: This is a traditional server application, not serverless functions.

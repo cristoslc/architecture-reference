@@ -1,0 +1,49 @@
+Looking at this repository, I need to analyze the architecture based on the directory structure, docker-compose configuration, and code patterns.
+
+PRIMARY_STYLE: Modular Monolith
+
+SECONDARY_STYLES: Service-Based, Event-Driven
+
+CONFIDENCE: 0.9
+
+REASONING:
+
+**Primary Style: Modular Monolith**
+
+The repository exhibits clear characteristics of a Modular Monolith:
+
+1. **Unified Codebase with Logical Modules**: The `products/` directory contains 40+ distinct product modules (feature_flags, experiments, session_replay, surveys, cohorts, etc.), each with their own `frontend/`, `backend/`, and `manifest.tsx` structure. This is evident from entries like:
+   - `products/feature_flags/frontend`, `products/feature_flags/backend`
+   - `products/experiments/frontend`, `products/experiments/backend`
+   - `products/surveys/frontend`, `products/surveys/backend`
+
+2. **Single Django Application**: The backend is a unified Django application (`posthog/` directory) with all models, views, and API endpoints. Evidence from `pyproject.toml` shows Django 4.2 as a core dependency.
+
+3. **Shared Infrastructure**: All modules share the same database (PostgreSQL), same authentication system, and same Django ORM.
+
+**Secondary Style: Service-Based**
+
+The architecture shows Service-Based elements:
+
+1. **Separable Deployable Services**: From `docker-compose.dev.yml`, there are distinct services that can be scaled independently:
+   - `capture` service (port 3307) - event ingestion
+   - `plugins` service (port 6738) - plugin execution
+   - `feature-flags` service (port 3001) - flag evaluation
+   - `replay-capture` service (port 3306) - session recording
+   - `capture-ai` service (port 3309) - AI ingestion
+   - `capture-logs` service (port 4318) - logs ingestion
+
+2. **Reverse Proxy Routing**: The `proxy` service routes requests to appropriate backends based on path patterns (`/e/*`, `/flags`, `/s/*`, etc.)
+
+3. **Node.js Services**: The `nodejs/` directory contains separate Node.js services for ingestion, CDP, session recording, etc.
+
+**Secondary Style: Event-Driven**
+
+Evidence from `pyproject.toml` shows heavy use of event-driven components:
+- `aiokafka~=0.12.0` - Kafka for event streaming
+- `celery==5.3.6` with `celery-redbeat` - async task processing
+- `django-structlog[celery]` - event-driven logging
+- Multiple DAGs directories in products (e.g., `products/llm_analytics/dags`, `products/data_warehouse/dags`)
+- `dagster` dependencies for workflow orchestration
+
+The architecture is NOT microservices because all code lives in a single monorepo with shared database schemas and the products are not independently deployable in production - they're built together. It's NOT a traditional layered architecture because the product-based modular structure dominates over layer-based organization.

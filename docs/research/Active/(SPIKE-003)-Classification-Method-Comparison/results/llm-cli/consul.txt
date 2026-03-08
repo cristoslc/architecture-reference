@@ -1,0 +1,58 @@
+Looking at the repository, this is HashiCorp Consul - a distributed system for service discovery, configuration, and orchestration. Let me analyze its architecture.
+
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Domain-Driven Design
+CONFIDENCE: 0.9
+
+REASONING:
+
+**Primary Style: Modular Monolith**
+
+Consul is distributed and deployed as a single binary (see Dockerfile producing a single `consul` executable) that runs as an agent in either server or client mode. The codebase is organized into distinct, well-isolated modules that could theoretically be separate services but are packaged together:
+
+1. **agent/** - The core Consul agent containing the main runtime
+2. **api/** - API client library (exported as separate go module `./api`)
+3. **sdk/** - Software Development Kit (exported as `./sdk`)  
+4. **command/** - CLI command implementations
+5. **ui/packages/consul-ui** - Browser-based UI (separate package)
+6. **envoyextensions/** - Envoy proxy integration
+7. **troubleshoot/** - Troubleshooting utilities
+
+Evidence from go.mod shows multiple internal modules that could be independently versioned:
+```
+replace (
+    github.com/hashicorp/consul/api => ./api
+    github.com/hashicorp/consul/envoyextensions => ./envoyextensions
+    github.com/hashicorp/consul/proto-public => ./proto-public
+    github.com/hashicorp/consul/sdk => ./sdk
+    github.com/hashicorp/consul/troubleshoot => ./troubleshoot
+)
+```
+
+This modular structure within a single deployable binary is the hallmark of a **Modular Monolith**.
+
+**Secondary Style: Event-Driven**
+
+Consul extensively uses event-driven patterns:
+
+1. **Gossip Protocol** - Implemented in `agent/consul/fsm.go` and related files using the Serf library for cluster membership, failure detection, and event dissemination across nodes
+2. **Raft Consensus** - Uses Raft for replicated state machine (leadership election, log replication) - evidence in Raft-related configurations
+3. **Watchers** - Internal event subscription system for state changes
+
+This is evident from the README mentioning "health checking prevents routing traffic to unhealthy hosts" and the distributed nature requiring node-to-node communication via gossip.
+
+**Secondary Style: Domain-Driven Design**
+
+The codebase shows clear bounded contexts:
+- **catalog** - Service registration and discovery
+- **health** - Health checking
+- **acl** - Access control
+- **connect** - Service mesh/TLS
+- **session** - Distributed locking
+- **config** - Configuration storage
+
+Each domain has its own package with focused responsibility, indicating DDD patterns.
+
+**Why not Microservices**: Despite being a distributed system, Consul is NOT microservices because all components deploy as a single binary. The "services" in service discovery are application-level concepts, not architectural services.
+
+**Confidence Rationale**: 0.9 because while the primary classification is clear, there's genuine ambiguity between "Modular Monolith" and "Service-Based" (since Consul does have multiple distinct functional areas). The event-driven secondary style is strongly supported by the gossip protocol implementation.

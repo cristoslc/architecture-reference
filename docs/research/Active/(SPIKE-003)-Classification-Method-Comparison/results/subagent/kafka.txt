@@ -1,0 +1,49 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Pipeline (Pipe-and-Filter)
+CONFIDENCE: 0.82
+
+REASONING:
+
+1. PRIMARY: Modular Monolith
+
+Apache Kafka is a single deployable platform (the broker) that is internally decomposed into well-defined, independently buildable modules with strict dependency boundaries. The evidence is strong:
+
+- **Gradle multi-module build structure**: The root `build.gradle` defines a multi-project build with clearly separated modules: `clients/`, `core/`, `server/`, `server-common/`, `storage/`, `streams/`, `connect/` (implied by bin scripts), `group-coordinator/`, `share-coordinator/`, `metadata/`, `transaction-coordinator/`, `tools/`, `shell/`, `trogdor/`. Each is a standalone Gradle subproject with its own `src/main` and `src/test`.
+
+- **Enforced import controls via Checkstyle**: The `checkstyle/` directory contains per-module import-control files (`import-control-core.xml`, `import-control-server.xml`, `import-control-clients-integration-tests.xml`, `import-control-coordinator-common.xml`, `import-control-group-coordinator.xml`, `import-control-share-coordinator.xml`, `import-control-storage.xml`, `import-control-metadata.xml`, `import-control-transaction-coordinator.xml`, `import-control-server-common.xml`). These files enforce which packages each module may import from, creating hard architectural boundaries between modules -- a hallmark of a Modular Monolith that takes module isolation seriously.
+
+- **Single deployment unit**: Despite the module decomposition, Kafka deploys as a single broker process (`bin/kafka-server-start.sh`). The `core/build/distributions/` directory produces a single release tarball. There is one `config/server.properties` that configures the whole system. This is not microservices -- it is a single process with internal modularity.
+
+- **Coordinator modules as internal components**: `group-coordinator/`, `share-coordinator/`, and `transaction-coordinator/` (referenced in checkstyle configs) are not separate services; they are internal modules within the broker process that handle specific protocol responsibilities. They have their own API subprojects (e.g., `group-coordinator/group-coordinator-api/`) showing clean internal interfaces.
+
+- **Kafka Streams as a separate library module**: The `streams/` directory is a client-side library (not a separate service) that compiles against the `clients/` module. It ships as a JAR library (`release` parameter set to Java 11 for streams modules), reinforcing the monolithic-but-modular distribution model.
+
+2. SECONDARY: Event-Driven
+
+Kafka is itself an event streaming platform, and its internal architecture reflects event-driven patterns:
+
+- **Log-based event storage**: The `storage/` module and `docs/implementation/log.md` describe the append-only commit log that is the core abstraction. The `docs/images/kafka_log.png` and `docs/images/log_anatomy.png` illustrate this.
+
+- **Producer/Consumer model**: `docs/images/producer_consumer.png`, `docs/images/consumer-groups.png`, and the dedicated `bin/kafka-console-producer.sh` / `bin/kafka-console-consumer.sh` scripts show the publish-subscribe event-driven communication model.
+
+- **Auto-generated message protocol**: The README references `clients/src/main/resources/common/message/README.md` for auto-generated RPC message definitions (`./gradlew processMessages processTestMessages`), indicating an event/message-centric internal communication protocol between broker components.
+
+- **KRaft consensus**: `docs/operations/kraft.md` and `config/controller.properties` describe the internal Raft-based event log used for metadata management, replacing ZooKeeper with an event-sourced approach to cluster coordination.
+
+3. SECONDARY: Pipeline (Pipe-and-Filter)
+
+Kafka Streams and Kafka Connect exhibit clear pipe-and-filter architectural patterns:
+
+- **Streams topology**: `docs/images/streams-architecture-topology.jpg` and `docs/images/streams-concepts-topology.jpg` directly depict the directed acyclic graph (DAG) processing topology where data flows through a series of processing nodes (filters/transformers). The `docs/streams/architecture.md` and `docs/streams/core-concepts.md` describe the stream processing pipeline model.
+
+- **Kafka Connect pipelines**: The `bin/connect-standalone.sh`, `bin/connect-distributed.sh`, and `bin/connect-mirror-maker.sh` scripts, along with the Connect configuration files (`config/connect-file-source.properties`, `config/connect-file-sink.properties`, `config/connect-console-source.properties`, `config/connect-console-sink.properties`), implement a source-transform-sink pipeline pattern where connectors are composable stages.
+
+WHY NOT OTHER STYLES:
+
+- **Not Microservices**: Kafka deploys as a single process. The modules share the same JVM and are not independently deployable services communicating over a network.
+
+- **Not Layered (as primary)**: While there are layered aspects (clients -> server-common -> server -> core), the dominant organizational principle is functional module decomposition (coordinators, storage, streams, connect), not horizontal layers.
+
+- **Not Microkernel**: Although Kafka Connect supports plugins (connectors), this is one subsystem, not the defining architectural pattern of the whole platform.
+
+- **Not CQRS**: While Kafka can enable CQRS in downstream systems, the broker itself does not separate read and write models internally.

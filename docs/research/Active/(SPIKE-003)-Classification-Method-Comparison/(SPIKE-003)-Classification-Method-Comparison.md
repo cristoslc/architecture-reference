@@ -91,7 +91,93 @@ Side-by-side table for each test subject showing both tools' results with reason
 
 ## Findings
 
-*(Populated during Active phase.)*
+### Side-by-side comparison
+
+| Repo | Subagent (Sonnet 4.6) | `llm` CLI (Minimax M2.5) | Agree on primary? |
+|------|----------------------|--------------------------|-------------------|
+| **posthog** | Modular Monolith + Event-Driven, Service-Based (0.82) | Modular Monolith + Service-Based, Event-Driven (0.90) | **Yes** |
+| **chatwoot** | **Layered** + Event-Driven (0.85) | **Modular Monolith** + Event-Driven (0.90) | **No** |
+| **sentry** | Modular Monolith + Event-Driven, Plugin (0.85) | *(FAILED — tried to invoke tools instead of analyzing)* | **N/A** |
+| **kafka** | **Modular Monolith** + Event-Driven, Pipe-and-Filter (0.82) | **Event-Driven** + Modular Monolith (0.95) | **No** |
+| **consul** | Modular Monolith + Plugin, Event-Driven (0.82) | Modular Monolith + Event-Driven, DDD (0.90) | **Yes** |
+| **grafana** | **Plugin (Microkernel)** + Modular Monolith, Layered (0.85) | **Modular Monolith** + Plugin, DDD (0.85) | **No** |
+
+**Agreement on primary style: 2/5** (excluding sentry failure) — below the 4/6 threshold.
+
+### Detailed analysis of disagreements
+
+#### Chatwoot: Layered (subagent) vs Modular Monolith (llm CLI)
+
+The subagent argued: "flat model directory with 50+ freely cross-referencing ActiveRecord models rules out Modular Monolith and DDD bounded contexts." This is a sharper, more defensible argument. A Rails app with `app/models/`, `app/controllers/`, `app/views/` follows the Layered pattern by default. Calling it "Modular Monolith" requires evidence of deliberate module boundaries, which Chatwoot lacks — its "modules" are just Rails service objects, not enforced boundaries.
+
+**Winner: Subagent.** The Layered classification is more accurate for a standard Rails app.
+
+#### Kafka: Modular Monolith (subagent) vs Event-Driven (llm CLI)
+
+The subagent found import-control XML files (`checkstyle/import-control-server.xml`, etc.) enforcing hard dependency boundaries between modules — a strong signal of intentional modular monolith design. The `llm` CLI classified based on what Kafka *does* (event streaming) rather than how Kafka *is built* (single deployable with internal module boundaries).
+
+For our catalog, we classify **how the codebase is structured**, not what domain it serves. A messaging platform's architecture is not necessarily Event-Driven — that describes its purpose, not its internal organization.
+
+**Winner: Subagent.** Modular Monolith as primary with Event-Driven secondary correctly separates structure from domain.
+
+#### Grafana: Plugin (subagent) vs Modular Monolith (llm CLI)
+
+The subagent argued Plugin/Microkernel is the *dominant* pattern: "Grafana's entire value proposition revolves around a core platform that hosts pluggable panels, data sources, and apps." The `llm` CLI acknowledged Plugin as secondary but chose Modular Monolith as primary.
+
+The subagent's classification is more insightful — Grafana's architecture is *defined* by its plugin system. The modular monolith structure is a means of organizing the core, but the plugin boundary is the primary architectural decision.
+
+**Winner: Subagent.** Plugin/Microkernel better captures Grafana's defining architectural characteristic.
+
+#### Sentry: Subagent succeeded vs llm CLI failed
+
+The `llm` CLI output for Sentry was not a classification at all — Minimax M2.5 attempted to invoke filesystem tools (`filesystem_list_allowed_directories`, `filesystem_directory_tree`) instead of analyzing the context provided in the prompt. This is a reliability failure: the model hallucinated tool invocations that don't exist in its environment.
+
+The subagent produced a well-evidenced classification (Modular Monolith + Event-Driven + Plugin) with specific findings like the `src/sentry_plugins/` package and the "silo" architecture hints.
+
+**Winner: Subagent.** The `llm` CLI failed entirely on this input.
+
+### Evaluation by dimension
+
+| Dimension | Subagent (Sonnet 4.6) | `llm` CLI (Minimax M2.5) |
+|-----------|----------------------|--------------------------|
+| **Classification accuracy** | 6/6 plausible, with sharper distinctions | 4/5 plausible (1 failure), tends toward "Modular Monolith" default |
+| **Reasoning quality** | Cites specific file paths, directory structures, config files, build system evidence | Cites evidence but sometimes argues from domain purpose rather than code structure |
+| **Confidence calibration** | Conservative (0.82-0.85), reflects genuine uncertainty | Higher confidence (0.85-0.95) even when less accurate |
+| **False positive rate** | Low — conservative secondary style assignment, explicit "why not" reasoning | Low but DDD assigned twice as secondary without strong structural evidence |
+| **Reliability** | 6/6 completed successfully | 5/6 — one complete failure (Sentry) |
+| **Evidence depth** | Found import-control XMLs (Kafka), plugin CA providers (Consul), silo architecture hints (Sentry) — deep structural signals | Relied more on README descriptions and docker-compose service lists |
+| **Speed** | ~55-70s per repo | ~30-45s per repo (faster) |
+
+### Key insight: structural vs functional classification
+
+The most important finding is a systematic difference in *what* each tool classifies:
+
+- **Subagent (Sonnet 4.6)** classifies **how the codebase is structured** — module boundaries, deployment units, dependency enforcement, plugin contracts
+- **`llm` CLI (Minimax M2.5)** tends to classify **what the system does** — Kafka is "Event-Driven" because it's a messaging platform, Chatwoot is "Modular Monolith" because it has service objects
+
+For our catalog's purpose — understanding architectural patterns in codebases — the structural perspective is correct. We want to know how components are organized and communicate, not what business domain they serve.
+
+### Recommendation
+
+**Use Claude Code subagents (Sonnet 4.6) for SPEC-024.** Rationale:
+
+1. **Higher accuracy** — won every disagreement case on closer examination
+2. **Better evidence** — finds deep structural signals (import-control files, plugin contracts, silo architecture)
+3. **100% reliability** — no failures vs 1/6 failure rate for `llm` CLI
+4. **Correct framing** — classifies structure, not domain
+5. **Conservative confidence** — doesn't over-claim
+
+The speed disadvantage (~60s vs ~40s per repo) is negligible across 184 entries and is offset by not needing to re-run failures.
+
+### SPEC-024 output format update
+
+Based on this spike, each classification should capture:
+- `architecture_styles`: list of styles (primary first)
+- `classification_method`: `deep-analysis` (per ADR-002)
+- `classification_confidence`: 0.0-1.0
+- `classification_reasoning`: full LLM reasoning text citing specific evidence
+- `classification_date`: ISO timestamp
+- `classification_model`: model identifier (e.g., `claude-sonnet-4-6`)
 
 ## Lifecycle
 

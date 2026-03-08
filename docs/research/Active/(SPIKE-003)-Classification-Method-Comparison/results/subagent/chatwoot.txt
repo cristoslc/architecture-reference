@@ -1,0 +1,87 @@
+PRIMARY_STYLE: Layered
+SECONDARY_STYLES: Event-Driven
+CONFIDENCE: 0.85
+
+REASONING:
+
+## Primary Style: Layered (Monolithic Rails Application)
+
+Chatwoot is a classic Ruby on Rails monolithic application organized in a traditional layered architecture. The evidence is substantial:
+
+### 1. Standard Rails MVC Layering
+
+The `app/` directory follows the canonical Rails layer decomposition:
+
+- **Presentation Layer**: `app/controllers/` (14+ controller files including `application_controller.rb`, `api_controller.rb`, `dashboard_controller.rb`, `public_controller.rb`), `app/views/`, `app/javascript/` (Vue.js frontend with dashboard, widget, portal, survey sub-apps), `app/presenters/`
+- **Business Logic Layer**: `app/services/` (12+ service directories covering twitter, facebook, whatsapp, telegram, line, sms, instagram, tiktok, linear, google, microsoft, etc.), `app/builders/` (8 files for constructing domain objects like accounts, agents, conversations, contacts), `app/actions/` (contact_identify_action.rb, contact_merge_action.rb), `app/finders/` (conversation_finder.rb, message_finder.rb, etc.)
+- **Domain/Model Layer**: `app/models/` (50+ model files: conversation.rb, message.rb, contact.rb, inbox.rb, account.rb, user.rb, team.rb, campaign.rb, etc.)
+- **Infrastructure Layer**: `app/jobs/` (16+ background job files using Sidekiq), `app/mailers/`, `app/mailboxes/`
+
+### 2. Single Deployable Unit
+
+The `docker-compose.yaml` confirms this is a single application deployed as one codebase:
+- `rails` service: the main web process
+- `sidekiq` service: background job worker (same codebase, same image `chatwoot-rails:development`)
+- `vite` service: frontend asset compilation (same codebase)
+- Supporting infrastructure: `postgres` (with pgvector), `redis`, `mailhog`
+
+Both `rails` and `sidekiq` share the same Docker image and codebase -- they are not independent services but different process types of the same monolith.
+
+### 3. Single Database
+
+One PostgreSQL database (`POSTGRES_DB=chatwoot`) serves the entire application. All 50+ models share this database, with no schema separation or database-per-service pattern.
+
+### 4. Additional Layering Patterns
+
+Beyond standard MVC, Chatwoot adds several supplementary layers that reinforce the layered pattern:
+- **Policies** (`app/policies/`, 22 files): Pundit-based authorization layer (conversation_policy.rb, inbox_policy.rb, etc.)
+- **Dispatchers** (`app/dispatchers/`): base_dispatcher.rb, async_dispatcher.rb, sync_dispatcher.rb -- an abstraction layer for event dispatch
+- **Helpers** (`app/helpers/`, 16 files): presentation helpers
+- **Drops** (`app/drops/`): Liquid template variable objects (message_drop.rb, contact_drop.rb, etc.)
+
+### 5. Enterprise Overlay (Not Microkernel)
+
+The `enterprise/` directory mirrors the `app/` structure (enterprise/app/models, enterprise/app/controllers, enterprise/app/services, etc.) with `enterprise/config/premium_features.yml`. This is a code-level overlay for premium features, not a true plugin architecture -- it extends the same layers rather than implementing a plugin contract with defined extension points.
+
+## Secondary Style: Event-Driven
+
+There is clear evidence of an event-driven pattern woven through the monolith:
+
+### 1. Wisper Pub/Sub Gem
+
+The Gemfile explicitly includes `gem 'wisper', '2.0.0'` with a comment referencing "pubsub service" and linking to an article about "publish/subscribe pattern and event-driven design." This gem enables in-process event publishing and subscribing.
+
+### 2. Listener Architecture
+
+`app/listeners/` contains 12 listener files, each subscribing to domain events:
+- `webhook_listener.rb` -- forwards events to external webhooks
+- `notification_listener.rb` -- creates notifications on events
+- `automation_rule_listener.rb` -- triggers automation rules
+- `action_cable_listener.rb` -- pushes real-time updates via WebSockets
+- `reporting_event_listener.rb` -- records reporting events
+- `campaign_listener.rb` -- triggers campaign logic
+- `csat_survey_listener.rb` -- handles CSAT survey events
+- `hook_listener.rb` -- integration hook dispatch
+- `agent_bot_listener.rb` -- AI bot reactions
+- `participation_listener.rb` -- conversation participation tracking
+- `installation_webhook_listener.rb` -- installation-level webhooks
+
+### 3. Dispatcher Pattern
+
+`app/dispatchers/` provides an explicit dispatch mechanism (base_dispatcher.rb, async_dispatcher.rb, sync_dispatcher.rb) with `app/jobs/event_dispatcher_job.rb` for async event processing via Sidekiq.
+
+### 4. Background Job Processing
+
+Extensive use of Sidekiq (`config/sidekiq.yml`) with 16+ job classes for asynchronous processing: webhook_job.rb, hook_job.rb, send_reply_job.rb, action_cable_broadcast_job.rb, bulk_actions_job.rb, etc. This is event-driven processing via a job queue.
+
+### 5. ActionCable / WebSockets
+
+`app/channels/room_channel.rb` and `app/channels/application_cable/` indicate real-time event streaming to the frontend via WebSockets, further supporting the event-driven secondary classification.
+
+## Styles Explicitly NOT Present
+
+- **Microservices / Service-Based**: Single codebase, single database, single deployment unit. The `app/services/` directory contains service objects (a Ruby pattern), not independent microservices.
+- **CQRS**: No evidence of separate read/write models or segregated command/query paths.
+- **Hexagonal Architecture**: No ports-and-adapters structure; dependencies flow in standard Rails fashion without explicit port interfaces.
+- **Modular Monolith**: While the code is organized, there are no explicit module boundaries, no enforced inter-module contracts, and models freely reference each other (50+ models in a flat `app/models/` directory). The enterprise overlay is a licensing split, not a modular boundary.
+- **Domain-Driven Design**: No bounded contexts, no aggregate roots pattern, no domain events distinct from application events. The model layer is flat ActiveRecord.

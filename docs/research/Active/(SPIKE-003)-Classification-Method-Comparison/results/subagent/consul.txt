@@ -1,0 +1,53 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Microkernel (Plugin), Event-Driven
+CONFIDENCE: 0.82
+
+REASONING:
+
+HashiCorp Consul is a single compiled Go binary that bundles multiple major subsystems — service discovery, service mesh (Connect), health checking, KV store, ACL, DNS, API gateway, and multi-datacenter federation — into one deployable artifact. Despite this breadth of functionality, the codebase is organized into well-defined internal modules with clear boundaries, making it a textbook Modular Monolith.
+
+## Primary: Modular Monolith
+
+**Single binary, multiple subsystems.** The Dockerfile (line ~644) shows `consul version` as a single binary smoke test. The go.mod (line 767) defines a single top-level module `github.com/hashicorp/consul` with local `replace` directives pointing to sub-modules (`./api`, `./envoyextensions`, `./proto-public`, `./sdk`, `./troubleshoot`). These are not independently deployed services — they are compiled together into one binary.
+
+**Well-structured internal module boundaries.** The directory structure reveals clear domain-oriented packages:
+- `internal/controller/` (17 files) — resource controller framework
+- `internal/resource/` (27 files) — resource management subsystem
+- `internal/storage/` — storage abstraction layer
+- `internal/gossip/` — gossip protocol internals
+- `internal/multicluster/` — multi-datacenter/cluster support
+- `internal/dnsutil/` — DNS subsystem utilities
+- `internal/go-sso/` — SSO/authentication
+
+**Separate proto definitions for public vs. private APIs.** The `proto/private/` directory contains sub-packages for each domain: `pboperator`, `pbpeering`, `pbstorage`, `pbcommon`, `pbautoconf`, `pbacl`, `pbconnect`, `pbservice`, `pbconfigentry`, `pbsubscribe`, `pbpeerstream`, `pbdemo`, `pbconfig`. The `proto-public/` (referenced via go.mod replace) and `grpcmocks/proto-public/` mirror this with `pbresource`, `pbconnectca`, `pbacl`, `pbserverdiscovery`, `pbdataplane`, `pbdns`. This separation of public/private proto APIs shows deliberate modular design within a single codebase.
+
+**Shared libraries in `lib/`.** Utility packages like `lib/retry/`, `lib/semaphore/`, `lib/routine/`, `lib/ttlcache/`, `lib/channels/`, `lib/hoststats/` provide cross-cutting infrastructure — characteristic of a monolith with shared internal libraries rather than microservices with duplicated utilities.
+
+**`envoyextensions/` as a cohesive module.** Contains `extensioncommon/` (adapters, extenders, runtime config) and `xdscommon/` (Envoy versioning, proxy support). This is a self-contained module within the monolith that handles Envoy sidecar proxy configuration — part of the Connect/service mesh subsystem.
+
+## Secondary: Microkernel (Plugin)
+
+Consul has a well-known plugin architecture for several subsystems:
+
+**CA Provider plugins.** The `proto/private/pbconnect` and Connect subsystem support pluggable Certificate Authority backends (built-in CA, Vault, AWS ACM PCA — evidenced by `github.com/aws/aws-sdk-go-v2/service/acmpca` in go.mod).
+
+**Envoy extension plugins.** The `envoyextensions/extensioncommon/` directory contains `basic_extension_adapter.go`, `basic_envoy_extender.go`, `upstream_envoy_extender.go`, and `envoy_extender.go` — a classic adapter/extender pattern allowing new Envoy extensions to be plugged in without modifying the core.
+
+**Cloud auto-join/discovery plugins.** The dependency `github.com/hashicorp/go-discover` provides pluggable cloud provider discovery (AWS, GCP, Azure, etc.) for cluster bootstrapping.
+
+**Enterprise extensions.** The Makefile distinguishes between `hashicorp/consul` and `hashicorp/consul-enterprise` images via build tags (`GOTAGS`), showing that enterprise features are layered on top of the open-source core — a microkernel pattern where the core is extended via compile-time plugins.
+
+## Secondary: Event-Driven
+
+**Gossip-based event propagation.** Consul uses the Serf gossip protocol (evidenced by the Dockerfile exposing ports 8301/8302 for Serf LAN/WAN) for membership management and event dissemination across the cluster. The `internal/gossip/` directory and `proto/private/pbsubscribe` (subscription-based event streaming) confirm asynchronous event-driven communication patterns.
+
+**gRPC streaming subscriptions.** The `proto/private/pbsubscribe` package and `grpcmocks/proto-public/` mock packages indicate a publish-subscribe model for state change propagation between Consul agents — servers stream updates to clients rather than clients polling.
+
+**Health check event loop.** Consul's health checking system operates on an event-driven model where check state changes trigger routing updates and circuit breaker actions.
+
+## Why not other styles
+
+- **Not Microservices**: Everything compiles into and deploys as a single binary. The different "services" (DNS, HTTP API, gRPC, Serf) are all ports on the same process.
+- **Not Layered**: While there are some layering concepts (API -> business logic -> storage), the primary organizing principle is by domain/module, not by horizontal layer.
+- **Not Hexagonal**: There is no explicit ports-and-adapters structure; the codebase uses Go's package-based module boundaries rather than formal hexagonal layering with dependency inversion at architectural boundaries.
+- **Not CQRS**: Read and write paths share the same Raft-based state store; there is no separation of command and query models.

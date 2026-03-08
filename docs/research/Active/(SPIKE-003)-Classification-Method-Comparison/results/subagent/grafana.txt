@@ -1,0 +1,66 @@
+PRIMARY_STYLE: Microkernel (Plugin)
+SECONDARY_STYLES: Modular Monolith, Layered
+CONFIDENCE: 0.85
+
+REASONING:
+
+1. PRIMARY: Microkernel (Plugin) Architecture
+
+Grafana's defining architectural characteristic is its plugin-based extensibility model. The entire system is designed around a core platform that hosts pluggable components for data sources, panels (visualizations), and applications. Evidence:
+
+- The README explicitly describes "Panel plugins offer many different ways to visualize metrics and logs" and "Mixed Data Sources: Mix different data sources in the same graph!" -- this is the essence of a microkernel: a core system with pluggable extensions.
+
+- `public/app/plugins/` directory in the build context and `pkg/plugins/` (15 files) in the backend demonstrate first-class plugin infrastructure on both frontend and backend.
+
+- `devenv/dev-dashboards/` contains directories organized by plugin type: `panel-timeseries`, `panel-canvas`, `panel-flamegraph`, `panel-gauge`, `panel-heatmap`, `panel-table`, `panel-barchart`, `panel-xychart`, `panel-geomap`, `panel-histogram`, `panel-piechart`, `panel-stat`, `panel-bargauge`, `panel-candlestick`, `panel-dashlist`, `panel-timeline`, `panel-status-history`, `panel-text`, `panel-polystat`, `panel-datagrid`, `panel-logstable`, `panel-trend`. Each panel type is a distinct plugin.
+
+- Data source plugins similarly follow a pluggable pattern: `datasource-mssql`, `datasource-mysql`, `datasource-postgres`, `datasource-loki`, `datasource-elasticsearch`, `datasource-influxdb`, `datasource-opentsdb`, `datasource-testdata`.
+
+- E2E tests include `e2e-playwright/test-plugins/` with test plugins like `frontend-sandbox-app-test`, `frontend-sandbox-datasource-test`, `grafana-test-datasource`, `grafana-test-panel`, `grafana-extensionstest-app`, `frontend-sandbox-panel-test` -- confirming a well-defined plugin API and sandbox model.
+
+- The `e2e-playwright/various-suite/frontend-sandbox-app.spec.ts` and `frontend-sandbox-datasource.spec.ts` tests indicate plugins run in sandboxed environments, a hallmark of microkernel architectures where the core isolates extensions.
+
+- `devenv/plugins.yaml` -- a dedicated plugin configuration file.
+
+- `data/plugins-bundled` directory created during Docker build confirms plugins are packaged separately from the core.
+
+- The `apps/` directory in the Dockerfile COPY commands lists numerous domain-specific applications: `apps/playlist`, `apps/quotas`, `apps/plugins`, `apps/shorturl`, `apps/annotation`, `apps/correlations`, `apps/preferences`, `apps/collections`, `apps/provisioning`, `apps/secret`, `apps/scope`, `apps/logsdrilldown`, `apps/advisor`, `apps/dashboard`, `apps/dashvalidator`, `apps/folder`, `apps/iam`, `apps/alerting/...`, `apps/example`. These are modular app plugins that extend the core platform.
+
+2. SECONDARY: Modular Monolith
+
+Despite the plugin architecture, Grafana deploys as a single Go binary with an embedded frontend. Evidence:
+
+- Single `go.mod` at the root defining module `github.com/grafana/grafana` with a massive dependency tree covering alerting, storage, identity, AWS, Azure, and more -- all compiled into one binary.
+
+- `packaging/wrappers/grafana-server` -- a single server binary wrapper.
+
+- `Dockerfile` builds one Go binary (`make build-go`) and one JS bundle (`yarn build`), combining them into a single container image.
+
+- `pkg/server/` (21 files) -- a unified server package that orchestrates all backend services.
+
+- `pkg/services/` directory exists as a catch-all for internal services (alerting, auth, dashboards, etc.) that are modules within the monolith rather than independent deployable units.
+
+- The `apps/` directory structure with individual `go.mod` files (visible from Dockerfile COPY patterns like `apps/playlist`, `apps/advisor`, etc.) shows a modular decomposition within the monolith -- each app is a Go module but they all compile into the same binary.
+
+- `go.work` at the root indicates a Go workspace linking multiple modules together, confirming modular-monolith composition.
+
+3. SECONDARY: Layered
+
+The backend follows a clear layered structure. Evidence:
+
+- `pkg/api/` (88 files) -- HTTP/API layer handling routing and request/response.
+- `pkg/services/` -- business logic/service layer.
+- `pkg/storage/` -- data access/storage layer (with `unified/resource`, `unified/resourcepb`, `unified/apistore` sub-packages).
+- `pkg/middleware/` (24 files) -- middleware layer for cross-cutting concerns (auth, logging, etc.).
+- `pkg/web/` (12 files) -- web framework layer.
+- `pkg/models/` -- domain models.
+- `pkg/infra/` -- infrastructure layer (including `pkg/infra/features` for feature flags).
+
+This is a classic layered decomposition: API -> Middleware -> Services -> Storage, with infrastructure as a cross-cutting concern.
+
+WHY NOT other styles:
+- Not Microservices: Single deployable unit, single binary, single container.
+- Not Event-Driven: While Grafana has `pkg/bus/` (2 files) and `pkg/events/` (1 file), these are minor internal communication mechanisms, not the primary architectural pattern.
+- Not CQRS: No evidence of separated read/write models.
+- Not Hexagonal: While there are some interface-based abstractions, the directory structure follows layers rather than ports-and-adapters.
+- The `pkg/apiserver/` and `pkg/aggregator/` suggest Kubernetes-style API aggregation is being adopted, but this is an implementation detail within the modular monolith rather than a separate architectural style.

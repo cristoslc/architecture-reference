@@ -1,0 +1,56 @@
+PRIMARY_STYLE: Modular Monolith
+SECONDARY_STYLES: Event-Driven, Service-Based
+CONFIDENCE: 0.82
+
+REASONING:
+
+1. PRIMARY: Modular Monolith
+
+PostHog is a textbook modular monolith. The core evidence:
+
+- The `products/` directory contains 30+ self-contained product modules, each with a consistent internal structure: `frontend/`, `backend/`, `manifest.tsx`, `__init__.py`, and `package.json`. Examples include `products/feature_flags/`, `products/experiments/`, `products/surveys/`, `products/error_tracking/`, `products/web_analytics/`, `products/replay/`, `products/data_warehouse/`, `products/workflows/`, etc. This is the hallmark of a modular monolith: domain-aligned modules within a single deployable unit.
+
+- The main application is a Django monolith (evidenced by `pyproject.toml` containing `django~=4.2.28`, `djangorestframework`, `manage.py` references in scripts, and the Dockerfile building a single Python/Django application image). All product modules share the same Django process, database (PostgreSQL), and deployment artifact.
+
+- The `Dockerfile` builds a single image containing the Django app, frontend static assets, and Node.js scripts — a unified deployment unit, not separate microservices.
+
+- The `products/README.md` and `products/architecture.md` files suggest an intentional product-oriented modular decomposition within the monolith. Each product module has both backend (Python/Django) and frontend (TypeScript/React) code co-located, enabling vertical slice ownership.
+
+- The `ee/` directory separates enterprise/proprietary code from the open-source core (MIT-licensed), but it is still part of the same monolithic deployment — not a separate service.
+
+2. SECONDARY: Event-Driven
+
+PostHog has strong event-driven characteristics layered on top of the monolith:
+
+- Kafka is a central infrastructure dependency. The `docker-compose.dev.yml` shows `capture` service depending on `kafka`, and the Node.js codebase (`nodejs/src/kafka/`, `nodejs/src/ingestion/`) is built around Kafka-based event processing.
+
+- The `nodejs/src/` directory contains dedicated event processing pipelines: `nodejs/src/ingestion/` (event ingestion), `nodejs/src/cdp/` (customer data platform / data pipelines), `nodejs/src/session-recording/`, `nodejs/src/session-replay/`, `nodejs/src/logs-ingestion/`. These are Kafka consumers processing event streams.
+
+- The product description explicitly calls out "Data pipelines: Run custom filters and transformations on your incoming data" — a fundamentally event-driven capability.
+
+- `aiokafka` and `kafka-python` are listed as Python dependencies, confirming Kafka integration in the Django backend as well.
+
+- Celery (`celery==5.3.6`, `celery-redbeat`) provides async task processing, another event-driven pattern within the monolith.
+
+3. SECONDARY: Service-Based
+
+While PostHog is primarily a monolith, it has decomposed certain high-throughput or specialized concerns into separate services:
+
+- The `docker-compose.dev.yml` Caddy proxy configuration reveals distinct services with independent routing: `capture` (port 3307, Rust-based event capture), `capture-ai` (port 3309), `replay-capture` (port 3306), `feature-flags` (port 3001), `plugins` (port 6738, Node.js plugin server), and `web` (port 8000, Django). This is service-based decomposition for performance-critical paths.
+
+- The `capture` service is a separate Rust application (evidenced by `rust/` directory references and `.cursor/rules/rust.mdc`), handling high-volume event ingestion independently from the Django monolith.
+
+- The `nodejs/` directory is a separate Node.js application (`Dockerfile.node` referenced in the main Dockerfile comments: "Node.js services are built separately using Dockerfile.node"), running as the `plugins` service for CDP, ingestion workers, and session recording processing.
+
+- `docker/livestream/` suggests an additional service for real-time streaming.
+
+- Dagster (`dagster==1.10.18` and related packages) is used for data pipeline orchestration, with product-specific DAGs (e.g., `products/llm_analytics/dags/`, `products/error_tracking/dags/`, `products/web_analytics/dags/`).
+
+This is not full microservices — the services share databases (PostgreSQL, ClickHouse, Redis) and are tightly coupled through Kafka topics and shared schemas. It is better described as a service-based architecture where a few specialized services surround the central Django monolith.
+
+WHY NOT OTHER STYLES:
+
+- Not Microservices: Services share databases, have a monolithic Django core, and there are only 4-5 auxiliary services — not the fine-grained decomposition characteristic of microservices.
+- Not CQRS: While ClickHouse (analytics/read) and PostgreSQL (application/write) hint at read/write separation, this is better characterized as polyglot persistence than a deliberate CQRS pattern with separate command/query models.
+- Not Microkernel/Plugin: The `plugins` service and `nodejs/src/worker/` suggest a plugin execution environment, but this is a subsystem within the larger architecture, not the primary architectural pattern.
+- Not Pipeline: While data ingestion follows a pipeline pattern (capture -> Kafka -> ingestion -> ClickHouse), this is a localized pattern within the event-driven subsystem, not the overall architecture.
