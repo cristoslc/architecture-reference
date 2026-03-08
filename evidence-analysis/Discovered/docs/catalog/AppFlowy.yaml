@@ -14,5 +14,78 @@ languages:
 - Rust
 - C/C++
 - Swift
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Hexagonal Architecture
+- Event-Driven
+classification_status: classified
+review_notes: 'The AppFlowy repository architecture is primarily a **Microkernel (Plugin)**
+  system, specifically designed to bridge a Flutter frontend with a highly modular
+  Rust backend via a centralized event dispatcher.
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The core of the system is the `AFPluginDispatcher` (found in `lib-dispatch` and
+  initialized in `flowy-core`).
+
+  - **Plugin Registry**: In `flowy-core/src/lib.rs`, the `make_plugins` function aggregates
+  various high-level modules (Folder, Database, User, Document, Search, AI) and registers
+  them as plugins.
+
+  - **Contract-Based Extension**: Each major feature is a separate crate (`flowy-database2`,
+  `flowy-document`, etc.). These are not linked via direct function calls from the
+  frontend but are accessed through the dispatcher.
+
+  - **Manifests**: The `Flowy.toml` files found in module roots (e.g., `flowy-database2/Flowy.toml`)
+  serve as plugin manifests, defining code generation targets for events and protocol
+  buffers.
+
+
+  ### 2. Secondary Style: Hexagonal Architecture (Ports and Adapters)
+
+  The backend is structured to isolate the core business logic from external drivers
+  and driven actors.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:38:52Z'
+classification_reasoning: "The AppFlowy repository architecture is primarily a **Microkernel\
+  \ (Plugin)** system, specifically designed to bridge a Flutter frontend with a highly\
+  \ modular Rust backend via a centralized event dispatcher.\n\n### 1. Primary Style:\
+  \ Microkernel (Plugin)\nThe core of the system is the `AFPluginDispatcher` (found\
+  \ in `lib-dispatch` and initialized in `flowy-core`).\n- **Plugin Registry**: In\
+  \ `flowy-core/src/lib.rs`, the `make_plugins` function aggregates various high-level\
+  \ modules (Folder, Database, User, Document, Search, AI) and registers them as plugins.\n\
+  - **Contract-Based Extension**: Each major feature is a separate crate (`flowy-database2`,\
+  \ `flowy-document`, etc.). These are not linked via direct function calls from the\
+  \ frontend but are accessed through the dispatcher.\n- **Manifests**: The `Flowy.toml`\
+  \ files found in module roots (e.g., `flowy-database2/Flowy.toml`) serve as plugin\
+  \ manifests, defining code generation targets for events and protocol buffers.\n\
+  \n### 2. Secondary Style: Hexagonal Architecture (Ports and Adapters)\nThe backend\
+  \ is structured to isolate the core business logic from external drivers and driven\
+  \ actors.\n- **Adapters**: The `dart-ffi` crate acts as a primary **Inbound Adapter**,\
+  \ converting FFI calls into internal `AFPluginRequest` objects. The `flowy-server`\
+  \ crate serves as an **Outbound Adapter** for cloud synchronization.\n- **Dependency\
+  \ Inversion**: `flowy-core` manages complex dependency resolution (`deps_resolve/`)\
+  \ where managers (e.g., `DocumentManager`, `FolderManager`) are injected with trait\
+  \ implementations or weak pointers to other services, keeping the domain logic separated\
+  \ from infrastructure concerns like SQLite persistence or Network I/O.\n\n### 3.\
+  \ Secondary Style: Event-Driven\nCommunication between the Flutter UI and the Rust\
+  \ core, as well as inter-module communication, is handled via a request/response\
+  \ event bus. \n- **Dispatcher Pattern**: `lib-dispatch` defines a systematic way\
+  \ to route events. UI actions in Flutter are dispatched as asynchronous events (see\
+  \ `async_event` in `dart-ffi/src/lib.rs`) that the Rust kernel routes to the appropriate\
+  \ plugin/module.\n- **Decoupling**: This allows the frontend to interact with the\
+  \ backend without knowing specific Rust types, relying instead on serialized Protobuf\
+  \ messages and event IDs.\n\n### 4. Rejected Styles\n- **Microservices**: Although\
+  \ there are \"services\" and \"managers,\" they are compiled into a single binary\
+  \ for desktop/mobile deployment.\n- **Layered**: While horizontal layers exist (UI,\
+  \ Business Logic, Data), the strict enforcement of boundaries through a plugin-dispatch\
+  \ mechanism and the heavy use of dependency injection makes it more advanced than\
+  \ a standard MVC/Layered architecture.\n- **Modular Monolith**: While it is a single\
+  \ deployable unit, the architecture is specifically built around a \"Core + Plugins\"\
+  \ model rather than just logically separated packages. The presence of a central\
+  \ orchestrator (`AFPluginDispatcher`) is the deciding factor for Microkernel over\
+  \ generic Modular Monolith."

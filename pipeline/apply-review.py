@@ -59,7 +59,8 @@ except ImportError:
 
 
 def apply_review(entry_path, styles, confidence, summary, notes,
-                 entry_type=None, repos=None, method="llm-review"):
+                 entry_type=None, repos=None, method="llm-review",
+                 reasoning=None, classification_model=None):
     """Apply review results to a catalog entry, preserving existing fields."""
     entry = load_yaml(entry_path)
     if not entry or not isinstance(entry, dict):
@@ -101,16 +102,28 @@ def apply_review(entry_path, styles, confidence, summary, notes,
     if repos:
         entry["constituent_repos"] = repos
 
-    # Update discovery_metadata
-    meta = entry.get("discovery_metadata", {})
-    if not isinstance(meta, dict):
-        meta = {}
-
-    meta["confidence"] = confidence
-    meta["classification_method"] = method
-    # primary_style_confidence tracks the top style's confidence
-    meta["primary_style_confidence"] = confidence
-    entry["discovery_metadata"] = meta
+    # Deep-analysis / SPEC-024 fields
+    if method == "deep-analysis":
+        from datetime import datetime, timezone
+        entry["classification_status"] = "classified"
+        entry["classification_method"] = method
+        entry["classification_confidence"] = confidence
+        if classification_model:
+            entry["classification_model"] = classification_model
+        entry["classification_date"] = datetime.now(timezone.utc).strftime(
+            "%Y-%m-%dT%H:%M:%SZ"
+        )
+        if reasoning:
+            entry["classification_reasoning"] = reasoning
+    else:
+        # Legacy review mode — update discovery_metadata
+        meta = entry.get("discovery_metadata", {})
+        if not isinstance(meta, dict):
+            meta = {}
+        meta["confidence"] = confidence
+        meta["classification_method"] = method
+        meta["primary_style_confidence"] = confidence
+        entry["discovery_metadata"] = meta
 
     # Write back
     output = dump_yaml(entry)
@@ -160,7 +173,15 @@ def main():
     parser.add_argument(
         "--method", default="llm-review",
         help="Classification method name (default: llm-review). "
-             "Use 'deep-validation' for deep-context validation pass."
+             "Use 'deep-analysis' for SPEC-024 deep-analysis pass."
+    )
+    parser.add_argument(
+        "--reasoning",
+        help="Full classification reasoning text (for deep-analysis mode)"
+    )
+    parser.add_argument(
+        "--classification-model",
+        help="Model identifier used for this classification (for deep-analysis mode)"
     )
     args = parser.parse_args()
 
@@ -189,7 +210,9 @@ def main():
                 repos.append({"url": parts[0].strip(), "role": ""})
 
     apply_review(args.entry, styles, confidence, args.summary, args.notes,
-                 entry_type=args.entry_type, repos=repos, method=args.method)
+                 entry_type=args.entry_type, repos=repos, method=args.method,
+                 reasoning=args.reasoning,
+                 classification_model=args.classification_model)
 
 
 if __name__ == "__main__":

@@ -13,5 +13,104 @@ language: PHP
 languages:
 - PHP
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+classification_status: classified
+review_notes: 'The Akaunting repository is a classic example of a **Modular Monolith**.
+  While it is a single deployable Laravel application, it is strictly organized into
+  functional modules with a clear infrastructure for extensibility.
+
+
+  ### 1. Primary Style: Modular Monolith
+
+  The codebase is structured to support a high degree of modularity while remaining
+  a single system:
+
+  - **Module Infrastructure:** The system uses the `akaunting/laravel-module` package
+  to manage internal boundaries. The `composer.json` file explicitly defines a PSR-4
+  namespace `Modules\` mapped to the `modules/` directory, allowing modular code to
+  live alongside the core.
+
+  - **App Store/Plugin-Ready:** The `extra.installer-paths` in `composer.json` shows
+  that external modules (like `akaunting/module-paypal-standard`) are installed directly
+  into the `modules/` directory. This indicates a system where the "Monolith" core
+  provides the foundation, and features are partitioned into discrete, swappable components.
+
+  - **Shared Database/Common Core:** Despite the modularity, the `database/migrations`
+  and `app/Models/Common` directories show a unified schema and shared data access
+  patterns, which is a hallmark of the modular monolith (distinct from Microservices
+  where data is private to each service).
+
+
+  ### 2. Secondary Style: Event-Driven
+
+  Akaunting leans heavily on an **Event-Driven** architecture for internal component
+  communication and side-effect management:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:38:26Z'
+classification_reasoning: 'The Akaunting repository is a classic example of a **Modular
+  Monolith**. While it is a single deployable Laravel application, it is strictly
+  organized into functional modules with a clear infrastructure for extensibility.
+
+
+  ### 1. Primary Style: Modular Monolith
+
+  The codebase is structured to support a high degree of modularity while remaining
+  a single system:
+
+  - **Module Infrastructure:** The system uses the `akaunting/laravel-module` package
+  to manage internal boundaries. The `composer.json` file explicitly defines a PSR-4
+  namespace `Modules\` mapped to the `modules/` directory, allowing modular code to
+  live alongside the core.
+
+  - **App Store/Plugin-Ready:** The `extra.installer-paths` in `composer.json` shows
+  that external modules (like `akaunting/module-paypal-standard`) are installed directly
+  into the `modules/` directory. This indicates a system where the "Monolith" core
+  provides the foundation, and features are partitioned into discrete, swappable components.
+
+  - **Shared Database/Common Core:** Despite the modularity, the `database/migrations`
+  and `app/Models/Common` directories show a unified schema and shared data access
+  patterns, which is a hallmark of the modular monolith (distinct from Microservices
+  where data is private to each service).
+
+
+  ### 2. Secondary Style: Event-Driven
+
+  Akaunting leans heavily on an **Event-Driven** architecture for internal component
+  communication and side-effect management:
+
+  - **Extensive Event Mapping:** The `app/Providers/Event.php` file contains a massive
+  mapping of application events (e.g., `DocumentCreated`, `PaymentReceived`, `Module\Installed`)
+  to multiple listeners. This decouples the core business logic from secondary actions
+  like updating history, sending notifications, or clearing caches.
+
+  - **Asynchronous Processing:** The presence of a vast `app/Jobs` directory (e.g.,
+  `app/Jobs/Document/SendDocument.php`) indicates that the system frequently offloads
+  work to queues (Job-based event handling), a common pattern in mature Event-Driven
+  systems to ensure responsiveness.
+
+
+  ### 3. Structural Observations
+
+  - **Traditional Layering (Internal):** Within the core and modules, the system follows
+  a traditional **Layered** approach (Controllers -> Jobs/Services -> Models), which
+  is the standard implementation detail for most Laravel-based monoliths.
+
+  - **Command Pattern:** The heavy use of the "Jobs" directory (one per business action,
+  e.g., `CreateInvoice`, `DeleteUser`) suggests an implementation of the Command pattern,
+  often paired with CQRS or simple service layers to encapsulate business logic.
+
+
+  ### Rejection of Other Styles
+
+  - **Microservices:** While it has "modules," they are not independently deployable
+  processes with private databases. They live in the same repo, share the same database,
+  and run in the same execution context.
+
+  - **Hexagonal Architecture:** While some separation exists, the models are deeply
+  coupled to Eloquent (Active Record), and the "Abstracts" are framework-centric rather
+  than pure domain ports.'

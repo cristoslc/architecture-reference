@@ -1,32 +1,37 @@
 #!/usr/bin/env bash
-# llm-review.sh — Automated LLM classification of Indeterminate catalog entries
+# llm-review.sh — Automated LLM classification of catalog entries
 #
-# Uses the `llm` CLI to classify repos that the heuristic classifier could not
-# resolve (review_required: true). Supports multi-turn conversations where the
+# Uses the `llm` CLI to classify repos via multi-turn conversations where the
 # LLM can request additional context (files, directory trees, grep results).
 #
 # Usage:
 #   pipeline/llm-review.sh [OPTIONS]
 #
 # Options:
-#   --tier <1|2|3|all>   Confidence band to process (default: all)
-#   --max-turns <N>      Max LLM turns per repo (default: 4)
-#   --model <ID>         LLM model (default: claude-sonnet-4-6)
+#   --mode <review|deep-analysis>  Classification mode (default: deep-analysis)
+#   --tier <1|2|3|all>   Confidence band to process (review mode only)
+#   --max-turns <N>      Max LLM turns per repo (default: 6)
+#   --max-retries <N>    Max parse retries per turn (default: 2)
+#   --model <ID>         LLM model (default: openrouter/google/gemini-3-flash-preview)
 #   --clone-dir <PATH>   Directory for cached repo clones
 #   --dry-run            List entries without processing
 #   --limit <N>          Process at most N entries
+#   --offset <N>         Skip first N entries (default: 0)
 #   --catalog <PATH>     Catalog directory (default: evidence-analysis/Discovered/docs/catalog)
 #   --verbose            Show detailed progress
 
 set -uo pipefail
 
 # ── Defaults ──────────────────────────────────────────────────────────────────
+MODE="deep-analysis"
 TIER="all"
-MAX_TURNS=4
-MODEL=""
-CLONE_DIR=""
+MAX_TURNS=6
+MAX_PARSE_RETRIES=2
+MODEL="openrouter/google/gemini-3-flash-preview"
+CLONE_DIR=".clone-cache"
 DRY_RUN=false
 LIMIT=0
+OFFSET=0
 CATALOG_DIR="evidence-analysis/Discovered/docs/catalog"
 VERBOSE=false
 
@@ -54,14 +59,17 @@ FIND_PRUNE_DIRS=(
 # ── CLI parsing ───────────────────────────────────────────────────────────────
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --tier)       TIER="$2"; shift 2 ;;
-    --max-turns)  MAX_TURNS="$2"; shift 2 ;;
-    --model)      MODEL="$2"; shift 2 ;;
-    --clone-dir)  CLONE_DIR="$2"; shift 2 ;;
-    --dry-run)    DRY_RUN=true; shift ;;
-    --limit)      LIMIT="$2"; shift 2 ;;
-    --catalog)    CATALOG_DIR="$2"; shift 2 ;;
-    --verbose)    VERBOSE=true; shift ;;
+    --mode)         MODE="$2"; shift 2 ;;
+    --tier)         TIER="$2"; shift 2 ;;
+    --max-turns)    MAX_TURNS="$2"; shift 2 ;;
+    --max-retries)  MAX_PARSE_RETRIES="$2"; shift 2 ;;
+    --model)        MODEL="$2"; shift 2 ;;
+    --clone-dir)    CLONE_DIR="$2"; shift 2 ;;
+    --dry-run)      DRY_RUN=true; shift ;;
+    --limit)        LIMIT="$2"; shift 2 ;;
+    --offset)       OFFSET="$2"; shift 2 ;;
+    --catalog)      CATALOG_DIR="$2"; shift 2 ;;
+    --verbose)      VERBOSE=true; shift ;;
     -h|--help)
       head -20 "$0" | grep '^#' | sed 's/^# \?//'
       exit 0 ;;
@@ -107,37 +115,44 @@ scan_entries() {
   for yaml_file in "$CATALOG_DIR"/*.yaml; do
     [[ -f "$yaml_file" ]] || continue
 
-    # Check review_required
-    if ! grep -q "^review_required: true" "$yaml_file"; then
-      continue
-    fi
-
-    # Check tier filter
-    if [[ "$TIER" != "all" ]]; then
-      local confidence
-      confidence=$(grep "^  confidence:" "$yaml_file" | head -1 | awk '{print $2}')
-      if [[ -z "$confidence" ]]; then
+    if [[ "$MODE" == "deep-analysis" ]]; then
+      # Deep-analysis mode: find pending entries
+      if ! grep -q "^classification_status: pending" "$yaml_file"; then
+        continue
+      fi
+    else
+      # Review mode: find review_required entries
+      if ! grep -q "^review_required: true" "$yaml_file"; then
         continue
       fi
 
-      local in_tier=false
-      case "$TIER" in
-        1) # 0.70 - 0.84
-          if (( $(echo "$confidence >= 0.70 && $confidence <= 0.84" | bc -l) )); then
-            in_tier=true
-          fi ;;
-        2) # 0.50 - 0.69
-          if (( $(echo "$confidence >= 0.50 && $confidence <= 0.69" | bc -l) )); then
-            in_tier=true
-          fi ;;
-        3) # 0.30 - 0.49
-          if (( $(echo "$confidence >= 0.30 && $confidence <= 0.49" | bc -l) )); then
-            in_tier=true
-          fi ;;
-      esac
+      # Check tier filter
+      if [[ "$TIER" != "all" ]]; then
+        local confidence
+        confidence=$(grep "^  confidence:" "$yaml_file" | head -1 | awk '{print $2}')
+        if [[ -z "$confidence" ]]; then
+          continue
+        fi
 
-      if [[ "$in_tier" != "true" ]]; then
-        continue
+        local in_tier=false
+        case "$TIER" in
+          1) # 0.70 - 0.84
+            if (( $(echo "$confidence >= 0.70 && $confidence <= 0.84" | bc -l) )); then
+              in_tier=true
+            fi ;;
+          2) # 0.50 - 0.69
+            if (( $(echo "$confidence >= 0.50 && $confidence <= 0.69" | bc -l) )); then
+              in_tier=true
+            fi ;;
+          3) # 0.30 - 0.49
+            if (( $(echo "$confidence >= 0.30 && $confidence <= 0.49" | bc -l) )); then
+              in_tier=true
+            fi ;;
+        esac
+
+        if [[ "$in_tier" != "true" ]]; then
+          continue
+        fi
       fi
     fi
 
@@ -171,31 +186,24 @@ ensure_clone() {
     return
   fi
 
-  # On-demand shallow clone to temp dir (60s timeout)
+  # On-demand shallow clone to cache dir (120s timeout)
+  if [[ -n "$CLONE_DIR" ]]; then
+    mkdir -p "$CLONE_DIR"
+    if ${TIMEOUT_CMD:+$TIMEOUT_CMD 120} git clone --depth 1 --quiet "$repo_url" "$CLONE_DIR/$repo_name" 2>/dev/null; then
+      echo "$CLONE_DIR/$repo_name"
+      return
+    fi
+  fi
+
+  # Fallback: temp dir
   local tmp_dir
   tmp_dir=$(mktemp -d)
-  if ${TIMEOUT_CMD:+$TIMEOUT_CMD 60} git clone --depth 1 --quiet "$repo_url" "$tmp_dir/$repo_name" 2>/dev/null; then
+  if ${TIMEOUT_CMD:+$TIMEOUT_CMD 120} git clone --depth 1 --quiet "$repo_url" "$tmp_dir/$repo_name" 2>/dev/null; then
     echo "$tmp_dir/$repo_name"
   else
     rm -rf "$tmp_dir"
     echo ""
   fi
-}
-
-# ── build_find_prune: construct find -prune expression ────────────────────────
-build_find_prune() {
-  local prune_expr="("
-  local first=true
-  for dir in "${FIND_PRUNE_DIRS[@]}"; do
-    if [[ "$first" == "true" ]]; then
-      prune_expr+=" -name \"$dir\""
-      first=false
-    else
-      prune_expr+=" -o -name \"$dir\""
-    fi
-  done
-  prune_expr+=" ) -prune"
-  echo "$prune_expr"
 }
 
 # ── repo_map: generate directory tree ─────────────────────────────────────────
@@ -211,7 +219,6 @@ repo_map() {
 
   local target_dir="$clone_path/$base_path"
 
-  # Build prune expression for find
   local prune_expr=""
   local first=true
   for dir in "${FIND_PRUNE_DIRS[@]}"; do
@@ -224,7 +231,7 @@ repo_map() {
   done
 
   eval "find \"$target_dir\" -maxdepth \"$depth\" \\( $prune_expr \\) -prune -o -print" 2>/dev/null \
-    | head -200 \
+    | head -300 \
     | sed "s|$clone_path/||"
 }
 
@@ -234,10 +241,12 @@ assemble_context() {
   local clone_path="$2"
   local context=""
 
-  # Catalog YAML
-  context+="## Catalog Entry (YAML)\n\n\`\`\`yaml\n"
-  context+="$(cat "$yaml_file")"
-  context+="\n\`\`\`\n\n"
+  # In deep-analysis mode, do NOT include catalog YAML — clean slate, no anchoring
+  if [[ "$MODE" != "deep-analysis" ]]; then
+    context+="## Catalog Entry (YAML)\n\n\`\`\`yaml\n"
+    context+="$(cat "$yaml_file")"
+    context+="\n\`\`\`\n\n"
+  fi
 
   if [[ -n "$clone_path" && -d "$clone_path" ]]; then
     # README
@@ -254,12 +263,14 @@ assemble_context() {
       context+="\n\n"
     fi
 
-    # Repo map
-    context+="## Repository Map (depth 3)\n\n\`\`\`\n"
-    context+="$(repo_map "$clone_path")"
+    # Repo map (depth 4 for deep-analysis, 3 for review)
+    local map_depth=3
+    [[ "$MODE" == "deep-analysis" ]] && map_depth=4
+    context+="## Repository Map (depth $map_depth)\n\n\`\`\`\n"
+    context+="$(repo_map "$clone_path" "." "$map_depth")"
     context+="\n\`\`\`\n\n"
   else
-    context+="## Note\n\nNo local clone available. Classify based on catalog metadata only, or return needs_info to request specific files.\n\n"
+    context+="## Note\n\nNo local clone available. Classify based on available metadata only, or return needs_info to request specific files.\n\n"
   fi
 
   echo -e "$context"
@@ -317,7 +328,6 @@ fulfill_requests() {
         fi
         if [[ -n "$matches" ]]; then
           fulfilled+="Matching files:\n\`\`\`\n$matches\n\`\`\`\n"
-          # Cat the first match
           local first_match
           first_match=$(echo "$matches" | head -1)
           if [[ -f "$clone_path/$first_match" ]]; then
@@ -354,103 +364,213 @@ fulfill_requests() {
   echo -e "$fulfilled"
 }
 
-# ── parse_response: extract and validate LLM JSON response ───────────────────
-parse_response() {
+# ── parse_yaml_frontmatter: extract YAML frontmatter from response ────────────
+parse_yaml_frontmatter() {
   local response="$1"
-
-  # Extract JSON from response (handle potential markdown wrapping)
-  local json
-  json=$(echo "$response" | python3 -c "
-import sys, json, re
-
+  echo "$response" | python3 -c "
+import sys, re, yaml, json
 text = sys.stdin.read()
-
-# Try parsing directly
-try:
-    obj = json.loads(text)
-    print(json.dumps(obj))
-    sys.exit(0)
-except json.JSONDecodeError:
-    pass
-
-# Try extracting from markdown code block
-match = re.search(r'\`\`\`(?:json)?\s*\n(.*?)\n\`\`\`', text, re.DOTALL)
-if match:
+result = None
+# Match --- delimited YAML frontmatter (at start or after whitespace)
+m = re.search(r'(?:^|\n)\s*---\s*\n(.*?)\n\s*---', text, re.DOTALL)
+if m and result is None:
     try:
-        obj = json.loads(match.group(1))
-        print(json.dumps(obj))
-        sys.exit(0)
-    except json.JSONDecodeError:
-        pass
-
-# Try finding JSON object in text
-match = re.search(r'\{.*\}', text, re.DOTALL)
-if match:
+        d = yaml.safe_load(m.group(1))
+        if isinstance(d, dict):
+            result = d
+    except: pass
+# Fallback: try JSON in code block
+if result is None:
+    m = re.search(r'\x60\x60\x60(?:json)?\s*\n(.*?)\n\x60\x60\x60', text, re.DOTALL)
+    if m:
+        try:
+            d = json.loads(m.group(1))
+            if isinstance(d, dict):
+                result = d
+        except: pass
+# Fallback 2: try bare JSON object
+if result is None:
+    stripped = text.strip()
+    if stripped.startswith('{'):
+        try:
+            d = json.loads(stripped)
+            if isinstance(d, dict) and 'verdict' in d:
+                result = d
+        except: pass
+# Fallback 3: try old-style JSON (entire response is JSON, even without verdict)
+if result is None:
     try:
-        obj = json.loads(match.group(0))
-        print(json.dumps(obj))
-        sys.exit(0)
-    except json.JSONDecodeError:
-        pass
-
-print('{}')
-sys.exit(1)
-" 2>/dev/null)
-
-  echo "$json"
+        d = json.loads(text)
+        if isinstance(d, dict):
+            result = d
+    except: pass
+json.dump(result if result else {}, sys.stdout)
+" 2>/dev/null
 }
 
-# ── get_verdict: extract verdict from parsed JSON ─────────────────────────────
+# ── is_parse_empty ────────────────────────────────────────────────────────────
+is_parse_empty() {
+  local parsed="$1"
+  [[ -z "$parsed" || "$parsed" == "{}" || "$parsed" == "null" ]]
+}
+
+# ── get_verdict ───────────────────────────────────────────────────────────────
 get_verdict() {
   echo "$1" | python3 -c "import sys,json; print(json.load(sys.stdin).get('verdict','error'))" 2>/dev/null || echo "error"
 }
 
-# ── apply_classification: call apply-review.py ────────────────────────────────
+# ── extract_requests_json ─────────────────────────────────────────────────────
+extract_requests_json() {
+  local parsed_json="$1"
+  echo "$parsed_json" | python3 -c "
+import sys, json
+d = json.load(sys.stdin)
+print(json.dumps(d.get('requests', [])))
+" 2>/dev/null || echo "[]"
+}
+
+# ── extract_prose_reasoning: get text after YAML frontmatter ──────────────────
+extract_prose_reasoning() {
+  local response="$1"
+  echo "$response" | python3 -c "
+import sys, re
+text = sys.stdin.read()
+# Find the closing --- of YAML frontmatter and return everything after
+m = re.search(r'(?:^|\n)\s*---\s*\n.*?\n\s*---\s*\n(.*)', text, re.DOTALL)
+if m:
+    prose = m.group(1).strip()
+    if prose:
+        print(prose)
+        sys.exit(0)
+# If no frontmatter, return everything (for JSON responses, the prose may follow)
+m = re.search(r'\x60\x60\x60(?:json)?\s*\n.*?\n\x60\x60\x60\s*\n(.*)', text, re.DOTALL)
+if m:
+    prose = m.group(1).strip()
+    if prose:
+        print(prose)
+        sys.exit(0)
+# Fallback: try notes field from old JSON format
+print('')
+" 2>/dev/null
+}
+
+# ── retry_parse: ask model to reformat on parse failure ───────────────────────
+retry_parse() {
+  local raw_response="$1" retry_num="$2" model_flag="$3"
+  log "    Parse retry $retry_num: asking model to reformat..."
+  local retry_response
+  retry_response=$(echo "Your previous response could not be parsed as valid YAML frontmatter or JSON. Here is your raw response:
+
+---BEGIN RAW RESPONSE---
+$raw_response
+---END RAW RESPONSE---
+
+Please reformat your response. Start with valid YAML frontmatter between --- delimiters, like this:
+
+---
+verdict: classified
+primary_style: StyleName
+secondary_styles:
+  - Style2
+confidence: 0.85
+---
+
+Your analysis text here...
+
+IMPORTANT: Each YAML key must appear exactly once. Do not write 'type: type: file' — write 'type: file'." | llm $model_flag -c 2>/dev/null || echo "ERROR: llm retry call failed")
+  echo "$retry_response"
+}
+
+# ── apply_classification: write results to catalog YAML ───────────────────────
 apply_classification() {
   local yaml_file="$1"
-  local json_response="$2"
+  local parsed_json="$2"
+  local reasoning="$3"
 
-  local styles confidence summary notes entry_type
+  local primary_style secondary_styles_csv confidence
 
-  styles=$(echo "$json_response" | python3 -c "
+  # Extract from YAML frontmatter format (primary_style + secondary_styles)
+  primary_style=$(echo "$parsed_json" | python3 -c "
 import sys,json
 d=json.load(sys.stdin)
-print(','.join(d.get('styles',[])))
+# Try YAML frontmatter format
+ps = d.get('primary_style','')
+if ps:
+    print(ps)
+else:
+    # Fallback: old JSON format (styles array)
+    styles = d.get('styles',[])
+    print(styles[0] if styles else '')
 " 2>/dev/null)
 
-  confidence=$(echo "$json_response" | python3 -c "
+  secondary_styles_csv=$(echo "$parsed_json" | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+ss = d.get('secondary_styles',[])
+if ss:
+    print(','.join(ss))
+else:
+    # Fallback: old JSON format (styles array minus first)
+    styles = d.get('styles',[])
+    if len(styles) > 1:
+        print(','.join(styles[1:]))
+    else:
+        print('')
+" 2>/dev/null)
+
+  confidence=$(echo "$parsed_json" | python3 -c "
 import sys,json; print(json.load(sys.stdin).get('confidence',0.0))
 " 2>/dev/null)
 
-  summary=$(echo "$json_response" | python3 -c "
+  # Build styles list
+  local all_styles="$primary_style"
+  if [[ -n "$secondary_styles_csv" ]]; then
+    all_styles="$primary_style,$secondary_styles_csv"
+  fi
+
+  local summary notes
+  summary=$(echo "$parsed_json" | python3 -c "
 import sys,json; print(json.load(sys.stdin).get('summary',''))
 " 2>/dev/null)
-
-  notes=$(echo "$json_response" | python3 -c "
+  notes=$(echo "$parsed_json" | python3 -c "
 import sys,json; print(json.load(sys.stdin).get('notes',''))
 " 2>/dev/null)
 
-  entry_type=$(echo "$json_response" | python3 -c "
-import sys,json; print(json.load(sys.stdin).get('entry_type','repo'))
-" 2>/dev/null)
+  # For deep-analysis mode, pass reasoning and model info
+  local method_arg="llm-review"
+  local extra_args=()
+  if [[ "$MODE" == "deep-analysis" ]]; then
+    method_arg="deep-analysis"
+    extra_args+=(--reasoning "$reasoning")
+    extra_args+=(--classification-model "$MODEL")
+  fi
 
   local cmd=(python3 "${SCRIPT_DIR}/apply-review.py"
     --entry "$yaml_file"
     --confidence "$confidence"
-    --notes "$notes"
+    --method "$method_arg"
   )
 
-  if [[ -n "$styles" ]]; then
-    cmd+=(--styles "$styles")
+  if [[ -n "$all_styles" ]]; then
+    cmd+=(--styles "$all_styles")
   fi
 
   if [[ -n "$summary" ]]; then
     cmd+=(--summary "$summary")
   fi
 
-  if [[ "$entry_type" == "ecosystem" ]]; then
-    cmd+=(--entry-type ecosystem)
+  if [[ -n "$notes" && -z "$reasoning" ]]; then
+    cmd+=(--notes "$notes")
+  elif [[ -n "$reasoning" ]]; then
+    # Use first 500 chars of reasoning as notes if no explicit notes
+    local short_notes
+    short_notes=$(echo "$reasoning" | head -10 | cut -c1-500)
+    cmd+=(--notes "$short_notes")
+  else
+    cmd+=(--notes "Classified by $MODEL")
   fi
+
+  cmd+=("${extra_args[@]}")
 
   "${cmd[@]}" >&2
 }
@@ -474,30 +594,46 @@ process_entry() {
 
   # Turn 1: initial LLM call
   local turn=1
-  local response json verdict
+  local parse_retries=0
   local total_llm_calls=0
+  local model_flag="-m $MODEL"
 
   verbose "Turn $turn: calling LLM..."
-  local model_flag=""
-  [[ -n "$MODEL" ]] && model_flag="-m $MODEL"
+  local response
   response=$(echo "$context" | llm $model_flag -s "$(cat "$SYSTEM_PROMPT")" 2>/dev/null || echo '{"verdict":"error"}')
   total_llm_calls=$((total_llm_calls + 1))
 
-  json=$(parse_response "$response")
-  verdict=$(get_verdict "$json")
-  verbose "Turn $turn verdict: $verdict"
+  # Parse with retry
+  local parsed
+  parsed=$(parse_yaml_frontmatter "$response")
+  while is_parse_empty "$parsed" && [[ $parse_retries -lt $MAX_PARSE_RETRIES ]]; do
+    parse_retries=$((parse_retries + 1))
+    response=$(retry_parse "$response" "$parse_retries" "$model_flag")
+    total_llm_calls=$((total_llm_calls + 1))
+    parsed=$(parse_yaml_frontmatter "$response")
+  done
+
+  local verdict
+  if is_parse_empty "$parsed"; then
+    verdict="error"
+    log "  Parse failed after $parse_retries retries"
+  else
+    verdict=$(get_verdict "$parsed")
+  fi
+  verbose "Turn $turn verdict: $verdict (parse_retries=$parse_retries)"
 
   # Multi-turn loop
   while [[ "$verdict" == "needs_info" && $turn -lt $MAX_TURNS ]]; do
     turn=$((turn + 1))
+    parse_retries=0
 
     local requests
-    requests=$(echo "$json" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin).get('requests',[])))" 2>/dev/null)
+    requests=$(extract_requests_json "$parsed")
 
     local fulfilled
     fulfilled=$(fulfill_requests "$requests" "$clone_path")
 
-    verbose "Turn $turn: fulfilling ${requests} and calling LLM..."
+    verbose "Turn $turn: fulfilling requests and calling LLM..."
     response=$(echo "Here is the additional information you requested:
 
 $fulfilled
@@ -505,29 +641,46 @@ $fulfilled
 Please classify this repository now." | llm $model_flag -c 2>/dev/null || echo '{"verdict":"error"}')
     total_llm_calls=$((total_llm_calls + 1))
 
-    json=$(parse_response "$response")
-    verdict=$(get_verdict "$json")
-    verbose "Turn $turn verdict: $verdict"
+    parsed=$(parse_yaml_frontmatter "$response")
+    while is_parse_empty "$parsed" && [[ $parse_retries -lt $MAX_PARSE_RETRIES ]]; do
+      parse_retries=$((parse_retries + 1))
+      response=$(retry_parse "$response" "$parse_retries" "$model_flag")
+      total_llm_calls=$((total_llm_calls + 1))
+      parsed=$(parse_yaml_frontmatter "$response")
+    done
+
+    if is_parse_empty "$parsed"; then
+      verdict="error"
+      log "  Parse failed on turn $turn after $parse_retries retries"
+      break
+    fi
+
+    verdict=$(get_verdict "$parsed")
+    verbose "Turn $turn verdict: $verdict (parse_retries=$parse_retries)"
   done
+
+  # Extract prose reasoning (text after YAML frontmatter)
+  local reasoning=""
+  if [[ "$verdict" == "classified" ]]; then
+    reasoning=$(extract_prose_reasoning "$response")
+  fi
 
   # Route verdict
   local result_status="unknown"
   case "$verdict" in
     classified)
-      apply_classification "$yaml_file" "$json"
+      apply_classification "$yaml_file" "$parsed" "$reasoning"
       result_status="classified"
       ;;
     unclassifiable)
       local reason
-      reason=$(echo "$json" | python3 -c "import sys,json; print(json.load(sys.stdin).get('reason',''))" 2>/dev/null)
+      reason=$(echo "$parsed" | python3 -c "import sys,json; print(json.load(sys.stdin).get('reason',''))" 2>/dev/null)
       log "  Unclassifiable: $reason"
-      # Mark as needing review — force confidence to 0 so apply-review.py
-      # correctly sets review_required: true (the LLM's confidence score
-      # means "confident it IS unclassifiable", not classification confidence)
       python3 "${SCRIPT_DIR}/apply-review.py" \
         --entry "$yaml_file" \
         --confidence 0.0 \
-        --notes "LLM review: unclassifiable — $reason" >&2
+        --notes "LLM review: unclassifiable — $reason" \
+        --method "$([[ "$MODE" == "deep-analysis" ]] && echo "deep-analysis" || echo "llm-review")" >&2
       result_status="unclassifiable"
       ;;
     needs_info)
@@ -540,7 +693,7 @@ Please classify this repository now." | llm $model_flag -c 2>/dev/null || echo '
       ;;
   esac
 
-  # Clean up temp clone if we created one
+  # Clean up temp clone if we created one (not from cache)
   if [[ -n "$clone_path" && "$clone_path" == /tmp/* ]]; then
     rm -rf "$(dirname "$clone_path")"
   fi
@@ -549,19 +702,33 @@ Please classify this repository now." | llm $model_flag -c 2>/dev/null || echo '
   local styles_json="[]"
   local conf="0"
   if [[ "$verdict" == "classified" ]]; then
-    styles_json=$(echo "$json" | python3 -c "import sys,json; print(json.dumps(json.load(sys.stdin).get('styles',[])))" 2>/dev/null)
-    conf=$(echo "$json" | python3 -c "import sys,json; print(json.load(sys.stdin).get('confidence',0))" 2>/dev/null)
+    styles_json=$(echo "$parsed" | python3 -c "
+import sys,json
+d=json.load(sys.stdin)
+ps = d.get('primary_style','')
+ss = d.get('secondary_styles',[])
+styles = d.get('styles',[])
+if ps:
+    result = [ps] + (ss if ss else [])
+elif styles:
+    result = styles
+else:
+    result = []
+print(json.dumps(result))
+" 2>/dev/null)
+    conf=$(echo "$parsed" | python3 -c "import sys,json; print(json.load(sys.stdin).get('confidence',0))" 2>/dev/null)
   fi
 
-  echo "{\"entry\":\"$(basename "$yaml_file")\",\"verdict\":\"$result_status\",\"turns\":$turn,\"styles\":$styles_json,\"confidence\":$conf,\"llm_calls\":$total_llm_calls}"
+  echo "{\"entry\":\"$(basename "$yaml_file")\",\"project\":\"$project_name\",\"verdict\":\"$result_status\",\"turns\":$turn,\"parse_retries\":$parse_retries,\"styles\":$styles_json,\"confidence\":$conf,\"llm_calls\":$total_llm_calls}"
 }
 
 # ── Main ──────────────────────────────────────────────────────────────────────
 main() {
-  log "LLM Review Pipeline"
-  log "  Model: ${MODEL:-default ($(llm models default 2>/dev/null))}"
-  log "  Tier: $TIER"
+  log "LLM Classification Pipeline"
+  log "  Mode: $MODE"
+  log "  Model: $MODEL"
   log "  Max turns: $MAX_TURNS"
+  log "  Max parse retries: $MAX_PARSE_RETRIES"
   log "  Catalog: $CATALOG_DIR"
   [[ -n "$CLONE_DIR" ]] && log "  Clone dir: $CLONE_DIR"
   [[ "$DRY_RUN" == "true" ]] && log "  Mode: DRY RUN"
@@ -575,11 +742,21 @@ main() {
     exit 0
   fi
 
-  local entry_count
-  entry_count=$(echo "$entries_list" | wc -l | tr -d ' ')
-  log "Found $entry_count entries to process"
+  local total_count
+  total_count=$(echo "$entries_list" | wc -l | tr -d ' ')
+  log "Found $total_count entries to process"
+
+  # Apply offset
+  if [[ $OFFSET -gt 0 ]]; then
+    entries_list=$(echo "$entries_list" | tail -n +$((OFFSET + 1)))
+    local remaining
+    remaining=$(echo "$entries_list" | wc -l | tr -d ' ')
+    log "Offset $OFFSET: $remaining entries remaining"
+  fi
 
   # Apply limit
+  local entry_count
+  entry_count=$(echo "$entries_list" | wc -l | tr -d ' ')
   if [[ $LIMIT -gt 0 && $entry_count -gt $LIMIT ]]; then
     entries_list=$(echo "$entries_list" | head -"$LIMIT")
     entry_count=$LIMIT
@@ -590,10 +767,9 @@ main() {
   if [[ "$DRY_RUN" == "true" ]]; then
     log "Entries that would be processed:"
     echo "$entries_list" | while read -r entry; do
-      local name conf
+      local name
       name=$(grep "^project_name:" "$entry" | awk '{print $2}')
-      conf=$(grep "^  confidence:" "$entry" | head -1 | awk '{print $2}')
-      echo "  $name (confidence: ${conf:-unknown}) — $entry"
+      echo "  $name — $entry"
     done
     exit 0
   fi
@@ -624,6 +800,11 @@ main() {
       escalation_failure) escalation_failures=$((escalation_failures + 1)) ;;
       *) errors=$((errors + 1)) ;;
     esac
+
+    # Progress summary every 10 entries
+    if (( processed % 10 == 0 )); then
+      log "Progress: $classified classified, $unclassifiable unclassifiable, $errors errors out of $processed processed"
+    fi
   done <<< "$entries_list"
 
   # Generate report
@@ -648,8 +829,8 @@ import json, sys
 
 report = {
     'run_id': '$run_id',
+    'mode': '$MODE',
     'model': '$MODEL',
-    'tier': '$TIER',
     'max_turns': $MAX_TURNS,
     'entries_processed': $processed,
     'classified': $classified,

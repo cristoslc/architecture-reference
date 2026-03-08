@@ -16,5 +16,72 @@ languages:
 - Rust
 - Java/Kotlin
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Domain-Driven Design
+- Layered
+classification_status: classified
+review_notes: "The AFFiNE repository (and its core engine `blocksuite`) is structured\
+  \ primarily as a **Microkernel (Plugin)** architecture. The system is designed as\
+  \ a minimalist \"operating system\" for blocks, where the core framework provides\
+  \ essential services (CRDT synchronization, state management, and basic UI lifecycle)\
+  \ while all specific functionalities (text, image, database, kanban, etc.) are implemented\
+  \ as independent, hot-swappable plugins or \"blocks.\"\n\n### Architecture Analysis\n\
+  \n**1. Microkernel (Plugin) - Primary Style**\nThe directory structure under `blocksuite/affine/blocks`\
+  \ and `blocksuite/affine/widgets` demonstrates a strict plugin-based organization.\
+  \ \n- **The Kernel:** Located in `blocksuite/framework/std`, it provides the `ServiceManager`,\
+  \ `Extension` interfaces, and lifecycle hooks (`blocksuite/framework/std/src/extension/index.ts`).\n\
+  - **Plugins:** Each block (e.g., `blocks/database`, `blocks/image`, `blocks/root`)\
+  \ and fragment (e.g., `fragments/outline`) is a self-contained module that registers\
+  \ its own views, models, and logic into the kernel via the `Extension` and `Service`\
+  \ patterns found in the `std` framework. This allows the editor to be \"hyper-fused\"\
+  \ (as the README states) by loading only the necessary extensions for a given context\
+  \ (Docs vs. Whiteboard).\n\n**2. Domain-Driven Design (DDD) - Secondary Style**"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.85
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:38:07Z'
+classification_reasoning: "The AFFiNE repository (and its core engine `blocksuite`)\
+  \ is structured primarily as a **Microkernel (Plugin)** architecture. The system\
+  \ is designed as a minimalist \"operating system\" for blocks, where the core framework\
+  \ provides essential services (CRDT synchronization, state management, and basic\
+  \ UI lifecycle) while all specific functionalities (text, image, database, kanban,\
+  \ etc.) are implemented as independent, hot-swappable plugins or \"blocks.\"\n\n\
+  ### Architecture Analysis\n\n**1. Microkernel (Plugin) - Primary Style**\nThe directory\
+  \ structure under `blocksuite/affine/blocks` and `blocksuite/affine/widgets` demonstrates\
+  \ a strict plugin-based organization. \n- **The Kernel:** Located in `blocksuite/framework/std`,\
+  \ it provides the `ServiceManager`, `Extension` interfaces, and lifecycle hooks\
+  \ (`blocksuite/framework/std/src/extension/index.ts`).\n- **Plugins:** Each block\
+  \ (e.g., `blocks/database`, `blocks/image`, `blocks/root`) and fragment (e.g., `fragments/outline`)\
+  \ is a self-contained module that registers its own views, models, and logic into\
+  \ the kernel via the `Extension` and `Service` patterns found in the `std` framework.\
+  \ This allows the editor to be \"hyper-fused\" (as the README states) by loading\
+  \ only the necessary extensions for a given context (Docs vs. Whiteboard).\n\n**2.\
+  \ Domain-Driven Design (DDD) - Secondary Style**\nThe repository uses DDD principles\
+  \ to manage the high complexity of a collaborative editor.\n- **Bounded Contexts:**\
+  \ The separation between `blocksuite` (the editor engine) and the `frontend` components\
+  \ (the workbench) indicates clear boundaries.\n- **Model/Store Separation:** Inside\
+  \ `blocksuite/framework/store`, the implementation of CRDT-based data stores mirrors\
+  \ DDD Aggregate patterns, where state changes are managed through discrete, transactional\
+  \ updates to maintain consistency across local-first environments.\n- **Ubiquitous\
+  \ Language:** The code reflects domain terms like \"Flavour,\" \"Block,\" \"Surface,\"\
+  \ and \"Framing\" consistently through the folder hierarchy.\n\n**3. Layered - Secondary\
+  \ Style**\nThe system follows a standard vertical layering within its core packages:\n\
+  - **Storage Layer:** Handled by `OctoBase` and `y-octo` (Rust-based CRDT/DB layer).\n\
+  - **Domain/Framework Layer:** `blocksuite/framework` manages data orchestration\
+  \ and synchronization.\n- **Presentation Layer:** Found in `blocksuite/affine/components`\
+  \ and the React-based frontend, which consumes the framework services via an adapter-like\
+  \ interface.\n\n### Evidence & File References\n- **Extension Registry:** `blocksuite/framework/std/src/extension/service-manager.ts`\
+  \ (implied from the index) acts as the registry for the Microkernel.\n- **Block\
+  \ Modularization:** Each folder in `blocksuite/affine/blocks/` (e.g., `note`, `database`,\
+  \ `paragraph`) contains its own logic, essentially acting as a plugin to the root\
+  \ editor.\n- **Local-First Infrastructure:** The use of `y-octo` and `OctoBase`\
+  \ as mentioned in the \"Upstreams\" section of the README confirms a decoupled data-access\
+  \ layer that is treated as an independent service in the broader ecosystem.\n\n\
+  ### Rejections\n- **Microservices:** While the project has multiple components,\
+  \ it is distributed as a local-first client application (Electron/Web) rather than\
+  \ a suite of network-isolated services.\n- **Modular Monolith:** Although it is\
+  \ a monorepo, its primary design goal isn't just internal separation but the dynamic\
+  \ extension of functionality through a core-and-plugin contract typical of the Microkernel\
+  \ style."

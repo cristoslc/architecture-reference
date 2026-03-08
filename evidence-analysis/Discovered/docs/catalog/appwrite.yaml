@@ -14,5 +14,106 @@ languages:
 - PHP
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+classification_status: classified
+review_notes: 'Appwrite is structured as a **Microservices** architecture, heavily
+  reliant on an **Event-Driven** backbone for asynchronous processing.
+
+
+  ### 1. Primary Style: Microservices
+
+  The system is explicitly designed to be deployed as multiple independent units via
+  Docker.
+
+  - **Service Separation**: The codebase provides individual entry points for different
+  operational roles. `app/http.php` serves as the primary API gateway/server, while
+  `app/worker.php` acts as the entry point for various background services.
+
+  - **Independent Scalability**: In `app/http.php`, there is logic to categorize requests
+  as "safe" or "risky" (e.g., synchronous executions) and route them to specific subsets
+  of workers (`_APP_RISKY_WORKERS_PERCENT`).
+
+  - **Infrastructure**: The README and `app/views/install/compose.phtml` indicate
+  that the system is "packaged as a set of Docker microservices," typically including
+  separate containers for the API, database (MariaDB), cache (Redis), and specific
+  background workers (e.g., mail, functions, audits).
+
+
+  ### 2. Secondary Style: Event-Driven
+
+  The internal communication between the API layer and the heavy-lifting logic is
+  strictly decoupled using a Message Broker (Redis/Utopia Queue).'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:39:23Z'
+classification_reasoning: 'Appwrite is structured as a **Microservices** architecture,
+  heavily reliant on an **Event-Driven** backbone for asynchronous processing.
+
+
+  ### 1. Primary Style: Microservices
+
+  The system is explicitly designed to be deployed as multiple independent units via
+  Docker.
+
+  - **Service Separation**: The codebase provides individual entry points for different
+  operational roles. `app/http.php` serves as the primary API gateway/server, while
+  `app/worker.php` acts as the entry point for various background services.
+
+  - **Independent Scalability**: In `app/http.php`, there is logic to categorize requests
+  as "safe" or "risky" (e.g., synchronous executions) and route them to specific subsets
+  of workers (`_APP_RISKY_WORKERS_PERCENT`).
+
+  - **Infrastructure**: The README and `app/views/install/compose.phtml` indicate
+  that the system is "packaged as a set of Docker microservices," typically including
+  separate containers for the API, database (MariaDB), cache (Redis), and specific
+  background workers (e.g., mail, functions, audits).
+
+
+  ### 2. Secondary Style: Event-Driven
+
+  The internal communication between the API layer and the heavy-lifting logic is
+  strictly decoupled using a Message Broker (Redis/Utopia Queue).
+
+  - **Producer-Consumer Pattern**: `app/http.php` delegates tasks to `app/worker.php`.
+  For example, a request to the API might trigger an event that is pushed to a queue.
+
+  - **Worker Specialization**: `app/worker.php` identifies its role based on a command-line
+  argument (`$workerName`). It then connects to a specific queue (e.g., `v1-mails`,
+  `v1-functions`, `v1-audits`).
+
+  - **Event Classes**: The `src/Appwrite/Event/` directory contains specific classes
+  for various system events (e.g., `Audit.php`, `Mail.php`, `Usage.php`, `Database.php`),
+  which encapsulate the logic for publishing messages to the broker.
+
+
+  ### 3. Internal Code Organization
+
+  While the deployment is microservices-based, the internal code structure follows
+  a directory-per-concern approach:
+
+  - **`app/controllers/`**: Handles the routing and request/response lifecycle using
+  the Utopia PHP framework.
+
+  - **`src/Appwrite/`**: Contains the "Domain" logic and "Adapters". Instead of a
+  strict Hexagonal or DDD approach, it uses a functional "Service/Resource" registration
+  pattern (seen in `app/worker.php` and `app/http.php` via `Server::setResource` and
+  `App::setResource`).
+
+  - **Persistence**: It uses a unified Database abstraction (`Utopia\Database`) that
+  handles multi-tenancy and data isolation across different underlying database adapters
+  (MySQL, MariaDB).
+
+
+  ### Rejected Styles
+
+  - **Modular Monolith**: While the code lives in a single repository (Monorepo),
+  the runtime architecture is explicitly designed for independent deployment of containers,
+  which satisfies the Microservices definition over a single-unit Monolith.
+
+  - **Serverless**: Although Appwrite *provides* a Cloud Functions environment for
+  users, its own internal architecture is composed of long-running Swoole-based servers
+  and workers.'
