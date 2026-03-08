@@ -8,8 +8,11 @@ last-updated: 2026-03-07
 parent-epic: EPIC-012
 depends-on:
   - SPEC-021
+  - SPIKE-003
 linked-adrs:
   - ADR-002
+linked-research:
+  - SPIKE-003
 execution-tracking: required
 ---
 
