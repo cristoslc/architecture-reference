@@ -1,0 +1,60 @@
+# posthog — openrouter/moonshotai/kimi-k2.5
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:10:42Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microservices
+  - Event-Driven
+confidence: 0.90
+---
+
+This repository exhibits a **hybrid architecture** centered on a **Modular Monolith** with distinct **Microservices** for critical path components and an **Event-Driven** backbone for data flow.
+
+## Primary Style: Modular Monolith
+
+The dominant architectural pattern is a **Modular Monolith** (specifically a Django monolith with enforced internal boundaries), as explicitly documented in `products/architecture.md`:
+
+- **Product-based modularity**: The `products/` directory contains ~30+ vertical slices (e.g., `feature_flags`, `session_replay`, `data_warehouse`), each with its own `backend/` (Django app), `frontend/` (React), and `manifest.tsx`.
+- **Enforced boundaries**: The architecture uses **tach** (import boundary enforcement) and **Turbo** (selective testing) to ensure products don't import each other's internals. Cross-product communication happens only through `facade/api.py` using frozen dataclasses as contracts.
+- **Single deployable unit**: Despite the internal modularity, the Django application compiles into a single deployable unit (the `web` service in Docker Compose), sharing a PostgreSQL database and ClickHouse cluster.
+
+The document explicitly states: "This document defines the future architectural direction for our Django monolith" and describes the goal as "Establishing a clear, Django-friendly folder structure for product boundaries" while maintaining "a single deployable unit with enforced module boundaries."
+
+## Secondary Style: Microservices
+
+While the core business logic resides in the Modular Monolith, critical path components are broken out into **independently deployable microservices**:
+
+- **Capture services**: `capture` and `replay-capture` services handle high-volume event ingestion separately from the main Django app.
+- **Feature Flags**: The `feature-flags` service runs as a separate container for high-performance flag evaluation.
+- **Node.js Plugin Server**: The `plugins` service (Node.js-based) handles CDP (Customer Data Platform) processing, HogFlow workflows, and data transformations.
+- **Rust services**: `property-defs-rs` indicates Rust-based microservices for performance-critical components.
+- **Temporal workers**: `temporal-django-worker` runs workflow orchestration separately.
+
+These services have their own Dockerfiles (`Dockerfile.node`, `Dockerfile.llm-analytics`), separate build contexts, and independent scaling characteristics. The `docker-compose.dev-full.yml` shows these as distinct services with their own dependency chains and environment variables.
+
+## Secondary Style: Event-Driven
+
+The architecture is deeply **Event-Driven**, using asynchronous messaging for both internal communication and data flow:
+
+- **Kafka**: Central message broker for event streaming (shown in docker-compose with `KAFKA_HOSTS` configurations).
+- **ClickHouse**: Real-time analytics database fed by Kafka streams.
+- **Temporal**: Workflow orchestration for reliable async processing (visible in docker-compose with `temporal`, `temporal-ui`, `temporal-django-worker` services).
+- **Celery**: Task queues for background processing (mentioned in `products/architecture.md` with `tasks/` directories and Celery beat configuration).
+- **Redis**: Used for caching, rate limiting, and pub/sub (visible in docker-compose).
+
+The Node.js capabilities system (`nodejs/src/capabilities.ts`) shows event-driven consumption patterns with separate capabilities for `cdpProcessedEvents`, `cdpPersonUpdates`, `sessionRecordingBlobIngestionV2`, etc., indicating the system processes distinct event streams.
+
+## What This Is NOT
+
+- **Not a pure Microservices architecture**: The majority of business logic (user management, analytics queries, data warehouse, experiments, etc.) lives in the Django monolith, not in separate services.
+- **Not a pure Layered architecture**: While the Django apps use layers (models/logic/presentation), the dominant structural pattern is vertical product slices with enforced boundaries, not horizontal layers.
+- **Not Serverless**: Despite having many services, these are containerized long-running processes, not function-as-a-service.
+- **Not CQRS**: While there are separate read/write paths (Postgres for writes, ClickHouse for reads), this is a data storage pattern rather than a code organization pattern.
+
+## Confidence
+
+High confidence (0.90) due to explicit architectural documentation in `products/architecture.md` describing the Modular Monolith pattern, clear evidence of microservice extraction for performance-critical components, and extensive event-driven infrastructure (Kafka, ClickHouse, Temporal) visible in the Docker Compose configuration.

@@ -1,0 +1,37 @@
+# grafana — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:11:16Z
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+  - Modular Monolith
+confidence: 0.92
+---
+
+This repository (Grafana) is fundamentally structured as a **Microkernel (Plugin)** architecture. While it is a single deployable unit (Monolith), its entire internal extensibility model and core data processing capabilities are built around a robust plugin system.
+
+### 1. Microkernel (Plugin) Evidence
+The "Microkernel" pattern is the defining characteristic of the codebase. The core system provides a shared infrastructure (authentication, dashboarding, alerting) while the actual functionality (Data Sources, Panels) is outsourced to plugins:
+- **`pkg/plugins/`**: Contains the core plugin management logic (`manager/`, `backendplugin/`, `plugins.go`). 
+- **`pkg/tsdb/`**: Implements the "Adapters" for the microkernel. Each subdirectory (e.g., `pkg/tsdb/prometheus`, `pkg/tsdb/loki`, `pkg/tsdb/cloudwatch`) represents a discrete, swappable unit that conforms to a standard interface for time-series data handling.
+- **`public/app/plugins/`**: Mirroring the backend, the frontend is also plugin-driven, allowing for dynamic loading of panels and data source UI components.
+
+### 2. Modular Monolith & Layered Evidence
+The system is organized into a single binary (`pkg/cmd/grafana-server`), making it a monolith. However, it uses clear **Modular Monolith** principles to manage complexity:
+- **Enforced Separation**: High-level directories like `pkg/bus` (internal messaging), `pkg/infra` (base services like DB, cache, logging), and `pkg/services` indicate a modular approach where components communicate through defined boundaries.
+- **Layering**: Within the `pkg/` directory, there is a clear horizontal layering:
+    - **Entry Points**: `pkg/cmd/` (CLI/Server entry).
+    - **Web/API**: `pkg/web/` and `pkg/api/` handle HTTP concerns.
+    - **Logic/Service**: `pkg/services/` and `pkg/bus/` handle the business orchestration.
+    - **Infrastructure**: `pkg/infra/` contains low-level wrappers for databases, filesystems, and network.
+
+### 3. Internal Communication (Bus)
+The use of **`pkg/bus`** is a critical architectural detail. It implements an in-process command/event bus, which allows modules to remain decoupled. Rather than direct hard-dependencies between every service, components can register handlers and dispatch messages, reinforcing the modular nature of the system.
+
+### Rejected Styles
+- **Microservices**: Although Grafana supports many data sources, the repository itself builds into a single main unit of deployment. It is "Service-Based" only in the sense of internal Go services, not independent network-isolated deployments.
+- **Hexagonal**: While `pkg/infra` and `pkg/apis` suggest a ports-and-adapters feel, the core logic is not strictly isolated from the dependencies in the way a pure Clean/Hexagonal architecture would demand (e.g., frequent use of `pkg/models` across layers).

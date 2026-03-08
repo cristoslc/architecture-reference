@@ -1,0 +1,46 @@
+# sentry — openrouter/moonshotai/kimi-k2.5
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:12:07Z
+
+ ---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+confidence: 0.88
+---
+
+This repository is architected as a **Modular Monolith** with strong **Event-Driven** characteristics.
+
+**Primary: Modular Monolith**
+
+The codebase is a single deployable unit with well-defined internal module boundaries:
+
+- **Single service boundary**: The `devservices/config.yml` explicitly defines `service_name: sentry` as one cohesive service with multiple internal "Supervisor Programs" (taskworker, ingest-events, post-process-forwarders, etc.) all running from the same codebase via `sentry run ...` commands.
+  
+- **Unified deployment artifact**: `pyproject.toml` defines a single package named "sentry" with one consolidated dependency set and build configuration. There is no evidence of multiple deployable services within this repository.
+
+- **Internal modular structure**: The `src/sentry/` directory exhibits clear vertical module boundaries with 40+ specialized packages: `ingest/`, `consumers/`, `tasks/`, `integrations/`, `api/`, `models/`, `eventstream/`, `monitors/`, `replays/`, `profiler/`, etc. These represent distinct functional modules that maintain internal separation of concerns within the monolith.
+
+- **Plugin extensibility**: The `src/sentry_plugins/` directory (containing 15+ third-party integrations like Jira, Slack, PagerDuty) and `src/sentry/plugins/` indicate a plugin system for extending the monolith, but these compile into the same deployable unit rather than running as separate services.
+
+**Not Microservices**: While the devservices configuration declares many *dependencies* (snuba, relay, symbolicator, vroom, etc.), these are explicitly marked as external remote repositories (`repo_link` pointing to separate GitHub repos). The architecture depends on these external services but does not split the main Sentry application itself into independently deployable units.
+
+**Secondary: Event-Driven**
+
+The system exhibits heavy event-driven internal communication patterns:
+
+- **Kafka-centric ingestion**: The devservices config defines 20+ distinct Kafka consumer programs (`ingest-events`, `ingest-transactions`, `ingest-attachments`, `ingest-profiles`, `post-process-forwarder-errors`, `process-spans`, etc.) indicating data flows through event streams and topic-based pub/sub rather than direct synchronous calls.
+
+- **Pipeline architecture**: Event processing follows clear pipelines (ingest → post-process → storage) with separate consumer groups for different event types, characteristic of event-driven flow rather than layered request/response patterns.
+
+- **Async task processing**: Presence of `taskworker`, `taskworker-scheduler`, and extensive `tasks/` modules indicates asynchronous event processing throughout the application.
+
+**Rejected Styles**:
+
+- **Layered**: While some horizontal layering exists (models, API, tasks), the dominant organizational principle is vertical functional modules (monitors, replays, ingest, etc.) rather than strict presentation/business/data layers.
+  
+- **Microkernel**: Despite the plugin directory, the core is not minimal—the `src/sentry/` monolith contains the vast majority of business logic, with plugins acting as integration adapters rather than primary functionality providers.
+
+- **CQRS/Hexagonal**: No evidence of command/query model separation or ports/adapters patterns in the directory structure or configuration.

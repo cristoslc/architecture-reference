@@ -1,0 +1,54 @@
+# posthog — claude-opus-4-6 (subagent)
+# Turns: 24 tool calls
+# Date: 2026-03-08T05:29:00Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Microkernel (Plugin)
+confidence: 0.90
+---
+
+The PostHog codebase is a Django monolith that is actively being modularized with enforced boundaries. The evidence is extensive and explicit:
+
+1. **`products/architecture.md`** -- PostHog's own architecture document is titled "Modular Architecture & Isolated Testing" and describes their Django monolith with product boundaries. It states: "we must introduce architectural boundaries inside the Django monolith."
+
+2. **`tach.toml`** -- A 334-line import boundary enforcement config using the `tach` tool. It defines ~30+ product modules (`products.batch_exports`, `products.experiments`, `products.feature_flags`, etc.) with explicitly declared `depends_on` relationships. It enforces layers (`products` and `non_isolated`) and `interfaces` (e.g., `products.visual_review.backend.facade`). Most products are currently in the `non_isolated` layer, indicating the modularization is in progress.
+
+3. **Product folder structure** -- The `products/` directory contains 40+ product modules (analytics, experiments, feature flags, surveys, replay, etc.), each following a standard structure with `backend/` containing `models.py`, `logic.py`, `facade/`, `presentation/`, and `tests/`.
+
+4. **Facade pattern** -- Products expose public APIs through `facade/api.py` with frozen dataclasses as contracts (`facade/contracts.py`). Only one product (`visual_review`) is fully isolated so far, with explicit `interfaces` in `tach.toml`.
+
+5. **Turborepo integration** -- `turbo.json` and `pnpm-workspace.yaml` define each product as a separate build/test package, enabling selective testing via contract-based cache invalidation.
+
+6. **Single Django deployment** -- Despite the modular structure, the core backend is a single Django application (`posthog/` directory with `manage.py`) that deploys as one unit. The `posthog/` core module depends on many product modules bidirectionally.
+
+**Secondary: Event-Driven**
+
+Kafka is deeply integrated as the backbone for data flow between components:
+
+1. **`posthog/kafka_client/topics.py`** -- Defines 30+ Kafka topics for events, persons, session recordings, CDP events, error tracking, log entries, cohort membership changes, etc.
+
+2. **Docker Compose** shows Kafka + Zookeeper as core infrastructure dependencies, with multiple services producing to and consuming from Kafka topics.
+
+3. **Data flow pattern** -- The signals architecture document shows `emit_embedding_request() -> Kafka -> Kafka table -> Materialized View -> ClickHouse`. Events flow from capture services through Kafka to ClickHouse via materialized views.
+
+4. **Temporal workflows** -- The `posthog/temporal/` directory contains 20+ workflow domains (batch exports, data imports, messaging, experiments, etc.), representing asynchronous event-driven processing orchestrated through Temporal.
+
+**Secondary: Microkernel (Plugin)**
+
+1. **Plugin system** -- `posthog/plugins/` provides plugin installation and configuration. `posthog/cdp/` contains the Customer Data Platform with plugin infrastructure.
+
+2. **Node.js plugin server** -- `nodejs/` is a separate service (`Dockerfile.node`) that runs plugins, with its own `cdp/` and `ingestion/` subsystems. The docker-compose routes `/public/webhooks` to the plugins service.
+
+3. **`common/plugin_transpiler`** -- A dedicated package for transpiling plugins, indicating a formal plugin contract.
+
+**Why not Microservices:**
+
+While there are separately deployable services (Rust capture service, Node.js plugin server, Go livestream service, feature-flags service, multiple services in `services/`), these are satellite services around a dominant Django monolith. The core business logic lives in the monolith. The Rust services (`rust/capture`, `rust/feature-flags`, `rust/hook-*`, `rust/cymbal`, etc.) handle specific performance-critical paths but don't represent a microservices decomposition -- they're specialized extraction from the monolith. The `tach.toml` dependency graph confirms the products are in-process modules, not independent services.
+
+**Why not Service-Based:**
+
+The system has some service characteristics (capture, plugin-server, feature-flags as separate deployments), but the overwhelming majority of business logic resides in one Django process with in-process module boundaries, not inter-service communication.

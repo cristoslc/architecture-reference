@@ -1,0 +1,38 @@
+# chatwoot — openrouter/google/gemini-3-flash-preview
+# Turns: 1
+# Date: 2026-03-08T06:01:02Z
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.92
+counter_evidence:
+  alternative_style: Domain-Driven Design
+  evidence_that_would_change_mind: "Finding 'app/domain' or 'app/contexts' directories where models, services, and logic are grouped by business capability (e.g., 'Conversations', 'Billing') rather than by technical role (models, controllers)."
+  plausibility_of_counter: low
+---
+
+The Chatwoot repository is a classic example of a **Layered** architecture, specifically following the Ruby on Rails "Model-View-Controller" (MVC) pattern. The codebase is organized by technical responsibility rather than business domain boundaries:
+
+1.  **Presentation Layer:** Found in `app/controllers` (logic handling), `app/views` (templates), and a complex `app/javascript` directory (Frontend SPA using Vue.js/Vite as seen by `vite.sh` and `tailwind.config.js`).
+2.  **Business Logic Layer:** Encapsulated within `app/models` (ActiveRecord models containing logic), `app/builders` (complex object construction), and `app/actions` (service-like objects for discrete operations like `contact_merge_action.rb`).
+3.  **Data Access Layer:** Managed through `app/models` via ActiveRecord, which maps the domain objects to the database.
+
+The project also heavily utilizes an **Event-Driven** secondary style for cross-module communication and background processing:
+-   **Listeners:** `app/listeners/` contains multiple observers (e.g., `webhook_listener.rb`, `notification_listener.rb`) that react to events within the system without tightly coupling the trigger and the effect.
+-   **Dispatchers:** `app/dispatchers/` (e.g., `async_dispatcher.rb`) manages the distribution of these events.
+-   **Jobs:** `app/jobs/` implies an asynchronous task system (likely Sidekiq/Redis) for backgrounding work like `webhook_job.rb` and `notification/`.
+
+### Rejected Styles:
+-   **Microservices:** While the README mentions Docker and Kubernetes, the `app/` directory contains all business domains (Inboxes, Teams, Campaigns, Reports) in a single monolith. The `docker-compose.yaml` likely defines supporting services (Postgres, Redis, Rails, Sidekiq) rather than independent business services.
+-   **Hexagonal Architecture:** There is no clear isolation of a "Core" from "Adapters." Controllers depend directly on Models, and Models often contain business logic and persistence concerns together.
+-   **Modular Monolith:** While there is some separation, the structure follows standard Rails conventions where all models are in one flat directory (`app/models`) rather than encapsulated in isolated modules with enforced boundaries.
+
+## Counter-evidence analysis
+
+1.  **Name the most plausible alternative primary style:** Domain-Driven Design (DDD).
+2.  **Describe specifically what evidence would make you change your classification:** In many modern Rails apps, developers move away from the flat `app/models` structure toward "Bounded Contexts." If I found that most logic was actually moved into `app/services/...` or `app/domain/...` with strict namespaces (e.g., `Messaging::Conversation`, `Identity::User`) and the `app/models` were just thin wrappers, I would reclassify it as DDD or a more modular approach.
+3.  **Assess how likely it is that such evidence exists:** Low. The directory tree shows a very flat model structure (`app/models/account.rb`, `app/models/contact.rb`) and standard Rails helper/presenter folders, which is a hallmark of the traditional Layered MVC approach.
+4.  **Confidence:** 0.92. (Counter-evidence is low plausibility as it would contradict the highly standard Rails structure observed).

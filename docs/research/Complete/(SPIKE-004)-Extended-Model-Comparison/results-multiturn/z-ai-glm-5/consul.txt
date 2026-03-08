@@ -1,0 +1,62 @@
+# consul — openrouter/z-ai/glm-5
+# Turns: 3
+# Date: 2026-03-08T05:36:10Z
+
+I notice a significant discrepancy. The additional information provided (`internal/` and `command/` directories) appears to be from a **completely different repository** — this looks like **HashiCorp Consul** (a Go-based service mesh) — not the Chatwoot Ruby on Rails application from the initial README and repository map.
+
+The original context showed:
+- Ruby on Rails structure (`app/models/`, `app/controllers/`, `app/jobs/`)
+- Chatwoot customer support platform
+
+The additional information shows:
+- Go package structure (`internal/`, `command/`)
+- Service mesh concepts (intentions, KV store, Connect, gossip protocol, Raft consensus)
+
+---
+
+If you want me to classify the **Consul-like Go codebase** shown in the additional information, I can provide that classification:
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+  - Space-Based
+confidence: 0.80
+---
+
+This Go codebase exhibits **Modular Monolith** architecture — a single deployable binary (the `agent` command) with well-organized internal module boundaries enforced by Go's `internal/` package visibility rules.
+
+## Primary Style: Modular Monolith
+
+**Single deployable unit** with enforced internal boundaries:
+
+- **`command/agent/agent.go`** — Single entry point binary with subcommand routing
+- **`internal/` packages** — Go's language-level encapsulation prevents external imports, creating hard module boundaries
+- **Domain-organized packages**: `internal/storage/`, `internal/controller/`, `internal/resource/`, `internal/gossip/` represent distinct functional domains with clear APIs
+
+The architecture avoids microservices complexity while maintaining strong internal separation. Each `internal/` subdirectory represents a semi-independent module with its own tests, testdata, and internal packages (e.g., `internal/storage/raft/`, `internal/storage/inmem/`).
+
+## Secondary Style: Layered
+
+**Horizontal layering** from CLI to storage:
+
+1. **CLI Layer**: `command/` — 30+ subcommands (kv, acl, connect, services, operator) delegating to internal packages
+2. **Controller/Orchestration Layer**: `internal/controller/` — supervisor, manager, dependency resolution, watch mechanisms
+3. **Domain Layer**: `internal/resource/` — resource registry, ACLs, tenancy, authz, reference tracking
+4. **Infrastructure Layer**: `internal/storage/` (raft, inmem), `internal/gossip/` (serf-based), `internal/dnsutil/`
+
+## Secondary Style: Space-Based
+
+Distributed systems infrastructure for **in-memory data grid** patterns:
+
+- **`internal/gossip/`** — Gossip protocol via libserf for cluster membership and event propagation
+- **`internal/storage/raft/`** — Raft consensus for distributed state replication
+- **`internal/controller/cache/`** — In-memory caching layer
+- **`internal/multicluster/`** — Cross-cluster coordination
+
+This enables distributed processing without traditional database-centric architecture — characteristic of Space-Based architecture.
+
+---
+
+**Please clarify**: Which repository should I classify — Chatwoot (Ruby on Rails) or this Consul-like Go codebase? The evidence is inconsistent between the two data sources.

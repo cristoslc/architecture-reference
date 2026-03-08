@@ -1,0 +1,38 @@
+# consul — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T06:00:23Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Hexagonal Architecture
+confidence: 0.92
+---
+
+Consul is structured as a **Modular Monolith**. While it facilitates distributed systems, the codebase is consolidated into a single deployment unit (the `consul` binary) with internally defined module boundaries. 
+
+### Core Architectural Evidence
+
+**1. Single Deployable Unit (Monolith):**
+The `Makefile` (specifically the `dev-build` and `linux` targets) demonstrates that the entire system is compiled via a single `go install` or `go build` command from the root of the repository. This produces one binary (`bin/consul`) that contains all functionality—including the Server, Client (Agent), CLI, and UI Server.
+
+**2. Modular Internal Structure:**
+Despite being a monolith, the repository maintains strict boundaries between systemic concerns:
+- `agent/`: Contains the core runtime logic. Inside, it is further modularized into `consul/` (the server-side Raft and state management logic) and various sub-packages like `cache/`, `local/` (client-state), and `config/`.
+- `command/`: A distinct layer handling the CLI interface, mapping user input to internal agent calls. 
+- `lib/`: Houses shared utilities (telemetry, retry logic, math) used across modules.
+- `api/` and `sdk/`: Independent Go modules (verified by the `Makefile` iterating over multiple `go.mod` files) that provide clean interfaces for external interaction without coupling to the internal agent logic.
+
+**3. Event-Driven Secondary Style:**
+The internal coordination mechanism relies heavily on the **Event-Driven** style. Consul integrates `serf` (Gossip protocol) and `raft` (Consensus protocol) for state changes and membership updates. The directory `agent/consul/raft_rpc.go` and `agent/ae/` (Anti-Entropy) indicate a system that reacts to external and internal state changes via asynchronous message passing and event logs.
+
+**4. Hexagonal (Ports and Adapters) Patterns:**
+The structure of `agent/checks/` (supporting Docker, gRPC, and OS-native checks) and `agent/grpc-external/` versus `agent/grpc-internal/` suggests a Hexagonal approach. The application core is shielded from specific check implementations (Adapters) and external communication protocols (Ports). The `proto/` directory defines the language-neutral contracts (Adapters) used to interact with the core logic.
+
+### Rejected Styles
+
+- **Microservices:** While Consul is used *to build* microservices, it is not one itself. It does not consist of multiple independently deployable services within this repo. The Envoy extensions (`envoyextensions/`) are plugins/sidecar integrations, not standalone services of the Consul control plane.
+- **Service-Based:** Although there is a conceptual split between "Server" and "Client" roles, they are packaged within the same binary and share a significant amount of codebase in the `agent/` package, rather than being 2-5 distinct services with separate lifecycles.
+- **Microkernel (Plugin):** While Consul supports external proxies (Envoy) and has "Registered Extensions" (`agent/envoyextensions/`), the core functionality is not primarily based on a minimal core that loads external plugins; most features are compiled-in (as evidenced by `_ce.go` vs `_ent.go` patterns for Community/Enterprise editions).

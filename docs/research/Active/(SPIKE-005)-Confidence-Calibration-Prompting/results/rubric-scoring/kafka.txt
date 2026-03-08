@@ -1,0 +1,47 @@
+# kafka — openrouter/google/gemini-3-flash-preview
+# Turns: 1
+# Date: 2026-03-08T05:59:02Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Pipeline (Pipe-and-Filter)
+confidence: 0.9333333333333332
+confidence_dimensions:
+  evidence_strength: 1.0
+  style_ambiguity: 0.9
+  exploration_completeness: 0.9
+---
+
+### Architecture Analysis
+
+Apache Kafka is structured as a **Modular Monolith**. While it is a distributed system when deployed, the source code repository is managed as a single unit (monorepo) that produces several tightly coupled but logically distinct JARs.
+
+#### 1. Modular Monolith (Primary)
+The repository is divided into clear functional modules (e.g., `core`, `clients`, `storage`, `metadata`, `server-common`, `group-coordinator`). 
+- **Enforced Boundaries:** The most compelling evidence for this style is the extensive use of **Checkstyle Import Control** files (e.g., `checkstyle/import-control-storage.xml`, `checkstyle/import-control-server.xml`). These files explicitly define and enforce which packages a module is allowed to import, preventing "spaghetti" dependencies and ensuring that the `storage` layer, for instance, doesn't leak into the `clients` logic.
+- **Shared Core:** The `server-common` and `core` modules act as the backbone, while specialized logic is siloed into modules like `group-coordinator` or `transaction-coordinator`.
+- **Deployment:** Although it is a distributed system, the primary server-side unit is the Kafka Broker, which bundles these modules into a single execution unit.
+
+#### 2. Microkernel / Plugin (Secondary)
+Kafka heavily utilizes a plugin-based architecture for extensibility without modifying the core codebase.
+- **Connectors:** Kafka Connect (though not explicitly highlighted in the top tree depth, referenced via `config/connect-*`) allows users to plug in Sinks and Sources.
+- **Pluggable Interfaces:** The codebase defines strict contracts for various components such as custom `Authorizers`, `Deserializers`, and `Pluggable Storage Tier` (found in `docs/configuration/tiered-storage-configs.md`).
+- **Dynamic Loading:** The `clients` and `server` modules use configuration to instantiate these plugins at runtime.
+
+#### 3. Pipeline / Pipe-and-Filter (Secondary)
+The `streams` module (Kafka Streams) represents a dedicated implementation of the Pipe-and-Filter pattern.
+- **DSL and Topology:** As seen in `streams/src/main`, the library is built around constructing a Directed Acyclic Graph (DAG) of processing nodes (Filters, Maps, Joins) through which data flows. 
+- **Separation:** The `streams` module is its own entity within the monorepo, with its own integration tests and lifecycle, focusing entirely on the "Pipeline" processing of streaming data.
+
+### Rejected Styles
+- **Microservices:** While Kafka projects are often used to build microservices, the Kafka server itself is not built as a set of independently deployable microservices. It is a distributed system of identical nodes (Brokers).
+- **Layered:** While Kafka has layers (Networking, API, Log), the horizontal separation is less significant than the vertical "modular" separation (e.g., separating the Transaction Coordinator logic from the Metadata logic via module boundaries).
+- **Hexagonal:** While Kafka uses interfaces for storage and networking, the core logic is often deeply integrated with the Kafka protocol and performance-tuned data structures, rather than being a "pure" hex-core isolated from all infrastructure.
+
+### Confidence Discussion
+- **Evidence Strength (1.0):** The presence of `import-control` XML files is "smoking gun" evidence for an enforced Modular Monolith. The build system (Gradle) with multiple sub-projects further confirms this.
+- **Style Ambiguity (0.9):** One could argue for "Service-Based" if looking at the Broker vs. Controller roles, but the code organization is strictly modular within a single build lifecycle.
+- **Exploration Completeness (0.9):** The directory tree and README provide a high-level view of the build system and module structure, which is sufficient for this classification.

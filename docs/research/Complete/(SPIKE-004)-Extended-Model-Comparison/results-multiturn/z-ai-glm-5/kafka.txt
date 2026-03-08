@@ -1,0 +1,92 @@
+# kafka — openrouter/z-ai/glm-5
+# Turns: 2
+# Date: 2026-03-08T05:34:08Z
+
+Looking at the evidence now, I have enough to classify this repository. The key signals are clear: this is a multi-module Gradle build with extensive Checkstyle import-control files that enforce hard boundaries between modules, but all modules are part of a single codebase without independent deployment infrastructure.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Analysis
+
+This is Apache Kafka's core repository, and its architecture is a textbook example of a **Modular Monolith** with strong module boundary enforcement.
+
+### Evidence for Modular Monolith
+
+**1. Enforced Module Boundaries via Import Controls**
+
+The strongest signal is the comprehensive Checkstyle import control infrastructure in `checkstyle/`. The file `checkstyle/import-control.xml` opens with a telling comment:
+
+> `<!-- THINK HARD ABOUT THE LAYERING OF THE PROJECT BEFORE CHANGING THIS FILE -->`
+
+This isn't cosmetic—there are 14 separate `import-control-*.xml` files for different modules:
+- `import-control-core.xml`, `import-control-server.xml`, `import-control-storage.xml`
+- `import-control-clients-integration-tests.xml`, `import-control-metadata.xml`
+- `import-control-group-coordinator.xml`, `import-control-transaction-coordinator.xml`, etc.
+
+These files enforce **hard compile-time boundaries**. For example, in `import-control.xml`:
+```xml
+<!-- no one depends on the server -->
+<disallow pkg="kafka" />
+```
+This prevents any module from importing from the `kafka` package (the Scala core), enforcing unidirectional dependencies. The `clients` module can only import from specific `org.apache.kafka.common.*` packages, not from server internals.
+
+**2. Single Deployable Unit**
+
+From `build.gradle`:
+```groovy
+./gradlew clean releaseTarGz
+```
+The README shows a single release artifact: "The release file can be found inside `./core/build/distributions/`". All modules compile together into one distributable—there are no separate deployment configurations (no multiple Dockerfiles per module, no K8s service manifests per module).
+
+**3. Module Cohesion with Clear APIs**
+
+From `settings.gradle`, the project has ~60 Gradle subprojects organized by function:
+- `clients` — public client libraries (producer, consumer, admin)
+- `core` — the Scala broker implementation
+- `server`, `server-common` — server-side infrastructure
+- `raft`, `metadata`, `storage` — consensus and storage layers
+- `group-coordinator`, `transaction-coordinator`, `share-coordinator` — coordinator subsystems
+- `streams` — Kafka Streams library (with many upgrade-test variants)
+
+Each module has well-defined APIs. The `clients` module exposes public interfaces that `streams` and `tools` depend on, but internal packages like `org.apache.kafka.common.internals` are controlled via `exact-match="true"` rules.
+
+### Evidence for Layered (Secondary)
+
+The import control files reveal classic horizontal layering within the monolith:
+
+From `checkstyle/import-control.xml`:
+```xml
+<allow pkg="org.apache.kafka.common" exact-match="true" />
+<allow pkg="org.apache.kafka.common.security" />
+<allow pkg="org.apache.kafka.common.serialization" />
+<allow pkg="org.apache.kafka.common.utils" />
+```
+
+The `common` layer is foundational—most modules can import from it. The `clients` layer sits above common, and `server` depends on both. From the subpackage rules:
+- `common.protocol` → `common.message`, `common.record`
+- `clients.admin` → `clients.consumer`, `clients.consumer.internals`
+- `server` → `common` (but not `clients`)
+
+This forms a dependency hierarchy: `common` → `clients` → `server`/`core`.
+
+### What This Is NOT
+
+- **Not Microservices**: Despite Kafka being a distributed system, this repo builds a single broker artifact. There are no independent deployables per module—no per-module Dockerfiles, no service discovery config, no API gateway patterns. Each coordinator module (`group-coordinator`, `transaction-coordinator`) is a compile-time module within the broker, not a separate service.
+
+- **Not Hexagonal Architecture**: While there are ports/adapters concepts in Kafka's design, the codebase structure doesn't isolate an application core behind interfaces. The `core` Scala code directly instantiates and wires components.
+
+- **Not Domain-Driven Design**: The module boundaries follow technical cohesion (storage, raft, network, serialization) rather than bounded contexts. The coordinator modules are the closest to DDD, but they're implementation modules within the monolith.
+
+### Confidence
+
+High confidence (0.92) because:
+1. The Checkstyle import control infrastructure is an explicit architectural enforcement mechanism—the files are maintained and have specific, intentional rules
+2. The Gradle multi-module structure with controlled inter-module dependencies is unambiguous
+3. The single release artifact confirms monolithic deployment
+4. The architecture is consistent across the codebase (no hybrid patterns)

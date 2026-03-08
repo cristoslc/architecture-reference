@@ -1,0 +1,41 @@
+# posthog — openrouter/z-ai/glm-4.7
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:10:47Z
+
+```
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+confidence: 0.92
+---
+
+This repository is primarily organized as a **Modular Monolith**. The codebase is explicitly structured around "products" that act as vertical slices, bundling backend logic, API endpoints, and frontend UI within strictly enforced boundaries.
+
+### Primary Style: Modular Monolith
+
+The core evidence for a Modular Monolith is found in the internal documentation and directory structure:
+
+*   **Vertical Slices**: According to `docs/internal/monorepo-layout.md` and `products/README.md`, the system is decomposed into "products" (e.g., `feature_flags`, `experiments`, `session_replay`). Each product owns its models, logic, API, and UI.
+*   **Module Boundaries**: The `products/` directory is the home for these vertical slices. Each product contains a `backend/` (Django app), `frontend/`, and `package.json`.
+*   **Enforced Isolation**: The architecture explicitly prevents products from importing each other's internals. `products/README.md` states: "Isolated: products don't import each other's internals."
+*   **Architectural Patterns**: To maintain this isolation, the codebase employs specific patterns:
+    *   **Facades**: Products expose public interfaces via `backend/facade/api.py` and `backend/facade/contracts.py` (frozen dataclasses).
+    *   **Dependency Enforcement**: `tach` is used to track and enforce cross-dependency boundaries between Python apps, as noted in the product setup instructions.
+    *   **String-based Relations**: Django models use string app labels for foreign keys (e.g., `"feature_flags.FeatureFlag"`) to avoid circular imports and maintain module stability.
+
+While the repository includes a `services/` directory for independent backends (like `llm-gateway`) and a `nodejs` service for high-throughput ingestion, the vast majority of business logic for the main platform (analytics, replays, feature flags) is organized as Django apps within a single deployable unit (the Django `web` and `worker` services). This distinguishes it from a pure Microservices architecture where every product would be an independently deployable service.
+
+### Secondary Style: Event-Driven
+
+The repository exhibits strong Event-Driven characteristics in its communication and data processing layers:
+
+*   **Message Brokering**: The `docker-compose.dev-full.yml` file configures Kafka and Zookeeper as core infrastructure components.
+*   **Asynchronous Processing**: The `nodejs` package (`nodejs/src/ingestion`) and `worker` services rely on Kafka for decoupled data ingestion and processing. The architecture separates ingestion (`capture` service) from processing (`worker` service) via events.
+*   **Data Flow**: The use of ClickHouse, Kafka, and Redis indicates a pipeline where data flows through events rather than just synchronous request/response cycles, typical for analytics platforms.
+
+### Not Microservices or Service-Based
+
+Although the `docker-compose` file shows multiple containers (`web`, `worker`, `capture`, `plugins`), the classification remains Modular Monolith rather than Microservices or Service-Based because the **products themselves are not independent services**. They are Django apps registered in `INSTALLED_APPS` (as per `products/README.md`), sharing the same database and runtime context within the `web` and `worker` processes. The external services (`services/`, `nodejs`) are supporting infrastructure for the monolith, not the primary organizing principle for the business domains.

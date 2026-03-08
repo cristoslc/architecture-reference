@@ -4,17 +4,21 @@ artifact: SPEC-024
 status: Draft
 author: cristos
 created: 2026-03-07
-last-updated: 2026-03-07
+last-updated: 2026-03-08
 parent-epic: EPIC-012
 depends-on:
   - SPEC-021
   - SPIKE-003
   - SPIKE-004
+  - SPIKE-007
 linked-adrs:
   - ADR-002
 linked-research:
   - SPIKE-003
   - SPIKE-004
+  - SPIKE-005
+  - SPIKE-006
+  - SPIKE-007
 execution-tracking: required
 ---
 
@@ -30,12 +34,13 @@ All existing analysis has been stripped from the catalog. Every entry now has `a
 
 **Input:** 184 catalog entries with no classification (clean slate).
 
-**Tool selection (user chooses at scan start):**
+**Tool selection (per SPIKE-004 findings):**
 
-| Option | Tool | Context |
-|--------|------|---------|
-| A | Claude Code subagents (Sonnet 4.6) | Interactive sessions |
-| B | `llm` CLI | Batch runs, different model preference |
+| Tier | Tool | Model | When |
+|------|------|-------|------|
+| Primary | `llm` CLI multi-turn | Gemini 3 Flash Preview | Batch classification — 6/6 baseline agreement, fastest, cheapest |
+| QA | Claude Code subagent | Opus 4.6 | Spot-check low-confidence entries — deepest reasoning, finds signals others miss |
+| Fallback | Claude Code subagent | Sonnet 4.6 | If `llm` CLI has reliability issues at scale — proven SPIKE-003 baseline |
 
 **Per-entry process:**
 1. Clone the repository (shallow clone, cached)
@@ -65,7 +70,7 @@ architecture_styles:
 classification_status: classified
 classification_method: deep-analysis
 classification_confidence: 0.85
-classification_model: claude-sonnet-4-6
+classification_model: google/gemini-3-flash-preview
 classification_date: '2026-03-07T12:00:00Z'
 classification_reasoning: |
   <Full LLM reasoning text citing specific source code evidence.
@@ -91,11 +96,12 @@ Fields:
 ## Implementation Approach
 
 1. All 184 entries start as `classification_status: pending`
-2. User selects analysis tool (Claude Code subagents or `llm` CLI)
+2. Primary pass: Gemini 3 Flash via `llm` CLI with multi-turn SPEC-011 escalation (model requests files/trees/globs/greps from cloned repos)
 3. For each entry: clone repo, assemble context, run clean-slate deep-analysis, update catalog YAML
 4. Batch in groups of 10-15 for manageable review
 5. Mark each completed entry `classification_status: classified`
-6. Verify Indeterminate rate and classification quality after each batch
+6. QA pass: run Opus 4.6 subagent on entries with confidence below 0.80 or where Gemini assigned uniform 0.95 confidence — its deeper reasoning catches edge cases
+7. Verify Indeterminate rate and classification quality after each batch
 
 ## Lifecycle
 

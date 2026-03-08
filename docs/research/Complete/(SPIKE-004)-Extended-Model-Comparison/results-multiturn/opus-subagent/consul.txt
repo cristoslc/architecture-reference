@@ -1,0 +1,42 @@
+# consul — claude-opus-4-6 (subagent)
+# Turns: 29 tool calls
+# Date: 2026-03-08T05:30:00Z
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Event-Driven
+confidence: 0.82
+---
+
+**Primary -- Microkernel (Plugin) at 0.82:**
+
+Consul's architecture is a textbook microkernel/plugin system. The core runtime is a single binary (`main.go`) that hosts a kernel with multiple pluggable subsystems:
+
+1. **Agent as core kernel with delegate plugins.** The `Agent` struct in `agent/agent.go` (line 249) holds a `delegate` field described as "either a `*consul.Server` or `*consul.Client` depending on the configuration." This is the classic microkernel pattern -- the same binary runs in different modes (server vs client) by plugging in different delegate implementations.
+
+2. **CA Provider plugin interface.** `agent/connect/ca/provider.go` defines a formal `Provider` interface with implementations for Consul's built-in CA, Vault (`provider_vault.go`), and AWS (`provider_aws.go`). New CA backends are added by implementing this interface -- a hallmark plugin contract.
+
+3. **Envoy extension registry.** `agent/envoyextensions/registered_extensions.go` maintains a map of `extensionConstructor` functions (`map[string]extensionConstructor`) for built-in extensions (lua, wasm, ext-authz, aws-lambda, otel-access-logging, property-override) and supports enterprise extensions via a separate `enterpriseExtensionConstructors` map. The `ConstructExtension` function is a classic plugin lookup.
+
+4. **Resource type registry.** `internal/resource/registry.go` defines a `Registry` interface with `Register` and `Resolve` methods, plus validation/mutation/ACL hooks -- allowing new resource types to be plugged in with associated lifecycle callbacks.
+
+5. **Controller framework (Kubernetes-style reconcilers).** `internal/controller/controller.go` explicitly states it is "heavily inspired by Kubernetes' controller pattern" -- controllers register as plugins to reconcile specific resource types.
+
+6. **Command registry.** The CLI in `command/` uses `mitchellh/cli` with a `RegisteredCommands` pattern and separate `registry.go`/`registry_ce.go` files, allowing CE vs Enterprise command sets.
+
+7. **gRPC service plugin points.** External gRPC services are registered under `agent/grpc-external/services/` (acl, connectca, dataplane, dns, peerstream, resource, serverdiscovery) while internal services live under `agent/grpc-internal/services/` (subscribe).
+
+**Secondary -- Event-Driven:**
+
+The `agent/consul/stream/` package implements a full publish/subscribe system (`EventPublisher`, `Event`, `Topic`, `Subject`, `Subscription`) used for state-change propagation. The stream package comment explicitly states it provides "a publish/subscribe system for events produced by changes to the state store." This supports blocking queries and reactive updates across the system, but it is secondary to the plugin architecture that defines Consul's primary structural organization.
+
+**What was rejected and why:**
+
+- **Modular Monolith:** While Consul ships as a single binary, the Go `internal/` package visibility alone does not make it a modular monolith. The defining characteristic is the plugin contracts and registries, not enforced module boundaries.
+- **Layered:** There is no strict top-down layer enforcement. The `agent` package imports `internal/`, `lib/`, `proto/`, and `agent/consul/` freely without layer constraints.
+- **Multi-Agent:** Although the binary can run in "agent" mode (client or server), this is the microkernel pattern (same binary, different plugin delegate), not autonomous cooperating agents.
+- **Service-Based / Microservices:** Consul is a single deployable binary, not decomposed into separately deployed services.
+- **CQRS:** The Raft FSM and state store use a single model for reads and writes; there is no separated command/query model.
+- **Domain-Driven Design:** There are no bounded context boundaries enforced in the package structure; the `agent/structs` package is shared broadly.

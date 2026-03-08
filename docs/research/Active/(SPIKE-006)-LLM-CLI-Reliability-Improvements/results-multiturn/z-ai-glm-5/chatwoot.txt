@@ -1,0 +1,50 @@
+# chatwoot — openrouter/z-ai/glm-5
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:03:02Z
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.85
+---
+
+This repository is a **Layered architecture** with Event-Driven patterns for cross-cutting concerns.
+
+## Primary: Layered Architecture
+
+The codebase follows the classic Rails horizontal layering pattern:
+
+- **Controllers layer** (`app/controllers/`) — HTTP request handling, organized by concern (api/, platform/, public/, webhooks/)
+- **Models layer** (`app/models/`) — Domain entities using ActiveRecord ORM, with shared behavior via concerns
+- **Views layer** (`app/views/`) — Presentation templates
+- **Helpers layer** (`app/helpers/`) — View helpers and formatting utilities
+
+Supporting horizontal layers extend this pattern:
+- `app/jobs/` — Background job processing via Sidekiq
+- `app/mailers/` — Email generation
+- `app/policies/` — Authorization (Pundit pattern)
+- `app/presenters/` — View-specific data formatting
+- `app/finders/` — Query encapsulation
+
+**Single deployable unit**: The docker-compose.yaml confirms this is a monolith — `rails` and `sidekiq` containers share the same image and codebase, with postgres and redis as supporting infrastructure services, not separate application services.
+
+## Secondary: Event-Driven
+
+The codebase implements an **in-process event bus** using the Wisper library:
+
+- `app/dispatchers/base_dispatcher.rb` includes `Wisper::Publisher` for event emission
+- `app/listeners/` contains 11 listener classes handling cross-cutting concerns:
+  - `notification_listener.rb`, `webhook_listener.rb`, `automation_rule_listener.rb`
+  - `action_cable_listener.rb` (real-time WebSocket broadcasts)
+  - `reporting_event_listener.rb`, `campaign_listener.rb`, etc.
+
+This pub/sub pattern decouples event producers from consumers — for example, when a message is created, events can trigger notifications, webhooks, and automation rules without tight coupling. However, this is **internal event-driven architecture** within a monolith, not inter-service messaging.
+
+## What This Is NOT
+
+- **Not Microservices** — Single codebase, single Docker image, shared database. Sidekiq processes the same Rails app asynchronously.
+- **Not Modular Monolith** — No enforced module boundaries, no namespace-isolated bounded contexts with internal APIs. Models are flat with some namespacing (`channel/`, `integrations/`) but these are ActiveRecord inheritance hierarchies, not module boundaries.
+- **Not Domain-Driven Design** — Models are Rails-style ActiveRecord entities with concerns for shared behavior. No aggregates, value objects, or bounded context organization.

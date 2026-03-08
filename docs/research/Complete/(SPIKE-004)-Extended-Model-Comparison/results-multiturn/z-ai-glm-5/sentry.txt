@@ -1,0 +1,24 @@
+# sentry — openrouter/z-ai/glm-5
+# Turns: 1
+# Date: 2026-03-08T05:32:42Z
+
+---
+verdict: needs_info
+requests:
+  - type: tree
+    path: sentry/
+    depth: 2
+    reason: Need to see the main source code structure, not just tests. This will reveal module boundaries, organizational patterns, and whether this is a modular monolith or has service separation.
+  - type: glob
+    pattern: "docker-compose*.yml"
+    reason: To identify if there are multiple deployable services (microservices) or a single monolithic deployment.
+  - type: glob
+    pattern: "Dockerfile*"
+    reason: Multiple Dockerfiles would indicate separate deployable units (microservices pattern).
+  - type: type: file
+    path: pyproject.toml
+    reason: To understand project structure, dependencies, and whether there are multiple packages or a single application.
+  - type: type: file
+    path: sentry/silo/__init__.py
+    reason: The 'silo' directory in tests suggests service separation patterns. Understanding what this module contains will clarify if this is a Service-Based or Hybrid Cloud architecture.
+---

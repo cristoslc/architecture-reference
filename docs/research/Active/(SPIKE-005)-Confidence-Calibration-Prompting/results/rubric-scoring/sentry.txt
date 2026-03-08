@@ -1,0 +1,44 @@
+# sentry — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T05:58:54Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Microkernel (Plugin)
+confidence: 0.95
+confidence_dimensions:
+  evidence_strength: 1.0
+  style_ambiguity: 0.9
+  exploration_completeness: 0.95
+---
+
+### Architecture Analysis
+
+Sentry is a sophisticated **Modular Monolith** that is intentionally transitioning toward a distributed, multi-tenant "Hybrid Cloud" architecture. While the entire codebase resides in a single repository and shares a primary Django-based runtime, it enforces strict internal boundaries and leverages heavy operational infrastructure that mirrors distributed systems.
+
+#### 1. Primary Style: Modular Monolith (with Hybrid Cloud Silos)
+The system is structured into clearly defined modules under `src/sentry/`. The most compelling evidence for a Modular Monolith rather than a simple Layered app is the explicit "Silo" and "Hybrid Cloud" abstraction found in `src/sentry/silo/` and `src/sentry/hybridcloud/`.
+- **Silo Separation:** The code differentiates between `CONTROL` and `REGION` silos. This is verified by `SENTRY_OUTBOX_MODELS` in `server.py`, which defines separate outbox tables for control and region data. 
+- **Internal APIs:** The presence of `src/sentry/organizations/services`, `src/sentry/identity/services`, and `src/sentry/hybridcloud/apigateway/` indicates that modules communicate via service interfaces rather than direct database joins across boundaries. 
+- **Dependency Enforcement:** The repository uses internal tooling (`tools/mypy_helpers`) and a "stronglist" (seen in `tests/sentry/test_mypy_stronglist.py`) to enforce type-safety and check dependency boundaries between modules.
+
+#### 2. Secondary Style: Event-Driven
+Sentry is heavily reliant on asynchronous processing and message passing to handle high-ingest workloads.
+- **Message Broker Hub:** The `pyproject.toml` includes `confluent-kafka`, `sentry-arroyo` (a stream processing library), and `sentry-kafka-schemas`. 
+- **Eventstream:** The directory `src/sentry/eventstream/` handles the transition of event data to Snuba (Sentry's search/analytics service). `src/sentry/eventstream/kafka` confirms that Kafka is the primary backbone for event durability.
+- **Consumers:** Numerous modules (found in `src/sentry/monitors/consumers`, `src/sentry/remote_subscriptions/consumers`, etc.) are dedicated to consuming events from these streams, decoupling ingestion from processing.
+
+#### 3. Secondary Style: Microkernel (Plugin)
+Sentry maintains a classic plugin architecture to extend its core functionality to third-party services.
+- **Plugin Core:** `src/sentry/plugins/` contains the base classes (`src/sentry/plugins/bases`) and interfaces (`src/sentry/plugins/interfaces`) that plugins must implement.
+- **Extensible Registry:** The `INSTALLED_APPS` and plugin registration logic allow for build-time or runtime inclusion of integrations (e.g., Slack, GitHub, Jira) as separate modules that hook into the core lifecycle.
+
+### Alternative Styles Considered & Rejected
+- **Microservices:** While Sentry interacts with external services like **Snuba**, **Relay**, and **Symbolicator** (which are in separate repositories), the core logic in this repository is deployed as a single large unit (uWSGI/Granian web workers and Celery/Arroyo task workers). It lacks the independent deployability of this repo's internal modules to be considered a Microservices architecture.
+- **Layered (MVC):** While Sentry uses Django (a traditional Layered/MVC framework), its complexity goes far beyond standard layering. The partitioning into Silos and the use of the Outbox pattern for cross-region synchronization are characteristic of much more advanced architectural styles.
+
+### Conclusion
+Sentry's architecture is a testament to the "Scaling the Monolith" philosophy. It uses **Outbox patterns**, **Service Layers**, and **Kafka-backed stream processing** to maintain a single codebase while achieving the isolation and scaling properties typically associated with distributed services.

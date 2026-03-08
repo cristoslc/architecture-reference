@@ -1,0 +1,28 @@
+# kafka — openrouter/z-ai/glm-4.7
+# Turns: 1
+# Parse retries used: 0
+# Date: 2026-03-08T06:12:05Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles: []
+confidence: 0.86
+---
+
+This repository is organized as a **Modular Monolith**.
+
+The codebase is structured as a multi-module Gradle project with clearly defined, strictly enforced boundaries between its internal components, yet it builds into a cohesive set of artifacts distributed as a single unit.
+
+**Evidence for Modular Monolith:**
+
+*   **Distinct Internal Modules:** The directory tree reveals several top-level modules (`clients`, `core`, `server`, `streams`, `group-coordinator`, `server-common`, `tools`, `shell`) that separate concerns. For example, `clients` handles the client libraries, `core` appears to handle the broker logic, `server` handles the networking/server-side entry points, and `group-coordinator` isolates group management logic.
+*   **Enforced Boundaries:** The presence of numerous `checkstyle/import-control-*.xml` files (e.g., `import-control-core.xml`, `import-control-server.xml`, `import-control-clients-integration-tests.xml`) indicates the project enforces strict dependency rules and import controls between these modules. This enforcement of module boundaries is a defining characteristic of a Modular Monolith.
+*   **Single Deployable Unit:** Despite the modular code organization, the build instructions focus on creating a unified distribution. The command `./gradlew clean releaseTarGz` produces a single binary release gzipped tarball located in `./core/build/distributions/`. This implies that while the code is modular, the runtime system (the Kafka broker) is deployed as a monolithic unit.
+*   **Coordinated Build:** The README describes running tasks across specific projects (e.g., `./gradlew core:test`, `./gradlew clients:test`), confirming that while they have separate build lifecycles, they are part of a unified codebase managed by a single root Gradle project.
+
+**Why not other styles:**
+
+*   **Microservices:** There is no evidence of multiple independently deployable services (e.g., separate Dockerfiles for micro-components, Kubernetes manifests, or service discovery configuration). The Docker configuration (`docker/`) appears to be for packaging the entire Kafka platform or running instances, not for decomposing the internal architecture into microservices.
+*   **Layered:** While standard Java layering likely exists within modules, the high-level organization is driven by functional modules (`group-coordinator`, `trogdor`, `streams`) rather than horizontal layers (presentation, business, data). The modularity is the primary structural signal.
+*   **Event-Driven:** While Kafka is an event streaming platform, the *internal structure* of the repository is not organized around event handlers or a message broker infrastructure. It is organized around the libraries and components that *implement* the broker and client functionality.

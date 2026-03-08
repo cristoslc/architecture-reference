@@ -1,0 +1,48 @@
+# consul — openrouter/moonshotai/kimi-k2.5
+# Turns: 1
+# Parse retries used: 0
+# Date: 2026-03-08T06:12:42Z
+
+ ---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Domain-Driven Design
+confidence: 0.85
+---
+
+This repository exhibits a **Modular Monolith** architecture as its primary structural style, with strong **Domain-Driven Design** characteristics evident in the codebase organization.
+
+**Evidence for Modular Monolith:**
+
+1. **Single Deployable Unit**: The presence of a single `Dockerfile` at the repository root indicates one primary deployment artifact (the Consul binary), rather than multiple independently deployable services.
+
+2. **Internal Module Boundaries**: The repository contains distinct subdirectories functioning as internal modules with enforced boundaries:
+   - `envoyextensions/` - Contains its own `go.mod`, indicating it's a separate Go module within the monorepo
+   - `troubleshoot/` - Also contains its own `go.mod`, suggesting modular separation
+   - `tlsutil/`, `snapshot/`, `ipaddr/`, `types/` - Utility modules with clear scoped responsibilities
+
+3. **Shared Infrastructure**: The single `Makefile` and root-level `go.mod` (implied by the presence of sub-modules) suggest a unified build system for what is ultimately a single binary.
+
+**Evidence for Domain-Driven Design:**
+
+1. **Bounded Contexts in Protocol Buffers**: The `proto/private/` directory structure reveals clear domain boundaries:
+   - `pbacl/` (Access Control Lists)
+   - `pbconnect/` (Service Connect/Mesh)
+   - `pbservice/` (Service Discovery)
+   - `pbpeering/` (Cluster Peering)
+   - `pboperator/` (Operations)
+   
+   This organization reflects DDD's bounded contexts, where each domain model is isolated with its own ubiquitous language.
+
+2. **Domain-Centric Naming**: Directory names like `envoyextensions` and `troubleshoot` reflect business capabilities rather than technical layers.
+
+**Rejected Alternatives:**
+
+- **Not Microservices**: Despite being a distributed system, Consul deploys as a single binary (the agent), not as independent services. The separate go.mod files represent internal modularity, not service boundaries.
+  
+- **Not Layered**: The organization is domain-oriented (vertical slices by capability) rather than horizontal technical layers (presentation/business/data).
+
+- **Not Event-Driven**: While Consul uses events internally (gossip, Raft), the structural organization doesn't primarily reflect event-driven architecture patterns (no clear event handlers, sagas, or message broker configurations visible).
+
+The modular monolith approach allows Consul to maintain clear internal boundaries and domain separation while deploying as a cohesive distributed system binary.

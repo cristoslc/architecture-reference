@@ -1,0 +1,46 @@
+# grafana — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T05:59:29Z
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+  - Domain-Driven Design
+confidence: 0.933
+confidence_dimensions:
+  evidence_strength: 0.95
+  style_ambiguity: 0.90
+  exploration_completeness: 0.95
+---
+
+### Architectural Analysis
+
+Grafana is a classic example of a **Microkernel (Plugin)** architecture, evolved into a **Modular Monolith** with strong **Domain-Driven Design (DDD)** influences.
+
+#### 1. Primary Style: Microkernel (Plugin)
+The entire system is designed around a minimal core ("the kernel") that is extended via plugins.
+- **Plugin Interfaces:** `pkg/tsdb/parca/plugin.go` demonstrates the use of the `grafana-plugin-sdk-go`, where internal datasources implement standard interfaces like `backend.QueryDataHandler`, `backend.CheckHealthHandler`, and `backend.CallResourceHandler`. 
+- **Decoupled Extensions:** The frontend (`public/app/plugins`) and backend (`pkg/plugins`) both have dedicated managers to load, version, and communicate with plugins. 
+- **Separation of Concerns:** Core functionality (alerting, dashboarding) is built using the same plugin primitives available to third-party developers, ensuring the system remains extensible.
+
+#### 2. Secondary Style: Modular Monolith
+While extended by plugins, the core of Grafana is deployed as a single unit (`grafana-server`).
+- **Dependency Injection & Lifecycle:** `pkg/server/server.go` showcases a central server struct that manages the lifecycle of various "background services" (e.g., `provisioningService`, `roleRegistry`, `HTTPServer`). It uses `wire` (as seen in `pkg/server/wire_gen.go`) for compile-time dependency injection, a hallmark of well-structured modular monoliths in Go.
+- **Module Boundaries:** The `pkg/infra`, `pkg/services`, and `pkg/tsdb` directories show a clear separation between infrastructure concerns (database, logging, metrics) and business logic. Each directory acts as a self-contained module with defined internal APIs.
+
+#### 3. Secondary Style: Domain-Driven Design (DDD)
+The codebase has transitioned toward a DDD approach to handle its increasing complexity.
+- **Bounded Contexts:** The frontend structure (`public/app/features/`) is organized strictly by domain (e.g., `alerting`, `dashboard`, `explore`, `accesscontrol`) rather than technical role (controllers/views).
+- **Core Entities and Kinds:** The presence of `pkg/kinds` and the use of CUE (`kinds/dashboard/dashboard_kind.cue`) for schema definition indicates a Move toward "Schema-first" development, treating domain models as the source of truth for both Go backend code and TypeScript frontend types.
+
+### Evidence Reference
+- **Deployment Unit:** `pkg/cmd/grafana-server` and `packaging/` evidence a single binary deployment.
+- **Service Registry:** `pkg/registry/registry.go` (referenced in imports) allows modules to register themselves at startup, facilitating a decoupled modular structure.
+- **Plugin SDK:** Constant usage of `github.com/grafana/grafana-plugin-sdk-go` throughout the `pkg/tsdb` subpackages.
+- **Internal Bus:** The existence of `pkg/bus` indicates an internal message bus pattern used for decoupled communication between modules, common in both Modular Monoliths and DDD implementations.
+
+### Rejected Styles
+- **Microservices:** While Grafana *could* be run with external components (like a high-availability database or independent alertmanagers), the core repository is designed to compile into a single `grafana-server` binary. It lacks the independent deployability of true microservices.
+- **Hexagonal Architecture:** While it uses interfaces for infrastructure (e.g., `pkg/infra/db`), the overall flow is more aligned with a Modular Monolith than a strict Ports-and-Adapters structure where the core is completely isolated from the web framework (Grafana is tightly integrated with its web/API layer).

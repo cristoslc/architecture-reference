@@ -1,0 +1,24 @@
+# chatwoot — openrouter/z-ai/glm-4.7
+# Turns: 1
+# Parse retries used: 0
+# Date: 2026-03-08T06:11:04Z
+
+```
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.88
+---
+
+This repository is primarily organized as a **Layered** architecture, following the standard Ruby on Rails MVC pattern. The codebase is structured into distinct horizontal technical layers: `app/controllers` handles incoming HTTP requests (presentation), `app/models` manages business logic and data persistence, and `app/views` manages UI rendering. Additional layers such as `app/jobs` (for background processing), `app/mailers` (for email communication), and `app/policies` (for authorization) further reinforce this layered separation of concerns.
+
+The repository also exhibits **Event-Driven** characteristics as a secondary style. While deployed as a monolith, the system uses internal events to decouple logic. The `app/listeners` directory contains numerous listeners (e.g., `webhook_listener.rb`, `automation_rule_listener.rb`) that react to domain changes, and `app/dispatchers` (including `async_dispatcher.rb` and `sync_dispatcher.rb`) manage the routing of these events. This suggests a publish-subscribe pattern where side effects like webhooks or notifications are triggered asynchronously via jobs like `event_dispatcher_job.rb`.
+
+**Architecture Classification Reasoning:**
+
+*   **Layered (Primary):** The directory structure `app/controllers`, `app/models`, `app/views`, `app/mailers`, and `app/jobs` is the textbook definition of a layered web architecture. The `docker` configuration (`rails.Dockerfile`, `vite.Dockerfile`) packages this into a single deployable web application.
+*   **Event-Driven (Secondary):** The presence of `app/listeners` and `app/dispatchers` indicates that the application logic is not strictly linear; it reacts to state changes through event handlers. The `app/jobs` directory facilitates asynchronous processing of these events.
+*   **Not Microservices or Modular Monolith:** There are no signs of independently deployable services or strict module boundaries enforced by engines or complex namespacing. The entire application shares a single database context and runs within a single Rails process.
+```

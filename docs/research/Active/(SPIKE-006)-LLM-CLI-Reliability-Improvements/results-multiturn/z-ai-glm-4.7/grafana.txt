@@ -1,0 +1,22 @@
+# grafana — openrouter/z-ai/glm-4.7
+# Turns: 1
+# Parse retries used: 0
+# Date: 2026-03-08T06:13:24Z
+
+```
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.86
+---
+
+This repository exhibits a **Microkernel (Plugin)** architecture as its primary style, supported by evidence of a core system extended by plugins.
+
+The README explicitly highlights the extensibility of the platform, noting that "Panel plugins offer many different ways to visualize metrics and logs" and that the system supports "Mixed Data Sources." The repository structure confirms this architectural investment with the presence of `./plugins.yaml` and dedicated test infrastructure in `./e2e-playwright/test-plugins` and `./e2e-playwright/plugin-e2e`. These directories contain test harnesses for specific plugin types (datasources, panels, apps), indicating that the core application is designed to load and interact with external extension modules at runtime.
+
+The repository is also classified as a **Modular Monolith**. The packaging structure (`./packaging/wrappers/grafana-server`) indicates a single, deployable binary, ruling out Microservices or Service-Based architectures. However, the presence of `nx.json` at the root strongly suggests a monorepo setup used to enforce module boundaries and manage dependencies between internal libraries. This, combined with the separation of concerns seen in the end-to-end testing suites (`./e2e-playwright/panels-suite`, `./e2e-playwright/dashboards-suite`) and domain-specific definitions (`./kinds`, `./grafana-mixin`), points to a codebase that is internally organized into distinct modules rather than a flat, traditional layered structure.
+
+The architecture is **not Microservices**, as there is no evidence of multiple deployment units, service discovery, or inter-service communication protocols beyond the standard server/client interaction. **Event-Driven** was also considered due to the alerting features mentioned in the README, but the provided evidence does not show internal messaging infrastructure (like Kafka or NATS configs) as a primary organizing principle.
+```

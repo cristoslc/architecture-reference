@@ -1,0 +1,46 @@
+# consul — openrouter/z-ai/glm-4.7
+# Turns: 1
+# Date: 2026-03-08T05:32:08Z
+
+```
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Domain-Driven Design
+confidence: 0.85
+---
+
+The repository is structured as a **Modular Monolith** with **Domain-Driven Design** characteristics. While the system provides distributed capabilities (service discovery, mesh), the codebase is compiled and deployed as a single unit, yet internally organized into distinct, domain-centric modules.
+
+### Evidence for Modular Monolith
+
+*   **Single Deployable Unit**: The root of the repository contains a single `Dockerfile`, a root `go.mod`, and `.release` scripts (`/.release/linux/package`, `/.release/docker`) indicating the build process produces a consolidated binary rather than a set of independently deployable microservices.
+*   **Distinct Internal Modules**: The directory structure reveals a separation of concerns that characterizes a modular monolith. Instead of a flat "src" folder, the code is organized into capability-specific units:
+    *   `tlsutil/`: Handles TLS certificate generation and validation logic.
+    *   `snapshot/`: Manages state snapshotting and restoration.
+    *   `troubleshoot/`: Contains diagnostic tools (proxy validation, port checking).
+    *   `envoyextensions/`: Logic specifically for integrating with the Envoy proxy.
+    *   `types/`: Shared data structures used across the monolith.
+*   **Module Boundaries via Protobufs**: The strongest evidence for modularity lies in the `proto/` directory. The definitions are split into distinct services corresponding to internal capabilities:
+    *   `proto/private/pbacl/`: Access Control List module.
+    *   `proto/private/pbservice/`: Service Discovery module.
+    *   `proto/private/pbconnect/`: Service Mesh connectivity module.
+    *   `proto/private/pbdns/`: DNS interface module.
+    *   `proto/private/pbconfigentry/`: Dynamic Configuration module.
+    *   `proto/private/pbpeering/`: Cluster peering module.
+
+    This separation suggests that the internal architecture relies on well-defined interfaces (gRPC) between these vertical modules, even though they run within the same process.
+
+### Evidence for Domain-Driven Design (Secondary)
+
+*   **Bounded Contexts**: The `proto/` services map directly to business domains. The code is organized not just by technical layers (e.g., "controllers", "models"), but by business contexts such as "Service Discovery" (`pbservice`), "Security" (`pbacl`, `pbconnectca`), and "Networking" (`pbconnect`, `pbdns`).
+*   **Ubiquitous Language**: The directory and package names (`service`, `connect`, `config`, `acl`) reflect the domain language of the infrastructure problem space, reinforcing the DDD approach.
+
+### Rejected Styles
+
+*   **Microservices**: Rejected because there is only one `Dockerfile`, one root `go.mod`, and build artifacts targeting a single binary deployment. The repository represents a unified codebase, not a distributed system of separate services.
+*   **Layered**: While the system likely employs layering (API vs. Logic vs. Storage), the presence of distinct subsystems like `pbacl`, `pbservice`, and `pbconnect` in the proto definitions suggests a more sophisticated, domain-driven modular structure than a traditional 3-tier layered application.
+*   **Microkernel (Plugin)**: Rejected because the `ui/` and `envoyextensions/` directories appear to be integrated components or clients rather than a dynamic plugin system with a core runtime loading arbitrary third-party extensions. The architecture is monolithic, not core-plus-plugins.
+*   **Event-Driven**: While Consul (the product) uses events for state propagation, the repository structure is organized around RPC services (`proto/`) and command structures (`command/`), not around explicit event processing chains or message brokers.
+```

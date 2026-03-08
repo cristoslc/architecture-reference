@@ -1,0 +1,26 @@
+# sentry — claude-opus-4-6 (subagent)
+# Turns: 36 tool calls
+# Date: 2026-03-08T05:30:00Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Event-Driven
+confidence: 0.90
+---
+
+**Primary: Modular Monolith** -- Sentry is a single deployable Django application (`src/sentry/`) with extensive internal module boundaries. The `src/sentry/` package contains 90+ domain-oriented subdirectories (e.g., `integrations/`, `monitors/`, `replays/`, `incidents/`, `workflow_engine/`, `ingest/`, `profiles/`, `uptime/`), each self-contained with their own models, endpoints, tasks, and logic. Critically, Sentry enforces structural boundaries through its **silo system** (`src/sentry/silo/base.py`): every API endpoint is decorated with `@control_silo_endpoint` or `@region_silo_endpoint` (176 occurrences across 151 files), and every model is annotated with `@control_silo_model` or `@region_silo_model` (282 occurrences across 127 files). The `SiloMode` enum defines three modes -- `MONOLITH`, `CONTROL`, and `REGION` -- and these are enforced at the code level, not just at deployment. The `hybridcloud/rpc/service.py` provides an RPC layer (`RpcService`, `RpcMethodSignature`) for cross-silo communication, with argument serialization and region resolution. This is a monolith that can be deployed as a single unit (MONOLITH mode) or split into Control/Region silos for SaaS, but the codebase remains a single repo with shared models and a single deployment artifact per silo. The `Delegator` class in `src/sentry/utils/services.py` routes requests to swappable backend implementations (nodestore, buffer, search, TSDB, filestore) -- all configured via settings strings like `SENTRY_NODESTORE`, `SENTRY_BUFFER`, `SENTRY_SEARCH`, `SENTRY_TSDB`.
+
+**Secondary: Microkernel (Plugin)** -- Sentry has a formal plugin system at `src/sentry/plugins/`. The `IPlugin2` base class (`src/sentry/plugins/base/v2.py`) defines a plugin contract with `PluginMount` metaclass for registration, `PluginManager` for lifecycle management, and `BindingManager` for extension points. The `src/sentry_plugins/` package contains 20+ concrete plugin implementations (Slack, Jira, GitHub, PagerDuty, Bitbucket, etc.) that implement this contract. The `IntegrationProvider` system (`src/sentry/integrations/base.py`) provides a newer parallel plugin architecture with `PipelineProvider` for OAuth/setup flows and `IntegrationMetadata` for feature declarations.
+
+**Secondary: Event-Driven** -- The `eventstream` subsystem (`src/sentry/eventstream/`) extends a `Service` base and streams events to Kafka (`eventstream/kafka/`). The `hybridcloud/outbox/` pattern implements transactional outbox (`RegionOutbox`, `ControlOutbox` in `src/sentry/hybridcloud/models/outbox.py`) for reliable cross-silo event delivery. The `consumers/` package processes Kafka messages. The `post_process_forwarder/` decouples event ingestion from post-processing.
+
+**Rejected classifications:**
+- **Microservices / Service-Based**: Despite the silo split, this is a single codebase with shared models. The silos are deployment modes of the same application, not independent services.
+- **Layered**: While there are layers (API -> services -> models), the dominant structural signal is domain-module boundaries, not horizontal layering.
+- **CQRS**: No separation of read/write models or command/query paths.
+- **Hexagonal**: No explicit ports-and-adapters pattern; the swappable backends are closer to microkernel plugin points.
+- **Domain-Driven Design**: Modules are domain-oriented but there are no bounded contexts with anti-corruption layers or formal aggregate roots.
+- **Serverless / Space-Based / Multi-Agent**: No structural evidence for any of these.

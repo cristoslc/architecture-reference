@@ -1,0 +1,44 @@
+# kafka — openrouter/z-ai/glm-4.7
+# Turns: 1
+# Date: 2026-03-08T05:31:43Z
+
+```
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles: []
+confidence: 0.95
+---
+
+Apache Kafka is architected as a **Modular Monolith**. The codebase is organized as a single, version-controlled unit with well-defined internal module boundaries that are strictly enforced, yet it compiles and deploys as a cohesive distribution rather than a collection of independently deployable microservices.
+
+**Evidence for Modular Monolith**
+
+The primary evidence lies in the repository's Gradle structure and the rigorous enforcement of dependency rules between logical components.
+
+1.  **Distinct Logical Modules:** The directory tree clearly separates the codebase into functional domains, each treated as a separate Gradle subproject or logical unit:
+    *   `clients`: The public API library used by producers and consumers.
+    *   `core`: The central broker logic.
+    *   `server`: The entry point and wrapper for running the broker.
+    *   `streams`: The Kafka Streams library for stream processing.
+    *   `group-coordinator`: Logic for managing consumer groups (includes `group-coordinator-api`).
+    *   `server-common`: Shared logic between server components.
+    *   `tools`: Utility and administrative tools (e.g., Trogdor for benchmarks).
+
+2.  **Enforced Boundaries (Key Indicator):** The strongest signal for the Modular Monolith style is the presence of the `checkstyle/import-control-*.xml` files. These configuration files explicitly define and enforce dependency rules to prevent illicit coupling between modules. For example:
+    *   `checkstyle/import-control-server.xml` dictates what the `server` module is allowed to import.
+    *   `checkstyle/import-control-storage.xml` enforces boundaries around the storage layer (likely a package hierarchy within `core` or a distinct module).
+    *   `checkstyle/import-control-group-coordinator.xml` isolates group coordination logic.
+    *   `checkstyle/import-control-share-coordinator.xml` and `checkstyle/import-control-server-common.xml` further segment the architecture.
+    
+    This use of import-control rules signifies a conscious architectural effort to maintain modularity within a single codebase, preventing the "spaghetti code" often found in unstructured monoliths.
+
+3.  **Unified Deployment:** Despite the internal modularity, the project builds and releases as a single unit. The README instructions (e.g., `./gradlew jar` and `./gradlew releaseTarGz`) produce a unified binary release (`./core/build/distributions/`). This confirms that while the code is modular, the deployment model is monolithic.
+
+**Rejected Alternatives**
+
+*   **Microservices:** Although Kafka is a distributed system, its codebase is not organized as independently deployable services. There is no evidence of separate Dockerfiles for each core module or a Kubernetes manifest treating them as distinct services. Instead, the `docker/` directory builds a single image containing the entire platform.
+*   **Layered:** While there is some layering (e.g., API vs. Implementation), the complexity of the import-control rules (specifically distinguishing between components like `storage`, `group-coordinator`, and `share-coordinator`) indicates a component-based modularization strategy rather than a simple horizontal layering (Controller/Service/Repository).
+*   **Event-Driven:** While Kafka is an event streaming platform, the internal code organization is not defined by event handlers or a pub-sub architecture *between its internal modules*. The modules communicate via direct method calls (enforced by import controls) rather than an internal event bus.
+*   **Microkernel (Plugin):** The architecture does not appear to be a core system extended by runtime plugins. While Kafka Connect (part of the ecosystem) supports plugins, the core broker code (`core`, `server`, `clients`) is statically linked and compiled together.
+```

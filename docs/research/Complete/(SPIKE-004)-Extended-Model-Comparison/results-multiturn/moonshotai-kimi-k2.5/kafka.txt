@@ -1,0 +1,51 @@
+# kafka — openrouter/moonshotai/kimi-k2.5
+# Turns: 1
+# Date: 2026-03-08T05:35:35Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+  - Event-Driven
+confidence: 0.92
+---
+
+Apache Kafka exhibits a **Modular Monolith** architecture with strong internal module boundaries enforced through build-time dependency controls. While the system is logically decomposed into distinct functional modules (clients, core broker, server components, streams processing, coordinators), it compiles and deploys as a single cohesive unit.
+
+## Evidence for Modular Monolith
+
+**Enforced Module Boundaries via Checkstyle:**
+The `checkstyle/` directory contains multiple `import-control-*.xml` files that strictly enforce dependency boundaries between modules:
+- `import-control-core.xml` - Controls what the core module can depend on
+- `import-control-server.xml` - Isolates server-specific dependencies  
+- `import-control-clients.xml` - Restricts client library dependencies
+- `import-control-storage.xml`, `import-control-metadata.xml`, `import-control-group-coordinator.xml`, etc.
+
+These files prevent circular dependencies and enforce that modules only depend on explicitly allowed other modules (e.g., server-common can be used by server and core, but not vice versa).
+
+**Single Deployable Artifact:**
+The build system produces a single release artifact (`./gradlew releaseTarGz` outputs to `core/build/distributions/`), confirming this is not microservices. The Docker configuration (`docker/jvm/Dockerfile`) builds a single image containing all components.
+
+**Module Structure:**
+The repository is organized into distinct Gradle subprojects with clear separation:
+- `clients/` - Client API and networking
+- `core/` - Broker core logic and log management  
+- `server/` - Server-side request handling
+- `server-common/` - Shared server utilities
+- `group-coordinator/`, `transaction-coordinator/`, `share-coordinator/` - Specific protocol coordinators
+- `streams/` - Stream processing DSL and runtime (with its own sub-modules)
+- `tools/` - Administrative CLI tools
+- `trogdor/` - Testing and load generation framework
+
+## Secondary Styles
+
+**Layered:** Within each module, traditional horizontal layering is evident (e.g., in `core/src/main/scala/kafka/` and `server/src/main/java/org/apache/kafka/server/` patterns suggest separation between API, business logic, and storage layers).
+
+**Event-Driven:** While the structural organization is modular monolith, Kafka's internal communication patterns heavily use event-driven architecture (request handlers, callback-based responses, internal message queues). However, this is secondary to the physical code organization.
+
+## Rejected Alternatives
+
+- **Microservices:** Rejected because there is no independent deployability—modules compile into a single release tarball and run within the same JVM process.
+- **Service-Based:** Rejected because while there are logical services (broker, coordinator, streams), they are not deployed as separate services but as integrated components.
+- **Monolith (unstructured):** Rejected because the strict checkstyle import controls and clear module boundaries demonstrate intentional modularization, not a big ball of mud.

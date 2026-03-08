@@ -1,0 +1,30 @@
+# posthog — openrouter/z-ai/glm-4.7
+# Turns: 1
+# Date: 2026-03-08T05:30:24Z
+
+```
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Domain-Driven Design
+  - Event-Driven
+confidence: 0.85
+---
+
+The repository is structured as a **Modular Monolith** organized according to **Domain-Driven Design** principles, with **Event-Driven** characteristics for data ingestion and processing.
+
+### Modular Monolith (Primary Style)
+The strongest architectural signal is the `products/` directory structure. The codebase is not organized purely by technical layers (e.g., controllers, models) but by distinct, functional vertical slices. Each subdirectory within `products/`—such as `feature_flags`, `experiments`, `error_tracking`, `batch_exports`, and `data_warehouse`—contains a self-contained module. These modules include their own `frontend/`, `backend/`, `package.json`, and `manifest.tsx`, indicating clear boundaries between different business capabilities within the same deployable unit. The presence of a single `docker-compose.dev-full.yml` and a one-line "hobby deploy" command in the README further supports that these modules are deployed together as a cohesive monolithic system, rather than as independently deployable microservices.
+
+### Domain-Driven Design (Secondary Style)
+The `products/` structure effectively maps to **Bounded Contexts**. Each product represents a specific domain or subdomain of the PostHog platform (e.g., `web_analytics`, `surveys`, `workflows`). The internal organization of these directories—separating backend logic, frontend views, and shared resources per domain—demonstrates an alignment between the code structure and the business domain, which is the core tenet of Domain-Driven Design.
+
+### Event-Driven (Secondary Style)
+The architecture employs an event-driven approach for handling data flow and background processing. This is evidenced by the `nodejs/` directory, which contains `src/kafka`, `src/ingestion`, `src/worker`, and `src/lifecycle.ts`. The explicit inclusion of Kafka infrastructure (`nodejs/src/kafka`) and separate worker entry points indicates that the system relies heavily on asynchronous event streams to decouple ingestion from processing. The `docker/livestream` and `otel-collector-config.dev.yaml` files further suggest an infrastructure designed to handle continuous streams of data.
+
+### Rejected Styles
+*   **Microservices:** While the repository contains a separate `nodejs` service for ingestion and the README mentions "PostHog Cloud," the core business logic in `products/` is organized as a monolithic Django application (indicated by `__init__.py` and `backend/` folders within products). These modules are not independently deployable services; they are part of a single codebase managed as a monorepo.
+*   **Microkernel (Plugin):** Although the `manifest.tsx` files and the `ee/` directory separation suggest some dynamic capability or extension points, the `products/` directory represents the core application's modular structure rather than a minimal core loading external plugins at runtime.
+*   **Pipeline (Pipe-and-Filter):** While data pipelines exist (e.g., `batch_exports`), the overall architecture is defined by the domain-oriented `products/` structure, not a sequential chain of filters.
+```

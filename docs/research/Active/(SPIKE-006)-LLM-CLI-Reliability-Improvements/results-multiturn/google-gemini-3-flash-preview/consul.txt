@@ -1,0 +1,35 @@
+# consul — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:11:04Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Event-Driven
+confidence: 0.92
+---
+
+Consul is structured as a **Modular Monolith**. While it is a distributed system designed to manage microservices, the codebase itself is primarily built, shipped, and deployed as a single, multi-functional binary.
+
+### 1. Primary Style: Modular Monolith
+The repository is organized into well-defined, functional modules that reside in a single repository and are compiled into one executable (`consul`). 
+- **Internal Boundaries:** The `agent/` directory serves as the core of the system, further subdivided into highly specific modules like `agent/consul` (server-side Raft and RPC logic), `agent/cache`, `agent/config`, and `agent/proxycfg`. 
+- **Deployment Unit:** The `Makefile` confirms that `go install` and `go build` target a single main entry point that produces the `consul` binary. There is no evidence of the system being split into independently deployable microservices within this repository (though it manages them externally).
+- **Separation of Concerns:** The `command/` directory provides the CLI entry points, while `lib/` contains shared, low-level utilities (math, strings, retry logic) that are strictly separated from domain logic.
+
+### 2. Secondary Style: Microkernel (Plugin)
+Consul uses a plugin-based architecture for extensibility, specifically regarding the service mesh and external integrations.
+- **Evidence:** The `envoyextensions/` and `agent/envoyextensions/` directories indicate a system designed to extend functionality (like xDS support for Envoy) through defined interfaces.
+- **Discovery and Registration:** The `agent/checks` and `agent/proxycfg` modules allow for various "drivers" (Docker, HTTP, gRPC) to be used, following a classic microkernel pattern where the core "agent" orchestrates specialized plugins.
+
+### 3. Secondary Style: Event-Driven
+Internally, Consul relies heavily on event-based coordination for state synchronization across the cluster.
+- **Evidence:** The `agent/ae/` (Anti-Entropy) module, `agent/watch_handler.go`, and the use of `agent/blockingquery` demonstrate an architecture where state changes trigger notifications and subsequent sync actions.
+- **Implementation:** It uses the Raft protocol and Gossip (Serf) for membership and configuration events, turning internal state changes into a stream of events that other components (like the UI or Service Discovery) consume.
+
+### Rejected Styles:
+- **Microservices:** Although Consul is used to *build* microservices, the repo itself does not consist of multiple independent services. The `ui/` is a separate package but is bundled into the final binary via `agent/uiserver/dist`.
+- **Layered:** While it has layers (CLI -> Agent -> Consul Server), the strict vertical slicing into features (ACLs, Connect, KV, Sessions) across the sub-packages makes "Modular Monolith" a more accurate description.

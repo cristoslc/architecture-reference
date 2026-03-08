@@ -1,0 +1,47 @@
+# chatwoot — openrouter/google/gemini-3-flash-preview
+# Turns: 1
+# Date: 2026-03-08T05:59:52Z
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+  - Domain-Driven Design
+confidence: 0.88
+---
+
+### Analysis
+
+Chatwoot is a classic **Layered** architecture, specifically following the Ruby on Rails "Convention over Configuration" pattern. The repository is a monolithic codebase where the structure is enforced by the horizontal layers typical of the Rails framework (Controllers, Models, Views, Mailers, Helpers). 
+
+#### Primary Style: Layered (MVC+)
+The codebase is organized into distinct horizontal layers that separate concerns from the database to the browser:
+- **Presentation Layer**: Found in `app/controllers`, `app/views`, and a significant `app/javascript` directory (which contains the Vue.js frontend).
+- **Domain/Business Logic Layer**: While Rails often suffers from "fat models," Chatwoot extracts logic into **Builders** (`app/builders`), **Actions** (`app/actions`), and **Finders** (`app/finders`). These serve as service-layer-like abstractions to handle complex object creation and retrieval logic.
+- **Data Access Layer**: Handled by `app/models` using ActiveRecord.
+- **Policy/Security Layer**: Uses `app/policies` (likely the Pundit gem) to isolate authorization logic from the controllers and models.
+
+#### Secondary Style: Event-Driven
+Chatwoot utilizes an internal pub/sub mechanism to decouple side effects from primary business actions. This is evidenced by:
+- **`app/listeners/`**: Files like `webhook_listener.rb`, `notification_listener.rb`, and `automation_rule_listener.rb` suggest that the system emits internal events (e.g., `message.created`) which these listeners catch to perform secondary tasks.
+- **`app/dispatchers/`**: `async_dispatcher.rb` and `sync_dispatcher.rb` handle the routing of these events.
+- **`app/jobs/`**: Extensive use of background workers (Sidekiq/ActiveJob) to handle asynchronous tasks like `WebhookJob`, `EmailJob`, and `Integrations`.
+
+#### Secondary Style: Domain-Driven Design (DDD)
+The codebase shows strong signals of DDD tactical patterns, particularly to combat the complexity of a large monolith:
+- **Bounded Contexts (lite)**: Within `app/models/channel` and `app/controllers/api`, the code is grouped by sub-domains (Twitter, Slack, Facebook, etc.).
+- **Value Objects/Aggregates**: The heavy use of `app/builders` and `app/drops` (Liquid templates) suggests a move toward encapsulating domain logic outside of raw database records.
+
+---
+
+### Rejected Styles
+- **Microservices**: Rejected because there is a single `docker-compose.yaml` and a unified `app/` directory. While it deploys to Kubernetes, it treats the application as a single unit (Rails + Sidekiq + Vite).
+- **Microkernel (Plugin)**: Despite having many integrations (Slack, Shopify, etc.), they are implemented as internal modules within the main tree (`app/controllers/shopify`, `app/models/integrations.rb`) rather than dynamically loaded isolated plugins with a strict stable interface.
+- **Hexagonal Architecture**: While there is some separation, the models are heavily coupled to ActiveRecord (database), and there is no strict "Ports and Adapters" layer isolating the core domain from external dependencies; instead, it uses Rails' built-in abstractions.
+
+### Evidence Gems
+- `app/dispatchers/dispatcher.rb`: Central hub for event management.
+- `app/policies/`: Structural evidence of centralized authorization logic.
+- `app/builders/`: Evidence of complex domain object construction separated from models.
+- `docker/dockerfiles/rails.Dockerfile`: Confirms the deployment unit is the entire Rails application.

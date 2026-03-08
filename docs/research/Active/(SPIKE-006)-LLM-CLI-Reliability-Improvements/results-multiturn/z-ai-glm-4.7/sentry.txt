@@ -1,0 +1,39 @@
+# sentry — openrouter/z-ai/glm-4.7
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:11:34Z
+
+```
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+confidence: 0.92
+---
+
+This repository is classified as a **Modular Monolith** with strong **Event-Driven** characteristics.
+
+### Modular Monolith
+
+The codebase represents a single, deployable application (the Sentry "node") that is structured into well-defined, domain-centric modules.
+
+*   **Single Deployable Unit:** The entire application is contained within the `src/sentry` package. The runtime deployment model, defined in `devservices/config.yml`, executes all internal components via the `sentry` CLI command (e.g., `sentry run consumer ingest-events`, `sentry run taskworker`). This indicates a single codebase spawning multiple specialized processes rather than independently deployable services.
+*   **Domain-Oriented Module Structure:** The source code is organized around business domains rather than technical layers. Directories like `src/sentry/issues`, `src/sentry/monitors`, `src/sentry/replays`, `src/sentry/profiling`, and `src/sentry/incidents` represent bounded contexts within the application.
+*   **Explicit Boundaries:** The presence of `src/sentry/silo` and `src/sentry/hybridcloud` suggests active architectural efforts to enforce data boundaries and separation of concerns within the monolith, likely to support multi-tenancy or future splitting.
+*   **Not Microservices:** While the system relies on external services (Snuba, Relay, Symbolicator) defined as dependencies in `devservices`, this repository itself manages a single unified state and lifecycle. The lack of multiple independent Dockerfiles or build targets for internal components confirms it is not a microservices architecture *within* this repo.
+
+### Event-Driven
+
+The internal architecture relies heavily on asynchronous event streaming to decouple processing.
+
+*   **Kafka-Centric Topology:** The `devservices/config.yml` reveals a massive event processing infrastructure. It defines over 20 distinct consumer processes (e.g., `ingest-events`, `ingest-transactions`, `process-spans`, `monitors-clock-tick`, `post-process-forwarder`), all consuming from Kafka topics.
+*   **Streaming Components:** The directory structure `src/sentry/consumers`, `src/sentry/eventstream`, and `src/sentry/ingest` explicitly handles the flow of events through the system.
+*   **Pipeline Processing:** The ingestion flow (`ingest` -> `processing` -> `forwarding`) behaves as a dynamic event-processing pipeline where data transforms as it passes through different stages of the monolith.
+
+### Rejection of Other Styles
+
+*   **Microservices:** Although the broader Sentry platform uses microservices (referenced as remote dependencies in `devservices`), this specific repository functions as a monolithic application containing the core web API and worker logic.
+*   **Layered:** While traditional MVC layers exist (`src/sentry/api`, `src/sentry/models`, `src/sentry/web`), the dominant organization is feature-based (Modules), not strictly horizontal layers.
+*   **Microkernel:** While `src/sentry_plugins` exists for extensions, the core application is too large and interconnected to be classified as a plugin-centric microkernel.
+```

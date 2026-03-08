@@ -1,0 +1,41 @@
+# grafana — openrouter/z-ai/glm-4.7
+# Turns: 2
+# Date: 2026-03-08T05:32:44Z
+
+```
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.9
+---
+
+Grafana is classified as a **Modular Monolith** with strong **Microkernel (Plugin)** characteristics.
+
+### Modular Monolith (Primary)
+
+The repository is structured as a single deployable unit (a monolith) but explicitly organizes its code into well-defined, loosely coupled internal modules.
+
+*   **Single Deployment Unit:** The `Makefile` defines a `build-go` target that produces a single binary: `./bin/grafana` located at `./pkg/cmd/grafana`. The Docker build process (`build-docker-full`) packages this into a single container image (`grafana/grafana`), rejecting a Microservices or Service-Based architecture.
+*   **Defined Module Boundaries:** The codebase is not organized merely by technical layers (e.g., controllers, services) but by functional domains.
+    *   The `apps/` directory (referenced in Makefile `gen-apps` and visible in grep results) contains distinct bounded contexts like `apps/dashboard`, `apps/folder`, `apps/iam`, and `apps/alerting`.
+    *   The presence of generated API files like `zz_generated.openapi.go` within these `apps` indicates that each module exposes its own explicit API contracts, a hallmark of modular monolith design.
+    *   The `pkg/services/` directory contains isolated business logic domains such as `ngalert` (alerting), `accesscontrol`, and `featuremgmt`.
+*   **Dependency Management:** The build system uses Google Wire (`pkg/build/wire`) for dependency injection (`make gen-go`), allowing the application to be composed of specific modules (e.g., toggling `enterprise` vs `oss` tags in the Makefile) rather than being a tightly coupled "big ball of mud."
+
+### Microkernel / Plugin (Secondary)
+
+Grafana's core extensibility mechanism follows a Microkernel (Plugin) architecture, where a minimal core system loads extensions at runtime to handle specific tasks.
+
+*   **Plugin Infrastructure:** There is a substantial and dedicated `pkg/plugins` directory containing `manager.go`, `backendplugin/`, `storage/`, and `config/`. This directory provides the infrastructure for discovering, loading, and managing plugins.
+*   **Extension Points:** The README explicitly emphasizes the role of plugins: "Panel plugins offer many different ways to visualize metrics and logs" and "Mix different data sources... specify a data source on a per-query basis."
+*   **Frontend and Backend Plugins:** The `public/app/plugins` directory and the `build-plugin-go` target in the Makefile demonstrate that plugins are first-class citizens that can be built independently and integrated into the core system.
+*   **Data Source Abstraction:** The `pkg/tsdb` directory acts as an abstraction layer with specific implementations for Prometheus, Loki, Elasticsearch, etc. These function similarly to built-in plugins, adhering to the core's interface contracts.
+
+### Rejected Styles
+
+*   **Microservices / Service-Based:** The build output is a single `grafana` binary. There is no evidence of multiple independent services, separate Dockerfiles for different services, or inter-service communication protocols (like gRPC between distinct deployment units).
+*   **Layered:** While the code within modules uses layers (e.g., `pkg/web` for HTTP handling, `pkg/infra/db` for database access), the overall architecture is defined by its modular domain structure (`apps/`, `pkg/services/`) and extensibility points, which goes beyond traditional horizontal layering.
+*   **Event-Driven:** While Grafana supports alerting (events), the core structural organization is not defined by an event streaming fabric or choreography. The primary entry point is an HTTP server (`pkg/server`).
+```

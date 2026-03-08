@@ -1,0 +1,36 @@
+# grafana — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T06:00:37Z
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.88
+---
+
+Grafana is fundamentally structured as a **Microkernel (Plugin)** architecture built on top of a **Modular Monolith** backend. The system core (the "kernel") provides essential infrastructure—authentication, data persistence, routing, and lifecycle management—while nearly all functional capabilities (visualizations, data source connectors, and app extensions) are implemented as plugins.
+
+### 1. Primary Style: Microkernel (Plugin)
+The codebase's primary organizational principle is the separation between the core platform and extensible components.
+- **Plugin Infrastructure:** The `pkg/plugins` directory contains the logic for manual and automatic discovery, signature verification (`pkg/plugins/models.go:263`), and lifecycle management (`pkg/plugins/manager`). 
+- **Decoupled Data Sources:** All database and external service integrations are isolated in `pkg/tsdb` (backend energy) and `public/app/plugins/datasource` (frontend). The core server has no direct dependency on Prometheus, Loki, or MySQL; instead, these are loaded through standardized interfaces defined in `pkg/plugins/ifaces.go`.
+- **Frontend Extensibility:** The `public/app/plugins` and `public/app/features/plugins` directories show that the UI is also a shell that loads panels and apps dynamically. The presence of `e2e-playwright/test-plugins` confirms that the plugin contract is a first-class citizen used for testing the platform's stability.
+
+### 2. Secondary Style: Modular Monolith
+While the system is extensible via plugins, the "kernel" itself and the built-in services are organized as a Modular Monolith.
+- **Service Registry:** `pkg/server/server.go` reveals a `BackgroundServiceRegistry`. The server doesn't just start a web server; it initializes a suite of internal services (provisioning, access control, usage stats) that are complied into a single binary (`grafana-server`).
+- **Internal Boundaries:** The `pkg/` structure shows clear functional partitioning (e.g., `pkg/infra` for common utilities, `pkg/services` for domain logic, `pkg/middleware` for the web stack). The use of a central "Bus" (`pkg/bus/bus.go`) historically facilitated decoupled communication between these internal modules, characteristic of modular monoliths.
+- **Deployment Unit:** The `packaging/` directory and `pkg/cmd/grafana-server` indicate that despite its internal modularity and external plugin support, the standard delivery mechanism is a single deployment unit.
+
+### 3. Rejected Styles
+- **Microservices:** Although there is a `devenv/frontend-service`, the core architecture is designed to run as a single process. There is no evidence of service-to-service RPC or independent deployment manifests (like K8s Helm charts per module) in the core `pkg/` structure.
+- **Layered:** While `pkg/web` and `pkg/infra` exist, the system is too complex to be categorized as a simple horizontal layer cake. The plugin system and the internal service registry represent a much more sophisticated "Core + Modules" approach rather than strict Top-Down layering.
+- **Event-Driven:** While it uses an internal bus, it is primarily a request-response system driven by HTTP/API interactions and data fetching, not a system whose primary state transition occurs via asynchronous event streams.
+
+### Evidence Summary
+- **Plugin Loading:** `pkg/plugins/localfiles.go` and `pkg/plugins/manager/` handle the runtime discovery of external code.
+- **Central Kernel:** `pkg/server/server.go` acts as the coordinator (the "kernel") managing the lifecycle of `backgroundServices`.
+- **Unified Binary:** `go.mod` at the root and `pkg/cmd` confirm a monolithic build process.
+- **Standardized Interfaces:** `pkg/apis/` and `pkg/plugins/ifaces.go` define the contracts that plugins must satisfy, a hallmark of the Microkernel style.

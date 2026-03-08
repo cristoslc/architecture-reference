@@ -1,0 +1,46 @@
+# consul — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T05:59:15Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Microkernel (Plugin)
+confidence: 0.93
+confidence_dimensions:
+  evidence_strength: 0.95
+  style_ambiguity: 0.90
+  exploration_completeness: 0.95
+---
+
+### Architecture Analysis
+
+Consul is structured as a **Modular Monolith**. While it is a distributed system that interacts with many external services, the repository itself is organized into highly distinct, bounded modules that are compiled into a single executable (`consul`).
+
+#### 1. Primary Style: Modular Monolith
+The codebase exhibits strong characteristics of a Modular Monolith rather than a simple Layered or Microservices architecture:
+- **Encapsulated Subsystems:** Looking at `agent/`, we see clearly defined sub-packages like `agent/cache`, `agent/checks`, `agent/proxycfg`, and `agent/consul`. Each oversees a specific domain of the system's functionality.
+- **Central Coordination:** The `Server` struct in `agent/consul/server.go` acts as the "composition root." It brings together dozens of independent components (Raft logic, Serf gossip pools, ACL resolvers, CA managers, and RPC servers). Instead of these being independent services, they are internal modules instantiated and wired together within a single process.
+- **In-Process Communication:** The presence of `inprocgrpc` (seen in `server.go`) confirms that modules communicate using gRPC interfaces even when they reside in the same memory space. This allows for clear interface boundaries without the overhead of network calls, a hallmark of sophisticated modular monoliths.
+
+#### 2. Secondary Style: Event-Driven
+Internally, Consul relies heavily on an event-driven model to maintain its distributed state:
+- **Gossip and Consensus:** The system is built on `serf` (gossip) and `raft` (consensus). As seen in `agent/consul/server.go`, the server listens on `eventChLAN` and `eventChWAN` to react to cluster changes.
+- **Internal Streams:** The use of `stream.EventPublisher` and `reconcileCh` indicates that internal state transitions (like leader changes or membership updates) are propagated via asynchronous channels rather than direct synchronous calls.
+
+#### 3. Secondary Style: Microkernel (Plugin)
+Consul utilizes a Microkernel approach to handle extensibility, particularly regarding its "Service Mesh" and "Connect" features:
+- **Sidecar/Proxy Integration:** The `agent/proxycfg` and `agent/envoyextensions` directories indicate a core system that provides configuration and state to external "plugins" (proxies like Envoy).
+- **Extension Points:** The `agent/checks` module allows for various health-check types (Docker, gRPC, HTTP, Alias) that follow a common interface, effectively acting as build-time plugins to the monitoring engine.
+
+### Rejected Styles
+- **Microservices:** While Consul *manages* microservices, the repository itself is not a collection of independent services. It produces a single binary. It lacks the multiple deployment manifests (K8s/Docker) per module that characterize a Microservices repo.
+- **Hexagonal / Ports & Adapters:** While there is evidence of abstraction (e.g., `storage.Backend`), the core logic in `agent/consul/server.go` is deeply intertwined with specific HashiCorp libraries (Raft, Serf, Memberlist). It does not strictly isolate the domain from infrastructure in the way a pure Hexagonal architecture would.
+- **Layered:** Although there are "layers" (HTTP/gRPC -> Agent -> Consensus), the organization is primarily vertical by feature/responsibility rather than horizontal layers.
+
+### Evidence Gems
+- **`agent/consul/server.go`**: The complexity of the `Server` struct, managing everything from `ACLResolver` to `CAManager` and `TombstoneGC`, proves it is a monolithic orchestrator of smaller modules.
+- **`ui/pnpm-workspace.yaml`**: Shows a modern web frontend managed alongside the backend, reinforcing the "single repo, monolithic delivery" aspect for the operator interface.
+- **`sdk/`**: Provides the contract for external entities to interact with the core, reinforcing the "Kernel" nature of the system.

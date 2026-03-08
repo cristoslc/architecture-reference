@@ -1,0 +1,46 @@
+# grafana — openrouter/moonshotai/kimi-k2.5
+# Turns: 1
+# Date: 2026-03-08T05:36:09Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel
+  - Domain-Driven Design
+confidence: 0.85
+---
+
+Based on the repository structure and documentation provided, Grafana exhibits a **Modular Monolith** architecture with strong **Microkernel (Plugin)** characteristics and **Domain-Driven Design** elements.
+
+## Evidence and Analysis
+
+### Modular Monolith (Primary)
+The codebase is structured as a single deployable unit with enforced internal module boundaries:
+
+- **Single Go Module**: The presence of `go.mod` at the repository root indicates a single compilation unit and deployable binary, not independently deployable microservices.
+- **Monorepo Tooling**: The `nx.json` and `project.json` files indicate use of Nx for managing the frontend codebase as a monorepo with structured project boundaries, while still compiling into a single deployable artifact (evidenced by `embed.go` which embeds frontend assets into the Go binary).
+- **Development Environment Structure**: The `devenv/` directory contains Docker Compose configurations for local development, but these represent infrastructure dependencies (databases, message queues) rather than service decomposition, confirming the single-process nature of the application.
+
+### Microkernel/Plugin Architecture (Secondary)
+Grafana exhibits classic Microkernel characteristics with a minimal core extended via plugins:
+
+- **Plugin References in Documentation**: The README explicitly mentions "Panel plugins" as a primary extension mechanism for visualizations, indicating the core delegates visualization rendering to plugin implementations.
+- **Plugin Test Infrastructure**: The `e2e-playwright/test-plugins/` directory contains dedicated test plugins (`frontend-sandbox-app-test`, `grafana-test-datasource`, `grafana-test-panel`), demonstrating a formal plugin API and sandboxing mechanism for extensions.
+- **Extension Points**: The README describes "Mixed Data Sources" capability where different data sources can be combined, suggesting a data source plugin interface that the core orchestrates.
+
+### Domain-Driven Design (Secondary)
+The repository shows evidence of structured domain modeling:
+
+- **CUE Schema Definitions**: The `kinds/` directory contains CUE (Configuration Unified Evaluation) definitions, specifically `kinds/dashboard/dashboard_kind.cue`, representing formal schema definitions for domain entities (Dashboards as a core domain concept).
+- **Domain Language**: The README uses domain-specific terminology like "Explore Metrics," "Alerting," "Dashboards," and "Data Sources," suggesting the code structure aligns with these bounded contexts.
+
+## Rejected Alternatives
+
+- **Microservices**: Rejected because there is no evidence of multiple independent deployable services. The single `go.mod`, absence of service-specific Dockerfiles at root, and the `embed.go` pattern (embedding frontend into backend binary) all indicate a single deployable unit.
+
+- **Layered Architecture**: While Grafana likely has some layering (handlers, services, repositories), this classification is too generic and doesn't capture the dominant structural patterns of modular internal organization and plugin extensibility.
+
+- **Event-Driven**: No evidence of message brokers, event handlers, or pub/sub patterns in the provided structure. The `devenv/docker/blocks/` might contain Kafka/etc. for testing data sources, but this is infrastructure for testing, not internal architecture.
+
+The classification as Modular Monolith with Microkernel and DDD characteristics best captures Grafana's structure: a single deployable platform with strict internal module boundaries, extensive plugin-based extensibility, and strong domain modeling.

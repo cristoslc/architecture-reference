@@ -1,0 +1,60 @@
+# sentry — openrouter/z-ai/glm-5
+# Turns: 3
+# Parse retries used: 0
+# Date: 2026-03-08T06:05:00Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+confidence: 0.85
+---
+
+This repository is a **Modular Monolith** with **Event-Driven** components as a secondary architectural style.
+
+## Primary: Modular Monolith
+
+The evidence strongly indicates a single deployable unit with well-defined internal module boundaries:
+
+**Single Deployment Unit:**
+- Only one Dockerfile exists (`./self-hosted/Dockerfile`) producing a single runtime image
+- The Dockerfile shows `CMD ["run", "web"]` — a monolithic Django web application
+- All code compiles into a single container with a shared Python environment
+
+**Well-Defined Module Boundaries:**
+- The codebase is organized into ~20 Django applications, each with its own `apps.py`:
+  - `src/sentry/monitors/apps.py`, `src/sentry/discover/apps.py`, `src/sentry/auth_v2/apps.py`
+  - `src/sentry/tempest/apps.py`, `src/sentry/processing_errors/apps.py`
+  - Plugin apps: `src/sentry/plugins/sentry_webhooks/apps.py`, `src/sentry/plugins/sentry_interface_types/apps.py`
+- Domain-oriented directories align with bounded contexts: `monitors/`, `insights/`, `metrics/`, `organizations/`, `releases/`, `feedback/`, `replays/`, `profiling/`, `hybridcloud/`
+- Each module contains its own migrations, endpoints, models, tasks, and consumers
+
+**Module Encapsulation:**
+- Modules have internal structure (`endpoints/`, `models.py`, `tasks/`, `consumers/`, `migrations/`)
+- Test structure mirrors source: `tests/sentry/monitors/`, `tests/sentry/insights/`, `tests/sentry/integrations/`
+
+## Secondary: Event-Driven
+
+The system employs significant event-driven communication patterns:
+
+**Kafka-Based Event Streaming:**
+- Dependencies include `confluent-kafka>=2.8.0`, `sentry-kafka-schemas`, `sentry-arroyo` (message processing library)
+- `src/sentry/eventstream/kafka/` directory contains Kafka-based event streaming implementation
+- `src/sentry/eventstream/snuba.py` for Snuba event streaming
+
+**Async Task Processing:**
+- `src/sentry/tasks/` contains numerous async task definitions (merge, reprocessing, commit_context, etc.)
+- Task infrastructure for background processing
+
+**Event Infrastructure:**
+- `src/sentry/signals.py` for Django signal-based internal events
+- `tests/snuba/` directory indicates integration with Snuba (event storage/query service)
+
+## Not Microservices
+
+Despite the plugin/integration system and external service dependencies (Snuba, Symbolicator, Relay), the core Sentry application is a single deployable Django monolith. External services are infrastructure dependencies, not independently deployable application services.
+
+## Plugin System (Not Microkernel)
+
+While a plugin system exists (`src/sentry/plugins/` with `HIDDEN_PLUGINS` for integrations like GitHub, Slack, Jira, PagerDuty), these appear to be build-time or registration-based integrations rather than a true Microkernel pattern with runtime plugin loading, sandboxing, and dynamic extension. The integrations are Django apps themselves, fitting within the modular monolith structure.

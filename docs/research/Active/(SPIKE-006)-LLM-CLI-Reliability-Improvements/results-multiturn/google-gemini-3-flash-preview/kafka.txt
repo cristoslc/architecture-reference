@@ -1,0 +1,27 @@
+# kafka — openrouter/google/gemini-3-flash-preview
+# Turns: 1
+# Parse retries used: 0
+# Date: 2026-03-08T06:10:53Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Pipeline (Pipe-and-Filter)
+confidence: 0.90
+---
+
+The Apache Kafka repository is structured as a **Modular Monolith**. While Kafka is a distributed system when deployed, the source code organization is a single repository (monorepo) that builds into a cohesive set of libraries and a main server artifact. 
+
+### Why Modular Monolith?
+1.  **Strong Module Boundaries**: The directory tree shows a clear division of concerns into Gradle subprojects: `clients`, `core`, `storage`, `server`, `metadata`, and `group-coordinator`. These modules represent distinct functional areas of the system rather than independent services.
+2.  **Enforced Dependency Rules**: The presence of `checkstyle/import-control-*.xml` files (e.g., `import-control-storage.xml`, `import-control-server.xml`) is a classic indicator of a Modular Monolith. These files programmatically enforce which modules are allowed to import from others, preventing the codebase from becoming a "Big Ball of Mud" and ensuring that the internal APIs of the modules are respected.
+3.  **Unified Build System**: The entire project is managed by a single Gradle build logic. While individual jars are produced (like the `clients` or `streams` libraries), the broker itself is a single deployable unit composed of these modules.
+
+### Secondary Styles
+-   **Event-Driven**: While this is the domain of the tool, the internal architecture also follows this style. The `clients` and `core` modules heavily utilize internal event loops, request/response queues, and asynchronous processing to handle high-throughput data streaming. The `processMessages` task in the README confirms a structured RPC and message protocol used for component communication.
+-   **Pipeline (Pipe-and-Filter)**: This is specifically evident in the `streams` module. The architecture for Kafka Streams is explicitly organized as a DAG (Directed Acyclic Graph) of processing nodes (filters, maps, joins), where data flows through a pipeline of operations.
+
+### Deployment vs. Source Structure
+It is important to distinguish the **deployment architecture** (which is a distributed system/cluster) from the **codebase architecture**. The repository is not a "Microservices" architecture because the internal components (like the group coordinator or the metadata manager) are not independently deployable processes that communicate over the network via REST/gRPC; they are compiled into the same binary and run within a single JVM process on the broker, coordinated through well-defined internal interfaces.

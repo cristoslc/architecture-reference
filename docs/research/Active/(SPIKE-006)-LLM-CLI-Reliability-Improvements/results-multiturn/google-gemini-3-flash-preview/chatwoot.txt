@@ -1,0 +1,28 @@
+# chatwoot — openrouter/google/gemini-3-flash-preview
+# Turns: 1
+# Parse retries used: 0
+# Date: 2026-03-08T06:10:35Z
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.95
+---
+
+The Chatwoot repository is a classic example of a **Layered** architecture, specifically following the Ruby on Rails "Convention over Configuration" pattern. The system is organized into horizontal layers based on functional responsibility:
+
+1.  **Presentation Layer**: Located in `app/controllers`, `app/views`, and a significant Vue.js frontend in `app/javascript`.
+2.  **Business Logic Layer**: Handled by `app/models` (ActiveRecord), but significantly extended via specialized domain directories like `app/builders` (object creation), `app/actions` (service objects), and `app/finders` (query logic).
+3.  **Data Access Layer**: Abstracted through Rails' ActiveRecord models in `app/models`, with `app/fields` and `app/presenters` handling data transformation.
+
+The repository also exhibits a strong **Event-Driven** secondary style used to maintain decoupling between the core conversation engine and peripheral features (like webhooks, notifications, and integrations). Evidence for this includes:
+-   **`app/listeners/`**: Contains numerous listener classes (e.g., `WebhookListener`, `NotificationListener`, `AutomationRuleListener`) that react to system events.
+-   **`app/dispatchers/`**: Logic for routing events synchronously or asynchronously.
+-   **`app/jobs/`**: A heavy reliance on background processing (Sidekiq/ActiveJob) for tasks like `EventDispatcherJob`, `WebhookJob`, and `ConversationReplyEmailJob`.
+
+### Why not other styles?
+-   **Microservices**: Despite having Docker/Kubernetes configurations, the entire backend is a single Rails monolith. There is no evidence of multiple independent services with their own databases.
+-   **Modular Monolith**: While there is some grouping (like `app/controllers/api`), the domain logic is globally accessible across the `app/` folder without strict boundary enforcement or encapsulated module structures.
+-   **Hexagonal**: Although there are "Adapters" for various channels (SMS, WhatsApp), the core business logic is tightly coupled to the Rails framework and ActiveRecord rather than being isolated in a framework-agnostic core.

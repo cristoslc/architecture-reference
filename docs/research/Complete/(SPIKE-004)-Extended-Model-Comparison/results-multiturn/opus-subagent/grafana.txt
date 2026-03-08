@@ -1,0 +1,48 @@
+# grafana — claude-opus-4-6 (subagent)
+# Turns: 43 tool calls
+# Date: 2026-03-08T05:30:00Z
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.92
+---
+
+The Grafana codebase is a textbook Microkernel (Plugin) architecture with a Modular Monolith core.
+
+**Primary: Microkernel (Plugin) -- Key Evidence:**
+
+1. **Explicit core vs. plugin separation** -- `pkg/plugins/plugins.go` defines two plugin classes: `ClassCore = "core"` and `ClassExternal = "external"` (line 515-516). Core plugins ship bundled; external plugins are installed at runtime.
+
+2. **Plugin contracts via well-defined interfaces** -- `pkg/plugins/backendplugin/ifaces.go` defines the `Plugin` interface that all backend plugins must implement: `Start`, `Stop`, `IsManaged`, `Exited`, `Decommission`, plus embedding SDK handler interfaces (`QueryDataHandler`, `CheckHealthHandler`, `CallResourceHandler`, `StreamHandler`, `AdmissionHandler`, `ConversionHandler`).
+
+3. **gRPC-based plugin isolation** -- `pkg/plugins/backendplugin/grpcplugin/grpc_plugin.go` uses HashiCorp's `go-plugin` library to run external plugins as separate processes communicating over gRPC. Plugins have lifecycle states (`pluginStateNotStarted`, `pluginStateStartInit`, `pluginStateStartSuccess`, etc.).
+
+4. **Plugin lifecycle pipeline** -- `pkg/plugins/manager/pipeline/` implements a staged load pipeline: Discovery, Bootstrap, Validation, Initialization, Termination (documented in `doc.go`).
+
+5. **Plugin factory pattern** -- `PluginFactoryFunc` in `pkg/plugins/backendplugin/backendplugin.go` provides a factory for creating plugin instances.
+
+6. **Frontend sandbox for plugins** -- `pkg/services/pluginsintegration/sandbox/sandbox.go` provides plugin sandboxing, and test plugins under `e2e-playwright/test-plugins/frontend-sandbox-*` confirm frontend plugin isolation.
+
+7. **Rich plugin ecosystem** -- Built-in panels at `public/app/plugins/panel/` (20+ panel types) and datasources at `public/app/plugins/datasource/` (20+ datasource types) are themselves plugins with `plugin.json` descriptors.
+
+8. **Plugin signature verification** -- The plugin system includes signature validation (`pkg/plugins/manager/pipeline/validation/`) and a plugin store/registry pattern.
+
+**Secondary: Modular Monolith -- Key Evidence:**
+
+1. **Wire dependency injection** -- `pkg/server/wire.go` uses Google Wire for compile-time DI across 74+ services in `pkg/services/`, with separate OSS and Enterprise wire sets (`wireexts_oss.go`).
+
+2. **dskit module system** -- `pkg/modules/` implements a module registry with a dependency map (`dependencies.go`) defining modules like `Core`, `GrafanaAPIServer`, `StorageServer`, `SearchServer`, `ZanzanaServer`, `FrontendServer`, etc. These can be run as separate targets but deploy as one binary.
+
+3. **Single deployable unit** -- Despite internal modularity, everything compiles to one Go binary with one `Dockerfile`.
+
+**Rejected Styles:**
+
+- **Microservices / Service-Based**: Although the module system allows running individual targets (e.g., `storage-server`, `search-server`), they are compiled into a single binary and use in-process communication by default. This is modular monolith decomposition, not separate services.
+- **Layered**: The `pkg/` structure has some layering (api, services, infra, storage), but this is incidental packaging, not a strict layered enforcement pattern.
+- **Event-Driven**: There is a `pkg/bus` and `pkg/events` package, but these are internal message passing, not the primary architectural driver.
+- **Hexagonal**: No explicit ports-and-adapters pattern with clearly separated driven/driving adapters.
+- **CQRS**: No command/query segregation pattern observed.
+- **Domain-Driven Design**: Services are organized by technical function (auth, plugins, provisioning), not by bounded contexts with aggregate roots.

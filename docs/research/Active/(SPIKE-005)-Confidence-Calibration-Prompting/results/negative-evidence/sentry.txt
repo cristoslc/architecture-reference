@@ -1,0 +1,48 @@
+# sentry — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T06:01:18Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Event-Driven
+confidence: 0.88
+counter_evidence:
+  alternative_style: Microservices
+  evidence_that_would_change_mind: "Finding individual deployment configurations (Helm charts, independent CI/CD pipelines, or K8s manifests) for directories like `src/sentry/monitors` or `src/sentry/releases` that prove they operate as standalone network services rather than logic run within a unified Sentry process."
+  plausibility_of_counter: low
+---
+
+## Analysis
+
+Sentry is a **Modular Monolith** that is currently transitioning into a more complex "Hybrid Cloud" or "Siloed" architecture. While it resides in a single repository and shares a massive, centralized `src/sentry/models/__init__.py` (a hallmark of a monolith), the codebase exhibits clear, enforced modularity and internal service boundaries.
+
+### 1. Modular Monolith (Primary Style)
+The codebase is structured into distinct functional modules under `src/sentry/`, such as `monitors`, `insights`, `organizations`, and `releases`. 
+- **Centralized Models:** The `src/sentry/models/__init__.py` file imports dozens of models (from `activity` to `userreport`), indicating a shared database schema typical of monoliths. 
+- **Internal Service Boundaries:** The presence of `src/sentry/silo` and `src/sentry/hybridcloud` (referenced in tests) indicates a strategy to separate "Control Plane" logic from "Region" logic. This "Silo" architecture enforces boundaries between different parts of the system to allow for eventual scaling or regional data residency, even if they currently reside in one codebase.
+- **Shared Infrastructure:** Common utilities in `src/sentry/middleware`, `src/sentry/options`, and `src/sentry/metrics` are used across all modules.
+
+### 2. Microkernel / Plugin (Secondary Style)
+Sentry relies heavily on a plugin architecture for third-party integrations.
+- **Plugin Directory:** `src/sentry/plugins` contains base classes (`bases/`, `base.py`) and interfaces (`interfaces/`) that define how external systems (Slack, Jira, GitHub) interact with the core engine.
+- **Provider Pattern:** Paths like `src/sentry/plugins/providers` and `src/sentry/pipeline/provider.py` show a core system that is agnostic of the specific implementation of external integrations.
+
+### 3. Event-Driven (Secondary Style)
+Despite the grep returning no results (likely due to case sensitivity or depth limits in the tool), the directory structure provides strong evidence of event-driven patterns:
+- **Eventstream:** `src/sentry/eventstream/kafka` explicitly shows Kafka as a primary transport for event data.
+- **Consumers:** Multiple modules have `consumers/` subdirectories (e.g., `src/sentry/monitors/consumers`, `src/sentry/remote_subscriptions/consumers`), which are standard for processing asynchronous messages.
+- **Signal Handlers:** `src/sentry/signals.py` indicates internal pub/sub logic used to decouple side effects from primary business actions.
+
+### Rejected Styles
+- **Microservices:** While Sentry uses external services like Snuba and Symbolicator (referenced in `tests/snuba` and `tests/symbolicator`), the core application logic in this repository is built as a single Python application. It lacks the independent deployment manifests (e.g., individual `Dockerfile`s per module) typical of microservices.
+- **Layered:** Although it has "middleware" and "models," the sheer scale and the "Silo/Region" boundary enforcement move it beyond a simple horizontal layered architecture into a Modular Monolith.
+
+## Counter-evidence analysis
+
+1. **Alternative Style:** Microservices.
+2. **Evidence to Change Mind:** If `src/sentry/monitors` or `src/sentry/releases` were found to have their own `requirements.txt`, separate CI pipelines, and were deployed as independent containers communicating solely over gRPC/HTTP rather than internal Python imports.
+3. **Plausibility:** **Low**. Sentry's architecture is well-documented as a "Siloed Monolith" (Hybrid Cloud) where the same code is deployed in different modes, rather than being broken into heterogeneous microservices.
+4. **Confidence:** **0.88**. The centralized model file is a "smoking gun" for a monolith, while the `silo/` and `eventstream/` directories prove the modular and event-driven nature.

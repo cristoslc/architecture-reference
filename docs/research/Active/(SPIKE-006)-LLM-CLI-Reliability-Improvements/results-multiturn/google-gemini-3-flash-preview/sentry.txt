@@ -1,0 +1,34 @@
+# sentry — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:10:47Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Microkernel (Plugin)
+confidence: 0.92
+---
+
+Sentry’s architecture is a sophisticated **Modular Monolith** that is currently transitioning into a distributed "Hybrid Cloud" model. While it has historically been a single Django application ("Monolith Mode"), the codebase is strictly partitioned into functional modules (found in `src/sentry/`) that are increasingly isolated via "Silos" (Control vs. Region).
+
+### 1. Modular Monolith (Primary)
+The core of Sentry resides within a single repository and is deployed primarily as a single unit or a set of processes (web, workers, cron) derived from the same codebase. 
+- **Silo Architecture:** As evidenced by `src/sentry/silo/README.md`, Sentry enforces a logical and physical split between a **Control Silo** (global data like users/auth) and **Region Silos** (customer data). This is a textbook evolution of a modular monolith where module boundaries are being hardened to support data residency and horizontal scaling without moving to full Microservices.
+- **Service Layer:** The existence of `src/sentry/*/services/` (e.g., `organizations/services`, `auth/services/auth`) indicates an internal SOA (Service Oriented Architecture) within the monolith, where logic is accessed through defined RPC-like interfaces rather than direct model access across boundaries.
+
+### 2. Event-Driven (Secondary)
+Sentry relies heavily on asynchronous processing and internal signaling to maintain consistency across its siloed boundaries.
+- **Outbox Pattern:** The code in `src/sentry/receivers/outbox/region.py` demonstrates the "Transactional Outbox" pattern. Changes in one silo are captured and subsequently "drained" to other parts of the system or silos.
+- **Django Signals:** The extensive use of `@receiver` hooks (e.g., `process_region_outbox`) and the `src/sentry/signals.py` file indicate that internal component communication is decoupled via an event-bus style mechanism.
+- **Task Workers:** The large `src/sentry/tasks/` directory and references to Celery in the README confirm a heavy reliance on background message processing.
+
+### 3. Microkernel / Plugin (Secondary)
+Sentry maintains a core "kernel" that handles event ingestion and processing, which is extended via a robust plugin system.
+- **Extensibility:** The `tests/sentry_plugins` and `src/sentry/plugins/` directories contain integrations for external services (Slack, GitHub, Jira, etc.). These plugins follow a standard contract to extend Sentry’s functionality without modifying the core ingestion pipeline.
+
+### Rejected Styles
+- **Microservices:** Although Sentry uses auxiliary services like **Relay** and **Snuba**, the core logic remains within the `sentry` repository as a monolithic Django application. The "Hybrid Cloud" silos are instances of the same codebase running in different modes rather than independent, heterogeneous services.
+- **Hexagonal Architecture:** While there is clear evidence of "Adapters" (e.g., `src/sentry/metrics/datadog.py` vs `dogstatsd.py`), the codebase lacks the strict "Port" interface enforcement typical of pure Hexagonal systems, leaning more towards a Service-Layered Monolith.

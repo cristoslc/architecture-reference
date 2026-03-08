@@ -1,0 +1,65 @@
+# posthog — openrouter/z-ai/glm-5
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:01:39Z
+
+---
+verdict: classified
+primary_style: Service-Based
+secondary_styles:
+  - Modular Monolith
+  - Event-Driven
+confidence: 0.88
+---
+
+This repository exhibits a **Service-Based architecture** with a **Modular Monolith** at its core, complemented by **Event-Driven** communication patterns.
+
+## Primary: Service-Based Architecture
+
+The system is organized as a small number (roughly 4-6) of coarse-grained services that share databases:
+
+- **Django web/worker** (`web`, `worker`, `temporal-django-worker` in docker-compose) — the main application handling HTTP API, background jobs, and workflow orchestration
+- **Node.js ingestion service** (`nodejs/`) — handles event capture, session recording processing, CDP pipelines, and Kafka consumption
+- **Rust services** (`rust/`, `property-defs-rs`) — high-performance property definitions processing
+- **Specialized services** (`services/llm-gateway/`, `services/mcp/`, `livestream/`) — purpose-built services for specific capabilities
+
+Evidence from `docker-compose.dev-full.yml` shows these services share infrastructure:
+- Single PostgreSQL database (`db`)
+- Single Redis instance (`redis7`)
+- Shared ClickHouse cluster
+- Shared Kafka cluster
+
+This is not microservices — there's no service discovery, no API gateway, and services share databases rather than owning their data exclusively.
+
+## Secondary: Modular Monolith (within Django)
+
+The `products/` directory is a textbook Modular Monolith implementation. From `products/architecture.md`:
+
+> "Each product in PostHog is a **vertical slice**: it contains its backend (Django app), frontend (React/TypeScript), and optionally shared code. This structure ensures product features are self-contained and can evolve independently."
+
+Key modular monolith signals:
+
+1. **Enforced boundaries**: `tach.toml` enforces Python import boundaries between products
+2. **Facade pattern**: Each product exposes functionality only through `backend/facade/api.py` — "the only file other products are allowed to import"
+3. **Contract-based interfaces**: Frozen dataclasses in `contracts.py` define stable interfaces between modules
+4. **Single deployable unit**: All products compile into one Django application registered via `INSTALLED_APPS`
+
+The architecture documentation explicitly states: "During migration, existing cross-product model imports are tracked in `tach.toml` `depends_on`. The goal is to replace them with facade calls over time."
+
+## Secondary: Event-Driven
+
+Kafka is the nervous system connecting services:
+
+- `nodejs/src/ingestion/` — event ingestion consumer
+- `nodejs/src/session-recording/` — session replay consumer  
+- `nodejs/src/cdp/consumers/` — CDP pipeline consumers
+- `nodejs/src/logs-ingestion/` — logs ingestion consumer
+- `nodejs/src/kafka/` — Kafka client infrastructure
+
+The `docker-compose.dev-full.yml` shows Kafka dependency chains: clickhouse depends on kafka, capture/replay-capture/property-defs-rs all connect to kafka.
+
+## What I Rejected
+
+- **Microservices**: Rejected because services share databases (violates "each owning its data"), there's no service mesh or discovery, and the product modules are explicitly NOT independently deployable — they're Django apps within a monolith.
+- **Layered**: The products don't follow horizontal layering (presentation/business/data). Instead, each product is a vertical slice with its own models, logic, and presentation — classic modular monolith organization.
+- **Domain-Driven Design**: While there are "products" that resemble bounded contexts, the architecture documentation focuses on technical boundaries (facades, contracts) rather than DDD tactical patterns (aggregates, domain events, value objects). The products are framework-centric (Django apps) rather than domain-centric.

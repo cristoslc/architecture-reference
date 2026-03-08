@@ -1,0 +1,55 @@
+# chatwoot — claude-opus-4-6 (subagent)
+# Turns: 27 tool calls
+# Date: 2026-03-08T05:29:00Z
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+  - Microkernel (Plugin)
+confidence: 0.82
+---
+
+**Primary: Layered (classic Rails MVC layers)**
+
+Chatwoot is a standard Ruby on Rails monolith with clearly separated horizontal layers:
+
+- **Controllers** layer: `app/controllers/api/v1/`, `app/controllers/api/v2/`, `app/controllers/public/`, `app/controllers/platform/`, `app/controllers/super_admin/` -- versioned REST API with ~49 account-scoped controllers.
+- **Models** layer: `app/models/` with ~53 ActiveRecord models (Account, Conversation, Message, Contact, Inbox, etc.) and `app/models/concerns/` for shared behavior.
+- **Services** layer: `app/services/` with ~47 service objects organized by domain (contacts, conversations, automation_rules, etc.), plus `app/builders/`, `app/finders/`, `app/presenters/` as additional service-tier patterns.
+- **Jobs** layer: `app/jobs/` with Sidekiq background workers for async processing.
+- **Views** layer: `app/javascript/dashboard/` (Vue.js SPA), `app/javascript/portal/`, `app/javascript/entrypoints/`.
+
+The deployment topology confirms a single monolith: the `Procfile` runs exactly two processes (`web` and `worker`) from the same codebase. The `docker-compose.yaml` runs `rails` + `sidekiq` from the same image -- no separate microservices.
+
+**Secondary: Event-Driven**
+
+The codebase has a well-developed internal event/listener system:
+
+- `app/dispatchers/dispatcher.rb` -- singleton dispatcher with sync and async dispatch modes.
+- `app/dispatchers/async_dispatcher.rb` -- routes events through `EventDispatcherJob` (Sidekiq) to 9 registered listeners.
+- `app/listeners/` -- 12 listener classes (HookListener, WebhookListener, NotificationListener, AutomationRuleListener, CampaignListener, etc.) all extending `BaseListener`.
+- Events like `message.created`, `conversation.resolved`, `contact.updated` flow through this pub/sub infrastructure.
+
+This is internal event-driven architecture within the monolith, not inter-service messaging.
+
+**Secondary: Microkernel (Plugin)**
+
+The `enterprise/` directory implements a clean plugin/extension architecture borrowed from GitLab:
+
+- `config/initializers/01_inject_enterprise_edition_module.rb` -- defines `prepend_mod_with`, `extend_mod_with`, `include_mod_with` methods injected into Ruby's `Module` class.
+- 48 call sites across the codebase use `prepend_mod_with` to allow the enterprise edition to override or extend core behavior without modifying core files.
+- `enterprise/app/` mirrors the core `app/` structure (controllers, models, services, listeners, jobs, etc.), providing enterprise-only extensions.
+- `enterprise/tasks_railtie.rb` loads enterprise rake tasks via a Rails Railtie.
+
+Additionally, `app/models/integrations/` with `Hook` and `App` models, plus the `HookListener`, implement a runtime plugin system for third-party integrations (Slack, Dialogflow, Google Translate, LeadSquared) dispatched via events.
+
+**What was rejected and why:**
+
+- **Modular Monolith**: While there is an `enterprise/` overlay, the core `app/` directory is not organized into enforced domain modules with explicit boundaries. Models, controllers, and services are grouped by Rails convention (type), not by bounded context. There are no import restrictions or module interface contracts.
+- **Microservices / Service-Based**: Single deployment unit. One Procfile, one Docker image, one database.
+- **CQRS**: No separation of read/write models. Standard ActiveRecord used for both.
+- **Hexagonal Architecture**: No ports/adapters pattern. Controllers call services directly, services use ActiveRecord directly -- no dependency inversion at boundaries.
+- **Domain-Driven Design**: No aggregates, bounded contexts, or domain events in the DDD sense. The domain organization is flat within `app/models/`.
+- **Serverless / Space-Based / Pipeline / Multi-Agent**: No structural evidence for any of these.

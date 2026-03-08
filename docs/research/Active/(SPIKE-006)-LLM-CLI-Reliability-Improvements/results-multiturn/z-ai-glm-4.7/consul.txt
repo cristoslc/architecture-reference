@@ -1,0 +1,32 @@
+# consul — openrouter/z-ai/glm-4.7
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:12:59Z
+
+```
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles: []
+confidence: 0.88
+---
+```
+
+This repository is classified as a **Modular Monolith**.
+
+**Evidence for Monolithic Structure:**
+The repository is organized to produce a single, unified deployable unit—the Consul binary. This is evidenced by the single root `go.mod` file (`module github.com/hashicorp/consul`) which manages the dependencies for the core application. Additionally, the presence of a single `Dockerfile` at the root level and the tooling code (e.g., `tools/internal-grpc-proxy/main.go`) referencing "Consul's internal gRPC server" (singular) strongly imply that the architecture centers around one cohesive application binary that runs in different modes (agent, server, client), rather than a collection of independently deployed microservices.
+
+**Evidence for Modularity:**
+Despite being a single deployable unit, the codebase exhibits high modularity through a Monorepo structure with explicit module boundaries. The root `go.mod` utilizes `replace` directives to import several local subdirectories as distinct Go modules:
+*   `github.com/hashicorp/consul/api` => `./api`
+*   `github.com/hashicorp/consul/sdk` => `./sdk`
+*   `github.com/hashicorp/consul/envoyextensions` => `./envoyextensions`
+*   `github.com/hashicorp/consul/troubleshoot` => `./troubleshoot`
+
+This indicates that the system is composed of well-defined internal components (API client, SDK, Envoy extensions, diagnostics) that have their own dependency constraints and interfaces, yet are compiled together into the final binary. The separation of the UI (`ui/` directory with `pnpm-workspace.yaml`) from the backend Go code further reinforces this modular approach, where distinct capabilities are developed as self-contained modules within the larger monolith.
+
+**Why not other styles?**
+*   **Microservices / Service-Based:** There are no multiple deployment configurations (e.g., docker-compose for distinct services, multiple Kubernetes manifests per service) or separate `main` entry points for different business domains. The system operates as a single agent process.
+*   **Layered:** While the code likely contains layers, the `go.mod` structure and the distinct separation of concerns (API, SDK, Core) point to a Modular Monolith structure where vertical slicing (by capability) is as significant as horizontal layering.
+*   **Event-Driven:** Although Consul uses events internally (via Serf gossip), the repository's structural organization is defined by its modules and binary build target, not by an event-driven topology.

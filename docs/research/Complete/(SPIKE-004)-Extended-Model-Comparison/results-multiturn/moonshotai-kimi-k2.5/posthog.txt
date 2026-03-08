@@ -1,0 +1,80 @@
+# posthog — openrouter/moonshotai/kimi-k2.5
+# Turns: 2
+# Date: 2026-03-08T05:34:46Z
+
+```
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Service-Based
+  - Event-Driven
+  - Domain-Driven Design
+confidence: 0.92
+---
+
+## Analysis
+
+PostHog exhibits a **Modular Monolith** architecture as its primary structural pattern, with supporting **Service-Based**, **Event-Driven**, and **Domain-Driven Design** characteristics.
+
+### Primary: Modular Monolith
+
+The codebase is explicitly architected as a Django monolith with enforced internal module boundaries. Key evidence:
+
+- **Explicit architectural declaration**: `products/architecture.md` states: "This document defines the future architectural direction for our Django monolith" and describes "Establishing a clear, Django-friendly folder structure for product boundaries"
+
+- **Product-based modularization**: The `products/` directory contains 40+ vertical slices (feature_flags, experiments, session_replay, etc.), each with:
+  - `backend/` - Django app with models, logic, facade, presentation layers
+  - `frontend/` - React/TypeScript code
+  - `package.json` - Turborepo package definition
+  - `manifest.tsx` - Product feature registration
+
+- **Enforced boundaries**: The architecture uses `tach` (Python import boundary enforcement) and Turbo (task caching) to enforce isolation:
+  - `tach.toml` defines import boundaries between products
+  - Facades (`backend/facade/api.py`) are the only permitted cross-product import points
+  - Frozen dataclasses (`contracts.py`) serve as the stable interface between products
+
+- **Single deployable unit**: The `docker-compose.dev-full.yml` shows the main `web` service building from the root Dockerfile and running `./bin/docker-server-unit` - this is the Django monolith containing all products. The `worker` service uses the same build context for Celery workers.
+
+### Secondary: Service-Based
+
+While the core is a monolith, PostHog deploys 2-5 coarse-grained companion services for high-throughput concerns:
+
+- **capture**: Event ingestion service (Node.js/Rust)
+- **replay-capture**: Session recording ingestion
+- **feature-flags**: Feature flag evaluation service
+- **plugins**: Plugin server (Node.js, from `Dockerfile.node`)
+- **nodejs**: The `@posthog/nodejs` package is a separate deployable unit handling ingestion, CDP, and session recording
+
+These services share infrastructure (Kafka, Redis, ClickHouse) but are independently scalable. This fits the **Service-Based** pattern (coarse-grained, 2-5 services) rather than Microservices (fine-grained, many services).
+
+### Secondary: Event-Driven
+
+The architecture heavily relies on asynchronous event processing:
+
+- **Kafka**: Central event bus for `capture` → `web`/`worker` communication, ClickHouse ingestion
+- **Celery**: Task queues for background processing (defined in `backend/tasks/`)
+- **Temporal**: Workflow orchestration (visible in docker-compose with `temporal-*` services)
+- **Event ingestion**: The `nodejs` service handles event ingestion and routing
+
+The `docker-compose.dev-full.yml` shows explicit dependencies on Kafka, and the `products/architecture.md` references Celery tasks and event-driven boundaries.
+
+### Secondary: Domain-Driven Design
+
+The codebase exhibits strong DDD organizational patterns:
+
+- **Bounded Contexts**: Each `products/<name>/` represents a bounded context (feature_flags, experiments, data_warehouse, etc.)
+- **Aggregates/Entities**: Django models within each product define domain entities
+- **Value Objects**: Frozen dataclasses in `contracts.py` serve as immutable value objects crossing boundaries
+- **Domain Events**: The architecture supports domain events (though the explicit event bus is infrastructure)
+- **Anti-corruption Layer**: The facade pattern (`backend/facade/api.py`) acts as an anti-corruption layer, translating between internal models and external contracts
+
+### Rejected Alternatives
+
+- **Not Microservices**: The documentation explicitly states this is a "Django monolith" with internal modularization. Products are not independently deployable - they compile into the single `web` service. The separate `capture`/`nodejs` services are coarse-grained (Service-Based), not fine-grained microservices.
+
+- **Not Layered**: While there are internal layers (presentation/facade/logic/models), the primary organization is vertical by product/domain, not horizontal by technical layer.
+
+- **Not Hexagonal Architecture**: While facades provide some isolation similar to ports/adapters, the architecture is explicitly "Django-idiomatic" rather than hexagonal. The documentation emphasizes Django patterns (AppConfig, models.py, views.py) over hexagonal terminology.
+
+- **Not Indeterminate**: The architecture is explicitly documented and clearly follows the Modular Monolith pattern with strong supporting evidence.

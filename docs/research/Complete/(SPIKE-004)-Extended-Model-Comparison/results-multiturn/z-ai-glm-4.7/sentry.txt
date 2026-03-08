@@ -1,0 +1,42 @@
+# sentry — openrouter/z-ai/glm-4.7
+# Turns: 2
+# Date: 2026-03-08T05:31:20Z
+
+```
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Microkernel
+confidence: 0.90
+---
+
+This repository is a **Modular Monolith** that incorporates **Event-Driven** communication and a **Microkernel** plugin system.
+
+### Modular Monolith (Primary)
+The evidence points to a single, deployable Python application (based on Django) that is explicitly architected with enforced internal module boundaries, known internally as "Silos."
+
+*   **Single Deployable Unit:** The repository root contains a single `src/` directory and one `Makefile` that manages the lifecycle of one application (`devenv sync`, `migrations`, `test-python-ci`). There is no evidence of multiple independent deployables (like separate Dockerfiles for microservices) within this specific repository structure.
+*   **Enforced Boundaries:** The `.pre-commit-config.yaml` and `Makefile` reveal strong mechanisms for enforcing architecture:
+    *   **Stronger Modules:** The pre-commit hooks include `sort-stronger-mypy-list` and `check-mypy-stronglist`. These are custom Sentry tools used to manage dependency graphs and enforce that specific modules (silos) do not depend on others, a hallmark of a Modular Monolith.
+    *   **Custom Linting:** The `flake8-sentry` hook enforces custom rules (likely Silo-related import restrictions) beyond standard linting.
+*   **"Silo" Architecture:** The `Makefile` contains a specific target `test-monolith-dbs` which runs tests with `SENTRY_USE_MONOLITH_DBS=1`. The existence of a "Monolith DB" mode implies an alternative mode—Sentry's "Silo" architecture—which partitions the monolith into strictly bounded contexts (e.g., Regional vs. Customer Silos) to allow for logical separation and future multi-tenancy capabilities without splitting the codebase into microservices. The directory structure mirrors this, with `tests/sentry/silo` and `tests/sentry/hybridcloud` indicating architectural constructs for isolation.
+
+### Event-Driven (Secondary)
+The system relies heavily on asynchronous events for processing, rather than purely synchronous request/response.
+
+*   **Kafka Integration:** The `Makefile` references `test_ingest_consumer_kafka.py`, and `tests/sentry/consumers` exists in the repository map. This indicates the application consumes messages from a Kafka broker (likely populated by the external Relay service).
+*   **Service Interaction:** The `tests/relay_integration` and `tests/snuba` directories (and corresponding Makefile targets) show that the core monolith interacts with auxiliary services (Relay for ingestion, Snuba for query) via events and APIs, decoupling the processing pipeline.
+
+### Microkernel (Secondary)
+The core application is designed to be extended by plugins.
+
+*   **Plugin System:** The `tests/sentry_plugins` directory contains a wide array of subdirectories (e.g., `jira`, `slack`, `github`, `pagerduty`, `gitlab`). These correspond to Sentry's Integration plugins, which extend the core functionality with specific logic for third-party services.
+*   **Isolation:** These plugins are distinct from the core `sentry` package, fitting the Microkernel pattern where a minimal core system loads plugins to add capabilities.
+
+### Rejected Styles
+*   **Microservices / Service-Based:** The repository structure is a single Python project. While it interacts with services (Snuba, Relay), this repo represents the "Control Plane" or Web Server monolith, not a fleet of independently deployed services from this source tree.
+*   **Layered:** While it uses Django (which is layered), the use of "Stronger Modules" and "Silos" elevates the classification to Modular Monolith. The architecture is defined by vertical domain boundaries (Silos) rather than just horizontal layers (MVC).
+*   **Hexagonal:** There is no explicit directory structure (like `ports/` or `adapters/`) signaling the Ports and Adapters pattern; the separation is driven by domain silos and import controls.
+```

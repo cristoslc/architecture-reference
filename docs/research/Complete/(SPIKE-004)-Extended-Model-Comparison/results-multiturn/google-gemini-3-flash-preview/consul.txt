@@ -1,0 +1,37 @@
+# consul — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T05:30:44Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Domain-Driven Design
+  - Event-Driven
+confidence: 0.95
+---
+
+Consul is structured as a **Modular Monolith**. While it is a distributed system, the repository itself produces a single primary binary (the Consul agent) that contains both "Client" and "Server" logic, organized into highly decoupled internal modules with well-defined boundaries and interfaces.
+
+### 1. Modular Monolith (Primary Style)
+Consul’s codebase is characterized by a strong separation of concerns between its various subsystems (Consensus, Gossip, HTTP API, DNS, and Service Mesh).
+- **Core Internal APIs:** The `agent/` directory is partitioned into functional modules like `agent/consul` (server-side coordination), `agent/cache`, `agent/checks`, and `agent/proxycfg`.
+- **Interface-Driven Decoupling:** The `grep` results for interfaces (e.g., `SessionLimiter`, `Store`, `RequestLimitsHandler`, `StateStore`) demonstrate that Consul uses Go interfaces to abstract different parts of the system. For instance, the `Server` struct in `agent/consul/server.go` relies on a `raftStore` interface and various "Delegates" (e.g., `ServerDelegate`, `StateDelegate`) to interact with other components without tight coupling.
+- **Unified Deployment:** Despite the complexity, the code within `agent/agent.go` manages the lifecycle of both the `delegate` (which can be a `Server` or `Client`) and the UI/HTTP/DNS servers, all within one process.
+
+### 2. Domain-Driven Design (Secondary Style)
+The directory structure within `agent/` and `agent/consul/` heavily follows Domain-Driven Design patterns:
+- **Bounded Contexts:** Each subdirectory represents a clear subdomain (e.g., `agent/acl`, `agent/connect`, `agent/token`).
+- **Aggregates and State:** The `agent/consul/state/` directory contains the "State Store" (managed by `memdb`), which acts as the system's "Ground Truth." The use of specialized "Indexers" and "Schemas" for different entities (Catalog, ACLs, Config Entries) mirrors DDD entity/aggregate management.
+- **Enterprise Separation:** The code uses a "CE" (Community Edition) vs. "Enterprise" pattern (e.g., `agent_ce.go` vs enterprise counterparts), allowing the core domain to be extended without breaking the primary structure.
+
+### 3. Event-Driven (Secondary Style)
+Internally, Consul's coordination is fundamentally driven by events and gossip:
+- **Gossip Protocol:** The system relies on `serf` (found in `agent/consul/server.go` via `eventChLAN` and `eventChWAN`) to handle membership changes and custom user events.
+- **FSM (Finite State Machine):** The Raft implementation (integrated in `agent/consul/fsm/`) processes a stream of log entries (events) to transition the system state.
+- **Reactive Updates:** The `agent/cache` and `agent/blockingquery` modules implement a pub/sub-like mechanism where HTTP handlers block until the state store notifies them of a change, effectively making the internal data flow event-driven.
+
+### Styles Rejected:
+- **Microservices:** While Consul *manages* microservices, it is not built as one. It is a single codebase that compiles into a single binary.
+- **Hexagonal Architecture:** While it uses interfaces extensively (ports), it doesn't strictly follow the folder-level "adapters" vs "core" directory convention (e.g., `internal/core`, `internal/adapters`). Instead, it prefers functional grouping.
+- **Microkernel:** While it supports "Envoy Extensions" and "Checks," these are mostly plugins for the *managed* data plane or external scripts, not a microkernel that reconfigures the core Consul binary's internal behavior at runtime.

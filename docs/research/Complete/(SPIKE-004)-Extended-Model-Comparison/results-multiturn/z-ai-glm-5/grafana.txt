@@ -1,0 +1,63 @@
+# grafana — openrouter/z-ai/glm-5
+# Turns: 2
+# Date: 2026-03-08T05:37:18Z
+
+I have sufficient information to classify this repository now.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.92
+---
+
+## Analysis
+
+Grafana's architecture is primarily a **Microkernel (Plugin)** system, with **Modular Monolith** characteristics for its internal organization.
+
+### Primary: Microkernel (Plugin)
+
+The evidence for the Microkernel pattern is substantial and explicit:
+
+1. **Plugin Loading Infrastructure** — The `pkg/plugins/` directory contains the core plugin machinery:
+   - `pkg/plugins/plugins.go` — Main plugin management
+   - `pkg/plugins/pluginassets/loadingstrategy.go` — Plugin asset loading strategies
+   - `pkg/plugins/manager/pluginfakes/fakes.go` — Plugin manager test infrastructure
+
+2. **Runtime Plugin Communication via gRPC** — The `pkg/plugins/backendplugin/pluginextensionv2/` directory contains Protocol Buffer definitions (`rendererv2.pb.go`, `sanitizer.pb.go`) and gRPC service stubs (`rendererv2_grpc.pb.go`, `renderer_grpc_plugin.go`). This confirms plugins run as separate processes communicating via gRPC—a hallmark of the Microkernel pattern where plugins are isolated from the core.
+
+3. **HashiCorp go-plugin Dependency** — The `go.mod` explicitly includes `github.com/hashicorp/go-plugin v1.7.0`, which is HashiCorp's plugin system for Go applications. This library enables loading and communicating with plugins as separate processes.
+
+4. **Plugin SDK** — The dependency `github.com/grafana/grafana-plugin-sdk-go v0.290.0` is the official SDK for building Grafana plugins, providing the contract/extension API that plugins must implement.
+
+5. **Plugin Installation in Deployment** — The `packaging/docker/custom/Dockerfile` contains a `GF_INSTALL_PLUGINS` argument and `grafana-cli plugins install` commands, demonstrating that plugins are installed at deployment/runtime, not compile-time.
+
+6. **Test Plugins Directory** — `e2e-playwright/test-plugins/` contains test plugins like `frontend-sandbox-app-test`, `grafana-test-datasource`, etc., confirming the plugin extension model.
+
+### Secondary: Modular Monolith
+
+While the plugin system is Grafana's defining external architecture, internally it exhibits strong Modular Monolith characteristics:
+
+1. **Well-defined Internal Modules via Go Workspace** — The `go.mod` reveals numerous internal modules under `./apps/` with explicit module boundaries:
+   - `apps/advisor`, `apps/alerting/*`, `apps/annotation`, `apps/dashboard`, `apps/folder`, `apps/iam`, `apps/live`, `apps/plugins`, `apps/preferences`, `apps/provisioning`, etc.
+   
+   Each has its own Go module (replace directives point to `./apps/<name>`), indicating deliberate module isolation.
+
+2. **Single Deployable Unit** — The presence of a single root `./Dockerfile` and `packaging/wrappers/grafana-server` confirms Grafana deploys as a single binary/service. There are no multiple service Dockerfiles—the other Dockerfiles in `devenv/docker/blocks/` are for development infrastructure (MySQL, Prometheus, Loki) not application services.
+
+3. **Module Boundaries Enforced by Go Modules** — The `go.work` file and the replace directives in `go.mod` create explicit boundaries between internal modules like `pkg/aggregator`, `pkg/apiserver`, `pkg/apimachinery`, and the various `apps/` modules.
+
+### What Was Rejected
+
+- **Microservices** — There is a single `Dockerfile` at root, single `grafana-server` binary, and no service discovery/API gateway patterns. The multiple Dockerfiles in `devenv/` are for test infrastructure, not application services.
+
+- **Layered** — While Grafana has `public/app/` (frontend) and `pkg/` (backend), this is not the defining characteristic. The plugin system and internal module structure are far more architecturally significant.
+
+- **Event-Driven** — Despite mentioning "alerting" and having a `pkg/services/alerting/` equivalent through `apps/alerting`, there's no evidence of message brokers (Kafka, RabbitMQ) or event sourcing patterns in the core architecture. Alerting is a feature, not the structural pattern.
+
+- **Hexagonal Architecture** — While there may be some port/adapter patterns in specific modules, there's no systematic use of ports-and-adapters naming conventions or explicit hexagonal structure visible.
+
+### Summary
+
+Grafana is architected as a **Microkernel with a Plugin extension system** — its core value proposition is extensibility through data source plugins, panel plugins, and app plugins that are loaded at runtime via gRPC-based process isolation. Internally, it organizes as a **Modular Monolith** with well-defined module boundaries enforced through Go's module system, all compiled and deployed as a single binary.

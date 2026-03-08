@@ -1,0 +1,38 @@
+# posthog — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T05:59:44Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microservices
+  - Event-Driven
+confidence: 0.88
+---
+
+PostHog is a sophisticated **Modular Monolith** that is actively evolving its internal boundaries to support massive scale and developer velocity. While it deploys several auxiliary services, the core business logic, product definitions, and API remain housed within a single Django-based repository (the "monolith"), which is now being strictly partitioned into "Products."
+
+### Internal Code Organization (Modular Monolith)
+The primary evidence for a Modular Monolith is the explicit architectural intent documented in `products/architecture.md`. The repository is moving away from a traditional "Big Ball of Mud" Django structure toward a "Product"-based isolation model.
+- **Enforced Boundaries:** The use of `tach` (for Python import enforcement) and `Turbo` (for build/test isolation) ensures that product modules (e.g., `feature_flags`, `session_replay`) cannot bypass defined interfaces.
+- **Facade Pattern:** As cited in the architecture doc, each product is required to expose a `facade/api.py`. Other parts of the system are forbidden from importing `models.py` or `logic.py` directly, instead interacting via **frozen dataclasses** (contracts).
+- **Core and EE:** Shared infrastructure, base models (`Team`, `User`), and proprietary extensions reside in `posthog/` and `ee/`, acting as the shared substrate upon which modular products are built.
+
+### Deployment Units (Microservices)
+While the code organization is modular-monolithic, the deployment reflects a **Microservices** (or Service-Based) approach for high-throughput components. The `docker-compose.dev-full.yml` reveals several specialized services:
+- **nodejs/ (Plugin Server/Ingestion):** A high-performance Node.js environment handles heavy-lift tasks like event ingestion (`capture`), plugin execution, and session recording processing.
+- **property-defs-rs:** A Rust-based service for processing property definitions.
+- **Temporal/ClickHouse/Kafka:** Heavily utilizes external distributed systems for workflow management and specialized data storage.
+Components are split by **technical capability** (Ingestion vs. Web/UI) rather than business domain, though the "Product" initiative aims to bring domain-level isolation to the monolithic core.
+
+### Communication (Event-Driven)
+The system is fundamentally **Event-Driven**.
+- **Message Broker:** Kafka is the central nervous system, as seen in `docker-compose` and `nodejs/src/kafka`.
+- **Async Processing:** Ingestion is decoupled from analysis; events are captured by the Node.js layer, dumped into Kafka, and consumed by ClickHouse and various workers (Celery/Temporal).
+- **Temporal Workflows:** The presence of `docker/temporal` and `products/workflows` indicates that long-running business processes are managed via event-sourced workflow orchestration.
+
+### Rejection of Alternatives
+- **Layered:** While the internal products use horizontal layering (`presentation`, `logic`, `models`), the overall system's complexity and the strict vertical "Product" partitioning make "Modular Monolith" a more accurate descriptor.
+- **Microkernel:** Although PostHog has a "Plugin Server," the core product features (Analytics, Flags, etc.) are built into the main tree as modules, not dynamically loaded plugins.
+- **Hexagonal:** While the Facade/Contract pattern resembles Ports and Adapters, the architecture is more focused on module-to-module isolation within the Django framework than on isolating the core from all IO/frameworks (as Django models are explicitly allowed in the `models.py` of each product).

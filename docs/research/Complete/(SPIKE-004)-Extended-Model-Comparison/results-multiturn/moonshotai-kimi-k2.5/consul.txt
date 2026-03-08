@@ -1,0 +1,65 @@
+# consul — openrouter/moonshotai/kimi-k2.5
+# Turns: 1
+# Date: 2026-03-08T05:35:53Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.85
+---
+
+## Analysis
+
+Based on the repository structure and provided evidence, Consul exhibits a **Modular Monolith** architecture with strong **Microkernel (Plugin)** characteristics for its extension system.
+
+### Evidence for Modular Monolith
+
+**Single Deployable Unit with Internal Module Boundaries:**
+- **Root `go.mod`**: Indicates a single Go module at the repository root, compiling into a unified binary (the Consul agent).
+- **Domain-Oriented Top-Level Packages**: The repository is organized into vertical slices by domain rather than horizontal layers:
+  - `tlsutil/` - TLS certificate management utilities
+  - `snapshot/` - State snapshotting functionality  
+  - `ipaddr/` - IP address detection and manipulation
+  - `types/` - Core domain types and structs
+  - `command/` - CLI command implementations (presentation layer equivalent)
+  - `troubleshoot/` - Diagnostic tooling
+
+**Enforced Boundaries via Sub-Modules:**
+While the core is a monolith, specific functional areas are isolated as separate Go modules with their own `go.mod` files, enforcing hard dependency boundaries:
+- `envoyextensions/go.mod` - Envoy proxy extension system
+- `troubleshoot/go.mod` - Troubleshooting utilities
+
+This pattern prevents circular dependencies and ensures these modules expose only intended public APIs to the core system.
+
+### Evidence for Microkernel (Plugin) Architecture
+
+**Extension System Structure:**
+The `envoyextensions/` directory exhibits classic microkernel patterns:
+- **Separate Module**: `envoyextensions/go.mod` indicates this is an independently versioned component that could theoretically be developed and released separately.
+- **Extension Common Infrastructure**: `envoyextensions/extensioncommon/` contains base types and adapters for extensions:
+  - `envoy_extender.go` - Base extender interface/implementation
+  - `basic_envoy_extender.go` - Basic extension implementation
+  - `upstream_envoy_extender.go` - Upstream-specific extensions
+  - `runtime_config.go` - Configuration loading for extensions
+
+This structure allows third-party or internal developers to extend Consul's Envoy integration capabilities without modifying the core codebase, fitting the "core + plugins" microkernel pattern.
+
+### Rejected Styles
+
+**Not Microservices**: Despite being a distributed system (Consul runs as clusters), the codebase compiles into a single binary (evidenced by single root `go.mod` and `Dockerfile`). There are no separate service directories with independent deployment artifacts.
+
+**Not Layered**: While there is some separation (command/ for CLI, types/ for domain objects), the organization is primarily vertical (domain-based) rather than horizontal (presentation/business/data layers). The `agent/` directory (implied by Consul's architecture but not fully visible in the depth-3 tree) likely contains both business logic and data access mixed together.
+
+**Not Event-Driven (as primary)**: While Consul uses events internally (gossip protocol, Raft log replication), the code structure does not organize around event handlers or message brokers as the primary architectural style.
+
+**Not Hexagonal Architecture**: While there are interfaces and some separation of concerns, the codebase does not strictly adhere to ports-and-adapters with the application core isolated from all external concerns.
+
+### Confidence Note
+
+Confidence is 0.85 rather than higher because:
+1. The `agent/` directory (expected to contain core server logic) is not visible in the provided depth-3 tree, though it almost certainly exists based on the `command/` directory and Consul's known architecture.
+2. Without seeing the import control files (like `checkstyle` or internal import restrictions), we cannot 100% confirm the enforcement of module boundaries, though the separate `go.mod` files provide strong evidence.
+
+The classification as Modular Monolith with Microkernel characteristics aligns with HashiCorp's known engineering practices for Consul: a single binary deployment with strictly separated internal modules and an extension system for proxy integrations.

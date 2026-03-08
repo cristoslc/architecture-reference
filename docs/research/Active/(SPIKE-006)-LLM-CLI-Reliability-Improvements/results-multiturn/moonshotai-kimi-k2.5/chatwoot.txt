@@ -1,0 +1,51 @@
+# chatwoot — openrouter/moonshotai/kimi-k2.5
+# Turns: 1
+# Parse retries used: 0
+# Date: 2026-03-08T06:11:14Z
+
+ ---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Domain-Driven Design
+confidence: 0.85
+---
+
+**Analysis of Chatwoot Architecture**
+
+Based on the repository structure and deployment configuration, Chatwoot is architected as a **Modular Monolith** with significant **Event-Driven** internal communication patterns and **Domain-Driven Design** organizational influences.
+
+**Evidence for Modular Monolith:**
+
+1. **Single Deployable Unit**: The repository contains a single Rails application with one primary Dockerfile (`docker/dockerfiles/rails.Dockerfile`) and a docker-compose configuration (`docker-compose.yaml`). While there is a separate `vite.Dockerfile` for asset building, the main application deploys as one unit to Heroku, Kubernetes, or Docker - not as independent services.
+
+2. **Enforced Internal Module Boundaries**: The codebase demonstrates clear modular organization within the monolith:
+   - Domain separation in `app/models/channel/` (integrations with external messaging platforms like Twilio, Instagram, Twitter, etc.)
+   - Service object organization via `app/builders/`, `app/finders/`, and `app/presenters/` - following the Command/Query Responsibility Separation within the monolith
+   - Policy-based authorization in `app/policies/` enforcing cross-cutting concerns
+   - Integration-specific controllers isolated under `app/controllers/` subdirectories (twitter/, google/, microsoft/, shopify/, etc.)
+
+3. **Plugin-like Channel Architecture**: The `app/models/channel/` directory structure suggests a polymorphic plugin system for messaging channels (WhatsApp, Telegram, SMS, etc.), but implemented as internal modules within the single codebase rather than external microservices.
+
+**Evidence for Event-Driven:**
+
+1. **Pub/Sub Infrastructure**: The presence of `app/listeners/` (7 listener classes including `hook_listener.rb`, `webhook_listener.rb`, `automation_rule_listener.rb`) and `app/dispatchers/` (`async_dispatcher.rb`, `sync_dispatcher.rb`) indicates a robust internal event bus for decoupled component communication.
+
+2. **Background Job Processing**: Extensive use of `app/jobs/` for asynchronous processing (webhook delivery, notification dispatching, conversation automation) suggests event-driven workflows where actions trigger background processes.
+
+3. **Real-time Communication**: `app/listeners/action_cable_listener.rb` and `ActionCableBroadcastJob` indicate event-driven real-time updates to clients.
+
+**Evidence for Domain-Driven Design:**
+
+1. **Tactical Patterns**: Usage of Builders (`app/builders/account_builder.rb`, `contact_inbox_builder.rb`), Finders (`conversation_finder.rb`), and explicit Aggregate boundaries around Conversations, Contacts, and Inboxes.
+
+2. **Bounded Context Organization**: The directory structure reflects business domain boundaries (conversations/, contacts/, campaigns/, teams/) rather than purely technical layers.
+
+**Why Not Microservices:**
+Despite supporting many integrations, the codebase compiles into a single Rails application with shared database models (`app/models/`). There are no service definitions (gRPC/protobuf), independent deployment pipelines per feature, or service discovery mechanisms - all indications that this is intentionally designed as a monolith with internal modularity rather than distributed services.
+
+**Why Not Pure Layered:**
+While Rails follows MVC layers, the heavy use of domain-specific service objects (builders, finders, policies) and event listeners moves the architecture beyond traditional layered (3-tier) into modular domain-centric design.
+
+The architecture represents a mature monolith that leverages Ruby's flexibility to create clear internal contracts and module boundaries, preparing it for potential future extraction while currently benefiting from the simplicity of single-unit deployment.

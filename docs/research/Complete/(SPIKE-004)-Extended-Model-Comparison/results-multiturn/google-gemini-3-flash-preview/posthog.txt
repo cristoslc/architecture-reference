@@ -1,0 +1,35 @@
+# posthog — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T05:30:05Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Microkernel (Plugin)
+confidence: 0.95
+---
+
+PostHog is a sophisticated **Modular Monolith** that is currently undergoing a formalized architectural transition to enforce strict module boundaries within its Django-based core. While it utilizes multiple supporting services and processes, the primary business logic and product features are organized into a single repository with unified data models and internal dependency controls.
+
+### 1. Modular Monolith (Primary Style)
+The "products/" directory and the `products/architecture.md` file provide conclusive evidence of a Modular Monolith.
+- **Enforced Boundaries:** The project uses `tach` (a Python tool for import enforcement) and `Turborepo` to maintain strict boundaries between "products" (e.g., `feature_flags`, `experiments`, `cdp`).
+- **Facade Pattern:** Each product is required to expose functionality via a `facade/api.py`. Logic within a product is private; external modules may only interact with the `facade` using `frozen dataclasses` (contracts), as specified in the architecture guide.
+- **Shared Deployment with Internal Isolation:** The `docker-compose.dev-full.yml` shows a single `web` service (Django) and a `worker` service (Celery) that handle the bulk of product logic, while the code structure prevents the "spaghetti" dependencies typical of traditional monoliths.
+
+### 2. Event-Driven (Secondary Style)
+PostHog’s ingestion and data processing pipeline is heavily **Event-Driven**.
+- **Message Broker:** Kafka is a central infrastructure component (seen in `docker-compose.dev-full.yml` and `nodejs/package.json` via `node-rdkafka`).
+- **Asynchronous Processing:** Data flows from "capture" services through Kafka to the "plugins" and "ingestion" workers. The `nodejs/src/kafka` and `nodejs/src/ingestion` directories manage the high-volume pub/sub event stream.
+- **Temporal:** Inclusion of Temporal (`docker-compose.dev-full.yml`) indicates complex, event-sourced workflow orchestration for long-running tasks.
+
+### 3. Microkernel (Plugin) (Secondary Style)
+The system is designed to be extensible via a robust plugin architecture.
+- **Plugin Server:** There is a dedicated Node.js `PluginServer` (managed in `nodejs/src/server.ts` and `nodejs/src/plugin-scaffold.ts`) specifically for running user-defined or system-level plugins that transform or export data.
+- **Independently Loadable Units:** The infrastructure handles "Data Pipelines" (CDP) where custom filters and transformations are run on incoming data streams, effectively implementing a microkernel that executes extension code against a stable core.
+
+### Alternatives Considered and Rejected
+- **Microservices:** While there are several distinct Docker containers (`capture`, `web`, `plugins`, `property-defs-rs`), they largely function as scaled-out "sides" of the same system. The core product logic resides in a single Django codebase with a shared database (Postgres/Clickhouse), making it a "distributed monolith" or modular monolith rather than a pure Microservices architecture where each service owns its own database and schema independently.
+- **Layered Architecture:** While standard horizontal layers exist (DRF views -> Facade -> Logic -> Models), the primary organizational principle is vertical (by Product), which prioritizes the Modular Monolith style over simple layering.

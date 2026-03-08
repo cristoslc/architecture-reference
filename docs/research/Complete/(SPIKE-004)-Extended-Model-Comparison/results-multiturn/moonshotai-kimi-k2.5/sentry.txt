@@ -1,0 +1,63 @@
+# sentry — openrouter/moonshotai/kimi-k2.5
+# Turns: 1
+# Date: 2026-03-08T05:35:24Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Layered
+confidence: 0.85
+---
+
+## Analysis
+
+Sentry's repository exhibits a **Modular Monolith** architecture as its primary structural style, with strong **Event-Driven** characteristics for internal processing and traditional **Layered** architecture within modules.
+
+### Evidence for Modular Monolith
+
+**Single Deployable Unit with Internal Module Boundaries:**
+- The repository is a monorepo containing both backend (`src/sentry/`) and frontend (`static/app/`) code with unified build configuration (`pyproject.toml`, `pnpm-lock.yaml`, `Makefile`)
+- Clear internal module separation evidenced by test directory structure: `tests/sentry/`, `tests/sentry_plugins/`, `tests/snuba/`, `tests/symbolicator/` — indicating distinct subsystems within the single codebase
+- The `src/sentry_plugins/` directory (parallel to `src/sentry/`) represents a plugin subsystem that extends core functionality while remaining part of the unified deployment unit
+
+**Dependency Enforcement:**
+- Presence of `tools/mypy_helpers/` and import control tools suggests enforced module boundaries
+- `checkstyle/` or similar boundary enforcement likely exists given the scale (implied by `tools/flake8_plugin.py`)
+
+### Evidence for Event-Driven
+
+**Asynchronous Processing Infrastructure:**
+- `tests/sentry/eventstream/` and implied `src/sentry/eventstream/` — dedicated event streaming component for processing error events
+- `tests/sentry/consumers/` and `src/sentry/consumers/` — message consumers (likely Kafka-based given Sentry's scale) for asynchronous event processing
+- `tests/sentry/tasks/` — background task processing (Celery/RQ) for deferred work
+- `tests/relay_integration/` — integration with Relay (Sentry's event ingestion service), indicating event-based ingestion flows
+
+The architecture processes error events through pipelines: ingestion → eventstream → consumers → storage, characteristic of event-driven internal communication.
+
+### Evidence for Layered
+
+**Traditional Web Application Layering:**
+- Django-based application structure (evidenced by `tests/sentry/models/`, `tests/sentry/middleware/`, `tests/sentry/web/`)
+- Clear separation: models (data), views/APIs (presentation), and business logic
+- `tests/sentry/api/` — API layer separation
+- `tests/sentry/middleware/` — cross-cutting concerns layer
+
+### Rejected Styles
+
+**Not Microservices:** Despite the modular structure, this is not microservices because:
+- Single codebase and repository
+- No independent service deployments (no service-specific Dockerfiles in root)
+- Shared database schema implied by unified migration tools (`tools/migrations/`)
+- Tests are integrated, not service-isolated
+
+**Not Hexagonal Architecture:** While Sentry has integrations, the Django ORM and tight coupling between layers prevent clean ports/adapters isolation.
+
+**Not CQRS:** While there are read/write paths, there's no evidence of separate models for reads vs writes; the eventstream is for ingestion, not CQRS pattern.
+
+**Not Serverless:** Traditional long-running Django application with background workers, not function-as-a-service.
+
+### Conclusion
+
+Sentry is a mature **Modular Monolith** that organizes a complex error-tracking platform into well-defined internal modules (core, plugins, integrations) within a single deployable unit. It employs **Event-Driven** architecture for its core ingestion pipeline (events → consumers → storage) and follows traditional **Layered** patterns within its Django-based modules.

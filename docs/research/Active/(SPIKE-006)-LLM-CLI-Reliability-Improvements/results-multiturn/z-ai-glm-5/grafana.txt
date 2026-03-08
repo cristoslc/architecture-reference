@@ -1,0 +1,50 @@
+# grafana — openrouter/z-ai/glm-5
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:10:01Z
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.92
+---
+
+This repository implements a **Microkernel (Plugin)** architecture with **Modular Monolith** characteristics. Grafana's core architectural principle is extensibility through plugins, while internally it maintains well-defined module boundaries within a single deployable unit.
+
+## Microkernel (Plugin) Evidence
+
+The plugin system is Grafana's defining architectural feature:
+
+1. **Plugin infrastructure in `pkg/plugins/`**: Contains dedicated subsystems for plugin loading, asset management, and lifecycle management (`pluginassets/`, `manager/`, `backendplugin/`)
+
+2. **gRPC-based plugin protocol**: `pkg/plugins/backendplugin/pluginextensionv2/` defines protobuf-based extension contracts (`rendererv2.pb.go`, `sanitizer.pb.go`) with gRPC plugin handlers (`renderer_grpc_plugin.go`)
+
+3. **Hashicorp go-plugin dependency**: `github.com/hashicorp/go-plugin v1.7.0` in go.mod provides the RPC-based plugin mechanism that allows out-of-process plugins to extend the core system
+
+4. **README explicitly highlights extensibility**: "Panel plugins offer many different ways to visualize metrics and logs" and "Mix different data sources... This works for even custom datasources"
+
+5. **Plugin types**: Datasources, panels, apps, and renderers are all loaded as plugins through this infrastructure
+
+## Modular Monolith Evidence
+
+The codebase is organized as a single deployable with explicit internal module boundaries:
+
+1. **Single Go module with workspace pattern**: `go.mod` defines one module (`github.com/grafana/grafana`) with internal packages mapped via `replace` directives pointing to `./apps/*` and `./pkg/*` subdirectories
+
+2. **Explicit bounded contexts in `apps/`**: Alerting (with sub-modules for enrichment, historian, notifications, rules), dashboard, playlist, annotations, IAM, live streaming, provisioning, and other domain modules each have their own Go packages
+
+3. **Single production Dockerfile**: `./Dockerfile` at root produces one deployable artifact. Other Dockerfiles in `devenv/docker/blocks/` and `packaging/docker/custom/` are for development testing and custom plugin injection
+
+4. **Internal module replacement**: The `replace` section in go.mod shows 20+ internal modules (`apps/advisor`, `apps/alerting/*`, `apps/dashboard`, `pkg/plugins`, etc.) that compile into a single binary
+
+## What This Is Not
+
+- **Not Microservices**: Despite the extensive `apps/` organization, all modules compile into a single binary with one Dockerfile. There's no service discovery, API gateway, or independent deployment
+
+- **Not Layered**: While there are presentation and data access components, the plugin extension mechanism and domain module organization transcend horizontal layering
+
+- **Not Service-Based**: There are no coarse-grained independently deployable services sharing a database
+
+This is a mature example of plugin-driven architecture where the core platform provides stable extension contracts, and the internal organization uses modular monolith patterns to manage complexity while maintaining single-binary deployment simplicity.

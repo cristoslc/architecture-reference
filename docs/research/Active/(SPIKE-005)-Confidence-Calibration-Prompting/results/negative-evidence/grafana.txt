@@ -1,0 +1,54 @@
+# grafana — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T06:01:55Z
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+  - Domain-Driven Design
+confidence: 0.92
+counter_evidence:
+  alternative_style: Microservices
+  evidence_that_would_change_mind: "Finding that the individual directories in `pkg/tsdb/` or `public/app/features/` are actually separate repository submodules with their own independent deployment pipelines (CI/CD) and own database schemas, rather than being compiled into the single `grafana-server` binary."
+  plausibility_of_counter: low
+---
+
+## Analysis
+
+### Primary Style: Microkernel (Plugin)
+Grafana is a textbook implementation of the Microkernel (Plugin) architecture. The "Core" (the Microkernel) provides the essential services—authentication, web server, data model, and dashboard engine—while almost all functional capabilities (visualizations, data source connectors, and app extensions) are implemented as plugins.
+
+**Evidence:**
+- **Plugin Registry:** `pkg/plugins/plugins.go` and `pkg/plugins/manager/` manage the lifecycle of extensions.
+- **Internal Service Registry:** `pkg/registry/registry.go` defines `BackgroundService` and `DatabaseMigrator` interfaces. This allows the core to boot up and "register" various internal modules without the core knowing their specific implementations.
+- **Frontend Extension Points:** `public/app/plugins/` contains `datasource` and `panel` subdirectories, which act as the host for specific implementations like `prometheus` or `timeseries`.
+- **Backend Data Source Decoupling:** `pkg/tsdb/` contains a wide array of directories (e.g., `pkg/tsdb/loki`, `pkg/tsdb/prometheus`, `pkg/tsdb/mysql`). These are separate modules that implement a common interface for the query engine.
+- **Separation of Concerns:** The binary `grafana-server` (located in `pkg/cmd/grafana-server`) acts as the orchestrator that loads these plugins at runtime or build-time.
+
+### Secondary Style: Modular Monolith
+While Grafana uses a plugin-based approach, it is deployed as a single unit (a "Monolith"). However, it avoids the "big ball of mud" by enforcing strict modular boundaries.
+
+**Evidence:**
+- **Module Runner:** `pkg/server/module_runner.go` and `pkg/server/module_registerer.go` demonstrate that even core features are treated as "modules" that are registered into the server lifecycle.
+- **Clean Infrastructure Separation:** The `pkg/infra/` directory isolates cross-cutting concerns (metrics, tracing, db, kvstore) from the business logic.
+- **Dependency Injection:** The use of `wire_gen.go` and `wire.go` in `pkg/server/` indicates a highly structured approach to managing dependencies between modules, preventing circular dependencies and spaghetti code.
+
+### Secondary Style: Domain-Driven Design (DDD)
+The repository organization follows domain boundaries rather than purely technical layers.
+
+**Evidence:**
+- **Feature-Based Frontend:** `public/app/features/` is organized by domain (e.g., `alerting`, `dashboard`, `explore`, `search`) rather than by technical type (controllers, views).
+- **Backend APIs:** `pkg/apis/` is split by domain concerns such as `iam`, `userstorage`, and `datasource`.
+- **Bounded Contexts:** Each directory within `pkg/services/` (implied by the imports in `server.go` like `provisioning` and `accesscontrol`) acts as a bounded context with its own internal logic.
+
+### Rejected Styles
+- **Microservices:** While Grafana connects to many services, the repository itself produces a single main deployment unit (`grafana-server`). The presence of `docker-compose` and multiple services in `devenv/` is for professional development environments (to test against real databases), not the architecture of the Grafana application itself.
+- **Layered:** Although there are "middleware" and "web" directories, the primary organizing principle is modular/feature-based rather than horizontal layers (e.g., you don't find a single global `services/` or `models/` directory that contains every domain entity).
+
+## Counter-evidence analysis
+1. **Most Plausible Alternative:** Microservices.
+2. **Specific Evidence:** Finding that `pkg/tsdb/prometheus` or `pkg/tsdb/loki` were actually separate processes communicating via gRPC/Bus throughout the entire application lifecycle, rather than being linked into the main process.
+3. **Plausibility:** **Low**. The `go.mod` file and the `pkg/cmd/` structure strongly indicate a single binary compilation. While Grafana *does* support "external" backend plugins that run as separate processes (communicating via gRPC), the core architecture remains a single supervisor process managing these lifecycle events, which is characteristic of the Microkernel/Plugin style.
+4. **Confidence:** Derived as **0.92** because the evidence of a centralized registry and plugin management is overwhelming and consistent across both Go and TypeScript codebases.

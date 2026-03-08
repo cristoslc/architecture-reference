@@ -1,0 +1,64 @@
+# grafana — openrouter/moonshotai/kimi-k2.5
+# Turns: 1
+# Parse retries used: 0
+# Date: 2026-03-08T06:13:05Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel
+  - Domain-Driven Design
+confidence: 0.85
+---
+
+This repository is organized as a **Modular Monolith** with a **Microkernel/Plugin** architecture and strong **Domain-Driven Design** elements.
+
+## Primary Style: Modular Monolith
+
+The codebase is a single deployable unit with enforced internal module boundaries:
+
+- **Single codebase, single build**: The presence of `go.mod` at the repository root indicates a single Go module. The `nx.json` and `project.json` files indicate a unified monorepo build system (Nx) managing both frontend and backend assets, not independent services.
+
+- **Unified packaging**: The `packaging/` directory contains scripts for building a single binary/docker image across multiple platforms (deb, rpm, docker, mac), rather than packaging separate services. The `embed.go` file at the root suggests static asset embedding into a single binary.
+
+- **No service boundaries**: Unlike Microservices, there are no multiple Dockerfiles for independent services, no `docker-compose.yml` defining service topology at the root, and no service discovery configurations. The `devenv/docker/` directory contains development environment setups for external dependencies (databases, load testing), not internal service decomposition.
+
+## Secondary Style: Microkernel (Plugin Architecture)
+
+Grafana exhibits a classic Microkernel pattern where a core system is extended via dynamically loaded plugins:
+
+- **Plugin types**: The `e2e-playwright/test-plugins/` directory contains distinct plugin types: `grafana-test-datasource` (data source plugins), `grafana-test-panel` (panel plugins), and `grafana-extensionstest-app` (app plugins). This mirrors the documented plugin architecture mentioned in the README ("Panel plugins offer many different ways to visualize metrics").
+
+- **Plugin sandboxing**: The presence of `frontend-sandbox-app-test`, `frontend-sandbox-datasource-test`, and `frontend-sandbox-panel-test` directories indicates a sandboxed plugin execution environment, a key characteristic of Microkernel architectures where extensions are isolated from the core.
+
+- **Extension points**: The README explicitly describes the plugin ecosystem: "Panel plugins offer many different ways to visualize metrics and logs" and "Mixed Data Sources: Mix different data sources in the same graph! You can specify a data source on a per-query basis. This works for even custom datasources." This indicates the core provides extension APIs for custom implementations.
+
+## Tertiary Style: Domain-Driven Design
+
+Strong DDD signals are present in the codebase structure:
+
+- **Domain schemas**: The `kinds/` directory contains CUE language definitions (`dashboard_kind.cue`) defining structured schemas for domain entities (Dashboards). This represents a "kind system" or domain model definition layer.
+
+- **Bounded contexts**: The directory structure suggests separation between different domain concerns: `devenv/` (development environment domain), `grafana-mixin/` (observability domain), `e2e-playwright/` (testing domain), and the implied `pkg/` structure (not fully visible at depth 3 but implied by Go conventions).
+
+- **Ubiquitous language**: The README uses domain-specific terminology consistently: "datasources," "dashboards," "panels," "annotations," "alert rules" — indicating a modeled domain rather than technical layering.
+
+## Rejected Styles
+
+- **Not Microservices**: No independent deployable units, no service-specific Dockerfiles, no inter-service communication configuration. The single `go.mod` and unified packaging confirm this is a monolith.
+
+- **Not Layered (only)**: While there are likely layers internally (handlers, services, stores), the dominant organizational principle is domain modules and plugins, not horizontal technical layers.
+
+- **Not Serverless**: No function-as-a-service definitions, serverless.yml, or Lambda/Cloud Function configurations.
+
+- **Not Event-Driven (primary)**: While Grafana likely uses events internally, there's no evidence of message brokers (Kafka, RabbitMQ) as the primary integration pattern in the provided tree.
+
+## Confidence Assessment (0.85)
+
+The classification is highly confident based on:
+- Clear monorepo structure with single build artifacts (`go.mod`, `nx.json`, unified `packaging/`)
+- Explicit plugin architecture evidence in test directories and README
+- Domain modeling via CUE schemas in `kinds/`
+
+The only uncertainty is the exact internal module structure (which would require viewing `pkg/` or `public/` at deeper levels), but the available signals are sufficient for a confident classification.

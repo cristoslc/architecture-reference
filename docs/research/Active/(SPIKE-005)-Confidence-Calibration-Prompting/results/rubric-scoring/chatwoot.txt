@@ -1,0 +1,49 @@
+# chatwoot — openrouter/google/gemini-3-flash-preview
+# Turns: 1
+# Date: 2026-03-08T05:58:41Z
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.88
+confidence_dimensions:
+  evidence_strength: 0.90
+  style_ambiguity: 0.85
+  exploration_completeness: 0.90
+---
+
+### Analysis
+
+Chatwoot is a classic **Layered** Ruby on Rails application. It follows the standard Model-View-Controller (MVC) pattern but introduces several additional architectural layers common in mature Rails ecosystems to manage complexity.
+
+#### 1. Layered Architecture (Primary)
+The code is organized into distinct horizontal layers within the `app/` directory:
+- **Presentation Layer**: Handled by `app/controllers`, `app/views`, and a substantial `app/javascript` (Vue.js) frontend.
+- **Business Logic Layer**: In addition to standard Rails `app/models`, Chatwoot uses several patterns to extract logic from models:
+    - **Builders** (`app/builders/`): Responsible for complex object creation (e.g., `AccountBuilder`, `ConversationBuilder`).
+    - **Actions** (`app/actions/`): Encapsulated business procedures like `ContactMergeAction`.
+    - **Finders** (`app/finders/`): Dedicated query objects to isolate data retrieval logic.
+    - **Policies** (`app/policies/`): Authorization logic powered by Pundit.
+- **Data Access Layer**: Governed by ActiveRecord within `app/models/`.
+
+The codebase is a **Monolith**. While it has multiple `docker/dockerfiles` (e.g., `rails.Dockerfile`, `vite.Dockerfile`), these typically serve as different entrypoints (Web worker vs. Job worker) for the same codebase rather than independent microservices with separate databases.
+
+#### 2. Event-Driven Architecture (Secondary)
+Chatwoot utilizes an internal pub/sub or observer pattern to decouple side effects from core business logic:
+- **Dispatchers** (`app/dispatchers/`): Centralized hubs for broadcasting internal events.
+- **Listeners** (`app/listeners/`): Classes that respond to events such as `NotificationListener`, `WebhookListener`, and `AutomationRuleListener`.
+- **Jobs** (`app/jobs/`): Extensive use of Sidekiq (implied by `ApplicationJob` and the Rails background job pattern) to handle asynchronous task execution.
+When a conversation is updated, a dispatcher triggers events that these listeners pick up to send emails, trigger webhooks, or update Dashboards via ActionCable.
+
+#### 3. Why not other styles?
+- **Microservices**: Although it supports Kubernetes and has several Dockerfiles, it lacks the independent service-per-domain and separate data stores characteristic of Microservices. The `app/models` directory contains every domain object in the system.
+- **Hexagonal Architecture**: While there is some isolation (e.g., `app/actions`), the system is heavily coupled to ActiveRecord and the Rails framework convention rather than using abstracts/ports to isolate the core domain from the database.
+- **Modular Monolith**: While there is some grouping (e.g., `app/builders/v2`, `app/controllers/api/v1`), it does not enforce strict boundaries/import controls between domains like "Billing" or "Conversation" at a structural level (e.g., no `engines/` or `packages/`).
+
+### Evidence Summary
+- **Directories**: `app/models`, `app/controllers`, `app/views` (Standard Rails/Layered).
+- **Complexity Management**: `app/builders`, `app/actions`, `app/finders`, `app/policies`.
+- **Event-Driven Patterns**: `app/dispatchers`, `app/listeners`, `app/jobs/event_dispatcher_job.rb`.
+- **Deployment**: `docker-compose.yaml` and `docker/dockerfiles` indicate a single-repo, multi-process deployment common for monorepos.

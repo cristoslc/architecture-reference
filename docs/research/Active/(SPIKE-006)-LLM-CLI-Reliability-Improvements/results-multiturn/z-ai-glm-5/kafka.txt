@@ -1,0 +1,51 @@
+# kafka — openrouter/z-ai/glm-5
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:06:35Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.88
+---
+
+This repository exhibits a **Modular Monolith** architecture with **Layered** characteristics, evidenced by strong structural separation enforced through tooling.
+
+## Primary Classification: Modular Monolith
+
+The codebase is organized as a single deployable unit (the Kafka broker built from `core`) with rigorously enforced internal module boundaries:
+
+**Evidence of module boundaries:**
+- **Multiple Gradle subprojects** (`settings.gradle`): `clients`, `core`, `server`, `server-common`, `metadata`, `raft`, `storage`, `group-coordinator`, `transaction-coordinator`, `share-coordinator`, `streams`, `connect:*`, `tools`, `shell`, `trogdor` — each with distinct responsibilities
+- **Enforced import controls**: The `checkstyle/import-control-*.xml` files (13 separate files visible in the tree) define strict dependency rules per module
+- **Key comment** in `import-control.xml`: "THINK HARD ABOUT THE LAYERING OF THE PROJECT BEFORE CHANGING THIS FILE" — indicating intentional architectural enforcement
+- **Rule** `<disallow pkg="kafka" />` — the core server package (`kafka.*`) is explicitly isolated; no other module may import it
+
+**Evidence of single deployable:**
+- `build.gradle` shows `releaseTarGz` produces output in `core/build/distributions/`
+- Client libraries (`clients`) are published separately to Maven, but the broker itself is one artifact
+- No Docker Compose or K8s manifests for multi-service deployment — Docker configuration is for the single broker image
+
+## Secondary Classification: Layered
+
+The import controls enforce explicit horizontal layering:
+
+```
+org.apache.kafka.common     ← Foundation layer (anyone may use)
+org.apache.kafka.clients    ← Depends on common only
+org.apache.kafka.server     ← Depends on common
+kafka.* (core)              ← Server implementation, isolated
+```
+
+The `import-control.xml` shows:
+- `<allow pkg="org.apache.kafka.common" exact-match="true" />` — anyone can use public common classes
+- Subpackage-specific rules (e.g., `clients` can import from `common`, `server` can import from `common`)
+- Directional constraints preventing lower layers from importing higher layers
+
+## What This Is Not
+
+- **Not Microservices**: Single broker deployable, no service discovery or inter-service RPC patterns internally
+- **Not Event-Driven Architecture**: Kafka *enables* event streaming but its internal code organization is modular monolith; components communicate via method calls, not message brokers
+- **Not Hexagonal**: While APIs exist, there's no explicit ports-and-adapters pattern with application core isolation

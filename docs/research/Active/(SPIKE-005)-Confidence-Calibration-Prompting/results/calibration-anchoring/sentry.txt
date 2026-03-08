@@ -1,0 +1,36 @@
+# sentry — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T06:00:03Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Event-Driven
+confidence: 0.88
+---
+
+Sentry is a sophisticated **Modular Monolith** that is increasingly adopting **Siloed/Region-based** boundaries to handle data residency and scale. While it is deployed as a single codebase, it is architecturally structured to operate in distinct "Silo Modes" (Control vs. Region), which is a high-level form of modularity enforced at the application and database routing layers.
+
+### Primary Style: Modular Monolith
+The core of Sentry is built on Django, but it deviates from a traditional layered MVC by organizing code into high-level functional modules (e.g., `src/sentry/monitors`, `src/sentry/incidents`, `src/sentry/issues`). 
+- **Silo Architecture:** As evidenced by `src/sentry/silo/README.md`, the system specifically defines `Control Silo` (global data) and `Region Silo` (customer data). This is a deliberate structural boundary used to isolate data and compute, even though the code lives in one repository and is executed by the same `sentry` CLI (using `--silo` flags).
+- **Service Boundaries:** The directory `src/sentry/services` and the presence of `hybridcloud` logic indicate an internal "Service" layer where modules interact through defined interfaces (RPB/Proxy patterns) rather than direct database access across silo boundaries.
+- **MyPy Strong-Listing:** The build tools (`tools/mypy_helpers/sort_stronger_modules.py`) and the `tool.mypy.overrides` in `pyproject.toml` suggest an ongoing effort to enforce strict typing and boundary rules across different sub-modules.
+
+### Secondary Style: Microkernel (Plugin)
+Sentry maintains a significant plugin architecture (`src/sentry_plugins`).
+- **Plugin Infrastructure:** The presence of `src/sentry_plugins/base.py` and dedicated sub-directories for third-party integrations (Jira, Slack, GitHub, etc.) confirms a Microkernel approach. These plugins extend the core system's capabilities (alerting, SSO, issue tracking) without being part of the core logic.
+- **Contract-Based:** The system uses a registry/manager pattern (`src/sentry/plugins`) to load these components at runtime.
+
+### Secondary Style: Event-Driven
+While the management interface is a Monolith, the data processing pipeline is heavily **Event-Driven**.
+- **Kafka Integration:** `pyproject.toml` lists `confluent-kafka` and `sentry-arroyo` (a stream processing library). 
+- **Event Stream:** The directory `src/sentry/eventstream` and the use of Snuba (an external search/storage service) indicate that the actual "work" (ingesting events, calculating metrics) happens via a Pub/Sub model. Components like `ingest-consumer` handle high-volume data asynchronously from the web UI.
+
+### Why not Microservices?
+Although Sentry interacts with external services like **Snuba**, **Relay**, and **Symbolicator**, the repository itself houses the "Sentry" application, which is a single unit. The `Makefile` and `sentry devserver` commands demonstrate that while you can run different "roles" (workers, cron, web, ingest), they all share the same environment and codebase. This matches the "Service-Based" or "Modular Monolith" definition more closely than a true independent Microservices architecture where each service has its own lifecycle and repository.
+
+### Why not Hexagonal?
+While there are signs of "Adapters" (e.g., `src/sentry/metrics` having `dogstatsd.py`, `statsd.py`, etc.), the core business logic is still heavily coupled to Django models and the framework's middleware/signals, rather than being isolated in a framework-agnostic "Domain" layer.

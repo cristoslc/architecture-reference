@@ -1,0 +1,28 @@
+# kafka — claude-opus-4-6 (subagent)
+# Turns: 30+ tool calls
+# Date: 2026-03-08T05:30:00Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Layered
+confidence: 0.92
+---
+
+The Apache Kafka codebase is a Modular Monolith with strong plugin (Microkernel) and layered characteristics.
+
+**Modular Monolith (Primary):** ~30 Gradle modules with 16+ Checkstyle import-control XML files enforcing strict inter-module dependency rules at build time. Rules like `<disallow pkg="kafka" />` in lower modules prevent upward dependencies. All modules ship as a single broker distribution assembled by the `core` module.
+
+**Microkernel / Plugin (Secondary, strong):** Kafka Connect is a textbook Microkernel architecture -- `connect:api` defines abstract contracts (`Connector`, `Task`, `SourceConnector`, `SinkConnector`, `Transformation`), while `connect:runtime` contains a full classloader-based plugin system (`PluginClassLoader`, `DelegatingClassLoader`, `PluginScanner`). Built-in and third-party plugins follow the same API.
+
+**Layered (Secondary, moderate):** Strict dependency hierarchy from `clients` (Java 11, foundation) through `server-common`/`storage`/`raft` (infrastructure) to coordinator modules to `server` to `core` (assembly), enforced by both Gradle and Checkstyle.
+
+**Rejected classifications:**
+- **Event-Driven**: Kafka enables event-driven systems but its internal code uses request/response patterns -- classify structure, not domain.
+- **Microservices**: Single JVM deployment, all modules compile into one distribution.
+- **Pipeline (Pipe-and-Filter)**: Kafka Streams is a client library, not the broker's architecture.
+- **Hexagonal**: No explicit ports-and-adapters pattern.
+- **CQRS**: No separated read/write models.
+- **Domain-Driven Design**: No bounded contexts or aggregate roots in the DDD sense.

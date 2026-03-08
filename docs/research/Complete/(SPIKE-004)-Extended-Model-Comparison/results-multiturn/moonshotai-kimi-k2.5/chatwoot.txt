@@ -1,0 +1,54 @@
+# chatwoot — openrouter/moonshotai/kimi-k2.5
+# Turns: 1
+# Date: 2026-03-08T05:35:09Z
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+  - Domain-Driven Design
+confidence: 0.85
+---
+
+Chatwoot is a **Ruby on Rails** application exhibiting a **Layered** architecture as its primary structural style, with strong secondary characteristics of **Event-Driven** internal communication and **Domain-Driven Design** tactical patterns.
+
+## Primary Style: Layered
+
+The codebase follows the classic Rails **Model-View-Controller (MVC)** layering pattern with clear horizontal separation of concerns:
+
+- **Presentation Layer**: `app/controllers/` (API and web controllers), `app/views/`, `app/presenters/`, and `app/javascript/` (React/Vue frontend assets)
+- **Business Logic Layer**: `app/models/` (ActiveRecord domain models), `app/actions/` (service objects/interactors), `app/builders/` (construction logic), and `app/finders/` (query objects)
+- **Data Access Layer**: Inherited through ActiveRecord in `app/models/` with database abstraction
+
+The directory structure shows standard Rails conventions: technical concerns are grouped together (all models in `app/models/`, all controllers in `app/controllers/`) rather than domain-vertical slicing. The presence of `app/mailers/`, `app/jobs/`, and `app/helpers/` further confirms the traditional Rails layered approach.
+
+## Secondary Style: Event-Driven
+
+The architecture exhibits significant **Event-Driven** characteristics through its internal communication mechanism:
+
+- **`app/listeners/`**: Contains 12+ event listeners including `hook_listener.rb`, `webhook_listener.rb`, `agent_bot_listener.rb`, `automation_rule_listener.rb`, and `reporting_event_listener.rb`
+- **`app/dispatchers/`**: Contains `async_dispatcher.rb`, `sync_dispatcher.rb`, and `base_dispatcher.rb`, indicating a formal event dispatch mechanism
+- **`app/jobs/event_dispatcher_job.rb`**: Background job for asynchronous event processing
+
+This pub/sub pattern decouples domain events from their handlers, allowing features like webhooks, automation rules, and notifications to react to domain changes without direct coupling to the triggering code.
+
+## Secondary Style: Domain-Driven Design
+
+The codebase employs **Domain-Driven Design** tactical patterns to manage complexity:
+
+- **Rich Domain Models**: `app/models/` contains domain concepts like `Conversation`, `Inbox`, `Contact`, `Message`, `Account` with subdomains organized in `channel/`, `integrations/`, and `kbase/`
+- **Application Services**: `app/actions/` (e.g., `contact_identify_action.rb`, `contact_merge_action.rb`) encapsulate use cases
+- **Factory/Builder Pattern**: `app/builders/` (e.g., `conversation_builder.rb`, `contact_inbox_builder.rb`) handle complex object construction
+- **Query Objects**: `app/finders/` (e.g., `conversation_finder.rb`, `message_finder.rb`) encapsulate query logic
+- **Policy Objects**: `app/policies/` implement authorization rules per domain entity
+- **Value Objects/Drops**: `app/drops/` for presentation-layer value objects
+
+## Rejected Alternatives
+
+- **Microservices**: Rejected because this is a single Rails codebase with one deployment artifact (evident from `docker/Dockerfile` and `docker-compose.yaml`). There are no service boundaries, separate repositories, or inter-service communication mechanisms.
+- **Modular Monolith**: While well-organized, the codebase lacks enforced module boundaries (e.g., no `app/modules/` or package-private access controls). Dependencies between domains are not physically isolated.
+- **Hexagonal Architecture**: While there are some patterns like actions (use cases) and repositories (finders), the heavy reliance on ActiveRecord and Rails conventions means the domain logic is not fully isolated from framework concerns.
+- **CQRS**: No evidence of separate read/write models or event sourcing for state management.
+
+The architecture represents a mature, well-factored **Layered** Rails monolith that has evolved toward **Domain-Driven Design** tactical patterns while using **Event-Driven** communication for loose coupling between subsystems.

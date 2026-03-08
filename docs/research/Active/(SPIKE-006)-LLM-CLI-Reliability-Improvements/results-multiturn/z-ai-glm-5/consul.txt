@@ -1,0 +1,54 @@
+# consul — openrouter/z-ai/glm-5
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:08:18Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.82
+---
+
+This repository is primarily organized as a **Modular Monolith** with layered elements.
+
+## Key Evidence
+
+**Single Deployable Unit:**
+- Single `Dockerfile` at repository root produces one binary (`consul` agent)
+- Single `Makefile` orchestrates the build
+- One main module (`github.com/hashicorp/consul`) with internal replace directives for sub-modules
+
+**Well-Defined Internal Module Boundaries:**
+The `go.mod` reveals explicit module separation via replace directives:
+- `./api` — Public API client library
+- `./sdk` — SDK utilities
+- `./envoyextensions` — Envoy proxy extension handling
+- `./proto-public` — Public protobuf definitions
+- `./troubleshoot` — Diagnostic tools
+
+These are library modules with clean interfaces, not independent deployables.
+
+**Internal Package Organization in `agent/`:**
+The agent directory shows clear concern separation:
+- `agent/grpc-external/` and `agent/grpc-internal/` — Separate gRPC interface layers
+- `agent/cache/` — Caching subsystem with its own types and request handling
+- `agent/config/` — Configuration management
+- `agent/proxycfg/` and `agent/proxycfg-sources/` — Proxy configuration management
+- `agent/consul/` — Core server logic (raft, endpoints, leader election)
+- `agent/checks/` — Health check subsystem
+- `agent/local/` — Local state management
+
+**Layered Aspects:**
+- **Presentation/API Layer:** `*_endpoint.go` files (acl_endpoint.go, catalog_endpoint.go, etc.) handle HTTP/gRPC routing
+- **Business Logic:** Core coordination in `agent/consul/`, service mesh logic in `agent/proxycfg/`
+- **Data Layer:** Raft-based state replication, `agent/local/state.go` for local state
+
+## What This Is Not
+
+- **Not Microservices:** Single Dockerfile, single binary. Consul *enables* service mesh for microservices but itself runs as replicated instances of the same monolithic agent.
+- **Not Event-Driven:** While Consul uses gossip (memberlist) and Raft internally, the code structure doesn't organize around event handlers, message brokers, or pub/sub patterns.
+- **Not Domain-Driven Design:** No bounded context organization, aggregates, or value object patterns visible in the package structure.
+
+The architecture reflects Consul's nature as infrastructure software: a single, cohesive agent binary with strong internal boundaries that can run as client or server mode, with library modules extracted for downstream consumption.

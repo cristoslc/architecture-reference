@@ -1,0 +1,55 @@
+# consul — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T06:01:41Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Domain-Driven Design
+confidence: 0.90
+counter_evidence:
+  alternative_style: Microservices
+  evidence_that_would_change_mind: "Finding that the sub-projects (e.g., `envoyextensions`, `troubleshoot`) are intended to be deployed as standalone long-running network services that communicate with the main agent via REST/gRPC in production, rather than being linked into the main `consul` binary."
+  plausibility_of_counter: low
+---
+
+## Analysis
+
+Consul is structured as a **Modular Monolith**. While it is a distributed system by nature, the repository itself is organized to produce a single, primary multi-functional binary (the Consul agent) that contains all the logic for both "Server" and "Client" modes, as well as various CLI utilities.
+
+### 1. Modular Monolith (Primary)
+The codebase is partitioned into clear, functional modules that are compiled into a single unit. 
+- **Centralized Entry Point:** The `Makefile` reveals that `go install` and `go build` target the root package, producing one `consul` binary. The `command/agent/agent.go` file shows a single unified startup sequence for the entire system.
+- **Internal Boundaries:** The logic is strictly organized into sub-packages like `agent/consul` (the server-side Raft logic), `agent/cache`, `agent/checks`, and `agent/proxycfg`. These modules have distinct responsibilities but reside within the same deployment unit.
+- **Consolidated State:** Although it manages a distributed state, the local instance handles its various sub-subsystems (DNS, HTTP API, RPC, Health Checking) within the same process memory space, coordinated by the `agent.go` orchestrator.
+
+### 2. Microkernel (Plugin) (Secondary)
+Consul utilizes a Microkernel-like approach to extend its core functionality, particularly for its "Service Mesh" and "Health Checking" features.
+- **Extensions:** The `agent/envoyextensions` directory contains registered extensions, allowing the core agent to support different proxy configurations and protocols without changing the base networking logic.
+- **Check Providers:** The `agent/checks/` directory (containing `docker.go`, `grpc.go`, `os_service.go`) implements a plugin-like pattern where different health check executors are plugged into the check coordinator.
+
+### 3. Domain-Driven Design (Secondary)
+The package structure follows a DDD-lite approach, where directories represent functional bounded contexts rather than technical layers (like "controllers" or "models").
+- **Bounded Contexts:** Packages like `agent/acl`, `agent/connect`, `agent/token`, and `agent/coordinate` encapsulate the logic, structs, and tests for specific domain problems. 
+- **Protobuf-Driven Domains:** The `proto/` directory mirrors these domains (`pbacl`, `pbconnect`, `pbstorage`), enforcing a schema-first approach to domain boundaries.
+
+### Rejected Styles
+- **Microservices:** While Consul *manages* microservices, the repository is not a collection of independent services. The `ui`, `agent`, and `cli` are all built or bundled into one distribution.
+- **Layered Architecture:** While it has layers (CLI -> API -> Core Logic -> Storage), the primary organization is vertical/functional (by domain) rather than horizontal (layers).
+- **Service-Based:** This would imply 3-5 semi-coupled services. Consul is a single binary that acts as a node in a cluster, which is a different pattern of distribution (Distributed System vs. Service-Based Architecture).
+
+## Counter-evidence analysis
+
+### 1. Most Plausible Alternative
+The most plausible alternative is **Microservices**, particularly because of the presence of `go.mod` files in subdirectories like `envoyextensions` and `troubleshoot`.
+
+### 2. Evidence that would change my mind
+I would change my classification if I found evidence that the binary `consul` was merely a "wrapper" and that the core subsystems (like the Vault integration, the UI server, or the Connect CA) were designed to be deployed as separate containers/processes that the agent coordinates over a network. Specifically, seeing a `docker-compose.yml` or K8s manifest in the root that deploys 5 different components of Consul itself as separate images would indicate a transition to Service-Based or Microservices.
+
+### 3. Plausibility of counter-evidence
+**Low**. HashiCorp's design philosophy for Consul has historically prioritized a "single binary" deployment model to simplify operations (copy a single binary to a VM and run it). The `Makefile` confirms that the primary build target is the root package. The sub-`go.mod` files are likely for versioning isolation or to allow external tools to consume specific libraries without pulling the entire Consul dependency graph.
+
+### 4. Confidence Assessment
+My confidence is **0.90** because the evidence in the `Makefile` and the `agent.go` initialization strongly points to a unified assembly of modular components into a single executable.

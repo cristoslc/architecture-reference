@@ -1,0 +1,66 @@
+# posthog — openrouter/z-ai/glm-5
+# Turns: 2
+# Date: 2026-03-08T05:31:15Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Event-Driven
+confidence: 0.95
+---
+
+This is a **Modular Monolith** with explicit, enforced internal boundaries. The codebase is a Django application that has been systematically decomposed into "products" — vertical feature slices with strict import controls and defined public interfaces.
+
+### Primary: Modular Monolith
+
+The architecture is explicitly documented as a modular Django monolith:
+
+**Enforced Module Boundaries:**
+- `products/architecture.md` defines the modular structure with `products/<name>/` as the unit of isolation
+- **tach** enforces Python import boundaries via `tach.toml` — products cannot import each other's internals
+- Each product has a `facade/api.py` as the **only** public interface other products may import
+- Contracts (`frozen dataclasses`) define stable interfaces between products
+
+**Evidence from directory structure:**
+- `products/<product_name>/backend/` — each product is a Django app registered via `AppConfig`
+- Products share the same database but maintain logical separation
+- Single build system (pnpm/Turborepo) manages all products as a monorepo
+
+**Key architectural rules from the documentation:**
+- Forbidden: "Importing another product's `models.py` directly"
+- Forbidden: "Importing anything from another product's `logic.py`"
+- Allowed: "Importing another product's `backend.facade` (the facade)"
+- Machine-enforced via `tach.toml` `interfaces` setting
+
+**Deployment:**
+- `docker-compose.dev-full.yml` shows services (`web`, `worker`, `capture`, `plugins`) that are different runtime processes of the same codebase, not independently deployed microservices
+- All share the same PostgreSQL, ClickHouse, Redis, and Kafka infrastructure
+
+### Secondary: Microkernel (Plugin)
+
+PostHog has a plugin extension system:
+- `plugins` service in docker-compose runs the plugin server
+- `nodejs/` package references `@posthog/cyclotron` for data pipeline processing
+- The product system itself (`manifest.tsx`, frontend extension points) provides plugin-like extensibility
+- Products can be added via `bin/hogli product:bootstrap <name>` without modifying core
+
+### Secondary: Event-Driven
+
+The system uses event-driven patterns for async processing:
+- **Kafka** is central to the architecture (`capture`, `replay-capture`, `property-defs-rs` all depend on Kafka)
+- **Temporal** for workflow orchestration (`temporal-django-worker` handles async workflows)
+- Events drive ingestion pipelines and async task processing
+
+### Why NOT Microservices
+
+Despite multiple runtime services (`web`, `worker`, `capture`, `plugins`):
+- They're different entry points into the **same codebase**, not independently versioned services
+- Products share a monolithic data store (PostgreSQL + ClickHouse)
+- The architecture documentation explicitly uses "Django monolith" terminology
+- No service discovery, API gateway, or independent deployment pipelines per product
+
+### Why NOT Layered
+
+While there are horizontal layers (`presentation/`, `logic.py`, `models.py`), the **primary organizational principle** is vertical product boundaries with enforced isolation — the defining characteristic of a Modular Monolith rather than traditional Layered architecture.

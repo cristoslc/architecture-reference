@@ -1,0 +1,43 @@
+# posthog — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T05:58:34Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microservices
+  - Event-Driven
+confidence: 0.95
+confidence_dimensions:
+  evidence_strength: 1.0
+  style_ambiguity: 0.85
+  exploration_completeness: 1.0
+---
+
+PostHog is a sophisticated **Modular Monolith** that is strategically transitioning its core (Django) into a strictly enforced modular structure while utilizing **Microservices** for high-throughput data ingestion and specialized processing.
+
+### Primary Style: Modular Monolith
+The codebase is explicitly governed by a "Vertical Slice" architecture (documented in `products/README.md` and `products/architecture.md`). Unlike a traditional layered monolith where features are spread across `models/`, `views/`, and `services/` global directories, PostHog organizes every feature (e.g., `feature_flags`, `session_replay`, `experiments`) into a self-contained unit under `products/`.
+
+**Key Evidence for Modular Monolith:**
+- **Enforced Boundaries:** The project uses `tach` (a Python tool) to enforce import boundaries defined in `tach.toml`. Products are forbidden from importing each other's ORM models or internal logic.
+- **Facade Pattern:** Each module exposes a `facade/api.py`. This is the *only* allowed entry point for cross-module communication.
+- **Contract-Based Isolation:** Internal modules communicate using **frozen dataclasses** (`facade/contracts.py`). External modules never receive Django ORM objects, preventing "leaky abstractions" and circular dependencies.
+- **Selective Testing:** Using **Turborepo**, the system identifies which "product" package changed. If only internal `logic.py` changed but `contracts.py` remained the same, dependent modules' tests are skipped in CI.
+
+### Secondary Style: Microservices
+While the business logic resides in the modular monolith, the system is deployed as a set of independent, specialized services (as seen in `docker-compose.dev-full.yml`).
+- **Functional Decomposition:** Services like `capture` (ingestion), `property-defs-rs` (Rust-based property processing), `worker`, and `plugins` run as separate processes/containers.
+- **Polyglot Implementation:** The core is Python (Django), but high-performance ingestion and specialized components are written in Node.js and Rust.
+- **Independent Scaling:** The `nodejs/src/capabilities.ts` file shows a "capability-based" deployment model where a single Node.js binary can be booted into specific roles (e.g., `cdp_processed_events`, `recordings_blob_ingestion`) via environment variables, effectively acting as independent microservices in production.
+
+### Secondary Style: Event-Driven
+The entire data flow is centered around a message broker (Kafka).
+- **Asynchronous Communication:** Components like the `capture` service ingest events and produce to Kafka, where separate workers (`ingestion`, `cdp`, `clickhouse`) consume them.
+- **Temporal Orchestration:** The presence of `docker/temporal` and `temporal-django-worker` indicates the use of an event-driven workflow engine for complex, long-running processes (like Data Warehouse syncs).
+
+### Alternatives Rejected:
+- **Layered Architecture:** While Django uses layers (Models/Views/Templates) internally, PostHog has explicitly rejected global layering in favor of vertical slices to maintain developer velocity and CI performance.
+- **Microkernel (Plugin):** While PostHog has a "Plugins" system, it is currently being superseded by the "CDP" (Customer Data Platform) and "Products" architecture. The README notes the "Plugin" system is "legacy" or "temporary" in several contexts.
+- **Pure Microservices:** PostHog avoids the operational overhead of hundreds of repos or truly independent databases for every small feature. It maintains a shared database (Postgres/ClickHouse) while enforcing logical separation, which is the hallmark of a Modular Monolith.

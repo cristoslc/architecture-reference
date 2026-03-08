@@ -1,0 +1,42 @@
+# chatwoot — openrouter/z-ai/glm-4.7
+# Turns: 1
+# Date: 2026-03-08T05:30:44Z
+
+```
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.9
+---
+
+## Analysis
+
+The Chatwoot repository follows a classic **Layered** architecture, typical of Ruby on Rails applications, augmented with **Event-Driven** patterns to handle asynchronous workflows and integrations.
+
+### Primary Style: Layered (MVC)
+
+The codebase is organized into horizontal layers that separate concerns, which is the defining characteristic of the Layered style.
+
+*   **Presentation Layer:** The `app/controllers/` directory organizes request handling logic (e.g., `dashboard_controller.rb`, `api_controller.rb`, specific channel controllers under `twitter/`, `slack_uploads_controller.rb`). This is accompanied by `app/views/` for view templates and `app/helpers/` for presentation logic.
+*   **Business Logic / Domain Layer:** The `app/models/` directory contains the core domain entities (e.g., `conversation.rb`, `account.rb`, `inbox.rb`). The presence of `app/actions/` (e.g., `contact_identify_action.rb`) suggests a service-object pattern to encapsulate complex business operations that don't fit neatly into single models or controllers.
+*   **Data Access Layer:** The models in `app/models/` inherit from `ApplicationRecord`, indicating the use of Active Record for database interaction and data mapping.
+*   **Infrastructure Layer:** Background processing is separated into `app/jobs/` (e.g., `conversation_reply_email_job.rb`, `webhook_job.rb`), and external communication is handled by specific directories like `app/mailboxes/` (for email channels) and `app/mailers/`.
+
+This strict separation of Controllers (input), Models (logic/state), Views (output), and Jobs (infrastructure) confirms the Layered architecture.
+
+### Secondary Style: Event-Driven
+
+While the base structure is Layered, the repository exhibits strong **Event-Driven** characteristics to decouple components and manage asynchronous state changes.
+
+*   **Event Listeners:** The presence of an `app/listeners/` directory with specific implementations like `webhook_listener.rb`, `automation_rule_listener.rb`, and `base_listener.rb` indicates a subscriber pattern. These components react to state changes rather than being directly invoked by controllers.
+*   **Event Dispatching:** The `app/dispatchers/` directory (`base_dispatcher.rb`, `async_dispatcher.rb`) suggests an internal mechanism for publishing events, decoupling the source of an event from its consumers.
+*   **Asynchronous Processing:** The extensive use of `app/jobs/` (containing subdirectories for `contacts/`, `conversations/`, `channels/`, `webhooks/`) driven by an `event_dispatcher_job.rb` implies that significant operations are triggered by events and processed asynchronously. This is a hallmark of Event-Driven architecture within a monolith.
+
+### Rejected Styles
+
+*   **Microservices:** Although `docker-compose.yaml` and Dockerfiles exist, the repository structure reveals a **Monolithic** application. All domain logic resides in a single `app/` directory with a unified database schema (implied by `app/models`). There is no evidence of separate deployable services for different domains (e.g., no separate "user-service" or "chat-service" top-level directories).
+*   **Hexagonal Architecture:** While `app/mailboxes/` and `app/actions/` show some separation of concerns, the application relies heavily on standard Rails framework coupling (e.g., ActiveRecord models in `app/models/` directly inheriting from framework classes). The architecture does not demonstrate a strict "Ports and Adapters" isolation where the domain core is completely independent of Rails.
+*   **Modular Monolith:** The code is organized by technical function (controllers, models, views) rather than by business modules. For example, `Inbox` logic is split across `app/models/inbox.rb`, `app/controllers/api/v1/inboxes_controller.rb` (inferred), and `app/presenters/inbox/`, rather than being contained within a single `modules/inbox/` boundary with enforced dependency rules.
+```

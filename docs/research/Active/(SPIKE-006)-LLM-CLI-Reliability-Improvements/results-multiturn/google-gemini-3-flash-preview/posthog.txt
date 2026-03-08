@@ -1,0 +1,37 @@
+# posthog — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Parse retries used: 0
+# Date: 2026-03-08T06:10:31Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microservices
+  - Event-Driven
+confidence: 0.92
+---
+
+The PostHog repository is a sophisticated **Modular Monolith** that is progressively transitioning toward a **Microservices** and **Event-Driven** architecture. While it currently operates as a single codebase with shared dependencies, it employs strict internal boundaries and multiple specialized entry points for deployment.
+
+### 1. Primary Style: Modular Monolith
+The core of PostHog's architecture is its "Vertical Slice" approach, as detailed in `products/README.md`. 
+- **Enforced Boundaries:** The system uses `tach` (a Python tool) to enforce import boundaries between products, ensuring that `products/feature_flags` cannot reach into the internals of `products/experiments` without using defined interfaces.
+- **Shared Runtime:** Despite the logical separation, the backend products are registered as Django `INSTALLED_APPS` and share a single database schema management system (Django migrations). This fits the definition of a Modular Monolith where the unit of deployment is often consolidated, but the code is strictly partitioned by domain.
+- **Common Platform:** Cross-cutting concerns are unified in `posthog/` (legacy core) and `common/`, which provide shared infrastructure like authentication, ClickHouse clients, and HogQL parsing.
+
+### 2. Secondary Style: Microservices
+While logically a monolith, the system is **physically deployed as a set of specialized microservices**.
+- **Specialized Runners:** The `docker-compose.dev-full.yml` reveals that the same codebase is used to spin up distinct services: `web` (Django/UI), `worker` (Celery/Temporal tasks), `capture` (high-throughput ingestion), and `plugins` (Node.js runtime).
+- **Polyglot Execution:** The system splits responsibilities between a Python (Django) core for business logic/UI and a Node.js (`nodejs/src/server.ts`) component for high-performance ingestion and event processing (CDP).
+- **Independent Services:** Newer components like `llm-gateway` and `mcp` are housed in the `services/` directory and are explicitly documented in `docs/internal/monorepo-layout.md` as having "their own deployment" and "their own domain."
+
+### 3. Secondary Style: Event-Driven
+PostHog is fundamentally built around a high-performance event pipeline.
+- **Broker-Centric:** Kafka is the central nervous system of the architecture. The `nodejs/src/server.ts` file acts as a massive "capabilities" router that spawns consumers for various Kafka topics (e.g., `KAFKA_EVENTS_PLUGIN_INGESTION`, `cdp-events`).
+- **Asynchronous Processing:** Most operations—ingestion, property calculation, and data exports—are handled asynchronously via Kafka consumers or Temporal workflows (`posthog/temporal/`), decoupling the capture of data from its processing and storage.
+
+### Why not other styles?
+- **Not purely Microservices:** Most "products" still reside within the same database and are imported into the main Django configuration, failing the "independent data ownership" test for pure microservices.
+- **Not Layered:** While it uses DRF (controllers/serializers), the organization is strictly vertical (by product) rather than horizontal (layers).
+- **Not Serverless:** Although it processes events, it relies on long-running worker processes and persistent infrastructure (ClickHouse, Kafka) rather than ephemeral functions.

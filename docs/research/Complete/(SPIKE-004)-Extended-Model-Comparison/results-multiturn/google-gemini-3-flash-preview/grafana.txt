@@ -1,0 +1,37 @@
+# grafana — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T05:30:55Z
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+  - Layered
+confidence: 0.95
+---
+
+Grafana's architecture is a textbook example of a **Microkernel (Plugin)** system, designed to be extended at both the frontend and backend levels without modifying the core. This is complemented by a **Modular Monolith** backend structure and a **Layered** frontend.
+
+### 1. Microkernel (Plugin) System (Primary Style)
+The "Microkernel" is the Grafana Core, which handles authentication, routing, dashboard persistence, and the plugin lifecycle. The system's primary value is delivered through plugins:
+- **Data Sources:** Located in `pkg/tsdb/` (backend) and `public/app/plugins/datasource/` (frontend). Each directory (e.g., `prometheus`, `loki`, `elasticsearch`) represents a self-contained plugin that adheres to a standard interface (Port/Adapter) to provide data to the core.
+- **Panels:** Located in `public/app/plugins/panel/`. These are the visualization units (e.g., `timeseries`, `heatmap`, `piechart`).
+- **Registry & Lifecycle:** `pkg/plugins/manager/` and `pkg/plugins/backendplugin/` manage the discovery and execution of these plugins. The core communicates with backend plugins often via gRPC (HashiCorp go-plugin), allowing plugins to run as separate processes—a hallmark of the Microkernel style.
+
+### 2. Modular Monolith (Secondary Style)
+While the system is deployed as a single unit (the `grafana-server` binary), the internal organization is strictly modular rather than a "Big Ball of Mud":
+- **Service Registry:** `pkg/server/server.go` references a `BackgroundServiceRegistry`. Services like `provisioning`, `alerting`, and `accesscontrol` are initialized and managed as discrete modules.
+- **Bus Pattern:** The existence of `pkg/bus/bus.go` indicates a decoupled internal communication mechanism where components send commands and queries via a central bus rather than calling each other's concrete implementations directly.
+- **Feature Isolation:** The directory `public/app/features/` organizes the frontend by domain (e.g., `alerting`, `dashboard`, `search`), which mirrors the backend's service boundaries.
+
+### 3. Layered Architecture (Secondary Style)
+Within individual modules and the core, a traditional horizontal layering is maintained:
+- **Presentation:** Handle via the `public/app/` (React/TypeScript) and `pkg/api/` (HTTP Handlers).
+- **Middleware:** `pkg/middleware/` provides a distinct layer for cross-cutting concerns (Auth, CSRF, Quota, Logging).
+- **Infrastructure:** `pkg/infra/` contains low-level libraries for `db`, `log`, `tracing`, and `localcache`, which are utilized by the services above.
+
+### Why alternatives were rejected:
+- **Microservices:** Despite the extensive use of Docker and packaging scripts, Grafana is distributed as a single logical server. It is a "monolith" that connects to external services, not a suite of independently deployable services that form one application.
+- **Hexagonal Architecture:** While it uses Ports/Adapters for plugins, the internal core logic (services/models) is more traditionally layered/modular and doesn't strictly adhere to the "inside-out" dependency rule across the entire codebase.
+- **Event-Driven:** While it has a `pkg/bus`, this is primarily used for in-process command orchestration and request/response within the monolith, rather than a system-wide architecture centered around an asynchronous message broker like Kafka.

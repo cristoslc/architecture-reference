@@ -1,0 +1,64 @@
+# chatwoot — openrouter/z-ai/glm-5
+# Turns: 1
+# Date: 2026-03-08T05:32:31Z
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.85
+---
+
+## Analysis
+
+This is a Ruby on Rails application with the classic **Layered** architecture as its primary structural pattern, augmented by significant **Event-Driven** elements for internal decoupling.
+
+### Primary: Layered Architecture
+
+The repository follows the standard Rails MVC layered structure with clear horizontal separation:
+
+- **Presentation Layer**: `app/controllers/`, `app/views/`, `app/javascript/` (Vue.js frontend with dashboard, widget, portal, and SDK entrypoints), `app/helpers/`
+- **Business Logic Layer**: `app/models/` (ActiveRecord models like `conversation.rb`, `message.rb`, `account.rb`, `contact.rb`, `inbox.rb`), `app/policies/` (Pundit authorization), `app/actions/` (service-like action objects)
+- **Data Access Layer**: Rails ActiveRecord ORM via `app/models/` with `application_record.rb` base class
+- **Supporting Layers**: `app/builders/` for complex object construction, `app/finders/` for query encapsulation, `app/presenters/` for view-specific formatting
+
+The layered pattern is further evidenced by standard Rails conventions: `app/mailers/` for outbound email, `app/jobs/` for background processing, `app/dashboards/` for admin panel definitions.
+
+### Secondary: Event-Driven Architecture
+
+The codebase implements a significant internal event-driven pattern through a custom listener/dispatcher mechanism:
+
+**Dispatcher Infrastructure** (`app/dispatchers/`):
+- `dispatcher.rb`, `sync_dispatcher.rb`, `async_dispatcher.rb`, `base_dispatcher.rb`
+- `app/jobs/event_dispatcher_job.rb` for asynchronous event propagation
+
+**Event Listeners** (`app/listeners/`):
+- `webhook_listener.rb` — external webhook dispatch
+- `notification_listener.rb` — user notifications
+- `automation_rule_listener.rb` — automation triggers
+- `reporting_event_listener.rb` — analytics/metrics
+- `action_cable_listener.rb` — real-time WebSocket broadcasts
+- `campaign_listener.rb` — campaign execution
+- `agent_bot_listener.rb` — bot integration events
+- `csat_survey_listener.rb` — customer satisfaction surveys
+- `participation_listener.rb` — conversation participation
+- `installation_webhook_listener.rb` — installation-level webhooks
+
+This listener/dispatcher pattern decouples event producers from consumers — when a conversation is created or a message is sent, events are dispatched and multiple listeners react independently without tight coupling.
+
+### Styles Considered and Rejected
+
+- **Modular Monolith**: While the codebase is a monolith, I found no evidence of enforced module boundaries (no `app/modules/`, no engine-based namespacing, no import controls). Domain separation exists at the directory level (`app/jobs/conversations/`, `app/jobs/campaigns/`) but isn't structurally enforced.
+
+- **Microservices**: Single `docker/Dockerfile`, single deployable unit. The Docker Compose and Kubernetes manifests deploy one application, not multiple independent services. Heroku one-click deploy confirms single-app deployment.
+
+- **Domain-Driven Design**: Models follow standard Active Record pattern without explicit aggregates, value objects, or bounded context separation. No `app/domain/` or similar DDD-structured directories.
+
+- **Hexagonal Architecture**: No ports/adapters separation. Controllers directly use models; no repository interfaces isolating the core from infrastructure.
+
+- **CQRS**: No command/query separation. Controllers handle both reads and writes through standard model operations.
+
+### Conclusion
+
+Chatwoot is a **Layered** Rails monolith with an **Event-Driven** subsystem for internal decoupling via its listener/dispatcher pattern. This hybrid approach is common in mature Rails applications that need extensibility without the complexity of full microservices.

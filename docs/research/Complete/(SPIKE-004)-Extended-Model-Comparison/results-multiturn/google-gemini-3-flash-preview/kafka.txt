@@ -1,0 +1,36 @@
+# kafka — openrouter/google/gemini-3-flash-preview
+# Turns: 1
+# Date: 2026-03-08T05:30:31Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Event-Driven
+confidence: 0.95
+---
+
+The Apache Kafka codebase is a **Modular Monolith**. While it is a distributed system when deployed, the repository itself is structured as a single build unit (managed by Gradle) where internal component boundaries are strictly enforced through build-time configurations and custom import controls.
+
+### 1. Modular Monolith (Primary Style)
+The repository is divided into distinct functional modules (e.g., `core`, `clients`, `storage`, `metadata`, `server`, `shell`). 
+- **Enforced Boundaries:** The most compelling evidence is the extensive use of Checkstyle's `ImportControl`. Files like `checkstyle/import-control-server.xml`, `checkstyle/import-control-storage.xml`, and `checkstyle/import-control-metadata.xml` define exactly which other modules and packages a specific module is allowed to touch. This prevents the "Big Ball of Mud" often found in simpler monolithic structures.
+- **Single Deployable (Core):** The `core` module contains the Scala logic for the broker, and `gradlew releaseTarGz` packages these modules into a single distribution for a Kafka broker.
+- **Shared Data Structures:** Modules like `server-common` and `storage` provide shared internal APIs that other modules consume, following a strictly hierarchical dependency graph.
+
+### 2. Microkernel (Plugin) (Secondary Style)
+Kafka’s architecture is designed to be extended without modifying the core broker code.
+- **Kafka Connect:** The `connect` sub-modules (implied by `config/connect-*.properties` and standard Kafka knowledge, though partially visible in the tree via configurations) allow users to plug in "Connectors."
+- **Pluggable Interfaces:** The broker uses various plug-in points for security (SASL/SSL), authorization (Authorizer interface), and storage (Tiered Storage).
+- **Tooling:** The `tools/tools-api` suggests a stable contract for extending Kafka’s command-line capabilities.
+
+### 3. Event-Driven (Secondary Style)
+While Kafka *serves* event-driven architectures, its internal code also reflects this style:
+- **Request/Response via Queues:** The broker internals (in `core`) use an "Acceptor/Processor" model where requests are placed on queues and handled asynchronously by a pool of "KafkaRequestHandler" threads.
+- **Internal Events:** The `metadata` and `group-coordinator` modules use event-loops and state machines (often backed by an internal log like `__consumer_offsets`) to manage state transitions asynchronously.
+
+### Rejected Styles
+- **Microservices:** Although a Kafka cluster involves multiple nodes (Brokers, KRaft Controllers, Connect workers), the code is managed in a monorepo and shares a significant amount of code/libraries. It is not a collection of independently versioned and deployed services.
+- **Layered:** While it has horizontal concepts (Network layer, API layer, Log layer), the vertical separation into "Coordinators," "Storage," and "Metadata" modules makes it specifically a Modular Monolith rather than just a Layered system.
+- **Hexagonal Architecture:** While Kafka uses interfaces for some components, it does not strictly adhere to the "Ports and Adapters" pattern globally; the core logic is often tightly coupled to the internal performance-optimized data structures.

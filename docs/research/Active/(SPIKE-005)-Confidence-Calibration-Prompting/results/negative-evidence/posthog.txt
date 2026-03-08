@@ -1,0 +1,49 @@
+# posthog — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T06:00:55Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microservices
+  - Event-Driven
+confidence: 0.88
+counter_evidence:
+  alternative_style: Microservices
+  evidence_that_would_change_mind: "Finding that the directories under `products/` are actually built into separate Docker images and deployed as independent processes with their own databases, rather than being modules within the single 'web' and 'worker' Django containers."
+  plausibility_of_counter: medium
+---
+
+PostHog is a sophisticated **Modular Monolith** transitioning from a traditional monolithic Django application. While it exhibits properties of Microservices and Event-Driven architecture, its core structural identity is defined by its intentional "Product" modularization effort within a shared codebase and deployment unit.
+
+### 1. Primary Style: Modular Monolith
+The repository's architecture is explicitly defined in `products/architecture.md`. It outlines a strategy to partition the Django monolith into "Products" (e.g., `products/feature_flags`, `products/experiments`). 
+
+- **Enforced Boundaries:** It uses `tach` (a Python tool) to enforce import boundaries, ensuring that modules only interact through a public `facade/` layer using `frozen dataclasses` (contracts). This prevents the "spaghetti" dependencies typical of standard monolithic apps.
+- **Shared Infrastructure:** Despite the modularity, the `docker-compose.dev-full.yml` reveals that the core logic is still deployed via a single `web` service (Django) and a `worker` service (Celery). All products share a central PostgreSQL and ClickHouse database, which is the hallmark of a modular monolith rather than a microservices architecture.
+- **Selective Testing:** The use of `Turborepo` alongside `tach` allows the system to treat these modules as independent build units, only running tests for a product if its implementation or the contracts of its dependencies have changed.
+
+### 2. Secondary Style: Microservices
+While the "Product" logic is monolithic, the peripheral system is highly distributed. The `docker-compose` file shows several specialized, independently deployable services:
+- **`capture` / `replay-capture`:** Handles high-volume event ingestion (likely written in a more performant language/framework).
+- **`property-defs-rs`:** A Rust-based service for property definition management.
+- **`temporal`:** Orchestrates complex workflows through a separate cluster.
+- **`otel-collector` / `cyclotron-janitor`:** Specialized utility services.
+These are true microservices that communicate over the network/bus, making the overall system a hybrid.
+
+### 3. Secondary Style: Event-Driven
+PostHog is built on an asynchronous event loop centered around **Kafka** and **Redis**. 
+- **Ingestion Pipeline:** Events flow from the SDKs to a capture service, then into Kafka, and are subsequently consumed by ClickHouse for analytics and by various workers for feature flag evaluation, session recording, and alerting.
+- **Pub/Sub Patterns:** The `nodejs/` directory (the "plugin server") serves as an event processing engine that reactive to incoming data flows, executing plugins or transformations based on event triggers.
+
+### Architecture Rejection
+- **Hexagonal Architecture:** While the "facade" pattern mentions isolating business logic from presentation, the codebase is too heavily coupled to Django's ORM and lifecycle (as evidenced by `models.py` inside product directories and frequent reference to Django conventions) to be classified as pure Hexagonal.
+- **Service-Based:** The environment is too complex (15+ containers in dev) to be considered simply "Service-Based."
+
+## Counter-evidence analysis
+
+1. **Most Plausible Alternative:** Microservices. One could argue the system is already a microservices architecture where the "Django" part is simply a "Core Service."
+2. **Specific Evidence to Change Mind:** If `products/` contained their own `Dockerfile` or `k8s/` manifests and were managed as independent deployment units in production, the classification would shift to Microservices.
+3. **Plausibility:** **Medium.** The `products/` structure looks like it *could* be deployed independently in the future, but currently, they are registered in `INSTALLED_APPS` (referenced in `architecture.md`) and run within the same process.
+4. **Confidence Score:** **0.88** (Counter-evidence is moderately plausible but currently contradicted by the "Django monolith" framing in the internal documentation).

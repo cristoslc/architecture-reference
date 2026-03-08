@@ -1,0 +1,40 @@
+# kafka — openrouter/google/gemini-3-flash-preview
+# Turns: 1
+# Date: 2026-03-08T06:00:10Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+  - Event-Driven
+confidence: 0.88
+---
+
+Apache Kafka is a distributed system that, from a source code organization perspective, is structured as a **Modular Monolith**. While it is a "distributed system" in deployment, the repository contains a single unified build system (Gradle) that produces several tightly coupled but logically distinct JARs (core, clients, storage, server, etc.) which collaborate to form the broker and its ecosystem.
+
+### Why Modular Monolith?
+The repository is split into high-level functional modules that represent different facets of the system:
+- `core`: The Scala-based heart of the broker.
+- `clients`: The Java implementation of the Kafka protocol.
+- `storage`: Log storage and management.
+- `metadata`: KRaft and metadata management logic.
+- `group-coordinator`: Logical separation of consumer group management.
+- `server` and `server-common`: Shared server-side infrastructure.
+
+The defining characteristic of a **Modular Monolith** here is the use of **Checkstyle-enforced import controls**. The `checkstyle/` directory contains numerous files like `import-control-server.xml`, `import-control-storage.xml`, and `import-control-core.xml`. These files explicitly define the "allowed" dependencies between modules. For example, `import-control-storage.xml` prevents the storage engine from accidentally leaking dependencies into the networking or presentation layers. This is the hallmark of a modular monolith: hard boundaries enforced at compile-time/analysis-time rather than just by convention.
+
+### Why Microkernel (Plugin)?
+Kafka effectively utilizes a **Microkernel** architecture for its extensibility. The "core" broker provides the storage and replication protocol, but allows significant behavior modification through plugins:
+- **Connectors**: `connect` module allows plugging in different data sources/sinks.
+- **Authorizers/Authenticators**: Interfaces in `clients` and `core` allow external security implementations.
+- **Pluggable Storage**: Recent efforts in tiered storage (witnessed in `docs/configuration/tiered-storage-configs.md`) follow a plugin-based approach.
+The directory `tools/tools-api` and various `*-api` modules suggest a stable contract provided by the kernel for external extensions.
+
+### Why Event-Driven?
+While "Event-Driven" often describes the *application logic* of the users, the internal architecture of the broker itself is heavily event-driven. The internal communication between the network layer (`SocketServer`), the request handler pool, and the replication state machines is managed via internal event queues and "Request" objects (see `clients/src/main/resources/common/message/README.md` and `processMessages` task in the README). 
+
+### Alternatives Rejected
+- **Microservices**: Rejected because the codebase is not a collection of independently deployable services that communicate over a network to form one application. Instead, it is a single system (the Broker) split into modules for build efficiency and code quality. The `docker/` files build images for the *broker*, not for a dozen different microservices.
+- **Layered**: While there are layers (network -> logic -> storage), the vertical partitioning into "coordinators", "streams", and "connect" makes "Modular Monolith" a much more accurate description of the top-level structure.
+- **Hexagonal**: While Kafka uses "Adapters" for different storage backends or security providers, the overall repository structure is not strictly organized around Ports and Adapters (e.g., you don't see a universal `domain` folder isolated from `infrastructure` across the whole project).

@@ -1,0 +1,36 @@
+# sentry — openrouter/google/gemini-3-flash-preview
+# Turns: 2
+# Date: 2026-03-08T05:30:24Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+  - Microkernel (Plugin)
+confidence: 0.95
+---
+
+Sentry is a sophisticated **Modular Monolith** that utilizes **Event-Driven** patterns for high-throughput data ingestion and a **Microkernel** approach for its extensive integration ecosystem.
+
+### 1. Modular Monolith (Primary)
+While Sentry is a large system, its core repository (`src/sentry`) is structured as a collection of well-defined modules that are typically deployed as a single unit or a small number of logical roles (Web, Worker, Cron).
+- **Internal Boundaries**: The code is organized into feature-centric directories such as `monitors`, `organizations`, `releases`, and `insights`. Each contains its own `models.py`, `tasks/`, and `endpoints/`.
+- **Service Abstraction**: The `src/sentry/utils/services.py` file reveals a robust "Service" and "Delegator" pattern. This allows Sentry to define internal APIs (e.g., for TSDB, Quotas, or Event Storage) and swap out backends (e.g., moving from Redis to Snuba) without changing the calling code. The `ServiceDelegator` specifically enables parallel execution and shadowed writes, which is a hallmark of sophisticated modular systems transitioning between storage engines.
+- **Centralized Data Model**: `src/sentry/models/__init__.py` acts as a central registry for the entire application's domain entities, indicating a shared database schema typical of monoliths, even if access is logically segmented.
+
+### 2. Event-Driven (Secondary)
+Sentry relies heavily on asynchronous processing to handle the massive volume of error reports and telemetry it receives.
+- **Message Brokers**: The `pyproject.toml` references `confluent-kafka` and `sentry-arroyo` (a stream processing library). 
+- **Event Stream**: The directory `src/sentry/eventstream` contains a Kafka implementation (`src/sentry/eventstream/kafka`), signifying that the transition of data from "ingested event" to "processed issue" happens through an event bus.
+- **Asynchronous Tasks**: The extensive use of `src/sentry/tasks/` and dependencies on `taskbroker-client` shows that state changes frequently trigger background side effects.
+
+### 3. Microkernel (Plugin) (Secondary)
+Sentry makes extensive use of a plugin-based architecture to manage its hundreds of third-party integrations (GitHub, Slack, Jira, etc.).
+- **Plugin Registry**: The `src/sentry_plugins` directory contains a standardized set of plugins that follow a common base class (`src/sentry_plugins/base.py`). 
+- **Runtime Loading**: Sentry loads these extensions at runtime to provide specialized issue-tracking and notification capabilities, effectively keeping the core engine isolated from the specific logic of third-party APIs.
+
+### Rejected Styles
+- **Microservices**: Although Sentry relies on external services like **Snuba** (analytics) and **Symbolicator** (native stack traces), those are separate repositories. This main repository functions as a monolith that orchestrates those services.
+- **Layered**: While there are horizontal layers (middleware, models, endpoints), the architecture is primarily vertical (by feature module) and service-oriented, making "Modular Monolith" a more accurate description.
+- **Hexagonal Architecture**: Although the "Service" abstraction provides some isolation, the code is deeply coupled to the Django framework (as seen in `pyproject.toml` and `models.py`), rather than strictly isolating the domain core from the framework via ports and adapters.

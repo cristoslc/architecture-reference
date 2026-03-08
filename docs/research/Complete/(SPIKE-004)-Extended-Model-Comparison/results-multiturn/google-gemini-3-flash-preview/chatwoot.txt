@@ -1,0 +1,35 @@
+# chatwoot — openrouter/google/gemini-3-flash-preview
+# Turns: 1
+# Date: 2026-03-08T05:30:11Z
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.95
+---
+
+Chatwoot follows a classic **Layered** architecture, specifically adhering to the Ruby on Rails "Modern Monolith" conventions with horizontal layering. The codebase is organized by technical responsibility (Controllers, Models, Views, Mailers) rather than by domain-bounded contexts.
+
+### Evidence of Layered Architecture
+The directory structure is the primary evidence, showing a standard Rails layout where every feature spans the same vertical stack:
+- **Presentation Layer**: `app/controllers/` (API and Web controllers), `app/views/` (Server-side templates), and `app/javascript/` (Frontend SPAs for the dashboard and widget).
+- **Business Logic Layer**: In addition to Models, Chatwoot uses several auxiliary patterns to keep logic out of the controllers:
+    - `app/builders/`: Logic for complex object creation (e.g., `AccountBuilder`, `ConversationBuilder`).
+    - `app/actions/`: Service-object-like patterns for discrete operations (e.g., `ContactMergeAction`).
+    - `app/finders/`: Logic for complex querying (e.g., `ConversationFinder`).
+    - `app/policies/`: Authorization logic using Pundit (`app/policies/contact_policy.rb`).
+- **Data Access Layer**: `app/models/` uses ActiveRecord to abstract database interactions.
+
+### Evidence of Event-Driven Architecture (Secondary)
+Chatwoot utilizes an internal pub/sub mechanism to handle side effects of core domain actions, which is a strong secondary architectural signal:
+- **Dispatchers**: `app/dispatchers/` (e.g., `AsyncDispatcher`, `SyncDispatcher`) act as event buses.
+- **Listeners**: `app/listeners/` contains subscribers that react to events (e.g., `WebhookListener`, `NotificationListener`, `AutomationRuleListener`).
+- **Background Jobs**: `app/jobs/` handles the asynchronous execution of these events via Redis/Sidekiq, ensuring the main request/response cycle is decoupled from side effects like sending emails or triggering webhooks.
+
+### Rejected Styles
+- **Microservices**: All code resides in a single repository and is deployed as a single unit (as evidenced by `docker-compose.yaml` and the Heroku/DigitalOcean 1-click deploy buttons in the README).
+- **Modular Monolith**: While it uses some specialized directories, it lacks strict enforcement of boundaries between modules (e.g., "Inboxes" and "Conversations"). The models and controllers are all co-mingled in the top-level `app/models/` and `app/controllers/` directories rather than being partitioned into `app/modules/` or `engines/`.
+- **Hexagonal Architecture**: The application is tightly coupled to the Rails framework and ActiveRecord models. There is no clear isolation of the core domain logic from external infrastructure via ports and adapters; instead, it uses Rails' built-in abstractions.
+- **Microkernel (Plugin)**: Although it integrates with external services (Slack, Shopify), these are implemented as internal integrations (`app/controllers/shopify`, `app/models/integrations/`) rather than an extensible plugin architecture where third parties can inject code at runtime.

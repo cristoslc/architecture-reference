@@ -1,7 +1,7 @@
 ---
 title: "Classification Method Comparison"
 artifact: SPIKE-003
-status: Active
+status: Complete
 author: cristos
 created: 2026-03-07
 last-updated: 2026-03-07
@@ -165,7 +165,7 @@ The pipeline already has a multi-turn protocol for `llm` CLI (`llm-review.sh` wi
 
 **The SPIKE-003 tests bypassed this entirely.** The `llm` CLI models were handicapped — they could not request additional context when the pre-assembled dump was insufficient. The subagents' advantage in finding deep structural signals (import-control XMLs, plugin sandboxing tests, silo architecture hints) may be partially or fully explained by their ability to explore beyond the initial context.
 
-**Implication:** The accuracy gap between subagents and `llm` CLI is real but may be smaller than measured. A fair retest would use the multi-turn loop for `llm` CLI models. See SPIKE-004 for extended comparison with the same limitation noted.
+**Implication:** The accuracy gap between subagents and `llm` CLI is real but may be smaller than measured. A fair retest would use the multi-turn loop for `llm` CLI models. **SPIKE-004 confirmed this:** with multi-turn SPEC-011 escalation, Gemini 3 Flash achieved 6/6 agreement with the Sonnet baseline, closing the gap entirely.
 
 ### Recommendation
 

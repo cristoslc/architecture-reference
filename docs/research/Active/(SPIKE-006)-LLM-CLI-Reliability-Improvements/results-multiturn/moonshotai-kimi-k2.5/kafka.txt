@@ -1,0 +1,62 @@
+# kafka — openrouter/moonshotai/kimi-k2.5
+# Turns: 1
+# Parse retries used: 0
+# Date: 2026-03-08T06:12:17Z
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+Apache Kafka is architected as a **Modular Monolith** with **Layered** internal organization.
+
+## Primary Style: Modular Monolith
+
+The repository exhibits a classic Modular Monolith structure—a single deployable unit with strictly enforced internal module boundaries:
+
+**Evidence of Single Deployable Unit:**
+- The build produces a unified release artifact: `./gradlew clean releaseTarGz` generates a single tarball in `./core/build/distributions/` (per README lines 287-290)
+- Docker images package the entire system as one unit (`docker/jvm/Dockerfile`, `docker/native/Dockerfile`)
+- Single Gradle multi-module build with shared settings (evident from module-specific tasks like `./gradlew core:jar`, `./gradlew clients:test`)
+
+**Evidence of Enforced Module Boundaries:**
+- **Checkstyle Import Controls**: The `checkstyle/` directory contains strict import control definitions for each module:
+  - `import-control-core.xml`, `import-control-server.xml`, `import-control-clients.xml`
+  - `import-control-group-coordinator.xml`, `import-control-transaction-coordinator.xml`, `import-control-share-coordinator.xml`
+  - These enforce compile-time boundaries preventing unauthorized cross-module dependencies
+  
+- **Clear Module Separation**: Top-level directories represent distinct functional modules with their own `src/main` and `src/test`:
+  - `clients/` — Client library APIs
+  - `core/` — Core broker functionality  
+  - `server/` and `server-common/` — Server implementation
+  - `group-coordinator/`, `transaction-coordinator/`, `share-coordinator/` — Specific protocol coordinators
+  - `metadata/`, `storage/` — Metadata management and storage layer
+  - `streams/` — Kafka Streams processing library (with extensive sub-modules)
+  - `tools/`, `trogdor/`, `shell/` — Operational tools
+
+- **API Submodules**: Modules like `group-coordinator/group-coordinator-api` expose public interfaces while hiding implementation details, indicating strong encapsulation.
+
+## Secondary Style: Layered
+
+Within each module, the codebase follows **Layered Architecture** patterns typical of enterprise Java/Scala systems:
+
+- **Horizontal Layering**: Standard separation of concerns with presentation/API layers, business logic, and data access layers (evident from `src/main/java` and `src/main/scala` structures)
+- **Configuration Separation**: Dedicated `config/` directory at root with distinct property files for producers, consumers, brokers, and connectors, indicating layer-specific configuration
+- **Client-Server Separation**: Clear distinction between `clients/` (client libraries) and `server/`/`core/` (broker implementation)
+
+## Rejected Styles
+
+- **Not Microservices**: Despite the modular structure, modules are not independently deployable. There is no service discovery, individual Dockerfiles per module, or separate deployment pipelines. The single `releaseTarGz` task and unified Docker images confirm monolithic deployment.
+
+- **Not Event-Driven (internal)**: While Kafka is an event streaming platform, the codebase structure does not indicate internal event-driven architecture (no sagas, event handlers, or internal message bus for component communication visible in the directory structure).
+
+- **Not Microkernel/Plugin**: Although there are coordinator modules and tools, there is no evidence of a plugin loading mechanism, dynamic extension points, or core kernel with runtime-loaded extensions. The checkstyle import controls suggest compile-time modularity, not runtime plugin architecture.
+
+- **Not Hexagonal**: No clear evidence of ports and adapters pattern in the directory structure; the layering appears traditional rather than dependency-inversion focused.
+
+## Confidence
+
+High confidence (0.90) due to clear multi-module Gradle structure with enforced compile-time boundaries (checkstyle import controls) and definitive single-deployment-artifact evidence.
