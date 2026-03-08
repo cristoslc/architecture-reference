@@ -35,7 +35,7 @@ review_notes: "The NATS Server codebase is structured as a **Layered** architect
   \ and system notifications without blocking the main execution threads."
 review_required: false
 classification_method: deep-analysis
-classification_confidence: 0.9
+classification_confidence: 0.65
 classification_model: openrouter/google/gemini-3-flash-preview
 classification_date: '2026-03-08T07:02:30Z'
 classification_reasoning: "The NATS Server codebase is structured as a **Layered**\
@@ -71,3 +71,14 @@ classification_reasoning: "The NATS Server codebase is structured as a **Layered
   \ or have very high coupling to the `Server` struct in `server.go`, rather than\
   \ having strictly enforced boundaries or internal APIs between independent modules.\n\
   ```"
+confidence_calibration:
+  original_confidence: 0.9
+  calibrated_confidence: 0.65
+  calibration_model: openrouter/anthropic/claude-sonnet-4.6
+  evidence_strength: 0.65
+  style_clarity: 0.6
+  alternatives_dismissed: 0.7
+  exploration_completeness: 0.65
+  flags: Event-Driven may be overstated as a co-primary style — internal async patterns
+    exist in nearly all high-performance servers; the layering argument is reasonable
+    but the server/ package being largely monolithic weakens strict Layered classification
