@@ -13,6 +13,7 @@ depends-on:
   - SPIKE-007
 linked-adrs:
   - ADR-002
+  - ADR-003
 linked-research:
   - SPIKE-003
   - SPIKE-004

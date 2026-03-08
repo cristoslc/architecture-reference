@@ -20,3 +20,4 @@
 | ID | Title | Question | Gate | Last Updated | Commit |
 |----|-------|----------|------|--------------|--------|
 | SPIKE-002 | Classification Taxonomy Expansion | Do we need architectural classifications beyond the classic 12 styles, and if so, which ones have sufficient evidence? | Pre-implementation gate for EPIC-010 | 2026-03-06 | c526f34 |
+| SPIKE-008 | Native Multi-Turn Classification with GLM-5 | Can an LLM with native tool-calling produce higher-quality architecture classifications than script-driven batch? | Pre-execution gate for SPEC-024 reclassification | 2026-03-08 | — |
