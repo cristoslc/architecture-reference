@@ -163,3 +163,4 @@ The SPIKE-004 consul failure for GLM-5 was not a YAML parse error -- it was a co
 |-------|------|--------|-------|
 | Planned | 2026-03-08 | — | Addresses GLM-5 YAML failure and custom loop fragility from SPIKE-004 |
 | Active | 2026-03-08 | — | Research, implementation, and evaluation complete |
+| Complete | 2026-03-08 | 02bffc03 | GO — improved prompt achieves 6/6 reliability across all 4 models |

@@ -148,3 +148,4 @@ Pivot Option 1 (Sonnet/Opus confidence pass) remains viable but adds per-entry c
 |-------|------|--------|-------|
 | Planned | 2026-03-08 | — | Addresses Gemini confidence uniformity found in SPIKE-004 |
 | Active | 2026-03-08 | — | Tested 3 prompt variants; NO-GO — recommend pivot to heuristic extraction |
+| Complete | 2026-03-08 | 02bffc03 | NO-GO — confidence calibration via prompting fails; pivot to heuristic extraction |
