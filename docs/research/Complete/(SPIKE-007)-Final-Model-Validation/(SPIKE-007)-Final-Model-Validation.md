@@ -191,6 +191,6 @@ SPEC-024 can proceed to implementation with this configuration.
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Planned | 2026-03-08 | — | Final validation gate after SPIKE-005 + SPIKE-006 improvements |
-| Active | 2026-03-08 | — | SPIKE-005/006 data synthesized; no additional model runs needed |
-| Complete | 2026-03-08 | — | Final recommendation: Gemini Flash primary, Opus QA, heuristic confidence |
+| Planned | 2026-03-08 | 150c9c6 | Final validation gate after SPIKE-005 + SPIKE-006 improvements |
+| Active | 2026-03-08 | 150c9c6 | SPIKE-005/006 data synthesized; no additional model runs needed |
+| Complete | 2026-03-08 | 150c9c6 | Final recommendation: Gemini Flash primary, Opus QA, heuristic confidence |
