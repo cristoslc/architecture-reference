@@ -1,7 +1,7 @@
 ---
 title: "LLM CLI Reliability Improvements"
 artifact: SPIKE-006
-status: Active
+status: Complete
 author: cristos
 created: 2026-03-08
 last-updated: 2026-03-08
