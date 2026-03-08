@@ -13,5 +13,114 @@ language: C#
 languages:
 - C#
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Hexagonal Architecture
+- Microservices
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'The repository is a textbook implementation of **Hexagonal Architecture**
+  (also known as Ports and Adapters or Clean Architecture), as explicitly stated in
+  the README and demonstrated by the directory structure within the `accounts-api`.
+
+
+  ### Primary Style: Hexagonal Architecture
+
+  The core logic is isolated from external frameworks and delivery mechanisms. This
+  is evidenced by the project structure under `accounts-api/src/`:
+
+  - **Domain**: Contains the business entities (`Account.cs`) and repository interfaces
+  / "Ports" (`IAccountRepository.cs`).
+
+  - **Application**: Contains the orchestration logic and use cases (`UseCases/`).
+  It defines how the system reacts to requests without knowing if they come from a
+  Web API or a test.
+
+  - **Infrastructure**: Contains the "Adapters" that implement the ports, such as
+  `DataAccess` (Entity Framework) and `CurrencyExchange` (external service integration).
+
+  - **WebApi**: Acts as the entry point (driving adapter), handling HTTP concerns
+  and mapping to Application use cases.
+
+
+  The README explicitly maps these to "Ports", "Adapters", "Left Side" (Driving),
+  and "Right Side" (Driven).'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:43:35Z'
+classification_reasoning: 'The repository is a textbook implementation of **Hexagonal
+  Architecture** (also known as Ports and Adapters or Clean Architecture), as explicitly
+  stated in the README and demonstrated by the directory structure within the `accounts-api`.
+
+
+  ### Primary Style: Hexagonal Architecture
+
+  The core logic is isolated from external frameworks and delivery mechanisms. This
+  is evidenced by the project structure under `accounts-api/src/`:
+
+  - **Domain**: Contains the business entities (`Account.cs`) and repository interfaces
+  / "Ports" (`IAccountRepository.cs`).
+
+  - **Application**: Contains the orchestration logic and use cases (`UseCases/`).
+  It defines how the system reacts to requests without knowing if they come from a
+  Web API or a test.
+
+  - **Infrastructure**: Contains the "Adapters" that implement the ports, such as
+  `DataAccess` (Entity Framework) and `CurrencyExchange` (external service integration).
+
+  - **WebApi**: Acts as the entry point (driving adapter), handling HTTP concerns
+  and mapping to Application use cases.
+
+
+  The README explicitly maps these to "Ports", "Adapters", "Left Side" (Driving),
+  and "Right Side" (Driven).
+
+
+  ### Secondary Style: Microservices
+
+  While the demo describes a specific domain (Virtual Wallet), it is architected as
+  a set of independently deployable services:
+
+  - `accounts-api`: The main business logic service.
+
+  - `identity-server`: An independent service for authentication/authorization.
+
+  - `wallet-spa`: A standalone React frontend.
+
+  - `nginx`: Acts as a gateway/reverse proxy.
+
+  - `sql-server`: The data storage layer.
+
+
+  The presence of a `docker-compose.yml` and separate `Dockerfiles` for each folder
+  (`./wallet-spa/Dockerfile`, `./accounts-api/src/WebApi/Dockerfile`, `./identity-server/Dockerfile`)
+  confirms that these are intended to run as separate deployment units.
+
+
+  ### Secondary Style: Domain-Driven Design (DDD)
+
+  The codebase uses specific DDD tactical patterns to organize the internal logic
+  of the `Domain` layer:
+
+  - **Aggregate Roots**: `Account.cs` is treated as an aggregate.
+
+  - **Value Objects**: Found in `accounts-api/src/Domain/ValueObjects`.
+
+  - **Repositories and Factories**: Interfaces like `IAccountRepository.cs` and `IAccountFactory.cs`
+  are defined within the Domain to maintain encapsulation.
+
+  - **Bounded Contexts**: The README and structure suggest the "Accounts" context
+  is the primary focus of this specific service.
+
+
+  ### Summary of Component Boundaries
+
+  1. **Module Boundaries**: Strictly enforced by C# project references. The `Domain`
+  project has no dependencies, `Application` depends only on `Domain`, and `Infrastructure`/`WebApi`
+  depend on `Application`.
+
+  2. **Deployment**: Independent via Docker containers.
+
+  3. **Communication**: The SPA communicates with the `accounts-api` over HTTP, mediated
+  by NGINX, and uses `identity-server` for OAuth/OIDC flows.'

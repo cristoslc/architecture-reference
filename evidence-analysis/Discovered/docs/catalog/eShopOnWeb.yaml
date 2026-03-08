@@ -13,5 +13,62 @@ language: C#
 languages:
 - C#
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Hexagonal Architecture
+- Domain-Driven Design
+classification_status: classified
+review_notes: "The `eShopOnWeb` repository is a reference implementation of a **Layered\
+  \ Architecture** (specifically a 3-tier or \"N-Tier\" approach) that incorporates\
+  \ **Hexagonal (Ports and Adapters)** and **Domain-Driven Design (DDD)** patterns.\
+  \ \n\n### Primary Style: Layered Architecture\nThe codebase is explicitly divided\
+  \ into three primary horizontal layers as described in its accompanying eBook and\
+  \ reflected in the `src/` directory structure:\n\n1.  **ApplicationCore (`src/ApplicationCore`):**\
+  \ The central layer containing business logic, entities, and interfaces. It has\
+  \ zero dependencies on external frameworks or the infrastructure layer.\n2.  **Infrastructure\
+  \ (`src/Infrastructure`):** Implementation details such as data access (Entity Framework\
+  \ Core), logging, and identity services. It implements interfaces defined in the\
+  \ Core.\n3.  **UI/Presentation (`src/Web` and `src/PublicApi`):** The entry points\
+  \ of the application. `Web` handles the MVC/Razor Pages front-end, while `PublicApi`\
+  \ provides a RESTful interface for the Blazor admin panel.\n\n### Secondary Style:\
+  \ Hexagonal Architecture (Ports and Adapters)"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:47:44Z'
+classification_reasoning: "The `eShopOnWeb` repository is a reference implementation\
+  \ of a **Layered Architecture** (specifically a 3-tier or \"N-Tier\" approach) that\
+  \ incorporates **Hexagonal (Ports and Adapters)** and **Domain-Driven Design (DDD)**\
+  \ patterns. \n\n### Primary Style: Layered Architecture\nThe codebase is explicitly\
+  \ divided into three primary horizontal layers as described in its accompanying\
+  \ eBook and reflected in the `src/` directory structure:\n\n1.  **ApplicationCore\
+  \ (`src/ApplicationCore`):** The central layer containing business logic, entities,\
+  \ and interfaces. It has zero dependencies on external frameworks or the infrastructure\
+  \ layer.\n2.  **Infrastructure (`src/Infrastructure`):** Implementation details\
+  \ such as data access (Entity Framework Core), logging, and identity services. It\
+  \ implements interfaces defined in the Core.\n3.  **UI/Presentation (`src/Web` and\
+  \ `src/PublicApi`):** The entry points of the application. `Web` handles the MVC/Razor\
+  \ Pages front-end, while `PublicApi` provides a RESTful interface for the Blazor\
+  \ admin panel.\n\n### Secondary Style: Hexagonal Architecture (Ports and Adapters)\n\
+  The repository strictly follows the dependency inversion principle to keep the core\
+  \ isolated. \n- **Ports:** Interfaces defined in `src/ApplicationCore/Interfaces`\
+  \ (e.g., `IRepository.cs`, `IOrderService.cs`).\n- **Adapters:** Concrete implementations\
+  \ in `src/Infrastructure` (e.g., `EfRepository.cs`) or `src/Web` (e.g., `CachedCatalogViewModelService.cs`).\n\
+  This allows the system to swap out infrastructure (like switching from a real SQL\
+  \ Server to an in-memory database, as noted in the README) without touching business\
+  \ logic.\n\n### Secondary Style: Domain-Driven Design (DDD)\nThe repository uses\
+  \ several DDD tactical patterns to organize its internal logic within `ApplicationCore`:\n\
+  - **Entities & Aggregates:** Located in `src/ApplicationCore/Entities`, including\
+  \ internal folders like `OrderAggregate` and `BasketAggregate` which group related\
+  \ entities.\n- **Specifications:** Uses the Specification pattern (`src/ApplicationCore/Specifications`)\
+  \ to encapsulate query logic, a common DDD practice to keep repositories lean.\n\
+  - **Guard Clauses:** Custom guard logic in `src/ApplicationCore/Extensions/GuardExtensions.cs`\
+  \ to maintain domain invariants.\n\n### Why not other styles?\n- **Microservices:**\
+  \ While related to `eShopOnContainers`, the README explicitly states this is a \"\
+  single-process (monolithic) application architecture.\"\n- **Modular Monolith:**\
+  \ While the layers are distinct, the domain itself is not strictly partitioned into\
+  \ independent modules (e.g., Catalog, Ordering, and Basket all reside within the\
+  \ same `ApplicationCore` project and share a single deployment unit).\n- **Service-Based:**\
+  \ Although there are two web projects (`Web` and `PublicApi`), they are views/interfaces\
+  \ into the same underlying domain and database, rather than separate business services."

@@ -13,5 +13,68 @@ language: Ruby
 languages:
 - Ruby
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'The repository follows a classic **Layered** architecture, specifically
+  the "Rails Way" (Model-View-Controller). However, it exhibits significant **Domain-Driven
+  Design (DDD)** influences in how the model layer is structured to handle high domain
+  complexity.
+
+
+  ### Evidence for Layered Architecture
+
+  The codebase is a monolithic Ruby on Rails application. It follows the standard
+  horizontal layering:
+
+  - **Presentation Layer**: Found in `app/components` (using ViewComponent), `app/javascript/controllers`
+  (Stimulus.js), and traditional Rails views (though not fully visible in the tree,
+  inferred from the presence of `UI` components).
+
+  - **Business Logic Layer**: Centered in `app/models`.
+
+  - **Data Access Layer**: Handled by `application_record.rb` and ActiveRecord models,
+  mapping directly to PostgreSQL.
+
+  - **Persistence/Infrastructure**: Found in `app/mailers` and `app/data_migrations`.
+
+
+  ### Evidence for Domain-Driven Design (DDD)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:58:55Z'
+classification_reasoning: "The repository follows a classic **Layered** architecture,\
+  \ specifically the \"Rails Way\" (Model-View-Controller). However, it exhibits significant\
+  \ **Domain-Driven Design (DDD)** influences in how the model layer is structured\
+  \ to handle high domain complexity.\n\n### Evidence for Layered Architecture\nThe\
+  \ codebase is a monolithic Ruby on Rails application. It follows the standard horizontal\
+  \ layering:\n- **Presentation Layer**: Found in `app/components` (using ViewComponent),\
+  \ `app/javascript/controllers` (Stimulus.js), and traditional Rails views (though\
+  \ not fully visible in the tree, inferred from the presence of `UI` components).\n\
+  - **Business Logic Layer**: Centered in `app/models`.\n- **Data Access Layer**:\
+  \ Handled by `application_record.rb` and ActiveRecord models, mapping directly to\
+  \ PostgreSQL.\n- **Persistence/Infrastructure**: Found in `app/mailers` and `app/data_migrations`.\n\
+  \n### Evidence for Domain-Driven Design (DDD)\nThe repository stands out from standard\
+  \ Rails apps by its deep nesting and organization within `app/models`, suggesting\
+  \ a focus on bounded contexts and complex domain logic:\n1. **Rich Domain Models**:\
+  \ Instead of flat models, the app uses namespaces to group related domain logic.\
+  \ For example, `app/models/account/` contains `reconciliation_manager.rb`, `sync_complete_event.rb`,\
+  \ and `current_balance_manager.rb`, indicating that \"Account\" is a complex entity\
+  \ with its own lifecycle and sub-services.\n2. **Value Objects and Logic Separation**:\
+  \ Files like `app/models/balance/forward_calculator.rb` and `app/models/holding/portfolio_snapshot.rb`\
+  \ suggest the use of Service Objects or Domain Services to prevent models from becoming\
+  \ \"Fat Models.\" \n3. **Bounded Contexts**: The directory structure suggests clear\
+  \ separations between contexts like `Plaid` (integration), `Assistant` (LLM/AI interaction),\
+  \ `Transaction`, and `BalanceSheet`.\n4. **Domain Events**: The presence of files\
+  \ like `sync_complete_event.rb` indicates an internal event-based mechanism used\
+  \ to coordinate logic across domain boundaries within the monolith.\n\n### Why not\
+  \ other styles?\n- **Microservices**: It is a single deployable unit (all code under\
+  \ `app/`, single `docker-compose` or Docker instructions in README).\n- **Modular\
+  \ Monolith**: While well-organized, it uses standard Rails autoloading patterns\
+  \ rather than strict engines or private constants to enforce boundaries between\
+  \ modules.\n- **Hexagonal**: While there is an attempt to isolate \"Providers\"\
+  \ (`app/models/provider/`), the core domain logic remains tightly coupled to ActiveRecord\
+  \ (`application_record.rb`), rather than being agnostic to the persistence layer."

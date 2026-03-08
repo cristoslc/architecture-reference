@@ -14,5 +14,94 @@ languages:
 - Ruby
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'Zammad is a classic **Layered** architecture, specifically following
+  the Ruby on Rails "Convention over Configuration" pattern. The repository structure
+  is dominated by the standard Rails directory layout (`app/models`, `app/mailers`,
+  `app/controllers` - though controllers are deeper in the tree), which inherently
+  separates concerns into a horizontal stack:
+
+
+  1.  **Presentation/Frontend**: Located in `app/frontend`, utilizing Vite (`vite.config.mjs`)
+  and a modern TypeScript/Vue-like structure (composables, stores, components).
+
+  2.  **Business Logic (Domain)**: Centralized in `app/models`. Zammad uses a "Fat
+  Model" approach, evidenced by the extensive logic nested within model directories
+  (e.g., `app/models/user/permissions.rb`, `app/models/transaction/notification.rb`).
+
+  3.  **Data Access**: Handled via ActiveRecord within the models, with database management
+  logic seen in `.gitlab/check_database_migration_consistency.sh`.
+
+
+  The system also exhibits strong **Event-Driven** characteristics, which is common
+  for helpdesk systems that must react to asynchronous inputs (emails, chats, triggers).
+  Evidence includes:
+
+  - **Triggers and Subscriptions**: Numerous models have an associated `triggers_subscriptions.rb`
+  or reside under `app/models/trigger`, indicating an internal observer or pub/sub
+  mechanism to handle business rules.
+
+  - **Background Processing**: The presence of `app/models/active_job_lock.rb` and
+  `app/models/scheduler.rb` confirms that a significant portion of its logic is executed
+  asynchronously via background workers (likely Sidekiq or delayed_job, standard in
+  the Rails ecosystem).
+
+  - **Channel Architecture**: `app/models/channel/driver.rb` and `app/models/channel/email_parser.rb`
+  suggest a pipe-like ingestion of external events into the system''s core.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:15:23Z'
+classification_reasoning: 'Zammad is a classic **Layered** architecture, specifically
+  following the Ruby on Rails "Convention over Configuration" pattern. The repository
+  structure is dominated by the standard Rails directory layout (`app/models`, `app/mailers`,
+  `app/controllers` - though controllers are deeper in the tree), which inherently
+  separates concerns into a horizontal stack:
+
+
+  1.  **Presentation/Frontend**: Located in `app/frontend`, utilizing Vite (`vite.config.mjs`)
+  and a modern TypeScript/Vue-like structure (composables, stores, components).
+
+  2.  **Business Logic (Domain)**: Centralized in `app/models`. Zammad uses a "Fat
+  Model" approach, evidenced by the extensive logic nested within model directories
+  (e.g., `app/models/user/permissions.rb`, `app/models/transaction/notification.rb`).
+
+  3.  **Data Access**: Handled via ActiveRecord within the models, with database management
+  logic seen in `.gitlab/check_database_migration_consistency.sh`.
+
+
+  The system also exhibits strong **Event-Driven** characteristics, which is common
+  for helpdesk systems that must react to asynchronous inputs (emails, chats, triggers).
+  Evidence includes:
+
+  - **Triggers and Subscriptions**: Numerous models have an associated `triggers_subscriptions.rb`
+  or reside under `app/models/trigger`, indicating an internal observer or pub/sub
+  mechanism to handle business rules.
+
+  - **Background Processing**: The presence of `app/models/active_job_lock.rb` and
+  `app/models/scheduler.rb` confirms that a significant portion of its logic is executed
+  asynchronously via background workers (likely Sidekiq or delayed_job, standard in
+  the Rails ecosystem).
+
+  - **Channel Architecture**: `app/models/channel/driver.rb` and `app/models/channel/email_parser.rb`
+  suggest a pipe-like ingestion of external events into the system''s core.
+
+
+  **Why not other styles?**
+
+  - **Microservices**: Despite having a `docker-compose.yml`, the core code resides
+  in a single `app/` directory and shares a unified database schema and model layer.
+  The Docker setup manages infrastructure dependencies (PostgreSQL, Elasticsearch,
+  Redis) rather than independent functional services.
+
+  - **Modular Monolith**: While there is heavy namespacing within `app/models`, there
+  is no evidence of strict boundary enforcement or encapsulated module APIs that would
+  prevent a model in one domain from directly accessing another.
+
+  - **Hexagonal**: While it uses "Drivers" for channels, the core domain logic is
+  tightly coupled with Rails'' proprietary base classes (`ApplicationModel`), rather
+  than being isolated via ports and adapters.'

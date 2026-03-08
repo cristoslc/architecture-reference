@@ -12,5 +12,99 @@ domain: Education
 language: Python
 languages:
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Microservices
+classification_status: classified
+review_notes: 'The `tutor` codebase is a CLI application that functions as a manager
+  and orchestrator for the Open edX ecosystem. Its internal architecture is primarily
+  structured as a **Microkernel (Plugin)** system, designed to deploy an external
+  **Microservices** architecture.
+
+
+  ### Reasoning:
+
+
+  **1. Microkernel (Plugin) Architecture (The internal structure):**
+
+  The repository''s internal code organization revolves around a core "engine" that
+  is heavily extended through a custom plugin system.
+
+  - **Plugin Infrastructure:** There is a dedicated directory `tutor/plugins/` containing
+  `v1.py`, `v0.py`, `base.py`, and `indexes.py`. This indicates a formal versioned
+  API for external extensions.
+
+  - **Hook System:** The presence of `tutor/core/hooks/` (actions.py, filters.py,
+  contexts.py) strongly suggests a life-cycle management system where plugins can
+  tap into the core execution flow—a hallmark of microkernel systems.
+
+  - **Extensible Configuration:** The `tutor/templates/` directory shows that the
+  core provides base templates (like `config/defaults.yml`) which are then augmented
+  by plugins to generate the final deployment manifests.
+
+  - **Tests for Extensions:** High-level tests like `tests/test_plugins.py` and `tests/test_plugin_indexes.py`
+  confirm that the plugin lifecycle is a first-class concern of the codebase.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:13:56Z'
+classification_reasoning: 'The `tutor` codebase is a CLI application that functions
+  as a manager and orchestrator for the Open edX ecosystem. Its internal architecture
+  is primarily structured as a **Microkernel (Plugin)** system, designed to deploy
+  an external **Microservices** architecture.
+
+
+  ### Reasoning:
+
+
+  **1. Microkernel (Plugin) Architecture (The internal structure):**
+
+  The repository''s internal code organization revolves around a core "engine" that
+  is heavily extended through a custom plugin system.
+
+  - **Plugin Infrastructure:** There is a dedicated directory `tutor/plugins/` containing
+  `v1.py`, `v0.py`, `base.py`, and `indexes.py`. This indicates a formal versioned
+  API for external extensions.
+
+  - **Hook System:** The presence of `tutor/core/hooks/` (actions.py, filters.py,
+  contexts.py) strongly suggests a life-cycle management system where plugins can
+  tap into the core execution flow—a hallmark of microkernel systems.
+
+  - **Extensible Configuration:** The `tutor/templates/` directory shows that the
+  core provides base templates (like `config/defaults.yml`) which are then augmented
+  by plugins to generate the final deployment manifests.
+
+  - **Tests for Extensions:** High-level tests like `tests/test_plugins.py` and `tests/test_plugin_indexes.py`
+  confirm that the plugin lifecycle is a first-class concern of the codebase.
+
+
+  **2. Microservices (The deployment target):**
+
+  While `tutor` itself is a CLI tool (a single Python package), its primary purpose
+  is to define and manage a Microservices architecture.
+
+  - **Service definitions:** In `tutor/templates/apps/`, we see boundaries for separate
+  services like `redis`, `openedx`, and `caddy`.
+
+  - **Orchestration:** The codebase manages `docker-compose.yml` (in `tutor/templates/local/`
+  and `tutor/templates/dev/`) and Kubernetes manifests (`tutor/templates/k8s/services.yml`,
+  `deployments.yml`).
+
+  - **Commands:** The `tutor/commands/` directory contains logic to manage these distributed
+  components (`k8s.py`, `local.py`, `images.py`), treating the resulting system as
+  a collection of independently scalable units.
+
+
+  **3. Why other styles were rejected:**
+
+  - **Layered:** While it has some horizontal separation (commands vs core logic),
+  the dominant organizational principle is the hook/plugin system rather than a strict
+  Controller-Service-Repository flow.
+
+  - **Modular Monolith:** Since the resulting deployment is intended to be distributed
+  (multi-container via Docker/K8s), it doesn''t fit the "single deployment unit" requirement
+  of a Monolith, even if the CLI itself is one.
+
+  - **Domain-Driven Design:** The code is organized around operational verbs (launch,
+  upgrade, images) and deployment targets (k8s, local) rather than domain aggregates.'

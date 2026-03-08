@@ -12,5 +12,62 @@ domain: Messaging
 language: Go
 languages:
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: "The NATS Server codebase is structured as a **Layered** architecture,\
+  \ though it is often mistaken for other styles because of the *service* it provides\
+  \ (messaging). \n\n### Analysis of Structure:\n1.  **Layered Partitioning**: The\
+  \ project follows a standard horizontal separation typical of Go-based systems.\
+  \ \n    *   **Core Logic (`/server`)**: The vast majority of the system resides\
+  \ in the `server/` directory. This is a large, cohesive package that manages the\
+  \ lifecycle of the server, client connections (`client.go`), and protocol parsing\
+  \ (`parser_test.go`).\n    *   **Cross-Cutting Concerns**: Directories like `logger/`,\
+  \ `util/`, and `internal/` provide infrastructure support (logging, LDAP, fastrand)\
+  \ used by the core server.\n    *   **Deployment**: The `docker/` and `util/nats-server.service`\
+  \ files indicate that despite its complex internal capabilities (clustering, gateways),\
+  \ it is typically deployed as a single binary/process.\n\n2.  **Event-Driven (Internal\
+  \ Patterns)**: While NATS is an event-driven *platform*, its internal code also\
+  \ utilizes event-driven patterns to handle high-concurrency messaging. Files like\
+  \ `server/events.go`, `server/jetstream_events.go`, and `server/sendq.go` indicate\
+  \ internal asynchronous communication and event loops used to process message delivery\
+  \ and system notifications without blocking the main execution threads."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:02:30Z'
+classification_reasoning: "The NATS Server codebase is structured as a **Layered**\
+  \ architecture, though it is often mistaken for other styles because of the *service*\
+  \ it provides (messaging). \n\n### Analysis of Structure:\n1.  **Layered Partitioning**:\
+  \ The project follows a standard horizontal separation typical of Go-based systems.\
+  \ \n    *   **Core Logic (`/server`)**: The vast majority of the system resides\
+  \ in the `server/` directory. This is a large, cohesive package that manages the\
+  \ lifecycle of the server, client connections (`client.go`), and protocol parsing\
+  \ (`parser_test.go`).\n    *   **Cross-Cutting Concerns**: Directories like `logger/`,\
+  \ `util/`, and `internal/` provide infrastructure support (logging, LDAP, fastrand)\
+  \ used by the core server.\n    *   **Deployment**: The `docker/` and `util/nats-server.service`\
+  \ files indicate that despite its complex internal capabilities (clustering, gateways),\
+  \ it is typically deployed as a single binary/process.\n\n2.  **Event-Driven (Internal\
+  \ Patterns)**: While NATS is an event-driven *platform*, its internal code also\
+  \ utilizes event-driven patterns to handle high-concurrency messaging. Files like\
+  \ `server/events.go`, `server/jetstream_events.go`, and `server/sendq.go` indicate\
+  \ internal asynchronous communication and event loops used to process message delivery\
+  \ and system notifications without blocking the main execution threads.\n\n3.  **Features\
+  \ as Extensions**: While not a strict \"Microkernel\" architecture (as it doesn't\
+  \ use dynamic loading of shared objects), it treats major functional blocks like\
+  \ **JetStream** (persistence), **MQTT**, and **WebSockets** as modular components\
+  \ within the `server/` package (e.g., `server/mqtt.go`, `server/jetstream.go`).\
+  \ These are integrated at compile-time and toggled via configuration (`server/opts.go`).\n\
+  \n### Why it is not other styles:\n*   **Not Microservices**: Although NATS enables\
+  \ microservices, the server itself is a monolith. There are no separate directories\
+  \ for independently deployable services that make up the server's own logic.\n*\
+  \   **Not Hexagonal**: The code is highly coupled to its own internal structures.\
+  \ There is no strict \"Ports and Adapters\" layer separating the business logic\
+  \ from the transport logic; the protocol handling and the core state management\
+  \ are tightly interleaved for performance reasons.\n*   **Not Modular Monolith**:\
+  \ While there are distinct files for features, they all share the `server` package\
+  \ or have very high coupling to the `Server` struct in `server.go`, rather than\
+  \ having strictly enforced boundaries or internal APIs between independent modules.\n\
+  ```"

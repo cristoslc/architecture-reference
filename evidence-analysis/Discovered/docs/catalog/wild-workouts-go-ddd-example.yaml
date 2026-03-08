@@ -13,5 +13,115 @@ language: Go
 languages:
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Domain-Driven Design
+- CQRS
+- Hexagonal Architecture
+classification_status: classified
+review_notes: 'This repository is an exemplar of a **Microservices** architecture,
+  explicitly designed to demonstrate **Domain-Driven Design (DDD)**, **CQRS**, and
+  **Clean/Hexagonal Architecture** within a Go ecosystem.
+
+
+  ### 1. Microservices (Primary Style)
+
+  The codebase is structured into multiple independent services located under the
+  `internal/` directory: `trainings`, `users`, and `trainer`.
+
+  - **Independent Deployment:** The presence of `terraform/service` and `docker/app`
+  strategies implies these are deployed as separate Cloud Run services. Each service
+  has its own `main.go` and `go.mod` (using Go Workspaces/`go.work` for local development).
+
+  - **Communication:** Services interact via gRPC, as evidenced by `api/protobuf/`
+  containing `users.proto` and `trainer.proto`, and the corresponding adapters in
+  `internal/trainings/adapters/users_grpc.go`.
+
+  - **Data Ownership:** Although the directory tree suggests a shared terraform state
+  for Firestore, the README and project intent describe independent services that
+  would typically manage their own persistence context.
+
+
+  ### 2. Domain-Driven Design (DDD) & Hexagonal Architecture
+
+  The project explicitly organizes code around Bounded Contexts:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:15:04Z'
+classification_reasoning: 'This repository is an exemplar of a **Microservices** architecture,
+  explicitly designed to demonstrate **Domain-Driven Design (DDD)**, **CQRS**, and
+  **Clean/Hexagonal Architecture** within a Go ecosystem.
+
+
+  ### 1. Microservices (Primary Style)
+
+  The codebase is structured into multiple independent services located under the
+  `internal/` directory: `trainings`, `users`, and `trainer`.
+
+  - **Independent Deployment:** The presence of `terraform/service` and `docker/app`
+  strategies implies these are deployed as separate Cloud Run services. Each service
+  has its own `main.go` and `go.mod` (using Go Workspaces/`go.work` for local development).
+
+  - **Communication:** Services interact via gRPC, as evidenced by `api/protobuf/`
+  containing `users.proto` and `trainer.proto`, and the corresponding adapters in
+  `internal/trainings/adapters/users_grpc.go`.
+
+  - **Data Ownership:** Although the directory tree suggests a shared terraform state
+  for Firestore, the README and project intent describe independent services that
+  would typically manage their own persistence context.
+
+
+  ### 2. Domain-Driven Design (DDD) & Hexagonal Architecture
+
+  The project explicitly organizes code around Bounded Contexts:
+
+  - **Domain Layer:** Each service has a `domain/` folder (e.g., `internal/trainings/domain/training`)
+  containing business logic isolated from infrastructure.
+
+  - **Ports and Adapters:** The directory structure specifically uses `ports/` (drivers
+  like `http.go`, `grpc.go`) and `adapters/` (driven actors like `trainings_firestore_repository.go`).
+  This strictly follows Hexagonal Architecture principles to keep the core logic pure.
+
+
+  ### 3. CQRS (Command Query Responsibility Segregation)
+
+  Within the `app/` layer of specific services (e.g., `internal/trainings/app/`),
+  the code is split into:
+
+  - **`command/`**: Handles state-changing operations.
+
+  - **`query/`**: Handles data retrieval.
+
+  - The repository uses decorators (`internal/common/decorator/`) to wrap commands
+  and queries with cross-cutting concerns like logging and metrics, a common pattern
+  in CQRS implementations.
+
+
+  ### 4. Layered (Internal)
+
+  While the system is Microservices-based, each service internally adheres to a **Layered/Clean
+  Architecture** approach:
+
+  1.  **Port/Transport Layer:** `ports/` (REST/OpenAPI, gRPC).
+
+  2.  **Application Layer:** `app/` (Orchestrating commands and queries).
+
+  3.  **Domain Layer:** `domain/` (Business rules).
+
+  4.  **Infrastructure Layer:** `adapters/` (Database persistence, external API clients).
+
+
+  ### Evidence Citations:
+
+  - **Service Boundaries:** `internal/trainings/main.go`, `internal/users/main.go`,
+  `internal/trainer/main.go`.
+
+  - **Infrastructure/Ports:** `internal/trainings/ports/http.go`, `internal/trainings/adapters/trainings_firestore_repository.go`.
+
+  - **Contract-first Design:** `api/openapi/` and `api/protobuf/` defining the service
+  interfaces independently of implementation.
+
+  - **Deployment:** `docker-compose.yml` and `terraform/cloud-run.tf` managing multiple
+  distinct runtime units.'

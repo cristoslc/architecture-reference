@@ -13,5 +13,77 @@ language: Go
 languages:
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Hexagonal Architecture
+classification_status: classified
+review_notes: 'Consul is structured as a **Modular Monolith**. While it is a distributed
+  system that facilitates microservices, the repository itself is organized into a
+  single, cohesive codebase that yields a primary unified binary (`consul`).
+
+
+  ### 1. Primary Style: Modular Monolith
+
+  The codebase is organized into highly decoupled modules (Go packages) that reside
+  in the same repository but maintain clear internal boundaries.
+
+  - **Single Entry Point**: The `Makefile` confirms that `go install` and `go build`
+  target a primary command. The `command/` directory contains various sub-commands
+  (e.g., `command/agent`, `command/kv`), but they are all compiled into the same executable.
+
+  - **Internal Module Boundaries**: The structure separates the `agent/` (client logic),
+  `agent/consul` (server/Raft logic), and `api/` (client SDK). The logic for the UI,
+  DNS, and various service discovery protocols is encapsulated in dedicated sub-directories.
+
+  - **Shared Memory/State**: Within a single Consul process (especially in server
+  mode), multiple "sub-systems" like the Raft consensus engine, the RPC server, and
+  the HTTP API share memory space and lifecycle managed by the `agent.go` and `server.go`.
+
+
+  ### 2. Secondary Style: Event-Driven
+
+  Internal communication and state synchronization within the cluster rely heavily
+  on event-driven and gossip-based patterns.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:44:32Z'
+classification_reasoning: "Consul is structured as a **Modular Monolith**. While it\
+  \ is a distributed system that facilitates microservices, the repository itself\
+  \ is organized into a single, cohesive codebase that yields a primary unified binary\
+  \ (`consul`).\n\n### 1. Primary Style: Modular Monolith\nThe codebase is organized\
+  \ into highly decoupled modules (Go packages) that reside in the same repository\
+  \ but maintain clear internal boundaries.\n- **Single Entry Point**: The `Makefile`\
+  \ confirms that `go install` and `go build` target a primary command. The `command/`\
+  \ directory contains various sub-commands (e.g., `command/agent`, `command/kv`),\
+  \ but they are all compiled into the same executable.\n- **Internal Module Boundaries**:\
+  \ The structure separates the `agent/` (client logic), `agent/consul` (server/Raft\
+  \ logic), and `api/` (client SDK). The logic for the UI, DNS, and various service\
+  \ discovery protocols is encapsulated in dedicated sub-directories.\n- **Shared\
+  \ Memory/State**: Within a single Consul process (especially in server mode), multiple\
+  \ \"sub-systems\" like the Raft consensus engine, the RPC server, and the HTTP API\
+  \ share memory space and lifecycle managed by the `agent.go` and `server.go`.\n\n\
+  ### 2. Secondary Style: Event-Driven\nInternal communication and state synchronization\
+  \ within the cluster rely heavily on event-driven and gossip-based patterns.\n-\
+  \ **Gossip and Events**: The `agent/user_event.go` and the inclusion of `agent/ae`\
+  \ (Anti-Entropy) indicate a system designed around eventual consistency and event\
+  \ propagation.\n- **Blocking Queries**: The `agent/blockingquery/` package implements\
+  \ a pattern where components wait for state changes, a characteristic of reactive/event-driven\
+  \ internal coordination.\n\n### 3. Secondary Style: Hexagonal Architecture (Ports\
+  \ and Adapters)\nConsul demonstrates strong isolation of the core domain logic from\
+  \ external interfaces.\n- **Multi-Interface Support**: The system exposes its core\
+  \ logic through multiple \"adapters\": `agent/dns.go` (DNS), `agent/http.go` (HTTP/REST),\
+  \ and `agent/grpc-external/` (gRPC). \n- **Protobuf-defined Boundaries**: The extensive\
+  \ use of Protobuf (`proto/private/` and `proto/public/`) acts as the contract (Ports)\
+  \ between the core state machine and the external-facing services or other cluster\
+  \ nodes.\n\n### Why not Microservices?\nAlthough Consul is often deployed alongside\
+  \ microservices, it is not a microservices architecture *internally*. It does not\
+  \ consist of multiple independently deployable services that form the application.\
+  \ Instead, it is a distributed monolith where the same binary is deployed across\
+  \ all nodes, assuming different roles (client vs. server) based on configuration.\n\
+  \n### Why not Microkernel?\nWhile Consul supports \"Connect\" proxies and \"Envoy\
+  \ extensions\" (`envoyextensions/`), these are primarily integrations with external\
+  \ binaries rather than a plugin-based architecture for the core logic itself. Most\
+  \ features are compiled-in rather than loaded at runtime via a plugin contract."

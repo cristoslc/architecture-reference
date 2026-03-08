@@ -13,5 +13,59 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: "Directus is structured as a **Layered** architecture, organized within\
+  \ a monorepo that separates the frontend (`/app`) from the backend (`/api`). \n\n\
+  ### Primary Style: Layered\nThe backend (`/api/src`) follows a classic horizontal\
+  \ layering pattern:\n1.  **Web/Entry Layer**: Handled by `server.ts`, `app.ts`,\
+  \ and `controllers/`.\n2.  **Service Layer**: Business logic is encapsulated in\
+  \ `api/src/services/`. Files like `items.ts`, `users.ts`, and `panels.ts` contain\
+  \ the core logic for manipulating data.\n3.  **Data Access Layer**: Abstracted via\
+  \ `api/src/database/`. Directus uses Knex.js to provide a unified interface across\
+  \ multiple SQL vendors (PostgreSQL, MySQL, etc.), as evidenced by the `docker-compose.yml`\
+  \ which tests against nearly a dozen different database engines.\n\nThe cross-cutting\
+  \ concerns are also clearly partitioned into directories like `middleware/`, `auth/`,\
+  \ and `utils/`."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:46:03Z'
+classification_reasoning: "Directus is structured as a **Layered** architecture, organized\
+  \ within a monorepo that separates the frontend (`/app`) from the backend (`/api`).\
+  \ \n\n### Primary Style: Layered\nThe backend (`/api/src`) follows a classic horizontal\
+  \ layering pattern:\n1.  **Web/Entry Layer**: Handled by `server.ts`, `app.ts`,\
+  \ and `controllers/`.\n2.  **Service Layer**: Business logic is encapsulated in\
+  \ `api/src/services/`. Files like `items.ts`, `users.ts`, and `panels.ts` contain\
+  \ the core logic for manipulating data.\n3.  **Data Access Layer**: Abstracted via\
+  \ `api/src/database/`. Directus uses Knex.js to provide a unified interface across\
+  \ multiple SQL vendors (PostgreSQL, MySQL, etc.), as evidenced by the `docker-compose.yml`\
+  \ which tests against nearly a dozen different database engines.\n\nThe cross-cutting\
+  \ concerns are also clearly partitioned into directories like `middleware/`, `auth/`,\
+  \ and `utils/`.\n\n### Secondary Style: Microkernel (Plugin)\nA defining characteristic\
+  \ of Directus is its extensibility. The architecture follows a **Microkernel** pattern\
+  \ where the core system provides a \"hook\" and \"extension\" infrastructure.\n\
+  -   **Extension Points**: The `api/src/extensions/` directory and `api/src/operations/`\
+  \ indicate a system designed to load external code (hooks, endpoints, displays,\
+  \ layouts).\n-   **Registry Pattern**: The frontend (`/app/src/displays`, `/app/src/panels`)\
+  \ uses a registry pattern to load modular UI components.\n-   **SDK/Type Contracts**:\
+  \ The use of `@directus/types` and `AbstractServiceOptions` in service constructors\
+  \ (e.g., `PanelsService`) defines the contract that extensions must follow.\n\n\
+  ### Secondary Style: Modular Monolith\nWhile the repository is a monorepo, the deployment\
+  \ unit is a single Node.js process (the Monolith). However, it is **Modular** in\
+  \ its internal organization:\n-   **Internal Boundaries**: Logic is grouped by domain\
+  \ (e.g., `auth`, `storage`, `schedules`, `ai`) rather than just by technical role.\n\
+  -   **Bus/Emitter**: The presence of `api/src/bus` and `api/src/emitter.ts` suggests\
+  \ an internal event bus used to decouple modules within the same process, allowing\
+  \ one module to react to changes in another without direct hard-dependencies.\n\n\
+  ### Rejected Styles\n-   **Microservices**: The `docker-compose.yml` reveals that\
+  \ the multiple containers are for *infrastructure dependencies* (DBs, Redis, S3)\
+  \ rather than separate Directus application services. The application itself compiles\
+  \ into a single deployable API.\n-   **Hexagonal**: While it abstracts the database,\
+  \ the services are tightly coupled to the internal \"ItemsService\" and specific\
+  \ framework utilities rather than using strict dependency inversion through ports\
+  \ and adapters."

@@ -14,5 +14,100 @@ languages:
 - TypeScript
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Service-Based
+- Event-Driven
+- Layered
+classification_status: classified
+review_notes: 'The Plane repository follows a **Service-Based** architecture, characterized
+  by a few coarse-grained services that collaborate to form the application, while
+  sharing a common backing data store.
+
+
+  ### Primary Style: Service-Based
+
+  Unlike a pure Microservices architecture where each service owns its database, Plane''s
+  `docker-compose.yml` reveals that the core functional components (`api`, `worker`,
+  `beat-worker`, `migrator`) all connect to the same PostgreSQL instance (`plane-db`)
+  and Redis instance (`plane-redis`). These services are essentially specialized deployments
+  of the same codebase (the `apps/api` Django application), separated to handle different
+  concerns:
+
+  - **`api`**: Synchronous HTTP/REST request handling.
+
+  - **`worker`/`beat-worker`**: Asynchronous background task processing and scheduled
+  jobs.
+
+  - **`live`**: A separate Node.js service (likely utilizing Hocuspocus/Yjs for real-time
+  collaboration) that handles socket-based traffic.
+
+  - **`web`/`admin`/`space`**: Frontend applications deployed as independent units
+  but acting as consumers of the unified API.
+
+
+  ### Secondary Style: Event-Driven'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:06:15Z'
+classification_reasoning: 'The Plane repository follows a **Service-Based** architecture,
+  characterized by a few coarse-grained services that collaborate to form the application,
+  while sharing a common backing data store.
+
+
+  ### Primary Style: Service-Based
+
+  Unlike a pure Microservices architecture where each service owns its database, Plane''s
+  `docker-compose.yml` reveals that the core functional components (`api`, `worker`,
+  `beat-worker`, `migrator`) all connect to the same PostgreSQL instance (`plane-db`)
+  and Redis instance (`plane-redis`). These services are essentially specialized deployments
+  of the same codebase (the `apps/api` Django application), separated to handle different
+  concerns:
+
+  - **`api`**: Synchronous HTTP/REST request handling.
+
+  - **`worker`/`beat-worker`**: Asynchronous background task processing and scheduled
+  jobs.
+
+  - **`live`**: A separate Node.js service (likely utilizing Hocuspocus/Yjs for real-time
+  collaboration) that handles socket-based traffic.
+
+  - **`web`/`admin`/`space`**: Frontend applications deployed as independent units
+  but acting as consumers of the unified API.
+
+
+  ### Secondary Style: Event-Driven
+
+  The system utilizes **Celery** with **Redis/RabbitMQ** as a message broker to decouple
+  long-running or recurring tasks from the main request-response cycle. The `apps/api/plane/celery.py`
+  file defines a extensive `beat_schedule` for "issue automation," "email notifications,"
+  and "cleanup tasks." This indicates an internal architecture that relies on pub/sub
+  or task-queue patterns for side effects and background processing.
+
+
+  ### Secondary Style: Layered (Internal)
+
+  Within the `apps/api` service, the code follows a traditional horizontal **Layered**
+  pattern common in Django Rest Framework (DRF) applications:
+
+  1.  **Presentation/API Layer**: Found in `apps/api/plane/api/views/`, defining the
+  REST endpoints.
+
+  2.  **Transformation/Validation Layer**: Found in `apps/api/plane/api/serializers/`,
+  handling data mapping.
+
+  3.  **Data/Domain Layer**: Found in `apps/api/plane/db/models/`, where business
+  logic often resides in fat models or mixins (`apps/api/plane/db/mixins.py`).
+
+
+  ### Architectural Observations
+
+  - **Monorepo Structure**: The use of `turbo.json` and a root `package.json` with
+  `apps/` directory demonstrates a managed monorepo for both the Python backend and
+  multiple TypeScript frontends.
+
+  - **Separation of Concerns**: While the backend shares a database, the frontend
+  is strictly partitioned into `web` (main app), `admin` (instance management), and
+  `space` (likely for public/external views), which communicate with the backend via
+  a centralized `proxy` (Caddy).'

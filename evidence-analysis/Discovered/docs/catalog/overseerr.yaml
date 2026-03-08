@@ -13,5 +13,55 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Domain-Driven Design
+classification_status: classified
+review_notes: "### Architecture Analysis\n\nOverseerr is structured as a **Layered\
+  \ Monolith**. The codebase is explicitly split into a frontend (Next.js/React, implied\
+  \ by `next.config.js` and `public/`) and a backend (Express.js, located in the `server/`\
+  \ directory). \n\nThe backend follows a classic horizontal layering pattern:\n1.\
+  \  **Routing/Presentation Layer**: Found in `server/routes/`, where API endpoints\
+  \ (e.g., `movie.ts`, `auth.ts`, `settings/`) are defined.\n2.  **Logic/Service Layer**:\
+  \ Found in `server/lib/`, containing business logic for scanners (`scanners/`),\
+  \ notification handling (`notifications/`), and external service integrations (Sonarr/Radarr/Plex).\n\
+  3.  **Data Access/Persistence Layer**: Controlled via **TypeORM**, evidenced by\
+  \ `server/entity/` (database schemas like `User.ts`, `MediaRequest.ts`), `server/migration/`\
+  \ (SQL schema changes), and `server/subscriber/` (database lifecycle hooks).\n\n\
+  #### Why Layered?"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:05:41Z'
+classification_reasoning: "### Architecture Analysis\n\nOverseerr is structured as\
+  \ a **Layered Monolith**. The codebase is explicitly split into a frontend (Next.js/React,\
+  \ implied by `next.config.js` and `public/`) and a backend (Express.js, located\
+  \ in the `server/` directory). \n\nThe backend follows a classic horizontal layering\
+  \ pattern:\n1.  **Routing/Presentation Layer**: Found in `server/routes/`, where\
+  \ API endpoints (e.g., `movie.ts`, `auth.ts`, `settings/`) are defined.\n2.  **Logic/Service\
+  \ Layer**: Found in `server/lib/`, containing business logic for scanners (`scanners/`),\
+  \ notification handling (`notifications/`), and external service integrations (Sonarr/Radarr/Plex).\n\
+  3.  **Data Access/Persistence Layer**: Controlled via **TypeORM**, evidenced by\
+  \ `server/entity/` (database schemas like `User.ts`, `MediaRequest.ts`), `server/migration/`\
+  \ (SQL schema changes), and `server/subscriber/` (database lifecycle hooks).\n\n\
+  #### Why Layered?\nThe tree demonstrates a strict separation of concerns by technical\
+  \ role rather than deployment unit. There is a single `Dockerfile` and a single\
+  \ `server/index.ts` entry point, confirming it is a monolithic deployment. The organization\
+  \ of `routes -> lib -> entity` is the hallmark of the Layered style.\n\n#### Why\
+  \ Domain-Driven Design (Secondary)?\nWhile primarily layered, the project exhibits\
+  \ strong DDD influences in its internal organization:\n- **Entity Identification**:\
+  \ The `server/entity/` folder contains clear domain models (`MediaRequest`, `Issue`,\
+  \ `User`) that encapsulate the state of the media management bounded context.\n\
+  - **Bounded Contexts**: The folders within `server/lib/` and `server/routes/` are\
+  \ high-level domain concepts (Notifications, Scanners, Settings, Identity) that\
+  \ correspond to specific areas of the application's business logic.\n\n#### Rejected\
+  \ Styles:\n- **Microservices**: Rejected because there is only one `package.json`,\
+  \ one `Dockerfile`, and the internal modules communicate via direct imports rather\
+  \ than network protocols (gRPC/REST).\n- **Hexagonal**: While there are \"adapters\"\
+  \ for external APIs (in `server/api/`), the core business logic in `server/lib/`\
+  \ is tightly coupled to the TypeORM entities, rather than being isolated via strictly\
+  \ defined ports/interfaces.\n- **Event-Driven**: Although there are \"Subscribers\"\
+  \ in `server/subscriber/`, these are TypeORM database hooks used for side effects\
+  \ (like triggering notifications), which is a common pattern in monolithic apps\
+  \ rather than a full Event-Driven Architecture."

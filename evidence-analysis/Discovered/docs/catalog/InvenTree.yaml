@@ -14,5 +14,75 @@ languages:
 - Python
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: 'The InvenTree repository is a classic **Layered** architecture, specifically
+  built on the Django framework. According to the `docs/docs/develop/architecture.md`,
+  it follows a "classical Django Application" structure. The system is organized into
+  a Python/Django backend (located in `src/backend/InvenTree`) and a React-based Single
+  Page Application (SPA) frontend.
+
+
+  ### Primary Style: Layered
+
+  The codebase follows the horizontal layering typical of Django/DRF (Django Rest
+  Framework) applications:
+
+  - **Presentation Layer**: A React SPA frontend served as static files, communicating
+  with the backend via a RESTful API.
+
+  - **Business Logic Layer**: Implemented within Django apps, utilizing services and
+  background workers (Django Q2) for long-running tasks.
+
+  - **Data Access Layer**: Uses Django’s ORM to abstract interactions with PostgreSQL,
+  MySQL, or SQLite.
+
+  - **Infrastructure**: Employs Redis for caching and session management and Gunicorn
+  as the WSGI server.
+
+
+  The architecture emphasizes a "modular" monolith approach where concerns are separated
+  into Django apps, but they are deployed as a single unit (as evidenced by the `docker-compose.yml`
+  and the architecture diagram showing a single `inventree/inventree` image containing
+  the Django server processes).'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:52:44Z'
+classification_reasoning: "The InvenTree repository is a classic **Layered** architecture,\
+  \ specifically built on the Django framework. According to the `docs/docs/develop/architecture.md`,\
+  \ it follows a \"classical Django Application\" structure. The system is organized\
+  \ into a Python/Django backend (located in `src/backend/InvenTree`) and a React-based\
+  \ Single Page Application (SPA) frontend.\n\n### Primary Style: Layered\nThe codebase\
+  \ follows the horizontal layering typical of Django/DRF (Django Rest Framework)\
+  \ applications:\n- **Presentation Layer**: A React SPA frontend served as static\
+  \ files, communicating with the backend via a RESTful API.\n- **Business Logic Layer**:\
+  \ Implemented within Django apps, utilizing services and background workers (Django\
+  \ Q2) for long-running tasks.\n- **Data Access Layer**: Uses Django’s ORM to abstract\
+  \ interactions with PostgreSQL, MySQL, or SQLite.\n- **Infrastructure**: Employs\
+  \ Redis for caching and session management and Gunicorn as the WSGI server.\n\n\
+  The architecture emphasizes a \"modular\" monolith approach where concerns are separated\
+  \ into Django apps, but they are deployed as a single unit (as evidenced by the\
+  \ `docker-compose.yml` and the architecture diagram showing a single `inventree/inventree`\
+  \ image containing the Django server processes).\n\n### Secondary Style: Microkernel\
+  \ (Plugin)\nThe system features a sophisticated **Microkernel** (Plugin) architecture,\
+  \ which is a core part of its extensibility strategy. \n- **Core System**: The \"\
+  InvenTree\" core provides the inventory logic, API, and database management.\n-\
+  \ **Plugins**: As seen in `src/backend/InvenTree/plugin/plugin.py`, the system uses\
+  \ a `Mixin`-based plugin architecture. Plugins can extend the core via specific\
+  \ hooks (`PluginMixinEnum`) for actions, barcodes, currency exchange, notifications,\
+  \ and even UI modifications.\n- **Registry**: The code contains a `registry.py`\
+  \ (referenced in `plugin.py`) that handles the discovery and lifecycle of these\
+  \ plugins, allowing the system to be extended without modifying the core codebase.\n\
+  \n### Evidence\n- **Directory Layout**: Code is centralized in `src/backend/InvenTree`\
+  \ (confirmed by `pyproject.toml` and `architecture.md`).\n- **Deployment**: The\
+  \ architecture diagram in `architecture.md` confirms a monolithic deployment (Gunicorn\
+  \ + Django + Database + Redis).\n- **Plugin Infrastructure**: `src/backend/InvenTree/plugin/plugin.py`\
+  \ defines the base `InvenTreePlugin` class and numerous mixins (Action, API, Barcode,\
+  \ etc.) that define the contract between the core and extensions.\n- **Frontend/Backend\
+  \ Separation**: The \"Frontend Architecture\" section of the docs describes a decoupled\
+  \ React SPA that communicates exclusively via an API, which is a standard pattern\
+  \ for modern layered monoliths."

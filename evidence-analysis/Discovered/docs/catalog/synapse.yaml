@@ -14,5 +14,74 @@ languages:
 - Python
 - Rust
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Service-Based
+- Layered
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: "Synapse is structured as a **Service-Based** architecture that can\
+  \ be deployed either as a monolith or as a set of specialized, coarse-grained services\
+  \ (referred to in the codebase as \"workers\"). While it shares some traits with\
+  \ Microservices (independent scalability), it is fundamentally service-based because\
+  \ all workers typically share a single logical database and are built from the same\
+  \ unified codebase using a shared configuration.\n\n### 1. Primary Style: Service-Based\n\
+  The \"Worker\" architecture is the defining structural characteristic of Synapse.\
+  \ \n- **Shared Codebase & Logic:** The directory `synapse/app/` contains multiple\
+  \ entry points like `federation_reader.py`, `pusher.py`, and `client_reader.py`.\
+  \ These allow the monolith to be split into functional units that handle specific\
+  \ subsets of the Matrix protocol.\n- **Shared Database:** Unlike pure microservices,\
+  \ Synapse workers generally operate against a shared PostgreSQL instance. The `synapse/storage`\
+  \ layer is designed to be shared across these instances, using a custom replication\
+  \ protocol (found in `synapse/replication/`) to keep in-memory caches synchronized\
+  \ across processes.\n- **Coarse-Grained Separation:** The separation is based on\
+  \ functional areas (Reading vs. Writing, Federation vs. Client API) rather than\
+  \ fine-grained domain boundaries.\n\n### 2. Secondary Style: Layered\nInternally,\
+  \ each synapse service follows a strict horizontal layering pattern:"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:13:01Z'
+classification_reasoning: "Synapse is structured as a **Service-Based** architecture\
+  \ that can be deployed either as a monolith or as a set of specialized, coarse-grained\
+  \ services (referred to in the codebase as \"workers\"). While it shares some traits\
+  \ with Microservices (independent scalability), it is fundamentally service-based\
+  \ because all workers typically share a single logical database and are built from\
+  \ the same unified codebase using a shared configuration.\n\n### 1. Primary Style:\
+  \ Service-Based\nThe \"Worker\" architecture is the defining structural characteristic\
+  \ of Synapse. \n- **Shared Codebase & Logic:** The directory `synapse/app/` contains\
+  \ multiple entry points like `federation_reader.py`, `pusher.py`, and `client_reader.py`.\
+  \ These allow the monolith to be split into functional units that handle specific\
+  \ subsets of the Matrix protocol.\n- **Shared Database:** Unlike pure microservices,\
+  \ Synapse workers generally operate against a shared PostgreSQL instance. The `synapse/storage`\
+  \ layer is designed to be shared across these instances, using a custom replication\
+  \ protocol (found in `synapse/replication/`) to keep in-memory caches synchronized\
+  \ across processes.\n- **Coarse-Grained Separation:** The separation is based on\
+  \ functional areas (Reading vs. Writing, Federation vs. Client API) rather than\
+  \ fine-grained domain boundaries.\n\n### 2. Secondary Style: Layered\nInternally,\
+  \ each synapse service follows a strict horizontal layering pattern:\n- **API/Rest\
+  \ Layer (`synapse/rest/`, `synapse/api/`):** Handles HTTP routing and protocol-specific\
+  \ request/response formatting.\n- **Logic/Handler Layer (`synapse/handlers/`):**\
+  \ Contains the core business logic. Handlers coordinate between different stores\
+  \ and services (e.g., `synapse/handlers/auth.py`, `synapse/handlers/message.py`).\n\
+  - **Data Access Layer (`synapse/storage/`):** Encapsulates SQL logic. The use of\
+  \ `SQLBaseStore` in `synapse/storage/_base.py` provides a classic Repository/DAO\
+  \ pattern where the rest of the application is isolated from raw SQL execution.\n\
+  \n### 3. Secondary Style: Microkernel (Plugin)\nSynapse incorporates a significant\
+  \ **Microkernel** influence through its \"Module API\":\n- **Extensibility:** The\
+  \ directory `synapse/module_api/` and the logic in `synapse/app/homeserver.py` (specifically\
+  \ `load_module`) demonstrate a formal contract for third-party extensions.\n- **Plugin\
+  \ Points:** Modules can register web resources, intercept events (spam checker),\
+  \ or modify authentication flows without altering the core codebase. This is a common\
+  \ pattern for Matrix implementations to allow specialized deployments (e.g., the\
+  \ \"ESS\" mentioned in the README).\n\n### Rejected Styles\n- **Microservices:**\
+  \ Rejected as the primary style because the services are not truly decoupled; they\
+  \ share a database schema and a single repository, and they rely on a proprietary\
+  \ internal replication TCP protocol rather than standard service discovery and isolated\
+  \ data stores.\n- **Modular Monolith:** While it can be deployed as a monolith,\
+  \ the explicit \"Worker\" architecture and the `synapse/replication` logic designed\
+  \ for multi-process coordination move it beyond a simple modular monolith.\n- **Event-Driven:**\
+  \ While it handles \"events\" (Matrix events), the internal code organization is\
+  \ request-response driven via Twisted's asynchronous framework rather than an internal\
+  \ message bus or event-stream-centric architecture (though it uses its own replication\
+  \ stream for cache invalidation)."

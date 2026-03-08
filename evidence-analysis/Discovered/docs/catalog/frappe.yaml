@@ -13,5 +13,74 @@ language: Python
 languages:
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'The Frappe Framework is a quintessential example of a **Microkernel
+  (Plugin)** architecture, designed specifically to be extended by "apps" (such as
+  ERPNext). Its core identity revolves around the "Bench" environment, which manages
+  a collection of independent applications that are loaded into a single runtime.
+
+
+  ### Reasoning:
+
+
+  **1. Microkernel (Plugin) / Extension Architecture:**
+
+  Frappe is built on the concept of "Apps" as plugins.
+
+  - **`frappe/hooks.py`**: This is the central integration point. It defines how external
+  apps can hook into the core framework’s events, overriding or extending functionality
+  without modifying the core.
+
+  - **`frappe/core`**: This directory contains the "Microkernel" components—the essential
+  services like user management, file handling, and permissions that all other plugins
+  (apps) rely on.
+
+  - **Metadata-Driven**: The README mentions the "Semantic Web" inspiration. The framework
+  treats "DocTypes" (metadata definitions) as the primary way to extend the system,
+  allowing plugins to define data structures that the core then renders and manages.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:49:22Z'
+classification_reasoning: "The Frappe Framework is a quintessential example of a **Microkernel\
+  \ (Plugin)** architecture, designed specifically to be extended by \"apps\" (such\
+  \ as ERPNext). Its core identity revolves around the \"Bench\" environment, which\
+  \ manages a collection of independent applications that are loaded into a single\
+  \ runtime.\n\n### Reasoning:\n\n**1. Microkernel (Plugin) / Extension Architecture:**\n\
+  Frappe is built on the concept of \"Apps\" as plugins.\n- **`frappe/hooks.py`**:\
+  \ This is the central integration point. It defines how external apps can hook into\
+  \ the core framework’s events, overriding or extending functionality without modifying\
+  \ the core.\n- **`frappe/core`**: This directory contains the \"Microkernel\" components—the\
+  \ essential services like user management, file handling, and permissions that all\
+  \ other plugins (apps) rely on.\n- **Metadata-Driven**: The README mentions the\
+  \ \"Semantic Web\" inspiration. The framework treats \"DocTypes\" (metadata definitions)\
+  \ as the primary way to extend the system, allowing plugins to define data structures\
+  \ that the core then renders and manages.\n\n**2. Modular Monolith (Internal Structure):**\n\
+  While it acts as a kernel for other apps, the `frappe` repository itself is a **Modular\
+  \ Monolith**.\n- It is deployed as a single unit (via the `bench` CLI or Docker).\n\
+  - **Enforced Boundaries via DocTypes**: Code is organized into modules (e.g., `frappe/core`,\
+  \ `frappe/database`, `frappe/email`) which are often coupled to specific \"DocTypes\"\
+  .\n- **Shared Database**: All modules and installed apps typically share a single\
+  \ MariaDB/PostgreSQL instance, a hallmark of the monolithic style.\n\n**3. Domain-Driven\
+  \ Design (DDD) Influence:**\nThe architecture exhibits strong DDD patterns, specifically\
+  \ regarding **Bounded Contexts**.\n- Each folder within `frappe/core/doctype` (e.g.,\
+  \ `user`, `role`, `communication`) acts as a mini-domain containing its own models,\
+  \ business logic (controllers), and views.\n- The use of **DocTypes** as \"Aggregates\"\
+  \ ensures that data and logic associated with a specific entity are encapsulated\
+  \ together.\n\n**4. Evidence from Directory Structure:**\n- **Inversion of Control**:\
+  \ The plethora of `cypress/fixtures` and `frappe/core/doctype` entries shows a system\
+  \ designed to be highly declarative. \n- **Database Abstraction**: `frappe/database/`\
+  \ contains specific implementations for `mariadb`, `postgres`, and `sqlite`, indicating\
+  \ a \"Port and Adapters\" (Hexagonal) influence within the data layer, though the\
+  \ overall system is better characterized by its plugin nature.\n- **Deployment**:\
+  \ The README's reference to `bench start` and `frappe_docker` confirms a unified\
+  \ deployment model rather than a distributed microservices approach.\n\n**Rejected\
+  \ Styles:**\n- **Microservices**: All components run within a single Python process\
+  \ (Gunicorn/RQ workers) and share a database.\n- **Pipe-and-Filter**: While it has\
+  \ background jobs (`frappe/core/doctype/rq_job`), the primary interaction model\
+  \ is request-response and event-driven hooks, not a sequential data pipeline."

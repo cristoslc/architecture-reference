@@ -14,5 +14,54 @@ languages:
 - TypeScript
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Service-Based
+classification_status: classified
+review_notes: "The Nhost repository is structured as a **Microservices** architecture.\
+  \ It functions as a monorepo containing multiple independently deployable services\
+  \ that together form the Nhost cloud platform.\n\n### Evidence of Microservices\n\
+  1.  **Independent Service Directories**: The `services/` directory contains distinct,\
+  \ autonomous applications:\n    *   `services/auth`: A Go/TypeScript-based authentication\
+  \ service.\n    *   `services/storage`: A Go-based storage management service.\n\
+  \    *   `services/functions`: A serverless execution environment.\n2.  **Polyglot\
+  \ Implementation**: Different services use different technology stacks (e.g., Go\
+  \ for Storage and Auth core, Node.js/Bun for others), a hallmark of microservice\
+  \ independence.\n3.  **Deployment Orchestration**: The `examples/docker-compose/docker-compose.yaml`\
+  \ confirms that these services operate as distinct containers:\n    *   They communicate\
+  \ over the network (e.g., `auth` connects to `graphql` at `http://graphql:8080/v1/graphql`)."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:02:59Z'
+classification_reasoning: "The Nhost repository is structured as a **Microservices**\
+  \ architecture. It functions as a monorepo containing multiple independently deployable\
+  \ services that together form the Nhost cloud platform.\n\n### Evidence of Microservices\n\
+  1.  **Independent Service Directories**: The `services/` directory contains distinct,\
+  \ autonomous applications:\n    *   `services/auth`: A Go/TypeScript-based authentication\
+  \ service.\n    *   `services/storage`: A Go-based storage management service.\n\
+  \    *   `services/functions`: A serverless execution environment.\n2.  **Polyglot\
+  \ Implementation**: Different services use different technology stacks (e.g., Go\
+  \ for Storage and Auth core, Node.js/Bun for others), a hallmark of microservice\
+  \ independence.\n3.  **Deployment Orchestration**: The `examples/docker-compose/docker-compose.yaml`\
+  \ confirms that these services operate as distinct containers:\n    *   They communicate\
+  \ over the network (e.g., `auth` connects to `graphql` at `http://graphql:8080/v1/graphql`).\n\
+  \    *   They have individual health checks, environment configurations, and scaling\
+  \ boundaries.\n4.  **API Gateway/Ingress**: The use of **Traefik** in the deployment\
+  \ configuration acts as an Edge Router/API Gateway, routing requests to specific\
+  \ services based on hostnames (`AUTH_URL`, `STORAGE_URL`, etc.).\n\n### Secondary\
+  \ Style: Service-Based\nWhile the system trends toward microservices, it exhibits\
+  \ characteristics of a **Service-Based** architecture because the services are relatively\
+  \ coarse-grained and, crucially, **share a single backing database** (`postgres`).\
+  \ In the provided `docker-compose.yaml`, both `auth`, `storage`, `graphql` (Hasura),\
+  \ and `functions` connect to the same PostgreSQL instance (`postgres:5432/postgres`).\
+  \ In a strict microservices model, each service would ideally own its own private\
+  \ data store.\n\n### Internal Component Structure\n*   **Infrastructure/CLI**: The\
+  \ `cli/` directory contains a Go-based tool for local orchestration, effectively\
+  \ acting as a client-side controller for the microservices environment.\n*   **Shared\
+  \ Logic**: The `internal/` and `tools/` directories handle cross-cutting concerns\
+  \ like code generation and common libraries, though the primary architectural boundaries\
+  \ remain the service folders.\n*   **Frontend**: The `dashboard/` is another separate\
+  \ deployable unit (a Next.js application) that interacts with the service APIs via\
+  \ a GraphQL aggregate (Hasura)."

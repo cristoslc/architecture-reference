@@ -14,5 +14,73 @@ languages:
 - C#
 - JavaScript
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+- Domain-Driven Design
+- CQRS
+classification_status: classified
+review_notes: 'The eShop repository is a canonical reference implementation of a **Microservices**
+  architecture using .NET Aspire. The system is composed of multiple independently
+  deployable services (Catalog.API, Basket.API, Ordering.API, Identity.API, Webhooks.API)
+  and background workers (OrderProcessor, PaymentProcessor).
+
+
+  ### Primary Style: Microservices
+
+  The architecture exhibits the core characteristics of microservices through technical
+  and organizational boundaries:
+
+  - **Independent Deployment Units:** Each service has its own `.csproj` (e.g., `src/Catalog.API/Catalog.API.csproj`)
+  and entry point (`Program.cs`).
+
+  - **Data Sovereignty:** The `src/eShop.AppHost/Program.cs` file confirms that services
+  own their respective data stores (e.g., `catalogdb`, `identitydb`, `orderingdb`,
+  `webhooksdb`) and a shared Redis instance for caching/state.
+
+  - **Service Orchestration:** .NET Aspire (`AppHost`) manages service discovery and
+  lifecycle, abstracting the complexity of inter-service communication.
+
+  - **API Gateway/BFF:** The use of YARP as a "mobile-bff" (`builder.AddYarp("mobile-bff")`
+  in `AppHost`) demonstrates the Backend-for-Frontends pattern used to aggregate service
+  calls for clients.
+
+
+  ### Secondary Style: Event-Driven'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:47:38Z'
+classification_reasoning: "The eShop repository is a canonical reference implementation\
+  \ of a **Microservices** architecture using .NET Aspire. The system is composed\
+  \ of multiple independently deployable services (Catalog.API, Basket.API, Ordering.API,\
+  \ Identity.API, Webhooks.API) and background workers (OrderProcessor, PaymentProcessor).\n\
+  \n### Primary Style: Microservices\nThe architecture exhibits the core characteristics\
+  \ of microservices through technical and organizational boundaries:\n- **Independent\
+  \ Deployment Units:** Each service has its own `.csproj` (e.g., `src/Catalog.API/Catalog.API.csproj`)\
+  \ and entry point (`Program.cs`).\n- **Data Sovereignty:** The `src/eShop.AppHost/Program.cs`\
+  \ file confirms that services own their respective data stores (e.g., `catalogdb`,\
+  \ `identitydb`, `orderingdb`, `webhooksdb`) and a shared Redis instance for caching/state.\n\
+  - **Service Orchestration:** .NET Aspire (`AppHost`) manages service discovery and\
+  \ lifecycle, abstracting the complexity of inter-service communication.\n- **API\
+  \ Gateway/BFF:** The use of YARP as a \"mobile-bff\" (`builder.AddYarp(\"mobile-bff\"\
+  )` in `AppHost`) demonstrates the Backend-for-Frontends pattern used to aggregate\
+  \ service calls for clients.\n\n### Secondary Style: Event-Driven\nInternal communication\
+  \ between services is primarily asynchronous and reactive, implemented via a custom\
+  \ `EventBus` abstraction:\n- **Message Broker:** Integration with RabbitMQ is defined\
+  \ in the `AppHost` and implemented in `src/EventBusRabbitMQ`. \n- **Pub/Sub Pattern:**\
+  \ Services publish `IntegrationEvents` (found in `src/Ordering.API/Application/IntegrationEvents`)\
+  \ and consume them via `IIntegrationEventHandler`.\n- **Reliability:** The inclusion\
+  \ of `src/IntegrationEventLogEF` indicates an implementation of the Outbox Pattern\
+  \ to ensure atomicity between database updates and event publishing.\n\n### Secondary\
+  \ Style: Domain-Driven Design (DDD) & CQRS\nThe complexity of the `Ordering` service\
+  \ is managed using advanced tactical patterns:\n- **DDD:** The repository contains\
+  \ a dedicated `src/Ordering.Domain` project with `AggregatesModel`, `SeedWork`,\
+  \ and `DomainEvents`, signifying a rich domain model isolated from infrastructure.\n\
+  - **CQRS:** Within `src/Ordering.API/Application`, there is a clear separation between\
+  \ `Commands` (state-changing operations) and `Queries` (read operations). It utilizes\
+  \ the Mediator pattern (via MediatR) to decouple the web API controllers from the\
+  \ business logic handlers.\n- **Hexagonal/Ports & Adapters:** The separation into\
+  \ `.API`, `.Domain`, and `.Infrastructure` projects enforces a dependency flow where\
+  \ the core domain has no dependencies on external frameworks or databases."

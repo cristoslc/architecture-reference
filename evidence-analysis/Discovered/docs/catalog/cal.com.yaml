@@ -13,5 +13,77 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Microkernel (Plugin)
+- Service-Based
+classification_status: classified
+review_notes: 'The repository is structured as a **Modular Monolith** managed within
+  a Turborepo monorepo. While it contains multiple deployable units, the core business
+  logic (scheduling, availability, bookings) is centralized in a single large Next.js
+  application (`apps/web`), complemented by shared internal packages that enforce
+  module boundaries.
+
+
+  ### Primary Style: Modular Monolith
+
+  The architecture is fundamentally a monolith because the vast majority of the system''s
+  functionality, state management, and UI reside in `apps/web`. However, it is "Modular"
+  because:
+
+  - **Shared Packages:** Logic is extracted into specialized packages under `packages/`
+  (e.g., `@calcom/prisma` for data, `@calcom/trpc` for API contracts, and `@calcom/features`
+  for domain logic).
+
+  - **Dependency Enforcement:** `turbo.json` and `package.json` workspaces define
+  a clear dependency graph where the web app consumes discrete, versioned internal
+  modules.
+
+  - **Single Database: ** Almost all services share a single PostgreSQL database managed
+  by a central Prisma schema (`packages/prisma/schema.prisma`), a hallmark of monolithic
+  data architecture.
+
+
+  ### Secondary Style: Microkernel (Plugin)
+
+  The system implements a strong **Microkernel** pattern through its "App Store" infrastructure:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:42:21Z'
+classification_reasoning: "The repository is structured as a **Modular Monolith**\
+  \ managed within a Turborepo monorepo. While it contains multiple deployable units,\
+  \ the core business logic (scheduling, availability, bookings) is centralized in\
+  \ a single large Next.js application (`apps/web`), complemented by shared internal\
+  \ packages that enforce module boundaries.\n\n### Primary Style: Modular Monolith\n\
+  The architecture is fundamentally a monolith because the vast majority of the system's\
+  \ functionality, state management, and UI reside in `apps/web`. However, it is \"\
+  Modular\" because:\n- **Shared Packages:** Logic is extracted into specialized packages\
+  \ under `packages/` (e.g., `@calcom/prisma` for data, `@calcom/trpc` for API contracts,\
+  \ and `@calcom/features` for domain logic).\n- **Dependency Enforcement:** `turbo.json`\
+  \ and `package.json` workspaces define a clear dependency graph where the web app\
+  \ consumes discrete, versioned internal modules.\n- **Single Database: ** Almost\
+  \ all services share a single PostgreSQL database managed by a central Prisma schema\
+  \ (`packages/prisma/schema.prisma`), a hallmark of monolithic data architecture.\n\
+  \n### Secondary Style: Microkernel (Plugin)\nThe system implements a strong **Microkernel**\
+  \ pattern through its \"App Store\" infrastructure:\n- **Extension Points:** The\
+  \ directory `packages/app-store` contains dozens of integrations (Zoom, Google Calendar,\
+  \ Stripe) that adhere to a standard interface.\n- **Plugin Registry:** The `app-store-cli`\
+  \ and the internal registry allow these \"apps\" to be loaded and executed by the\
+  \ core system without being hardcoded into the core scheduling engine. Each integration\
+  \ acts as a plugin providing specific functionality (video, calendar sync, or payments).\n\
+  \n### Secondary Style: Service-Based\nWhile not fully microservices (due to shared\
+  \ data and high coupling between the web and logic layers), the repo is evolving\
+  \ toward a **Service-Based** architecture. \n- **Discrete Deployables:** There are\
+  \ separate deployment units like `apps/api/v2` (with its own `Dockerfile`), `apps/website`,\
+  \ and workers.\n- **API Isolation:** The `apps/api` suite provides a standalone\
+  \ interface to the system, separate from the `apps/web` frontend, allowing for independent\
+  \ scaling of the API tier.\n\n### Reasoning for Rejection of Other Styles\n- **Microservices:**\
+  \ Rejected because there is no evidence of independent data ownership per service;\
+  \ the entire system relies on a central Prisma schema and a shared PostgreSQL instance.\n\
+  - **Hexagonal Architecture:** While there is separation between features and the\
+  \ web app, the code does not strictly follow the \"Ports and Adapters\" pattern\
+  \ with formal dependency inversion at every boundary.\n- **Event-Driven:** While\
+  \ it uses webhooks and integration events, the primary internal communication is\
+  \ synchronous (tRPC/Direct Function Calls)."

@@ -13,5 +13,111 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+- Layered
+classification_status: classified
+review_notes: '### Architecture Analysis
+
+
+  Strapi is structured as a **Microkernel (Plugin)** architecture. The core system
+  provides a minimal engine that manages the application lifecycle, while all functional
+  domains (Authentication, Content-Management, Upload, Internationalization) are implemented
+  as independent plugins that register themselves with the core.
+
+
+  #### 1. Microkernel (Plugin) Style
+
+  The most defining characteristic of Strapi''s architecture is its plugin system.
+  As seen in `packages/core/strapi/package.json`, the main `@strapi/strapi` package
+  acts as an orchestrator, pulling in multiple internal packages:
+
+  - `@strapi/admin`: The dashboard UI.
+
+  - `@strapi/content-manager`: Logic for managing data.
+
+  - `@strapi/content-type-builder`: Logic for schema modification.
+
+  - `@strapi/upload`, `@strapi/i18n`, `@strapi/permissions`: Functional extensions.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:12:35Z'
+classification_reasoning: '### Architecture Analysis
+
+
+  Strapi is structured as a **Microkernel (Plugin)** architecture. The core system
+  provides a minimal engine that manages the application lifecycle, while all functional
+  domains (Authentication, Content-Management, Upload, Internationalization) are implemented
+  as independent plugins that register themselves with the core.
+
+
+  #### 1. Microkernel (Plugin) Style
+
+  The most defining characteristic of Strapi''s architecture is its plugin system.
+  As seen in `packages/core/strapi/package.json`, the main `@strapi/strapi` package
+  acts as an orchestrator, pulling in multiple internal packages:
+
+  - `@strapi/admin`: The dashboard UI.
+
+  - `@strapi/content-manager`: Logic for managing data.
+
+  - `@strapi/content-type-builder`: Logic for schema modification.
+
+  - `@strapi/upload`, `@strapi/i18n`, `@strapi/permissions`: Functional extensions.
+
+
+  The code is designed so that the "Core" provides hooks and a registry (as evidenced
+  by `docs/docs/api/container.mdx` and `docs/docs/api/strapi-server.mdx`). Plugins
+  follow a strict contract, typically exporting a `strapi-server.js` or `strapi-admin.js`
+  file to hook into the backend or frontend respectively.
+
+
+  #### 2. Modular Monolith
+
+  While the repository is a monorepo containing dozens of packages, when a user runs
+  `yarn dev`, these are bundled into a **single deployable unit** (a Node.js application).
+  The boundaries between `@strapi/database`, `@strapi/utils`, and `@strapi/logger`
+  are strictly enforced by package boundaries within the monorepo, preventing spaghetti
+  dependencies. This internal modularity allows for the replacement of specific components
+  (like swapping the underlying database via `@strapi/database`) without affecting
+  the core engine.
+
+
+  #### 3. Layered (Internal Implementation)
+
+  Within each module or plugin, Strapi follows a traditional **Layered** pattern (MVC-inspired):
+
+  - **Controllers**: Handle incoming HTTP requests (Koa-based).
+
+  - **Services**: Contain business logic and are reusable across controllers.
+
+  - **Models/Content-Types**: Define the data schema.
+
+  - **Policies/Middlewares**: Handle cross-cutting concerns like security and validation
+  (seen in `examples/complex/config/middlewares.ts`).
+
+
+  #### Evidence from Files:
+
+  - **`packages/core/strapi/package.json`**: Shows the orchestration of the various
+  `@strapi/*` modules.
+
+  - **`examples/plugins/`**: Demonstrates the plugin contract where internal or external
+  logic is injected into the core.
+
+  - **`docs/docs/api/event-hub.mdx`**: Points to an internal event bus used for communication
+  between disconnected modules, supporting the decoupled plugin nature.
+
+  - **`tests/api/core/...` and `tests/api/plugins/...`**: The testing structure mirrors
+  the separation between the core framework and the functional plugins.
+
+
+  ### Summary
+
+  Strapi uses a **Microkernel** approach to maintain a highly extensible CMS. It leverages
+  a **Modular Monolith** structure for development and deployment, ensuring that while
+  the system is a single unit, its internal concerns remain strictly separated and
+  swappable.'

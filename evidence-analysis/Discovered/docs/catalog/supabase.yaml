@@ -14,5 +14,59 @@ languages:
 - TypeScript
 - JavaScript
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+classification_status: classified
+review_notes: "The Supabase repository is a quintessential example of a **Microservices**\
+  \ architecture, managed within a polyglot monorepo. The core system is composed\
+  \ of several independently developed and deployable services that communicate over\
+  \ the network, orchestrated via Docker and governed by an API Gateway.\n\n### Primary\
+  \ Style: Microservices\nThe evidence for Microservices is definitive based on the\
+  \ following:\n1.  **Service Decomposition**: The system is split into specialized\
+  \ functional units:\n    -   `auth` (GoTrue): Go-based authentication service.\n\
+  \    -   `rest` (PostgREST): Haskell-based automated REST API.\n    -   `realtime`:\
+  \ Elixir-based server for database changes.\n    -   `storage`: Node.js/TypeScript\
+  \ API for file management.\n    -   `meta` (postgres-meta): Node.js API for database\
+  \ management."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:12:47Z'
+classification_reasoning: "The Supabase repository is a quintessential example of\
+  \ a **Microservices** architecture, managed within a polyglot monorepo. The core\
+  \ system is composed of several independently developed and deployable services\
+  \ that communicate over the network, orchestrated via Docker and governed by an\
+  \ API Gateway.\n\n### Primary Style: Microservices\nThe evidence for Microservices\
+  \ is definitive based on the following:\n1.  **Service Decomposition**: The system\
+  \ is split into specialized functional units:\n    -   `auth` (GoTrue): Go-based\
+  \ authentication service.\n    -   `rest` (PostgREST): Haskell-based automated REST\
+  \ API.\n    -   `realtime`: Elixir-based server for database changes.\n    -   `storage`:\
+  \ Node.js/TypeScript API for file management.\n    -   `meta` (postgres-meta): Node.js\
+  \ API for database management.\n    -   `functions`: Deno-based edge runtime.\n\
+  2.  **Infrastructure Orchestration**: The `docker/docker-compose.yml` file explicitly\
+  \ defines these services as separate containers with their own lifecycles, health\
+  \ checks, and environment configurations.\n3.  **API Gateway**: A **Kong** gateway\
+  \ (`docker/volumes/api/kong.yml`) acts as the single entry point, routing requests\
+  \ to specific backend services based on URL paths (e.g., `/auth/v1/` routes to the\
+  \ `auth` service, `/rest/v1/` to `rest`).\n4.  **Independent Tech Stacks**: The\
+  \ services use widely different languages and runtimes (Go, Elixir, Node.js, Haskell,\
+  \ Deno), which is a hallmark of microservice independence.\n\n### Secondary Style:\
+  \ Event-Driven\nSupabase uses an **Event-Driven** approach for its \"Realtime\"\
+  \ functionality. The `realtime` service (written in Elixir/Phoenix) listens to PostgreSQL's\
+  \ logical replication slot (WAL). It transforms these database \"events\" (inserts,\
+  \ updates, deletes) into JSON messages and broadcasts them to clients via WebSockets.\
+  \ This represents an external event-driven interface where database state changes\
+  \ act as the event source.\n\n### Architecture Components\n-   **Database as a Shared\
+  \ Resource**: While classic microservices advocate for \"Database per Service,\"\
+  \ Supabase follows a **Service-Based** variation where multiple services (Auth,\
+  \ Rest, Meta, Realtime) interact with a central, highly-optimized PostgreSQL instance.\
+  \ However, they typically use separate schemas (`auth`, `storage`, `_realtime`)\
+  \ to maintain logical isolation.\n-   **Monorepo Management**: The repository uses\
+  \ **Turborepo** (`turbo.json`) and **pnpm workspaces** to manage the various TypeScript-based\
+  \ applications (`apps/studio`, `apps/docs`, `apps/www`) and shared components, ensuring\
+  \ build-time efficiency across the platform's surface area.\n-   **Plugin Architecture\
+  \ (Database Level)**: At the data tier, Supabase relies on PostgreSQL extensions\
+  \ (like `pg_graphql` and `pgvector`), essentially treating the database as a pluggable\
+  \ core."

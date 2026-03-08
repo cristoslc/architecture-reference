@@ -13,5 +13,97 @@ language: Java/Kotlin
 languages:
 - Java/Kotlin
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: 'The OpenMRS Core repository follows a traditional **Layered** architecture
+  as its primary structural pattern, heavily integrated with a **Microkernel (Plugin)**
+  system for extensibility.
+
+
+  ### 1. Primary Style: Layered
+
+  The repository is organized into distinct functional layers partitioned by Maven
+  modules. This is a classic "horizontal" separation:
+
+  - **`api/`**: The Core/Business Logic layer. It contains the domain entities, service
+  interfaces (e.g., `PatientService`, `EncounterService`), and the data access logic
+  (historically using Hibernate).
+
+  - **`web/`**: The Presentation/Application layer. This contains the controllers
+  and web-specific logic that exposes the API via a web interface or REST.
+
+  - **`webapp/`**: The Deployment unit. This serves as the assembly point for the
+  WAR file, integrating the `api` and `web` layers into a single deployable artifact
+  (`openmrs.war`).
+
+  - **`liquibase/`**: Dedicated module for database schema management, reinforcing
+  a centralized data-driven approach common in layered monoliths.
+
+
+  ### 2. Secondary Style: Microkernel (Plugin)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:04:21Z'
+classification_reasoning: 'The OpenMRS Core repository follows a traditional **Layered**
+  architecture as its primary structural pattern, heavily integrated with a **Microkernel
+  (Plugin)** system for extensibility.
+
+
+  ### 1. Primary Style: Layered
+
+  The repository is organized into distinct functional layers partitioned by Maven
+  modules. This is a classic "horizontal" separation:
+
+  - **`api/`**: The Core/Business Logic layer. It contains the domain entities, service
+  interfaces (e.g., `PatientService`, `EncounterService`), and the data access logic
+  (historically using Hibernate).
+
+  - **`web/`**: The Presentation/Application layer. This contains the controllers
+  and web-specific logic that exposes the API via a web interface or REST.
+
+  - **`webapp/`**: The Deployment unit. This serves as the assembly point for the
+  WAR file, integrating the `api` and `web` layers into a single deployable artifact
+  (`openmrs.war`).
+
+  - **`liquibase/`**: Dedicated module for database schema management, reinforcing
+  a centralized data-driven approach common in layered monoliths.
+
+
+  ### 2. Secondary Style: Microkernel (Plugin)
+
+  While the core is a monolith, its defining architectural feature is its **module
+  system**, which allows the core (the "microkernel") to be extended without modifying
+  its source code.
+
+  - **Extending via Modules**: The README explicitly highlights "Extending OpenMRS
+  with Modules," describing a system where `.omod` (OpenMRS Module) files are loaded
+  at runtime.
+
+  - **Plugin Infrastructure**: The `test-suite/module` directory demonstrates how
+  isolated modules (with their own `api` and `omod` sub-modules) interface with the
+  core.
+
+  - **Plugin Registry**: The core provides the lifecycle management and extension
+  points (hooks) that allow external modules to contribute new services, UI fragments,
+  and database changes.
+
+
+  ### 3. Rejected Styles
+
+  - **Microservices**: Although there is a `docker-compose.yml` and integration with
+  ElasticSearch/Grafana, these are supporting infrastructure for a single deployment
+  unit (`openmrs.war`). The core itself is not split into independently deployable
+  business services.
+
+  - **Modular Monolith**: While it is a monolith with modules, it lacks the strict
+  internal encapsulation (e.g., package-private boundaries or Java Modules) typically
+  associated with modern "Modular Monoliths." Instead, it uses a traditional Layered
+  approach where the `web` layer depends heavily on the `api` layer.
+
+  - **Hexagonal Architecture**: The core does not strictly isolate the domain from
+  infrastructure via ports and adapters; it is tightly coupled to specific frameworks
+  like Spring and Hibernate within the `api` module.'

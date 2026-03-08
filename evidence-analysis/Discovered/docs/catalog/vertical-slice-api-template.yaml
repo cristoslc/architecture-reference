@@ -13,5 +13,63 @@ language: C#
 languages:
 - C#
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- CQRS
+- Hexagonal Architecture
+classification_status: classified
+review_notes: "The repository is a quintessential implementation of **Vertical Slice\
+  \ Architecture**, explicitly stated in the README and reflected in the physical\
+  \ organization of the source code. Rather than grouping by technical concerns (controllers,\
+  \ services, repositories), the system is organized around business features.\n\n\
+  ### Primary Style: Vertical Slice\nThe codebase rejects traditional horizontal layering\
+  \ (N-Tier) in favor of vertical slices where each slice encapsulates all technical\
+  \ requirements for a specific use case.\n- **Feature Folders:** Under `src/App/Vertical.Slice.Template/Products`,\
+  \ the code is organized by features (e.g., `CreateProduct`, `GetProductById`). Each\
+  \ folder typically contains the endpoint definition (Minimal API), the command/query,\
+  \ and the handler.\n- **High Cohesion:** The README explicitly advocates for \"\
+  minimizing coupling between slices and maximizing coupling in a slice.\"\n- **Project\
+  \ Structure:**\n  - `src/Shared`: Contains cross-cutting concerns (Infrastructure,\
+  \ Observability, Persistence abstractions) that act as a foundation for all slices.\n\
+  \  - `src/App`: Houses the actual business logic organized by slices."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:14:57Z'
+classification_reasoning: "The repository is a quintessential implementation of **Vertical\
+  \ Slice Architecture**, explicitly stated in the README and reflected in the physical\
+  \ organization of the source code. Rather than grouping by technical concerns (controllers,\
+  \ services, repositories), the system is organized around business features.\n\n\
+  ### Primary Style: Vertical Slice\nThe codebase rejects traditional horizontal layering\
+  \ (N-Tier) in favor of vertical slices where each slice encapsulates all technical\
+  \ requirements for a specific use case.\n- **Feature Folders:** Under `src/App/Vertical.Slice.Template/Products`,\
+  \ the code is organized by features (e.g., `CreateProduct`, `GetProductById`). Each\
+  \ folder typically contains the endpoint definition (Minimal API), the command/query,\
+  \ and the handler.\n- **High Cohesion:** The README explicitly advocates for \"\
+  minimizing coupling between slices and maximizing coupling in a slice.\"\n- **Project\
+  \ Structure:**\n  - `src/Shared`: Contains cross-cutting concerns (Infrastructure,\
+  \ Observability, Persistence abstractions) that act as a foundation for all slices.\n\
+  \  - `src/App`: Houses the actual business logic organized by slices.\n\n### Secondary\
+  \ Style: CQRS (Command Query Responsibility Segregation)\nThe architecture uses\
+  \ **CQRS** on top of the **MediatR** library to facilitate the vertical slices.\n\
+  - **Separation:** Features are strictly divided into Commands (state-changing) and\
+  \ Queries (data-retrieval).\n- **Implementation:** Every feature folder contains\
+  \ distinct `Command` or `Query` records and corresponding `Handler` classes.\n-\
+  \ **Evidence:** Citing the README's feature list (\"CQRS Pattern on top of MediatR\
+  \ library\") and the presence of `src/Shared/Core/Messaging` which supports the\
+  \ dispatching of these units.\n\n### Secondary Style: Hexagonal Architecture (Ports\
+  \ and Adapters)\nWhile the high-level organization is \"Vertical Slice,\" the internal\
+  \ composition of the `src/Shared` and `src/App` interaction follows **Hexagonal**\
+  \ principles (Ports and Adapters) to maintain testability and infrastructure ignorance.\n\
+  - **Adapters:** The `src/Shared/EF` and `src/Shared/Messaging.MassTransit` directories\
+  \ represent Adapters that plug into the core logic.\n- **Ports:** Interfaces defined\
+  \ in `src/Shared/Core/Persistence` or `src/Shared/Core/Messaging` act as ports that\
+  \ the business slices use without knowing the concrete implementation (Postgres/RabbitMQ).\n\
+  \n### Rejected Styles\n- **Microservices:** While the repository includes `docker-compose.yaml`\
+  \ and K8s manifests for infrastructure (Prometheus, Jaeger, Postgres), the application\
+  \ itself is a single deployable unit (`Vertical.Slice.Template.Api`). It is a **Modular\
+  \ Monolith**-ready structure but currently functions as a single service.\n- **Layered:**\
+  \ The README explicitly contrasts itself against Layered/N-Tier architectures, noting\
+  \ that \"We cut each business functionality into some vertical slices... instead\
+  \ of some Technical Splitting.\""

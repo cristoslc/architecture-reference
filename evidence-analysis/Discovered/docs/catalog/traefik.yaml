@@ -14,5 +14,79 @@ languages:
 - Go
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Pipeline (Pipe-and-Filter)
+- Event-Driven
+classification_status: classified
+review_notes: 'Traefik follows a **Microkernel** (or Plugin-based) architecture, where
+  the core system provides a basic request-handling lifecycle that is extended by
+  dynamic "Providers" and "Middlewares."
+
+
+  ### Primary Style: Microkernel (Plugin)
+
+  The core of Traefik is a minimal engine that manages the lifecycle of entrypoints
+  and servers, while the actual logic for discovering infrastructure and handling
+  requests is delegated to modular components:
+
+  1.  **Providers (`pkg/provider/`):** Traefik uses a provider-based system to discover
+  configurations. Every external integration (Docker, Kubernetes, Consul, File) is
+  a separate module that satisfies a provider interface. The code in `cmd/traefik/traefik.go`
+  shows a `ProviderAggregator` that collects these sources and feeds dynamic configuration
+  changes back to the core.
+
+  2.  **Explicit Plugin Support (`pkg/plugins/`):** Traefik specifically includes
+  a plugin manager and builder that allows loading WebAssembly (Wasm) or Yaegi-interpreted
+  Go code at runtime to extend the system''s capabilities without modifying the core
+  binary.
+
+  3.  **Isolation:** The core `pkg/server/server.go` serves as the orchestrator (Microkernel)
+  that manages entrypoints without knowing the specific implementation details of
+  where the routing rules come from.
+
+
+  ### Secondary Style: Pipeline (Pipe-and-Filter)
+
+  The request-handling logic is a classic **Pipeline**. '
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:13:49Z'
+classification_reasoning: "Traefik follows a **Microkernel** (or Plugin-based) architecture,\
+  \ where the core system provides a basic request-handling lifecycle that is extended\
+  \ by dynamic \"Providers\" and \"Middlewares.\"\n\n### Primary Style: Microkernel\
+  \ (Plugin)\nThe core of Traefik is a minimal engine that manages the lifecycle of\
+  \ entrypoints and servers, while the actual logic for discovering infrastructure\
+  \ and handling requests is delegated to modular components:\n1.  **Providers (`pkg/provider/`):**\
+  \ Traefik uses a provider-based system to discover configurations. Every external\
+  \ integration (Docker, Kubernetes, Consul, File) is a separate module that satisfies\
+  \ a provider interface. The code in `cmd/traefik/traefik.go` shows a `ProviderAggregator`\
+  \ that collects these sources and feeds dynamic configuration changes back to the\
+  \ core.\n2.  **Explicit Plugin Support (`pkg/plugins/`):** Traefik specifically\
+  \ includes a plugin manager and builder that allows loading WebAssembly (Wasm) or\
+  \ Yaegi-interpreted Go code at runtime to extend the system's capabilities without\
+  \ modifying the core binary.\n3.  **Isolation:** The core `pkg/server/server.go`\
+  \ serves as the orchestrator (Microkernel) that manages entrypoints without knowing\
+  \ the specific implementation details of where the routing rules come from.\n\n\
+  ### Secondary Style: Pipeline (Pipe-and-Filter)\nThe request-handling logic is a\
+  \ classic **Pipeline**. \n-   **Middleware Chain (`pkg/middlewares/`):** Requests\
+  \ pass through a sequential chain of filters (Auth, Rate Limiting, Compression,\
+  \ Stripping Prefixes). \n-   The directory `pkg/middlewares/chain` and the presence\
+  \ of numerous individual handler implementations (e.g., `pkg/middlewares/retry`,\
+  \ `pkg/middlewares/auth`) demonstrate a structure where data (HTTP/TCP requests)\
+  \ flows through a series of discrete processing steps before reaching the \"Service\"\
+  \ (backend).\n\n### Secondary Style: Event-Driven\nWhile Traefik is a single binary,\
+  \ its internal coordination is heavily **Event-Driven** via Go channels and the\
+  \ \"Watcher\" pattern:\n-   **Configuration Watcher (`pkg/server/configurationwatcher.go`):**\
+  \ Instead of polling, Traefik reacts to events from providers. When a Docker container\
+  \ starts or a Kubernetes Ingress changes, the provider emits an event.\n-   **Listeners:**\
+  \ `cmd/traefik/traefik.go` shows the server registry adding multiple listeners (`watcher.AddListener(...)`)\
+  \ to an aggregator. These listeners react to configuration change events to live-reload\
+  \ TLS certificates, metrics, and routing tables without restarting the process.\n\
+  \n### Architecture Summary\nTraefik is not a \"Layered\" system in the traditional\
+  \ sense; it is a **Reactive Gateway**. It separates the **Control Plane** (Providers,\
+  \ Configuration Watcher) from the **Data Plane** (Entrypoints, Middlewares, Services).\
+  \ The Control Plane assembles a model of the world and pushes it into the Data Plane's\
+  \ Pipeline, which executes the microkernel's logic."

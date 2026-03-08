@@ -13,5 +13,75 @@ language: Python
 languages:
 - Python
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Pipeline (Pipe-and-Filter)
+- Microkernel (Plugin)
+- Service-Based
+classification_status: classified
+review_notes: '### Architecture Analysis
+
+
+  Dagster is a data orchestrator characterized by a **Pipeline (Pipe-and-Filter)**
+  architecture at its core, extended via a **Microkernel** pattern for integrations,
+  and deployed as a **Service-Based** system for its control plane.
+
+
+  #### 1. Primary Style: Pipeline (Pipe-and-Filter)
+
+  The fundamental unit of work in Dagster is the "Asset" or "Op," which are organized
+  into a Directed Acyclic Graph (DAG). The architecture is designed to manage the
+  flow of data and dependencies between these discrete processing stages.
+
+  - **Evidence:** The `python_modules/dagster/dagster/_core/execution/plan/plan.py`
+  file demonstrates a classic pipe-and-filter coordination logic. It uses `toposort`
+  to order nodes and manages `StepInput` and `StepOutput` objects to facilitate data
+  passing between filters (Ops).
+
+  - **Control Flow:** The `_PlanBuilder` class explicitly constructs an `ExecutionPlan`
+  where outputs of one step are mapped to the inputs of another (`step_output_map`),
+  matching the "Pipes" (dependencies) and "Filters" (computational units) definition.
+
+
+  #### 2. Secondary Style: Microkernel (Plugin)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:44:43Z'
+classification_reasoning: "### Architecture Analysis\n\nDagster is a data orchestrator\
+  \ characterized by a **Pipeline (Pipe-and-Filter)** architecture at its core, extended\
+  \ via a **Microkernel** pattern for integrations, and deployed as a **Service-Based**\
+  \ system for its control plane.\n\n#### 1. Primary Style: Pipeline (Pipe-and-Filter)\n\
+  The fundamental unit of work in Dagster is the \"Asset\" or \"Op,\" which are organized\
+  \ into a Directed Acyclic Graph (DAG). The architecture is designed to manage the\
+  \ flow of data and dependencies between these discrete processing stages.\n- **Evidence:**\
+  \ The `python_modules/dagster/dagster/_core/execution/plan/plan.py` file demonstrates\
+  \ a classic pipe-and-filter coordination logic. It uses `toposort` to order nodes\
+  \ and manages `StepInput` and `StepOutput` objects to facilitate data passing between\
+  \ filters (Ops).\n- **Control Flow:** The `_PlanBuilder` class explicitly constructs\
+  \ an `ExecutionPlan` where outputs of one step are mapped to the inputs of another\
+  \ (`step_output_map`), matching the \"Pipes\" (dependencies) and \"Filters\" (computational\
+  \ units) definition.\n\n#### 2. Secondary Style: Microkernel (Plugin)\nWhile the\
+  \ core orchestration engine is stable, virtually all external functionality (storage,\
+  \ compute execution, and third-party integrations) is handled through a plugin-like\
+  \ system.\n- **Evidence:** The directory `python_modules/libraries/` contains a\
+  \ massive array of discrete packages (e.g., `dagster-aws`, `dagster-snowflake`,\
+  \ `dagster-k8s`).\n- **Mechanism:** Although the word \"plugin\" did not appear\
+  \ in core internal paths, the system utilizes \"Resources\" and \"Executors\" as\
+  \ the contract. The `DagsterInstance` (found in `dagster/_core/instance/instance.py`)\
+  \ acts as the microkernel, loading specific implementations for `run_storage`, `event_log_storage`,\
+  \ and `compute_log_manager` based on user configuration.\n\n#### 3. Secondary Style:\
+  \ Service-Based\nThe deployment topology of a functional Dagster environment consists\
+  \ of several coarse-grained, independently running services that interact via defined\
+  \ APIs (GraphQL and gRPC).\n- **Evidence:** \n    - `dagster-webserver`: The UI/API\
+  \ layer.\n    - `dagster-daemon`: A separate process for scheduling and sensors.\n\
+  \    - `dagster-graphql`: Provides a schema-based boundary between the UI and the\
+  \ core engine.\n    - `dagster/_grpc`: Indicates that user code often runs in a\
+  \ separate \"User Code Deployment\" service, communicating with the host agent via\
+  \ gRPC to ensure process isolation.\n\n### Rejected Styles\n- **Microservices:**\
+  \ While there are multiple services, they share a central meta-database (the `DagsterInstance`\
+  \ storage), and the repository is managed as a monorepo with tight coupling between\
+  \ core modules, making it \"Service-Based\" rather than true Microservices.\n- **Layered:**\
+  \ Although there is horizontal separation (UI -> GraphQL -> Core), the primary complexity\
+  \ and structural identity of the repo are defined by the graph-based execution and\
+  \ the extensive library ecosystem."

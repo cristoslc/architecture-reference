@@ -13,5 +13,103 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'Outline is structured as a classic **Layered** architecture (specifically
+  a specialized Monolith) with a strong **Event-Driven** secondary pattern for asynchronous
+  processing. While it is housed in a monorepo, the `app` (frontend) and `server`
+  (backend) represent a standard client-server split rather than independent microservices.
+
+
+  ### Primary Style: Layered
+
+  The backend (`server/`) follows a strict horizontal layering common in Node.js/Koa
+  applications:
+
+  1.  **Routing Layer** (`server/routes/`): Entry points for HTTP requests, divided
+  into `api` and `auth`.
+
+  2.  **Business Logic / Command Layer** (`server/commands/`): The `ARCHITECTURE.md`
+  highlights this as the home for "complex commands that perform actions across multiple
+  models," separating orchestration logic from HTTP concerns.
+
+  3.  **Domain/Persistence Layer** (`server/models/`): Uses Sequelize (ORM) to define
+  the data schema and domesticate the database. The logic here includes lifecycle
+  hooks (e.g., `AfterCreate` in `Reaction.ts`).
+
+  4.  **Authorization Layer** (`server/policies/`): Decoupled authorization logic
+  using the `cancan` pattern, separating "who can do what" from the business logic.
+
+  5.  **Presentation Layer** (`server/presenters/`): Handles the transformation of
+  internal database models into the JSON formats consumed by the frontend.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:05:35Z'
+classification_reasoning: 'Outline is structured as a classic **Layered** architecture
+  (specifically a specialized Monolith) with a strong **Event-Driven** secondary pattern
+  for asynchronous processing. While it is housed in a monorepo, the `app` (frontend)
+  and `server` (backend) represent a standard client-server split rather than independent
+  microservices.
+
+
+  ### Primary Style: Layered
+
+  The backend (`server/`) follows a strict horizontal layering common in Node.js/Koa
+  applications:
+
+  1.  **Routing Layer** (`server/routes/`): Entry points for HTTP requests, divided
+  into `api` and `auth`.
+
+  2.  **Business Logic / Command Layer** (`server/commands/`): The `ARCHITECTURE.md`
+  highlights this as the home for "complex commands that perform actions across multiple
+  models," separating orchestration logic from HTTP concerns.
+
+  3.  **Domain/Persistence Layer** (`server/models/`): Uses Sequelize (ORM) to define
+  the data schema and domesticate the database. The logic here includes lifecycle
+  hooks (e.g., `AfterCreate` in `Reaction.ts`).
+
+  4.  **Authorization Layer** (`server/policies/`): Decoupled authorization logic
+  using the `cancan` pattern, separating "who can do what" from the business logic.
+
+  5.  **Presentation Layer** (`server/presenters/`): Handles the transformation of
+  internal database models into the JSON formats consumed by the frontend.
+
+
+  ### Secondary Style: Event-Driven
+
+  The application relies heavily on asynchronous processing and background tasks,
+  a hallmark of Event-Driven systems:
+
+  -   **Queue-Based Processing** (`server/queues/`): Uses Redis and `Bull` for managing
+  background jobs.
+
+  -   **Event Bus**: The `ARCHITECTURE.md` mentions "Processors perform jobs on events
+  from the event bus," indicating that major actions in the system trigger events
+  that are handled out-of-band (e.g., sending emails, updating search indexes).
+
+  -   **Collaborative Real-time**: The `server/collaboration` directory and integration
+  of `Hocuspocus` (Yjs/Websocket) support a real-time, state-sync architecture that
+  operates via event propagation rather than standard request-response.
+
+
+  ### Alternative Styles Considered
+
+  -   **Modular Monolith**: While the `server` has distinct folders (`commands`, `models`,
+  `queues`), these are functional layers (Technostructure) rather than domain-bounded
+  modules. Code is highly coupled via the Sequelize models; therefore, it does not
+  meet the strict criteria for a Modular Monolith.
+
+  -   **Microkernel (Plugin)**: The codebase contains a `plugins` directory and a
+  `PluginManager.ts`, suggesting a plugin architecture for integrations. However,
+  the core system logic is not primarily driven by these plugins; they appear to be
+  extensions for the editor or third-party integrations (Slack, Linear) rather than
+  the foundational architectural pattern.
+
+  -   **Microservices**: The `docker-compose.yml` only includes infrastructure (Postgres,
+  Redis), and the `package.json` suggests a single deployment unit (monolith) for
+  the backend, even if it runs multiple "services" (worker, api, websockets) under
+  a single process manager like `throng`.'

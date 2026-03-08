@@ -12,5 +12,91 @@ domain: Developer Tools
 language: C#
 languages:
 - C#
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Event-Driven
+- CQRS
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'This repository is an architectural exemplar focused on **Event-Driven**
+  systems, specifically implementing the **Event Sourcing** pattern. While the "Samples"
+  directory was not found in the root (likely due to the repository''s structure often
+  nesting them within specialized sub-folders or being the root of the "Workshops"
+  themselves), the provided documentation and exhaustive "Workshops" directory tree
+  provide definitive evidence of its architectural organization.
+
+
+  ### Technical Reasoning
+
+
+  1.  **Event-Driven (Primary Style):** The entire codebase is structured around the
+  lifecycle of events. Components do not store current state; instead, they persist
+  discrete events (e.g., `InvoiceInitiated`, `InvoiceIssued`) to an event store (Marten
+  or EventStoreDB). The architecture is defined by "Streams" (the sequence of events)
+  and "Projections" (the mechanism to transform events into readable state). Evidence
+  is found in paths like `Workshops/BuildYourOwnEventStore/09-Projections/IProjecti
+
+
+  2.  **CQRS (Secondary Style):** The repository explicitly separates the write model
+  (commands that append to streams) from the read model (projections for queries).
+  The file `Marten.Integration.Tests/Commands/MartenAsyncCommandBusTests.cs` and the
+  workshop sections on `Projections.SingleStream` vs `Projections.MultiStream` demonstrate
+  a strict separation of Command and Query responsibilities.
+
+
+  3.  **Domain-Driven Design (Secondary Style):** The code organization utilizes DDD
+  tactical patterns to define consistency boundaries. Aggregates are used as the unit
+  of event persistence and state rehydration. Files such as `Workshops/BuildYourOwnEventStore/EventStoreBasics/IAggregate.cs`
+  and the presence of "Sagas" (e.g., `Workshops/EventDrivenArchitecture/05-Consistency/Sagas`)
+  indicate a DDD approach to managing long-running business processes and bounded
+  contexts.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:48:06Z'
+classification_reasoning: 'This repository is an architectural exemplar focused on
+  **Event-Driven** systems, specifically implementing the **Event Sourcing** pattern.
+  While the "Samples" directory was not found in the root (likely due to the repository''s
+  structure often nesting them within specialized sub-folders or being the root of
+  the "Workshops" themselves), the provided documentation and exhaustive "Workshops"
+  directory tree provide definitive evidence of its architectural organization.
+
+
+  ### Technical Reasoning
+
+
+  1.  **Event-Driven (Primary Style):** The entire codebase is structured around the
+  lifecycle of events. Components do not store current state; instead, they persist
+  discrete events (e.g., `InvoiceInitiated`, `InvoiceIssued`) to an event store (Marten
+  or EventStoreDB). The architecture is defined by "Streams" (the sequence of events)
+  and "Projections" (the mechanism to transform events into readable state). Evidence
+  is found in paths like `Workshops/BuildYourOwnEventStore/09-Projections/IProjection.cs`
+  and the README''s detailed explanation of event rehydration.
+
+
+  2.  **CQRS (Secondary Style):** The repository explicitly separates the write model
+  (commands that append to streams) from the read model (projections for queries).
+  The file `Marten.Integration.Tests/Commands/MartenAsyncCommandBusTests.cs` and the
+  workshop sections on `Projections.SingleStream` vs `Projections.MultiStream` demonstrate
+  a strict separation of Command and Query responsibilities.
+
+
+  3.  **Domain-Driven Design (Secondary Style):** The code organization utilizes DDD
+  tactical patterns to define consistency boundaries. Aggregates are used as the unit
+  of event persistence and state rehydration. Files such as `Workshops/BuildYourOwnEventStore/EventStoreBasics/IAggregate.cs`
+  and the presence of "Sagas" (e.g., `Workshops/EventDrivenArchitecture/05-Consistency/Sagas`)
+  indicate a DDD approach to managing long-running business processes and bounded
+  contexts.
+
+
+  ### Rejected Styles
+
+  *   **Layered:** While it uses folders like "Core," the fundamental data flow is
+  circular (Event -> Store -> Projection -> Query) rather than the linear top-down
+  hierarchy characteristic of standard Layered or Onion architectures.
+
+  *   **Microservices:** Although many Event-Driven systems are Microservices, this
+  repository is organized as a collection of educational modules and samples. It lacks
+  the service discovery, API gateways, and multi-service deployment configuration
+  (e.g., missing root docker-compose for services) to be classified as a Microservices
+  architecture in its own right; it is instead a library of patterns for such systems.'

@@ -13,5 +13,79 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: 'Kibana is a textbook example of a **Microkernel (Plugin)** architecture,
+  specifically through its "Kibana Platform" (introduced in version 7.x and finalized
+  in 8.x). The architecture separates a minimal system core from extensive application
+  functionality implemented as plugins.
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The system is structured around a "Core" (located in `src/core`) which acts as the
+  microkernel. This core provides fundamental low-level services (HTTP, logging, UI
+  settings, saved objects) and manages the lifecycle of plugins through clearly defined
+  stages: **Setup**, **Start**, and **Stop**.
+
+
+  - **Plugin Contracts:** Every feature in Kibana (from Dashboards to Security) is
+  a plugin. Plugins interact with the Core and each other through strictly defined
+  "contracts" (TypeScript interfaces). A plugin can "expose" an API during its Setup/Start
+  phase for other plugins to consume.
+
+  - **Isolations and Boundaries:** The `package.json` reveals hundreds of `@kbn/*`
+  packages linked via `link:src/platform/...` or `link:x-pack/...`. This demonstrates
+  physical and logical separation of concerns where features are packaged independently
+  but loaded into a single runtime.
+
+  - **Lifecycle Management:** Documentation in `docs/extend/` (specifically `application-service.md`
+  and `kibana-platform-plugin-api.md`) confirms that the Core orchestrates plugin
+  execution, ensuring dependencies are resolved before a plugin''s `setup` or `start`
+  method is called.
+
+
+  ### 2. Secondary Style: Modular Monolith'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:54:36Z'
+classification_reasoning: "Kibana is a textbook example of a **Microkernel (Plugin)**\
+  \ architecture, specifically through its \"Kibana Platform\" (introduced in version\
+  \ 7.x and finalized in 8.x). The architecture separates a minimal system core from\
+  \ extensive application functionality implemented as plugins.\n\n### 1. Primary\
+  \ Style: Microkernel (Plugin)\nThe system is structured around a \"Core\" (located\
+  \ in `src/core`) which acts as the microkernel. This core provides fundamental low-level\
+  \ services (HTTP, logging, UI settings, saved objects) and manages the lifecycle\
+  \ of plugins through clearly defined stages: **Setup**, **Start**, and **Stop**.\n\
+  \n- **Plugin Contracts:** Every feature in Kibana (from Dashboards to Security)\
+  \ is a plugin. Plugins interact with the Core and each other through strictly defined\
+  \ \"contracts\" (TypeScript interfaces). A plugin can \"expose\" an API during its\
+  \ Setup/Start phase for other plugins to consume.\n- **Isolations and Boundaries:**\
+  \ The `package.json` reveals hundreds of `@kbn/*` packages linked via `link:src/platform/...`\
+  \ or `link:x-pack/...`. This demonstrates physical and logical separation of concerns\
+  \ where features are packaged independently but loaded into a single runtime.\n\
+  - **Lifecycle Management:** Documentation in `docs/extend/` (specifically `application-service.md`\
+  \ and `kibana-platform-plugin-api.md`) confirms that the Core orchestrates plugin\
+  \ execution, ensuring dependencies are resolved before a plugin's `setup` or `start`\
+  \ method is called.\n\n### 2. Secondary Style: Modular Monolith\nWhile the architecture\
+  \ is plugin-based, it is a **Modular Monolith** in terms of deployment. \n- **Single\
+  \ Unit:** Despite the massive number of internal packages and plugins, Kibana is\
+  \ typically built and shipped as a single deployable server and browser bundle.\n\
+  - **Internal Dependency Enforcement:** The use of `link:` in `package.json` and\
+  \ the `tsconfig` base configurations enforce that internal modules (plugins) respect\
+  \ boundaries, preventing \"spaghetti\" dependencies while still running in a shared\
+  \ process.\n- **Shared Memory/Runtime:** Unlike Microservices, plugins share the\
+  \ same Node.js process on the server and the same memory space in the browser, communicating\
+  \ via direct function calls across their exposed APIs rather than over a network.\n\
+  \n### Evidence Citing Specific Paths:\n- `src/core/`: Contains the microkernel responsible\
+  \ for the \"Kibana Platform\" (Server and Public/Browser parts).\n- `package.json`:\
+  \ Shows hundreds of internal dependencies (e.g., `@kbn/alerting-plugin`, `@kbn/canvas-plugin`)\
+  \ linked to internal directories, illustrating the modularized plugin structure.\n\
+  - `docs/extend/kibana-architecture.md`: Explicitly references the \"Plugin API\"\
+  \ and \"Core API\" as the primary way of extending the system.\n- `src/core/server/index.ts`\
+  \ and `src/core/public/index.ts`: The entry points for the core services that bootstrap\
+  \ the plugin system."

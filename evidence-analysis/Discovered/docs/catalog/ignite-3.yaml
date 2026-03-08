@@ -15,5 +15,103 @@ languages:
 - C#
 - C/C++
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Microkernel (Plugin)
+- Event-Driven
+classification_status: classified
+review_notes: '### Architecture Analysis
+
+
+  Apache Ignite 3 is structured as a **Modular Monolith** that is designed for distributed
+  deployment. While the system runs as a distributed cluster (as evidenced by `packaging/docker/docker-compose.yml`),
+  the codebase itself is organized into a strictly defined set of modules within a
+  single repository, which are compiled and packaged into a uniform node binary.
+
+
+  #### 1. Modular Monolith (Primary Style)
+
+  The repository is split into over 60 granular modules under the `modules/` directory,
+  managed via a central `settings.gradle`. This is the hallmark of a Modular Monolith:
+
+  - **Strict Separation of Concerns**: Each major subsystem has its own module (e.g.,
+  `ignite-sql-engine`, `ignite-transactions`, `ignite-network`, `ignite-storage-api`).
+
+  - **API/Implementation Decoupling**: There is a clear pattern of separating interfaces
+  from implementations (e.g., `metastorage-api` vs `metastorage`, `sql-engine-api`
+  vs `sql-engine`, `network-api` vs `network`). This allows internal components to
+  interact through well-defined contracts.
+
+  - **Unified Deployment**: Despite the internal modularity, the `packaging/db` logic
+  indicates these modules are bundled into a single unit of execution (the Ignite
+  Node), rather than being independent microservices.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:52:05Z'
+classification_reasoning: '### Architecture Analysis
+
+
+  Apache Ignite 3 is structured as a **Modular Monolith** that is designed for distributed
+  deployment. While the system runs as a distributed cluster (as evidenced by `packaging/docker/docker-compose.yml`),
+  the codebase itself is organized into a strictly defined set of modules within a
+  single repository, which are compiled and packaged into a uniform node binary.
+
+
+  #### 1. Modular Monolith (Primary Style)
+
+  The repository is split into over 60 granular modules under the `modules/` directory,
+  managed via a central `settings.gradle`. This is the hallmark of a Modular Monolith:
+
+  - **Strict Separation of Concerns**: Each major subsystem has its own module (e.g.,
+  `ignite-sql-engine`, `ignite-transactions`, `ignite-network`, `ignite-storage-api`).
+
+  - **API/Implementation Decoupling**: There is a clear pattern of separating interfaces
+  from implementations (e.g., `metastorage-api` vs `metastorage`, `sql-engine-api`
+  vs `sql-engine`, `network-api` vs `network`). This allows internal components to
+  interact through well-defined contracts.
+
+  - **Unified Deployment**: Despite the internal modularity, the `packaging/db` logic
+  indicates these modules are bundled into a single unit of execution (the Ignite
+  Node), rather than being independent microservices.
+
+
+  #### 2. Microkernel (Plugin) (Secondary Style)
+
+  The README and module structure explicitly highlight a "Plugable Storage Engines"
+  model.
+
+  - **Evidence**: `modules/storage-api` defines the SPI (Service Provider Interface),
+  while `modules/storage-rocksdb` and `modules/storage-page-memory` provide concrete
+  implementations.
+
+  - **Extension Points**: The architecture is designed to load these core capabilities
+  at runtime based on configuration, fitting the Microkernel pattern where a minimal
+  core is extended by vertical plugins.
+
+
+  #### 3. Event-Driven (Secondary Style)
+
+  Internally, the system relies on asynchronous communication and reactive updates.
+
+  - **Evidence**: The presence of `modules/eventlog` and the extensive use of `raft`
+  (replicated state machines) and `replicator` modules.
+
+  - **Communication**: Distributed consistency in Ignite 3 is maintained via event-based
+  replication protocols where state changes are propagated as log entries or events
+  across the cluster.
+
+
+  ### Rejected Styles
+
+  - **Microservices**: Although the cluster consists of multiple nodes, every node
+  typically runs the same software stack. They are "shared-nothing" peers rather than
+  a collection of heterogeneous services with different business domains.
+
+  - **Hexagonal Architecture**: While the codebase uses "ports" (APIs) and "adapters"
+  (e.g., RocksDB storage), the overall repo structure is more aligned with a traditional
+  Java modular system than a strict Domain-Centric Hexagonal layout.
+
+  - **Layered**: The complexity and circular-prevention requirements of a distributed
+  database move it far beyond simple horizontal layers (Controller -> Service -> Repo).'

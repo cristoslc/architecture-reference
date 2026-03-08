@@ -14,5 +14,73 @@ languages:
 - Go
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Microservices
+- Event-Driven
+classification_status: classified
+review_notes: "Argo Workflows is structured as a **Microkernel (Plugin)** architecture\
+  \ at its core, designed to extend the Kubernetes API via Custom Resource Definitions\
+  \ (CRDs). While it manifests as a set of distributed services, the internal organization\
+  \ and its relationship with the Kubernetes ecosystem define it primarily through\
+  \ its extension points and plugin contracts.\n\n### 1. Primary Style: Microkernel\
+  \ (Plugin)\nThe system is built as a minimal core engine (the `workflow-controller`)\
+  \ that orchestrates tasks by loading and communicating with various plugins. \n\
+  - **Extension Points:** The codebase explicitly defines plugin contracts for multiple\
+  \ concerns:\n    - **Executor Plugins:** Found in `workflow/util/plugin`, `pkg/plugins/executor`,\
+  \ and enabled via flags in `cmd/workflow-controller/main.go` (`--executor-plugins`).\n\
+  \    - **Artifact Plugins:** The directory `workflow/artifacts/plugin` and the command\
+  \ `cmd/argoexec/commands/artifact_plugin_sidecar.go` demonstrate a sidecar-based\
+  \ plugin model for extending storage providers (S3, GCS, etc.).\n    - **Template\
+  \ Plugins:** Logic in `workflow/controller/plugin_template.go` allows the engine\
+  \ to delegate the execution logic of a specific step to an external plugin.\n- **Core-Plugin\
+  \ Separation:** The \"Microkernel\" (the controller) handles the lifecycle, state\
+  \ transitions (DAG/Steps resolution), and Kubernetes heartbeats, while the specific\
+  \ execution logic is offloaded to \"executors\" (`argoexec`) or external plugins."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:40:23Z'
+classification_reasoning: "Argo Workflows is structured as a **Microkernel (Plugin)**\
+  \ architecture at its core, designed to extend the Kubernetes API via Custom Resource\
+  \ Definitions (CRDs). While it manifests as a set of distributed services, the internal\
+  \ organization and its relationship with the Kubernetes ecosystem define it primarily\
+  \ through its extension points and plugin contracts.\n\n### 1. Primary Style: Microkernel\
+  \ (Plugin)\nThe system is built as a minimal core engine (the `workflow-controller`)\
+  \ that orchestrates tasks by loading and communicating with various plugins. \n\
+  - **Extension Points:** The codebase explicitly defines plugin contracts for multiple\
+  \ concerns:\n    - **Executor Plugins:** Found in `workflow/util/plugin`, `pkg/plugins/executor`,\
+  \ and enabled via flags in `cmd/workflow-controller/main.go` (`--executor-plugins`).\n\
+  \    - **Artifact Plugins:** The directory `workflow/artifacts/plugin` and the command\
+  \ `cmd/argoexec/commands/artifact_plugin_sidecar.go` demonstrate a sidecar-based\
+  \ plugin model for extending storage providers (S3, GCS, etc.).\n    - **Template\
+  \ Plugins:** Logic in `workflow/controller/plugin_template.go` allows the engine\
+  \ to delegate the execution logic of a specific step to an external plugin.\n- **Core-Plugin\
+  \ Separation:** The \"Microkernel\" (the controller) handles the lifecycle, state\
+  \ transitions (DAG/Steps resolution), and Kubernetes heartbeats, while the specific\
+  \ execution logic is offloaded to \"executors\" (`argoexec`) or external plugins.\n\
+  \n### 2. Secondary Style: Microservices\nArgo Workflows is deployed as a suite of\
+  \ at least three independently deployable and scaling units, as evidenced by the\
+  \ `cmd/` directory and `Makefile`:\n- **Workflow Controller:** (`cmd/workflow-controller`)\
+  \ The brain that manages CRD state.\n- **Argo Server:** (`cmd/argo/commands/server.go`)\
+  \ An API gateway providing REST/gRPC interfaces and serving the UI.\n- **Argoexec:**\
+  \ (`cmd/argoexec`) The sidecar/init-container that runs alongside every user task\
+  \ to handle artifact streaming and logging.\nEach service has a distinct entry point\
+  \ and responsibility, communicating over network boundaries (k8s API or gRPC).\n\
+  \n### 3. Secondary Style: Event-Driven\nThe internal logic is heavily dependent\
+  \ on the Kubernetes **Control Loop** pattern, which is inherently event-driven.\n\
+  - **Informer Pattern:** The controller uses `pkg/client/informers` to respond to\
+  \ state changes (events) in the Kubernetes cluster.\n- **Internal Messaging:** The\
+  \ presence of `workflow/events` and the use of the `leaderelection` package in `cmd/workflow-controller/main.go`\
+  \ show a system that coordinates via event emission and consumption. \n- **Workflow\
+  \ Events:** The UI (`ui/src/event-flow`) and API (`pkg/apiclient/event`) are dedicated\
+  \ to surfacing the stream of events generated during workflow execution.\n\n###\
+  \ Architectural Rejections\n- **Layered:** Rejected because, while there is horizontal\
+  \ separation (Controller -> Logic -> K8s API), the system's primary complexity is\
+  \ managed through its plugin system and distributed nature rather than strict N-tier\
+  \ requirements.\n- **Modular Monolith:** Rejected because the components are explicitly\
+  \ designed for separate deployment and lifecycle management in a cloud-native environment.\n\
+  - **Hexagonal:** While it uses \"adapters\" for storage (e.g., `workflow/artifacts/s3`),\
+  \ the core does not strictly isolate the domain from Kubernetes; the domain *is*\
+  \ the Kubernetes CRD, making it inseparable from the platform."

@@ -16,5 +16,71 @@ languages:
 - Python
 - TypeScript
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Event-Driven
+- Hexagonal Architecture
+classification_status: classified
+review_notes: "This repository implements the **Durable Functions** extension for\
+  \ Azure Functions. Its architecture is fundamentally a **Microkernel (Plugin)**\
+  \ system, designed to extend the Azure Functions (WebJobs) host with stateful orchestration\
+  \ capabilities.\n\n### 1. Primary Style: Microkernel (Plugin)\nThe repository is\
+  \ structured as a set of extensions that \"plug into\" the Azure Functions runtime.\
+  \ \n- **Core Kernel Interface:** The code utilizes the `IExtensionConfigProvider`\
+  \ and `ITriggerBindingProvider` interfaces from the Azure WebJobs SDK to register\
+  \ new behaviors.\n- **Plugin Implementation:** `src/WebJobs.Extensions.DurableTask/DurableTaskExtension.cs`\
+  \ (referenced in the directory as the main logic hub) acts as the entry point that\
+  \ registers `OrchestrationTriggerAttribute`, `ActivityTriggerAttribute`, and `EntityTriggerAttribute`.\
+  \ \n- **Extensibility Points:** The architecture allows for different \"Storage\
+  \ Providers\" (the persistence layer) via the `IDurabilityProviderFactory` interface.\
+  \ The repository includes implementations like `AzureStorageDurabilityProvider`\
+  \ and supports others like `Netherite` or `MSSQL` (seen in `test/SmokeTests/BackendSmokeTests`),\
+  \ effectively allowing the \"Durable\" logic to remain agnostic of the underlying\
+  \ storage technology.\n\n### 2. Secondary Style: Event-Driven\nWhile the repository\
+  \ is a library, the system it builds is internally structured around **Event Sourcing**\
+  \ and asynchronous messaging."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:41:02Z'
+classification_reasoning: "This repository implements the **Durable Functions** extension\
+  \ for Azure Functions. Its architecture is fundamentally a **Microkernel (Plugin)**\
+  \ system, designed to extend the Azure Functions (WebJobs) host with stateful orchestration\
+  \ capabilities.\n\n### 1. Primary Style: Microkernel (Plugin)\nThe repository is\
+  \ structured as a set of extensions that \"plug into\" the Azure Functions runtime.\
+  \ \n- **Core Kernel Interface:** The code utilizes the `IExtensionConfigProvider`\
+  \ and `ITriggerBindingProvider` interfaces from the Azure WebJobs SDK to register\
+  \ new behaviors.\n- **Plugin Implementation:** `src/WebJobs.Extensions.DurableTask/DurableTaskExtension.cs`\
+  \ (referenced in the directory as the main logic hub) acts as the entry point that\
+  \ registers `OrchestrationTriggerAttribute`, `ActivityTriggerAttribute`, and `EntityTriggerAttribute`.\
+  \ \n- **Extensibility Points:** The architecture allows for different \"Storage\
+  \ Providers\" (the persistence layer) via the `IDurabilityProviderFactory` interface.\
+  \ The repository includes implementations like `AzureStorageDurabilityProvider`\
+  \ and supports others like `Netherite` or `MSSQL` (seen in `test/SmokeTests/BackendSmokeTests`),\
+  \ effectively allowing the \"Durable\" logic to remain agnostic of the underlying\
+  \ storage technology.\n\n### 2. Secondary Style: Event-Driven\nWhile the repository\
+  \ is a library, the system it builds is internally structured around **Event Sourcing**\
+  \ and asynchronous messaging.\n- **Source of Truth:** The state is managed through\
+  \ a sequence of history events (`HistoryEventJsonConverter.cs`).\n- **Communication:**\
+  \ Components communicate via task hubs and queues. The orchestrator functions are\
+  \ \"replayed\" based on event history, a classic event-driven pattern where the\
+  \ state is reconstructed from a log of events rather than a snapshot.\n- **Triggers:**\
+  \ The use of `OrchestrationTrigger` and `EntityTrigger` represents a pub/sub-like\
+  \ model where the Functions host dispatches events to the extension, which then\
+  \ executes the user's code.\n\n### 3. Secondary Style: Hexagonal Architecture (Ports\
+  \ and Adapters)\nThe repository shows a strong separation between the core durable\
+  \ logic and external \"adapters\":\n- **Internal Core:** The \"Durable Task\" logic\
+  \ remains decoupled from the specific transport or hosting environment.\n- **Adapters:**\
+  \ \n    - **Host Adapters:** `src/WebJobs.Extensions.DurableTask` (In-process host)\
+  \ vs. `src/Worker.Extensions.DurableTask` (Isolated/Out-of-process worker).\n  \
+  \  - **Communication Adapters:** `TaskHubGrpcServer.cs` and `LocalHttpListener.cs`\
+  \ provide different \"ports\" for interacting with the durable engine.\n    - **Persistence\
+  \ Adapters:** `DurabilityProvider.cs` serves as the abstract port for storage, with\
+  \ `AzureStorageDurabilityProvider.cs` as a specific adapter.\n\n### Module Boundaries\n\
+  - **Project Separation:** The repository maintains clear boundaries between the\
+  \ **In-Process extension** (`WebJobs.Extensions.DurableTask`), the **Out-of-Process\
+  \ worker support** (`Worker.Extensions.DurableTask`), and **Tooling/Analyzers**\
+  \ (`WebJobs.Extensions.DurableTask.Analyzers`). This separation ensures that the\
+  \ core engine can be consumed in different execution environments (static vs. isolated)\
+  \ without circular dependencies."

@@ -13,5 +13,76 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: 'The NocoDB repository is a monorepo (managed via `pnpm` and `lerna`)
+  that primarily follows a **Layered** architecture within its core backend service,
+  while utilizing a **Microkernel (Plugin)** pattern to handle its extensive integration
+  ecosystem.
+
+
+  ### 1. Primary Style: Layered (Horizontal)
+
+  The main backend (`packages/nocodb`) is built on the NestJS framework and follows
+  a traditional horizontal layering approach. Evidence from the `packages/nocodb/src`
+  directory confirms this:
+
+  - **Presentation/API Layer**: Found in `src/modules` and `src/gateways` (Socket.io),
+  providing the interface for the frontend and SDK.
+
+  - **Business Logic Layer**: Services such as `meta.service.ts`, `audit.service.ts`,
+  and `mcp.service.ts` handle the application''s core logic.
+
+  - **Data Access Layer**: The `src/models` directory contains entity definitions
+  (e.g., `Column.ts`, `Table.ts`, `User.ts`), while `src/db` and `src/dbQueryClient`
+  (handling MySQL, Postgres, SQLite) manage the interaction with the underlying databases.
+
+
+  ### 2. Secondary Style: Microkernel (Plugin)
+
+  NocoDB implements a robust plugin system to support its "App Store" for workflow
+  automations (Slack, Discord, S3, SES). '
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:03:23Z'
+classification_reasoning: "The NocoDB repository is a monorepo (managed via `pnpm`\
+  \ and `lerna`) that primarily follows a **Layered** architecture within its core\
+  \ backend service, while utilizing a **Microkernel (Plugin)** pattern to handle\
+  \ its extensive integration ecosystem.\n\n### 1. Primary Style: Layered (Horizontal)\n\
+  The main backend (`packages/nocodb`) is built on the NestJS framework and follows\
+  \ a traditional horizontal layering approach. Evidence from the `packages/nocodb/src`\
+  \ directory confirms this:\n- **Presentation/API Layer**: Found in `src/modules`\
+  \ and `src/gateways` (Socket.io), providing the interface for the frontend and SDK.\n\
+  - **Business Logic Layer**: Services such as `meta.service.ts`, `audit.service.ts`,\
+  \ and `mcp.service.ts` handle the application's core logic.\n- **Data Access Layer**:\
+  \ The `src/models` directory contains entity definitions (e.g., `Column.ts`, `Table.ts`,\
+  \ `User.ts`), while `src/db` and `src/dbQueryClient` (handling MySQL, Postgres,\
+  \ SQLite) manage the interaction with the underlying databases.\n\n### 2. Secondary\
+  \ Style: Microkernel (Plugin)\nNocoDB implements a robust plugin system to support\
+  \ its \"App Store\" for workflow automations (Slack, Discord, S3, SES). \n- **Core\
+  \ (Microkernel)**: The system provides standard interfaces (e.g., `src/interface/IStorageAdapter.ts`,\
+  \ `src/interface/IEmailAdapter.ts`) that the core engine uses without knowing specific\
+  \ implementation details.\n- **Plugins**: Located in `packages/nocodb/src/plugins/`,\
+  \ each integration (e.g., `discord/DiscordPlugin.ts`, `s3/S3Plugin.ts`) implements\
+  \ these interfaces. This allows the system to be extended with new integrations\
+  \ without modifying the core database reflection engine.\n\n### 3. Secondary Style:\
+  \ Modular Monolith\nWhile the repository is a monorepo, it functions as a **Modular\
+  \ Monolith** because it is typically deployed as a single unit (as seen in the `docker-compose.yml`\
+  \ and `Dockerfile` logic) but maintains clear boundaries between components:\n-\
+  \ `packages/nocodb`: The backend engine.\n- `packages/nc-gui`: The Nuxt-based frontend.\n\
+  - `packages/nocodb-sdk`: Programmatic access layer.\nThe internal structure of the\
+  \ backend is also partially modularized into \"modules\" (NestJS modules in `src/modules`),\
+  \ though they share a common database schema and lifecycle.\n\n### Domain-Driven\
+  \ Design (DDD) Signals\nThere are strong signals of DDD in the `src/models` directory\
+  \ where the system defines complex Aggregates and Entities (like `Base`, `Source`,\
+  \ `Model`, `View`) that represent the spreadsheet-to-database domain. However, the\
+  \ implementation leans more toward a Service/Repository pattern than a pure DDD\
+  \ tactical implementation.\n\n### Why not Microservices?\nDespite being a monorepo,\
+  \ the deployment unit described in the README (Docker/Binary) is a single process.\
+  \ All \"services\" (Auth, Meta, Query) run within the same NestJS runtime, disqualifying\
+  \ it as a true Microservices architecture."

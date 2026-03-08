@@ -13,5 +13,98 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'Ghostfolio is structured as a **Modular Monolith** within an Nx workspace.
+  While it appears to have a distributed personality due to its use of Redis, BullMQ,
+  and background workers, the entire application logic is contained within a single
+  deployable unit (`apps/api`) and served from a single Docker container (`ghostfolio`).
+
+
+  ### Primary Style: Modular Monolith
+
+  The repository uses an **Nx Workspace** to manage its code, but at the deployment
+  level (as seen in `docker/docker-compose.yml`), there is only one service for the
+  application logic (`ghostfolio`). Internally, the NestJS backend (`apps/api/src/app`)
+  is organized into discrete domain-specific modules:
+
+  - `AccountModule`, `AssetModule`, `PortfolioModule`, `UserModule`, `OrderModule`,
+  etc.
+
+  - Each module encapsulates its own logic, as evidenced by the `app.module.ts` imports.
+
+  - Use of Prisma as a single ORM across these modules further reinforces the monolithic
+  database approach, despite the logical separation of domains in the folder structure.
+
+
+  ### Secondary Style: Layered
+
+  Within the individual modules and across the shared services, the codebase follows
+  a traditional **Layered** architecture:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:49:56Z'
+classification_reasoning: 'Ghostfolio is structured as a **Modular Monolith** within
+  an Nx workspace. While it appears to have a distributed personality due to its use
+  of Redis, BullMQ, and background workers, the entire application logic is contained
+  within a single deployable unit (`apps/api`) and served from a single Docker container
+  (`ghostfolio`).
+
+
+  ### Primary Style: Modular Monolith
+
+  The repository uses an **Nx Workspace** to manage its code, but at the deployment
+  level (as seen in `docker/docker-compose.yml`), there is only one service for the
+  application logic (`ghostfolio`). Internally, the NestJS backend (`apps/api/src/app`)
+  is organized into discrete domain-specific modules:
+
+  - `AccountModule`, `AssetModule`, `PortfolioModule`, `UserModule`, `OrderModule`,
+  etc.
+
+  - Each module encapsulates its own logic, as evidenced by the `app.module.ts` imports.
+
+  - Use of Prisma as a single ORM across these modules further reinforces the monolithic
+  database approach, despite the logical separation of domains in the folder structure.
+
+
+  ### Secondary Style: Layered
+
+  Within the individual modules and across the shared services, the codebase follows
+  a traditional **Layered** architecture:
+
+  - **Presentation Layer**: Handled by NestJS Controllers (e.g., `apps/api/src/app/app.controller.ts`)
+  and the Angular frontend (`apps/client`).
+
+  - **Business Logic Layer**: Located in the various services under `apps/api/src/services`
+  (e.g., `market-data`, `symbol-profile`) and the application modules.
+
+  - **Data Access Layer**: Abstracted via Prisma (`prisma/schema.prisma` and `apps/api/src/services/prisma`).
+
+
+  ### Secondary Style: Event-Driven
+
+  The application employs internal eventing for decoupling complex workflows. As seen
+  in `apps/api/src/events`, the system defines events like `PortfolioChangedEvent`
+  and `AssetProfileChangedEvent` with corresponding listeners (`portfolio-changed.listener.ts`).
+
+  - It uses `@nestjs/event-emitter` for in-process events.
+
+  - It uses `@nestjs/bull` (Redis-backed queues) for asynchronous background processing,
+  such as data gathering and portfolio snapshots (seen in `apps/api/src/services/queues`).
+  This shows a strong signal for an event-driven internal communication strategy to
+  handle heavy background tasks without blocking the main request-response cycle.
+
+
+  ### Why not Microservices?
+
+  Although the presence of Redis and separate "apps" in Nx might suggest microservices,
+  the `docker-compose.yml` confirms that there is only one application container providing
+  the entire API. The "apps" are split into `client` (frontend) and `api` (backend),
+  which is a standard full-stack monolithic organization rather than a microservice
+  architecture. All domain modules are compiled into the same process and share a
+  single PostgreSQL database schema.'

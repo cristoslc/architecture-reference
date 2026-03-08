@@ -12,5 +12,74 @@ domain: Observability
 language: Go
 languages:
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+- Modular Monolith
+classification_status: classified
+review_notes: 'Grafana Tempo is a sophisticated example of a **Microservices** architecture
+  that simultaneously supports a **Modular Monolith** deployment mode. This pattern,
+  common in the Grafana Labs ecosystem (derived from Cortex/Loki design), uses a single
+  codebase to define distinct functional components that can either be compiled/run
+  as a single process or scaled independently as distributed services.
+
+
+  ### Evidence of Microservices
+
+  The core architecture is defined by independent functional units that own specific
+  parts of the tracing lifecycle. The `docker-compose.yaml` in the `distributed` example
+  provides definitive proof of a microservice deployment:
+
+  - **Independent Scaling:** Multiple services use the same image but different `-target`
+  flags (e.g., `distributor`, `querier`, `query-frontend`, `live-store`, `block-builder`).
+
+  - **Network Boundaries:** Services communicate over gRPC/HTTP, as seen in `cmd/tempo/app/modules.go`
+  where `Querier` requires a `frontend-worker` address to connect to.
+
+  - **Service Discovery/State:** The use of a "Ring" (via Hashicorp Memberlist/Consul/Etcd)
+  in `pkg/ring` and `cmd/tempo/app/memberlist.go` allows these independent services
+  to discover each other and coordinate data ownership.
+
+
+  ### Evidence of Modular Monolith
+
+  The system is also a Modular Monolith because:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:13:18Z'
+classification_reasoning: "Grafana Tempo is a sophisticated example of a **Microservices**\
+  \ architecture that simultaneously supports a **Modular Monolith** deployment mode.\
+  \ This pattern, common in the Grafana Labs ecosystem (derived from Cortex/Loki design),\
+  \ uses a single codebase to define distinct functional components that can either\
+  \ be compiled/run as a single process or scaled independently as distributed services.\n\
+  \n### Evidence of Microservices\nThe core architecture is defined by independent\
+  \ functional units that own specific parts of the tracing lifecycle. The `docker-compose.yaml`\
+  \ in the `distributed` example provides definitive proof of a microservice deployment:\n\
+  - **Independent Scaling:** Multiple services use the same image but different `-target`\
+  \ flags (e.g., `distributor`, `querier`, `query-frontend`, `live-store`, `block-builder`).\n\
+  - **Network Boundaries:** Services communicate over gRPC/HTTP, as seen in `cmd/tempo/app/modules.go`\
+  \ where `Querier` requires a `frontend-worker` address to connect to.\n- **Service\
+  \ Discovery/State:** The use of a \"Ring\" (via Hashicorp Memberlist/Consul/Etcd)\
+  \ in `pkg/ring` and `cmd/tempo/app/memberlist.go` allows these independent services\
+  \ to discover each other and coordinate data ownership.\n\n### Evidence of Modular\
+  \ Monolith\nThe system is also a Modular Monolith because:\n- **Single Binary Capability:**\
+  \ The `cmd/tempo/app/modules.go` defines a `SingleBinary` target (\"all\"). If this\
+  \ target is selected, all modules (Distributor, Ingester/LiveStore, Querier, etc.)\
+  \ are initialized and run within the same process.\n- **Strict Module Boundaries:**\
+  \ Logic is strictly partitioned into the `modules/` directory (e.g., `modules/ingester`,\
+  \ `modules/distributor`). These modules are orchestrated by a central \"App\" structure\
+  \ that manages their lifecycle and dependencies using `github.com/grafana/dskit/modules`.\n\
+  \n### Evidence of Event-Driven\nTempo incorporates **Event-Driven** patterns for\
+  \ its write-path and asynchronous processing:\n- **Message Broker Integration:**\
+  \ The system heavily utilizes Kafka (Redpanda in examples) for ingesting and buffering\
+  \ spans. \n- **Asynchronous Processing:** The `block-builder` and `metrics-generator`\
+  \ modules operate as consumers that process data from Kafka/WAL rather than via\
+  \ synchronous request-response, decoupling the ingestion of traces from their permanent\
+  \ storage and indexing.\n\n### Component Breakdown\n- **Distributor:** Entry point\
+  \ for OTLP/Jaeger/Zipkin data.\n- **Ingester/LiveStore:** Manages the write-ahead\
+  \ log (WAL) and recent in-memory traces.\n- **Querier & Query-Frontend:** Handles\
+  \ the TraceQL engine and sharding of queries across the distributed backend.\n-\
+  \ **Compactor/Block-Builder:** Background processes that convert WAL data into optimized\
+  \ Parquet blocks for object storage (S3/GCS)."

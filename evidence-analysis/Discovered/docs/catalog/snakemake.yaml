@@ -13,5 +13,68 @@ language: Python
 languages:
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Pipeline (Pipe-and-Filter)
+classification_status: classified
+review_notes: 'Snakemake is a workflow management system primarily structured as a
+  **Microkernel (Plugin)** architecture. The core "kernel" handles the workflow graph
+  (DAG) resolution, job scheduling, and the DSL parsing, while almost all external
+  interactions—including execution environments, storage backends, and reporting—are
+  offloaded to a specialized plugin system.
+
+
+  ### Evidence for Microkernel (Plugin)
+
+  The system relies on a set of well-defined interfaces that allow third-party or
+  decoupled plugins to extend its capabilities. This is explicitly evidenced in the
+  `pyproject.toml` dependencies:
+
+  - `snakemake-interface-executor-plugins`: Allows Snakemake to support various backends
+  (Slurm, Kubernetes, AWS Batch, etc.) without having the logic in the core repository.
+
+  - `snakemake-interface-storage-plugins`: Abstracts data access (S3, GS, FTP).
+
+  - `snakemake-interface-report-plugins`, `snakemake-interface-logger-plugins`, and
+  `snakemake-interface-scheduler-plugins`.
+
+
+  The core repository contains the "kernel" in `src/snakemake/` (as identified via
+  `tool.setuptools_scm`), providing the execution engine and the Python-based DSL,
+  while the actual heavy lifting of infrastructure communication is handled by external
+  packages following these plugin contracts.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:10:54Z'
+classification_reasoning: "Snakemake is a workflow management system primarily structured\
+  \ as a **Microkernel (Plugin)** architecture. The core \"kernel\" handles the workflow\
+  \ graph (DAG) resolution, job scheduling, and the DSL parsing, while almost all\
+  \ external interactions—including execution environments, storage backends, and\
+  \ reporting—are offloaded to a specialized plugin system.\n\n### Evidence for Microkernel\
+  \ (Plugin)\nThe system relies on a set of well-defined interfaces that allow third-party\
+  \ or decoupled plugins to extend its capabilities. This is explicitly evidenced\
+  \ in the `pyproject.toml` dependencies:\n- `snakemake-interface-executor-plugins`:\
+  \ Allows Snakemake to support various backends (Slurm, Kubernetes, AWS Batch, etc.)\
+  \ without having the logic in the core repository.\n- `snakemake-interface-storage-plugins`:\
+  \ Abstracts data access (S3, GS, FTP).\n- `snakemake-interface-report-plugins`,\
+  \ `snakemake-interface-logger-plugins`, and `snakemake-interface-scheduler-plugins`.\n\
+  \nThe core repository contains the \"kernel\" in `src/snakemake/` (as identified\
+  \ via `tool.setuptools_scm`), providing the execution engine and the Python-based\
+  \ DSL, while the actual heavy lifting of infrastructure communication is handled\
+  \ by external packages following these plugin contracts.\n\n### Evidence for Pipeline\
+  \ (Pipe-and-Filter)\nAs a workflow engine, Snakemake's primary internal logic is\
+  \ the construction and execution of a **Pipeline**. \n- **Filters:** Represented\
+  \ by \"rules\" that transform input files into output files.\n- **Pipes:** Represented\
+  \ by the file-system dependencies or explicit `pipe()` directives (seen in `tests/test_pipes_multiple/Snakefile`).\n\
+  The architecture is centered around a Directed Acyclic Graph (DAG) of these filters,\
+  \ where the core engine's job is to orchestrate the flow of data through these stages.\n\
+  \n### Rejected Styles\n- **Microservices:** While it can scale to the cloud and\
+  \ trigger remote services, the code itself is a single Python package distributed\
+  \ via PyPI/Conda. It is a tool, not a distributed system of independent services.\n\
+  - **Layered:** While it uses some layering, the dominant characteristic is the extension\
+  \ of a core engine via plugins, which is a more specific and accurate description\
+  \ than horizontal layering.\n- **Modular Monolith:** While modular, the strict enforcement\
+  \ of boundaries is achieved through the plugin interfaces rather than just internal\
+  \ directory separation."

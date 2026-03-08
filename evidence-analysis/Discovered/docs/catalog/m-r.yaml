@@ -13,5 +13,92 @@ language: JavaScript
 languages:
 - JavaScript
 - C#
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- CQRS
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'This repository is a classic instructional implementation of the **CQRS
+  (Command Query Responsibility Segregation)** architecture style, likely based on
+  Greg Young''s "Simplest Possible Thing" samples.
+
+
+  ### Architectural Evidence
+
+
+  **1. CQRS (Primary Style)**
+
+  The repository is explicitly divided into command and query paths:
+
+  - **Command Side:** Found in `SimpleCQRS/Commands.cs` and `SimpleCQRS/CommandHandlers.cs`.
+  These files define the intent to change state and the logic to execute those changes.
+
+  - **Read Side:** Found in `SimpleCQRS/ReadModel.cs`, which contains projections
+  or DTOs optimized for UI display.
+
+  - **Explicit Separation:** The UI (`CQRSGui/Controllers/HomeController.cs`) interacts
+  with the system by sending commands to a bus and querying the read model, rather
+  than using a unified CRUD service.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:58:15Z'
+classification_reasoning: 'This repository is a classic instructional implementation
+  of the **CQRS (Command Query Responsibility Segregation)** architecture style, likely
+  based on Greg Young''s "Simplest Possible Thing" samples.
+
+
+  ### Architectural Evidence
+
+
+  **1. CQRS (Primary Style)**
+
+  The repository is explicitly divided into command and query paths:
+
+  - **Command Side:** Found in `SimpleCQRS/Commands.cs` and `SimpleCQRS/CommandHandlers.cs`.
+  These files define the intent to change state and the logic to execute those changes.
+
+  - **Read Side:** Found in `SimpleCQRS/ReadModel.cs`, which contains projections
+  or DTOs optimized for UI display.
+
+  - **Explicit Separation:** The UI (`CQRSGui/Controllers/HomeController.cs`) interacts
+  with the system by sending commands to a bus and querying the read model, rather
+  than using a unified CRUD service.
+
+
+  **2. Event-Driven (Secondary Style)**
+
+  The system uses an event-sourcing lite approach to bridge the command and query
+  sides:
+
+  - `SimpleCQRS/Events.cs` and `SimpleCQRS/EventStore.cs` indicate that state changes
+  are captured as a sequence of events.
+
+  - `SimpleCQRS/FakeBus.cs` acts as the dispatcher (mediator) that routes messages
+  (Commands and Events) to their respective handlers, decoupling the sender from the
+  consumer.
+
+
+  **3. Layered (Secondary Style)**
+
+  The solution follows a standard horizontal layering for a .NET web application:
+
+  - **Presentation Layer:** `CQRSGui` (ASP.NET Core MVC) handles the web interface
+  and user input.
+
+  - **Application/Domain Layer:** `SimpleCQRS` contains the business logic (`Domain.cs`),
+  message handling logic, and infrastructure (`InfrastructureCrap...cs`).
+
+
+  ### Summary of Structure
+
+  The codebase is organized into two primary projects:
+
+  1.  **CQRSGui:** A thin MVC wrapper that serves as the client. It uses a `ServiceLocator.cs`
+  to access the bus for sending commands and retrieving data from the Read Model.
+
+  2.  **SimpleCQRS:** The core engine containing the "Write" model (Aggregates in
+  `Domain.cs`), the "Read" model, and the messaging infrastructure that connects them.
+  The file naming convention (`Commands.cs`, `Events.cs`, `ReadModel.cs`) is a textbook
+  implementation of the pattern.'

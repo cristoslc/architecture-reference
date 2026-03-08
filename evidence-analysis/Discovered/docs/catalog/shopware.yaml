@@ -14,5 +14,66 @@ languages:
 - PHP
 - JavaScript
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Microkernel (Plugin)
+- Event-Driven
+classification_status: classified
+review_notes: "Shopware 6 is structured as a **Modular Monolith** that heavily utilizes\
+  \ a **Microkernel (Plugin)** architecture for extensibility. While the repository\
+  \ contains multiple internal `composer.json` files (e.g., `src/Core`, `src/Storefront`),\
+  \ they are not independently deployable microservices; instead, they represent logical\
+  \ module boundaries within a single unified Symfony application.\n\n### 1. Modular\
+  \ Monolith\nThe codebase is clearly divided into high-level modules: `Core`, `Storefront`,\
+  \ `Administration`, and `Elasticsearch`. \n- **Internal Boundaries:** The root `composer.json`\
+  \ uses the `replace` field to treat internal directories as versioned packages (`shopware/core`,\
+  \ etc.). This enforced naming and structural separation allows the platform to maintain\
+  \ a \"monorepo\" development style while ensuring that logic remains encapsulated\
+  \ within specific domains (e.g., `src/Core/Checkout` vs `src/Core/Content`).\n-\
+  \ **Single Deployment:** Despite the internal modularity, the system boots a single\
+  \ `Kernel.php` (found in `src/Core/Kernel.php`) and is typically deployed as one\
+  \ unit via the `shopware/production` or flex templates.\n\n### 2. Microkernel (Plugin)\n\
+  The system is designed around a core \"Kernel\" that supports runtime extensions.\
+  \ \n- **Extension Points:** The `src/Core/Framework/Plugin.php` class defines the\
+  \ contract for external code to hook into the lifecycle (install, activate, update,\
+  \ deactivate)."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:10:42Z'
+classification_reasoning: "Shopware 6 is structured as a **Modular Monolith** that\
+  \ heavily utilizes a **Microkernel (Plugin)** architecture for extensibility. While\
+  \ the repository contains multiple internal `composer.json` files (e.g., `src/Core`,\
+  \ `src/Storefront`), they are not independently deployable microservices; instead,\
+  \ they represent logical module boundaries within a single unified Symfony application.\n\
+  \n### 1. Modular Monolith\nThe codebase is clearly divided into high-level modules:\
+  \ `Core`, `Storefront`, `Administration`, and `Elasticsearch`. \n- **Internal Boundaries:**\
+  \ The root `composer.json` uses the `replace` field to treat internal directories\
+  \ as versioned packages (`shopware/core`, etc.). This enforced naming and structural\
+  \ separation allows the platform to maintain a \"monorepo\" development style while\
+  \ ensuring that logic remains encapsulated within specific domains (e.g., `src/Core/Checkout`\
+  \ vs `src/Core/Content`).\n- **Single Deployment:** Despite the internal modularity,\
+  \ the system boots a single `Kernel.php` (found in `src/Core/Kernel.php`) and is\
+  \ typically deployed as one unit via the `shopware/production` or flex templates.\n\
+  \n### 2. Microkernel (Plugin)\nThe system is designed around a core \"Kernel\" that\
+  \ supports runtime extensions. \n- **Extension Points:** The `src/Core/Framework/Plugin.php`\
+  \ class defines the contract for external code to hook into the lifecycle (install,\
+  \ activate, update, deactivate).\n- **Dynamic Loading:** The `repositories` section\
+  \ in the main `composer.json` includes `custom/plugins/*`, facilitating a plugin-based\
+  \ architecture where core functionality remains lean while features are added via\
+  \ bundles.\n- **Service Decoration:** Evidence in `coding-guidelines/core/decorator-pattern.md`\
+  \ and the provided `services.xml` snippets show a heavy reliance on Symfony's service\
+  \ container to allow plugins to override or extend core logic.\n\n### 3. Event-Driven\n\
+  The platform uses an internal event system to decouple modules and allow extensions\
+  \ to react to business logic without modifying the core.\n- **Evidence:** The ADRs\
+  \ (e.g., `2020-11-06-creating-events.md`, `2024-06-18-extended-event-system.md`)\
+  \ and the presence of `Event` directories in every major module confirm that inter-module\
+  \ communication is frequently handled via a Pub/Sub pattern.\n- **Message Queue:**\
+  \ The `src/Core/Framework/Adapter/Messenger` (implied by Symfony Messenger dependencies)\
+  \ and the \"Message Queue Stats\" asset in the ADRs indicate asynchronous processing\
+  \ of background tasks.\n\n### 4. Domain-Driven Design (DDD) Influences\nWhile not\
+  \ a pure DDD implementation, the directory structure under `src/Core` (e.g., `Content`,\
+  \ `Checkout`, `System`, `Framework`) follows bounded context principles. ADR `2022-02-24-domain-exceptions.md`\
+  \ confirms a conscious effort to adopt DDD patterns to handle complexity within\
+  \ the monolith."

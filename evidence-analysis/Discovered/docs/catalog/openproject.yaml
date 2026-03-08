@@ -14,5 +14,108 @@ languages:
 - Ruby
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Layered
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: 'OpenProject is a classic example of a **Modular Monolith** built on
+  the Ruby on Rails framework. While it utilizes a plugin-like system, the architectural
+  intent and deployment model firmly place it in the Modular Monolith category.
+
+
+  ### 1. Modular Monolith (Primary)
+
+  The codebase is structured into a large "core" application and a significant number
+  of internal engines located in the `/modules` directory.
+
+  - **Internal Modules:** There are over 30 modules (e.g., `modules/backlogs`, `modules/costs`,
+  `modules/calendar`) that represent specific business domains. These are organized
+  as Rails Engines, each containing its own `app/`, `lib/`, `config/`, and `db/` (migrations)
+  directories.
+
+  - **Dependency Management:** The main `Gemfile` explicitly loads these modules using
+  `eval_gemfile "./Gemfile.modules"`. This indicates that while the code is decoupled
+  into logical units, it is compiled and executed as a single deployable unit.
+
+  - **Shared Infrastructure:** The `docker-compose.yml` confirms that the production/dev
+  environment consists of a single `backend` service (Rails), a `worker` (GoodJob),
+  and a `frontend` (Angular). All modules share the same PostgreSQL database and Memcached
+  instance.
+
+
+  ### 2. Layered (Secondary)
+
+  Within both the core and the modules, OpenProject follows a strict horizontal layering
+  pattern that extends the standard Rails MVC:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:04:32Z'
+classification_reasoning: 'OpenProject is a classic example of a **Modular Monolith**
+  built on the Ruby on Rails framework. While it utilizes a plugin-like system, the
+  architectural intent and deployment model firmly place it in the Modular Monolith
+  category.
+
+
+  ### 1. Modular Monolith (Primary)
+
+  The codebase is structured into a large "core" application and a significant number
+  of internal engines located in the `/modules` directory.
+
+  - **Internal Modules:** There are over 30 modules (e.g., `modules/backlogs`, `modules/costs`,
+  `modules/calendar`) that represent specific business domains. These are organized
+  as Rails Engines, each containing its own `app/`, `lib/`, `config/`, and `db/` (migrations)
+  directories.
+
+  - **Dependency Management:** The main `Gemfile` explicitly loads these modules using
+  `eval_gemfile "./Gemfile.modules"`. This indicates that while the code is decoupled
+  into logical units, it is compiled and executed as a single deployable unit.
+
+  - **Shared Infrastructure:** The `docker-compose.yml` confirms that the production/dev
+  environment consists of a single `backend` service (Rails), a `worker` (GoodJob),
+  and a `frontend` (Angular). All modules share the same PostgreSQL database and Memcached
+  instance.
+
+
+  ### 2. Layered (Secondary)
+
+  Within both the core and the modules, OpenProject follows a strict horizontal layering
+  pattern that extends the standard Rails MVC:
+
+  - **Contract Layer:** Found in `app/contracts/`, these handle validation and business
+  rule enforcement before processing.
+
+  - **Service Layer:** Found in `app/services/` and `lib/services/`, these encapsulate
+  the business logic, preventing "fat models" and ensuring that controllers remain
+  thin.
+
+  - **Infrastructure/Lib Layer:** The `lib/open_project/` directory contains cross-cutting
+  concerns like internationalization, access control, and logging.
+
+
+  ### 3. Microkernel / Plugin (Secondary)
+
+  OpenProject implements a **Microkernel** style through its "Plugin" architecture.
+
+  - **Extension Points:** The `lib/redmine/plugin.rb` (a legacy from its Redmine/ChiliProject
+  roots) and `lib/open_project/plugins.rb` provide the registry for modules to hook
+  into the core system.
+
+  - **Modular Extension:** Features like `github_integration` or `ldap_groups` are
+  implemented as plugins that register themselves with the core "kernel" at boot time.
+  The system''s "Enterprise Edition" features are also toggled through this modular
+  mechanism.
+
+
+  ### Rejected Styles:
+
+  - **Microservices:** Although there are many directories in `modules/`, they are
+  not independently deployable. They share a single database, a single Ruby runtime,
+  and are packaged together in the `docker/prod/Dockerfile`.
+
+  - **Hexagonal Architecture:** While it uses "Contracts" and "Services," it lacks
+  the explicit "Ports and Adapters" boundary isolation typically seen in Hexagonal
+  systems; the business logic is still deeply coupled to ActiveRecord (the database
+  adapter).'

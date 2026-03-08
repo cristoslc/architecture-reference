@@ -13,5 +13,83 @@ language: Java/Kotlin
 languages:
 - Java/Kotlin
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Pipeline (Pipe-and-Filter)
+- Modular Monolith
+classification_status: classified
+review_notes: 'The Nextflow codebase is a sophisticated implementation of a **Microkernel
+  (Plugin)** architecture, designed to provide a lightweight core engine that is extended
+  through a robust plugin system for platform-specific execution (AWS, Google Cloud,
+  Kubernetes) and feature sets.
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The repository demonstrates a classic Microkernel structure where the "core" (found
+  in `modules/nextflow` and `modules/nf-commons`) contains the workflow orchestration
+  logic, and all external integrations are treated as isolated plugins.
+
+  - **Plugin Isolation:** The `plugins/` directory contains numerous independent projects
+  (e.g., `nf-amazon`, `nf-google`, `nf-k8s`, `nf-tower`) each with its own `build.gradle`
+  and `VERSION` file.
+
+  - **Plugin Lifecycle & Registry:** As evidenced by `adr/20250922-plugin-spec.md`,
+  the system includes a formal specification for plugins (JSON-based metadata) that
+  allows the core and external tools (like language servers) to understand extension
+  points (ConfigScopes, Functions, Operators) without loading the JVM bytecode.
+
+  - **Dynamic Loading:** The `releaseInfo` task in the root `build.gradle` generates
+  a `plugins-info.txt` file, which the core engine uses to manage and validate versioned
+  plugin sets at runtime.
+
+
+  ### 2. Secondary Style: Pipeline (Pipe-and-Filter)
+
+  While "Dataflow" is the domain-specific term used in the README, the internal software
+  organization of the execution engine follows the **Pipeline (Pipe-and-Filter)**
+  pattern.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:02:42Z'
+classification_reasoning: "The Nextflow codebase is a sophisticated implementation\
+  \ of a **Microkernel (Plugin)** architecture, designed to provide a lightweight\
+  \ core engine that is extended through a robust plugin system for platform-specific\
+  \ execution (AWS, Google Cloud, Kubernetes) and feature sets.\n\n### 1. Primary\
+  \ Style: Microkernel (Plugin)\nThe repository demonstrates a classic Microkernel\
+  \ structure where the \"core\" (found in `modules/nextflow` and `modules/nf-commons`)\
+  \ contains the workflow orchestration logic, and all external integrations are treated\
+  \ as isolated plugins.\n- **Plugin Isolation:** The `plugins/` directory contains\
+  \ numerous independent projects (e.g., `nf-amazon`, `nf-google`, `nf-k8s`, `nf-tower`)\
+  \ each with its own `build.gradle` and `VERSION` file.\n- **Plugin Lifecycle & Registry:**\
+  \ As evidenced by `adr/20250922-plugin-spec.md`, the system includes a formal specification\
+  \ for plugins (JSON-based metadata) that allows the core and external tools (like\
+  \ language servers) to understand extension points (ConfigScopes, Functions, Operators)\
+  \ without loading the JVM bytecode.\n- **Dynamic Loading:** The `releaseInfo` task\
+  \ in the root `build.gradle` generates a `plugins-info.txt` file, which the core\
+  \ engine uses to manage and validate versioned plugin sets at runtime.\n\n### 2.\
+  \ Secondary Style: Pipeline (Pipe-and-Filter)\nWhile \"Dataflow\" is the domain-specific\
+  \ term used in the README, the internal software organization of the execution engine\
+  \ follows the **Pipeline (Pipe-and-Filter)** pattern.\n- **Dataflow Logic:** The\
+  \ core engine (specifically `modules/nextflow`) is built to manage the flow of asynchronous\
+  \ data tasks (Filters) connected by asynchronous channels (Pipes), as reflected\
+  \ in the package structure `./modules/nextflow/src/main/groovy/nextflow/trace` and\
+  \ the heavy reliance on GPars for actor-based concurrency.\n- **Functional Operators:**\
+  \ The plugin spec explicitly defines \"Operators\" as part of the extension API,\
+  \ reinforcing that the system's primary architectural purpose is to chain discrete\
+  \ computational units.\n\n### 3. Secondary Style: Modular Monolith\nThe core of\
+  \ the system is organized as a **Modular Monolith** via a Gradle multi-project build.\n\
+  - **Internal Boundaries:** The `modules/` directory separates the engine into `nf-lang`\
+  \ (the DSL), `nf-httpfs` (filesystem abstraction), `nf-commons` (shared utilities),\
+  \ and `nextflow` (the main orchestrator). \n- **Deployment:** Despite the modularity,\
+  \ these core components are compiled and shipped as a single unit or a tightly coupled\
+  \ set of JARs, distinct from the independently versioned `plugins/`.\n\n### Rejected\
+  \ Styles\n- **Microservices:** Although it integrates with many cloud services,\
+  \ the Nextflow application itself is a single command-line tool/orchestrator, not\
+  \ a distributed system of independent services.\n- **Hexagonal Architecture:** While\
+  \ it uses \"Plugins\" to adapt to different clouds (which resembles \"Adapters\"\
+  ), the internal core does not strictly follow the Ports-and-Adapters package naming\
+  \ or strict boundary enforcement typically seen in Hexagonal implementations. It\
+  \ favors a more direct Plugin/Kernel relationship."

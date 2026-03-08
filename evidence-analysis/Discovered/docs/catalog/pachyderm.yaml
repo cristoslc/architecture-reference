@@ -15,5 +15,61 @@ languages:
 - TypeScript
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Microservices
+- Event-Driven
+classification_status: classified
+review_notes: "Pachyderm is primarily structured as a **Modular Monolith** that is\
+  \ moving towards a **Microservices** deployment model for specific high-scale components.\
+  \ \n\n### Reasoning\n\n1.  **Core Monolith (`pachd`):**\n    The central component,\
+  \ `pachd`, is compiled into a single binary (as seen in `Dockerfile.pachd` with\
+  \ `ENTRYPOINT [\"/pachd\"]`). The source structure under `src/server/` contains\
+  \ multiple distinct functional domains—`auth`, `pfs` (Pachyderm File System), `pps`\
+  \ (Pachyderm Pipeline System), `identity`, and `admin`. These are wired together\
+  \ within the same process but maintain strict separation via Go's `internal` packages\
+  \ and Protobuf-defined interfaces.\n\n2.  **Modular Boundaries:**\n    The repository\
+  \ exhibits a highly disciplined module layout. Each major system (e.g., `src/pfs`,\
+  \ `src/pps`, `src/auth`) has its own Protobuf definitions, generated gRPC clients/servers,\
+  \ and a corresponding server-side implementation in `src/server/<module>`. The use\
+  \ of `src/internal` to house common logic (database utilities, migrations, and service\
+  \ environments) ensures that cross-module dependencies are managed in a way typical\
+  \ of a Modular Monolith."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:05:51Z'
+classification_reasoning: "Pachyderm is primarily structured as a **Modular Monolith**\
+  \ that is moving towards a **Microservices** deployment model for specific high-scale\
+  \ components. \n\n### Reasoning\n\n1.  **Core Monolith (`pachd`):**\n    The central\
+  \ component, `pachd`, is compiled into a single binary (as seen in `Dockerfile.pachd`\
+  \ with `ENTRYPOINT [\"/pachd\"]`). The source structure under `src/server/` contains\
+  \ multiple distinct functional domains—`auth`, `pfs` (Pachyderm File System), `pps`\
+  \ (Pachyderm Pipeline System), `identity`, and `admin`. These are wired together\
+  \ within the same process but maintain strict separation via Go's `internal` packages\
+  \ and Protobuf-defined interfaces.\n\n2.  **Modular Boundaries:**\n    The repository\
+  \ exhibits a highly disciplined module layout. Each major system (e.g., `src/pfs`,\
+  \ `src/pps`, `src/auth`) has its own Protobuf definitions, generated gRPC clients/servers,\
+  \ and a corresponding server-side implementation in `src/server/<module>`. The use\
+  \ of `src/internal` to house common logic (database utilities, migrations, and service\
+  \ environments) ensures that cross-module dependencies are managed in a way typical\
+  \ of a Modular Monolith.\n\n3.  **Microservices/Service-Based Components:**\n  \
+  \  While `pachd` is a monolith, Pachyderm separates high-throughput or specialized\
+  \ workloads into independent units. The existence of `src/server/cmd/worker/main.go`\
+  \ and `src/server/cmd/pachhttp/main.go` proves the existence of secondary, independently\
+  \ deployable services. In a production Kubernetes environment, these \"workers\"\
+  \ run as distinct pods, which is a hallmark of Microservices.\n\n4.  **Event-Driven\
+  \ (Secondary):**\n    The system's core value proposition—\"Data-driven pipelines\
+  \ automatically trigger based on detecting data changes\"—is implemented through\
+  \ an event-based ledger. While it uses a database (PostgreSQL) as a backing store,\
+  \ the internal architecture relies on watching for commit events and triggering\
+  \ downstream pipeline jobs, fulfilling the behavioral characteristics of an Event-Driven\
+  \ architecture.\n\n5.  **Technical Stack Evidence:**\n    - **gRPC/Protobuf:** Used\
+  \ heavily as the contract between modules and services, allowing the transition\
+  \ from in-proc calls to network calls.\n    - **Bazel:** The presence of `BUILD.bazel`\
+  \ files across almost every directory indicates a sophisticated build system designed\
+  \ to manage complex dependency graphs and enforce module boundaries.\n    - **Infrastructure:**\
+  \ The `etc/deploy` and `etc/helm` directories confirm that the system is orchestrated\
+  \ as a set of interacting components within Kubernetes, further supporting the Service-Based/Microservices\
+  \ hybrid classification."

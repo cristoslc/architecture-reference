@@ -12,5 +12,94 @@ domain: Payments
 language: C#
 languages:
 - C#
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'The repository is a textbook implementation of a **Modular Monolith**.
+  It is explicitly designed to demonstrate high cohesion within modules and low coupling
+  between them, while maintaining a single deployment unit.
+
+
+  ### Evidence of Modular Monolith
+
+  - **Single Deployment Unit**: The `src/Bootstrapper` project acts as the entry point,
+  responsible for initializing all modules and starting a single web application (`Program.cs`,
+  `Startup.cs`).
+
+  - **Enforced Boundaries**: The README explicitly states there are no references
+  between modules. Communication is handled via "local contracts" or asynchronous
+  events, rather than direct project dependencies.
+
+  - **Internal Structure**: The directory `src/Modules/` contains autonomous folders
+  (Customers, Payments, Users, Wallets), each mimicking a microservice''s internal
+  structure (Core, Api, Infrastructure).
+
+
+  ### Evidence of Event-Driven Style
+
+  - **Asynchronous Integration**: The README highlights that integration between modules
+  is based on an "event-driven approach to achieve greater autonomy."
+
+  - **Infrastructure Support**: The `src/Shared/Inflow.Shared.Infrastructure/Events`
+  and `Messaging` directories indicate a robust internal event bus or message broker
+  abstraction used for inter-module communication.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:52:32Z'
+classification_reasoning: 'The repository is a textbook implementation of a **Modular
+  Monolith**. It is explicitly designed to demonstrate high cohesion within modules
+  and low coupling between them, while maintaining a single deployment unit.
+
+
+  ### Evidence of Modular Monolith
+
+  - **Single Deployment Unit**: The `src/Bootstrapper` project acts as the entry point,
+  responsible for initializing all modules and starting a single web application (`Program.cs`,
+  `Startup.cs`).
+
+  - **Enforced Boundaries**: The README explicitly states there are no references
+  between modules. Communication is handled via "local contracts" or asynchronous
+  events, rather than direct project dependencies.
+
+  - **Internal Structure**: The directory `src/Modules/` contains autonomous folders
+  (Customers, Payments, Users, Wallets), each mimicking a microservice''s internal
+  structure (Core, Api, Infrastructure).
+
+
+  ### Evidence of Event-Driven Style
+
+  - **Asynchronous Integration**: The README highlights that integration between modules
+  is based on an "event-driven approach to achieve greater autonomy."
+
+  - **Infrastructure Support**: The `src/Shared/Inflow.Shared.Infrastructure/Events`
+  and `Messaging` directories indicate a robust internal event bus or message broker
+  abstraction used for inter-module communication.
+
+  - **Saga Pattern**: The presence of `src/Modules/Saga` confirms the use of a choreography
+  or orchestration pattern to manage distributed transactions across the autonomous
+  modules without synchronous coupling.
+
+
+  ### Evidence of Domain-Driven Design (DDD)
+
+  - **Bounded Contexts**: Each folder in `src/Modules` represents a clear Bounded
+  Context (Customers, Wallets, etc.).
+
+  - **Tactical Patterns**: The use of a `Core` project within modules (e.g., `Inflow.Modules.Wallets.Core`)
+  typically houses Domain Models, Entities, and Value Objects, while `Inflow.Shared.Abstractions/Kernel`
+  suggests the use of DDD Building blocks like Domain Events.
+
+
+  ### Rejected Styles
+
+  - **Microservices**: While the modules are "autonomous," they are compiled and deployed
+  as a single process by the Bootstrapper. The README even mentions a separate branch/repository
+  for the microservices version, confirming this is the monolithic counterpart.
+
+  - **Layered**: While internal modules may use layers, the primary architectural
+  significance of this repo is the vertical modularity and the bootstrapper pattern,
+  which supersedes a traditional horizontal N-Layer architecture.'

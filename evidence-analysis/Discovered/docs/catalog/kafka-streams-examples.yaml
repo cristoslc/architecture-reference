@@ -13,5 +13,63 @@ language: Java/Kotlin
 languages:
 - Java/Kotlin
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Event-Driven
+- Microservices
+classification_status: classified
+review_notes: "The repository is a reference implementation for Kafka Streams, and\
+  \ its architecture is fundamentally **Event-Driven**. While it contains multiple\
+  \ standalone examples, the \"Microservices\" directory and the \"Kafka Music\" demo\
+  \ illustrate a cohesive architectural pattern where state is derived from continuous\
+  \ streams of events rather than traditional request-response cycles.\n\n### 1. Primary\
+  \ Style: Event-Driven\nThe core of every application in this repository is the **Kafka\
+  \ Streams DSL/Processor API**, which treats data as a continuous flow. \n- **Internal\
+  \ Communication:** Components interact via topics (e.g., `play-events`, `song-feed`).\n\
+  - **State Management:** The architecture relies on \"State Stores\" and \"KTables\"\
+  \ (e.g., `songPlayCounts` in `KafkaMusicExample.java`), which are essentially materialized\
+  \ views of the event log.\n- **Topology-Based Processing:** Applications are structured\
+  \ as directed acyclic graphs (topologies) of filters, maps, and joins, where every\
+  \ transformation is triggered by the arrival of a new event.\n\n### 2. Secondary\
+  \ Style: Microservices\nThe repository includes a dedicated `microservices` package\
+  \ (`src/main/java/io/confluent/examples/streams/microservices`) that demonstrates\
+  \ a choreographed ecosystem."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:53:18Z'
+classification_reasoning: "The repository is a reference implementation for Kafka\
+  \ Streams, and its architecture is fundamentally **Event-Driven**. While it contains\
+  \ multiple standalone examples, the \"Microservices\" directory and the \"Kafka\
+  \ Music\" demo illustrate a cohesive architectural pattern where state is derived\
+  \ from continuous streams of events rather than traditional request-response cycles.\n\
+  \n### 1. Primary Style: Event-Driven\nThe core of every application in this repository\
+  \ is the **Kafka Streams DSL/Processor API**, which treats data as a continuous\
+  \ flow. \n- **Internal Communication:** Components interact via topics (e.g., `play-events`,\
+  \ `song-feed`).\n- **State Management:** The architecture relies on \"State Stores\"\
+  \ and \"KTables\" (e.g., `songPlayCounts` in `KafkaMusicExample.java`), which are\
+  \ essentially materialized views of the event log.\n- **Topology-Based Processing:**\
+  \ Applications are structured as directed acyclic graphs (topologies) of filters,\
+  \ maps, and joins, where every transformation is triggered by the arrival of a new\
+  \ event.\n\n### 2. Secondary Style: Microservices\nThe repository includes a dedicated\
+  \ `microservices` package (`src/main/java/io/confluent/examples/streams/microservices`)\
+  \ that demonstrates a choreographed ecosystem.\n- **Independent Services:** It defines\
+  \ multiple service entry points like `OrdersService.java`, `FraudService.java`,\
+  \ `InventoryService.java`, and `EmailService.java`.\n- **Decoupling:** These services\
+  \ do not call each other via RPC; instead, they coordinate through event sequences\
+  \ on Kafka topics (e.g., the `OrdersService` emits an order, and the `FraudService`\
+  \ consumes it to emit a validation).\n- **Deployment Topology:** The `docker-compose.yml`\
+  \ confirms that these are intended to run as a multi-container system, including\
+  \ infrastructure (Kafka, Zookeeper, Schema Registry) and the applications themselves\
+  \ (e.g., `kafka-music-application`).\n\n### 3. Implementation Details\n- **Hexagonal/Layered\
+  \ Rejection:** While `KafkaMusicExample.java` uses a REST layer (`MusicPlaysRestService`),\
+  \ there is no strict enforcement of Hexagonal \"Ports and Adapters.\" The business\
+  \ logic is deeply intertwined with the Kafka Streams API (the \"Adapter\" and \"\
+  Domain\" are fused), which is typical for specialized streaming applications.\n\
+  - **CQRS:** The applications exhibit CQRS qualities because they separate the write-path\
+  \ (processing events into state stores) from the read-path (Interactive Queries\
+  \ via REST), but the overarching structure is better described as Event-Driven.\n\
+  - **Code Organization:** Despite being a single Maven module (`pom.xml` with `<packaging>jar</packaging>`),\
+  \ the project uses `maven-assembly-plugin` to package standalone executable artifacts,\
+  \ allowing the various classes to function as independent deployment units in a\
+  \ microservices context."

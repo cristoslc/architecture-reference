@@ -17,5 +17,103 @@ languages:
 - Python
 - Go
 - Rust
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'The Envoy Proxy repository follows a **Microkernel (Plugin)** architecture
+  at its core, complemented by a strict **Layered** internal design and an **Event-Driven**
+  execution model.
+
+
+  ### 1. Microkernel (Plugin) Architecture
+
+  Envoy is designed as a minimalist core "kernel" that provides fundamental capabilities
+  (event loop, buffer management, threading model) while almost all functional logic
+  is implemented as pluggable extensions.
+
+  - **Extension Points:** The `source/extensions/` directory reveals a vast array
+  of plugin types: `filters` (HTTP/Network), `clusters`, `access_loggers`, `tracers`,
+  `health_checkers`, and `transport_sockets`.
+
+  - **Registry Pattern:** The code uses a factory-based registration system (seen
+  in `source/server/generic_factory_context.h` and `source/extensions/extensions_build_config.bzl`)
+  where extensions register themselves at compile-time or run-time.
+
+  - **Discovery API (xDS):** The system''s configuration itself is "pluggable" via
+  the xDS APIs (defined in `api/envoy/**/v3/*.proto`), allowing the core to remain
+  agnostic of the specific backend or routing logic until it is dynamically injected.
+
+
+  ### 2. Layered Architecture
+
+  Internally, the `source/` tree demonstrates horizontal layering to separate concerns:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:47:11Z'
+classification_reasoning: 'The Envoy Proxy repository follows a **Microkernel (Plugin)**
+  architecture at its core, complemented by a strict **Layered** internal design and
+  an **Event-Driven** execution model.
+
+
+  ### 1. Microkernel (Plugin) Architecture
+
+  Envoy is designed as a minimalist core "kernel" that provides fundamental capabilities
+  (event loop, buffer management, threading model) while almost all functional logic
+  is implemented as pluggable extensions.
+
+  - **Extension Points:** The `source/extensions/` directory reveals a vast array
+  of plugin types: `filters` (HTTP/Network), `clusters`, `access_loggers`, `tracers`,
+  `health_checkers`, and `transport_sockets`.
+
+  - **Registry Pattern:** The code uses a factory-based registration system (seen
+  in `source/server/generic_factory_context.h` and `source/extensions/extensions_build_config.bzl`)
+  where extensions register themselves at compile-time or run-time.
+
+  - **Discovery API (xDS):** The system''s configuration itself is "pluggable" via
+  the xDS APIs (defined in `api/envoy/**/v3/*.proto`), allowing the core to remain
+  agnostic of the specific backend or routing logic until it is dynamically injected.
+
+
+  ### 2. Layered Architecture
+
+  Internally, the `source/` tree demonstrates horizontal layering to separate concerns:
+
+  - **`source/exe/`**: The entry point and instantiation layer (Main).
+
+  - **`source/server/`**: The orchestration layer that manages the lifecycle of the
+  proxy, hot restarting, and configuration loading.
+
+  - **`source/common/`**: The utility and foundation layer providing shared abstractions
+  (HTTP, TCP, TLS, JSON).
+
+  - **`source/extensions/`**: The functional layer where specific protocols and behaviors
+  reside.
+
+
+  ### 3. Event-Driven & Threading Model
+
+  While not a "system-wide" event-driven architecture in the sense of microservices,
+  Envoy’s internal execution is strictly event-driven.
+
+  - **Non-blocking IO:** The presence of `source/common/event/` and `source/server/worker_impl.h`
+  points to a libevent-based event loop where all network activity is handled via
+  callbacks.
+
+  - **Thread-Local Storage:** The `source/common/thread_local/` directory indicates
+  a complex "shared-nothing" architecture where state is replicated across worker
+  threads via events to avoid lock contention.
+
+
+  ### Decision Justification:
+
+  - **Rejected Microservices:** Although Envoy is *often used* in microservices (as
+  a sidecar), its own codebase is a single monolithic binary (`source/exe/main.cc`)
+  that produces a single process.
+
+  - **Rejected Modular Monolith:** While it is modular, the "Microkernel" label is
+  more accurate because of the strict separation between the core server engine and
+  the high-extensibility "filter chain" contract which defines the system''s character.'

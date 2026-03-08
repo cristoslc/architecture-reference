@@ -14,5 +14,102 @@ languages:
 - C#
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- CQRS
+- Domain-Driven Design
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: 'The Squidex codebase is a highly structured .NET application that explicitly
+  identifies itself in the README as being built with **CQRS** (Command Query Responsibility
+  Segregation). The directory structure and project naming conventions provide strong
+  evidence for this and several secondary architectural patterns.
+
+
+  ### Primary Style: CQRS
+
+  The repository is fundamentally organized around the separation of write operations
+  (Commands) and read operations (Queries).
+
+  - **Evidence in Structure:** The test projects clearly mirror this separation (e.g.,
+  `backend/tests/Squidex.Infrastructure.Tests/Commands` and `backend/tests/Squidex.Infrastructure.Tests/Queries`).
+
+  - **Infrastructure Support:** The infrastructure layer includes specific support
+  for `EventSourcing` (`backend/tests/Squidex.Infrastructure.Tests/EventSourcing`),
+  which is the standard persistence mechanism for the "Write" side of sophisticated
+  CQRS systems.
+
+  - **API implementation:** The TestSuite contains explicit tests for `RuleEventsTests.cs`
+  and `RuleRunnerTests.cs`, indicating an asynchronous command processing pipeline.
+
+
+  ### Secondary Style: Domain-Driven Design (DDD)
+
+  The backend project structure follows DDD tactical patterns to manage the complexity
+  of a headless CMS.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:12:13Z'
+classification_reasoning: 'The Squidex codebase is a highly structured .NET application
+  that explicitly identifies itself in the README as being built with **CQRS** (Command
+  Query Responsibility Segregation). The directory structure and project naming conventions
+  provide strong evidence for this and several secondary architectural patterns.
+
+
+  ### Primary Style: CQRS
+
+  The repository is fundamentally organized around the separation of write operations
+  (Commands) and read operations (Queries).
+
+  - **Evidence in Structure:** The test projects clearly mirror this separation (e.g.,
+  `backend/tests/Squidex.Infrastructure.Tests/Commands` and `backend/tests/Squidex.Infrastructure.Tests/Queries`).
+
+  - **Infrastructure Support:** The infrastructure layer includes specific support
+  for `EventSourcing` (`backend/tests/Squidex.Infrastructure.Tests/EventSourcing`),
+  which is the standard persistence mechanism for the "Write" side of sophisticated
+  CQRS systems.
+
+  - **API implementation:** The TestSuite contains explicit tests for `RuleEventsTests.cs`
+  and `RuleRunnerTests.cs`, indicating an asynchronous command processing pipeline.
+
+
+  ### Secondary Style: Domain-Driven Design (DDD)
+
+  The backend project structure follows DDD tactical patterns to manage the complexity
+  of a headless CMS.
+
+  - **Bounded Contexts:** The namespace/folder structures like `Squidex.Domain.Apps.Entities`,
+  `Squidex.Domain.Apps.Core`, and `Squidex.Domain.Users` indicate clear boundaries
+  between different sub-domains of the system.
+
+  - **Tactical Patterns:** The presence of `Entities`, `Model`, and `Infrastructure`
+  as separate layers within the `backend/tests/Squidex.Domain.Apps.Entities.Tests`
+  structure points to a DDD-inspired layered architecture where the domain model is
+  isolated from technical concerns.
+
+
+  ### Secondary Style: Microkernel (Plugin)
+
+  Squidex uses a plugin-based architecture to allow extensions without modifying the
+  core system.
+
+  - **Evidence:** There is a dedicated `backend/extensions/` directory.
+
+  - **Plugin Implementation:** The `Squidex.Extensions` project contains distinct
+  folders for different extension points like `Actions`, `Text`, `Assets`, and `Validation`.
+  This allows the core CMS to remain generic while specific integrations (like the
+  "Kafka Rule action" mentioned in the README) are treated as plugins.
+
+
+  ### Architecture Rejections
+
+  - **Microservices:** While Squidex can be deployed in Docker/K8s, the codebase is
+  maintained as a single solution (`backend/Squidex.sln`). The "services" are logical
+  internal boundaries rather than independently deployable network services.
+
+  - **Layered (Traditional):** While it uses layering, it is too specialized (CQRS/DDD)
+  to be classified as a simple "Horizontal Layered" system.
+
+  - **Hexagonal:** While there are elements of ports and adapters (specifically in
+  `Squidex.Infrastructure`), the dominant organizing principle is CQRS.'

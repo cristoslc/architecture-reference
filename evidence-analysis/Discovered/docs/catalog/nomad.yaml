@@ -13,5 +13,116 @@ language: Go
 languages:
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Event-Driven
+- Hexagonal Architecture
+classification_status: classified
+review_notes: 'Nomad''s architecture is a sophisticated example of the **Microkernel
+  (Plugin)** style, designed to be a self-contained workload orchestrator that delegates
+  specific execution and infrastructure concerns to pluggable components. While it
+  is distributed across nodes, the codebase itself is structured to allow the core
+  scheduling logic to remain agnostic of the underlying technology (Docker, Java,
+  QEMU, etc.).
+
+
+  ### Primary Style: Microkernel (Plugin)
+
+  The system is built around a robust plugin architecture that is central to its functionality:
+
+  - **Task Drivers**: Located in `drivers/`, these modules (e.g., `drivers/docker`,
+  `drivers/exec`, `drivers/qemu`) implement a standard interface to manage the lifecycle
+  of tasks. The core Nomad agent does not have hard-coded knowledge of how to run
+  a container; it relies on these plugins.
+
+  - **Device Plugins**: Nomad detects hardware (GPUs, FPGAs) using a plugin system,
+  as noted in the README and evidenced by `client/devicemanager`.
+
+  - **CSI (Container Storage Interface)**: The presence of `nomad/csi_endpoint.go`
+  and `demo/csi/` demonstrates that storage is handled via the CSI plugin standard.
+
+  - **Plugin Infrastructure**: The use of `github.com/hashicorp/go-plugin` in `go.mod`
+  confirms that many of these extensions run as independent processes communicating
+  over RPC with the "kernel" (the Nomad agent).
+
+
+  ### Secondary Style: Event-Driven'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:03:36Z'
+classification_reasoning: 'Nomad''s architecture is a sophisticated example of the
+  **Microkernel (Plugin)** style, designed to be a self-contained workload orchestrator
+  that delegates specific execution and infrastructure concerns to pluggable components.
+  While it is distributed across nodes, the codebase itself is structured to allow
+  the core scheduling logic to remain agnostic of the underlying technology (Docker,
+  Java, QEMU, etc.).
+
+
+  ### Primary Style: Microkernel (Plugin)
+
+  The system is built around a robust plugin architecture that is central to its functionality:
+
+  - **Task Drivers**: Located in `drivers/`, these modules (e.g., `drivers/docker`,
+  `drivers/exec`, `drivers/qemu`) implement a standard interface to manage the lifecycle
+  of tasks. The core Nomad agent does not have hard-coded knowledge of how to run
+  a container; it relies on these plugins.
+
+  - **Device Plugins**: Nomad detects hardware (GPUs, FPGAs) using a plugin system,
+  as noted in the README and evidenced by `client/devicemanager`.
+
+  - **CSI (Container Storage Interface)**: The presence of `nomad/csi_endpoint.go`
+  and `demo/csi/` demonstrates that storage is handled via the CSI plugin standard.
+
+  - **Plugin Infrastructure**: The use of `github.com/hashicorp/go-plugin` in `go.mod`
+  confirms that many of these extensions run as independent processes communicating
+  over RPC with the "kernel" (the Nomad agent).
+
+
+  ### Secondary Style: Event-Driven
+
+  Nomad’s internal state management and coordination are heavily reliant on event
+  streams and pub/sub patterns:
+
+  - **Event Broker**: The `nomad/stream/` directory contains `event_broker.go` and
+  `subscription.go`, which manage the distribution of internal state changes.
+
+  - **State Replication**: Using Raft (evidenced by `nomad/raft_rpc.go` and `github.com/hashicorp/raft`
+  in `go.mod`), the system processes a stream of log entries (events) to maintain
+  consistency across the cluster.
+
+  - **Watchers**: Deployment and node watchers (e.g., `nomad/deployment_watcher_shims.go`)
+  react to state changes asynchronously.
+
+
+  ### Secondary Style: Hexagonal Architecture (Ports and Adapters)
+
+  The codebase exhibits strong isolation between the core scheduling logic and external
+  systems:
+
+  - **Client/Server Split**: The repository separates the "Server" (global scheduling,
+  Raft management in `nomad/`) from the "Client" (node-local execution, fingerprinting
+  in `client/`).
+
+  - **Fingerprinting**: Under `client/fingerprint/`, specialized adapters (e.g., `env_aws.go`,
+  `network_linux.go`, `storage_windows.go`) gather environmental data and "adapt"
+  it into Nomad''s internal resource model.
+
+  - **Interfaces**: The use of "endpoints" (e.g., `nomad/job_endpoint.go`, `nomad/alloc_endpoint.go`)
+  acts as the API layer (Ports) that shields the internal state store and scheduler
+  from direct RPC or HTTP interference.
+
+
+  ### Why not other styles?
+
+  - **Microservices**: Although Nomad is a distributed system, the repository itself
+  produces a "single binary" that contains both the client and server components (Modular
+  Monolith deployment), rather than a fleet of independently deployable services.
+
+  - **Layered**: While it has layers (API -> Logic -> State), the modularity is vertical
+  (by feature/plugin) rather than horizontal.
+
+  - **Modular Monolith**: While it is a single binary, the "Microkernel" definition
+  is more precise because the modularity is explicitly designed for runtime extensibility
+  and third-party plugins via established RPC contracts.'

@@ -13,5 +13,79 @@ language: C#
 languages:
 - C#
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Microkernel (Plugin)
+- Event-Driven
+classification_status: classified
+review_notes: 'The nopCommerce repository is a classic example of a **Layered Architecture**
+  (Horizontal Layering) with a highly developed **Microkernel (Plugin)** system. While
+  it contains modern elements like Docker support and a REST API, its internal code
+  organization follows the strict separation of concerns typical of ASP.NET "Onion"
+  or "N-Tier" architectures.
+
+
+  ### 1. Primary Style: Layered Architecture
+
+  The core of the system is divided into clearly defined horizontal layers located
+  in `src/Libraries`:
+
+  - **Nop.Core (Domain Layer):** Contains base entities (`BaseEntity.cs`), domain
+  models (under `Nop.Core/Domain`), and core infrastructure interfaces. It has no
+  dependencies on other layers.
+
+  - **Nop.Data (Data Access Layer):** Implements the Repository pattern (`IRepository.cs`,
+  `EntityRepository.cs`) and handles database-specific logic using FluentMigrator
+  and LinqToDB/Entity Framework concepts.
+
+  - **Nop.Services (Business Logic Layer):** Contains the "heavy lifting" of the application,
+  organized by functional domain (e.g., `Customers`, `Orders`, `Catalog`).
+
+  - **Nop.Web (Presentation Layer):** A single monolithic ASP.NET Core MVC application
+  that serves as the entry point for both the public store and the administration
+  area.
+
+
+  ### 2. Secondary Style: Microkernel (Plugin)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:03:48Z'
+classification_reasoning: "The nopCommerce repository is a classic example of a **Layered\
+  \ Architecture** (Horizontal Layering) with a highly developed **Microkernel (Plugin)**\
+  \ system. While it contains modern elements like Docker support and a REST API,\
+  \ its internal code organization follows the strict separation of concerns typical\
+  \ of ASP.NET \"Onion\" or \"N-Tier\" architectures.\n\n### 1. Primary Style: Layered\
+  \ Architecture\nThe core of the system is divided into clearly defined horizontal\
+  \ layers located in `src/Libraries`:\n- **Nop.Core (Domain Layer):** Contains base\
+  \ entities (`BaseEntity.cs`), domain models (under `Nop.Core/Domain`), and core\
+  \ infrastructure interfaces. It has no dependencies on other layers.\n- **Nop.Data\
+  \ (Data Access Layer):** Implements the Repository pattern (`IRepository.cs`, `EntityRepository.cs`)\
+  \ and handles database-specific logic using FluentMigrator and LinqToDB/Entity Framework\
+  \ concepts.\n- **Nop.Services (Business Logic Layer):** Contains the \"heavy lifting\"\
+  \ of the application, organized by functional domain (e.g., `Customers`, `Orders`,\
+  \ `Catalog`).\n- **Nop.Web (Presentation Layer):** A single monolithic ASP.NET Core\
+  \ MVC application that serves as the entry point for both the public store and the\
+  \ administration area.\n\n### 2. Secondary Style: Microkernel (Plugin)\nNopCommerce\
+  \ uses a \"Microkernel\" approach to extensibility. The core system provides a skeleton\
+  \ of services, while significant functionality (Payment gateways, Tax providers,\
+  \ Shipping methods) is implemented as external plugins located in `src/Plugins`.\
+  \ \n- **Plugin Infrastructure:** Every plugin has a `plugin.json` descriptor and\
+  \ follows a standard contract (e.g., `src/Plugins/Nop.Plugin.Payments.CheckMoneyOrder`).\n\
+  - **Dynamic Loading:** The `IEngine` interface and its implementation handle the\
+  \ discovery and lifecycle of these plugins, allowing the system to be extended without\
+  \ modifying the core codebase.\n\n### 3. Secondary Style: Event-Driven (Internal)\n\
+  The system employs an internal **Event-Driven** pattern to maintain loose coupling\
+  \ between modules.\n- **Pub/Sub Pattern:** Evidence found in `src/Libraries/Nop.Services/Events/IConsumer.cs`\
+  \ and `src/Libraries/Nop.Core/Events` shows a sophisticated internal event bus.\
+  \ When an entity is inserted, updated, or a specific business action occurs, events\
+  \ (e.g., `EntityInsertedEvent<T>`) are published.\n- **Decoupling:** This allows\
+  \ third-party plugins or separate core modules to \"hook\" into business processes\
+  \ (like order placement) without direct hard-coded dependencies.\n\n### Rejected\
+  \ Styles\n- **Microservices:** Despite having a `docker-compose.yml`, it deploys\
+  \ a single logic unit (the web project) and a database. There are no independent\
+  \ service boundaries or network-isolated domains.\n- **Modular Monolith:** While\
+  \ it has modules, they are primarily organized as horizontal layers (Services vs.\
+  \ Data) rather than vertically sliced, independent business modules with strictly\
+  \ enforced boundaries beyond the plugin system."

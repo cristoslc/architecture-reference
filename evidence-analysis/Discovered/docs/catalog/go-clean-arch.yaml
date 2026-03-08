@@ -12,5 +12,63 @@ domain: Developer Tools
 language: Go
 languages:
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Hexagonal Architecture
+- Layered
+- Domain-Driven Design
+classification_status: classified
+review_notes: "The repository is a textbook implementation of **Hexagonal Architecture**\
+  \ (also known as Ports and Adapters), specifically following the \"Clean Architecture\"\
+  \ flavor popularized by Robert C. Martin. \n\n### Core Architectural Evidence:\n\
+  1.  **Isolation of the Core (Domain):** The `domain/` directory contains entities\
+  \ (e.g., `article.go`, `author.go`) and error definitions that have no dependencies\
+  \ on external frameworks or infrastructure. This represents the inner-most circle\
+  \ of the architecture.\n2.  **Ports (Interfaces):** The project follows the pattern\
+  \ of defining interfaces to describe requirements for external components. Version\
+  \ 4 of the project (per the README) explicitly moved to \"declare interfaces to\
+  \ the consuming side,\" a hallmark of Hexagonal Architecture where the core defines\
+  \ the \"ports\" it needs.\n3.  **Adapters (Infrastructure/Delivery):** \n    * \
+  \  **Driving Adapters:** The `internal/rest/` directory contains the HTTP delivery\
+  \ logic (using the Echo framework), acting as an entry point to the system.\n  \
+  \  *   **Driven Adapters:** The `internal/repository/mysql/` directory contains\
+  \ the concrete implementations of the persistence interfaces defined in the domain/service\
+  \ layers.\n4.  **Dependency Rule:** Dependencies point inwards. The `app/main.go`\
+  \ file acts as the \"Composition Root,\" wire-framing the dependencies by instantiating\
+  \ the MySQL repository, passing it to the internal service (Usecase), and finally\
+  \ injecting that service into the REST handler."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:50:33Z'
+classification_reasoning: "The repository is a textbook implementation of **Hexagonal\
+  \ Architecture** (also known as Ports and Adapters), specifically following the\
+  \ \"Clean Architecture\" flavor popularized by Robert C. Martin. \n\n### Core Architectural\
+  \ Evidence:\n1.  **Isolation of the Core (Domain):** The `domain/` directory contains\
+  \ entities (e.g., `article.go`, `author.go`) and error definitions that have no\
+  \ dependencies on external frameworks or infrastructure. This represents the inner-most\
+  \ circle of the architecture.\n2.  **Ports (Interfaces):** The project follows the\
+  \ pattern of defining interfaces to describe requirements for external components.\
+  \ Version 4 of the project (per the README) explicitly moved to \"declare interfaces\
+  \ to the consuming side,\" a hallmark of Hexagonal Architecture where the core defines\
+  \ the \"ports\" it needs.\n3.  **Adapters (Infrastructure/Delivery):** \n    * \
+  \  **Driving Adapters:** The `internal/rest/` directory contains the HTTP delivery\
+  \ logic (using the Echo framework), acting as an entry point to the system.\n  \
+  \  *   **Driven Adapters:** The `internal/repository/mysql/` directory contains\
+  \ the concrete implementations of the persistence interfaces defined in the domain/service\
+  \ layers.\n4.  **Dependency Rule:** Dependencies point inwards. The `app/main.go`\
+  \ file acts as the \"Composition Root,\" wire-framing the dependencies by instantiating\
+  \ the MySQL repository, passing it to the internal service (Usecase), and finally\
+  \ injecting that service into the REST handler.\n\n### Style Justification:\n* \
+  \  **Hexagonal Architecture:** The separation between `internal/rest` (adapter),\
+  \ `article/service.go` (application logic/port), and `internal/repository` (adapter)\
+  \ clearly implements the Ports and Adapters pattern.\n*   **Layered:** While it\
+  \ uses layers (Delivery, Usecase, Repository, Models), it is more specialized than\
+  \ a traditional horizontal layer stack because it focuses on dependency inversion.\n\
+  *   **Domain-Driven Design (DDD):** The repository uses DDD tactical patterns, specifically\
+  \ **Entities** and **Bounded Contexts** (indicated by the `article` and `author`\
+  \ separation), though it is a simplified version.\n\n### Rejected Styles:\n*   **Modular\
+  \ Monolith:** While organized, the modules are split by technical concern (rest,\
+  \ repository) rather than strictly by independent business domains that could be\
+  \ extracted into separate services.\n*   **Microservices:** The presence of a single\
+  \ `app/main.go` and one `Dockerfile` confirms this is a single deployable unit."

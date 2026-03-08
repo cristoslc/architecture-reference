@@ -14,5 +14,114 @@ languages:
 - C#
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Hexagonal Architecture
+- CQRS
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'This repository is a classic implementation of **Hexagonal Architecture**
+  (commonly referred to in the .NET ecosystem as **Clean Architecture**, as explicitly
+  stated in the README). The codebase is structured into concentric layers where dependencies
+  point inwards toward the core logic, isolating the application from external concerns
+  like databases and UI frameworks.
+
+
+  ### Evidence for Hexagonal Architecture
+
+  The project is divided into distinct projects within the `Src/` directory that map
+  directly to Hexagonal/Clean layers:
+
+  1.  **Domain (`Src/Domain`)**: The "Center." It contains enterprise logic, entities
+  (e.g., `Customer.cs`, `Product.cs`), and value objects (`AdAccount.cs`), with zero
+  dependencies on other layers.
+
+  2.  **Application (`Src/Application`)**: The "Core." This layer defines the interfaces
+  (`Src/Application/Common/Interfaces`) that act as **Ports**. It contains the business
+  flow logic and is independent of data access or UI frameworks.
+
+  3.  **Infrastructure/Persistence (`Src/Infrastructure`, `Src/Persistence`)**: The
+  **Adapters**. These projects implement the interfaces defined in the Application
+  layer (e.g., `NorthwindDbContext.cs` implementing database access).
+
+  4.  **WebUI (`Src/WebUI`)**: The entry point or "Primary Adapter," containing the
+  controllers and the frontend (Angular).
+
+
+  ### Evidence for CQRS (Command Query Responsibility Segregation)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:03:55Z'
+classification_reasoning: 'This repository is a classic implementation of **Hexagonal
+  Architecture** (commonly referred to in the .NET ecosystem as **Clean Architecture**,
+  as explicitly stated in the README). The codebase is structured into concentric
+  layers where dependencies point inwards toward the core logic, isolating the application
+  from external concerns like databases and UI frameworks.
+
+
+  ### Evidence for Hexagonal Architecture
+
+  The project is divided into distinct projects within the `Src/` directory that map
+  directly to Hexagonal/Clean layers:
+
+  1.  **Domain (`Src/Domain`)**: The "Center." It contains enterprise logic, entities
+  (e.g., `Customer.cs`, `Product.cs`), and value objects (`AdAccount.cs`), with zero
+  dependencies on other layers.
+
+  2.  **Application (`Src/Application`)**: The "Core." This layer defines the interfaces
+  (`Src/Application/Common/Interfaces`) that act as **Ports**. It contains the business
+  flow logic and is independent of data access or UI frameworks.
+
+  3.  **Infrastructure/Persistence (`Src/Infrastructure`, `Src/Persistence`)**: The
+  **Adapters**. These projects implement the interfaces defined in the Application
+  layer (e.g., `NorthwindDbContext.cs` implementing database access).
+
+  4.  **WebUI (`Src/WebUI`)**: The entry point or "Primary Adapter," containing the
+  controllers and the frontend (Angular).
+
+
+  ### Evidence for CQRS (Command Query Responsibility Segregation)
+
+  The internal structure of the `Application` layer is strictly organized by Commands
+  and Queries rather than by service-based grouping:
+
+  - `Src/Application/Customers/Commands`
+
+  - `Src/Application/Customers/Queries`
+
+  - `Src/Application/Products/Commands`
+
+  - `Src/Application/Products/Queries`
+
+  This layout, combined with the presence of `Behaviours` (typically used with MediatR
+  in .NET), indicates that the system separates read and write operations into distinct
+  objects.
+
+
+  ### Evidence for Domain-Driven Design (DDD)
+
+  The repository employs several DDD tactical patterns:
+
+  - **Entities and Value Objects**: Located in `Src/Domain/Entities` and `Src/Domain/ValueObjects`,
+  using a base `ValueObject` class to handle equality logic.
+
+  - **Bounded Contexts**: While organized as a single monolith, the folder names under
+  `Application` (Customers, Products, Employees) align with domain boundaries.
+
+  - **Auditable Entities**: Uses a common `AuditableEntity` base to manage metadata
+  across the domain.
+
+
+  ### Rejected Styles
+
+  - **Layered (Traditional)**: Rejected because it does not follow the traditional
+  "UI -> Service -> Data" dependency flow; instead, it uses Dependency Inversion to
+  ensure the Core is independent of the Database.
+
+  - **Microservices**: Rejected as the solution compiles into a single deployable
+  unit (the WebUI project) and sits within a single `.sln` (solution) file.
+
+  - **Modular Monolith**: While it has modules, the separation is primarily by technical
+  layer (Clean Architecture) rather than strict vertical functional slicing that encapsulates
+  its own persistence per module.'

@@ -15,5 +15,86 @@ languages:
 - Python
 - C#
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+classification_status: classified
+review_notes: 'The repository is a textbook example of a **Microservices** architecture,
+  designed specifically by Google to demonstrate cloud-native patterns on Kubernetes.
+
+
+  ### Primary Style: Microservices
+
+  The codebase is structured into 11+ autonomous services, each residing in its own
+  directory under `/src/` (e.g., `src/frontend`, `src/cartservice`, `src/paymentservice`).
+  The microservices architecture is evidenced by:
+
+  - **Polyglot Implementation:** Services are written in a variety of languages including
+  Go, C#, Node.js, Python, and Java, which is a hallmark of independent service boundaries.
+
+  - **Independent Deployability:** Each service directory contains its own `Dockerfile`,
+  and the `/kubernetes-manifests` directory contains separate YAML specifications
+  for each service (e.g., `emailservice.yaml`, `paymentservice.yaml`).
+
+  - **Standardized Inter-service Communication:** The services communicate via gRPC.
+  The interface contracts are strictly defined in a central `/protos/demo.proto` file,
+  which is then used to generate code for the various languages (seen in `genproto.sh`
+  scripts across services).
+
+  - **Decentralized Data Management:** The README and architecture diagram indicate
+  that services manage their own state (e.g., `cartservice` uses Redis).
+
+
+  ### Secondary Style: Event-Driven'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:01:25Z'
+classification_reasoning: 'The repository is a textbook example of a **Microservices**
+  architecture, designed specifically by Google to demonstrate cloud-native patterns
+  on Kubernetes.
+
+
+  ### Primary Style: Microservices
+
+  The codebase is structured into 11+ autonomous services, each residing in its own
+  directory under `/src/` (e.g., `src/frontend`, `src/cartservice`, `src/paymentservice`).
+  The microservices architecture is evidenced by:
+
+  - **Polyglot Implementation:** Services are written in a variety of languages including
+  Go, C#, Node.js, Python, and Java, which is a hallmark of independent service boundaries.
+
+  - **Independent Deployability:** Each service directory contains its own `Dockerfile`,
+  and the `/kubernetes-manifests` directory contains separate YAML specifications
+  for each service (e.g., `emailservice.yaml`, `paymentservice.yaml`).
+
+  - **Standardized Inter-service Communication:** The services communicate via gRPC.
+  The interface contracts are strictly defined in a central `/protos/demo.proto` file,
+  which is then used to generate code for the various languages (seen in `genproto.sh`
+  scripts across services).
+
+  - **Decentralized Data Management:** The README and architecture diagram indicate
+  that services manage their own state (e.g., `cartservice` uses Redis).
+
+
+  ### Secondary Style: Event-Driven
+
+  While the primary communication is synchronous request-response via gRPC, some orchestration
+  (specifically in the `checkoutservice`) and notification flows (like the `emailservice`)
+  follow event-like patterns where one action triggers downstream asynchronous-style
+  processing across service boundaries.
+
+
+  ### Key Architectural Artifacts:
+
+  - **Service Mesh Integration:** The presence of `istio-manifests/` and references
+  to Cloud Service Mesh indicate the use of a sidecar pattern for observability, security,
+  and traffic management.
+
+  - **Infrastructure as Code:** The `/terraform` and `/kustomize` directories manage
+  the deployment environment, showing how the microservices are orchestrated at the
+  infrastructure level.
+
+  - **API Gateway/Front Door:** The `frontend` service acts as the edge component,
+  translating HTTP/HTML for the user into gRPC calls for the internal backend services.'

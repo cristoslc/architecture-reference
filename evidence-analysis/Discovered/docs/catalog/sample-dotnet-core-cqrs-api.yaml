@@ -12,5 +12,62 @@ domain: Developer Tools
 language: C#
 languages:
 - C#
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- CQRS
+- Domain-Driven Design
+- Hexagonal Architecture
+classification_status: classified
+review_notes: "This repository is a textbook implementation of **CQRS** combined with\
+  \ **Domain-Driven Design (DDD)**, structured using **Hexagonal Architecture** (commonly\
+  \ referred to in the .NET ecosystem as \"Clean Architecture\"). \n\n### 1. CQRS\
+  \ (Command Query Responsibility Segregation)\nThe codebase explicitly separates\
+  \ read and write concerns as stated in the README and evidenced by the project structure:\n\
+  - **Write Model:** Uses DDD principles, encapsulated in `src/SampleProject.Domain`.\
+  \ It utilizes Entity Framework Core for persistence within `src/SampleProject.Infrastructure`.\n\
+  - **Read Model:** Employs raw SQL with Dapper for high-performance reads, bypassing\
+  \ the domain model entirely.\n- **Mediator Pattern:** The use of the MediatR library\
+  \ (`src/SampleProject.Infrastructure/Processing/MediatorModule.cs`) acts as the\
+  \ command/query bus, decoupling the API controllers from the underlying handlers.\n\
+  - **Folder Structure:** Within `SampleProject.Application`, operations are grouped\
+  \ by feature (e.g., `Customers/RegisterCustomer` vs `Customers/GetCustomerDetails`),\
+  \ separating the side-effect-producing commands from the data-returning queries.\n\
+  \n### 2. Domain-Driven Design (DDD)"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:09:24Z'
+classification_reasoning: "This repository is a textbook implementation of **CQRS**\
+  \ combined with **Domain-Driven Design (DDD)**, structured using **Hexagonal Architecture**\
+  \ (commonly referred to in the .NET ecosystem as \"Clean Architecture\"). \n\n###\
+  \ 1. CQRS (Command Query Responsibility Segregation)\nThe codebase explicitly separates\
+  \ read and write concerns as stated in the README and evidenced by the project structure:\n\
+  - **Write Model:** Uses DDD principles, encapsulated in `src/SampleProject.Domain`.\
+  \ It utilizes Entity Framework Core for persistence within `src/SampleProject.Infrastructure`.\n\
+  - **Read Model:** Employs raw SQL with Dapper for high-performance reads, bypassing\
+  \ the domain model entirely.\n- **Mediator Pattern:** The use of the MediatR library\
+  \ (`src/SampleProject.Infrastructure/Processing/MediatorModule.cs`) acts as the\
+  \ command/query bus, decoupling the API controllers from the underlying handlers.\n\
+  - **Folder Structure:** Within `SampleProject.Application`, operations are grouped\
+  \ by feature (e.g., `Customers/RegisterCustomer` vs `Customers/GetCustomerDetails`),\
+  \ separating the side-effect-producing commands from the data-returning queries.\n\
+  \n### 2. Domain-Driven Design (DDD)\nThe system is organized around rich domain\
+  \ models rather than data structures:\n- **Aggregates and Entities:** Found in `src/SampleProject.Domain`\
+  \ (e.g., `Customer.cs`, `Order.cs`).\n- **SeedWork:** Includes base classes for\
+  \ `IAggregateRoot`, `Entity`, `ValueObject`, and `IDomainEvent` (`src/SampleProject.Domain/SeedWork/`).\n\
+  - **Domain Events:** Used for internal side effects (e.g., `CustomerRegisteredEvent.cs`)\
+  \ and handled via an Outbox pattern implemented in `src/SampleProject.Infrastructure/Processing/Outbox`.\n\
+  \n### 3. Hexagonal / Clean Architecture\nThe project dependencies flow inwards toward\
+  \ the Domain layer:\n- **Domain (`SampleProject.Domain`):** The core, containing\
+  \ business logic and rules with no external dependencies.\n- **Application (`SampleProject.Application`):**\
+  \ Coordinates tasks and delegates work to the domain. Contains interfaces (Ports)\
+  \ but no implementation details regarding infrastructure.\n- **Infrastructure (`SampleProject.Infrastructure`):**\
+  \ Implements the interfaces defined in the inner layers (Adapters), such as `SqlConnectionFactory.cs`,\
+  \ `EmailSender.cs`, and Quartz jobs.\n- **API (`SampleProject.API`):** The entry\
+  \ point (Driving Adapter) that handles HTTP requests and communicates only through\
+  \ the Application layer.\n\n### Evidence of Decoupling\n- **Outbox Pattern:** The\
+  \ implementation in `src/SampleProject.Infrastructure/Processing/Outbox` ensures\
+  \ atomicity between database updates and event publishing, a hallmark of sophisticated\
+  \ DDD/CQRS systems.\n- **Decorators:** Extensive use of the Decorator pattern for\
+  \ cross-cutting concerns (logging, validation, unit of work) in `src/SampleProject.Infrastructure/Processing/`,\
+  \ keeping the application logic pure."

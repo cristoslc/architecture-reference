@@ -14,5 +14,110 @@ languages:
 - TypeScript
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: 'The Mattermost repository follows a highly structured **Layered** architecture,
+  which is the standard for large-scale Go applications. While it has characteristics
+  of a Modular Monolith, its primary organizational principle is the separation of
+  concerns through horizontal layers (Web/API, Business Logic, and Data Access).
+
+
+  ### 1. Primary Style: Layered
+
+  The codebase is strictly divided into three primary horizontal layers:
+
+  - **Presentation/Web Layer (`server/channels/web`, `server/channels/wsapi`):** Handles
+  HTTP requests, WebSockets, and session context (`context.go`, `handlers.go`). It
+  translates external requests into calls to the business layer.
+
+  - **Business Logic Layer (`server/channels/app`):** This is the core of the system.
+  The `App` struct (defined in `server/channels/app/app.go`) acts as the central orchestrator.
+  Most business logic resides here (e.g., `server/channels/app/post.go`, `server/channels/app/user.go`).
+  As seen in `limits.go`, the `App` methods coordinate between the store, license
+  checks, and server state.
+
+  - **Data Access Layer (`server/channels/store`):** This layer abstracts all database
+  interactions. The `Store` interface in `server/channels/store/store.go` defines
+  a strict contract for data operations, isolating the business logic from SQL specifics.
+  It uses a "repository-per-entity" pattern (e.g., `TeamStore`, `ChannelStore`, `PostStore`).
+
+
+  ### 2. Secondary Style: Plugin (Microkernel)
+
+  Mattermost utilizes a sophisticated **Plugin** architecture to extend its core functionality
+  without modifying the base server.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:58:49Z'
+classification_reasoning: 'The Mattermost repository follows a highly structured **Layered**
+  architecture, which is the standard for large-scale Go applications. While it has
+  characteristics of a Modular Monolith, its primary organizational principle is the
+  separation of concerns through horizontal layers (Web/API, Business Logic, and Data
+  Access).
+
+
+  ### 1. Primary Style: Layered
+
+  The codebase is strictly divided into three primary horizontal layers:
+
+  - **Presentation/Web Layer (`server/channels/web`, `server/channels/wsapi`):** Handles
+  HTTP requests, WebSockets, and session context (`context.go`, `handlers.go`). It
+  translates external requests into calls to the business layer.
+
+  - **Business Logic Layer (`server/channels/app`):** This is the core of the system.
+  The `App` struct (defined in `server/channels/app/app.go`) acts as the central orchestrator.
+  Most business logic resides here (e.g., `server/channels/app/post.go`, `server/channels/app/user.go`).
+  As seen in `limits.go`, the `App` methods coordinate between the store, license
+  checks, and server state.
+
+  - **Data Access Layer (`server/channels/store`):** This layer abstracts all database
+  interactions. The `Store` interface in `server/channels/store/store.go` defines
+  a strict contract for data operations, isolating the business logic from SQL specifics.
+  It uses a "repository-per-entity" pattern (e.g., `TeamStore`, `ChannelStore`, `PostStore`).
+
+
+  ### 2. Secondary Style: Plugin (Microkernel)
+
+  Mattermost utilizes a sophisticated **Plugin** architecture to extend its core functionality
+  without modifying the base server.
+
+  - Evidence of this is found in `server/channels/app/plugin.go` and the `PluginStore`
+  interface.
+
+  - The system supports runtime loading of plugins, providing them with a restricted
+  API (`plugin_api.go`) and hooks into server events (`plugin_hooks_test.go`).
+
+  - This allows Mattermost to remain an "open core" while enabling a marketplace of
+  integrations.
+
+
+  ### 3. Secondary Style: Modular Monolith
+
+  Although it compiles into a "single Linux binary" (per README), the project is moving
+  toward a **Modular Monolith** via the `server/platform` and `webapp/platform` directories.
+
+  - These directories contain shared components and services (like `server/platform/services/cache`
+  or `searchengine`) that are intended to be independent of the "Channels" (messaging)
+  domain.
+
+  - There is a clear effort to separate "Platform" concerns from "Product" (Channels)
+  concerns, though they currently live within the same deployment unit and repository.
+
+
+  ### Architecture Rejections
+
+  - **Microservices:** Explicitly rejected by the README ("runs as a single Linux
+  binary"). While it has many "services" folders, these are internal Go packages,
+  not independently deployable units.
+
+  - **Hexagonal:** While it uses interfaces for the Store, the `App` layer is heavily
+  coupled to the `Store` and `model` packages, lacking the strict "ports and adapters"
+  isolation typical of true Hexagonal setups.
+
+  - **Event-Driven:** While it uses a `web_hub.go` for WebSocket broadcasts, the core
+  request-response flow is synchronous and stateful.'

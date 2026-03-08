@@ -12,5 +12,69 @@ domain: Healthcare
 language: Java/Kotlin
 languages:
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Layered
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: "HAPI FHIR is a textbook example of a **Modular Monolith** organized\
+  \ as a Maven multi-module project. While it contains components that can be used\
+  \ to build distributed systems, the repository itself is structured as a single\
+  \ massive codebase with strictly defined module boundaries that are compiled and\
+  \ distributed as a set of library and server components.\n\n### 1. Modular Monolith\
+  \ (Primary Style)\nThe repository is divided into dozens of highly specific modules\
+  \ (e.g., `hapi-fhir-jpaserver-searchparam`, `hapi-fhir-storage`, `hapi-fhir-structures-r4`).\
+  \ \n- **Enforced Boundaries:** Each module has its own `pom.xml`, defining clear\
+  \ dependency trees. This prevents circular dependencies and forces developers to\
+  \ use defined internal APIs to interact with other parts of the system.\n- **Versioned\
+  \ Components:** The modules are versions of the FHIR specification (DSTU2, DSTU3,\
+  \ R4, R5). This allows consumers to pick and choose specific versions while the\
+  \ core remains shared, a hallmark of a robust modular design.\n- **Shared Deployment\
+  \ Logic:** While the code is modular, the `hapi-fhir-dist` and `hapi-fhir-deployable-pom`\
+  \ suggest the project is intended to be built and released as a unified set of artifacts\
+  \ or a single distribution (like the HAPI FHIR CLI or the JPA Server).\n\n### 2.\
+  \ Layered (Secondary Style)\nWithin the modules, the project follows a classic horizontal\
+  \ layering pattern:"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:51:35Z'
+classification_reasoning: "HAPI FHIR is a textbook example of a **Modular Monolith**\
+  \ organized as a Maven multi-module project. While it contains components that can\
+  \ be used to build distributed systems, the repository itself is structured as a\
+  \ single massive codebase with strictly defined module boundaries that are compiled\
+  \ and distributed as a set of library and server components.\n\n### 1. Modular Monolith\
+  \ (Primary Style)\nThe repository is divided into dozens of highly specific modules\
+  \ (e.g., `hapi-fhir-jpaserver-searchparam`, `hapi-fhir-storage`, `hapi-fhir-structures-r4`).\
+  \ \n- **Enforced Boundaries:** Each module has its own `pom.xml`, defining clear\
+  \ dependency trees. This prevents circular dependencies and forces developers to\
+  \ use defined internal APIs to interact with other parts of the system.\n- **Versioned\
+  \ Components:** The modules are versions of the FHIR specification (DSTU2, DSTU3,\
+  \ R4, R5). This allows consumers to pick and choose specific versions while the\
+  \ core remains shared, a hallmark of a robust modular design.\n- **Shared Deployment\
+  \ Logic:** While the code is modular, the `hapi-fhir-dist` and `hapi-fhir-deployable-pom`\
+  \ suggest the project is intended to be built and released as a unified set of artifacts\
+  \ or a single distribution (like the HAPI FHIR CLI or the JPA Server).\n\n### 2.\
+  \ Layered (Secondary Style)\nWithin the modules, the project follows a classic horizontal\
+  \ layering pattern:\n- **Presentation/API:** `hapi-fhir-server` and `hapi-fhir-server-openapi`\
+  \ handle the RESTful FHIR interface.\n- **Business/Logic:** `hapi-fhir-base` and\
+  \ `hapi-fhir-converter` handle the processing and transformation logic.\n- **Data\
+  \ Access:** `hapi-fhir-jpa-hibernate-services` and `hapi-fhir-jpaserver-searchparam`\
+  \ manage the persistence layer using Hibernate/JPA.\n\n### 3. Microkernel (Plugin)\
+  \ (Secondary Style)\nThe project utilizes a Microkernel-like approach to handle\
+  \ the extensibility of the FHIR terminal and its internal caching mechanisms:\n\
+  - **ServiceLoaders:** The path `hapi-fhir-serviceloaders/` indicates the use of\
+  \ Java's ServiceLoader SPI to dynamically plug in different implementations (e.g.,\
+  \ `hapi-fhir-caching-caffeine` vs `hapi-fhir-caching-guava`).\n- **Tinder Plugin:**\
+  \ The `hapi-tinder-plugin` is a specialized code-generation tool that plugs into\
+  \ the build process to extend the core capabilities based on FHIR resource definitions.\n\
+  \n### Discarded Styles:\n- **Microservices:** While HAPI FHIR *can* be deployed\
+  \ in a microservice fashion (especially by users of the library), the repository\
+  \ itself contains no evidence of independent service deployment units like Kubernetes\
+  \ manifests, sidecars, or an API gateway. It is a library and server framework project.\n\
+  - **Event-Driven:** Though the storage layer might use internal events, the primary\
+  \ interaction pattern is synchronous RESTful API calls.\n- **Hexagonal Architecture:**\
+  \ While it uses some abstractions, the core is heavily coupled to JPA/Hibernate\
+  \ in the `jpaserver` modules, rather than strictly isolating the domain from the\
+  \ persistence adapter via ports."

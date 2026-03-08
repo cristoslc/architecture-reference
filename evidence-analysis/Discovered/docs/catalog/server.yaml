@@ -13,5 +13,66 @@ language: C#
 languages:
 - C#
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Layered
+- Modular Monolith
+classification_status: classified
+review_notes: "Nextcloud Server is a classic example of a **Microkernel (Plugin)**\
+  \ architecture. The codebase is divided into a \"Core\" system (the microkernel)\
+  \ and a vast array of \"Apps\" (the plugins) that extend the system's functionality.\n\
+  \n### 1. Microkernel (Plugin) Evidence\nThe architecture is explicitly designed\
+  \ to be extensible through the `apps/` directory. \n- **Core vs. Extension:** The\
+  \ `lib/` directory contains the core platform services (the microkernel), while\
+  \ `apps/` contains optional but critical units like `encryption`, `files_trashbin`,\
+  \ and `user_ldap`.\n- **Plugin Contracts:** The `lib/public` directory serves as\
+  \ the strictly defined **SDK/API surface** for app developers. The presence of numerous\
+  \ interfaces (e.g., `lib/public/IAppConfig.php`, `lib/public/IUserManager.php`)\
+  \ establishes the contract between the kernel and the plugins.\n- **Plugin Metadata:**\
+  \ Each app contains an `appinfo/info.xml` file (e.g., `apps/encryption/appinfo/info.xml`)\
+  \ that defines how the app hooks into the core system, including background jobs,\
+  \ repair steps, console commands, and settings sections.\n- **Dynamic Loading:**\
+  \ The `OC\\AppFramework\\App` class (found in `lib/private/AppFramework/App.php`)\
+  \ manages the lifecycle of these apps, handling namespacing (`buildAppNamespace`)\
+  \ and dependency injection for each individual module.\n\n### 2. Layered (Secondary\
+  \ Style)"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:10:32Z'
+classification_reasoning: "Nextcloud Server is a classic example of a **Microkernel\
+  \ (Plugin)** architecture. The codebase is divided into a \"Core\" system (the microkernel)\
+  \ and a vast array of \"Apps\" (the plugins) that extend the system's functionality.\n\
+  \n### 1. Microkernel (Plugin) Evidence\nThe architecture is explicitly designed\
+  \ to be extensible through the `apps/` directory. \n- **Core vs. Extension:** The\
+  \ `lib/` directory contains the core platform services (the microkernel), while\
+  \ `apps/` contains optional but critical units like `encryption`, `files_trashbin`,\
+  \ and `user_ldap`.\n- **Plugin Contracts:** The `lib/public` directory serves as\
+  \ the strictly defined **SDK/API surface** for app developers. The presence of numerous\
+  \ interfaces (e.g., `lib/public/IAppConfig.php`, `lib/public/IUserManager.php`)\
+  \ establishes the contract between the kernel and the plugins.\n- **Plugin Metadata:**\
+  \ Each app contains an `appinfo/info.xml` file (e.g., `apps/encryption/appinfo/info.xml`)\
+  \ that defines how the app hooks into the core system, including background jobs,\
+  \ repair steps, console commands, and settings sections.\n- **Dynamic Loading:**\
+  \ The `OC\\AppFramework\\App` class (found in `lib/private/AppFramework/App.php`)\
+  \ manages the lifecycle of these apps, handling namespacing (`buildAppNamespace`)\
+  \ and dependency injection for each individual module.\n\n### 2. Layered (Secondary\
+  \ Style)\nWithin both the core and the apps, Nextcloud follows a strict horizontal\
+  \ **Layered** pattern, influenced by the Symfony/Pimple stack:\n- **Presentation:**\
+  \ Handled by `Controller` classes (referenced in `App.php` and found within `apps/*/lib/Controller`).\n\
+  - **Domain/Business Logic:** Often located in `Service` or `Manager` classes within\
+  \ the `lib/` folders.\n- **Data Access:** Utilizes a `Migration` layer (seen in\
+  \ `core/Migrations`) and `Mapper`/`Database` abstractions.\n\n### 3. Modular Monolith\
+  \ (Secondary Style)\nWhile it functions as a plugin system, the \"Server\" repository\
+  \ itself is a **Modular Monolith** because it bundles several \"shipped\" apps (like\
+  \ `files`, `settings`, and `dav`) into a single deployment unit. \n- **Enforced\
+  \ Boundaries:** The separation of `lib/public` (exposed API) versus `lib/private`\
+  \ (internal core logic) is a conscious effort to enforce module boundaries and prevent\
+  \ apps from tightly coupling to the core transitionary logic.\n- **Shared Unit:**\
+  \ Despite the modularity, the entire system is typically deployed as a single PHP\
+  \ runtime instance sharing a common configuration and database schema.\n\n### Rejection\
+  \ of Microservices\nAlthough the system has internal \"services,\" they are not\
+  \ independently deployable. They share the same memory space and runtime environment\
+  \ (PHP). Communication is done via direct method calls or an internal `EventDispatcher`\
+  \ rather than network-based RPC or message brokers."

@@ -14,5 +14,99 @@ languages:
 - PHP
 - JavaScript
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Layered
+classification_status: classified
+review_notes: 'Moodle is a classic example of a **Microkernel (Plugin)** architecture.
+  The system is built around a minimal core ("the kernel") that provides essential
+  services (user management, permissions, database abstraction), while nearly all
+  functional features are implemented as plugins (known in Moodle as "components"
+  or "plugintypes").
+
+
+  ### Evidence for Microkernel (Plugin)
+
+  The repository structure is strictly organized by plugin types, where each subdirectory
+  under `public/` (or the root in older versions) represents a specific category of
+  plugin with a standardized internal contract:
+
+  - **Consistent Plugin Structure:** Every plugin folder (e.g., `public/blocks/rss_client/`,
+  `public/blocks/recent_activity/`) contains a standardized set of files: `version.php`
+  for metadata/dependency management, `db/` for schema definitions, and `lang/` for
+  internationalization.
+
+  - **Plugin Categories:** The directory tree shows a deep hierarchy of plugin types.
+  For instance, `public/blocks/` contains various UI widgets. Other standard Moodle
+  directories (though only partially visible in the depth-4 tree) include `mod/` (activity
+  modules), `auth/` (authentication methods), and `enrol/` (enrolment plugins).
+
+  - **Extension Points:** The core system discovers these plugins at runtime, scans
+  their `version.php` and `db/` directories to handle installations/upgrades, and
+  calls specific hooks or extends base classes (like `moodleblock.class.php`) to integrate
+  the plugin''s functionality into the UI.
+
+
+  ### Evidence for Layered Architecture
+
+  Within each plugin and the core, Moodle follows a **Layered** approach:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:02:10Z'
+classification_reasoning: 'Moodle is a classic example of a **Microkernel (Plugin)**
+  architecture. The system is built around a minimal core ("the kernel") that provides
+  essential services (user management, permissions, database abstraction), while nearly
+  all functional features are implemented as plugins (known in Moodle as "components"
+  or "plugintypes").
+
+
+  ### Evidence for Microkernel (Plugin)
+
+  The repository structure is strictly organized by plugin types, where each subdirectory
+  under `public/` (or the root in older versions) represents a specific category of
+  plugin with a standardized internal contract:
+
+  - **Consistent Plugin Structure:** Every plugin folder (e.g., `public/blocks/rss_client/`,
+  `public/blocks/recent_activity/`) contains a standardized set of files: `version.php`
+  for metadata/dependency management, `db/` for schema definitions, and `lang/` for
+  internationalization.
+
+  - **Plugin Categories:** The directory tree shows a deep hierarchy of plugin types.
+  For instance, `public/blocks/` contains various UI widgets. Other standard Moodle
+  directories (though only partially visible in the depth-4 tree) include `mod/` (activity
+  modules), `auth/` (authentication methods), and `enrol/` (enrolment plugins).
+
+  - **Extension Points:** The core system discovers these plugins at runtime, scans
+  their `version.php` and `db/` directories to handle installations/upgrades, and
+  calls specific hooks or extends base classes (like `moodleblock.class.php`) to integrate
+  the plugin''s functionality into the UI.
+
+
+  ### Evidence for Layered Architecture
+
+  Within each plugin and the core, Moodle follows a **Layered** approach:
+
+  - **Persistence/Logic:** The presence of `classes/` directories containing `persistent.php`,
+  `api.php`, and `external.php` suggests a separation between data objects, internal
+  business logic, and external API entry points.
+
+  - **Presentation:** The use of `templates/`, `styles.css`, and `renderer.php` within
+  plugin folders indicates a dedicated presentation layer, often utilizing the Mustache
+  templating engine (implied by `.templates` folders).
+
+  - **CLI/Web Separation:** The `admin/cli/` directory demonstrates a clear separation
+  between web-based logic and administrative Command Line Interfaces.
+
+
+  ### Style Rejections
+
+  - **Microservices:** While Moodle has many components, they are not independently
+  deployable. They share a single database, run in the same PHP process, and are distributed
+  as a single monolithic codebase.
+
+  - **Modular Monolith:** While its plugins are modular, it leans more towards Microkernel
+  because the "modules" are specifically designed as hot-swappable extensions to a
+  central core rather than just logical boundaries within a single application. Moodle''s
+  "Plugintypes" system is more formal than standard modularity.'

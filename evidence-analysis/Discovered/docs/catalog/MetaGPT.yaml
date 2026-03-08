@@ -14,5 +14,108 @@ languages:
 - Python
 - JavaScript
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Multi-Agent
+- Event-Driven
+- Layered
+classification_status: classified
+review_notes: 'MetaGPT is a textbook implementation of a **Multi-Agent** architecture.
+  The codebase is explicitly organized around the coordination of autonomous entities
+  ("Roles") that encapsulate logic, state, and decision-making capabilities to achieve
+  a shared goal.
+
+
+  ### 1. Multi-Agent (Primary Style)
+
+  The core of the repository is built on the interaction between autonomous agents.
+
+  - **Agent Encapsulation:** The `metagpt/roles/role.py` file defines the `Role` base
+  class, which encapsulates its own "Memory," "Actions," and "React Mode" (e.g., `PLAN_AND_ACT`).
+  This follows the agent-oriented paradigm where each component is an independent
+  actor.
+
+  - **Social Coordination:** The system uses a "Software Company" metaphor to manage
+  complex tasks, assigning specialized agents like `ProductManager`, `Architect`,
+  and `Engineer` (`metagpt/roles/`).
+
+  - **Environment Context:** The `metagpt/environment/base_env.py` provides the "world"
+  (the `Environment` class) where agents exist, observe state, and act. This is a
+  fundamental characteristic of Multi-Agent Systems (MAS).
+
+
+  ### 2. Event-Driven (Secondary Style)
+
+  While the high-level logic is Multi-Agent, the underlying communication mechanism
+  is a sophisticated **Event-Driven** pub/sub system.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:01:19Z'
+classification_reasoning: 'MetaGPT is a textbook implementation of a **Multi-Agent**
+  architecture. The codebase is explicitly organized around the coordination of autonomous
+  entities ("Roles") that encapsulate logic, state, and decision-making capabilities
+  to achieve a shared goal.
+
+
+  ### 1. Multi-Agent (Primary Style)
+
+  The core of the repository is built on the interaction between autonomous agents.
+
+  - **Agent Encapsulation:** The `metagpt/roles/role.py` file defines the `Role` base
+  class, which encapsulates its own "Memory," "Actions," and "React Mode" (e.g., `PLAN_AND_ACT`).
+  This follows the agent-oriented paradigm where each component is an independent
+  actor.
+
+  - **Social Coordination:** The system uses a "Software Company" metaphor to manage
+  complex tasks, assigning specialized agents like `ProductManager`, `Architect`,
+  and `Engineer` (`metagpt/roles/`).
+
+  - **Environment Context:** The `metagpt/environment/base_env.py` provides the "world"
+  (the `Environment` class) where agents exist, observe state, and act. This is a
+  fundamental characteristic of Multi-Agent Systems (MAS).
+
+
+  ### 2. Event-Driven (Secondary Style)
+
+  While the high-level logic is Multi-Agent, the underlying communication mechanism
+  is a sophisticated **Event-Driven** pub/sub system.
+
+  - **Message Routing:** Agents do not call each other''s methods directly. Instead,
+  they use `publish_message` and `put_message` (`metagpt/roles/role.py`).
+
+  - **Observation Pattern:** Roles use an `_observe()` method to filter the global
+  environment''s message stream based on "watched" tags or actions. The `Environment.publish_message`
+  method in `metagpt/environment/base_env.py` acts as a message broker that routes
+  events to the appropriate recipient buffers (`member_addrs`).
+
+
+  ### 3. Layered (Secondary Style)
+
+  The framework maintains a clear horizontal separation of concerns:
+
+  - **Provider Layer:** (`metagpt/provider/`) abstracts different LLM backends (OpenAI,
+  Claude, Gemini, etc.).
+
+  - **Action/Logic Layer:** (`metagpt/actions/`) contains discrete atomic tasks (e.g.,
+  `WriteCode`, `DesignAPI`).
+
+  - **Role/Agent Layer:** (`metagpt/roles/`) composes actions into behavioral logic
+  and personas.
+
+  - **Team/Orchestration Layer:** (`metagpt/team.py`, `metagpt/software_company.py`)
+  manages the lifecycle and high-level goals of the collective agents.
+
+
+  ### Rejection of Other Styles
+
+  - **Microservices:** While roles are independent, they run within a single process/memory
+  space and are not independently deployable units.
+
+  - **Pipeline:** Although software development follows a sequence (PRD -> Design
+  -> Code), MetaGPT allows for iterative loops and non-linear interactions through
+  agent reaction, making it more dynamic than a strict pipeline.
+
+  - **Microkernel (Plugin):** While there is a `metagpt/tools/` system that functions
+  somewhat like plugins, the architecture''s primary focus is agent autonomy rather
+  than core extension via a strict plugin interface.'

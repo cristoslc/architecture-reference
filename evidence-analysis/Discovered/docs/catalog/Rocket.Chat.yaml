@@ -13,5 +13,79 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+- Modular Monolith
+classification_status: classified
+review_notes: 'The Rocket.Chat repository is a sophisticated transition from a traditional
+  Monolith to a Microservices architecture. While the core functionality still resides
+  in a substantial "Legacy" Monolith (the Meteor application), the architecture is
+  explicitly structured to support independent service deployment via a distributed
+  broker system.
+
+
+  ### 1. Primary Style: Microservices
+
+  The codebase is organized as a monorepo that manages multiple independently deployable
+  units. Evidence for this includes:
+
+  - **Independent Deployment Units**: Under `ee/apps/`, there are several distinct
+  services (e.g., `account-service`, `authorization-service`, `presence-service`,
+  `ddp-streamer`) each containing its own `Dockerfile` and `package.json`.
+
+  - **Service Orchestration**: The `docker-compose-local.yml` confirms these are not
+  mere code modules but separate runtime containers. It defines services like `authorization-service`,
+  `account-service`, and `presence-service` running as distinct processes.
+
+  - **Service Discovery and Communication**: The system uses **NATS** as a message
+  broker and `moleculer` (indicated in environment variables like `TRANSPORTER` and
+  `MOLECULER_LOG_LEVEL`) as the microservices framework. This allows the services
+  to communicate across network boundaries rather than just in-process memory.
+
+
+  ### 2. Secondary Style: Event-Driven
+
+  The architecture relies heavily on an event-driven or message-based backbone for
+  inter-service communication:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:09:10Z'
+classification_reasoning: "The Rocket.Chat repository is a sophisticated transition\
+  \ from a traditional Monolith to a Microservices architecture. While the core functionality\
+  \ still resides in a substantial \"Legacy\" Monolith (the Meteor application), the\
+  \ architecture is explicitly structured to support independent service deployment\
+  \ via a distributed broker system.\n\n### 1. Primary Style: Microservices\nThe codebase\
+  \ is organized as a monorepo that manages multiple independently deployable units.\
+  \ Evidence for this includes:\n- **Independent Deployment Units**: Under `ee/apps/`,\
+  \ there are several distinct services (e.g., `account-service`, `authorization-service`,\
+  \ `presence-service`, `ddp-streamer`) each containing its own `Dockerfile` and `package.json`.\n\
+  - **Service Orchestration**: The `docker-compose-local.yml` confirms these are not\
+  \ mere code modules but separate runtime containers. It defines services like `authorization-service`,\
+  \ `account-service`, and `presence-service` running as distinct processes.\n- **Service\
+  \ Discovery and Communication**: The system uses **NATS** as a message broker and\
+  \ `moleculer` (indicated in environment variables like `TRANSPORTER` and `MOLECULER_LOG_LEVEL`)\
+  \ as the microservices framework. This allows the services to communicate across\
+  \ network boundaries rather than just in-process memory.\n\n### 2. Secondary Style:\
+  \ Event-Driven\nThe architecture relies heavily on an event-driven or message-based\
+  \ backbone for inter-service communication:\n- **The Transporter**: The use of NATS\
+  \ and the `TRANSPORTER` environment variable across all services indicates a Pub/Sub\
+  \ or Request/Response pattern over a message bus. \n- **Decoupling**: Services like\
+  \ `queue-worker` and `ddp-streamer` function as event consumers and emitters to\
+  \ handle high-concurrency tasks without blocking the main application logic.\n\n\
+  ### 3. Secondary Style: Modular Monolith\nThe \"core\" of the system (`apps/meteor`)\
+  \ remains a massive Modular Monolith. \n- **Package Separation**: Inside `apps/meteor/app`,\
+  \ there are over 100 internal packages (e.g., `app/lib`, `app/livechat`, `app/settings`)\
+  \ representing a domain-based modular structure. \n- **Incremental Extraction**:\
+  \ The architecture represents a \"Strangler Fig\" pattern where parts of the monolith\
+  \ are being incrementally extracted into the `ee/apps` microservices.\n\n### Summary\
+  \ of Component Roles:\n- **`apps/meteor`**: The central legacy monolith handling\
+  \ the bulk of the core chat logic and UI.\n- **`ee/apps/`**: Modern, isolated microservices\
+  \ (primarily Enterprise Edition features) that handle specific domains like Account\
+  \ management and Authorization.\n- **`packages/` (implied by workspace references)**:\
+  \ Shared libraries providing common logic (models, typings, brokers) to both the\
+  \ monolith and the microservices.\n- **Infrastructure**: Traefik acts as the Edge\
+  \ Router/API Gateway, directing traffic (e.g., `/websocket` to `ddp-streamer`) based\
+  \ on path prefixes."

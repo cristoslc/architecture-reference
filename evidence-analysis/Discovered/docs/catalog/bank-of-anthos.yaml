@@ -14,5 +14,52 @@ languages:
 - Java/Kotlin
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+classification_status: classified
+review_notes: "The repository is a textbook example of a **Microservices** architecture,\
+  \ designed specifically to demonstrate cloud-native patterns on Kubernetes (GKE/Anthos).\n\
+  \n### Evidence of Microservices\n1.  **Independent Deployment Units**: The repository\
+  \ contains multiple distinct services, each with its own `Dockerfile`, `skaffold.yaml`,\
+  \ and Kubernetes manifests (found in `./kubernetes-manifests` and `src/[service]/k8s`).\n\
+  2.  **Service Decomposition**: The system is split into functional domains:\n  \
+  \  *   **Identity/Accounts**: `userservice` and `contacts`.\n    *   **Ledger/Transactions**:\
+  \ `ledgerwriter`, `balancereader`, and `transactionhistory`.\n    *   **Frontend**:\
+  \ A standalone Python web server.\n3.  **Data Sovereignty**: The README and directory\
+  \ structure show separate database instances for different domains: `accounts-db`\
+  \ (PostgreSQL) and `ledger-db` (PostgreSQL).\n4.  **Polyglot Nature**: Services\
+  \ are implemented using different technology stacks (Java/Spring for ledger services,\
+  \ Python/Flask for frontend and account services), which is a common characteristic\
+  \ of microservice environments."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:41:39Z'
+classification_reasoning: "The repository is a textbook example of a **Microservices**\
+  \ architecture, designed specifically to demonstrate cloud-native patterns on Kubernetes\
+  \ (GKE/Anthos).\n\n### Evidence of Microservices\n1.  **Independent Deployment Units**:\
+  \ The repository contains multiple distinct services, each with its own `Dockerfile`,\
+  \ `skaffold.yaml`, and Kubernetes manifests (found in `./kubernetes-manifests` and\
+  \ `src/[service]/k8s`).\n2.  **Service Decomposition**: The system is split into\
+  \ functional domains:\n    *   **Identity/Accounts**: `userservice` and `contacts`.\n\
+  \    *   **Ledger/Transactions**: `ledgerwriter`, `balancereader`, and `transactionhistory`.\n\
+  \    *   **Frontend**: A standalone Python web server.\n3.  **Data Sovereignty**:\
+  \ The README and directory structure show separate database instances for different\
+  \ domains: `accounts-db` (PostgreSQL) and `ledger-db` (PostgreSQL).\n4.  **Polyglot\
+  \ Nature**: Services are implemented using different technology stacks (Java/Spring\
+  \ for ledger services, Python/Flask for frontend and account services), which is\
+  \ a common characteristic of microservice environments.\n5.  **Infrastructure as\
+  \ Code (IaC)**: The presence of a massive `iac/` directory containing Terraform\
+  \ for GKE, Anthos Service Mesh (ASM), and cross-service security (JWT secrets) reinforces\
+  \ the distributed nature of the system.\n\n### Discussion on Secondary Styles\n\
+  *   **Polyglot**: This is a strong secondary trait here, as the repo explicitly\
+  \ uses different runtimes (Java vs Python) to show-case Google Cloud's support for\
+  \ diverse environments.\n*   **Modular Monolith (Rejected)**: While the repo contains\
+  \ a `src/ledgermonolith` directory, the README explicitly identifies this as an\
+  \ \"Additional deployment option\" and a migration target (\"Migrating a monolith\
+  \ VM to GKE\"). The primary architecture is the decomposed microservice set.\n*\
+  \   **Event-Driven (Limited Evidence)**: While high-scale banking often uses events,\
+  \ the README describes this as an \"HTTP-based web app.\" Without seeing Kafka or\
+  \ RabbitMQ configurations in the tree, it appears to rely primarily on synchronous\
+  \ REST/gRPC-style communication."

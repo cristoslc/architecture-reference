@@ -13,5 +13,103 @@ language: C#
 languages:
 - C#
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Domain-Driven Design
+- Event-Driven
+classification_status: classified
+review_notes: 'This repository identifies as a **Modular Monolith**. While it leverages
+  modern cloud-native tooling (specifically .NET Aspire), the core architectural pattern
+  is a single deployable unit (the `Playground.Api` or user-defined host) that dynamically
+  loads and composes self-contained modules.
+
+
+  ### Evidence of Modular Monolith
+
+  The codebase is structured to solve the "Big Ball of Mud" problem while maintaining
+  the deployment simplicity of a monolith:
+
+  - **Module Separation**: The `src/Modules` directory contains independent modules
+  like `Identity`, `Multitenancy`, and `Auditing`. These are separated into implementation
+  projects and `Contracts` projects to manage cross-module dependencies.
+
+  - **Dynamic Loading**: The README and `src/BuildingBlocks/Web/Modules` indicate
+  a "module loader" pattern. The host calls `builder.AddModules(moduleAssemblies)`
+  and `app.UseHeroPlatform(p => p.MapModules = true)` to wire up endpoints and services
+  from these isolated projects at runtime.
+
+  - **Enforced Boundaries**: The presence of `src/Tests/Architecture.Tests` (specifically
+  `ModuleArchitectureTests.cs` and `LayerDependencyTests.cs`) is a hallmark of a Modular
+  Monolith, using tools like NetArchTest to programmatically prevent illegal imports
+  between modules.
+
+
+  ### Evidence of Domain-Driven Design (DDD)
+
+  The internal structure of the building blocks and modules follows tactical DDD patterns:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:46:29Z'
+classification_reasoning: 'This repository identifies as a **Modular Monolith**. While
+  it leverages modern cloud-native tooling (specifically .NET Aspire), the core architectural
+  pattern is a single deployable unit (the `Playground.Api` or user-defined host)
+  that dynamically loads and composes self-contained modules.
+
+
+  ### Evidence of Modular Monolith
+
+  The codebase is structured to solve the "Big Ball of Mud" problem while maintaining
+  the deployment simplicity of a monolith:
+
+  - **Module Separation**: The `src/Modules` directory contains independent modules
+  like `Identity`, `Multitenancy`, and `Auditing`. These are separated into implementation
+  projects and `Contracts` projects to manage cross-module dependencies.
+
+  - **Dynamic Loading**: The README and `src/BuildingBlocks/Web/Modules` indicate
+  a "module loader" pattern. The host calls `builder.AddModules(moduleAssemblies)`
+  and `app.UseHeroPlatform(p => p.MapModules = true)` to wire up endpoints and services
+  from these isolated projects at runtime.
+
+  - **Enforced Boundaries**: The presence of `src/Tests/Architecture.Tests` (specifically
+  `ModuleArchitectureTests.cs` and `LayerDependencyTests.cs`) is a hallmark of a Modular
+  Monolith, using tools like NetArchTest to programmatically prevent illegal imports
+  between modules.
+
+
+  ### Evidence of Domain-Driven Design (DDD)
+
+  The internal structure of the building blocks and modules follows tactical DDD patterns:
+
+  - **Persistence & Specifications**: `src/BuildingBlocks/Persistence/Specifications`
+  indicates the use of the Specification pattern to encapsulate query logic.
+
+  - **Aggregates and Events**: The persistence layer (`src/BuildingBlocks/Persistence/Inteceptors`)
+  supports domain events, and `src/BuildingBlocks/Core/Domain` contains the base primitives
+  for DDD entities.
+
+  - **Vertical Slices**: The README explicitly mentions "Modular vertical slices,"
+  which is the preferred way to organize code in a DDD-oriented modular monolith.
+
+
+  ### Evidence of Event-Driven Architecture
+
+  While the system is a monolith, it incorporates **Event-Driven** patterns for internal
+  decoupling and potentially external integration:
+
+  - **Integration Events**: `src/BuildingBlocks/Eventing.Abstractions` defines `IIntegrationEvent`
+  and `IEventBus`.
+
+  - **Message Brokers**: `src/BuildingBlocks/Eventing` contains implementations for
+  `RabbitMq` and `InMemory` buses, along with `Outbox` and `Inbox` patterns to ensure
+  eventual consistency across module boundaries.
+
+
+  ### Rejection of Microservices
+
+  Although the repository uses `terraform` and `.NET Aspire` (which are common in
+  Microservices), the primary code organization is monolithic. The modules are projects
+  within a single solution (`FSH.Framework.slnx`) that are compiled and run within
+  a single process (`Playground.Api`). It serves as a "Microservice-ready" starter
+  kit, but the architecture itself is a Modular Monolith.'

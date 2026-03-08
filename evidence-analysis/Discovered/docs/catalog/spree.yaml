@@ -14,5 +14,72 @@ languages:
 - Ruby
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Hexagonal Architecture
+- Event-Driven
+classification_status: classified
+review_notes: "The Spree repository is structured as a **Modular Monolith** using\
+  \ the Ruby on Rails \"Engine\" pattern. While it appears to be a standard Rails\
+  \ application at first glance (due to the `server/` directory), the core logic is\
+  \ actually partitioned into distinct, decoupled packages (engines) that are composed\
+  \ at boot time via the `Gemfile`.\n\n### 1. Modular Monolith (Primary Style)\nThe\
+  \ system is composed of several high-level modules that maintain strict boundaries\
+  \ despite running in a single process. Evidence from the `server/Gemfile` shows\
+  \ that the application is built by combining `spree` (the core engine containing\
+  \ models and business logic), `spree_emails`, and `spree_admin`. \n- **Internal\
+  \ Boundaries**: The architecture documentation (`docs/developer/core-concepts/architecture.mdx`)\
+  \ describes the system as \"distributed as a set of packages.\"\n- **Engine Isolation**:\
+  \ The `server/config/initializers/spree.rb` file references `config.disable_migration_check\
+  \ = true` because \"migrations live in engines,\" acknowledging that schemas and\
+  \ logic are defined within the module boundaries rather than the host application.\n\
+  \n### 2. Hexagonal Architecture (Secondary Style)\nSpree demonstrates strong characteristics\
+  \ of **Hexagonal Architecture (Ports and Adapters)** through its \"Dependencies\"\
+  \ and \"Calculators\" systems.\n- **Dependency Injection**: In `server/config/initializers/spree.rb`,\
+  \ the `Spree.dependencies` block allows developers to swap out core business logic\
+  \ (e.g., `cart_add_item_service`) with custom implementations without modifying\
+  \ the core."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:11:43Z'
+classification_reasoning: "The Spree repository is structured as a **Modular Monolith**\
+  \ using the Ruby on Rails \"Engine\" pattern. While it appears to be a standard\
+  \ Rails application at first glance (due to the `server/` directory), the core logic\
+  \ is actually partitioned into distinct, decoupled packages (engines) that are composed\
+  \ at boot time via the `Gemfile`.\n\n### 1. Modular Monolith (Primary Style)\nThe\
+  \ system is composed of several high-level modules that maintain strict boundaries\
+  \ despite running in a single process. Evidence from the `server/Gemfile` shows\
+  \ that the application is built by combining `spree` (the core engine containing\
+  \ models and business logic), `spree_emails`, and `spree_admin`. \n- **Internal\
+  \ Boundaries**: The architecture documentation (`docs/developer/core-concepts/architecture.mdx`)\
+  \ describes the system as \"distributed as a set of packages.\"\n- **Engine Isolation**:\
+  \ The `server/config/initializers/spree.rb` file references `config.disable_migration_check\
+  \ = true` because \"migrations live in engines,\" acknowledging that schemas and\
+  \ logic are defined within the module boundaries rather than the host application.\n\
+  \n### 2. Hexagonal Architecture (Secondary Style)\nSpree demonstrates strong characteristics\
+  \ of **Hexagonal Architecture (Ports and Adapters)** through its \"Dependencies\"\
+  \ and \"Calculators\" systems.\n- **Dependency Injection**: In `server/config/initializers/spree.rb`,\
+  \ the `Spree.dependencies` block allows developers to swap out core business logic\
+  \ (e.g., `cart_add_item_service`) with custom implementations without modifying\
+  \ the core.\n- **Pluggable Adapters**: The system uses a registry pattern for external\
+  \ concerns like taxation, shipping, and payments (e.g., `Spree.calculators.tax_rates\
+  \ << ...` and `Spree.payment_methods << ...`). The core \"Order\" model acts as\
+  \ the hexagon center, while various calculators and payment methods act as adapters\
+  \ to external logic or services.\n\n### 3. Event-Driven (Secondary Style)\nThe architecture\
+  \ explicitly supports an asynchronous, decoupled communication style via an internal\
+  \ Event Bus.\n- **Internal Event Bus**: The Documentation and `spree.rb` initializer\
+  \ reference `Spree::Events::SubscriberJob` and an \"Event Bus with Subscribers.\"\
+  \n- **Decoupling**: Instead of hard-coding side effects (like sending a \"Welcome\"\
+  \ email after user registration), the core publishes an event, and disparate modules\
+  \ or custom extensions subscribe to those events, reducing the coupling between\
+  \ the core commerce state machine and its side effects.\n\n### Rejection of other\
+  \ styles:\n- **Microservices**: Although highly modular, the default deployment\
+  \ is a single unit (as seen in the `server/Dockerfile` and Rails structure). There\
+  \ is no evidence of networked service-to-service communication for core domain logic.\n\
+  - **Microkernel (Plugin)**: While it has an extension system (\"Spree Extensions\"\
+  ), these are primarily Rails Engines integrated at the build/bundle stage rather\
+  \ than dynamic plugins loaded into a running kernel at runtime.\n- **Layered**:\
+  \ While it follows the MVC layout of Rails, the sophisticated dependency injection\
+  \ and event-driven nature move it well beyond a simple horizontal layering."

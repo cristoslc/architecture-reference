@@ -14,5 +14,65 @@ languages:
 - C#
 - JavaScript
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+- Domain-Driven Design
+classification_status: classified
+review_notes: "Orchard Core is a quintessential implementation of a **Microkernel\
+  \ (Plugin)** architecture, which it refers to as a \"Modular, Multi-tenant\" framework.\
+  \ \n\n### Primary Style: Microkernel (Plugin)\nThe system is built around a minimal\
+  \ core (\"Orchard Core Framework\") that provides essential infrastructure—tenant\
+  \ isolation, dependency injection orchestration, and module discovery—while all\
+  \ functional capabilities are deferred to external modules located in `src/OrchardCore.Modules/`.\n\
+  - **Module Discovery:** As seen in the `Manifest.cs` files (e.g., `src/OrchardCore.Modules/OrchardCore.Redis/Manifest.cs`),\
+  \ modules define themselves via assembly attributes. These are discovered at runtime\
+  \ to extend the system's capabilities.\n- **Dynamic Composition:** The `IShellHost.cs`\
+  \ interface and its `ShellContext` management demonstrate the \"Kernel\" behavior.\
+  \ It dynamically builds a `ShellScope` for each tenant, composing only the services\
+  \ and middleware enabled for that specific instance.\n- **Extension Points:** The\
+  \ presence of `Drivers`, `Handlers`, and `Shapes` across various modules (e.g.,\
+  \ `OrchardCore.Title`, `OrchardCore.Widgets`) indicates a robust system of \"Ports\"\
+  \ where modules can inject logic into the lifecycle of other modules or the core.\n\
+  \n### Secondary Style: Modular Monolith\nWhile the modules are highly decoupled,\
+  \ they are typically deployed as part of a single web application unit. "
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:05:23Z'
+classification_reasoning: "Orchard Core is a quintessential implementation of a **Microkernel\
+  \ (Plugin)** architecture, which it refers to as a \"Modular, Multi-tenant\" framework.\
+  \ \n\n### Primary Style: Microkernel (Plugin)\nThe system is built around a minimal\
+  \ core (\"Orchard Core Framework\") that provides essential infrastructure—tenant\
+  \ isolation, dependency injection orchestration, and module discovery—while all\
+  \ functional capabilities are deferred to external modules located in `src/OrchardCore.Modules/`.\n\
+  - **Module Discovery:** As seen in the `Manifest.cs` files (e.g., `src/OrchardCore.Modules/OrchardCore.Redis/Manifest.cs`),\
+  \ modules define themselves via assembly attributes. These are discovered at runtime\
+  \ to extend the system's capabilities.\n- **Dynamic Composition:** The `IShellHost.cs`\
+  \ interface and its `ShellContext` management demonstrate the \"Kernel\" behavior.\
+  \ It dynamically builds a `ShellScope` for each tenant, composing only the services\
+  \ and middleware enabled for that specific instance.\n- **Extension Points:** The\
+  \ presence of `Drivers`, `Handlers`, and `Shapes` across various modules (e.g.,\
+  \ `OrchardCore.Title`, `OrchardCore.Widgets`) indicates a robust system of \"Ports\"\
+  \ where modules can inject logic into the lifecycle of other modules or the core.\n\
+  \n### Secondary Style: Modular Monolith\nWhile the modules are highly decoupled,\
+  \ they are typically deployed as part of a single web application unit. \n- **Internal\
+  \ Boundaries:** The project structure enforces strict boundaries. Modules like `OrchardCore.Lists`\
+  \ or `OrchardCore.Forms` have their own `Startup.cs`, `Migrations.cs`, and `Controllers`,\
+  \ making them autonomous functional units.\n- **Dependency Management:** The `Manifest.cs`\
+  \ provides explicit `Dependencies` (e.g., `Dependencies = [\"OrchardCore.Redis\"\
+  ]`), allowing the framework to enforce an order of activation and service resolution\
+  \ within the monolith.\n\n### Secondary Style: Domain-Driven Design (DDD)\nThe codebase\
+  \ heavily utilizes DDD patterns to manage the complexity of a CMS:\n- **Aggregates/Entities:**\
+  \ The \"Content Item\" model is the central aggregate used across the system.\n\
+  - **Bounded Contexts:** Each module acts as a bounded context (e.g., `OrchardCore.OpenId`\
+  \ for security/identity, `OrchardCore.Search` for indexing).\n- **Domain Events:**\
+  \ The `Handlers` pattern (found in almost every module directory) acts as a mechanism\
+  \ for reacting to domain events (e.g., `ContentHandler`).\n\n### Architecture Rejection\n\
+  - **Microservices:** Despite having many \"services\" (modules), they share a memory\
+  \ space and are managed by a single process (the Host). They do not communicate\
+  \ over network boundaries via REST/gRPC by default, but rather via internal DI and\
+  \ the \"Shell\" abstraction.\n- **Layered:** While individual modules may follow\
+  \ an MVC/Layered pattern internally, the overarching architecture is defined by\
+  \ its vertical modularity rather than horizontal layering."

@@ -14,5 +14,58 @@ languages:
 - Java/Kotlin
 - JavaScript
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Event-Driven
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: "The ksqlDB repository is structured as a **Layered** system (specifically\
+  \ following the architectural pattern of a database engine) but is fundamentally\
+  \ built to support and operate within **Event-Driven** ecosystems. \n\n### 1. Primary\
+  \ Style: Layered (Database Architecture)\nThe repository is a Java-based monorepo\
+  \ where the core logic is partitioned into horizontal functional layers typical\
+  \ of a database engine:\n- **Parser Layer (`ksqldb-parser`):** Contains the ANTLR4\
+  \ grammar and logic to transform SQL strings into Abstract Syntax Trees (AST).\n\
+  - **Service/Execution Layer (`ksqldb-streams`):** This is the core \"Business Logic\"\
+  \ of the system, where SQL queries are translated into Kafka Streams topologies.\n\
+  - **Transport/Interface Layer (`ksqldb-rest-app`, `ksqldb-rest-model`):** Handles\
+  \ the external API surfacing the engine via REST.\n- **Client Layer (`ksqldb-cli`,\
+  \ `ksqldb-api-client`):** Independent modules for user interaction.\n\nWhile the\
+  \ deployment unit (the ksqlDB Server) is a single process, the internal code organization\
+  \ strictly separates the SQL frontend from the streaming backend."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:55:14Z'
+classification_reasoning: "The ksqlDB repository is structured as a **Layered** system\
+  \ (specifically following the architectural pattern of a database engine) but is\
+  \ fundamentally built to support and operate within **Event-Driven** ecosystems.\
+  \ \n\n### 1. Primary Style: Layered (Database Architecture)\nThe repository is a\
+  \ Java-based monorepo where the core logic is partitioned into horizontal functional\
+  \ layers typical of a database engine:\n- **Parser Layer (`ksqldb-parser`):** Contains\
+  \ the ANTLR4 grammar and logic to transform SQL strings into Abstract Syntax Trees\
+  \ (AST).\n- **Service/Execution Layer (`ksqldb-streams`):** This is the core \"\
+  Business Logic\" of the system, where SQL queries are translated into Kafka Streams\
+  \ topologies.\n- **Transport/Interface Layer (`ksqldb-rest-app`, `ksqldb-rest-model`):**\
+  \ Handles the external API surfacing the engine via REST.\n- **Client Layer (`ksqldb-cli`,\
+  \ `ksqldb-api-client`):** Independent modules for user interaction.\n\nWhile the\
+  \ deployment unit (the ksqlDB Server) is a single process, the internal code organization\
+  \ strictly separates the SQL frontend from the streaming backend.\n\n### 2. Secondary\
+  \ Style: Event-Driven\nWhile the repository *serves* event-driven architectures,\
+  \ its internal architecture is also heavily influenced by it. The reliance on `ksqldb-streams`\
+  \ indicates that the internal processing model is a continuous reactive pipeline.\
+  \ The system's state management (tables/materialized views) is entirely derived\
+  \ from log-based event streams (Kafka topics). \n\n### 3. Secondary Style: Microkernel\
+  \ (Plugin)\nThe system includes a robust plugin architecture for extensibility:\n\
+  - **UDAs/UDFs:** The `ksqldb-udf-quickstart` and surrounding logic allow users to\
+  \ inject custom scalar and aggregate functions into the engine at runtime.\n- **Connectors:**\
+  \ Integration with `Kafka Connect` (as seen in the README and `config/connect.properties`)\
+  \ allows the engine to dynamically interface with external data sources/sinks via\
+  \ a standard plugin contract.\n\n### Rejected Styles:\n- **Microservices:** While\
+  \ ksqlDB often runs as a cluster, the repository provides the code for a single\
+  \ \"Server\" unit. It is not composed of multiple smaller internal services that\
+  \ are independently deployable; it is a distributed system with a unified codebase.\n\
+  - **Hexagonal:** While there are clear boundaries, the core logic (`ksqldb-streams`)\
+  \ is tightly coupled to Apache Kafka and Kafka Streams rather than being an isolated\
+  \ \"domain\" connected via agnostic ports.f"

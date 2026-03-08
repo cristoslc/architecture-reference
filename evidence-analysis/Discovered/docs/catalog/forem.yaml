@@ -13,5 +13,105 @@ language: Ruby
 languages:
 - Ruby
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'Forem is a classic example of a **Layered** architecture, specifically
+  following the standard Ruby on Rails pattern but extended with high-scale enterprise
+  patterns. While it contains a vast number of features, it remains a single deployment
+  unit (monolith) organized horizontally.
+
+
+  ### 1. Primary Style: Layered
+
+  The codebase follows the strict "Model-View-Controller" (MVC) layering common to
+  Rails, but introduces additional sub-layers to manage complexity:
+
+  - **Presentation Layer**: Controllers and "Decorators" (`app/decorators`) for view-specific
+  logic. It is transitioning to a Preact frontend but still utilizes Rails views/helpers.
+
+  - **Business Logic (Service) Layer**: An extensive `app/services` directory houses
+  the bulk of the system''s domain logic (e.g., `app/services/articles/creator.rb`,
+  `app/services/badges/award.rb`). This separates complex orchestration from the models.
+
+  - **Query Layer**: Dedicated `app/queries` (e.g., `app/queries/articles/api_search_query.rb`)
+  extract complex SQL/ActiveRecord logic from the models to maintain maintainability.
+
+  - **Data Access Layer**: Handled by `app/models` using ActiveRecord, with heavy
+  use of "Concerns" to share behavior across models.
+
+
+  ### 2. Secondary Style: Event-Driven'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:49:12Z'
+classification_reasoning: 'Forem is a classic example of a **Layered** architecture,
+  specifically following the standard Ruby on Rails pattern but extended with high-scale
+  enterprise patterns. While it contains a vast number of features, it remains a single
+  deployment unit (monolith) organized horizontally.
+
+
+  ### 1. Primary Style: Layered
+
+  The codebase follows the strict "Model-View-Controller" (MVC) layering common to
+  Rails, but introduces additional sub-layers to manage complexity:
+
+  - **Presentation Layer**: Controllers and "Decorators" (`app/decorators`) for view-specific
+  logic. It is transitioning to a Preact frontend but still utilizes Rails views/helpers.
+
+  - **Business Logic (Service) Layer**: An extensive `app/services` directory houses
+  the bulk of the system''s domain logic (e.g., `app/services/articles/creator.rb`,
+  `app/services/badges/award.rb`). This separates complex orchestration from the models.
+
+  - **Query Layer**: Dedicated `app/queries` (e.g., `app/queries/articles/api_search_query.rb`)
+  extract complex SQL/ActiveRecord logic from the models to maintain maintainability.
+
+  - **Data Access Layer**: Handled by `app/models` using ActiveRecord, with heavy
+  use of "Concerns" to share behavior across models.
+
+
+  ### 2. Secondary Style: Event-Driven
+
+  The system relies heavily on asynchronous processing and background workers to remain
+  responsive.
+
+  - **Message Broker**: Uses Redis and Sidekiq (as evidenced by `config/sidekiq.yml`
+  and `config/initializers/sidekiq.rb`).
+
+  - **Process Model**: The `Procfile` shows a dedicated `sidekiq_worker` process that
+  handles background events.
+
+  - **Event Patterns**: Files like `app/models/feed_event.rb` and the `app/services/notifications`
+  directory suggest a pattern where system actions trigger events that are processed
+  out-of-band to update feeds or send alerts.
+
+
+  ### 3. Architecture Rejections
+
+  - **Microservices**: Despite its size, the repository is a monolith. The `Procfile`
+  and `config/routes.rb` indicate a single web process for the entire API and frontend,
+  sharing a single PostgreSQL database (`config/database.yml`).
+
+  - **Modular Monolith**: While there is some structural grouping (e.g., `app/services/ai`),
+  there is no evidence of enforced boundaries or internal "Engines" (isolated database
+  schemas or restricted imports) that characterize a true Modular Monolith. Everything
+  lives within the global `app/` namespace.
+
+  - **Hexagonal Architecture**: Logic is tightly coupled to Rails-specific classes
+  (ActiveRecord, Sidekiq workers) rather than being isolated through abstract ports.
+
+
+  ### 4. Key Infrastructure Signals
+
+  - **Edge Caching**: Extensive integration with Fastly (`app/services/edge_cache/`)
+  shows an architecture optimized for high-read performance at the edge.
+
+  - **Feature Management**: Deep integration with Flipper (`config/initializers/flipper.rb`)
+  for trunk-based development and dark launches.
+
+  - **Process Orchestration**: The presence of `release-tasks.sh` in the `Procfile`
+  indicates a automated pipeline for handling migrations and data updates separately
+  from web/worker startup.'

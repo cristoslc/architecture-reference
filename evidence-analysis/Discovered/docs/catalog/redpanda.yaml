@@ -16,5 +16,64 @@ languages:
 - Go
 - Rust
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Hexagonal Architecture
+classification_status: classified
+review_notes: "Redpanda is structured as a **Modular Monolith**. While it serves as\
+  \ a distributed system, the codebase itself is organized into a single high-performance\
+  \ C++ executable (the Redpanda broker) comprising several highly decoupled modules\
+  \ with strict ownership boundaries.\n\n### Core Architectural Analysis\n\n1.  **Modular\
+  \ Monolith**:\n    The directory structure under `src/v/` represents a vertical\
+  \ decomposition of the system's concerns. Each subdirectory acts as a self-contained\
+  \ module with its own domain logic:\n    *   `src/v/storage`: The log-structured\
+  \ persistence engine.\n    *   `src/v/raft`: The consensus algorithm implementation.\n\
+  \    *   `src/v/kafka`: The protocol facade that makes Redpanda Kafka-compatible.\n\
+  \    *   `src/v/cluster`: Logic for membership, partition balancing, and metadata\
+  \ management."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:08:43Z'
+classification_reasoning: "Redpanda is structured as a **Modular Monolith**. While\
+  \ it serves as a distributed system, the codebase itself is organized into a single\
+  \ high-performance C++ executable (the Redpanda broker) comprising several highly\
+  \ decoupled modules with strict ownership boundaries.\n\n### Core Architectural\
+  \ Analysis\n\n1.  **Modular Monolith**:\n    The directory structure under `src/v/`\
+  \ represents a vertical decomposition of the system's concerns. Each subdirectory\
+  \ acts as a self-contained module with its own domain logic:\n    *   `src/v/storage`:\
+  \ The log-structured persistence engine.\n    *   `src/v/raft`: The consensus algorithm\
+  \ implementation.\n    *   `src/v/kafka`: The protocol facade that makes Redpanda\
+  \ Kafka-compatible.\n    *   `src/v/cluster`: Logic for membership, partition balancing,\
+  \ and metadata management.\n    *   `src/v/cloud_storage`: Tiered storage capabilities\
+  \ for offloading data to S3/GCS.\n    \n    Although these modules are compiled\
+  \ into a single binary (evidenced by the `rpk` management tool and systemic C++\
+  \ structure), they maintain strict separation of concerns. The lack of a `main.cc`\
+  \ in `src/v/` is due to Redpanda's use of the **Seastar** framework (highly likely\
+  \ located in `src/v/redpanda/main.cc` or managed within the `redpanda` module directory),\
+  \ which uses a shared-nothing, thread-per-core architecture.\n\n2.  **Hexagonal\
+  \ Architecture (Ports and Adapters)**:\n    Redpanda exhibits strong Hexagonal characteristics.\
+  \ The core consensus and storage logic are isolated from the transport and protocol\
+  \ layers. \n    *   **Adapters**: `src/v/kafka` and `src/v/pandaproxy` act as external\
+  \ \"adapters\" or \"ports\" that translate external protocols (Kafka RPC, HTTP)\
+  \ into internal commands for the `cluster` and `storage` modules.\n    *   **Core**:\
+  \ The `model` and `raft` directories contain the domain-specific logic (offsets,\
+  \ partitions, consensus) independent of how they are exposed to the network.\n\n\
+  3.  **Event-Driven (Internal and External)**:\n    As a streaming data platform,\
+  \ the internal logic is heavily centered around evented I/O and reactive processing.\
+  \ Internally, it utilizes an asynchronous, future-based programming model (via Seastar).\
+  \ Externally, it is the backbone for Event-Driven architectures, but the code itself\
+  \ is structured to handle ordered append-only logs—the fundamental primitive of\
+  \ event sourcing.\n\n4.  **Microkernel (Plugin) Elements**:\n    The presence of\
+  \ `src/v/wasm` and `src/transform-sdk` indicates a Microkernel influence. Redpanda\
+  \ supports \"Data Transforms\" where users can deploy WebAssembly (Wasm) functions\
+  \ that run inside the broker to process data in-flight. This follows the plugin\
+  \ pattern where the core engine is extended with custom logic without modifying\
+  \ the core binary.\n\n### Summary of Component Evidence\n*   **Infrastructure Isolation**:\
+  \ `src/v/rpc`, `src/v/net`, and `src/v/io` provide low-level abstractions.\n*  \
+  \ **Consensus/Coordination**: `src/v/raft` provides the consistency backbone.\n\
+  *   **API Layers**: `src/v/kafka` provides the primary interface.\n*   **Modern\
+  \ Workloads**: `src/v/datalake` and `src/v/iceberg` point to modular extensions\
+  \ for modern data lake integration."

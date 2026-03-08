@@ -13,5 +13,57 @@ language: Java/Kotlin
 languages:
 - Java/Kotlin
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Layered
+classification_status: classified
+review_notes: "This repository is a definitive implementation of a **Microservices**\
+  \ architecture, specifically designed to demonstrate the decomposition of a monolithic\
+  \ application (the original Spring PetClinic).\n\n### Evidence of Microservices\
+  \ Architecture\n\n1.  **Independent Deployment Units**: The repository Map shows\
+  \ multiple independent Spring Boot applications, each with its own `pom.xml`, source\
+  \ tree, and lifecycle:\n    *   `spring-petclinic-customers-service`\n    *   `spring-petclinic-vets-service`\n\
+  \    *   `spring-petclinic-visits-service`\n    *   `spring-petclinic-genai-service`\n\
+  2.  **Infrastructure Services**: It includes dedicated services for cross-cutting\
+  \ microservices concerns:"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:11:49Z'
+classification_reasoning: "This repository is a definitive implementation of a **Microservices**\
+  \ architecture, specifically designed to demonstrate the decomposition of a monolithic\
+  \ application (the original Spring PetClinic).\n\n### Evidence of Microservices\
+  \ Architecture\n\n1.  **Independent Deployment Units**: The repository Map shows\
+  \ multiple independent Spring Boot applications, each with its own `pom.xml`, source\
+  \ tree, and lifecycle:\n    *   `spring-petclinic-customers-service`\n    *   `spring-petclinic-vets-service`\n\
+  \    *   `spring-petclinic-visits-service`\n    *   `spring-petclinic-genai-service`\n\
+  2.  **Infrastructure Services**: It includes dedicated services for cross-cutting\
+  \ microservices concerns:\n    *   **Discovery**: `spring-petclinic-discovery-server`\
+  \ (Eureka).\n    *   **Configuration**: `spring-petclinic-config-server` (Spring\
+  \ Cloud Config).\n    *   **Routing**: `spring-petclinic-api-gateway` (Spring Cloud\
+  \ Gateway), which acts as the entry point.\n    *   **Observability**: Integrated\
+  \ Zipkin for tracing, Prometheus for metrics, and Grafana for visualization.\n3.\
+  \  **Data Sovereignty**: The README explicitly mentions that each service manages\
+  \ its own domain (Customers, Vets, Visits) and can be configured with its own database\
+  \ profile (HSQLDB or MySQL).\n4.  **Resilience Patterns**: The documentation and\
+  \ code use `Resilience4j` and `Spring Cloud Circuit Breaker` for handling inter-service\
+  \ communication failures, a hallmark of distributed microservices.\n5.  **Orchestration**:\
+  \ A root `docker-compose.yml` file integrates all services, including infrastructure\
+  \ (Prometheus, Grafana, MySQL), into a single environment.\n\n### Secondary Style:\
+  \ Layered\n\nWithin each individual microservice, the project follows a traditional\
+  \ **Layered** architecture. While the directory tree is high-level, the README and\
+  \ context of typical Spring Boot PetClinic implementations point toward standard\
+  \ horizontal layers:\n*   **Web/Presentation**: Controllers (e.g., `OwnerResource`,\
+  \ `PetResource` cited in README) handling REST requests.\n*   **Business/Service**:\
+  \ Logic for processing domain rules.\n*   **Persistence**: Repository interfaces\
+  \ for database interaction (using Spring Data JPA).\n\n### Styles Rejected\n\n*\
+  \   **Modular Monolith**: Although managed in a single Git repository (monorepo),\
+  \ the services are independently executable, have their own ports, and communicate\
+  \ over the network (REST/Eureka), which disqualifies it as a monolith.\n*   **Event-Driven**:\
+  \ While microservices often use events, this specific implementation primarily focuses\
+  \ on synchronous RESTful communication facilitated by an API Gateway and Service\
+  \ Discovery. There is no evidence of a message broker like Kafka or RabbitMQ being\
+  \ central to the architecture.\n*   **Hexagonal**: While it uses some abstractions,\
+  \ it does not explicitly follow the Ports and Adapters pattern for isolating the\
+  \ core domain from the framework; it is heavily coupled to the Spring ecosystem."

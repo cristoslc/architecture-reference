@@ -14,5 +14,65 @@ languages:
 - Java/Kotlin
 - TypeScript
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Layered
+- Domain-Driven Design
+classification_status: classified
+review_notes: "The OpenTripPlanner (OTP) architecture is a classic example of a **Modular\
+  \ Monolith** that is progressively evolving from a traditional **Layered** structure\
+  \ toward a more rigorous **Domain-Driven Design (DDD)** approach.\n\n### 1. Modular\
+  \ Monolith (Primary Style)\nWhile the end product is a \"unified shaded JAR\" (as\
+  \ noted in the README), the codebase is strictly partitioned into high-level Maven\
+  \ modules that enforce boundary isolation. \n- **Component Isolation:** The `ARCHITECTURE.md`\
+  \ explicitly highlights the `raptor` module as a decoupled component with \"as few\
+  \ dependencies as possible\" and \"no dependencies from Raptor to other parts of\
+  \ OTP code.\" This demonstrates a move away from a \"Big Ball of Mud\" toward enforced\
+  \ module boundaries.\n- **Service Segregation:** Key algorithmic and domain concerns\
+  \ are separated into sibling modules like `raptor`, `astar`, `street`, and `domain-core`.\
+  \ The `application` module acts as the orchestrator that brings these together.\n\
+  \n### 2. Layered & DDD (Secondary Styles)\nThe internal structure within these modules,\
+  \ particularly within `application` and the documented design goals, follows a horizontal\
+  \ layering strategy influenced by DDD:\n- **Use Case Services vs. Domain Services:**\
+  \ `ARCHITECTURE.md` defines a clear hierarchy: `Use Case Services` (stateless orchestrators)\
+  \ and `Domain Models` (encapsulated business logic). It mentions that complex domains\
+  \ (like `transit`) use a separate `Service` and `Repository` layer."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:04:45Z'
+classification_reasoning: "The OpenTripPlanner (OTP) architecture is a classic example\
+  \ of a **Modular Monolith** that is progressively evolving from a traditional **Layered**\
+  \ structure toward a more rigorous **Domain-Driven Design (DDD)** approach.\n\n\
+  ### 1. Modular Monolith (Primary Style)\nWhile the end product is a \"unified shaded\
+  \ JAR\" (as noted in the README), the codebase is strictly partitioned into high-level\
+  \ Maven modules that enforce boundary isolation. \n- **Component Isolation:** The\
+  \ `ARCHITECTURE.md` explicitly highlights the `raptor` module as a decoupled component\
+  \ with \"as few dependencies as possible\" and \"no dependencies from Raptor to\
+  \ other parts of OTP code.\" This demonstrates a move away from a \"Big Ball of\
+  \ Mud\" toward enforced module boundaries.\n- **Service Segregation:** Key algorithmic\
+  \ and domain concerns are separated into sibling modules like `raptor`, `astar`,\
+  \ `street`, and `domain-core`. The `application` module acts as the orchestrator\
+  \ that brings these together.\n\n### 2. Layered & DDD (Secondary Styles)\nThe internal\
+  \ structure within these modules, particularly within `application` and the documented\
+  \ design goals, follows a horizontal layering strategy influenced by DDD:\n- **Use\
+  \ Case Services vs. Domain Services:** `ARCHITECTURE.md` defines a clear hierarchy:\
+  \ `Use Case Services` (stateless orchestrators) and `Domain Models` (encapsulated\
+  \ business logic). It mentions that complex domains (like `transit`) use a separate\
+  \ `Service` and `Repository` layer.\n- **Dependency Inversion:** The use of SPIs\
+  \ (Service Provider Interfaces) between modules—specifically mentioned in how `application`\
+  \ implements `raptor/spi`—is a hallmark of Hexagonal or Clean Architecture principles\
+  \ within a modular monolith, ensuring the core routing logic remains pure and decoupled\
+  \ from data fetching.\n- **Repository Pattern:** The architecture distinguishes\
+  \ between the \"Service\" used for read-heavy GraphQL APIs and the \"Repository\"\
+  \ used by \"Updaters\" (real-time data ingestion), aligning with CQRS-lite patterns\
+  \ inside a DDD context.\n\n### 3. Rejected Styles\n- **Microservices:** Although\
+  \ there are multiple modules, they are not independently deployable units with their\
+  \ own databases. The build produces a single shaded JAR.\n- **Hexagonal:** While\
+  \ it uses SPIs and adapters (e.g., `streetadapter`), the documentation admits the\
+  \ package structure is still being cleaned up to meet these goals, and the current\
+  \ structure remains more traditionally layered.\n- **Event-Driven:** While it handles\
+  \ real-time GTFS updates, the internal architecture is primarily request-response\
+  \ based via GraphQL APIs, using real-time components as background data updaters\
+  \ rather than an event-mesh backbone."

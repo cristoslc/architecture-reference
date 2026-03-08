@@ -13,5 +13,109 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Hexagonal Architecture
+- Domain-Driven Design
+- Modular Monolith
+- CQRS
+classification_status: classified
+review_notes: 'This repository is a textbook implementation of **Hexagonal Architecture**
+  (Ports and Adapters) combined with **Domain-Driven Design (DDD)** principles. The
+  architecture is intentionally designed to demonstrate these patterns, as stated
+  in the README and evidenced by the directory structure.
+
+
+  ### 1. Hexagonal Architecture (Ports and Adapters)
+
+  The core of the system is isolated from external concerns.
+
+  - **Ports**: Located in `src/libs/ports/` and throughout modules (e.g., `src/libs/ddd/repository.port.ts`).
+  These are interfaces that define the contract for the application core.
+
+  - **Adapters**: The infrastructure layer (found in `src/modules/*/database`) implements
+  these ports (e.g., `src/libs/db/sql-repository.base.ts`).
+
+  - **Dependency Direction**: The README explicitly states that "dependencies point
+  inwards," and the use of `.dependency-cruiser.js` suggests automated enforcement
+  of these boundaries.
+
+
+  ### 2. Domain-Driven Design (DDD)
+
+  The repository uses DDD tactical patterns to organize business logic:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.98
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:46:22Z'
+classification_reasoning: 'This repository is a textbook implementation of **Hexagonal
+  Architecture** (Ports and Adapters) combined with **Domain-Driven Design (DDD)**
+  principles. The architecture is intentionally designed to demonstrate these patterns,
+  as stated in the README and evidenced by the directory structure.
+
+
+  ### 1. Hexagonal Architecture (Ports and Adapters)
+
+  The core of the system is isolated from external concerns.
+
+  - **Ports**: Located in `src/libs/ports/` and throughout modules (e.g., `src/libs/ddd/repository.port.ts`).
+  These are interfaces that define the contract for the application core.
+
+  - **Adapters**: The infrastructure layer (found in `src/modules/*/database`) implements
+  these ports (e.g., `src/libs/db/sql-repository.base.ts`).
+
+  - **Dependency Direction**: The README explicitly states that "dependencies point
+  inwards," and the use of `.dependency-cruiser.js` suggests automated enforcement
+  of these boundaries.
+
+
+  ### 2. Domain-Driven Design (DDD)
+
+  The repository uses DDD tactical patterns to organize business logic:
+
+  - **Bounded Contexts**: Represented by top-level modules like `src/modules/user`
+  and `src/modules/wallet`.
+
+  - **Tactical Patterns**: Base classes in `src/libs/ddd/` define `AggregateRoot`,
+  `Entity`, `ValueObject`, and `DomainEvent`.
+
+  - **Domain Layer**: Each module has a `/domain` directory containing the business
+  logic and rules, isolated from the application and infrastructure concerns.
+
+
+  ### 3. Modular Monolith
+
+  While the README mentions that the architecture facilitates moving to Microservices,
+  the current state is a **Modular Monolith**.
+
+  - **Encapsulation**: Each module (`user`, `wallet`) is a "mini application" with
+  its own internal layers (domain, commands, queries, database).
+
+  - **Deployment**: The `src/app.module.ts` and `src/main.ts` files indicate a single
+  NestJS deployment unit.
+
+  - **Communication**: The README advocates for using a mediator or message bus (NestJS
+  CQRS) to prevent tight coupling between modules.
+
+
+  ### 4. CQRS (Command Query Responsibility Segregation)
+
+  The codebase strictly separates read and write operations:
+
+  - **Commands**: Found in `src/modules/user/commands/`, handling state changes.
+
+  - **Queries**: Found in `src/modules/user/queries/`, optimized for data retrieval.
+
+  - **Buses**: The use of `CommandBus` and `QueryBus` (from NestJS CQRS) decouples
+  the controllers from the underlying handlers, as described in the README''s "Application
+  layer" section.
+
+
+  ### 5. Architectural Infrastructure
+
+  - **Vertical Slicing**: Inside modules, folders are organized by use-case (e.g.,
+  `src/modules/user/commands/create-user/`), grouping the service, command, and controller
+  together.
+
+  - **Mappers**: `src/modules/*/user.mapper.ts` handles data transformation between
+  layers (Domain to Persistence, Domain to DTO), ensuring layer isolation.'

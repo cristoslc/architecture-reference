@@ -13,5 +13,90 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'The Umami repository follows a traditional **Layered** architecture,
+  specifically optimized for the Next.js ecosystem. It functions as a single deployable
+  application where concerns are separated horizontally into distinct tiers:
+
+
+  1.  **Presentation/Routing (App Router):** The `src/app` directory utilizes Next.js
+  App Router for both the frontend UI and the API endpoints (`src/app/api`).
+
+  2.  **Business logic/Services:** The `src/lib` directory contains the core logic,
+  including authentication (`auth.ts`), data processing (`detect.ts`, `filters.ts`),
+  and coordination.
+
+  3.  **Data Access Layer (DAL):** The repository abstracts database interactions
+  into `src/queries`, with specific implementations for both **Prisma** (Relational)
+  and raw **SQL** (Clickhouse/PostgreSQL). This separation allows the application
+  to support multiple storage engines (PostgreSQL and Clickhouse) via a consistent
+  internal API.
+
+  4.  **State Management:** The frontend utilizes `src/store` (Zustand) for client-side
+  state, maintaining a clear boundary between UI components and data orchestration.
+
+
+  **Secondary Style: Event-Driven**
+
+  While Umami is a web monolith, it incorporates **Event-Driven** patterns as a scaling
+  strategy for high-volume data ingestion. The inclusion of `kafkajs` in `package.json`
+  and `src/lib/kafka.ts` indicates that the "collect" functionality (tracking events)
+  can be decoupled from the main database writes via a message broker. This allows
+  the system to handle ingestion bursts asynchronously, separate from the primary
+  application flow.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:14:24Z'
+classification_reasoning: 'The Umami repository follows a traditional **Layered**
+  architecture, specifically optimized for the Next.js ecosystem. It functions as
+  a single deployable application where concerns are separated horizontally into distinct
+  tiers:
+
+
+  1.  **Presentation/Routing (App Router):** The `src/app` directory utilizes Next.js
+  App Router for both the frontend UI and the API endpoints (`src/app/api`).
+
+  2.  **Business logic/Services:** The `src/lib` directory contains the core logic,
+  including authentication (`auth.ts`), data processing (`detect.ts`, `filters.ts`),
+  and coordination.
+
+  3.  **Data Access Layer (DAL):** The repository abstracts database interactions
+  into `src/queries`, with specific implementations for both **Prisma** (Relational)
+  and raw **SQL** (Clickhouse/PostgreSQL). This separation allows the application
+  to support multiple storage engines (PostgreSQL and Clickhouse) via a consistent
+  internal API.
+
+  4.  **State Management:** The frontend utilizes `src/store` (Zustand) for client-side
+  state, maintaining a clear boundary between UI components and data orchestration.
+
+
+  **Secondary Style: Event-Driven**
+
+  While Umami is a web monolith, it incorporates **Event-Driven** patterns as a scaling
+  strategy for high-volume data ingestion. The inclusion of `kafkajs` in `package.json`
+  and `src/lib/kafka.ts` indicates that the "collect" functionality (tracking events)
+  can be decoupled from the main database writes via a message broker. This allows
+  the system to handle ingestion bursts asynchronously, separate from the primary
+  application flow.
+
+
+  **Architecture Nuances:**
+
+  - **Monolithic Deployment:** Despite the complex data strategies (PostgreSQL + Clickhouse
+  + Kafka), the system is designed to be deployed as a single unit (as evidenced by
+  the unified `Dockerfile` and `docker-compose.yml`).
+
+  - **Persistence Polyglot:** It is technically "Service-Based" in terms of data (using
+  different databases for specialized tasks like analytics vs. relational metadata),
+  but since these are governed by a single codebase and deployment unit, it remains
+  a Monolith.
+
+  - **Microkernel Signal (Rejected):** While it has an external `tracker/index.js`,
+  this is a client-side delivery asset rather than a plugin-based core architecture.
+  It does not provide a plugin contract for extending the server-side functionality
+  at runtime.'

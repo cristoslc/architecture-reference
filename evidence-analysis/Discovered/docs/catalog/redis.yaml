@@ -14,5 +14,104 @@ languages:
 - C/C++
 - Python
 - Ruby
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Event-Driven
+- Service-Based
+classification_status: classified
+review_notes: 'The Redis codebase is a highly specialized architecture that functions
+  as a high-performance "Data Structure Server." Based on the provided evidence, its
+  structural organization is best classified as a **Microkernel (Plugin)** architecture,
+  with strong elements of **Event-Driven** and **Service-Based** design.
+
+
+  ### Core Architecture: Microkernel (Plugin)
+
+  The defining characteristic of Redis''s modern architecture is its extensibility
+  via the **Modules API**.
+
+  - **The Kernel:** The core system (found in `src/server.c`, `src/server.h`, and
+  `src/ae.c`) provides an "operating system" for data: an event loop, memory management
+  (`zmalloc.h`), networking (`networking.c`), and a key-value keyspace.
+
+  - **The Plugins:** As seen in `redis-full.conf`, major features like `RediSearch`,
+  `RedisJSON`, `RedisBloom`, and `RedisTimeSeries` are not compiled into the core;
+  they are loaded at runtime as shared libraries (`.so` files) using `loadmodule`.
+
+  - **Contract Enforcement:** `src/module.c` defines the interface (`RedisModuleCtx`,
+  `RedisModule_OnLoad`) that plugins must implement. The core provides "Ports" (APIs
+  for keyspace access, blocking clients, and logging) that "Adapters" (Modules) use
+  to extend the system without modifying the core source.
+
+
+  ### Secondary Style: Event-Driven
+
+  Internally, Redis is structured around a non-blocking, asynchronous event loop (`src/ae.c`).'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:08:32Z'
+classification_reasoning: 'The Redis codebase is a highly specialized architecture
+  that functions as a high-performance "Data Structure Server." Based on the provided
+  evidence, its structural organization is best classified as a **Microkernel (Plugin)**
+  architecture, with strong elements of **Event-Driven** and **Service-Based** design.
+
+
+  ### Core Architecture: Microkernel (Plugin)
+
+  The defining characteristic of Redis''s modern architecture is its extensibility
+  via the **Modules API**.
+
+  - **The Kernel:** The core system (found in `src/server.c`, `src/server.h`, and
+  `src/ae.c`) provides an "operating system" for data: an event loop, memory management
+  (`zmalloc.h`), networking (`networking.c`), and a key-value keyspace.
+
+  - **The Plugins:** As seen in `redis-full.conf`, major features like `RediSearch`,
+  `RedisJSON`, `RedisBloom`, and `RedisTimeSeries` are not compiled into the core;
+  they are loaded at runtime as shared libraries (`.so` files) using `loadmodule`.
+
+  - **Contract Enforcement:** `src/module.c` defines the interface (`RedisModuleCtx`,
+  `RedisModule_OnLoad`) that plugins must implement. The core provides "Ports" (APIs
+  for keyspace access, blocking clients, and logging) that "Adapters" (Modules) use
+  to extend the system without modifying the core source.
+
+
+  ### Secondary Style: Event-Driven
+
+  Internally, Redis is structured around a non-blocking, asynchronous event loop (`src/ae.c`).
+
+  - **Control Flow:** The system does not use a thread-per-request model; instead,
+  it reacts to file events (network I/O) and time events (cron jobs).
+
+  - **Pub/Sub and Streams:** Beyond its internal mechanics, Redis provides first-class
+  primitives for event-driven coordination between external services (`src/pubsub.c`,
+  `src/t_stream.c`).
+
+
+  ### Secondary Style: Service-Based (Cluster Mode)
+
+  While often deployed as a single instance, the "Redis Cluster" (`src/cluster.c`,
+  `src/cluster.h`) transforms the architecture into a distributed **Service-Based**
+  system.
+
+  - **Coarse-Grained Services:** In Cluster mode, 2-1000+ nodes coordinate to form
+  a single logical database. Unlike Microservices, these nodes are homogeneous and
+  share a common protocol and database schema (the 16,384 slots).
+
+  - **Gossip Protocol:** Nodes communicate state via a gossip protocol (defined in
+  `cluster.h`) to handle failover and sharding, representing a distributed systems
+  architecture integrated directly into the binary.
+
+
+  ### Rejected Styles:
+
+  - **Layered:** While there is a loose separation between networking (`anet.c`),
+  protocol parsing (`resp_parser.h`), and data types (`t_string.c`), the architecture
+  is highly integrated for performance. The "Server" state object in `server.h` is
+  globally accessible, violating strict horizontal layering.
+
+  - **Microservices:** Each Redis node is a single deployable unit. While 8.0/Valkey
+  introduces more modularity, it does not consist of small, independently deployable
+  functional units (e.g., a "Search Service" vs a "JSON Service") in the DevOps sense;
+  they are binary plugins.'

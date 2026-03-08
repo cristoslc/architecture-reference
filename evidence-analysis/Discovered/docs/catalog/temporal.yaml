@@ -12,5 +12,64 @@ domain: Workflow Orchestration
 language: Go
 languages:
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+- Domain-Driven Design
+classification_status: classified
+review_notes: "The Temporal server repository is a classic exemplar of a **Microservices**\
+  \ architecture, specifically following the \"Service-Based\" patterns often seen\
+  \ in high-scale Uber-originated projects (like its predecessor, Cadence). \n\n###\
+  \ 1. Primary Style: Microservices\nThe system is decomposed into several functional\
+  \ services that are independently scalable and often independently deployable, as\
+  \ evidenced by:\n- **Service Boundaries**: The logic is explicitly split in the\
+  \ `service/` directory into four primary roles: `frontend`, `history`, `matching`,\
+  \ and `worker`.\n- **Deployment Topology**: The `docker/config_template.yaml` defines\
+  \ distinct RPC and Membership ports for each service (e.g., Frontend on 7233, History\
+  \ on 7234, Matching on 7235).\n- **Communication**: Services interact via gRPC.\
+  \ The `common/membership` and `common/cluster` modules facilitate service discovery\
+  \ and cluster metadata management across these distributed components.\n- **Dependency\
+  \ Injection**: Each service uses **Uber Fx** (`service/*/fx.go`) to define its own\
+  \ dependency graph, allowing each service to boot with only the specific resources\
+  \ (persistence, metrics, handlers) it requires.\n\n### 2. Secondary Style: Event-Driven"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:13:30Z'
+classification_reasoning: "The Temporal server repository is a classic exemplar of\
+  \ a **Microservices** architecture, specifically following the \"Service-Based\"\
+  \ patterns often seen in high-scale Uber-originated projects (like its predecessor,\
+  \ Cadence). \n\n### 1. Primary Style: Microservices\nThe system is decomposed into\
+  \ several functional services that are independently scalable and often independently\
+  \ deployable, as evidenced by:\n- **Service Boundaries**: The logic is explicitly\
+  \ split in the `service/` directory into four primary roles: `frontend`, `history`,\
+  \ `matching`, and `worker`.\n- **Deployment Topology**: The `docker/config_template.yaml`\
+  \ defines distinct RPC and Membership ports for each service (e.g., Frontend on\
+  \ 7233, History on 7234, Matching on 7235).\n- **Communication**: Services interact\
+  \ via gRPC. The `common/membership` and `common/cluster` modules facilitate service\
+  \ discovery and cluster metadata management across these distributed components.\n\
+  - **Dependency Injection**: Each service uses **Uber Fx** (`service/*/fx.go`) to\
+  \ define its own dependency graph, allowing each service to boot with only the specific\
+  \ resources (persistence, metrics, handlers) it requires.\n\n### 2. Secondary Style:\
+  \ Event-Driven\nWhile not a simple pub/sub message bus, Temporal’s core execution\
+  \ model is intrinsically event-driven:\n- **Event Sourcing**: As stated in `docs/architecture/README.md`,\
+  \ the system functions via event sourcing, where an append-only history of events\
+  \ is stored for each workflow. \n- **Task Queues**: The `matching` service manages\
+  \ task queues that drive the system. Workers poll these queues, and the resulting\
+  \ state transitions are communicated back as events.\n- **Internal Queuing**: The\
+  \ presence of `service/history/queues` and various \"Task Executors\" (`transfer_queue_active_task_executor.go`)\
+  \ indicates an internal architecture that processes state transitions asynchronously\
+  \ via internal queues.\n\n### 3. Secondary Style: Domain-Driven Design (DDD)\nThe\
+  \ repository exhibits strong DDD influences in its code organization:\n- **Bounded\
+  \ Contexts**: The `service/` directory acts as a boundary for different domains\
+  \ (matching vs. execution history).\n- **Domain Logic**: Within `service/history/workflow`,\
+  \ the codebase manages complex state machines and aggregates representing the \"\
+  Workflow Execution\" entity.\n- **Ubiquitous Language**: The code consistently uses\
+  \ domain terms (Namespace, Workflow, Activity, Shard) that map directly to the architectural\
+  \ components.\n\n### Structural Observations\n- **Common Module**: A heavy `common/`\
+  \ layer provides the \"chassis\" for all services, handling cross-cutting concerns\
+  \ like `metrics`, `persistence` abstractions, `quotas`, and `dynamicconfig`.\n-\
+  \ **Persistence Layer**: The architecture abstracts the underlying datastore (Cassandra,\
+  \ MySQL, Postgres) via a plugin-based persistence layer found in `common/persistence`,\
+  \ allowing the same microservice logic to run against different storage backends."

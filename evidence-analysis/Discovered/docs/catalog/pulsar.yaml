@@ -14,5 +14,64 @@ languages:
 - Java/Kotlin
 - Python
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: "Apache Pulsar is structured as a **Microservices** architecture at\
+  \ the deployment and system level, while its codebase is organized as a large-scale\
+  \ multi-module project that facilitates several independent operational units.\n\
+  \n### Reasoning:\n\n**1. Microservices (Primary Style):**\nWhile the repository\
+  \ contains the code for a platform, the architecture is fundamentally built from\
+  \ multiple, independently deployable components that together form the Pulsar ecosystem.\
+  \ \n- **Component Separation:** The directory structure and build system (Maven)\
+  \ clearly separate major operational components: `pulsar-broker` (the core message\
+  \ dispatcher), `pulsar-websocket` (proxy), `pulsar-proxy` (often bundled or separate),\
+  \ and `pulsar-functions` (the compute layer).\n- **Deployment Evidence:** The `docker/`\
+  \ directory contains distinct Dockerfiles for different roles (e.g., `docker/pulsar`,\
+  \ `docker/pulsar-all`). The `tests/compose` directory includes `docker-compose.yml`\
+  \ files that orchestrate multiple distinct services (brokers, ZooKeeper, BookKeeper)\
+  \ to create a functioning cluster.\n- **Independent Scaling:** The architecture\
+  \ is designed for \"horizontal scalability\" (as cited in the README), where brokers\
+  \ are stateless and scale independently from the storage layer (Apache BookKeeper)."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:07:32Z'
+classification_reasoning: "Apache Pulsar is structured as a **Microservices** architecture\
+  \ at the deployment and system level, while its codebase is organized as a large-scale\
+  \ multi-module project that facilitates several independent operational units.\n\
+  \n### Reasoning:\n\n**1. Microservices (Primary Style):**\nWhile the repository\
+  \ contains the code for a platform, the architecture is fundamentally built from\
+  \ multiple, independently deployable components that together form the Pulsar ecosystem.\
+  \ \n- **Component Separation:** The directory structure and build system (Maven)\
+  \ clearly separate major operational components: `pulsar-broker` (the core message\
+  \ dispatcher), `pulsar-websocket` (proxy), `pulsar-proxy` (often bundled or separate),\
+  \ and `pulsar-functions` (the compute layer).\n- **Deployment Evidence:** The `docker/`\
+  \ directory contains distinct Dockerfiles for different roles (e.g., `docker/pulsar`,\
+  \ `docker/pulsar-all`). The `tests/compose` directory includes `docker-compose.yml`\
+  \ files that orchestrate multiple distinct services (brokers, ZooKeeper, BookKeeper)\
+  \ to create a functioning cluster.\n- **Independent Scaling:** The architecture\
+  \ is designed for \"horizontal scalability\" (as cited in the README), where brokers\
+  \ are stateless and scale independently from the storage layer (Apache BookKeeper).\n\
+  \n**2. Event-Driven (Secondary Style):**\nThe internal organization of the code\
+  \ is heavily dictated by pub-sub mechanics and event handling.\n- **Communication\
+  \ Patterns:** The project implements and uses complex event-based triggers, especially\
+  \ within `pulsar-functions`.\n- **Reactive Design:** The prevalence of asynchronous\
+  \ APIs (seen in `pulsar-client-api`) and the internal \"Broker\" logic (in `pulsar-broker`)\
+  \ centers on reactive stream processing.\n\n**3. Microkernel (Plugin) (Secondary\
+  \ Style):**\nPulsar uses a \"pluggable\" architecture to extend functionality without\
+  \ modifying the core broker.\n- **Protocol Handlers:** Pulsar supports dynamic loading\
+  \ of protocol handlers (e.g., for Kafka or AMQP compatibility) and tiered storage\
+  \ offloaders.\n- **Pulsar IO:** The `pulsar-io` and `pulsar-package-management`\
+  \ modules provide a framework for loading external \"Connectors\" (Sources/Sinks)\
+  \ at runtime, which is a classic implementation of the Microkernel/Plugin pattern.\
+  \ \n\n### Key Evidence Paths:\n- **`pulsar-broker/`**: Contains the core logic for\
+  \ the messaging service, separated from the client and API modules.\n- **`docker/pulsar/scripts/generate-zookeeper-config.sh`**:\
+  \ Indicates reliance on external coordination services, typical in distributed microservices\
+  \ environments.\n- **`pulsar-function-go/`**: Shows support for multiple runtimes\
+  \ and isolated execution units (Serverless-lite), further reinforcing the microservices/distributed\
+  \ nature.\n- **`pulsar-client-admin-api/` and `pulsar-client-api/`**: Strict separation\
+  \ of concern between the control plane (Admin) and data plane (Client)."

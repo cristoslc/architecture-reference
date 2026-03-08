@@ -13,5 +13,101 @@ language: Go
 languages:
 - Go
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: 'The Elastic Beats repository is a classic example of a **Microkernel
+  (Plugin)** architecture, often referred to in the Go community as a "framework and
+  implementation" pattern.
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The system is built around a core framework called `libbeat` (mentioned in the README
+  and visible in the project structure), which serves as the "microkernel." This kernel
+  provides common services required by all data shippers: configuration handling,
+  output pipelines (Elasticsearch, Logstash), logging, and the publisher interface.
+
+
+  Individual "Beats" (Filebeat, Metricbeat, etc.) act as **plugins** or extensions
+  of this core. They implement a specific interface (typically the `Beater` interface)
+  and are registered with the central framework.
+
+  - **Plugin Separation:** Each Beat (e.g., `./metricbeat`, `./filebeat`) resides
+  in its own top-level directory.
+
+  - **Sub-Plugins:** Within a specific Beat, like `Metricbeat`, there is a second
+  level of the plugin pattern. `metricbeat/module/` (e.g., `./metricbeat/module/docker`,
+  `./metricbeat/module/redis`) contains individual modules that can be enabled/disabled
+  at runtime via `.yml` files in `modules.d/`.
+
+  - **Extension Points:** The README explicitly mentions that the community can create
+  their own Beats using the `libbeat` framework, which is the hallmark of a Microkernel
+  design where the core is extensible by third parties.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:41:52Z'
+classification_reasoning: 'The Elastic Beats repository is a classic example of a
+  **Microkernel (Plugin)** architecture, often referred to in the Go community as
+  a "framework and implementation" pattern.
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The system is built around a core framework called `libbeat` (mentioned in the README
+  and visible in the project structure), which serves as the "microkernel." This kernel
+  provides common services required by all data shippers: configuration handling,
+  output pipelines (Elasticsearch, Logstash), logging, and the publisher interface.
+
+
+  Individual "Beats" (Filebeat, Metricbeat, etc.) act as **plugins** or extensions
+  of this core. They implement a specific interface (typically the `Beater` interface)
+  and are registered with the central framework.
+
+  - **Plugin Separation:** Each Beat (e.g., `./metricbeat`, `./filebeat`) resides
+  in its own top-level directory.
+
+  - **Sub-Plugins:** Within a specific Beat, like `Metricbeat`, there is a second
+  level of the plugin pattern. `metricbeat/module/` (e.g., `./metricbeat/module/docker`,
+  `./metricbeat/module/redis`) contains individual modules that can be enabled/disabled
+  at runtime via `.yml` files in `modules.d/`.
+
+  - **Extension Points:** The README explicitly mentions that the community can create
+  their own Beats using the `libbeat` framework, which is the hallmark of a Microkernel
+  design where the core is extensible by third parties.
+
+
+  ### 2. Secondary Style: Modular Monolith (Source Organization)
+
+  While the Beats can be compiled into separate binaries (e.g., a `filebeat` binary
+  and a `metricbeat` binary), the repository itself is managed as a **Modular Monolith**
+  in terms of shared code and build logic.
+
+  - They share a single `go.mod` file at the root, indicating a unified dependency
+  graph.
+
+  - All Beats are versioned together and share the same `libbeat` core within the
+  same repository.
+
+  - There is strong internal modularity (e.g., `metricbeat/beater`, `metricbeat/cmd`),
+  but they are not "Microservices" because they do not communicate with each other
+  over the network to function; they are independent units that share a common foundation.
+
+
+  ### Evidence:
+
+  - **`libbeat/`**: The common core/framework (Kernel).
+
+  - **`metricbeat/module/`**: Illustrates a secondary plugin layer where different
+  data sources (Postgres, Redis, Docker) are plugged into the Metricbeat agent.
+
+  - **`metricbeat/modules.d/`**: Configuration-driven activation of these plugins
+  (e.g., `postgresql.yml.disabled`).
+
+  - **`metricbeat/beater/metricbeat.go`**: The entry point that implements the framework''s
+  requirements to be run by the kernel.
+
+  - **README**: Specifically identifies `libbeat` as the "framework for creating Beats."'

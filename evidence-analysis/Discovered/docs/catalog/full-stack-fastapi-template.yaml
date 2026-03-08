@@ -13,5 +13,81 @@ language: TypeScript
 languages:
 - TypeScript
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+classification_status: classified
+review_notes: 'This repository follows a traditional **Layered** architecture, which
+  is the standard organizational pattern for FastAPI-based full-stack applications.
+  While it uses Docker Compose to manage a suite of components (PostgreSQL, Traefik,
+  Mailcatcher, Backend, Frontend), the internal code organization of the application
+  logic itself is strictly partitioned into horizontal layers.
+
+
+  ### Evidence of Layered Architecture:
+
+  The backend (`/backend/app`) is structured by technical responsibility rather than
+  functional domains:
+
+  - **Presentation/API Layer**: `backend/app/api/` contains the routes and dependency
+  injection logic (`deps.py`).
+
+  - **Business Logic/Persistence Layer**: `backend/app/crud.py` acts as the data access/manipulation
+  layer.
+
+  - **Data Model Layer**: `backend/app/models.py` defines the SQLModel (SQLAlchemy
+  + Pydantic) schemas and entities used across the application.
+
+  - **Cross-Cutting Concerns**: `backend/app/core/` handles configuration, security
+  (JWT), and database initialization.
+
+
+  ### Why not other styles:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:49:38Z'
+classification_reasoning: 'This repository follows a traditional **Layered** architecture,
+  which is the standard organizational pattern for FastAPI-based full-stack applications.
+  While it uses Docker Compose to manage a suite of components (PostgreSQL, Traefik,
+  Mailcatcher, Backend, Frontend), the internal code organization of the application
+  logic itself is strictly partitioned into horizontal layers.
+
+
+  ### Evidence of Layered Architecture:
+
+  The backend (`/backend/app`) is structured by technical responsibility rather than
+  functional domains:
+
+  - **Presentation/API Layer**: `backend/app/api/` contains the routes and dependency
+  injection logic (`deps.py`).
+
+  - **Business Logic/Persistence Layer**: `backend/app/crud.py` acts as the data access/manipulation
+  layer.
+
+  - **Data Model Layer**: `backend/app/models.py` defines the SQLModel (SQLAlchemy
+  + Pydantic) schemas and entities used across the application.
+
+  - **Cross-Cutting Concerns**: `backend/app/core/` handles configuration, security
+  (JWT), and database initialization.
+
+
+  ### Why not other styles:
+
+  - **Not Microservices**: Although there are multiple Docker containers, they represent
+  segments of a single application stack (Frontend, Backend, DB) rather than independent
+  business services. All backend logic resides in a single Python package.
+
+  - **Not Modular Monolith**: The directory structure is organized by *type* of file
+  (models, crud, api) rather than by *feature* (e.g., `/users`, `/items`). Imports
+  are global within the backend package, and there are no enforced boundaries between
+  modules.
+
+  - **Not Hexagonal**: The code is tightly coupled to SQLModel and FastAPI primitives
+  throughout the `crud` and `api` layers, lacking the "Ports and Adapters" abstractions
+  required for Hexagonal architecture.
+
+
+  The project serves as a "Gold Standard" template for a **Layered Monolith** where
+  the frontend and backend are physically decoupled but functionally organized around
+  a single unified database.'

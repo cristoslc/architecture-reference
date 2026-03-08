@@ -12,5 +12,98 @@ domain: Infrastructure
 language: Go
 languages:
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Pipeline (Pipe-and-Filter)
+classification_status: classified
+review_notes: '```
+
+
+  ### Architecture Analysis
+
+
+  Terraform Core is a classic example of a **Microkernel (Plugin)** architecture.
+  The repository’s structure and documentation explicitly separate the "Core" engine
+  from the "Providers" (plugins) that handle the actual business logic of interacting
+  with infrastructure APIs.
+
+
+  #### Evidence for Microkernel (Plugin)
+
+  1.  **Core-Plugin Separation:** The README states: *"This repository contains only
+  Terraform core... Providers are implemented as plugins."* The core handles the lifecycle,
+  graph evaluation, and CLI, while all resource-specific logic is offloaded to external
+  binaries.
+
+  2.  **Internal Provider Implementation:** The path `internal/provider-simple-v6`
+  shows how Terraform maintains internal mock or simple providers for testing and
+  bootstrapping, mirroring the same interface expected from external plugins.
+
+  3.  **Plugin Protocols:** The presence of `tools/protobuf-compile` and references
+  to gRPC-based provider communication (implied by Terraform''s known architecture
+  and the directory labels) indicates a rigid contract between the kernel (Core) and
+  extensions (Providers).'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:13:37Z'
+classification_reasoning: '```
+
+
+  ### Architecture Analysis
+
+
+  Terraform Core is a classic example of a **Microkernel (Plugin)** architecture.
+  The repository’s structure and documentation explicitly separate the "Core" engine
+  from the "Providers" (plugins) that handle the actual business logic of interacting
+  with infrastructure APIs.
+
+
+  #### Evidence for Microkernel (Plugin)
+
+  1.  **Core-Plugin Separation:** The README states: *"This repository contains only
+  Terraform core... Providers are implemented as plugins."* The core handles the lifecycle,
+  graph evaluation, and CLI, while all resource-specific logic is offloaded to external
+  binaries.
+
+  2.  **Internal Provider Implementation:** The path `internal/provider-simple-v6`
+  shows how Terraform maintains internal mock or simple providers for testing and
+  bootstrapping, mirroring the same interface expected from external plugins.
+
+  3.  **Plugin Protocols:** The presence of `tools/protobuf-compile` and references
+  to gRPC-based provider communication (implied by Terraform''s known architecture
+  and the directory labels) indicates a rigid contract between the kernel (Core) and
+  extensions (Providers).
+
+
+  #### Evidence for Pipeline (Pipe-and-Filter)
+
+  Terraform''s internal execution model follows a sequential flow of data through
+  distinct stages, which is a hallmark of the **Pipeline** style. The directory `internal/terraform`
+  contains logic for these specific stages:
+
+  1.  **Validation:** `internal/terraform/testdata/validate-*`
+
+  2.  **Planning:** `internal/terraform/context_plan.go` (implied) and `testdata/plan-*`
+
+  3.  **Graph Transformation:** The files `internal/terraform/transform_vertex.go`,
+  `transform_provider_prune.go`, and `transform_root_basic.go` show a series of filters
+  that transform a dependency graph into an executable plan.
+
+  4.  **Application:** `internal/terraform/context_apply.go` and `node_resource_apply_instance.go`.
+
+
+  #### Rejection of other styles
+
+  *   **Microservices:** While Terraform uses plugins that run as separate processes,
+  these are not independently deployable services in the cloud sense; they are child
+  processes of a single CLI invocation.
+
+  *   **Layered:** While it has internal packages, the fundamental organizational
+  principle is the Graph Engine and its extension points, not a simple Controller/Service/Repository
+  stack.
+
+  *   **Hexagonal:** The core does use "Ports and Adapters" to talk to providers and
+  state backends, but "Microkernel" more accurately describes the deployment and extension
+  model of the system.'

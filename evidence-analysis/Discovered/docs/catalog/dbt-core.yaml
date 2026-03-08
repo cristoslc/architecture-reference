@@ -13,5 +13,104 @@ language: Python
 languages:
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Layered
+- Pipeline (Pipe-and-Filter)
+classification_status: classified
+review_notes: '### Architectural Analysis
+
+
+  The `dbt-core` repository is structured as a sophisticated CLI application that
+  acts as an orchestration engine. Its architecture is characterized by a core processing
+  engine that is extended via a plugin systems, organized internally with clear horizontal
+  layers, and operating as a data transformation pipeline.
+
+
+  #### 1. Microkernel (Plugin)
+
+  The defining characteristic of `dbt-core` is its separation of the core logic (parsing,
+  graph resolution, and orchestration) from the database-specific execution logic.
+
+  - **Evidence:** The presence of `core/dbt/plugins/` containing `manager.py`, `contracts.py`,
+  and `manifest.py` indicates a formal service provider interface (SPI) for extensions.
+
+  - **Functionality:** In dbt''s ecosystem, the "adapters" (like `dbt-postgres`, `dbt-snowflake`)
+  are external plugins that implement the contracts defined in this core repository.
+  The `core/dbt/adapters` (though not fully expanded in the tree, hinted at by `tests/unit/mock_adapter.py`
+  and `tests/unit/utils/adapter.py`) allows the core to remain agnostic of the underlying
+  data warehouse.
+
+
+  #### 2. Layered Architecture'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:45:03Z'
+classification_reasoning: '### Architectural Analysis
+
+
+  The `dbt-core` repository is structured as a sophisticated CLI application that
+  acts as an orchestration engine. Its architecture is characterized by a core processing
+  engine that is extended via a plugin systems, organized internally with clear horizontal
+  layers, and operating as a data transformation pipeline.
+
+
+  #### 1. Microkernel (Plugin)
+
+  The defining characteristic of `dbt-core` is its separation of the core logic (parsing,
+  graph resolution, and orchestration) from the database-specific execution logic.
+
+  - **Evidence:** The presence of `core/dbt/plugins/` containing `manager.py`, `contracts.py`,
+  and `manifest.py` indicates a formal service provider interface (SPI) for extensions.
+
+  - **Functionality:** In dbt''s ecosystem, the "adapters" (like `dbt-postgres`, `dbt-snowflake`)
+  are external plugins that implement the contracts defined in this core repository.
+  The `core/dbt/adapters` (though not fully expanded in the tree, hinted at by `tests/unit/mock_adapter.py`
+  and `tests/unit/utils/adapter.py`) allows the core to remain agnostic of the underlying
+  data warehouse.
+
+
+  #### 2. Layered Architecture
+
+  Inside the `core/dbt/` package, the code follows a classic layered approach to handle
+  the lifecycle of a dbt command:
+
+  - **Presentation/Interface:** `core/dbt/cli/` handles command-line parsing and entry
+  points using a Click-based interface.
+
+  - **Application Logic (Tasks):** `core/dbt/task/` (e.g., `run.py`, `compile.py`,
+  `seed.py`) contains the "Command" pattern implementation, where each CLI action
+  is mapped to a specific task classes.
+
+  - **Domain/Processing:** `core/dbt/parser/` and `core/dbt/compilation.py` handle
+  the transformation of Jinja/SQL into executable code.
+
+  - **Data/Contracts:** `core/dbt/contracts/` and `core/dbt/artifacts/` define the
+  schemas (Pydantic models) for internal state and output files (manifests, run results).
+
+
+  #### 3. Pipeline (Pipe-and-Filter)
+
+  The core execution model of dbt is a Directed Acyclic Graph (DAG) processing pipeline.
+
+  - **Evidence:** `core/dbt/graph/` contains `graph.py`, `selector.py`, and `queue.py`.
+
+  - **Logic:** The system treats data transformations as nodes in a graph. The architecture
+  is designed to ingest raw source files, parse them into a manifest, resolve dependencies
+  (the pipeline stages), and then execute them in a multi-threaded fashion (via `core/dbt/graph/thread_pool.py`).
+
+
+  #### Rejected Styles
+
+  - **Microservices:** While dbt works with many data sources, `dbt-core` is a single
+  monolithic CLI binary.
+
+  - **Hexagonal Architecture:** While it uses adapters, the internal structure is
+  more aligned with traditional layering and a Microkernel "core + plugin" model than
+  a pure Ports and Adapters isolation of the domain.
+
+  - **Event-Driven:** Although it has an internal event system (`core/dbt/events/`),
+  this is primarily for structured logging and telemetry rather than the primary architectural
+  communication mechanism.'

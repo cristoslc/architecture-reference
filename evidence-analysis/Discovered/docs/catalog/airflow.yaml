@@ -15,5 +15,28 @@ languages:
 - TypeScript
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Service-Based
+- Layered
+classification_status: classified
+one_line_summary: DAG-based workflow orchestrator with provider plugin system and
+  multi-service deployment
+review_notes: Providers/ directory with 100+ independently versioned plugins, task-sdk
+  providing BaseOperator/BaseHook contracts, docker-compose showing 4-5 coarse-grained
+  services sharing a metadata database
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:17:19Z'
+classification_reasoning: Apache Airflow is structured as a Microkernel (Plugin) architecture
+  at its core, complemented by a Service-Based deployment topology. The defining structural
+  characteristic is the extensive providers/ system with 100+ independently versioned
+  packages. The core handles scheduling, DAG parsing, and state management while all
+  connectivity is in separate provider packages with registration via provider.yaml
+  files. The task-sdk provides stable BaseOperator/BaseHook interfaces. Deployment
+  is 4-5 coarse-grained services (Scheduler, Webserver, Worker, Triggerer) sharing
+  a metadata database — characteristic of Service-Based rather than Microservices.
+  Internally follows a Layered pattern with UI/CLI, domain models (DAG, TaskInstance),
+  and data access via SQLAlchemy.

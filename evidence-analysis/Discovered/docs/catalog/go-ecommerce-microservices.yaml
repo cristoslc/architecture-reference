@@ -13,5 +13,66 @@ language: Go
 languages:
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+- Domain-Driven Design
+- CQRS
+classification_status: classified
+review_notes: "The repository is a textbook implementation of a **Microservices**\
+  \ architecture, explicitly designed as an exemplar for this style. The codebase\
+  \ is partitioned into independent, deployable services located under `internal/services/`,\
+  \ including `catalogwriteservice`, `catalogreadservice`, and `orderservice`. Each\
+  \ service contains its own `Dockerfile`, `go.mod`, configuration, and internal logic,\
+  \ ensuring strict deployment boundaries.\n\n### Architectural Logic:\n\n1.  **Microservices\
+  \ (Primary):**\n    *   **Independent Deployability:** Each directory in `internal/services/`\
+  \ is a self-contained unit with its own lifecycle management (Dockerfiles, separate\
+  \ `go.mod` files).\n    *   **Data Sovereignty:** The README and directory structure\
+  \ indicate different backing stores for different services (e.g., `catalogreadservice`\
+  \ uses MongoDB/ElasticSearch while `catalogwriteservice` uses Postgres), a hallmark\
+  \ of microservices.\n    *   **Polyglot Persistence:** Use of MongoDB, Postgres,\
+  \ and EventStoreDB across different service boundaries.\n\n2.  **Event-Driven (Secondary):**"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:50:45Z'
+classification_reasoning: "The repository is a textbook implementation of a **Microservices**\
+  \ architecture, explicitly designed as an exemplar for this style. The codebase\
+  \ is partitioned into independent, deployable services located under `internal/services/`,\
+  \ including `catalogwriteservice`, `catalogreadservice`, and `orderservice`. Each\
+  \ service contains its own `Dockerfile`, `go.mod`, configuration, and internal logic,\
+  \ ensuring strict deployment boundaries.\n\n### Architectural Logic:\n\n1.  **Microservices\
+  \ (Primary):**\n    *   **Independent Deployability:** Each directory in `internal/services/`\
+  \ is a self-contained unit with its own lifecycle management (Dockerfiles, separate\
+  \ `go.mod` files).\n    *   **Data Sovereignty:** The README and directory structure\
+  \ indicate different backing stores for different services (e.g., `catalogreadservice`\
+  \ uses MongoDB/ElasticSearch while `catalogwriteservice` uses Postgres), a hallmark\
+  \ of microservices.\n    *   **Polyglot Persistence:** Use of MongoDB, Postgres,\
+  \ and EventStoreDB across different service boundaries.\n\n2.  **Event-Driven (Secondary):**\n\
+  \    *   The system uses **RabbitMQ** for asynchronous inter-service communication.\n\
+  \    *   Evidence: `internal/pkg/rabbitmq` contains a custom Event Bus implementation,\
+  \ and the README explicitly mentions using \"asynchronous messaging using RabbitMQ\"\
+  \ for communication between independent services.\n    *   **Event Sourcing:** The\
+  \ `orderservice` is explicitly identified as \"Audit Based\" using `EventStoreDB`\
+  \ and event sourcing patterns (found in `internal/pkg/eventstroredb`).\n\n3.  **Domain-Driven\
+  \ Design & CQRS (Secondary):**\n    *   **CQRS:** The architecture separates \"\
+  Read\" and \"Write\" concerns into distinct services (`catalogwriteservice` vs `catalogreadservice`).\
+  \ It utilizes the Mediator pattern via the `Go-MediatR` library to decouple command/query\
+  \ dispatching from execution.\n    *   **Vertical Slice Architecture:** While the\
+  \ high-level organization is Microservices, the internal organization of each service\
+  \ follows \"Vertical Slices.\" Instead of horizontal layers (Controllers -> Services\
+  \ -> Repos), code is grouped by feature/use-case (Commands, Queries, Handlers).\n\
+  \    *   **DDD:** The project uses Aggregates, Domain Events, and Bounded Contexts,\
+  \ as evidenced by the `internal/pkg/core/domain` and `internal/pkg/core/events`\
+  \ packages.\n\n4.  **Shared Kernel / Infrastructure:**\n    *   Common logic is\
+  \ centralized in `internal/pkg/`, including cross-cutting concerns like logging\
+  \ (`internal/pkg/logger`), telemetry (`internal/pkg/otel`), and database abstractions\
+  \ (`internal/pkg/postgresgorm`). This functions as a shared library but does not\
+  \ violate the microservice boundary as services import these as dependencies.\n\n\
+  ### Key Evidence:\n- **Service Isolation:** `internal/services/catalogwriteservice/go.mod`\
+  \ and `internal/services/catalogreadservice/go.mod` prove horizontal decoupling\
+  \ into separate Go modules.\n- **Communication:** `internal/pkg/grpc` (synchronous)\
+  \ and `internal/pkg/rabbitmq` (asynchronous) provide the transport layer for service\
+  \ interactions.\n- **Enforced Boundaries:** Use of `arch-go.yml` within service\
+  \ directories suggests automated architecture linting to enforce dependency rules."

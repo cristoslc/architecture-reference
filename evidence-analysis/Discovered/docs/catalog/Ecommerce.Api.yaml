@@ -12,5 +12,75 @@ domain: E-Commerce
 language: C#
 languages:
 - C#
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- CQRS
+- Layered
+- Domain-Driven Design
+classification_status: classified
+review_notes: '### Architectural Analysis
+
+
+  The repository is a classic example of a **CQRS (Command Query Responsibility Segregation)**
+  architecture implemented within a .NET environment. The README explicitly identifies
+  the use of CQRS and MediatR, and the directory structure reinforces this through
+  a strict separation of read and write concerns at the infrastructure level.
+
+
+  #### Evidence of CQRS:
+
+  - **Separation of Models:** Under `src/Streetwood.Infrastructure`, there are distinct
+  directories for `Commands` and `Queries`.
+
+  - **Handler Pattern:** The presence of `Commands/Handlers` and `Queries/Handlers`
+  indicates the use of the Mediator pattern (via MediatR) to decouple the entry points
+  (API Controllers) from the execution logic.
+
+  - **DTOs vs Domain:** A large collection of DTOs in `src/Streetwood.Infrastructure/Dto`
+  is used for queries, while the `src/Streetwood.Core/Domain` contains the entities
+  used for command-side persistence and state transitions.
+
+
+  #### Evidence of Layered/Hexagonal influence:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:46:48Z'
+classification_reasoning: "### Architectural Analysis\n\nThe repository is a classic\
+  \ example of a **CQRS (Command Query Responsibility Segregation)** architecture\
+  \ implemented within a .NET environment. The README explicitly identifies the use\
+  \ of CQRS and MediatR, and the directory structure reinforces this through a strict\
+  \ separation of read and write concerns at the infrastructure level.\n\n#### Evidence\
+  \ of CQRS:\n- **Separation of Models:** Under `src/Streetwood.Infrastructure`, there\
+  \ are distinct directories for `Commands` and `Queries`.\n- **Handler Pattern:**\
+  \ The presence of `Commands/Handlers` and `Queries/Handlers` indicates the use of\
+  \ the Mediator pattern (via MediatR) to decouple the entry points (API Controllers)\
+  \ from the execution logic.\n- **DTOs vs Domain:** A large collection of DTOs in\
+  \ `src/Streetwood.Infrastructure/Dto` is used for queries, while the `src/Streetwood.Core/Domain`\
+  \ contains the entities used for command-side persistence and state transitions.\n\
+  \n#### Evidence of Layered/Hexagonal influence:\n- **Horizontal Layering:** The\
+  \ project is split into standard layers:\n  - `Streetwood.API`: The Presentation\
+  \ layer (Controllers, ViewModels).\n  - `Streetwood.Infrastructure`: The Application/Service\
+  \ layer containing business logic, mappers, and the MediatR implementation.\n  -\
+  \ `Streetwood.Core`: The Data/Domain layer containing Entity Framework entities,\
+  \ migrations, and repository abstractions.\n- **Dependency Inversion:** The use\
+  \ of Autofac modules (e.g., `RepositoriesModule.cs`, `ServicesModule.cs`) and abstractions\
+  \ in `Streetwood.Core/Managers` shows an effort to maintain clean boundaries between\
+  \ technical infrastructure and core logic.\n\n#### Evidence of Domain-Driven Design\
+  \ (DDD):\n- **Rich Domain Model:** The README mentions \"Smart domain objects (DDD)\"\
+  , and the code contains a `src/Streetwood.Core/Domain` directory. This suggests\
+  \ that business rules are encapsulated within entities rather than leaked into \"\
+  Anemic\" services.\n- **Aggregates:** The test factory structure (e.g., `ProductFactory.cs`,\
+  \ `OrderFactory.cs` in `tests/Streetwood.Test.Helpers`) suggests the existence of\
+  \ aggregate roots.\n\n#### Other Observations:\n- **Deployment:** The presence of\
+  \ `src/Streetwood.Functions` suggests a hybrid deployment model where the main API\
+  \ handles the majority of traffic, but background or event-based tasks (like `ExceptionQueueFunction`)\
+  \ are offloaded to Serverless functions.\n- **Validation:** Clear separation of\
+  \ concerns with `CustomValidators` and `Filters` in the API layer ensures that the\
+  \ Domain layer is not cluttered with HTTP-specific validation logic.\n\n#### Rejected\
+  \ Styles:\n- **Microservices:** While there are Azure Functions, the core business\
+  \ logic (Orders, Products, Users, Auth) resides in a single solution with a shared\
+  \ database and a single API project, making it a Monolith.\n- **Modular Monolith:**\
+  \ Although it uses layers, there is no evidence of strict vertical slicing (e.g.,\
+  \ `Features.Orders`, `Features.Products`) with enforced boundaries between them;\
+  \ instead, it uses global layers (Infrastructure/Core)."

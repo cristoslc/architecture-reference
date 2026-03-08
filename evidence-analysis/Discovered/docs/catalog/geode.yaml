@@ -14,5 +14,75 @@ languages:
 - Java/Kotlin
 - JavaScript
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Space-Based
+- Event-Driven
+- Modular Monolith
+classification_status: classified
+review_notes: 'Apache Geode is a quintessential implementation of the **Space-Based
+  Architecture** style. The repository is organized to build a distributed data management
+  platform that pools memory, CPU, and storage across multiple nodes (processes) to
+  create a "tuple space" or "data grid."
+
+
+  ### Primary Style: Space-Based
+
+  The architecture is centered around the concept of a "distributed data container"
+  (the Cache) where state is distributed across processing units.
+
+  - **Data Partitioning & Replication:** Evidence in the README describes "partitioned
+  regions" and "replicated regions," which are core mechanics of Space-Based systems
+  to ensure scalability and high availability without a central bottleneck.
+
+  - **Shared-Nothing Persistence:** The README explicitly mentions a "shared nothing"
+  architecture, a hallmark of space-based systems where each node operates independently.
+
+  - **Topology Components:** The mention of `Locators` (for discovery and load balancing)
+  and `Servers` (holding the data regions) matches the classic pattern of a processing
+  grid where clients connect to a virtualized pool of resources.
+
+
+  ### Secondary Style: Event-Driven
+
+  Geode includes significant infrastructure for asynchronous decoupled communication:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:49:45Z'
+classification_reasoning: "Apache Geode is a quintessential implementation of the\
+  \ **Space-Based Architecture** style. The repository is organized to build a distributed\
+  \ data management platform that pools memory, CPU, and storage across multiple nodes\
+  \ (processes) to create a \"tuple space\" or \"data grid.\"\n\n### Primary Style:\
+  \ Space-Based\nThe architecture is centered around the concept of a \"distributed\
+  \ data container\" (the Cache) where state is distributed across processing units.\n\
+  - **Data Partitioning & Replication:** Evidence in the README describes \"partitioned\
+  \ regions\" and \"replicated regions,\" which are core mechanics of Space-Based\
+  \ systems to ensure scalability and high availability without a central bottleneck.\n\
+  - **Shared-Nothing Persistence:** The README explicitly mentions a \"shared nothing\"\
+  \ architecture, a hallmark of space-based systems where each node operates independently.\n\
+  - **Topology Components:** The mention of `Locators` (for discovery and load balancing)\
+  \ and `Servers` (holding the data regions) matches the classic pattern of a processing\
+  \ grid where clients connect to a virtualized pool of resources.\n\n### Secondary\
+  \ Style: Event-Driven\nGeode includes significant infrastructure for asynchronous\
+  \ decoupled communication:\n- **Continuous Query (CQ):** The `geode-cq` module and\
+  \ README mentions of \"reliable asynchronous event notifications\" indicate an internal\
+  \ architecture capable of pub/sub interactions.\n- **WAN Gateway:** The `geode-wan`\
+  \ module suggests event-driven replication across geographically distributed clusters.\n\
+  - **Listeners:** The documentation of \"listeners to receive notifications when\
+  \ data has changed\" confirms an event-driven internal hook system.\n\n### Secondary\
+  \ Style: Modular Monolith\nFrom a codebase organization perspective, the repository\
+  \ is structured as a **Modular Monolith** using a Gradle multi-project layout. \n\
+  - **Enforced Boundaries:** Each directory (e.g., `geode-membership`, `geode-serialization`,\
+  \ `geode-lucene`, `geode-memcached`) represents a distinct functional module with\
+  \ its own `build.gradle`, suggesting a highly decoupled internal structure where\
+  \ the core (`geode-core`, implied by documentation though deep in the tree) is extended\
+  \ by functional sub-modules.\n- **Single System, Multiple Roles:** While it builds\
+  \ into different roles (Locators vs. Servers), it is a single codebase that is managed\
+  \ and released as a unified platform rather than a collection of independent microservices.\
+  \ \n\n### Rejected Styles\n- **Microservices:** While distributed, the nodes (Locators/Servers)\
+  \ are homogenous infrastructure components rather than independent business-domain\
+  \ services. They share the same codebase and are versioned together.\n- **Layered:**\
+  \ While internal modules likely have layers, the primary architectural significance\
+  \ of Geode is its horizontal distribution of data and compute, not a simple Controller-Service-Repository\
+  \ vertical stack."

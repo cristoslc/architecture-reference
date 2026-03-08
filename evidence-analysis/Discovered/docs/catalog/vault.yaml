@@ -14,5 +14,60 @@ languages:
 - Go
 - JavaScript
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Layered
+classification_status: classified
+review_notes: "HashiCorp Vault is a classic implementation of a **Microkernel (Plugin)**\
+  \ architecture. The system is designed around a minimal \"Core\" (found in the `vault/`\
+  \ directory) that manages the lifecycle of the system (sealing/unsealing, security\
+  \ barriers, and routing) while delegate all functional logic—auth methods, secret\
+  \ engines, and storage backends—to a rich plugin ecosystem.\n\n### Architectural\
+  \ Evidence\n\n1.  **Plugin-Based Core (Microkernel)**:\n    -   The `sdk/plugin/`\
+  \ and `vault/plugincatalog/` directories define the contract and registry for extending\
+  \ Vault.\n    -   Vault differentiates between **Built-in Plugins** (`builtin/`)\
+  \ and **External Plugins**. External plugins are isolated processes that communicate\
+  \ with the core via gRPC (evidenced by `sdk/plugin/grpc_backend.go` and `vault/external_plugin_test.go`).\n\
+  \    -   The `sdk/logical/` package defines the standard interface (`Backend`) that\
+  \ every secret engine (e.g., KV, PKI, Transit) and auth method must implement to\
+  \ be \"plugged in.\"\n\n2.  **Explicit SDK/Core Separation**:"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:14:36Z'
+classification_reasoning: "HashiCorp Vault is a classic implementation of a **Microkernel\
+  \ (Plugin)** architecture. The system is designed around a minimal \"Core\" (found\
+  \ in the `vault/` directory) that manages the lifecycle of the system (sealing/unsealing,\
+  \ security barriers, and routing) while delegate all functional logic—auth methods,\
+  \ secret engines, and storage backends—to a rich plugin ecosystem.\n\n### Architectural\
+  \ Evidence\n\n1.  **Plugin-Based Core (Microkernel)**:\n    -   The `sdk/plugin/`\
+  \ and `vault/plugincatalog/` directories define the contract and registry for extending\
+  \ Vault.\n    -   Vault differentiates between **Built-in Plugins** (`builtin/`)\
+  \ and **External Plugins**. External plugins are isolated processes that communicate\
+  \ with the core via gRPC (evidenced by `sdk/plugin/grpc_backend.go` and `vault/external_plugin_test.go`).\n\
+  \    -   The `sdk/logical/` package defines the standard interface (`Backend`) that\
+  \ every secret engine (e.g., KV, PKI, Transit) and auth method must implement to\
+  \ be \"plugged in.\"\n\n2.  **Explicit SDK/Core Separation**:\n    -   The existence\
+  \ of a dedicated `sdk/` directory (with its own `go.mod`) establishes a stable API\
+  \ for third-party developers to build extensions without depending on the internal\
+  \ private logic of the `vault/` package.\n\n3.  **Layered Internal Structure**:\n\
+  \    -   Within the \"Kernel,\" Vault follows a strict horizontal layering:\n  \
+  \      -   **Physical Layer**: (`physical/`, `sdk/physical/`) Handles raw data persistence\
+  \ (Raft, Consul, S3).\n        -   **Barrier/Security Layer**: (`vault/barrier.go`)\
+  \ Handles encryption/decryption of data before it hits the physical layer.\n   \
+  \     -   **Logical Layer**: (`sdk/logical/`) The abstraction layer for requests\
+  \ and responses.\n        -   **API/HTTP Layer**: (`http/`, `api/`) The external\
+  \ boundary handling REST requests.\n\n4.  **Enforced Boundaries**:\n    -   The\
+  \ project uses Go's `internal/` package pattern and explicit `replace` directives\
+  \ in `go.mod` to control the dependency graph between the API, SDK, and the main\
+  \ server logic.\n\n### Why not other styles?\n-   **Not Microservices**: Despite\
+  \ having many \"engines,\" they do not run as independent deployment units with\
+  \ their own databases. They are either compiled into the single Vault binary or\
+  \ managed as child processes by the central Core.\n-   **Not Modular Monolith**:\
+  \ While it is distributed as a single binary, the runtime plugin loading and the\
+  \ process-level isolation of external plugins push it beyond a simple modular monolith\
+  \ into the Microkernel category.\n-   **Not Event-Driven**: Although there is an\
+  \ internal `vault/eventbus`, it is a secondary mechanism for observability/audit,\
+  \ not the primary means of component coordination (which is request/response via\
+  \ the router)."

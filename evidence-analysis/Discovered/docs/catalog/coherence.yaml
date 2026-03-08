@@ -12,5 +12,64 @@ domain: Data Grid
 language: Java/Kotlin
 languages:
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Space-Based
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: "The Oracle Coherence Community Edition repository is a classic implementation\
+  \ of a **Space-Based Architecture**. \n\n### Primary Style: Space-Based\nThe core\
+  \ identity of Coherence is a distributed data grid. The architecture is designed\
+  \ to solve scalability and concurrency issues by spreading both data and processing\
+  \ across a \"tuple space\" (shared memory grid). \n- **Evidence:** The README explicitly\
+  \ describes it as a \"distributed platform for building grid-based applications,\"\
+  \ utilizing \"partitioning (or sharding) across a number of designated remote nodes.\"\
+  \ \n- **Key Mechanics:** The system implements a distributed `NamedMap<K,V>` where\
+  \ processing logic (Aggregators, EntryProcessors) is sent to the data nodes rather\
+  \ than pulling data to the client. This \"data-local processing\" is a hallmark\
+  \ of Space-Based systems (like GigaSpaces or Apache Ignite).\n- **Core Components:**\
+  \ The directory `prj/coherence-core` and `prj/coherence-core-components` contain\
+  \ the fundamental \"Service 0\" responsible for cluster membership, death detection,\
+  \ and partition management.\n\n### Secondary Style: Microkernel (Plugin)\nWhile\
+  \ the core handles clustering and sharding, Coherence uses a **Microkernel** approach\
+  \ to extend its capabilities over a stable core."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:44:08Z'
+classification_reasoning: "The Oracle Coherence Community Edition repository is a\
+  \ classic implementation of a **Space-Based Architecture**. \n\n### Primary Style:\
+  \ Space-Based\nThe core identity of Coherence is a distributed data grid. The architecture\
+  \ is designed to solve scalability and concurrency issues by spreading both data\
+  \ and processing across a \"tuple space\" (shared memory grid). \n- **Evidence:**\
+  \ The README explicitly describes it as a \"distributed platform for building grid-based\
+  \ applications,\" utilizing \"partitioning (or sharding) across a number of designated\
+  \ remote nodes.\" \n- **Key Mechanics:** The system implements a distributed `NamedMap<K,V>`\
+  \ where processing logic (Aggregators, EntryProcessors) is sent to the data nodes\
+  \ rather than pulling data to the client. This \"data-local processing\" is a hallmark\
+  \ of Space-Based systems (like GigaSpaces or Apache Ignite).\n- **Core Components:**\
+  \ The directory `prj/coherence-core` and `prj/coherence-core-components` contain\
+  \ the fundamental \"Service 0\" responsible for cluster membership, death detection,\
+  \ and partition management.\n\n### Secondary Style: Microkernel (Plugin)\nWhile\
+  \ the core handles clustering and sharding, Coherence uses a **Microkernel** approach\
+  \ to extend its capabilities over a stable core.\n- **Evidence:** The project uses\
+  \ a modular structure where different protocols and integrations are plugged into\
+  \ the core engine. Examples include `prj/coherence-grpc` (gRPC support), `prj/coherence-json`,\
+  \ `prj/coherence-protobuf`, and `prj/coherence-http-netty`. \n- **Adaptability:**\
+  \ The `PartitionedService` and `ProxyService` mentioned in the documentation act\
+  \ as extension points for different types of transport and storage behaviors.\n\n\
+  ### Secondary Style: Modular Monolith (Development Organization)\nIn terms of code\
+  \ organization, the repository is structured as a **Modular Monolith** (specifically\
+  \ a Maven Multi-Module project).\n- **Structure:** All components (core, tests,\
+  \ plugins, documentation) reside in a single repository under `prj/`. \n- **Boundaries:**\
+  \ The `prj/` directory shows clear logical boundaries (`coherence-concurrent`, `coherence-cdi`,\
+  \ `coherence-jcache`). These are compiled together and often deployed as a set of\
+  \ JARs within a single JVM process (a cluster node), even though the nodes themselves\
+  \ form a distributed system.\n\n### Rejected Styles\n- **Microservices:** While\
+  \ the README mentions \"Microservices integration,\" Coherence itself is the *infrastructure*\
+  \ used by microservices, not a set of microservices. It is a distributed system,\
+  \ but the nodes typically run the same \"CoherenceServer\" role rather than being\
+  \ independent functional domains.\n- **Layered:** While internal modules have layers\
+  \ (API vs. Implementation), the defining characteristic is the distributed sharding\
+  \ and grid processing, which transcends simple horizontal layering."

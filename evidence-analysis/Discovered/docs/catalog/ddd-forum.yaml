@@ -13,5 +13,99 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Domain-Driven Design
+- Hexagonal Architecture
+- Modular Monolith
+classification_status: classified
+review_notes: 'This repository is an exemplar of **Domain-Driven Design (DDD)** and
+  **Hexagonal Architecture** (often referred to in the README as "Clean Architecture").
+  It is structured as a **Modular Monolith** where the application is split into distinct
+  bounded contexts (subdomains) that reside within a single deployment unit.
+
+
+  ### Evidence of Domain-Driven Design (DDD)
+
+  The codebase is explicitly organized around DDD artifacts. The directory structure
+  under `src/modules` reflects bounded contexts (`forum` and `users`).
+
+  - **Tactical Patterns:** The paths `src/shared/domain/AggregateRoot.ts`, `Entity.ts`,
+  and `ValueObject.ts` provide the base classes for DDD tactical patterns.
+
+  - **Aggregates and Value Objects:** Each module has a `/domain` directory containing
+  its core logic (e.g., `src/modules/users/domain` contains the `User` aggregate).
+
+  - **Domain Events:** There is a dedicated system for eventing at `src/shared/domain/events`,
+  used to decouple subdomains (e.g., `userCreated` triggering actions in the forum
+  subdomain).
+
+
+  ### Evidence of Hexagonal / Clean Architecture
+
+  The project strictly follows the "Dependency Rule," where dependencies point inwards
+  toward the domain.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:45:09Z'
+classification_reasoning: 'This repository is an exemplar of **Domain-Driven Design
+  (DDD)** and **Hexagonal Architecture** (often referred to in the README as "Clean
+  Architecture"). It is structured as a **Modular Monolith** where the application
+  is split into distinct bounded contexts (subdomains) that reside within a single
+  deployment unit.
+
+
+  ### Evidence of Domain-Driven Design (DDD)
+
+  The codebase is explicitly organized around DDD artifacts. The directory structure
+  under `src/modules` reflects bounded contexts (`forum` and `users`).
+
+  - **Tactical Patterns:** The paths `src/shared/domain/AggregateRoot.ts`, `Entity.ts`,
+  and `ValueObject.ts` provide the base classes for DDD tactical patterns.
+
+  - **Aggregates and Value Objects:** Each module has a `/domain` directory containing
+  its core logic (e.g., `src/modules/users/domain` contains the `User` aggregate).
+
+  - **Domain Events:** There is a dedicated system for eventing at `src/shared/domain/events`,
+  used to decouple subdomains (e.g., `userCreated` triggering actions in the forum
+  subdomain).
+
+
+  ### Evidence of Hexagonal / Clean Architecture
+
+  The project strictly follows the "Dependency Rule," where dependencies point inwards
+  toward the domain.
+
+  - **Ports and Adapters:** The presence of `/repos` (Interfaces) and `/infra` (Concrete
+  Implementations) demonstrates the separation of business logic from external concerns.
+  For example, `src/modules/users/repos` likely defines `IUserRepo`, while `src/modules/users/infra`
+  implements it using Sequelize.
+
+  - **Use Cases:** The `src/modules/*/useCases` directories encapsulate application-specific
+  logic, acting as the orchestrators (the "Application Layer" in Clean Architecture).
+
+
+  ### Evidence of Modular Monolith
+
+  While the README mentions the possibility of migrating to microservices, the current
+  implementation is a monolithic deployment:
+
+  - **Single Deployment Unit:** The presence of a root `package.json`, `docker-compose.yml`,
+  and a single `src/index.ts` entry point indicates the code runs as one process.
+
+  - **Module Boundaries:** The code is partitioned into `src/modules/users` and `src/modules/forum`.
+  The README explicitly states that "you won''t see any domain concepts from the user
+  in forum," suggesting rigorous enforcement of module boundaries, a hallmark of a
+  Modular Monolith.
+
+
+  ### Rejected Styles
+
+  - **Microservices:** Although it defines subdomains, they are currently co-located
+  in one repository and share a single deployment lifecycle (verified by the root
+  `Dockerfile` and `entrypoint.sh`).
+
+  - **Layered:** While it has layers (Infra, App, Domain), the primary orientation
+  is "Inside-Out" (Hexagonal) rather than the standard "Top-Down" Database-centric
+  horizontal layering.'

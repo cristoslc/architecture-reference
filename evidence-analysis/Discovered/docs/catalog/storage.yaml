@@ -13,5 +13,74 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Hexagonal Architecture
+- Event-Driven
+classification_status: classified
+review_notes: 'The Supabase Storage Engine is structured as a **Modular Monolith**.
+  While it supports complex features like multi-tenancy, sharding, and multiple communication
+  protocols, it is designed to be deployed as a single unit (as evidenced by `src/start/server.ts`
+  which initializes the API server, admin server, queue workers, and background migrations
+  within one lifecycle).
+
+
+  ### Reasoning:
+
+
+  #### 1. Modular Monolith Surface Area
+
+  The codebase is organized into high-level directories (`src/storage`, `src/internal`,
+  `src/http`) that separate the core domain logic from infrastructure concerns.
+
+  - **Protocol Separation:** Despite supporting HTTP, S3, TUS, and Iceberg, these
+  are implemented as modules within the same deployable. `src/app.ts` shows all these
+  protocols being registered as Fastify routes within a single application instance.
+
+  - **Internal Boundaries:** The `src/internal` directory contains cross-cutting concerns
+  (sharding, auth, database, monitoring) that are shared across the storage domain
+  modules but kept distinct from the business logic in `src/storage`.
+
+
+  #### 2. Hexagonal Architecture (Ports and Adapters)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:12:25Z'
+classification_reasoning: "The Supabase Storage Engine is structured as a **Modular\
+  \ Monolith**. While it supports complex features like multi-tenancy, sharding, and\
+  \ multiple communication protocols, it is designed to be deployed as a single unit\
+  \ (as evidenced by `src/start/server.ts` which initializes the API server, admin\
+  \ server, queue workers, and background migrations within one lifecycle).\n\n###\
+  \ Reasoning:\n\n#### 1. Modular Monolith Surface Area\nThe codebase is organized\
+  \ into high-level directories (`src/storage`, `src/internal`, `src/http`) that separate\
+  \ the core domain logic from infrastructure concerns.\n- **Protocol Separation:**\
+  \ Despite supporting HTTP, S3, TUS, and Iceberg, these are implemented as modules\
+  \ within the same deployable. `src/app.ts` shows all these protocols being registered\
+  \ as Fastify routes within a single application instance.\n- **Internal Boundaries:**\
+  \ The `src/internal` directory contains cross-cutting concerns (sharding, auth,\
+  \ database, monitoring) that are shared across the storage domain modules but kept\
+  \ distinct from the business logic in `src/storage`.\n\n#### 2. Hexagonal Architecture\
+  \ (Ports and Adapters)\nThe system heavily utilizes the adapter pattern to abstract\
+  \ external dependencies, which is a hallmark of Hexagonal Architecture. \n- **Storage\
+  \ Backends:** `src/storage/backend/adapter.ts` defines the interface, while `src/storage/backend/s3/`\
+  \ and `src/storage/backend/file.ts` provide specific implementations. This allows\
+  \ the core engine to remain agnostic of whether files are stored on a local disk\
+  \ or an S3-compatible service.\n- **Database Interaction:** Similar patterns are\
+  \ visible in `src/storage/database/adapter.ts`, isolating the domain from the specific\
+  \ persistence implementation (Knex/Postgres).\n\n#### 3. Event-Driven (Secondary)\n\
+  The architecture includes an internal event system and background processing. \n\
+  - **Queueing:** `src/internal/queue` and `src/storage/events` (using `pg-boss` or\
+  \ a similar DB-backed queue) handle asynchronous tasks like cleanup, migrations,\
+  \ and metadata synchronization.\n- **Pub/Sub:** `src/internal/pubsub` facilitates\
+  \ communication across instances for tenant updates, particularly important in the\
+  \ multitenant configuration.\n\n#### 4. Sharding and Shared-Data Multi-tenancy\n\
+  The `src/internal/sharding` module and the `migrations/multitenant` vs `migrations/tenant`\
+  \ structure indicate a \"Service-Based\" complexity level, but since the sharding\
+  \ logic and tenant management are baked into the core application rather than separated\
+  \ into independent services, it reinforces the Modular Monolith classification.\n\
+  \n#### Rejection of Microservices:\nAlthough the repository contains a `docker-compose-multi-tenant.yml`,\
+  \ this is used to spin up the *infrastructure* (Postgres, PostgREST, OTel) rather\
+  \ than multiple independent Storage sub-services. The storage engine itself is a\
+  \ single `Dockerfile` system."

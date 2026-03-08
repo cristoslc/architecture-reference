@@ -13,5 +13,67 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Domain-Driven Design
+classification_status: classified
+review_notes: "The Medusa repository is a sophisticated **Modular Monolith** organized\
+  \ as a monorepo. While it utilizes a monorepo structure (via Yarn Workspaces and\
+  \ Turborepo) to manage numerous packages, these packages are designed to be composed\
+  \ into a single runtime application (the Medusa server) rather than deployed as\
+  \ independent microservices.\n\n### Primary Style: Modular Monolith\nThe architecture\
+  \ is centered around \"Commerce Modules\" (found in `packages/modules/`). Each module\
+  \ (e.g., `promotion`, `order`, `cart`) encapsulates its own business logic, data\
+  \ models, and services. \n- **Internal Boundaries:** The use of `MedusaService`\
+  \ and `InjectManager` decorators (seen in `promotion-module.ts`) demonstrates a\
+  \ formal dependency injection system (built on Awilix) that enforces how modules\
+  \ interact.\n- **Unified Deployment:** Although modules are published as separate\
+  \ NPM packages, the primary mode of operation is to install these into a single\
+  \ Medusa project. The `integration-tests` directory shows a \"bootstrap-app\" pattern\
+  \ where all features are loaded into a single server instance for testing, typical\
+  \ of modular monoliths.\n- **Shared Framework:** A core framework (`packages/framework`)\
+  \ provides the underlying primitives (DAL, transaction management, context) that\
+  \ all modules extend.\n\n### Secondary Style: Event-Driven\nMedusa heavily relies\
+  \ on an asynchronous event system for cross-module communication to maintain decoupling. "
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:16:05Z'
+classification_reasoning: "The Medusa repository is a sophisticated **Modular Monolith**\
+  \ organized as a monorepo. While it utilizes a monorepo structure (via Yarn Workspaces\
+  \ and Turborepo) to manage numerous packages, these packages are designed to be\
+  \ composed into a single runtime application (the Medusa server) rather than deployed\
+  \ as independent microservices.\n\n### Primary Style: Modular Monolith\nThe architecture\
+  \ is centered around \"Commerce Modules\" (found in `packages/modules/`). Each module\
+  \ (e.g., `promotion`, `order`, `cart`) encapsulates its own business logic, data\
+  \ models, and services. \n- **Internal Boundaries:** The use of `MedusaService`\
+  \ and `InjectManager` decorators (seen in `promotion-module.ts`) demonstrates a\
+  \ formal dependency injection system (built on Awilix) that enforces how modules\
+  \ interact.\n- **Unified Deployment:** Although modules are published as separate\
+  \ NPM packages, the primary mode of operation is to install these into a single\
+  \ Medusa project. The `integration-tests` directory shows a \"bootstrap-app\" pattern\
+  \ where all features are loaded into a single server instance for testing, typical\
+  \ of modular monoliths.\n- **Shared Framework:** A core framework (`packages/framework`)\
+  \ provides the underlying primitives (DAL, transaction management, context) that\
+  \ all modules extend.\n\n### Secondary Style: Event-Driven\nMedusa heavily relies\
+  \ on an asynchronous event system for cross-module communication to maintain decoupling.\
+  \ \n- **Evidence:** The presence of `event-bus` modules and the `@EmitEvents()`\
+  \ decorator in the service layer indicates that state changes in one module (e.g.,\
+  \ an Order being placed) trigger side effects in others (e.g., Promotion usage registration\
+  \ or Notifications) via events.\n- **Integration:** The `integration-tests/http/__tests__/event-bus`\
+  \ path further confirms that eventing is a first-class citizen in the communication\
+  \ protocol between boundaries.\n\n### Secondary Style: Domain-Driven Design (DDD)\n\
+  The codebase follows DDD tactical patterns closely.\n- **Bounded Contexts:** Each\
+  \ package in `packages/modules/*` acts as a bounded context with its own domain\
+  \ models and services.\n- **Tactical Patterns:** The code explicitly uses Entities,\
+  \ DTOs (Data Transfer Objects), and Repositories. In `promotion-module.ts`, we see\
+  \ the orchestration of several domain entities (`Promotion`, `Campaign`, `PromotionRule`)\
+  \ behind a service acting as an aggregate root or domain service.\n\n### Why not\
+  \ Microservices?\nWhile it looks like microservices due to the package separation,\
+  \ the \"services\" are typically internal class-based services rather than networked\
+  \ services with independent lifecycles. There is no evidence of service-mesh, individual\
+  \ K8s deployment manifests per module, or separate databases per module in a standard\
+  \ deployment (though the modular design *allows* for data isolation, they are usually\
+  \ collocated in a single Postgres instance)."

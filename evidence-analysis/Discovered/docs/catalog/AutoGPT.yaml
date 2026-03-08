@@ -14,5 +14,68 @@ languages:
 - Python
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: 'The AutoGPT repository has evolved from a single-script experiment
+  into a sophisticated distributed system. The architecture is now split into two
+  main sections: "Classic" (legacy agents) and the "Platform" (the modern distributed
+  infrastructure).
+
+
+  ### 1. Primary Style: Microservices
+
+  The `autogpt_platform` is structured as a set of independently executable services.
+  Evidence from `autogpt_platform/backend/pyproject.toml` shows defined entry points
+  for distinct operational roles that correspond to a microservices topology:
+
+  - **API/Rest Service**: `backend.rest:main` (External interface)
+
+  - **Executor**: `backend.executor:main` (Computational/Agent worker)
+
+  - **Scheduler**: `backend.scheduler:main` (Temporal coordination)
+
+  - **Notification**: `backend.notification:main` (Side-effect management)
+
+  - **Websocket Service**: `backend.ws:main` (Real-time updates)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:40:41Z'
+classification_reasoning: "The AutoGPT repository has evolved from a single-script\
+  \ experiment into a sophisticated distributed system. The architecture is now split\
+  \ into two main sections: \"Classic\" (legacy agents) and the \"Platform\" (the\
+  \ modern distributed infrastructure).\n\n### 1. Primary Style: Microservices\nThe\
+  \ `autogpt_platform` is structured as a set of independently executable services.\
+  \ Evidence from `autogpt_platform/backend/pyproject.toml` shows defined entry points\
+  \ for distinct operational roles that correspond to a microservices topology:\n\
+  - **API/Rest Service**: `backend.rest:main` (External interface)\n- **Executor**:\
+  \ `backend.executor:main` (Computational/Agent worker)\n- **Scheduler**: `backend.scheduler:main`\
+  \ (Temporal coordination)\n- **Notification**: `backend.notification:main` (Side-effect\
+  \ management)\n- **Websocket Service**: `backend.ws:main` (Real-time updates)\n\n\
+  These services are designed to run as separate processes (often in separate containers),\
+  \ evidenced by the `Dockerfile` in `autogpt_platform/backend/` and the distinct\
+  \ migration logic in `autogpt_platform/backend/migrations`.\n\n### 2. Secondary\
+  \ Style: Event-Driven\nThe system relies heavily on asynchronous communication between\
+  \ these services. The presence of `aio-pika` (RabbitMQ), `pika`, and `redis` in\
+  \ the `pyproject.toml` indicates an event-driven backbone. The \"Executor\" and\
+  \ \"Scheduler\" services communicate via message queues rather than direct REST\
+  \ calls, allowing for the scalable, long-running nature of \"continuous\" AI agents\
+  \ that may take minutes or hours to complete a task.\n\n### 3. Secondary Style:\
+  \ Microkernel (Plugin)\nThe system employs a Microkernel pattern for its \"Agent\
+  \ Blocks.\" In `autogpt_platform/backend/backend/blocks`, the system defines a contract\
+  \ for discrete units of functionality (e.g., \"WebSearch\", \"ImageGen\"). \n- The\
+  \ **Core (Kernel)** handles graph execution, state management, and message routing.\n\
+  - The **Plugins (Blocks)** are loaded to extend the agent's capabilities. \nThis\
+  \ is also reflected in the \"Classic\" version (`classic/original_autogpt/autogpt/agents/agent.py`),\
+  \ where the agent is composed of `Components` (e.g., `FileManagerComponent`, `CodeExecutorComponent`)\
+  \ that implement `CommandProvider` and `MessageProvider` interfaces, effectively\
+  \ functioning as internal plugins.\n\n### Architecture Comparison (Classic vs. Platform)\n\
+  - **Classic**: Primarily a **Layered** or **Service-Based** approach where the `Agent`\
+  \ class aggregates various capability components into a single lifecycle.\n- **Platform**:\
+  \ A full **Microservices** migration, separating the frontend (Next.js), the API\
+  \ gateway (FastAPI), and functional workers (Python/Pika) to support a multi-user,\
+  \ cloud-hosted environment."

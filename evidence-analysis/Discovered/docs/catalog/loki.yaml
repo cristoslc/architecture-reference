@@ -13,5 +13,60 @@ language: Go
 languages:
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Modular Monolith
+- Domain-Driven Design
+classification_status: classified
+review_notes: "Grafana Loki uses a \"Microservices-as-a-Monolith\" architecture (specifically\
+  \ a **Modular Monolith** that is physically deployable as **Microservices**). While\
+  \ it can run as a single process, its internal code organization and deployment\
+  \ flexibility are designed around independent service boundaries.\n\n### Architectural\
+  \ Analysis\n\n1.  **Microservices (Deployment Units):**\n    Loki is designed to\
+  \ be decomposed into several functional components (Distributor, Ingester, Querier,\
+  \ Query-Frontend, Compactor, Index-Gateway, etc.). This is evidenced in `pkg/loki/loki.go`,\
+  \ where a `Target` configuration flag determines which subset of modules to initialize.\n\
+  \    - Citing `pkg/loki/loki.go`: The `Config` struct includes a `Target` field\
+  \ (defaulting to `all`) which allows users to specify `compactor`, `distributor`,\
+  \ `ingester`, `querier`, etc.\n    - Each of these targets behaves as an independent\
+  \ microservice when deployed in \"distributed mode,\" typically scaling horizontally\
+  \ and communicating via gRPC.\n\n2.  **Modular Monolith (Internal Structure):**"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:58:04Z'
+classification_reasoning: "Grafana Loki uses a \"Microservices-as-a-Monolith\" architecture\
+  \ (specifically a **Modular Monolith** that is physically deployable as **Microservices**).\
+  \ While it can run as a single process, its internal code organization and deployment\
+  \ flexibility are designed around independent service boundaries.\n\n### Architectural\
+  \ Analysis\n\n1.  **Microservices (Deployment Units):**\n    Loki is designed to\
+  \ be decomposed into several functional components (Distributor, Ingester, Querier,\
+  \ Query-Frontend, Compactor, Index-Gateway, etc.). This is evidenced in `pkg/loki/loki.go`,\
+  \ where a `Target` configuration flag determines which subset of modules to initialize.\n\
+  \    - Citing `pkg/loki/loki.go`: The `Config` struct includes a `Target` field\
+  \ (defaulting to `all`) which allows users to specify `compactor`, `distributor`,\
+  \ `ingester`, `querier`, etc.\n    - Each of these targets behaves as an independent\
+  \ microservice when deployed in \"distributed mode,\" typically scaling horizontally\
+  \ and communicating via gRPC.\n\n2.  **Modular Monolith (Internal Structure):**\n\
+  \    The repository follows a strict modular structure under the `pkg/` directory.\
+  \ Each service has its own dedicated package with its own logic, metrics, and internal\
+  \ APIs.\n    - Citing the directory tree: `pkg/ingester/`, `pkg/distributor/`, `pkg/querier/`,\
+  \ `pkg/compactor/`.\n    - These modules are decoupled; for instance, the `ingester`\
+  \ has its own write-ahead log (WAL) logic (`pkg/ingester/wal.go`) and lifecycle\
+  \ management, while the `querier` handles LogQL execution.\n\n3.  **Domain-Driven\
+  \ Design (DDD):**\n    The code is organized around bounded contexts. Instead of\
+  \ horizontal technical layers (like a generic `controllers` or `models` folder),\
+  \ the top-level `pkg/` structure is partitioned by domain responsibility:\n    -\
+  \ **Ingestion Context:** `pkg/ingester/`\n    - **Query Context:** `pkg/logql/`\
+  \ and `pkg/querier/`\n    - **Storage Context:** `pkg/storage/` and `pkg/indexgateway/`\n\
+  \    - **Frontend/API Context:** `pkg/lokifrontend/` and `pkg/loghttp/`\n\n4.  **Orchestration\
+  \ Logic:**\n    The entry point in `cmd/loki/main.go` uses a \"Module Manager\"\
+  \ pattern (imported from `github.com/grafana/dskit/modules`). This manager defines\
+  \ dependencies between services (e.g., the Querier depends on the Store). In `pkg/loki/loki.go`,\
+  \ the `Loki` struct acts as the orchestrator that wires these independent components\
+  \ together based on the requested deployment target.\n\n### Conclusion\nLoki is\
+  \ an exemplar of a hybrid architecture where the **Codebase is a Modular Monolith**\
+  \ (single repo, shared utilities in `pkg/util`, centralized configuration in `pkg/loki/config.go`),\
+  \ but the **System Architecture is Microservices**, allowing users to trade off\
+  \ operational simplicity (single binary) for extreme scalability (distributed microservices)."

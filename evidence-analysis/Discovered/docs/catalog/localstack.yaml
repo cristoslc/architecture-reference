@@ -15,5 +15,63 @@ languages:
 - JavaScript
 - Java/Kotlin
 - Ruby
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Layered
+- Service-Based
+classification_status: classified
+review_notes: "The repository is structured as a **Microkernel (Plugin)** architecture,\
+  \ using a custom plugin framework called `plux` to manage its extensive suite of\
+  \ AWS service emulators. \n\n### Core Architectural Evidence\n\n1.  **The Plugin\
+  \ System (`plux`):** The `plux.ini` file is the central \"registry\" for the system.\
+  \ It defines a high-volume of extension points under various namespaces like `localstack.aws.provider`,\
+  \ `localstack.cloudformation.resource_providers`, and `localstack.hooks`. This allows\
+  \ the core runtime (the \"kernel\") to remain agnostic of the specific implementation\
+  \ of over 50+ AWS services (S3, DynamoDB, Lambda, etc.).\n2.  **Runtime Hooks:**\
+  \ The use of hooks (`localstack.hooks.on_infra_start`, `on_infra_ready`) demonstrates\
+  \ a classic Microkernel pattern where the lifecycle of the application is managed\
+  \ by a core engine that executes registered plugin tasks at specific stages.\n3.\
+  \  **Encapsulated Providers:** The `plux.ini` demonstrates that multiple versions\
+  \ of the same service (e.g., `dynamodb:default` vs `dynamodb:v2`, `events:v1` vs\
+  \ `events:v2`) can exist simultaneously. The core system selects and loads the appropriate\
+  \ provider at runtime based on configuration, which is a hallmark of plugin-based\
+  \ systems.\n\n### Secondary Styles"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:57:14Z'
+classification_reasoning: "The repository is structured as a **Microkernel (Plugin)**\
+  \ architecture, using a custom plugin framework called `plux` to manage its extensive\
+  \ suite of AWS service emulators. \n\n### Core Architectural Evidence\n\n1.  **The\
+  \ Plugin System (`plux`):** The `plux.ini` file is the central \"registry\" for\
+  \ the system. It defines a high-volume of extension points under various namespaces\
+  \ like `localstack.aws.provider`, `localstack.cloudformation.resource_providers`,\
+  \ and `localstack.hooks`. This allows the core runtime (the \"kernel\") to remain\
+  \ agnostic of the specific implementation of over 50+ AWS services (S3, DynamoDB,\
+  \ Lambda, etc.).\n2.  **Runtime Hooks:** The use of hooks (`localstack.hooks.on_infra_start`,\
+  \ `on_infra_ready`) demonstrates a classic Microkernel pattern where the lifecycle\
+  \ of the application is managed by a core engine that executes registered plugin\
+  \ tasks at specific stages.\n3.  **Encapsulated Providers:** The `plux.ini` demonstrates\
+  \ that multiple versions of the same service (e.g., `dynamodb:default` vs `dynamodb:v2`,\
+  \ `events:v1` vs `events:v2`) can exist simultaneously. The core system selects\
+  \ and loads the appropriate provider at runtime based on configuration, which is\
+  \ a hallmark of plugin-based systems.\n\n### Secondary Styles\n\n*   **Layered:**\
+  \ The codebase follows a clear vertical stratification. At the base is the `localstack-core`\
+  \ (runtime/server), followed by an `aws` abstraction layer (handling protocols,\
+  \ service routing, and common handlers), and finally the `services` layer where\
+  \ specific business logic resides. This is evidenced by the `pyproject.toml` dependency\
+  \ groups and the package-dir mapping.\n*   **Service-Based:** While all services\
+  \ run within a single container (the \"Unified Image\" mentioned in the README),\
+  \ they are treated as coarse-grained, semi-autonomous units. The service implementations\
+  \ are largely decoupled from one another, often wrapping external specialized emulators\
+  \ (like `dynamodb-local` or `kinesis-mock`, as seen in the `[localstack.packages]`\
+  \ section of `plux.ini`), but they share a common runtime environment and entry-point.\n\
+  \n### Rejection of Other Styles\n\n*   **Microservices:** Although LocalStack emulates\
+  \ a microservice-rich environment (AWS), the **internal** code architecture is built\
+  \ as a single deployable Python package/Docker image. Services do not communicate\
+  \ over a network internally via gRPC or separate deployments; they are loaded into\
+  \ the same memory space via plugins.\n*   **Modular Monolith:** While it shares\
+  \ some traits (single deployment, modular boundaries), the architecture's reliance\
+  \ on a dynamic plugin loading mechanism (`plux`) and hook-based extensions makes\
+  \ \"Microkernel\" a much more precise description of its structural philosophy."

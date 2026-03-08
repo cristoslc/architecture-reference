@@ -11,5 +11,88 @@ discovery_version: 1.0.0
 domain: Travel
 language: ''
 languages: null
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Serverless
+- Event-Driven
+- Microservices
+classification_status: classified
+review_notes: 'The repository is a quintessential example of a **Serverless** architecture,
+  specifically designed to demonstrate AWS-native serverless patterns. Based on the
+  README documentation and the described stack, the system is organized as follows:
+
+
+  1.  **Serverless (Primary):** The architecture is built entirely on managed services
+  where the unit of deployment and scaling is either a function (AWS Lambda) or a
+  managed service (AppSync, Step Functions). The README explicitly identifies the
+  use of Python and TypeScript for Lambda functions, AWS Step Functions for business
+  logic orchestration, and AWS Amplify for infrastructure provisioning.
+
+
+  2.  **Event-Driven (Secondary):** Communication between discrete business units
+  (e.g., Booking and Loyalty) is handled via asynchronous messaging (AWS SNS). The
+  "Booking" workflow is managed by a state machine (Step Functions), which is a common
+  pattern for event-driven orchestration in serverless environments to handle long-running
+  processes like payment and booking confirmation.
+
+
+  3.  **Microservices (Secondary):** The system is explicitly partitioned into domain-specific
+  services: **Catalog**, **Booking**, **Payment**, and **Loyalty**. Each service uses
+  different languages (Python vs. TypeScript vs. VTL) and has its own data models/storage
+  (DynamoDB), adhering to the principle of decentralization and independent data ownership.
+
+
+  **Key Evidence:**
+
+  - **Infrastructure:** Use of AWS AppSync as a GraphQL API Hub, AWS Lambda for compute,
+  and DynamoDB for storage.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:40:50Z'
+classification_reasoning: 'The repository is a quintessential example of a **Serverless**
+  architecture, specifically designed to demonstrate AWS-native serverless patterns.
+  Based on the README documentation and the described stack, the system is organized
+  as follows:
+
+
+  1.  **Serverless (Primary):** The architecture is built entirely on managed services
+  where the unit of deployment and scaling is either a function (AWS Lambda) or a
+  managed service (AppSync, Step Functions). The README explicitly identifies the
+  use of Python and TypeScript for Lambda functions, AWS Step Functions for business
+  logic orchestration, and AWS Amplify for infrastructure provisioning.
+
+
+  2.  **Event-Driven (Secondary):** Communication between discrete business units
+  (e.g., Booking and Loyalty) is handled via asynchronous messaging (AWS SNS). The
+  "Booking" workflow is managed by a state machine (Step Functions), which is a common
+  pattern for event-driven orchestration in serverless environments to handle long-running
+  processes like payment and booking confirmation.
+
+
+  3.  **Microservices (Secondary):** The system is explicitly partitioned into domain-specific
+  services: **Catalog**, **Booking**, **Payment**, and **Loyalty**. Each service uses
+  different languages (Python vs. TypeScript vs. VTL) and has its own data models/storage
+  (DynamoDB), adhering to the principle of decentralization and independent data ownership.
+
+
+  **Key Evidence:**
+
+  - **Infrastructure:** Use of AWS AppSync as a GraphQL API Hub, AWS Lambda for compute,
+  and DynamoDB for storage.
+
+  - **Service Boundaries:** The README tables clearly list four distinct backend services
+  with specific language choices and responsibilities.
+
+  - **Orchestration:** Step Functions are used to manage the "Booking workflow," a
+  hallmark of serverless service coordination.
+
+  - **Integration:** SNS is cited for "service-to-service communication," indicating
+  a decoupled, event-passing architecture.
+
+
+  *Note: While the previous file requests failed due to incorrect path assumptions
+  (the README mentions an `archive` branch which might contain the code in a different
+  structure than the master branch), the high-level documentation provided in the
+  README is sufficiently detailed regarding the "Stack," "API," "Messaging," and "Back-end"
+  sections to classify the architectural style with high confidence.*'

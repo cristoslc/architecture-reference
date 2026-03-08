@@ -14,5 +14,102 @@ languages:
 - Python
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Microkernel (Plugin)
+- Event-Driven
+classification_status: classified
+review_notes: 'The Prefect repository is primarily structured using a **Layered**
+  architecture, though it functions as a sophisticated framework that incorporates
+  **Microkernel (Plugin)** and **Event-Driven** patterns to manage its extensibility
+  and distributed nature.
+
+
+  ### 1. Primary Style: Layered
+
+  The codebase follows a clear horizontal separation of concerns, particularly within
+  the `src/prefect/server` and `src/prefect/client` directories.
+
+  - **Presentation/API Layer**: `src/prefect/server/api/server.py` defines a FastAPI
+  application that aggregates multiple routers (`api.flows`, `api.tasks`, etc.). Reference:
+  `API_ROUTERS` in `server.py`.
+
+  - **Domain/Logic Layer**: The business logic is encapsulated in "models" and "orchestration"
+  logic within `src/prefect/server/models` and `src/prefect/server/orchestration`.
+
+  - **Data Access Layer**: Persistence is abstracted via SQLAlchemy and specific database
+  drivers located in `src/prefect/server/database`.
+
+  - **SDK/Client Layer**: The system provides a high-level SDK (`src/prefect/client`)
+  that abstracts the REST API communication from the user''s workflow code.
+
+
+  ### 2. Secondary Style: Microkernel (Plugin)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:07:13Z'
+classification_reasoning: 'The Prefect repository is primarily structured using a
+  **Layered** architecture, though it functions as a sophisticated framework that
+  incorporates **Microkernel (Plugin)** and **Event-Driven** patterns to manage its
+  extensibility and distributed nature.
+
+
+  ### 1. Primary Style: Layered
+
+  The codebase follows a clear horizontal separation of concerns, particularly within
+  the `src/prefect/server` and `src/prefect/client` directories.
+
+  - **Presentation/API Layer**: `src/prefect/server/api/server.py` defines a FastAPI
+  application that aggregates multiple routers (`api.flows`, `api.tasks`, etc.). Reference:
+  `API_ROUTERS` in `server.py`.
+
+  - **Domain/Logic Layer**: The business logic is encapsulated in "models" and "orchestration"
+  logic within `src/prefect/server/models` and `src/prefect/server/orchestration`.
+
+  - **Data Access Layer**: Persistence is abstracted via SQLAlchemy and specific database
+  drivers located in `src/prefect/server/database`.
+
+  - **SDK/Client Layer**: The system provides a high-level SDK (`src/prefect/client`)
+  that abstracts the REST API communication from the user''s workflow code.
+
+
+  ### 2. Secondary Style: Microkernel (Plugin)
+
+  Prefect is designed to be highly extensible. The core engine is a "microkernel"
+  that discovers and loads external functionality:
+
+  - **Registry & Discovery**: `src/prefect/plugins.py` uses Python entry points (`prefect.collections`)
+  to safely load external integrations at runtime.
+
+  - **Blocks System**: The "Blocks" architecture (`src/prefect/blocks`) allows users
+  to plug in various infrastructure providers (Redis, S3, Webhooks) that adhere to
+  a standard interface, effectively extending the system''s capabilities without modifying
+  the core.
+
+
+  ### 3. Secondary Style: Event-Driven
+
+  The orchestration engine relies heavily on an internal event bus to handle the lifecycle
+  of distributed runs:
+
+  - **Event Flow**: The existence of `src/prefect/server/events`, `src/prefect/events/subscribers.py`,
+  and automated triggers within `src/prefect/automations.py` indicates that system
+  state changes (e.g., flow completion, failure) are propagated as events.
+
+  - **Communication**: Components like workers and agents (`src/prefect/agent.py`,
+  `src/prefect/workers`) react to these events to provision infrastructure or execute
+  tasks, decoupled from the central server''s immediate request-response cycle.
+
+
+  ### Why not other styles?
+
+  - **Microservices**: While Prefect can be deployed as several components (Server,
+  Worker, UI), the source code is managed as a unified monorepo where components share
+  core internal schemas and utilities (`src/prefect/_internal`), making it more of
+  a distributed monolith or modular system than independent microservices.
+
+  - **Hexagonal**: While it uses "Blocks" as adapters, the internal structure of the
+  server logic is more traditionally layered rather than strictly following ports-and-adapters
+  boundary enforcement.'

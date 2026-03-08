@@ -13,5 +13,62 @@ language: Python
 languages:
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Microkernel (Plugin)
+- Domain-Driven Design
+classification_status: classified
+review_notes: "### Architectural Analysis\n\nERPNext is the flagship application built\
+  \ on the **Frappe Framework**. Its architecture is a textbook example of a **Modular\
+  \ Monolith** designed with a high degree of extensibility, often resembling a **Microkernel**\
+  \ (Plugin) system where ERPNext itself is a \"plugin\" or \"app\" installed onto\
+  \ the Frappe \"kernel\".\n\n#### 1. Modular Monolith (Primary Style)\nThe repository\
+  \ is organized into distinct functional modules (e.g., `erpnext/buying`, `erpnext/selling`,\
+  \ `erpnext/quality_management`). \n- **Encapsulation**: Each directory acts as a\
+  \ self-contained module containing its own business logic, UI definitions (`page/`,\
+  \ `workspace/`), and data schemas (`doctype/`).\n- **Unified Deployment**: Despite\
+  \ the modular structure, the system is deployed as a single unit. The `hooks.py`\
+  \ file in the root of the `erpnext` directory serves as the manifest that integrates\
+  \ these modules into the Frappe Framework.\n- **Service Boundaries**: While modules\
+  \ are separate in the file tree, they share the same database instance and execution\
+  \ context, characteristic of a monolith."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:47:20Z'
+classification_reasoning: "### Architectural Analysis\n\nERPNext is the flagship application\
+  \ built on the **Frappe Framework**. Its architecture is a textbook example of a\
+  \ **Modular Monolith** designed with a high degree of extensibility, often resembling\
+  \ a **Microkernel** (Plugin) system where ERPNext itself is a \"plugin\" or \"app\"\
+  \ installed onto the Frappe \"kernel\".\n\n#### 1. Modular Monolith (Primary Style)\n\
+  The repository is organized into distinct functional modules (e.g., `erpnext/buying`,\
+  \ `erpnext/selling`, `erpnext/quality_management`). \n- **Encapsulation**: Each\
+  \ directory acts as a self-contained module containing its own business logic, UI\
+  \ definitions (`page/`, `workspace/`), and data schemas (`doctype/`).\n- **Unified\
+  \ Deployment**: Despite the modular structure, the system is deployed as a single\
+  \ unit. The `hooks.py` file in the root of the `erpnext` directory serves as the\
+  \ manifest that integrates these modules into the Frappe Framework.\n- **Service\
+  \ Boundaries**: While modules are separate in the file tree, they share the same\
+  \ database instance and execution context, characteristic of a monolith.\n\n####\
+  \ 2. Microkernel (Plugin) (Secondary Style)\nERPNext follows the \"App\" architecture\
+  \ of the Frappe Framework.\n- **Pluggability**: The architecture allows for \"apps\"\
+  \ to be installed or removed via the `bench` CLI tool (e.g., `bench install-app\
+  \ erpnext`). \n- **Extension Points**: The `hooks.py` file allows the module to\
+  \ \"plug into\" the core system's events (CRUD events, API endpoints, background\
+  \ jobs). This creates a strictly defined contract between the \"kernel\" (Frappe)\
+  \ and the \"plugin\" (ERPNext).\n\n#### 3. Domain-Driven Design (Secondary Style)\n\
+  The code organization heavily mirrors DDD principles:\n- **Bounded Contexts**: Directories\
+  \ like `buying`, `selling`, and `manufacturing` represent clear bounded contexts\
+  \ within the ERP domain.\n- **Aggregates (DocTypes)**: The core unit of logic in\
+  \ Frappe/ERPNext is the `DocType`. Each `doctype` folder (e.g., `erpnext/buying/doctype/purchase_order`)\
+  \ contains the schema (JSON), the Controller (Python), and the View/Client logic\
+  \ (JS), essentially acting as a DDD Aggregate that maintains data consistency and\
+  \ encapsulates domain logic.\n\n### Evidence Cites\n- **Module Separation**: `erpnext/buying/`,\
+  \ `erpnext/selling/`, `erpnext/manufacturing/`.\n- **Manifest/Entry Point**: `erpnext/hooks.py`\
+  \ defines how the app registers itself, its cron jobs, and its event handlers.\n\
+  - **Data/Logic Encapsulation**: `erpnext/buying/doctype/purchase_order/purchase_order.py`\
+  \ (Controller/Logic) and `erpnext/buying/doctype/purchase_order/purchase_order.json`\
+  \ (Schema/Metadata).\n- **UI Modularization**: `erpnext/workspace_sidebar/` contains\
+  \ JSON files for different functional areas, showing how the UI is composed from\
+  \ modular configurations."

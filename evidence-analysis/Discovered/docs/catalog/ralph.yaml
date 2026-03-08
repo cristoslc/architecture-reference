@@ -13,5 +13,72 @@ language: Python
 languages:
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Modular Monolith
+classification_status: classified
+review_notes: 'The repository follows a **Layered** architecture, specifically adhering
+  to the patterns of a large-scale **Django** application. The codebase is organized
+  into a single deployable unit (as evidenced by the `Dockerfile` and `docker-compose.yml`
+  in the root/docker directory) but is partitioned into several internal domain-specific
+  modules.
+
+
+  ### Evidence of Layered Architecture:
+
+  The system uses the standard horizontal layering associated with the Django framework
+  across its internal apps (e.g., `src/ralph/data_center`, `src/ralph/back_office`):
+
+  - **Presentation Layer**: Handled via `views.py`, `templates/`, and `forms.py` (e.g.,
+  `src/ralph/data_center/views.py`, `src/ralph/data_center/forms.py`).
+
+  - **Business Logic/Domain Layer**: Encapsulated within `models.py` and `admin.py`
+  (which in Django often contains significant orchestrating logic), as well as specialized
+  modules like `publishers.py` and `signals.py`.
+
+  - **Data Access Layer**: Abstracted by Django’s ORM within `models.py` and managed
+  through `migrations/` directories.
+
+  - **API Layer**: Expressed through `api.py` files (e.g., `src/ralph/back_office/api.py`),
+  likely using Django Rest Framework.
+
+
+  ### Evidence of Modular Monolith:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:08:11Z'
+classification_reasoning: "The repository follows a **Layered** architecture, specifically\
+  \ adhering to the patterns of a large-scale **Django** application. The codebase\
+  \ is organized into a single deployable unit (as evidenced by the `Dockerfile` and\
+  \ `docker-compose.yml` in the root/docker directory) but is partitioned into several\
+  \ internal domain-specific modules.\n\n### Evidence of Layered Architecture:\nThe\
+  \ system uses the standard horizontal layering associated with the Django framework\
+  \ across its internal apps (e.g., `src/ralph/data_center`, `src/ralph/back_office`):\n\
+  - **Presentation Layer**: Handled via `views.py`, `templates/`, and `forms.py` (e.g.,\
+  \ `src/ralph/data_center/views.py`, `src/ralph/data_center/forms.py`).\n- **Business\
+  \ Logic/Domain Layer**: Encapsulated within `models.py` and `admin.py` (which in\
+  \ Django often contains significant orchestrating logic), as well as specialized\
+  \ modules like `publishers.py` and `signals.py`.\n- **Data Access Layer**: Abstracted\
+  \ by Django’s ORM within `models.py` and managed through `migrations/` directories.\n\
+  - **API Layer**: Expressed through `api.py` files (e.g., `src/ralph/back_office/api.py`),\
+  \ likely using Django Rest Framework.\n\n### Evidence of Modular Monolith:\nWhile\
+  \ it is technically a single monolithic deployment, it shows strong \"Modular Monolith\"\
+  \ characteristics through vertical slicing of features:\n- **Domain-Based Partitioning**:\
+  \ The `src/ralph/` directory is split into distinct functional domains like `assets`,\
+  \ `back_office`, `data_center`, `domains`, `licences`, and `supports`. \n- **Internal\
+  \ Boundaries**: Each directory contains its own models, tests, and API definitions,\
+  \ suggesting an attempt to keep domain logic localized rather than having a single\
+  \ global \"models\" or \"views\" folder.\n\n### Communication and Integration:\n\
+  - **Internal Signaling**: The presence of `src/ralph/signals.py` suggests an event-based\
+  \ decoupled communication style within the monolith (Django Signals).\n- **Deployment**:\
+  \ The `docker/` directory containing `docker-compose.yml` and `supervisor.conf`\
+  \ indicates the system runs as a unified set of processes (web, worker, db) rather\
+  \ than independent microservices.\n\n### Why not other styles?\n- **Not Microservices**:\
+  \ Despite many folders, they are all contained under `src/ralph` and share a single\
+  \ `requirements.txt` and `pyproject.toml`. The `docker-compose` architecture shows\
+  \ standard monolith support (DB + Redis + App) rather than independent service lifecycle\
+  \ management.\n- **Not Hexagonal**: The code is heavily coupled to the Django framework\
+  \ (models, admin, forms) rather than isolating a framework-agnostic \"core\" using\
+  \ ports and adapters."

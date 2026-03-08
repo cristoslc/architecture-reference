@@ -12,5 +12,74 @@ domain: Infrastructure
 language: Java/Kotlin
 languages:
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Pipeline (Pipe-and-Filter)
+classification_status: classified
+review_notes: '### Analysis
+
+
+  Netflix Zuul is architecturally structured as a **Microkernel (Plugin)** system,
+  specifically designed around a "Filter" chain mechanism. While it functions as a
+  gateway, its internal code organization is defined by a stable core that manages
+  the lifecycle of request/response cycles and a set of dynamically loadable or pluggable
+  filters that implement the actual logic.
+
+
+  #### 1. Microkernel (Plugin)
+
+  The core of the system (`zuul-core`) provides the infrastructure for request handling,
+  session management, and metric collection, but it contains very little hardcoded
+  business or routing logic. The primary extension point is the **Zuul Filter**.
+
+  - **`zuul-core`**: Acts as the microkernel. It manages the Netty pipeline, connection
+  pooling, and the execution engine for filters.
+
+  - **`zuul-processor`**: Likely handles the annotation processing or compilation
+  of filters (Zuul is famous for its ability to load Groovy filters from disk at runtime
+  without restarting).
+
+  - **Extensibility**: The README and linked Wiki documentation emphasize that almost
+  all functionality (auth, routing, logging, throttling) is implemented as individual
+  filters that plug into the core''s lifecycle hooks.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:15:30Z'
+classification_reasoning: "### Analysis\n\nNetflix Zuul is architecturally structured\
+  \ as a **Microkernel (Plugin)** system, specifically designed around a \"Filter\"\
+  \ chain mechanism. While it functions as a gateway, its internal code organization\
+  \ is defined by a stable core that manages the lifecycle of request/response cycles\
+  \ and a set of dynamically loadable or pluggable filters that implement the actual\
+  \ logic.\n\n#### 1. Microkernel (Plugin)\nThe core of the system (`zuul-core`) provides\
+  \ the infrastructure for request handling, session management, and metric collection,\
+  \ but it contains very little hardcoded business or routing logic. The primary extension\
+  \ point is the **Zuul Filter**.\n- **`zuul-core`**: Acts as the microkernel. It\
+  \ manages the Netty pipeline, connection pooling, and the execution engine for filters.\n\
+  - **`zuul-processor`**: Likely handles the annotation processing or compilation\
+  \ of filters (Zuul is famous for its ability to load Groovy filters from disk at\
+  \ runtime without restarting).\n- **Extensibility**: The README and linked Wiki\
+  \ documentation emphasize that almost all functionality (auth, routing, logging,\
+  \ throttling) is implemented as individual filters that plug into the core's lifecycle\
+  \ hooks.\n\n#### 2. Pipeline (Pipe-and-Filter)\nThe execution model within the microkernel\
+  \ follows a strict **Pipeline** pattern. \n- Requests flow through a series of \"\
+  Inbound\" filters.\n- They reach an \"Endpoint\" filter (the \"Origin\" call).\n\
+  - Responses flow back through \"Outbound\" filters.\n- This is a classic \"Chain\
+  \ of Responsibility\" or \"Interceptor\" pattern applied at a macro architectural\
+  \ scale, where the data (the request context) is transformed sequentially by discrete,\
+  \ independent stages.\n\n#### 3. Evidence of Structure\n- **`zuul-core/src/main/java`**:\
+  \ Contains the `FilterProcessor`, `ZuulFilter`, and `FilterLoader` which are the\
+  \ heart of the plugin architecture.\n- **`zuul-sample`**: Demonstrates how to instantiate\
+  \ the \"kernel\" and register custom filters to create a functional gateway.\n-\
+  \ **`zuul-discovery`**: Provides a pluggable mechanism for service discovery (likely\
+  \ integrating with Eureka), following the pattern of a core system being extended\
+  \ by environment-specific modules.\n\n#### 4. Rejection of Other Styles\n- **Not\
+  \ Microservices**: While Zuul is *used* in microservice environments, the repository\
+  \ itself is a library/framework codebase organized as a set of modules that build\
+  \ into a single functional unit or library, not a collection of independently deployable\
+  \ services.\n- **Not Layered**: While it has internal packages, the defining characteristic\
+  \ is the vertical plugin-interceptor model, not horizontal database/logic/UI layers.\n\
+  - **Not Modular Monolith**: Although it is modular, the architectural intent is\
+  \ not to separate business domains into modules, but to provide a generic engine\
+  \ with a plugin SPI."

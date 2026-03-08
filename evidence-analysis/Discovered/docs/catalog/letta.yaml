@@ -13,5 +13,78 @@ language: Python
 languages:
 - Python
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Microkernel (Plugin)
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'The Letta (formerly MemGPT) repository is organized as a **Layered**
+  system with significant **Microkernel (Plugin)** and **Domain-Driven Design (DDD)**
+  influences. The codebase serves a platform for stateful AI agents, where the structural
+  boundaries are defined by horizontal technical layers and vertical domain concepts.
+
+
+  ### 1. Primary Style: Layered
+
+  The system follows a classic horizontal layering pattern, visible in the directory
+  structure under `letta/`:
+
+  - **Presentation/API Layer**: `letta/server/rest_api/routers` and `letta/server/ws_api`.
+  This layer handles HTTP/WebSocket communication, authentication, and request/response
+  mapping via Pydantic/Marshmallow schemas (found in `letta/schemas/` and `letta/serialize_schemas/`).
+
+  - **Application/Service Layer**: Logic for managing the "life cycle" of agents,
+  conversation flows, and multi-agent coordination is found in `letta/server/server.py`
+  and the various `letta/groups/` managers.
+
+  - **Domain Layer**: The core logic of "what an agent is" and how it processes information
+  resides in `letta/agents/` (e.g., `letta_agent_v2.py`, `base_agent.py`).
+
+  - **Data Access/Infrastructure Layer**: Database interactions are centralized in
+  `letta/server/db.py`, `letta/database_utils.py`, and managed via Alembic migrations.
+
+
+  ### 2. Secondary Style: Microkernel (Plugin)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.85
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:55:36Z'
+classification_reasoning: "The Letta (formerly MemGPT) repository is organized as\
+  \ a **Layered** system with significant **Microkernel (Plugin)** and **Domain-Driven\
+  \ Design (DDD)** influences. The codebase serves a platform for stateful AI agents,\
+  \ where the structural boundaries are defined by horizontal technical layers and\
+  \ vertical domain concepts.\n\n### 1. Primary Style: Layered\nThe system follows\
+  \ a classic horizontal layering pattern, visible in the directory structure under\
+  \ `letta/`:\n- **Presentation/API Layer**: `letta/server/rest_api/routers` and `letta/server/ws_api`.\
+  \ This layer handles HTTP/WebSocket communication, authentication, and request/response\
+  \ mapping via Pydantic/Marshmallow schemas (found in `letta/schemas/` and `letta/serialize_schemas/`).\n\
+  - **Application/Service Layer**: Logic for managing the \"life cycle\" of agents,\
+  \ conversation flows, and multi-agent coordination is found in `letta/server/server.py`\
+  \ and the various `letta/groups/` managers.\n- **Domain Layer**: The core logic\
+  \ of \"what an agent is\" and how it processes information resides in `letta/agents/`\
+  \ (e.g., `letta_agent_v2.py`, `base_agent.py`).\n- **Data Access/Infrastructure\
+  \ Layer**: Database interactions are centralized in `letta/server/db.py`, `letta/database_utils.py`,\
+  \ and managed via Alembic migrations.\n\n### 2. Secondary Style: Microkernel (Plugin)\n\
+  The system is designed to be highly extensible through a provider/adapter pattern,\
+  \ which qualifies as a **Microkernel** architecture:\n- **LLM/Provider Adapters**:\
+  \ Under `letta/adapters/` and `letta/local_llm/`, there are specific adapters for\
+  \ various backends (OpenAI, Ollama, vLLM, Anthropic). This allows the \"core\" agent\
+  \ logic to remain agnostic of the specific model being used.\n- **Extension Points**:\
+  \ The presence of `letta/plugins/` and `letta/functions/function_sets/` indicates\
+  \ a system where users can inject custom \"tools\" or \"skills\" into the agent's\
+  \ runtime. The agent serves as the \"kernel,\" and tools are external modules loaded\
+  \ into its context.\n\n### 3. Secondary Style: Domain-Driven Design (DDD)\nThe codebase\
+  \ shows a strong orientation toward DDD principles, specifically in how the data\
+  \ and logic are partitioned:\n- **Bounded Contexts**: The `letta/schemas/` directory\
+  \ is highly granular, with distinct models for `agent`, `block` (memory), `tool`,\
+  \ `source`, and `passage`. These represent clear domain entities with specific relationships.\n\
+  - **Aggregates**: The `Agent` (in `letta/agents/`) acts as the primary aggregate\
+  \ root, encompassing `Memory` (blocks) and `Tool` associations, enforcing constraints\
+  \ on how these entities interact during an \"agent loop.\"\n\n### Architecture Rejections\n\
+  - **Microservices**: While there is a `Dockerfile` that packages Postgres, Redis,\
+  \ and an OTEL collector, these are infrastructure dependencies rather than independent\
+  \ business services. The core logic is a single Python monolith. \n- **Hexagonal\
+  \ Architecture**: While it uses \"adapters,\" the internal structure does not strictly\
+  \ follow the \"Ports and Adapters\" pattern where the core is completely decoupled\
+  \ from the framework (it is heavily integrated with FastAPI/Pydantic throughout)."

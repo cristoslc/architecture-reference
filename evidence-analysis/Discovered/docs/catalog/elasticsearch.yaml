@@ -12,5 +12,63 @@ domain: Observability
 language: Java/Kotlin
 languages:
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: "This repository (Elasticsearch) is a classic exemplar of the **Microkernel\
+  \ (Plugin)** architecture, implemented within a **Modular Monolith** build structure.\n\
+  \n### 1. Primary Style: Microkernel (Plugin)\nThe system is designed around a minimal\
+  \ \"server\" core that is extended via a sophisticated plugin and module system.\
+  \ \n- **Core-Plugin Separation:** The `server/` directory contains the core engine\
+  \ (cluster coordination, transport, and resource management), while high-level features\
+  \ are decoupled into `plugins/` and `modules/`.\n- **Plugin Infrastructure:** The\
+  \ `settings.gradle` file reveals a massive investment in automated discovery of\
+  \ plugins and modules via `addSubProjects('', new File(rootProject.projectDir, 'plugins'))`.\n\
+  - **Extensibility Points:** Files such as `PluginsServiceTests.java` and `ExtensionLoaderTests.java`\
+  \ in the `server` module demonstrate the existence of formal `ExtensionPoint` and\
+  \ `SPI` (Service Provider Interface) contracts. These allow plugins to inject custom\
+  \ logic into the core (e.g., `DiscoveryPlugin`, `ActionPlugin`, `AnalysisPlugin`)\
+  \ without the core having a compile-time dependency on the implementations.\n- **X-Pack\
+  \ as a Plugin Aggregate:** The `x-pack/` directory functions as a massive suite\
+  \ of commercial plugins (security, ml, sql, etc.) that plug into the same kernel\
+  \ as the open-source plugins, reinforcing the microkernel pattern at scale.\n\n\
+  ### 2. Secondary Style: Modular Monolith"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:46:59Z'
+classification_reasoning: "This repository (Elasticsearch) is a classic exemplar of\
+  \ the **Microkernel (Plugin)** architecture, implemented within a **Modular Monolith**\
+  \ build structure.\n\n### 1. Primary Style: Microkernel (Plugin)\nThe system is\
+  \ designed around a minimal \"server\" core that is extended via a sophisticated\
+  \ plugin and module system. \n- **Core-Plugin Separation:** The `server/` directory\
+  \ contains the core engine (cluster coordination, transport, and resource management),\
+  \ while high-level features are decoupled into `plugins/` and `modules/`.\n- **Plugin\
+  \ Infrastructure:** The `settings.gradle` file reveals a massive investment in automated\
+  \ discovery of plugins and modules via `addSubProjects('', new File(rootProject.projectDir,\
+  \ 'plugins'))`.\n- **Extensibility Points:** Files such as `PluginsServiceTests.java`\
+  \ and `ExtensionLoaderTests.java` in the `server` module demonstrate the existence\
+  \ of formal `ExtensionPoint` and `SPI` (Service Provider Interface) contracts. These\
+  \ allow plugins to inject custom logic into the core (e.g., `DiscoveryPlugin`, `ActionPlugin`,\
+  \ `AnalysisPlugin`) without the core having a compile-time dependency on the implementations.\n\
+  - **X-Pack as a Plugin Aggregate:** The `x-pack/` directory functions as a massive\
+  \ suite of commercial plugins (security, ml, sql, etc.) that plug into the same\
+  \ kernel as the open-source plugins, reinforcing the microkernel pattern at scale.\n\
+  \n### 2. Secondary Style: Modular Monolith\nDespite its extensibility, the repository\
+  \ is structured as a single, unified build (Monolith).\n- **Single Deployable (mostly):**\
+  \ The final output is typically a single distribution package (as seen in `distribution/`\
+  \ modules) that bundles the core with a selection of modules and plugins. \n- **Internal\
+  \ Boundaries:** There are clear internal boundaries enforced by Gradle subprojects\
+  \ (`libs/`, `modules/`, `server/`). Communication between these modules often uses\
+  \ horizontal internal APIs rather than network calls, making it modular but monolithic\
+  \ in deployment.\n\n### Rejected Styles:\n- **Microservices:** While there are many\
+  \ \"modules,\" they are not independently deployable services that communicate over\
+  \ the network; they are JARs loaded by a single JVM process.\n- **Hexagonal Architecture:**\
+  \ While the grep results show many interfaces, they are primarily used for the plugin\
+  \ system and internal service substitution rather than strict isolation of the domain\
+  \ from all infrastructure (the core is heavily coupled to Lucene and Netty).\n-\
+  \ **Layered:** Although the system has layers (Transport -> Action -> Service ->\
+  \ Store), the dominant architectural characteristic is the vertical plugin-based\
+  \ extensibility rather than horizontal layering."

@@ -14,5 +14,109 @@ languages:
 - Ruby
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Service-Based
+- Event-Driven
+- Layered
+classification_status: classified
+review_notes: 'Mastodon is structured as a **Service-Based** architecture. While it
+  is frequently called a "monolith" in common parlance, its technical organization
+  consists of several coarse-grained, independently deployable services that share
+  the same backend data stores (PostgreSQL and Redis) and business logic definitions.
+
+
+  ### 1. Service-Based Structure
+
+  The system is decomposed into three primary operational services, as evidenced by
+  the `docker-compose.yml` and `Procfile`:
+
+  - **Web Service (`web`)**: A Ruby on Rails application serving the REST API and
+  HTML views.
+
+  - **Streaming Service (`streaming`)**: A Node.js application (located in the `/streaming`
+  directory) specifically designed to handle high-concurrency WebSocket connections.
+  It is a separate codebase with its own `package.json` and logic, yet it shares the
+  same database and Redis instance as the Rails app.
+
+  - **Background Processing (`sidekiq`)**: A dedicated worker service that consumes
+  tasks from Redis.
+
+
+  This separation meets the criteria for Service-Based architecture rather than Microservices,
+  as the components are tightly coupled via a shared database schema (PostgreSQL)
+  and do not own their data exclusively.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:58:38Z'
+classification_reasoning: 'Mastodon is structured as a **Service-Based** architecture.
+  While it is frequently called a "monolith" in common parlance, its technical organization
+  consists of several coarse-grained, independently deployable services that share
+  the same backend data stores (PostgreSQL and Redis) and business logic definitions.
+
+
+  ### 1. Service-Based Structure
+
+  The system is decomposed into three primary operational services, as evidenced by
+  the `docker-compose.yml` and `Procfile`:
+
+  - **Web Service (`web`)**: A Ruby on Rails application serving the REST API and
+  HTML views.
+
+  - **Streaming Service (`streaming`)**: A Node.js application (located in the `/streaming`
+  directory) specifically designed to handle high-concurrency WebSocket connections.
+  It is a separate codebase with its own `package.json` and logic, yet it shares the
+  same database and Redis instance as the Rails app.
+
+  - **Background Processing (`sidekiq`)**: A dedicated worker service that consumes
+  tasks from Redis.
+
+
+  This separation meets the criteria for Service-Based architecture rather than Microservices,
+  as the components are tightly coupled via a shared database schema (PostgreSQL)
+  and do not own their data exclusively.
+
+
+  ### 2. Event-Driven (Secondary Style)
+
+  The codebase relies heavily on asynchronous event processing to handle the federated
+  nature of the Fediverse.
+
+  - **Sidekiq Workers**: The `app/workers` directory contains several dozen workers
+  (e.g., `DistributionWorker`, `ActivityPub::ProcessingWorker`, `PushUpdateWorker`)
+  that implement a pub/sub-like flow.
+
+  - **ActivityPub Integration**: The system reacts to incoming activities (events)
+  from other servers. The logic in `app/services/activitypub` and many workers in
+  `app/workers/activitypub` handle the ingestion and fan-out of these events asynchronously.
+
+  - **Fan-out Pattern**: The `FanOutOnWriteService` is a classic event-driven pattern
+  used to distribute updates to home feeds and followers.
+
+
+  ### 3. Layered (Secondary Style)
+
+  Internally, the Ruby on Rails component follows a standard **Layered** pattern:
+
+  - **Presentation**: `app/controllers` and `app/serializers`.
+
+  - **Business Logic**: Concentrated in `app/services`. Unlike standard Rails apps
+  that put logic in models, Mastodon uses a Service Layer pattern (e.g., `PostStatusService`,
+  `FollowService`, `AuthorizeFollowService`) to orchestrate complex actions.
+
+  - **Data Access**: `app/models` using ActiveRecord.
+
+  - **Policy**: `app/policies` provides a dedicated authorization layer.
+
+
+  ### Rejection of Other Styles
+
+  - **Microservices**: Rejected because the services share a single large PostgreSQL
+  database and are contained within a single primary repository (though the Node.js
+  streaming part is a distinct sub-folder). They are not "highly decoupled."
+
+  - **Modular Monolith**: Rejected because the deployment is split into distinct processes
+  with different runtimes (Node.js vs Ruby), and the internal Ruby structure does
+  not strictly enforce module boundaries between "Home Feed" and "Notifications" at
+  the language level; they are largely separated by directory naming conventions only.'

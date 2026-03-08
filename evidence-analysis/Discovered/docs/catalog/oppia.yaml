@@ -14,5 +14,64 @@ languages:
 - TypeScript
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Hexagonal Architecture
+- Layered
+- Domain-Driven Design
+classification_status: classified
+review_notes: "The repository follows a clean, highly structured architecture that\
+  \ strictly separates business logic from infrastructure concerns, primarily aligning\
+  \ with **Hexagonal Architecture** (Ports and Adapters) and **Domain-Driven Design\
+  \ (DDD)** principles.\n\n### Core Evidence of Hexagonal Architecture\nThe most defining\
+  \ characteristic of this codebase is the `core/platform/` directory. This acts as\
+  \ an \"Adapters\" layer. \n1.  **Abstraction Layer**: `core/platform/models.py`\
+  \ defines a `Platform` interface that abstracts away Google App Engine (GAE), Redis,\
+  \ Firebase, and other infrastructure-specific services.\n2.  **Dynamic Swapping\
+  \ (Ports)**: Methods like `import_email_services` and `import_cache_services` check\
+  \ environment variables (`constants.DEV_MODE`, `constants.EMULATOR_MODE`) to decide\
+  \ whether to load a \"mock\" dev-mode implementation or a production cloud service\
+  \ (e.g., `mailgun_email_services` vs. `dev_mode_email_services`).\n3.  **Encapsulated\
+  \ Storage**: The domain logic does not import storage models directly. Instead,\
+  \ it uses the platform layer to fetch the appropriate storage classes, effectively\
+  \ isolating the domain from the underlying Datastore/SQL implementation.\n\n###\
+  \ Layered and DDD Influence\nThe repository is organized into distinct horizontal\
+  \ layers:"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:05:02Z'
+classification_reasoning: "The repository follows a clean, highly structured architecture\
+  \ that strictly separates business logic from infrastructure concerns, primarily\
+  \ aligning with **Hexagonal Architecture** (Ports and Adapters) and **Domain-Driven\
+  \ Design (DDD)** principles.\n\n### Core Evidence of Hexagonal Architecture\nThe\
+  \ most defining characteristic of this codebase is the `core/platform/` directory.\
+  \ This acts as an \"Adapters\" layer. \n1.  **Abstraction Layer**: `core/platform/models.py`\
+  \ defines a `Platform` interface that abstracts away Google App Engine (GAE), Redis,\
+  \ Firebase, and other infrastructure-specific services.\n2.  **Dynamic Swapping\
+  \ (Ports)**: Methods like `import_email_services` and `import_cache_services` check\
+  \ environment variables (`constants.DEV_MODE`, `constants.EMULATOR_MODE`) to decide\
+  \ whether to load a \"mock\" dev-mode implementation or a production cloud service\
+  \ (e.g., `mailgun_email_services` vs. `dev_mode_email_services`).\n3.  **Encapsulated\
+  \ Storage**: The domain logic does not import storage models directly. Instead,\
+  \ it uses the platform layer to fetch the appropriate storage classes, effectively\
+  \ isolating the domain from the underlying Datastore/SQL implementation.\n\n###\
+  \ Layered and DDD Influence\nThe repository is organized into distinct horizontal\
+  \ layers:\n*   **Web/Controller Layer (`core/controllers/`)**: Handles HTTP requests,\
+  \ payload validation, and interacts with domain services.\n*   **Domain Layer (`core/domain/`)**:\
+  \ This is the largest part of the system. It is organized around \"Bounded Contexts\"\
+  \ typical of DDD (e.g., `exp_domain.py` for Explorations, `topic_domain.py`, `skill_domain.py`).\
+  \ It contains:\n    *   **Domain Objects**: (e.g., `*_domain.py`) representing rich\
+  \ business entities.\n    *   **Domain Services**: (e.g., `*_services.py`) containing\
+  \ the logic that coordinates domain objects.\n    *   **Fetchers**: (e.g., `*_fetchers.py`)\
+  \ specialized logic for retrieving domain objects, maintaining a separation between\
+  \ \"getting\" and \"doing\".\n*   **Storage Layer (`core/storage/`)**: Contains\
+  \ the concrete GAE/Cloud-specific persistence models.\n\n### Deployment Context\n\
+  The presence of `stubs/google/appengine` and the heavy reliance on Cloud Tasks,\
+  \ GAE App Identity, and Datastore services indicates this is a monolith designed\
+  \ for Google App Engine. While it uses many external services (Redis, Elasticsearch,\
+  \ Mailchimp), the source code is structured as a single, modular deployable unit\
+  \ rather than microservices.\n\n### Summary\nThe architecture is a **Modular Monolith**\
+  \ internally organized using **Hexagonal** patterns to ensure that the core educational\
+  \ logic (Explorations, Skills, Topics) remains decoupled from the specific cloud\
+  \ platform (GAE) and third-party integrations (Firebase, Mailgun, etc.)."

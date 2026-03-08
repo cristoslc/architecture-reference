@@ -14,5 +14,76 @@ languages:
 - Ruby
 - JavaScript
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'GitLab is organized as a **Modular Monolith**. While it exhibits traditional
+  Ruby on Rails horizontal layering (Models, View, Controllers), it employs a sophisticated
+  structural pattern to maintain boundaries between its open-source core (CE), Enterprise
+  Edition (EE), and JiHu (JH) versions within a single codebase.
+
+
+  ### Primary Style: Modular Monolith
+
+  The "Module" aspect of this monolith is most evident in the way GitLab manages its
+  different editions. The `config/application.rb` file reveals a custom loading mechanism
+  (`load_paths`) that dynamically injects directories from `/ee` and `/jh` into the
+  Rails eager load paths.
+
+  - **Dependency Inversion/Prepending:** It uses Ruby''s `Module#prepend` pattern
+  (e.g., `config.class.prepend(::Gitlab::Patch::DatabaseConfig)`) and specific `Gitlab.ee
+  { ... }` blocks to extend core classes without modifying the base files directly.
+  This allows the Enterprise features to exist as a separate module layer on top of
+  the FOSS core.
+
+  - **Namespacing:** The directory structure under `app/models/` and `app/services/`
+  shows a clear transition toward domain-specific subdirectories (e.g., `app/models/ci/`,
+  `app/models/clusters/`, `app/models/design_management/`), though a large "God Object"
+  legacy persists in the root `app/models/` folder (e.g., `project.rb`, `user.rb`).
+
+
+  ### Secondary Style: Layered
+
+  As a standard Rails application, it adheres to a **Layered** architecture:
+
+  - **Presentation:** Handled by `app/controllers` and the Grape API in `lib/api`.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:50:09Z'
+classification_reasoning: "GitLab is organized as a **Modular Monolith**. While it\
+  \ exhibits traditional Ruby on Rails horizontal layering (Models, View, Controllers),\
+  \ it employs a sophisticated structural pattern to maintain boundaries between its\
+  \ open-source core (CE), Enterprise Edition (EE), and JiHu (JH) versions within\
+  \ a single codebase.\n\n### Primary Style: Modular Monolith\nThe \"Module\" aspect\
+  \ of this monolith is most evident in the way GitLab manages its different editions.\
+  \ The `config/application.rb` file reveals a custom loading mechanism (`load_paths`)\
+  \ that dynamically injects directories from `/ee` and `/jh` into the Rails eager\
+  \ load paths.\n- **Dependency Inversion/Prepending:** It uses Ruby's `Module#prepend`\
+  \ pattern (e.g., `config.class.prepend(::Gitlab::Patch::DatabaseConfig)`) and specific\
+  \ `Gitlab.ee { ... }` blocks to extend core classes without modifying the base files\
+  \ directly. This allows the Enterprise features to exist as a separate module layer\
+  \ on top of the FOSS core.\n- **Namespacing:** The directory structure under `app/models/`\
+  \ and `app/services/` shows a clear transition toward domain-specific subdirectories\
+  \ (e.g., `app/models/ci/`, `app/models/clusters/`, `app/models/design_management/`),\
+  \ though a large \"God Object\" legacy persists in the root `app/models/` folder\
+  \ (e.g., `project.rb`, `user.rb`).\n\n### Secondary Style: Layered\nAs a standard\
+  \ Rails application, it adheres to a **Layered** architecture:\n- **Presentation:**\
+  \ Handled by `app/controllers` and the Grape API in `lib/api`.\n- **Business Logic:**\
+  \ Historically in models, but now heavily migrated to a dedicated **Service Layer**\
+  \ found in `app/services/`. This layer abstracts complex operations (like `protected_branches/update_service.rb`)\
+  \ away from the ActiveRecord models.\n- **Persistence:** Contained in `app/models`\
+  \ and `lib/gitlab/database`.\n\n### Secondary Style: Event-Driven\nThe codebase\
+  \ incorporates an internal **Event-Driven** architecture to decouple side effects.\
+  \ \n- Evidence: `lib/gitlab/event_store.rb` and the presence of `app/services/audit_events/processor.rb`\
+  \ indicate a pub/sub mechanism where domain events (like a repository push or user\
+  \ creation) trigger disparate handlers across the monolith.\n- This is distinct\
+  \ from its external infrastructure (Sidekiq/Redis), which it uses for asynchronous\
+  \ task processing.\n\n### Why not Microservices?\nAlthough GitLab self-hosts and\
+  \ integrates with many components (Gitaly, Workhorse, Runner), the core repository\
+  \ is a single deployable Ruby on Rails unit. The distinct components it communicates\
+  \ with (like `Gitaly` via gRPC) are treated as external services rather than the\
+  \ internal architecture of this specific repository."

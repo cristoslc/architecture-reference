@@ -12,5 +12,78 @@ domain: Fintech
 language: Python
 languages:
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'The **Open Event Server** is a classic example of a **Layered Architecture**
+  (specifically a Web API Monolith). The codebase is organized into horizontal functional
+  layers that separate data definitions, business logic/transports, and configuration.
+
+
+  ### Primary Style: Layered
+
+  The repository follows a strict horizontal separation of concerns typical of large-scale
+  Flask applications:
+
+  1.  **Data Layer (`app/models/`):** A centralized directory containing over 80 SQLAlchemy
+  model files (e.g., `event.py`, `user.py`, `ticket.py`). These models define the
+  schema and relationships but do not contain significant business logic or service
+  boundaries.
+
+  2.  **API/Transport Layer (`app/api/`):** This layer handles the [JSON:API Spec](http://jsonapi.org/)
+  compliance. Files like `events.py` and `sessions.py` act as controllers, managing
+  request parsing, serialization via schemas, and high-level orchestration.
+
+  3.  **View Layer (`app/views/`):** Handles traditional web concerns, health checks,
+  and integrations with external stores like Redis and Elasticsearch.
+
+  4.  **Common Services/Extensions (`app/extensions/`):** Centralized initialization
+  of cross-cutting concerns like rate limiting (`limiter.py`) and database connections.
+
+
+  The deployment model confirmed in `docker-compose.yml` supports this; while there
+  is a `web` service and a `celery` service, they both run from the same image (`eventyay/open-event-server:development`)
+  and share the same codebase and database, indicating a monolithic deployment where
+  different processes simply execute different entry points of the same application.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:04:07Z'
+classification_reasoning: "The **Open Event Server** is a classic example of a **Layered\
+  \ Architecture** (specifically a Web API Monolith). The codebase is organized into\
+  \ horizontal functional layers that separate data definitions, business logic/transports,\
+  \ and configuration.\n\n### Primary Style: Layered\nThe repository follows a strict\
+  \ horizontal separation of concerns typical of large-scale Flask applications:\n\
+  1.  **Data Layer (`app/models/`):** A centralized directory containing over 80 SQLAlchemy\
+  \ model files (e.g., `event.py`, `user.py`, `ticket.py`). These models define the\
+  \ schema and relationships but do not contain significant business logic or service\
+  \ boundaries.\n2.  **API/Transport Layer (`app/api/`):** This layer handles the\
+  \ [JSON:API Spec](http://jsonapi.org/) compliance. Files like `events.py` and `sessions.py`\
+  \ act as controllers, managing request parsing, serialization via schemas, and high-level\
+  \ orchestration.\n3.  **View Layer (`app/views/`):** Handles traditional web concerns,\
+  \ health checks, and integrations with external stores like Redis and Elasticsearch.\n\
+  4.  **Common Services/Extensions (`app/extensions/`):** Centralized initialization\
+  \ of cross-cutting concerns like rate limiting (`limiter.py`) and database connections.\n\
+  \nThe deployment model confirmed in `docker-compose.yml` supports this; while there\
+  \ is a `web` service and a `celery` service, they both run from the same image (`eventyay/open-event-server:development`)\
+  \ and share the same codebase and database, indicating a monolithic deployment where\
+  \ different processes simply execute different entry points of the same application.\n\
+  \n### Secondary Style: Event-Driven\nThe system employs an **Event-Driven** approach\
+  \ for asynchronous processing. \n- The presence of a dedicated `celery` service\
+  \ in `docker-compose.yml` and tasks defined in `app/api/celery_tasks.py` indicates\
+  \ that heavy operations (like image resizing, mail sending, and data exports/imports)\
+  \ are offloaded from the request-response cycle. \n- `manage.py` explicitly invokes\
+  \ these tasks (e.g., `resize_event_images_task.delay(...)`), showing a producer-consumer\
+  \ pattern mediated by Redis.\n\n### Why not other styles?\n- **Modular Monolith:**\
+  \ While logic is somewhat split, there is no enforced encapsulation between modules.\
+  \ All models are in a single flat directory and can be imported and joined freely\
+  \ (e.g., `VideoStreamModerator` joining directly with `User`), which violates the\
+  \ strict boundary requirements of a Modular Monolith.\n- **Hexagonal Architecture:**\
+  \ There is no clear \"Port and Adapter\" separation. The models are tightly coupled\
+  \ to the SQLAlchemy ORM, and the API layer is tightly coupled to Flask and the JSON:API\
+  \ spec.\n- **Microservices:** Despite having \"Server\" in the name and multiple\
+  \ containers in Docker, it lacks independent deployability per domain. One database\
+  \ schema serves the entire application, and all code resides in a single repository\
+  \ and single container image."

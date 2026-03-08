@@ -14,5 +14,75 @@ languages:
 - C#
 - JavaScript
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Modular Monolith
+classification_status: classified
+review_notes: 'Lidarr follows a **Layered** architecture, which is the standard architectural
+  pattern for the "Servarr" family of applications (derived from the original NzbDrone/Sonarr
+  codebase). The system is organized into distinct horizontal layers that separate
+  concerns between the host/entry point, the API, and the core business logic.
+
+
+  ### Evidence of Layered Architecture:
+
+  The backend (C#/.NET) is split into several projects that represent the classic
+  horizontal layers:
+
+  1.  **Host/Presentation Layer (`src/NzbDrone.Host`, `src/NzbDrone.Console`)**: These
+  projects handle the application startup, web server hosting (Kestrel), and the integration
+  with the underlying operating system (Windows Services, Mono/Linux daemons).
+
+  2.  **API Layer (`src/Lidarr.Api.V1`)**: This layer handles RESTful endpoints, request/response
+  mapping, and authentication, acting as the gateway for the React-based frontend.
+
+  3.  **Application/Core Layer (`src/NzbDrone.Core`)**: This is the largest project
+  and contains the "fat" middle layer. It houses the business logic, domain models,
+  and service classes that orchestrate data between indexers, download clients, and
+  the database.
+
+  4.  **Infrastructure/Common Layer (`src/NzbDrone.Common`, `src/Lidarr.Http`)**:
+  Provides shared utilities, file system abstractions, and HTTP clients used by the
+  upper layers.
+
+
+  ### Evidence of Modular Monolith:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:55:59Z'
+classification_reasoning: "Lidarr follows a **Layered** architecture, which is the\
+  \ standard architectural pattern for the \"Servarr\" family of applications (derived\
+  \ from the original NzbDrone/Sonarr codebase). The system is organized into distinct\
+  \ horizontal layers that separate concerns between the host/entry point, the API,\
+  \ and the core business logic.\n\n### Evidence of Layered Architecture:\nThe backend\
+  \ (C#/.NET) is split into several projects that represent the classic horizontal\
+  \ layers:\n1.  **Host/Presentation Layer (`src/NzbDrone.Host`, `src/NzbDrone.Console`)**:\
+  \ These projects handle the application startup, web server hosting (Kestrel), and\
+  \ the integration with the underlying operating system (Windows Services, Mono/Linux\
+  \ daemons).\n2.  **API Layer (`src/Lidarr.Api.V1`)**: This layer handles RESTful\
+  \ endpoints, request/response mapping, and authentication, acting as the gateway\
+  \ for the React-based frontend.\n3.  **Application/Core Layer (`src/NzbDrone.Core`)**:\
+  \ This is the largest project and contains the \"fat\" middle layer. It houses the\
+  \ business logic, domain models, and service classes that orchestrate data between\
+  \ indexers, download clients, and the database.\n4.  **Infrastructure/Common Layer\
+  \ (`src/NzbDrone.Common`, `src/Lidarr.Http`)**: Provides shared utilities, file\
+  \ system abstractions, and HTTP clients used by the upper layers.\n\n### Evidence\
+  \ of Modular Monolith:\nWhile the primary organization is layered, the system exhibits\
+  \ characteristics of a **Modular Monolith**. \n- **Internal Boundaries**: The code\
+  \ is separated into logical \"services\" within `NzbDrone.Core`. These are not independently\
+  \ deployable (they all compile into a single executable), but they maintain loose\
+  \ coupling through an internal event bus (likely using a `Mediator` pattern or similar\
+  \ `IEventAggregator` found in this codebase's lineage).\n- **Single Deployment Unit**:\
+  \ The absence of a `docker-compose.yml` or multiple service manifests, combined\
+  \ with the single `Lidarr.sln` solution file, confirms that the system is deployed\
+  \ as a single application instance, not microservices.\n\n### Why not other styles:\n\
+  - **Microservices**: Rejected because all logic resides within a single solution\
+  \ and is deployed as a single process.\n- **Microkernel (Plugin)**: Although Lidarr\
+  \ supports various indexers and download clients, these are typically integrated\
+  \ as polymorphic implementations of internal interfaces within the `Core` project\
+  \ rather than dynamically loaded external plugins.\n- **Hexagonal**: While there\
+  \ is some separation (especially in `NzbDrone.Common`), the core logic is heavily\
+  \ coupled to the internal framework and models rather than being an isolated \"\
+  inside\" protected by strict ports and adapters."

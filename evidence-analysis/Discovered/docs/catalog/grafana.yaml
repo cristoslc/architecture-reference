@@ -14,5 +14,67 @@ languages:
 - Go
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+- Domain-Driven Design
+classification_status: classified
+review_notes: "Grafana is a classic example of a **Microkernel (Plugin)** architecture,\
+  \ where a stable core (the \"kernel\") provides the essential infrastructure (authentication,\
+  \ data routing, web serving) while almost all functional capabilities (visualizations,\
+  \ data sources, alerting integrations) are implemented as plugins.\n\n### 1. Microkernel\
+  \ (Plugin)\nThe system is designed around a strictly defined extension API. \n-\
+  \ **Plugin Registry:** In `pkg/server/server.go`, the server initializes a `backgroundServiceRegistry`,\
+  \ which manages the lifecycle of various internal and external components.\n- **Pluggability\
+  \ of Core Logic:** The `pkg/plugins` directory contains the orchestration logic\
+  \ for loading both frontend (JS/TS) and backend (Go) plugins. Backend plugins often\
+  \ run as separate processes communicating over gRPC (seen in `pkg/plugins/backendplugin`).\n\
+  - **Data Sources as Plugins:** The directory `pkg/tsdb` contains numerous sub-packages\
+  \ (e.g., `loki`, `prometheus`, `mysql`), each acting as an adapter. The README explicitly\
+  \ highlights that \"Panel plugins offer many different ways to visualize\" and \"\
+  mixed data sources\" are supported via custom providers.\n\n### 2. Modular Monolith\n\
+  While Grafana supports out-of-process plugins, the core repository is shipped as\
+  \ a single binary (`grafana-server`). "
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:51:04Z'
+classification_reasoning: "Grafana is a classic example of a **Microkernel (Plugin)**\
+  \ architecture, where a stable core (the \"kernel\") provides the essential infrastructure\
+  \ (authentication, data routing, web serving) while almost all functional capabilities\
+  \ (visualizations, data sources, alerting integrations) are implemented as plugins.\n\
+  \n### 1. Microkernel (Plugin)\nThe system is designed around a strictly defined\
+  \ extension API. \n- **Plugin Registry:** In `pkg/server/server.go`, the server\
+  \ initializes a `backgroundServiceRegistry`, which manages the lifecycle of various\
+  \ internal and external components.\n- **Pluggability of Core Logic:** The `pkg/plugins`\
+  \ directory contains the orchestration logic for loading both frontend (JS/TS) and\
+  \ backend (Go) plugins. Backend plugins often run as separate processes communicating\
+  \ over gRPC (seen in `pkg/plugins/backendplugin`).\n- **Data Sources as Plugins:**\
+  \ The directory `pkg/tsdb` contains numerous sub-packages (e.g., `loki`, `prometheus`,\
+  \ `mysql`), each acting as an adapter. The README explicitly highlights that \"\
+  Panel plugins offer many different ways to visualize\" and \"mixed data sources\"\
+  \ are supported via custom providers.\n\n### 2. Modular Monolith\nWhile Grafana\
+  \ supports out-of-process plugins, the core repository is shipped as a single binary\
+  \ (`grafana-server`). \n- **Internal Module Boundaries:** The `pkg/services` directory\
+  \ (e.g., `dashboardsnapshots`, `accesscontrol`, `folder`) demonstrates an attempt\
+  \ to keep business logic encapsulated. Each service defines a clear Gomock-compatible\
+  \ interface (e.g., `type Service interface` in `pkg/services/dashboardsnapshots/service.go`),\
+  \ allowing modules to interact via defined contracts rather than direct database\
+  \ access or shared State.\n- **Dependency Injection:** The use of `wire_gen.go`\
+  \ and `wire.go` in `pkg/server` indicates an automated dependency injection setup,\
+  \ which is a hallmark of managing complexity in a modular monolith.\n\n### 3. Domain-Driven\
+  \ Design (DDD)\nThe codebase heavily utilizes DDD tactical patterns to organize\
+  \ its logic:\n- **Bounded Contexts:** The `public/app/features` and `pkg/services`\
+  \ directories are organized by functional domain (Alerting, Dashboards, Users, Auth)\
+  \ rather than technical layers (Controllers, Views).\n- **Service Interfaces:**\
+  \ Nearly every directory in `pkg/services` contains a `service.go` that defines\
+  \ the domain's capabilities as a set of Commands and Queries (e.g., `CreateDashboardSnapshotCommand`),\
+  \ which is a pattern often paired with DDD and CQRS.\n\n### Non-Classified Styles\
+  \ Rejected:\n- **Microservices:** While Grafana connects to many services, the code\
+  \ in this repository is compiled into a single deployment unit (`packaging/` shows\
+  \ wrappers for the single server and CLI). It does not consist of independently\
+  \ deployable business services.\n- **Layered:** Although there is a separation between\
+  \ `pkg` (backend) and `public` (frontend), the internal structure of `pkg` is strictly\
+  \ domain-oriented (`pkg/services/...`) rather than horizontally layered (e.g., it\
+  \ does not have a global `pkg/controllers` or `pkg/repositories` folder)."

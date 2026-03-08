@@ -13,5 +13,72 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Layered
+- Modular Monolith
+classification_status: classified
+review_notes: 'Vendure Core is architected as a **Microkernel (Plugin)** system, designed
+  specifically for extreme extensibility while maintaining a stable core. It is built
+  on the NestJS framework and follows a monorepo structure using Lerna.
+
+
+  ### 1. Microkernel (Plugin) Architecture
+
+  The defining characteristic of Vendure is its plugin system. As seen in `packages/core/src/plugin/plugin.module.ts`,
+  the system dynamically injects functionality via `PluginModule.forRoot()`, which
+  spreads `...getConfig().plugins` into the main application imports.
+
+  - **Plugin Contract:** The README and docs highlight that almost every aspect (GraphQL
+  schema, database entities, background tasks) can be extended via plugins.
+
+  - **Evidence:** The `app.module.ts` depends on a `PluginModule` that acts as the
+  registry and lifecycle manager for externalized logic.
+
+
+  ### 2. Layered Architecture
+
+  Within the core package, Vendure follows a traditional horizontal layering (standard
+  for NestJS applications):
+
+  - **API Layer:** Found in `packages/core/src/api`, focusing on GraphQL resolvers,
+  guards, and interceptors. It is strictly separated into `admin` and `shop` contexts.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:14:50Z'
+classification_reasoning: "Vendure Core is architected as a **Microkernel (Plugin)**\
+  \ system, designed specifically for extreme extensibility while maintaining a stable\
+  \ core. It is built on the NestJS framework and follows a monorepo structure using\
+  \ Lerna.\n\n### 1. Microkernel (Plugin) Architecture\nThe defining characteristic\
+  \ of Vendure is its plugin system. As seen in `packages/core/src/plugin/plugin.module.ts`,\
+  \ the system dynamically injects functionality via `PluginModule.forRoot()`, which\
+  \ spreads `...getConfig().plugins` into the main application imports.\n- **Plugin\
+  \ Contract:** The README and docs highlight that almost every aspect (GraphQL schema,\
+  \ database entities, background tasks) can be extended via plugins.\n- **Evidence:**\
+  \ The `app.module.ts` depends on a `PluginModule` that acts as the registry and\
+  \ lifecycle manager for externalized logic.\n\n### 2. Layered Architecture\nWithin\
+  \ the core package, Vendure follows a traditional horizontal layering (standard\
+  \ for NestJS applications):\n- **API Layer:** Found in `packages/core/src/api`,\
+  \ focusing on GraphQL resolvers, guards, and interceptors. It is strictly separated\
+  \ into `admin` and `shop` contexts.\n- **Service Layer:** Found in `packages/core/src/service`\
+  \ (referenced in `app.module.ts`), where the business logic resides.\n- **Data Access\
+  \ Layer:** Managed via `ConnectionModule` and TypeORM entities, providing the persistence\
+  \ abstraction.\n\n### 3. Modular Monolith\nWhile the repository is a monorepo, its\
+  \ runtime behavior is that of a **Modular Monolith**. \n- **Deployment:** The `docker-compose.yml`\
+  \ shows that while there are many infrastructure dependencies (Postgres, Redis,\
+  \ Elasticsearch), the Vendure application itself typically runs as a single deployable\
+  \ unit.\n- **Module Boundaries:** The `app.module.ts` demonstrates clear internal\
+  \ boundaries (e.g., `I18nModule`, `ConfigModule`, `ServiceModule`). These modules\
+  \ are interdependent but logically separated within the same process.\n- **Rejected\
+  \ Microservices:** Although it's a monorepo, it is not a Microservices architecture.\
+  \ The services share a single database connection (as seen in `ConnectionModule`)\
+  \ and are loaded into a single NestJS `AppModule`. There is no evidence of independent\
+  \ service-to-service communication over RPC/Message Bus for core commerce functions;\
+  \ rather, they are integrated via the plugin system.\n\n### 4. Headless/API-First\n\
+  The structure of `packages/core/src/api` with directories for `schema/shop-api`\
+  \ and `schema/admin-api` reinforces a Hexagonal-adjacent approach where the \"Core\"\
+  \ is isolated, and specific \"Adapters\" (GraphQL APIs) are exposed for different\
+  \ consumer types, though the implementation details align more closely with Layered/Modular\
+  \ patterns than strict Hexagonal."

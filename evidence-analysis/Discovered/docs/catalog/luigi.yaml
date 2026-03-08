@@ -13,5 +13,70 @@ language: Python
 languages:
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Pipeline (Pipe-and-Filter)
+classification_status: classified
+review_notes: 'Luigi is a framework for building complex pipelines, but its internal
+  architecture is a classic example of the **Microkernel (Plugin)** style.
+
+
+  ### Primary Style: Microkernel (Plugin)
+
+  The repository is structured around a stable core (the "kernel") that handles the
+  lifecycle of tasks—dependency resolution, scheduling, and state management—while
+  delegating almost all specific functionality to a massive collection of plugins.
+
+  - **The Core (Kernel):** Located in the root of the `luigi/` directory, files like
+  `worker.py`, `scheduler.py`, `task.py`, and `parameter.py` define the contract and
+  runtime for any workflow.
+
+  - **The Plugins (Contrib):** The `luigi/contrib/` directory contains over 50 isolated
+  modules that extend the core. These allow Luigi to interact with external systems
+  (e.g., `s3.py`, `kubernetes.py`, `redshift.py`, `hadoop.py`) without the core kernel
+  having any knowledge of those specific technologies.
+
+  - **Separation of Concerns:** The core provides the infrastructure (the "plumbing"),
+  while the `contrib` modules provide the adapters. This allows the system to be highly
+  extensible by third parties without modifying the internal scheduling logic.
+
+
+  ### Secondary Style: Pipeline (Pipe-and-Filter)
+
+  Luigi is architected specifically to support the **Pipeline** style for the *user''s
+  code*. '
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:58:10Z'
+classification_reasoning: "Luigi is a framework for building complex pipelines, but\
+  \ its internal architecture is a classic example of the **Microkernel (Plugin)**\
+  \ style.\n\n### Primary Style: Microkernel (Plugin)\nThe repository is structured\
+  \ around a stable core (the \"kernel\") that handles the lifecycle of tasks—dependency\
+  \ resolution, scheduling, and state management—while delegating almost all specific\
+  \ functionality to a massive collection of plugins.\n- **The Core (Kernel):** Located\
+  \ in the root of the `luigi/` directory, files like `worker.py`, `scheduler.py`,\
+  \ `task.py`, and `parameter.py` define the contract and runtime for any workflow.\n\
+  - **The Plugins (Contrib):** The `luigi/contrib/` directory contains over 50 isolated\
+  \ modules that extend the core. These allow Luigi to interact with external systems\
+  \ (e.g., `s3.py`, `kubernetes.py`, `redshift.py`, `hadoop.py`) without the core\
+  \ kernel having any knowledge of those specific technologies.\n- **Separation of\
+  \ Concerns:** The core provides the infrastructure (the \"plumbing\"), while the\
+  \ `contrib` modules provide the adapters. This allows the system to be highly extensible\
+  \ by third parties without modifying the internal scheduling logic.\n\n### Secondary\
+  \ Style: Pipeline (Pipe-and-Filter)\nLuigi is architected specifically to support\
+  \ the **Pipeline** style for the *user's code*. \n- **Task/Target Pattern:** The\
+  \ framework is built on the concept of tasks (filters) that consume and produce\
+  \ Targets (pipes). \n- **Dependency Graphs:** The architecture focuses on the sequential\
+  \ and parallel flow of data through these stages, handled by the `luigi.tools.deps_tree`\
+  \ and the visualization engine found in `luigi/static/visualiser`.\n\n### Why other\
+  \ styles were rejected:\n- **Layers:** While there is some horizontal layering (Server\
+  \ -> Worker -> Task), the predominant organizational principle is the separation\
+  \ between the execution engine and the library of community-contributed integrations.\n\
+  - **Microservices:** Although Luigi includes a `server.py` and supports RPC (`rpc.py`),\
+  \ the repository itself is a monolithic library intended to be imported into a single\
+  \ Python environment or distributed as a package.\n- **Event-Driven:** While it\
+  \ has an `event.py` for internal callbacks (e.g., \"on success\"), the primary execution\
+  \ model is a directed acyclic graph (DAG) based on state polling and dependency\
+  \ satisfaction, not a message-bus-centric architecture."

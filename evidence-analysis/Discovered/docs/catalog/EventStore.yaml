@@ -14,5 +14,111 @@ languages:
 - C#
 - JavaScript
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Domain-Driven Design
+- Layered
+classification_status: classified
+review_notes: 'This repository is primarily structured as a **Microkernel (Plugin)**
+  architecture. The core database engine acts as a minimal host that orchestrates
+  various system capabilities—ranging from networking protocols and authentication
+  to storage subsystems—through a formal plugin mechanism.
+
+
+  ### Evidence for Microkernel (Plugin)
+
+  The `src/KurrentDB/KurrentDB.csproj` file serves as the "kernel" or executive entry
+  point. It is notably lightweight, as its primary role is to aggregate a vast array
+  of `ProjectReference` items that represent distinct functional plugins.
+
+  - **Protocol Plugins:** The repository separates the transport layers into independent
+  modules such as `src/KurrentDB.TcpPlugin`, `src/KurrentDB.Plugins.Api.V2` (gRPC/HTTP),
+  and `src/KurrentDB.Transport.Http`. This allows the core to remain agnostic of how
+  clients communicate with the database.
+
+  - **Cross-Cutting Plugins:** Security and monitoring features are implemented as
+  plugins, evident in `src/KurrentDB.Auth.OAuth`, `src/KurrentDB.Auth.UserCertificates`,
+  and `src/KurrentDB.Diagnostics.LogsEndpointPlugin`.
+
+  - **Infrastructure Plugins:** Even fundamental database operations like indexing
+  and scavenge are separated (e.g., `src/KurrentDB.AutoScavenge`, `src/KurrentDB.SecondaryIndexing`).
+
+  - **Plugin Hosting:** The project explicitly includes a `KurrentDB.PluginHosting`
+  library, which likely handles the discovery, loading, and lifecycle management of
+  these components using .NET''s `System.ComponentModel.Composition` (MEF), as referenced
+  in the main `csproj`.
+
+
+  ### Evidence for Domain-Driven Design (DDD)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:48:19Z'
+classification_reasoning: 'This repository is primarily structured as a **Microkernel
+  (Plugin)** architecture. The core database engine acts as a minimal host that orchestrates
+  various system capabilities—ranging from networking protocols and authentication
+  to storage subsystems—through a formal plugin mechanism.
+
+
+  ### Evidence for Microkernel (Plugin)
+
+  The `src/KurrentDB/KurrentDB.csproj` file serves as the "kernel" or executive entry
+  point. It is notably lightweight, as its primary role is to aggregate a vast array
+  of `ProjectReference` items that represent distinct functional plugins.
+
+  - **Protocol Plugins:** The repository separates the transport layers into independent
+  modules such as `src/KurrentDB.TcpPlugin`, `src/KurrentDB.Plugins.Api.V2` (gRPC/HTTP),
+  and `src/KurrentDB.Transport.Http`. This allows the core to remain agnostic of how
+  clients communicate with the database.
+
+  - **Cross-Cutting Plugins:** Security and monitoring features are implemented as
+  plugins, evident in `src/KurrentDB.Auth.OAuth`, `src/KurrentDB.Auth.UserCertificates`,
+  and `src/KurrentDB.Diagnostics.LogsEndpointPlugin`.
+
+  - **Infrastructure Plugins:** Even fundamental database operations like indexing
+  and scavenge are separated (e.g., `src/KurrentDB.AutoScavenge`, `src/KurrentDB.SecondaryIndexing`).
+
+  - **Plugin Hosting:** The project explicitly includes a `KurrentDB.PluginHosting`
+  library, which likely handles the discovery, loading, and lifecycle management of
+  these components using .NET''s `System.ComponentModel.Composition` (MEF), as referenced
+  in the main `csproj`.
+
+
+  ### Evidence for Domain-Driven Design (DDD)
+
+  The internal code organization within these modules, particularly within the "Core"
+  and specialized service projects (like `AutoScavenge`), follows DDD principles:
+
+  - **Bounded Contexts:** Each directory under `src/` represents a logically isolated
+  domain (e.g., `Projections`, `SchemaRegistry`, `Surge`).
+
+  - **Domain Modeling:** Files like `src/KurrentDB.AutoScavenge/Domain`, `src/KurrentDB.AutoScavenge/ICommand.cs`,
+  and `IEvent.cs` indicate a design centered around domain logic, commands, and events
+  rather than just data structures.
+
+
+  ### Evidence for Layered Architecture
+
+  While the broad structure is a Microkernel, individual modules adhere to a traditional
+  **Layered** approach to manage internal complexity:
+
+  - **Separation of Concerns:** The tree for `src/KurrentDB.Transport.Tcp` and `src/KurrentDB.Api.V2`
+  shows clear layering between "Infrastructure", "Modules", and "Contracts".
+
+  - **Physical Isolation:** The separation between `KurrentDB.Core` (the engine/domain)
+  and `KurrentDB.Transport.*` (the presentation/API layer) ensures that the storage
+  logic does not leak into the networking logic.
+
+
+  ### Rejected Styles
+
+  - **Microservices:** While there are many projects, they are compiled into a single
+  deployable unit (the `KurrentDB.dll` executable) and run in the same process, excluding
+  a distributed microservices classification despite having separate Dockerfiles for
+  some supporting tools.
+
+  - **Hexagonal:** While there are "Adapters" (like the TCP/gRPC plugins), the codebase
+  lacks the strict Port/Adapter naming conventions and the high degree of abstraction
+  typically required for a pure Hexagonal classification; it leans more toward a host-and-plugin
+  model.'

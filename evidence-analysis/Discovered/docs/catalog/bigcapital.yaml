@@ -13,5 +13,99 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'The repository is organized as a **Modular Monolith** using the **NestJS**
+  framework. While it is managed within a monorepo (`pnpm` workspaces), the core business
+  logic resides in a single deployable backend unit (`packages/server`) and a frontend
+  unit (`packages/webapp`).
+
+
+  ### Primary Style: Modular Monolith
+
+  The backend (`packages/server`) is strictly partitioned into a high number of fine-grained
+  modules under `src/modules/` (e.g., `Accounts`, `Bills`, `Ledger`, `Currencies`,
+  `SaleInvoices`). These modules encapsulate specific business capabilities.
+
+  - **Enforced Boundaries:** NestJS uses a module-based encapsulation system where
+  components (controllers/services) are private to the module unless explicitly exported.
+
+  - **Unified Deployment:** The `package.json` and `docker-compose.yml` indicate that
+  the system is deployed as a single server instance rather than independent microservices.
+
+  - **Code Organization:** The structure follows a standard NestJS modular pattern
+  where each business domain has its own folder containing its logic, controllers,
+  and services.
+
+
+  ### Secondary Style: Event-Driven
+
+  The system extensively uses asynchronous communication and decoupled event patterns:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:42:10Z'
+classification_reasoning: 'The repository is organized as a **Modular Monolith** using
+  the **NestJS** framework. While it is managed within a monorepo (`pnpm` workspaces),
+  the core business logic resides in a single deployable backend unit (`packages/server`)
+  and a frontend unit (`packages/webapp`).
+
+
+  ### Primary Style: Modular Monolith
+
+  The backend (`packages/server`) is strictly partitioned into a high number of fine-grained
+  modules under `src/modules/` (e.g., `Accounts`, `Bills`, `Ledger`, `Currencies`,
+  `SaleInvoices`). These modules encapsulate specific business capabilities.
+
+  - **Enforced Boundaries:** NestJS uses a module-based encapsulation system where
+  components (controllers/services) are private to the module unless explicitly exported.
+
+  - **Unified Deployment:** The `package.json` and `docker-compose.yml` indicate that
+  the system is deployed as a single server instance rather than independent microservices.
+
+  - **Code Organization:** The structure follows a standard NestJS modular pattern
+  where each business domain has its own folder containing its logic, controllers,
+  and services.
+
+
+  ### Secondary Style: Event-Driven
+
+  The system extensively uses asynchronous communication and decoupled event patterns:
+
+  - **Message Brokers:** The presence of `@nestjs/bull`, `@nestjs/bullmq`, and `bull`
+  in `package.json`, combined with a `redis` service in `docker-compose.yml`, indicates
+  a strong reliance on background job processing and task queues.
+
+  - **Internal Events:** The use of `@nestjs/event-emitter` and the existence of `packages/server/src/common/events`
+  suggest that modules communicate via internal pub/sub events rather than direct
+  service-to-service calls, reducing circular dependencies between accounting modules.
+
+
+  ### Secondary Style: Domain-Driven Design (DDD)
+
+  The codebase exhibits several DDD characteristics:
+
+  - **Bounded Contexts:** The `modules/` directory acts as a collection of bounded
+  contexts (e.g., `FinancialStatements`, `InventoryCost`, `TaxRates`).
+
+  - **Rich Domain Concepts:** The inclusion of `fp-ts`, `ramda`, and specific math/money
+  libraries (`js-money`, `mathjs`, `accounting`) suggests a focus on complex domain
+  logic and pure functional operations on financial data.
+
+  - **Infrastructure Isolation:** There is a clear separation between `common` (infrastructure/cross-cutting
+  concerns), `database` (persistence), and `modules` (domain logic).
+
+
+  ### Tech Stack Evidence
+
+  - **Framework:** NestJS (`@nestjs/core`) providing the modular container.
+
+  - **Persistence:** SQL via `Knex` and `Objection.js` (an ORM built on Knex), with
+  specific logic for `tenant` vs `system` databases in `src/database/`.
+
+  - **API:** RESTful API with Swagger documentation (`@nestjs/swagger`) and a dedicated
+  TypeScript SDK (`shared/sdk-ts`) for consumption by the Vite-based React frontend.'

@@ -14,5 +14,101 @@ languages:
 - Java/Kotlin
 - Ruby
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Pipeline (Pipe-and-Filter)
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: 'Logstash is a quintessential implementation of the **Pipeline (Pipe-and-Filter)**
+  architecture, designed specifically to process data streams through a sequential
+  series of stages. This is complemented by a robust **Microkernel (Plugin)** architecture
+  that handles the extensibility of those stages.
+
+
+  ### 1. Primary Style: Pipeline (Pipe-and-Filter)
+
+  The core of Logstash is organized around the "Pipeline" concept, where data (events)
+  flows through three distinct stages: **Inputs** (Filters) -> **Filters** (Transformers)
+  -> **Outputs** (Sinks).
+
+  - **Evidence in Code:** The file `logstash-core/lib/logstash/pipeline.rb` (and its
+  reference to `JavaPipeline`) serves as the central orchestrator. It manages the
+  lifecycle of events as they are handed off from one stage to the next.
+
+  - **Data Flow:** The architecture is designed to decouple the ingestion logic from
+  the transformation logic and the destination logic. Each stage acts as a "filter"
+  that performs a specific operation on the data "pipe."
+
+  - **Execution Model:** The pipeline handles buffering (queueing) between these stages
+  to ensure backpressure management, a classic requirement of high-throughput pipeline
+  architectures.
+
+
+  ### 2. Secondary Style: Microkernel (Plugin)
+
+  Logstash Core (`logstash-core`) acts as a minimal "Microkernel" that provides the
+  execution engine, lifecycle management, and shared utilities, while almost all functional
+  capabilities are outsourced to external plugins.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:57:38Z'
+classification_reasoning: 'Logstash is a quintessential implementation of the **Pipeline
+  (Pipe-and-Filter)** architecture, designed specifically to process data streams
+  through a sequential series of stages. This is complemented by a robust **Microkernel
+  (Plugin)** architecture that handles the extensibility of those stages.
+
+
+  ### 1. Primary Style: Pipeline (Pipe-and-Filter)
+
+  The core of Logstash is organized around the "Pipeline" concept, where data (events)
+  flows through three distinct stages: **Inputs** (Filters) -> **Filters** (Transformers)
+  -> **Outputs** (Sinks).
+
+  - **Evidence in Code:** The file `logstash-core/lib/logstash/pipeline.rb` (and its
+  reference to `JavaPipeline`) serves as the central orchestrator. It manages the
+  lifecycle of events as they are handed off from one stage to the next.
+
+  - **Data Flow:** The architecture is designed to decouple the ingestion logic from
+  the transformation logic and the destination logic. Each stage acts as a "filter"
+  that performs a specific operation on the data "pipe."
+
+  - **Execution Model:** The pipeline handles buffering (queueing) between these stages
+  to ensure backpressure management, a classic requirement of high-throughput pipeline
+  architectures.
+
+
+  ### 2. Secondary Style: Microkernel (Plugin)
+
+  Logstash Core (`logstash-core`) acts as a minimal "Microkernel" that provides the
+  execution engine, lifecycle management, and shared utilities, while almost all functional
+  capabilities are outsourced to external plugins.
+
+  - **Plugin Registry:** `logstash-core/lib/logstash/plugins/registry.rb` reveals
+  a sophisticated discovery mechanism. It uses RubyGems metadata (`logstash_plugin`)
+  to identify, load, and instantiate plugins dynamically.
+
+  - **Strict Separation:** The README and directory structure confirm that "Logstash
+  core will continue to exist under this repository" while "plugins are hosted in
+  separate repositories." This separation between the stable core and the volatile,
+  extensible peripheral modules is the hallmark of a Microkernel system.
+
+  - **Contracts:** The registry enforces specific types (`input`, `filter`, `output`,
+  `codec`), which act as the service provider interfaces (SPI) that plugins must implement
+  to be integrated into the pipeline.
+
+
+  ### Rejected Styles:
+
+  - **Microservices:** While Logstash is often *used* within a microservices ecosystem,
+  the repository itself is a single deployable engine. The "services" mentioned in
+  `qa/integration/services` refer to external dependencies (like Elasticsearch or
+  Kafka) used for testing, not internal architectural components.
+
+  - **Layered:** Although there is internal layering (Java/Ruby bridge, Core/API),
+  it is a implementation detail of the engine rather than the defining structural
+  pattern of the system''s macro-architecture.
+
+  - **Event-Driven:** While Logstash processes "events," the internal architecture
+  is a linear flow (Pipeline) rather than an asynchronous, non-deterministic choreography
+  of decoupled components typical of Event-Driven Systems.'

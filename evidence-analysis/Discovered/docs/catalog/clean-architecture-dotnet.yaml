@@ -13,5 +13,75 @@ language: C#
 languages:
 - C#
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- CQRS
+- Hexagonal Architecture
+classification_status: classified
+review_notes: 'The repository is a reference implementation of a **Microservices**
+  architecture using .NET 6, Dapr, and Tye. It is organized as a monorepo containing
+  multiple independently deployable services, a shared infrastructure layer, and a
+  central API gateway.
+
+
+  ### Evidence of Microservices
+
+  - **Independent Services:** The `samples/` directory contains distinct service boundaries:
+  `ProductService`, `CustomerService`, and `SettingService`. Each has its own `.Api`
+  project, `Dockerfile`, and separate database context (e.g., `MainDbContext.cs` inside
+  each service''s Infrastructure).
+
+  - **Deployment Orchestration:** The presence of `samples/tye.yaml` and `docker-compose.yml`
+  indicates a multi-service deployment strategy. Tye is specifically used to manage
+  multiple .NET services and their dependencies (like Dapr sidecars).
+
+  - **API Gateway:** The `samples/AppGateway` project uses **YARP** (Yet Another Reverse
+  Proxy) to route traffic to downstream services, a classic microservices pattern.
+
+  - **Inter-service Communication:** The use of **Dapr** (Distributed Application
+  Runtime) for Pub/Sub (`DaprEventBus.cs`) and service invocation demonstrates decoupled,
+  network-based communication between components.
+
+
+  ### Evidence of Secondary Styles
+
+  - **CQRS:** The code explicitly separates read and write concerns. Directory structures
+  in `AppCore` contain `UseCases/Commands` and `UseCases/Queries`. It utilizes **MediatR**
+  to dispatch these, as seen in `N8T.Core/Domain/Cqrs.cs`.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:43:22Z'
+classification_reasoning: "The repository is a reference implementation of a **Microservices**\
+  \ architecture using .NET 6, Dapr, and Tye. It is organized as a monorepo containing\
+  \ multiple independently deployable services, a shared infrastructure layer, and\
+  \ a central API gateway.\n\n### Evidence of Microservices\n- **Independent Services:**\
+  \ The `samples/` directory contains distinct service boundaries: `ProductService`,\
+  \ `CustomerService`, and `SettingService`. Each has its own `.Api` project, `Dockerfile`,\
+  \ and separate database context (e.g., `MainDbContext.cs` inside each service's\
+  \ Infrastructure).\n- **Deployment Orchestration:** The presence of `samples/tye.yaml`\
+  \ and `docker-compose.yml` indicates a multi-service deployment strategy. Tye is\
+  \ specifically used to manage multiple .NET services and their dependencies (like\
+  \ Dapr sidecars).\n- **API Gateway:** The `samples/AppGateway` project uses **YARP**\
+  \ (Yet Another Reverse Proxy) to route traffic to downstream services, a classic\
+  \ microservices pattern.\n- **Inter-service Communication:** The use of **Dapr**\
+  \ (Distributed Application Runtime) for Pub/Sub (`DaprEventBus.cs`) and service\
+  \ invocation demonstrates decoupled, network-based communication between components.\n\
+  \n### Evidence of Secondary Styles\n- **CQRS:** The code explicitly separates read\
+  \ and write concerns. Directory structures in `AppCore` contain `UseCases/Commands`\
+  \ and `UseCases/Queries`. It utilizes **MediatR** to dispatch these, as seen in\
+  \ `N8T.Core/Domain/Cqrs.cs`.\n- **Hexagonal Architecture (Ports and Adapters):**\
+  \ Each service is partitioned into `Api` (Input Adapters), `AppCore` (Domain/Application\
+  \ Hexagon), and `Infrastructure` (Output Adapters). The README specifically references\
+  \ the \"Domain-driven Hexagon\" and the code follows this by isolating the domain\
+  \ logic in `AppCore` from technical details like EF Core in `Infrastructure`.\n\
+  - **Domain-Driven Design (DDD):** The structure employs DDD tactical patterns such\
+  \ as Entities, Value Objects (e.g., `ProductCode.cs`), and Specifications (`src/N8T.Core/Specification`).\n\
+  \n### Structural Breakdown\n1.  **Shared Building Blocks (`src/`):** Contains the\
+  \ \"Chassis\" or \"Base\" logic (`N8T.Core`, `N8T.Infrastructure`) that provides\
+  \ cross-cutting concerns like logging, validation, and the outbox pattern.\n2. \
+  \ **Service Layers:**\n    *   **Api:** Entry point, Controllers, and Dapr integration\
+  \ event handlers.\n    *   **AppCore:** Pure business logic, Domain entities, and\
+  \ MediatR Command/Query handlers.\n    *   **Infrastructure:** Implementation of\
+  \ data persistence (EF Core) and external service integrations."

@@ -15,5 +15,107 @@ languages:
 - C#
 - C/C++
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Layered
+- Space-Based
+classification_status: classified
+review_notes: 'Apache Ignite 2.x is fundamentally structured using a **Microkernel
+  (Plugin)** architecture. The system’s "kernel" (implemented in `IgniteKernal.java`)
+  acts as a central coordinator that manages the lifecycle of various pluggable components,
+  referred to internally as "Processors" and "Managers."
+
+
+  ### Evidence for Microkernel (Plugin) Style:
+
+  1.  **Central Dispatcher/Kernel:** The `IgniteKernal.java` file (found in `modules/core`)
+  is the heart of the system. Its primary role is to initialize the `GridKernalContext`,
+  which aggregates various internal components. As seen in the provided code, it orchestrates
+  the `start()` and `stop()` sequences for a wide array of specialized modules (e.g.,
+  `GridCacheProcessor`, `GridQueryProcessor`, `GridDiscoveryManager`).
+
+  2.  **Explicit Plugin Contract:** The `PluginProvider.java` interface defines a
+  strict contract for extending the system. It includes lifecycle hooks (`start`,
+  `stop`, `onIgniteStart`), extension registration (`initExtensions`), and the ability
+  to contribute to the discovery protocol (`provideDiscoveryData`).
+
+  3.  **Component Loading:** The system distinguishes between "Processors" (which
+  implement core logic like SQL or Caching) and "Managers" (which provide a layer
+  of indirection over SPIs, like Discovery or Communication). The README and code
+  paths confirm that these can be swapped or added via the `ServiceLoader` or explicit
+  configuration in `IgniteConfiguration`.
+
+  4.  **Separation of Core and Extensions:** The `modules/` directory shows a clear
+  split. `modules/core` contains the kernel and base abstractions, while high-level
+  features like `modules/indexing` (SQL via H2/Lucene), `modules/spring`, and `modules/zookeeper`
+  are decoupled from the core and loaded as optional modules.
+
+
+  ### Secondary Styles:
+
+  *   **Layered:** Within the core and managers, Ignite uses a traditional horizontal
+  layering. The `GridManager` classes act as a facade/abstraction layer over the **SPI
+  (Service Provider Interface)** layer, which contains the actual implementations
+  (e.g., `TcpDiscoverySpi`). This ensures that the kernel logic is independent of
+  the underlying network or storage implementation.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:52:20Z'
+classification_reasoning: 'Apache Ignite 2.x is fundamentally structured using a **Microkernel
+  (Plugin)** architecture. The system’s "kernel" (implemented in `IgniteKernal.java`)
+  acts as a central coordinator that manages the lifecycle of various pluggable components,
+  referred to internally as "Processors" and "Managers."
+
+
+  ### Evidence for Microkernel (Plugin) Style:
+
+  1.  **Central Dispatcher/Kernel:** The `IgniteKernal.java` file (found in `modules/core`)
+  is the heart of the system. Its primary role is to initialize the `GridKernalContext`,
+  which aggregates various internal components. As seen in the provided code, it orchestrates
+  the `start()` and `stop()` sequences for a wide array of specialized modules (e.g.,
+  `GridCacheProcessor`, `GridQueryProcessor`, `GridDiscoveryManager`).
+
+  2.  **Explicit Plugin Contract:** The `PluginProvider.java` interface defines a
+  strict contract for extending the system. It includes lifecycle hooks (`start`,
+  `stop`, `onIgniteStart`), extension registration (`initExtensions`), and the ability
+  to contribute to the discovery protocol (`provideDiscoveryData`).
+
+  3.  **Component Loading:** The system distinguishes between "Processors" (which
+  implement core logic like SQL or Caching) and "Managers" (which provide a layer
+  of indirection over SPIs, like Discovery or Communication). The README and code
+  paths confirm that these can be swapped or added via the `ServiceLoader` or explicit
+  configuration in `IgniteConfiguration`.
+
+  4.  **Separation of Core and Extensions:** The `modules/` directory shows a clear
+  split. `modules/core` contains the kernel and base abstractions, while high-level
+  features like `modules/indexing` (SQL via H2/Lucene), `modules/spring`, and `modules/zookeeper`
+  are decoupled from the core and loaded as optional modules.
+
+
+  ### Secondary Styles:
+
+  *   **Layered:** Within the core and managers, Ignite uses a traditional horizontal
+  layering. The `GridManager` classes act as a facade/abstraction layer over the **SPI
+  (Service Provider Interface)** layer, which contains the actual implementations
+  (e.g., `TcpDiscoverySpi`). This ensures that the kernel logic is independent of
+  the underlying network or storage implementation.
+
+  *   **Space-Based:** While this describes the deployment topology (distributed in-memory
+  data grid), the *code structure* supports this via specialized processors for affinity,
+  distributed data structures, and the "Durable Memory" architecture referenced in
+  the documentation. The architecture is specifically organized to handle tuple-space-like
+  interactions (MapReduce, distributed closures) across a cluster.
+
+
+  ### Rejection of Other Styles:
+
+  *   **Microservices:** Although many modules exist, they are designed to be compiled
+  and run within a single JVM process (a "Node"). They are not independently deployable
+  services but rather modular components of a single distributed system.
+
+  *   **Modular Monolith:** While it is a single deployable unit with modules, the
+  term "Microkernel" is more precise here because of the explicit "Kernel + Plugin"
+  loading mechanism and the SPI (Service Provider Interface) pattern used to swap
+  core behaviors at runtime.'

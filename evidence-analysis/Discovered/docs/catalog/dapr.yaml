@@ -15,5 +15,102 @@ languages:
 - Java/Kotlin
 - JavaScript
 - C#
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Hexagonal Architecture
+- Microservices
+classification_status: classified
+review_notes: 'Dapr''s repository architecture is a classic example of a **Microkernel
+  (Plugin)** system, designed to provide a standardized runtime (the kernel) that
+  can be extended with a vast array of interchangeable infrastructure implementations
+  (the plugins).
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The core of the repository is centered around `pkg/runtime`, which defines the "kernel"
+  orchestrating sidecar lifecycle, API exposure (HTTP/gRPC), and component management.
+
+  - **Plugin Structure:** The `cmd/daprd/components` directory acts as a registry
+  for over 100 pluggable components. These files (e.g., `state_postgres.go`, `pubsub_kafka.go`)
+  are thin wrappers that register specific implementations into the Dapr runtime at
+  compile-time.
+
+  - **Separation of Concerns:** The core logic for each building block (state, pub/sub,
+  secrets) is maintained in `pkg/components`, providing a consistent loading and management
+  lifecycle for these plugins.
+
+  - **Extensibility:** The architecture is designed so that new infrastructure providers
+  can be added with minimal changes to the core runtime, adhering to the "Open-Closed
+  Principle."
+
+
+  ### 2. Secondary Style: Hexagonal Architecture (Ports and Adapters)
+
+  To maintain its "any-language, any-infrastructure" promise, Dapr heavily utilizes
+  the **Hexagonal** pattern.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:44:56Z'
+classification_reasoning: 'Dapr''s repository architecture is a classic example of
+  a **Microkernel (Plugin)** system, designed to provide a standardized runtime (the
+  kernel) that can be extended with a vast array of interchangeable infrastructure
+  implementations (the plugins).
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The core of the repository is centered around `pkg/runtime`, which defines the "kernel"
+  orchestrating sidecar lifecycle, API exposure (HTTP/gRPC), and component management.
+
+  - **Plugin Structure:** The `cmd/daprd/components` directory acts as a registry
+  for over 100 pluggable components. These files (e.g., `state_postgres.go`, `pubsub_kafka.go`)
+  are thin wrappers that register specific implementations into the Dapr runtime at
+  compile-time.
+
+  - **Separation of Concerns:** The core logic for each building block (state, pub/sub,
+  secrets) is maintained in `pkg/components`, providing a consistent loading and management
+  lifecycle for these plugins.
+
+  - **Extensibility:** The architecture is designed so that new infrastructure providers
+  can be added with minimal changes to the core runtime, adhering to the "Open-Closed
+  Principle."
+
+
+  ### 2. Secondary Style: Hexagonal Architecture (Ports and Adapters)
+
+  To maintain its "any-language, any-infrastructure" promise, Dapr heavily utilizes
+  the **Hexagonal** pattern.
+
+  - **Ports:** The `pkg/channel` and `pkg/proto` directories define the "Inbound Ports"
+  (how the application talks to Dapr). The building block interfaces found in `pkg/components`
+  (and the extensive grep results for `interface { ... }`) define the "Outbound Ports."
+
+  - **Adapters:** The components in `cmd/daprd/components` serve as "Outbound Adapters,"
+  translating Dapr''s internal building-block interfaces into specific SDK calls for
+  AWS, Azure, GCP, or Redis. The sidecar itself acts as a massive adapter between
+  the application and the distributed system.
+
+
+  ### 3. Secondary Style: Microservices
+
+  While `daprd` is the primary unit, the system as a whole (the Dapr Control Plane)
+  is organized as a set of **Microservices**.
+
+  - **Deployment Units:** The `cmd/` directory contains distinct, independently deployable
+  binaries for different responsibilities: `operator` (K8s state), `sentry` (identity/mTLS),
+  `placement` (actor distribution), and `scheduler`.
+
+  - **Communication:** These services communicate via gRPC, as evidenced by the `pkg/proto`
+  definitions (e.g., `pkg/proto/sentry`, `pkg/proto/operator`).
+
+
+  ### Internal Code Organization (Modular Monolith Traits)
+
+  Despite producing multiple binaries, the code is managed as a **Modular Monolith**
+  within the monorepo. It uses a clean, package-based boundary system (`pkg/actors`,
+  `pkg/resiliency`, `pkg/security`) to ensure that while the binaries are separate,
+  they share a common, well-structured library of logic located in `pkg/`. This prevents
+  duplication of logic across the different control-plane services.'

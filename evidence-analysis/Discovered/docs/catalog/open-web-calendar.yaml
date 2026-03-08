@@ -13,5 +13,87 @@ language: Python
 languages:
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+classification_status: classified
+review_notes: 'The repository follows a traditional **Layered** architecture common
+  in Python web applications (likely Flask, given the `app.py`, `static`, and `templates`
+  structure). It is a monolithic application designed for a single deployment unit
+  (as evidenced by the root `Dockerfile`, `Procfile`, and `app.py`).
+
+
+  ### Evidence for Layered Architecture:
+
+  1.  **Presentation Layer**: The system uses a standard web frontend directory structure
+  with `open_web_calendar/templates/` for HTML Jinja-style templates and `open_web_calendar/static/`
+  for CSS/JS assets. There is a clear separation between the server-side rendering
+  logic and the client-side behaviors (found in `open_web_calendar/static/js/`).
+
+  2.  **Logic/Service Layer**: Files like `open_web_calendar/calendars/` contain the
+  core business logic for processing different calendar formats. The presence of `base.py`,
+  `ics.py`, and `caldav.py` suggests an abstraction layer for handling data sources.
+
+  3.  **Data/Utility Layer**: Modules such as `encryption.py`, `url.py`, and `util.py`
+  provide cross-cutting concerns and low-level data handling.
+
+
+  ### Why not other styles:
+
+  - **Microservices**: There is no evidence of service boundaries, independent scaling
+  units, or inter-service communication. The `docker-compose.yml` in docs is for self-hosting
+  the single app, not a fleet of services.
+
+  - **Modular Monolith**: While there are sub-directories, they appear to be functional
+  layers (calendars, features, templates) rather than autonomous business modules
+  with strict interface enforcement.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.85
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:04:13Z'
+classification_reasoning: 'The repository follows a traditional **Layered** architecture
+  common in Python web applications (likely Flask, given the `app.py`, `static`, and
+  `templates` structure). It is a monolithic application designed for a single deployment
+  unit (as evidenced by the root `Dockerfile`, `Procfile`, and `app.py`).
+
+
+  ### Evidence for Layered Architecture:
+
+  1.  **Presentation Layer**: The system uses a standard web frontend directory structure
+  with `open_web_calendar/templates/` for HTML Jinja-style templates and `open_web_calendar/static/`
+  for CSS/JS assets. There is a clear separation between the server-side rendering
+  logic and the client-side behaviors (found in `open_web_calendar/static/js/`).
+
+  2.  **Logic/Service Layer**: Files like `open_web_calendar/calendars/` contain the
+  core business logic for processing different calendar formats. The presence of `base.py`,
+  `ics.py`, and `caldav.py` suggests an abstraction layer for handling data sources.
+
+  3.  **Data/Utility Layer**: Modules such as `encryption.py`, `url.py`, and `util.py`
+  provide cross-cutting concerns and low-level data handling.
+
+
+  ### Why not other styles:
+
+  - **Microservices**: There is no evidence of service boundaries, independent scaling
+  units, or inter-service communication. The `docker-compose.yml` in docs is for self-hosting
+  the single app, not a fleet of services.
+
+  - **Modular Monolith**: While there are sub-directories, they appear to be functional
+  layers (calendars, features, templates) rather than autonomous business modules
+  with strict interface enforcement.
+
+  - **Hexagonal Architecture**: Although there is an `interface.py` in the `calendars/info`
+  directory, the overall structure does not strictly follow the "ports and adapters"
+  pattern where the core is isolated from the framework (Flask/Web).
+
+  - **Event-Driven**: The code is request-response based (HTTP), fetching ICS/CalDAV
+  data synchronously or via cache upon user request.
+
+
+  ### Note on "Microkernel (Plugin)":
+
+  The repository contains a feature file `issue-32-activate-plugins.feature`, suggesting
+  plugin support might be a planned or minor feature. However, looking at the directory
+  structure, there is no established "plugins" directory or substantial loading infrastructure
+  within `open_web_calendar` that would elevate this to a primary architecture style.
+  It remains a standard layered web monolith.'

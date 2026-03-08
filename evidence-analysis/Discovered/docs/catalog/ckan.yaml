@@ -13,5 +13,103 @@ language: Python
 languages:
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Layered
+classification_status: classified
+review_notes: 'CKAN (Comprehensive Knowledge Archive Network) is a classic example
+  of a **Microkernel (Plugin)** architecture. While it follows a strict internal **Layered**
+  structure for its core operations, its defining architectural characteristic is
+  the heavy reliance on a plugin system to define almost all functional behavior,
+  including core features.
+
+
+  ### 1. Microkernel (Plugin) Architecture
+
+  The system is built around a "Core" (the Microkernel) that provides essential services
+  (database management, configuration, base models) but delegates specific functionality
+  to plugins.
+
+  - **Plugin Loading:** `ckan/plugins/core.py` demonstrates a sophisticated loading
+  mechanism using Python entry points (`ckan.plugins` group). It manages a global
+  registry of active plugins (`_PLUGINS_SERVICE`) and matches them against `ckan.plugins`
+  in the config file.
+
+  - **Interfaces:** Extensibility is enforced via a set of formalized interfaces in
+  `ckan/plugins/interfaces.py`. Plugins must "implement" these interfaces (e.g., `IMapper`,
+  `IRoutes`, `IConfigurer`) to hook into the core lifecycle.
+
+  - **Plugin Toolkit:** `ckan/plugins/toolkit.py` acts as a stable API surface (a
+  "facade") that provides plugins with access to core functions without creating tight
+  coupling or circular dependencies.
+
+
+  ### 2. Layered Architecture (Internal)
+
+  Within the core and within well-behaved plugins, CKAN enforces a strict horizontal
+  layering pattern, visible in the directory structure:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:43:16Z'
+classification_reasoning: 'CKAN (Comprehensive Knowledge Archive Network) is a classic
+  example of a **Microkernel (Plugin)** architecture. While it follows a strict internal
+  **Layered** structure for its core operations, its defining architectural characteristic
+  is the heavy reliance on a plugin system to define almost all functional behavior,
+  including core features.
+
+
+  ### 1. Microkernel (Plugin) Architecture
+
+  The system is built around a "Core" (the Microkernel) that provides essential services
+  (database management, configuration, base models) but delegates specific functionality
+  to plugins.
+
+  - **Plugin Loading:** `ckan/plugins/core.py` demonstrates a sophisticated loading
+  mechanism using Python entry points (`ckan.plugins` group). It manages a global
+  registry of active plugins (`_PLUGINS_SERVICE`) and matches them against `ckan.plugins`
+  in the config file.
+
+  - **Interfaces:** Extensibility is enforced via a set of formalized interfaces in
+  `ckan/plugins/interfaces.py`. Plugins must "implement" these interfaces (e.g., `IMapper`,
+  `IRoutes`, `IConfigurer`) to hook into the core lifecycle.
+
+  - **Plugin Toolkit:** `ckan/plugins/toolkit.py` acts as a stable API surface (a
+  "facade") that provides plugins with access to core functions without creating tight
+  coupling or circular dependencies.
+
+
+  ### 2. Layered Architecture (Internal)
+
+  Within the core and within well-behaved plugins, CKAN enforces a strict horizontal
+  layering pattern, visible in the directory structure:
+
+  - **Presentation Layer (`ckan/views/`):** Contains Flask-based views that handle
+  HTTP requests and routing. These views act as the entry point for the web interface
+  and API.
+
+  - **Logic Layer (`ckan/logic/`):** This is the heart of the system. It uses an "Action"
+  pattern where every operation (creating a dataset, deleting a user) is encapsulated
+  in `ckan/logic/action/`. These actions handle validation (via `ckan/logic/validators.py`)
+  and authorization (via `ckan/logic/auth/`).
+
+  - **Data/Model Layer (`ckan/model/`):** Uses SQLAlchemy for ORM. The logic layer
+  interacts with the model layer primarily through "dictization" (seen in `ckan/lib/dictization/`),
+  which transforms complex database objects into simple Python dictionaries to be
+  passed back to the views/API.
+
+
+  ### Rejection of other styles:
+
+  - **Microservices:** CKAN is a single deployable Python application (Monolith),
+  though it often interacts with external services like Solr and Redis.
+
+  - **CQRS:** While `ckan/logic/action/` is split into `get.py`, `create.py`, etc.,
+  which superficially resembles Command/Query separation, they share the same underlying
+  data model and logic flow, making it a standard Layered/Service approach rather
+  than true CQRS.
+
+  - **Hexagonal:** While the plugin system offers "adapters" of a sort, the core remains
+  heavily coupled to SQLAlchemy and Flask-specific concepts rather than being an isolated
+  "inside" core.'

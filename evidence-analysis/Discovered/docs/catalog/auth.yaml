@@ -12,5 +12,59 @@ domain: Identity Management
 language: Go
 languages:
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+classification_status: classified
+review_notes: "The Supabase Auth (formerly GoTrue) repository is a classic example\
+  \ of a **Layered Architecture** (specifically a variation of the Service/Repository\
+  \ or MVC pattern common in Go web applications).\n\n### Evidence of Layered Architecture:\n\
+  \n1.  **Clear Vertical Separation of Concerns**: The `internal/` directory is organized\
+  \ into distinct horizontal layers that manage specific ranges of responsibility:\n\
+  \    *   **Presentation/API Layer (`internal/api/`)**: Contains HTTP handlers, routing\
+  \ logic, and request/response parsing (e.g., `signup.go`, `token.go`, `logout.go`).\n\
+  \    *   **Data Access/Model Layer (`internal/models/`)**: Defines the structure\
+  \ of the entities (User, Session, RefreshToken) and contains the logic for interacting\
+  \ with the database.\n    *   **External Service Adapters (`internal/mailer/`, `internal/storage/`)**:\
+  \ Abstracts side effects like sending emails or managing database connections.\n\
+  \    *   **Foundational/Utility Layers (`internal/crypto/`, `internal/observability/`,\
+  \ `internal/ratelimit/`)**: Provides cross-cutting concerns used by other layers."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:40:30Z'
+classification_reasoning: "The Supabase Auth (formerly GoTrue) repository is a classic\
+  \ example of a **Layered Architecture** (specifically a variation of the Service/Repository\
+  \ or MVC pattern common in Go web applications).\n\n### Evidence of Layered Architecture:\n\
+  \n1.  **Clear Vertical Separation of Concerns**: The `internal/` directory is organized\
+  \ into distinct horizontal layers that manage specific ranges of responsibility:\n\
+  \    *   **Presentation/API Layer (`internal/api/`)**: Contains HTTP handlers, routing\
+  \ logic, and request/response parsing (e.g., `signup.go`, `token.go`, `logout.go`).\n\
+  \    *   **Data Access/Model Layer (`internal/models/`)**: Defines the structure\
+  \ of the entities (User, Session, RefreshToken) and contains the logic for interacting\
+  \ with the database.\n    *   **External Service Adapters (`internal/mailer/`, `internal/storage/`)**:\
+  \ Abstracts side effects like sending emails or managing database connections.\n\
+  \    *   **Foundational/Utility Layers (`internal/crypto/`, `internal/observability/`,\
+  \ `internal/ratelimit/`)**: Provides cross-cutting concerns used by other layers.\n\
+  \n2.  **Single Deployment Unit**: The project compiles into a single binary (`auth`).\
+  \ The `cmd/` directory contains the entry points (CLI commands) that initialize\
+  \ the shared configuration and start the single long-running process (`serve_cmd.go`).\n\
+  \n3.  **Dependency Flow**: The architecture follows a typical top-down dependency\
+  \ flow. The `api` layer depends on `models` and `utilities`. The `models` package\
+  \ handles the persistence logic, and the `cmd` package wires these layers together.\n\
+  \n### Why other styles were rejected:\n\n*   **Microservices**: Although the README\
+  \ mentions it is a \"microservice\" in the context of the larger Supabase platform,\
+  \ the repository itself is a self-contained, single-purpose service. Internally,\
+  \ it is not composed of multiple independently deployable microservices.\n*   **Modular\
+  \ Monolith**: While there is internal package separation, the packages are highly\
+  \ coupled to the specific domain of authentication. There aren't \"enforced\" boundaries\
+  \ between disparate business sub-domains (e.g., Billing vs. Auth) typical of a Modular\
+  \ Monolith; everything is inside the Auth domain.\n*   **Hexagonal Architecture**:\
+  \ While there is some use of interfaces (e.g., in the `mailer` package with `noopclient`,\
+  \ `taskclient`, etc.), the core business logic is heavily interleaved with database\
+  \ models (`internal/models`) rather than being isolated in a pure \"domain\" layer\
+  \ that is agnostic of the persistence framework.\n*   **Microkernel/Plugin**: External\
+  \ OAuth providers and mailers are implemented as internal packages rather than dynamically\
+  \ loaded plugins or independent components following a strict plugin contract.\n\
+  *   **Event-Driven**: While the system may emit logs or audit entries, the internal\
+  \ request processing is synchronous/request-response based."

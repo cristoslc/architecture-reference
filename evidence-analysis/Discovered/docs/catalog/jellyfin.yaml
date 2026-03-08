@@ -12,5 +12,78 @@ domain: Media
 language: C#
 languages:
 - C#
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: 'Jellyfin is structured as a **Layered** architecture, which is the
+  standard pattern for large .NET applications of its era (descended from Emby). However,
+  it exhibits strong **Microkernel** characteristics through its extensive plugin
+  system and **Modular Monolith** traits due to its logical separation of concerns
+  into distinct assemblies.
+
+
+  ### 1. Layered Architecture (Primary)
+
+  The codebase follows a horizontal layering strategy common in .NET development:
+
+  - **Presentation/API Layer**: Found in `Jellyfin.Server` and `Jellyfin.Api` (not
+  fully visible in the tree but referenced in the README), which handles HTTP requests
+  and hosts the web client.
+
+  - **Service/Logic Layer**: Specifically `MediaBrowser.Providers` and `Jellyfin.Server.Implementations`.
+  These contain the "Managers" (e.g., `UserManager.cs`, `ProviderManager.cs`, `SubtitleManager.cs`)
+  that orchestrate business logic.
+
+  - **Data/Model Layer**: `MediaBrowser.Model` contains Data Transfer Objects (DTOs)
+  and core entities used across all layers, providing a shared language but strictly
+  separating data definitions from logic.
+
+  - **Infrastructure/Implementation**: `Jellyfin.Server.Implementations` provides
+  concrete logic for security, activity logging, and database access.
+
+
+  ### 2. Microkernel (Plugin) Architecture (Secondary)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:53:04Z'
+classification_reasoning: "Jellyfin is structured as a **Layered** architecture, which\
+  \ is the standard pattern for large .NET applications of its era (descended from\
+  \ Emby). However, it exhibits strong **Microkernel** characteristics through its\
+  \ extensive plugin system and **Modular Monolith** traits due to its logical separation\
+  \ of concerns into distinct assemblies.\n\n### 1. Layered Architecture (Primary)\n\
+  The codebase follows a horizontal layering strategy common in .NET development:\n\
+  - **Presentation/API Layer**: Found in `Jellyfin.Server` and `Jellyfin.Api` (not\
+  \ fully visible in the tree but referenced in the README), which handles HTTP requests\
+  \ and hosts the web client.\n- **Service/Logic Layer**: Specifically `MediaBrowser.Providers`\
+  \ and `Jellyfin.Server.Implementations`. These contain the \"Managers\" (e.g., `UserManager.cs`,\
+  \ `ProviderManager.cs`, `SubtitleManager.cs`) that orchestrate business logic.\n\
+  - **Data/Model Layer**: `MediaBrowser.Model` contains Data Transfer Objects (DTOs)\
+  \ and core entities used across all layers, providing a shared language but strictly\
+  \ separating data definitions from logic.\n- **Infrastructure/Implementation**:\
+  \ `Jellyfin.Server.Implementations` provides concrete logic for security, activity\
+  \ logging, and database access.\n\n### 2. Microkernel (Plugin) Architecture (Secondary)\n\
+  Jellyfin is designed to be highly extensible. The directory `MediaBrowser.Providers/Plugins`\
+  \ contains various providers (MusicBrainz, Omdb, Tmdb) that act as internal plugins.\
+  \ \n- The presence of `Plugin.cs` and `Configuration/` folders within these subdirectories\
+  \ indicates a contract-based extension model.\n- The system allows the core server\
+  \ to remain media-agnostic while specialized providers handle metadata fetching,\
+  \ image scraping, and subtitle downloading.\n- The README also notes that the web\
+  \ client is hosted separately or can be disabled (`--nowebclient`), treating the\
+  \ UI as an interchangeable component.\n\n### 3. Modular Monolith (Secondary)\nWhile\
+  \ it is a single deployable unit (the Jellyfin Server), it uses strict assembly\
+  \ boundaries (CSProject files) to enforce modularity.\n- `Emby.Naming`: A dedicated\
+  \ module for parsing file names (TV shows, movies, etc.), isolated from the rest\
+  \ of the server logic.\n- `MediaBrowser.Model`: A central module that ensures all\
+  \ other components adhere to a unified data schema without circular dependencies.\n\
+  - `Jellyfin.Server.Implementations`: Separates the \"how\" (implementation) from\
+  \ the \"what\" (interfaces defined in Providers/Model).\n\n### Rejections\n- **Microservices**:\
+  \ Although the README mentions it is \"only one of many projects,\" the repository\
+  \ itself is a monolithic backend. There is no evidence of service mesh, independent\
+  \ deployment of internal modules, or inter-service RPC (like gRPC) within this repo.\n\
+  - **Hexagonal**: While it uses some interfaces, the directory structure and naming\
+  \ conventions (`Implementations`, `Providers`) lean more towards traditional N-Tier\
+  \ Layering than a strict Ports-and-Adapters/Domain-centric approach."

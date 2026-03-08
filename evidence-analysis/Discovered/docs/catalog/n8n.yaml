@@ -14,5 +14,106 @@ languages:
 - TypeScript
 - JavaScript
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+- Layered
+classification_status: classified
+review_notes: '### Architectural Analysis
+
+
+  n8n is structured as a **Microkernel (Plugin)** architecture. The core application
+  provides the workflow engine, orchestration logic, and lifecycle management, while
+  all functional capabilities (integrations with Slack, Discord, OpenAI, etc.) are
+  implemented as "Nodes." These nodes act as plugins that conform to a strict internal
+  contract, allowing the system to be extended without modifying the core engine.
+  Evidence for this includes the `packages/` monorepo structure where `@n8n-nodes-base`
+  co
+
+
+  #### Primary Style: Microkernel (Plugin)
+
+  The system''s USP is its extensibility. The "Workflow" is a graph of nodes, where
+  each node is a discrete plugin. The `packages/workflow` and `packages/core` (inferred
+  from common n8n patterns and `pnpm-workspace.yaml` glob `packages/*`) represent
+  the microkernel. The repo contains infrastructure specifically for generating, testing,
+  and loading these nodes. The `scripts/backend-module` folder further reinforces
+  this by providing boilerplate for "features" that plug into the existing system.
+
+
+  #### Secondary Style: Modular Monolith
+
+  While n8n can be deployed as separate workers, it is primarily developed and often
+  deployed as a single unit (as seen in the `npx n8n` and `docker run` quick-start
+  commands). The codebase is organized into highly structured modules. The presence
+  of `scripts/backend-module` with templates for `.module.ts`, `.service.ts`, and
+  `.controller.ts` indicates a NestJS-like modular organization. This enforces strict
+  boundaries between domain concerns (e.g., credentials management, workflow execution,
+  user'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:02:22Z'
+classification_reasoning: '### Architectural Analysis
+
+
+  n8n is structured as a **Microkernel (Plugin)** architecture. The core application
+  provides the workflow engine, orchestration logic, and lifecycle management, while
+  all functional capabilities (integrations with Slack, Discord, OpenAI, etc.) are
+  implemented as "Nodes." These nodes act as plugins that conform to a strict internal
+  contract, allowing the system to be extended without modifying the core engine.
+  Evidence for this includes the `packages/` monorepo structure where `@n8n-nodes-base`
+  contains the standard library of plugins.
+
+
+  #### Primary Style: Microkernel (Plugin)
+
+  The system''s USP is its extensibility. The "Workflow" is a graph of nodes, where
+  each node is a discrete plugin. The `packages/workflow` and `packages/core` (inferred
+  from common n8n patterns and `pnpm-workspace.yaml` glob `packages/*`) represent
+  the microkernel. The repo contains infrastructure specifically for generating, testing,
+  and loading these nodes. The `scripts/backend-module` folder further reinforces
+  this by providing boilerplate for "features" that plug into the existing system.
+
+
+  #### Secondary Style: Modular Monolith
+
+  While n8n can be deployed as separate workers, it is primarily developed and often
+  deployed as a single unit (as seen in the `npx n8n` and `docker run` quick-start
+  commands). The codebase is organized into highly structured modules. The presence
+  of `scripts/backend-module` with templates for `.module.ts`, `.service.ts`, and
+  `.controller.ts` indicates a NestJS-like modular organization. This enforces strict
+  boundaries between domain concerns (e.g., credentials management, workflow execution,
+  user Auth) while remaining within a single repository and codebase.
+
+
+  #### Secondary Style: Layered
+
+  Within each module (defined by the templates in `scripts/backend-module`), the system
+  follows a traditional horizontal **Layered** pattern:
+
+  - **Controller**: Endpoint definition and request handling (`my-feature.controller.template`).
+
+  - **Service**: Business logic and orchestration (`my-feature.service.template`).
+
+  - **Repository/Entity**: Data abstraction and persistence using TypeORM (as evidenced
+  by `@n8n/typeorm` in the pnpm workspace and `my-feature.entity.template`).
+
+
+  ### Evidence Citations
+
+
+  - **Microkernel/Plugin**: The `pnpm-workspace.yaml` includes `packages/extensions/**`
+  and the README mentions "400+ integrations" and the ability to "add your own nodes."
+
+  - **Modular Monolith**: The `scripts/backend-module/setup.mjs` and accompanying
+  templates automate the creation of cohesive modules that contain their own controller,
+  service, and config.
+
+  - **Dependency Management**: Use of `turbo.json` and `pnpm-workspace.yaml` to manage
+  a complex monorepo where the `cli` package likely aggregates the `core`, `workflow`,
+  and `nodes` packages into a single executable.
+
+  - **Persistence**: Inclusion of `mysql2`, `pg` (PostgreSQL), and `@n8n/typeorm`
+  in `pnpm-workspace.yaml` confirms a standard database-driven backend layered approach.'

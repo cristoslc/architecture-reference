@@ -12,5 +12,59 @@ domain: Library Management
 language: Java/Kotlin
 languages:
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Domain-Driven Design
+- Hexagonal Architecture
+- Modular Monolith
+classification_status: classified
+review_notes: "This repository is a textbook implementation of **Domain-Driven Design\
+  \ (DDD)** packaged as a **Modular Monolith** using **Hexagonal Architecture** (Ports\
+  \ and Adapters).\n\n### 1. Domain-Driven Design (Primary Style)\nThe codebase is\
+  \ explicitly organized around Bounded Contexts such as `lending` and `catalogue`\
+  \ (located in `src/main/java/io/pillopl/library/`). \n- **Aggregates & Entities:**\
+  \ The system uses clear Aggregate boundaries (e.g., `Patron`, `Book`, `Catalogue`).\n\
+  - **Domain Events:** Communication between aggregates is handled via side-effecting\
+  \ events. For example, `PatronsDatabaseRepository.java` implements a `publish` method\
+  \ that accepts `PatronEvent` types, and `SheetsReadModel` uses `@EventListener`\
+  \ to react to `BookPlacedOnHold` and `BookCheckedOut` events.\n- **Ubiquitous Language:**\
+  \ The package structure and class names (e.g., `Patron`, `AvailableBook`, `Hold`,\
+  \ `OverdueCheckout`) directly mirror the library domain described in the README.\n\
+  \n### 2. Hexagonal Architecture (Secondary Style)\nEach bounded context is internally\
+  \ structured using the Ports and Adapters pattern:"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:55:46Z'
+classification_reasoning: "This repository is a textbook implementation of **Domain-Driven\
+  \ Design (DDD)** packaged as a **Modular Monolith** using **Hexagonal Architecture**\
+  \ (Ports and Adapters).\n\n### 1. Domain-Driven Design (Primary Style)\nThe codebase\
+  \ is explicitly organized around Bounded Contexts such as `lending` and `catalogue`\
+  \ (located in `src/main/java/io/pillopl/library/`). \n- **Aggregates & Entities:**\
+  \ The system uses clear Aggregate boundaries (e.g., `Patron`, `Book`, `Catalogue`).\n\
+  - **Domain Events:** Communication between aggregates is handled via side-effecting\
+  \ events. For example, `PatronsDatabaseRepository.java` implements a `publish` method\
+  \ that accepts `PatronEvent` types, and `SheetsReadModel` uses `@EventListener`\
+  \ to react to `BookPlacedOnHold` and `BookCheckedOut` events.\n- **Ubiquitous Language:**\
+  \ The package structure and class names (e.g., `Patron`, `AvailableBook`, `Hold`,\
+  \ `OverdueCheckout`) directly mirror the library domain described in the README.\n\
+  \n### 2. Hexagonal Architecture (Secondary Style)\nEach bounded context is internally\
+  \ structured using the Ports and Adapters pattern:\n- **Core Model:** Business logic\
+  \ is isolated in `.model` sub-packages (e.g., `lending.patron.model`).\n- **Adapters:**\
+  \ Infrastructure-specific implementations are isolated in `.infrastructure` packages.\n\
+  - **Decoupling:** `PatronsDatabaseRepository.java` serves as an adapter implementing\
+  \ the `Patrons` port (interface). It uses a `DomainModelMapper` to translate between\
+  \ the Database Entities (`PatronDatabaseEntity`) and the Domain Aggregate (`Patron`),\
+  \ ensuring the domain layer remains \"pure\" and unaware of the database schema\
+  \ (Spring Data JDBC).\n\n### 3. Modular Monolith (Secondary Style)\nThe application\
+  \ is a single deployable unit (confirmed by `LibraryApplication.java` and a single\
+  \ `pom.xml`), but it enforces strict logical boundaries between contexts.\n- **Internal\
+  \ Boundaries:** The system explicitly separates the `lending` context from the `catalogue`\
+  \ context.\n- **Enforcement:** As mentioned in the README and verified by the package\
+  \ structure, the project uses **ArchUnit** to programmatically ensure that the `model`\
+  \ does not depend on `infrastructure` and that cross-context boundaries are respected.\n\
+  \n### 4. CQRS (Specific Pattern)\nThe system exhibits a separation of Command and\
+  \ Query responsibilities. `SheetsReadModel.java` is a dedicated read-side model\
+  \ that builds a \"Daily Sheet\" (view) by listening to domain events and persisting\
+  \ them into specific tables (`holds_sheet`, `checkouts_sheet`) optimized for querying,\
+  \ separate from the write-side aggregate state."

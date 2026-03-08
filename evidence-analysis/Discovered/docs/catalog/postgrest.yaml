@@ -12,5 +12,103 @@ domain: Developer Tools
 language: Python
 languages:
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Pipeline (Pipe-and-Filter)
+classification_status: classified
+review_notes: 'The PostgREST repository is structured as a **Layered** architecture,
+  specifically following a functional request-processing pipeline. While it appears
+  to be a simple utility, the internal code organization is strictly divided into
+  logical layers that handle the transformation of an HTTP request into a SQL query
+  and back into a JSON response.
+
+
+  ### 1. Primary Style: Layered
+
+  The codebase is organized into distinct functional layers as evidenced by the `src/PostgREST`
+  directory and the `postgrest.cabal` file. Each layer has a specific responsibility:
+
+  - **Presentation/Interface Layer**: `Network.hs`, `App.hs`, and `Admin.hs` manage
+  the Warp HTTP server and routing.
+
+  - **Request Parsing Layer**: `ApiRequest.hs` and `ApiRequest/*.hs` parse HTTP headers,
+  query parameters, and payloads into internal Haskell types.
+
+  - **Logical Planning Layer**: `Plan.hs` and `Plan/*.hs` (ReadPlan, MutatePlan) take
+  the parsed request and the `SchemaCache` to create an abstract execution plan.
+
+  - **Data Access/Query Layer**: `Query.hs` and `Query/*.hs` translate the execution
+  plan into parameterized SQL statements using the `Hasql` library.
+
+  - **Cross-Cutting Concerns**: `Config.hs`, `Auth.hs`, `Logger.hs`, and `Metrics.hs`
+  provide services utilized across multiple layers.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:06:26Z'
+classification_reasoning: 'The PostgREST repository is structured as a **Layered**
+  architecture, specifically following a functional request-processing pipeline. While
+  it appears to be a simple utility, the internal code organization is strictly divided
+  into logical layers that handle the transformation of an HTTP request into a SQL
+  query and back into a JSON response.
+
+
+  ### 1. Primary Style: Layered
+
+  The codebase is organized into distinct functional layers as evidenced by the `src/PostgREST`
+  directory and the `postgrest.cabal` file. Each layer has a specific responsibility:
+
+  - **Presentation/Interface Layer**: `Network.hs`, `App.hs`, and `Admin.hs` manage
+  the Warp HTTP server and routing.
+
+  - **Request Parsing Layer**: `ApiRequest.hs` and `ApiRequest/*.hs` parse HTTP headers,
+  query parameters, and payloads into internal Haskell types.
+
+  - **Logical Planning Layer**: `Plan.hs` and `Plan/*.hs` (ReadPlan, MutatePlan) take
+  the parsed request and the `SchemaCache` to create an abstract execution plan.
+
+  - **Data Access/Query Layer**: `Query.hs` and `Query/*.hs` translate the execution
+  plan into parameterized SQL statements using the `Hasql` library.
+
+  - **Cross-Cutting Concerns**: `Config.hs`, `Auth.hs`, `Logger.hs`, and `Metrics.hs`
+  provide services utilized across multiple layers.
+
+
+  The dependencies flow linearly: `App` calls `ApiRequest`, which feeds into `Plan`,
+  which feeds into `Query`. This strict unidirectional flow is a hallmark of Layered
+  systems.
+
+
+  ### 2. Secondary Style: Pipeline (Pipe-and-Filter)
+
+  Internally, PostgREST operates as a **Pipeline**. A single request passes through
+  a sequence of pure transformations:
+
+  1. `Request` -> `ApiRequest` (Parsing)
+
+  2. `ApiRequest` + `SchemaCache` -> `Plan` (Logical translation)
+
+  3. `Plan` -> `SQL` (String generation/parameterization)
+
+  4. `SQL` -> `Database Response` (Execution)
+
+  5. `Database Response` -> `HTTP Response` (Encoding)
+
+
+  The architecture is designed to be a high-performance "pass-through" with minimal
+  state held in the application layer (mostly just the `SchemaCache` and `AppState`).
+
+
+  ### Architecture Rejections
+
+  - **Hexagonal Architecture**: While there is a separation between the DB and the
+  Core, the system does not use a formal "Ports and Adapters" pattern with interfaces
+  meant for swapping out the persistence layer; it is intentionally and tightly coupled
+  to PostgreSQL-specific features (like GUCs and JSON serialization in SQL).
+
+  - **Microkernel**: Although it handles different media types, it does not use a
+  dynamic plugin loading system; all handlers are compiled into the core.
+
+  - **Modular Monolith**: While well-structured, the modules are not independent vertical
+  slices of business logic but rather horizontal technical layers.'

@@ -14,5 +14,51 @@ languages:
 - Java/Kotlin
 - JavaScript
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+- Domain-Driven Design
+- CQRS
+classification_status: classified
+review_notes: "The repository is a canonical implementation of a **Microservices**\
+  \ architecture, specifically designed to demonstrate the patterns described in Chris\
+  \ Richardson's \"Microservices Patterns.\" \n\n### Evidence for Microservices\n\
+  The system is decomposed into multiple independently deployable services, each with\
+  \ its own codebase and lifecycle. Citing `docker-compose.yml`, the architecture\
+  \ includes:\n- `ftgo-order-service`\n- `ftgo-kitchen-service`\n- `ftgo-restaurant-service`\n\
+  - `ftgo-accounting-service`\n- `ftgo-consumer-service`\n- `ftgo-api-gateway`"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:49:33Z'
+classification_reasoning: "The repository is a canonical implementation of a **Microservices**\
+  \ architecture, specifically designed to demonstrate the patterns described in Chris\
+  \ Richardson's \"Microservices Patterns.\" \n\n### Evidence for Microservices\n\
+  The system is decomposed into multiple independently deployable services, each with\
+  \ its own codebase and lifecycle. Citing `docker-compose.yml`, the architecture\
+  \ includes:\n- `ftgo-order-service`\n- `ftgo-kitchen-service`\n- `ftgo-restaurant-service`\n\
+  - `ftgo-accounting-service`\n- `ftgo-consumer-service`\n- `ftgo-api-gateway`\n\n\
+  The architecture enforces a **Database-per-Service** pattern. The `docker-compose.yml`\
+  \ environment variables show distinct database schemas for each service (e.g., `SPRING_DATASOURCE_URL:\
+  \ jdbc:mysql://mysql/ftgo_order_service` vs `ftgo_kitchen_service`), even though\
+  \ they share a MySQL instance in the development environment.\n\n### Evidence for\
+  \ Event-Driven & Sagas\nThe codebase heavily utilizes the **Eventuate Tram** framework\
+  \ to implement the **Saga Pattern** for distributed transactions. \n- In `OrderService.java`,\
+  \ the `createOrder` method initiates a `CreateOrderSaga` via a `SagaInstanceFactory`.\n\
+  - Services use **Domain Events** to communicate state changes asynchronously. `OrderService.java`\
+  \ refers to `OrderDomainEventPublisher` and `ResultWithDomainEvents`.\n- The `cdc-service`\
+  \ (Change Data Capture) defined in `docker-compose.yml` implements the **Transactional\
+  \ Outbox** pattern, reading binlogs from MySQL and publishing events to **Kafka**.\n\
+  \n### Evidence for Domain-Driven Design (DDD)\nThe internal structure of the services\
+  \ follows DDD principles. Citing `OrderService.java`, we see:\n- **Aggregates**:\
+  \ The `Order` class acts as an aggregate root that returns domain events.\n- **Bounded\
+  \ Contexts**: Each microservice represents a distinct bounded context (Kitchen,\
+  \ Order, Accounting).\n\n### Evidence for CQRS\nThe `ftgo-order-history-service`\
+  \ is a dedicated read-side service that subscribes to events from other services\
+  \ (Order, Delivery, etc.) to maintain a denormalized view in **DynamoDB**. This\
+  \ is a classic implementation of **CQRS**, separating the command side (state changes\
+  \ in MySQL) from the query side (complex history lookups in DynamoDB).\n\n### Gateway\
+  \ Pattern\nThe project includes both a Spring Cloud-based `ftgo-api-gateway` and\
+  \ a Node.js `ftgo-api-gateway-graphql`, demonstrating the **API Gateway** and **Backend\
+  \ for Frontends (BFF)** patterns."

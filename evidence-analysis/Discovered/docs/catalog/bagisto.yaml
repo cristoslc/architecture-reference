@@ -14,5 +14,113 @@ languages:
 - PHP
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Layered
+classification_status: classified
+review_notes: 'The Bagisto repository is a definitive example of a **Modular Monolith**
+  architecture built on the Laravel framework. While it appears as a standard Laravel
+  application at the root level, the core business logic and functional domains are
+  organized into a strict internal module system managed via the `packages/` directory
+  and the **Concord** library.
+
+
+  ### Architecture Analysis
+
+
+  **1. Modular Monolith (Primary Style)**
+
+  The system is organized around bounded functional domains (e.g., `Attribute`, `Checkout`,
+  `Inventory`, `Sales`, `Tax`) rather than horizontal technical layers (Controllers,
+  Models, Services) alone.
+
+  - **Internal Module Isolation:** Evidence from `composer.json` shows over 30 internal
+  PSR-4 mappings pointing to `packages/Webkul/*`. Each of these packages acts as a
+  self-contained module containing its own Routes, Models, Migrations, and Views.
+
+  - **Concord Orchestration:** The `config/concord.php` file explicitly lists these
+  modules (e.g., `\Webkul\Sales\Providers\ModuleServiceProvider::class`). Concord
+  is a specifically designed library for Laravel to enable modularity by allowing
+  modules to provide their own entities, repositories, and configurations while maintaining
+  a unified application state.
+
+  - **Single Deployment Unit:** Despite the modular internal structure, all code is
+  stored in a single repository and deployed as a single unit, fitting the definition
+  of a Modular Monolith rather than Microservices.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:41:33Z'
+classification_reasoning: 'The Bagisto repository is a definitive example of a **Modular
+  Monolith** architecture built on the Laravel framework. While it appears as a standard
+  Laravel application at the root level, the core business logic and functional domains
+  are organized into a strict internal module system managed via the `packages/` directory
+  and the **Concord** library.
+
+
+  ### Architecture Analysis
+
+
+  **1. Modular Monolith (Primary Style)**
+
+  The system is organized around bounded functional domains (e.g., `Attribute`, `Checkout`,
+  `Inventory`, `Sales`, `Tax`) rather than horizontal technical layers (Controllers,
+  Models, Services) alone.
+
+  - **Internal Module Isolation:** Evidence from `composer.json` shows over 30 internal
+  PSR-4 mappings pointing to `packages/Webkul/*`. Each of these packages acts as a
+  self-contained module containing its own Routes, Models, Migrations, and Views.
+
+  - **Concord Orchestration:** The `config/concord.php` file explicitly lists these
+  modules (e.g., `\Webkul\Sales\Providers\ModuleServiceProvider::class`). Concord
+  is a specifically designed library for Laravel to enable modularity by allowing
+  modules to provide their own entities, repositories, and configurations while maintaining
+  a unified application state.
+
+  - **Single Deployment Unit:** Despite the modular internal structure, all code is
+  stored in a single repository and deployed as a single unit, fitting the definition
+  of a Modular Monolith rather than Microservices.
+
+
+  **2. Layered (Secondary Style)**
+
+  Within each module located in `packages/Webkul/{ModuleName}/src`, the codebase follows
+  traditional horizontal layering:
+
+  - **Presentation:** Handled by the `Webkul\Admin` and `Webkul\Shop` modules which
+  act as the UI entry points.
+
+  - **Business Logic:** Encapsulated within Service Providers and separate domain
+  modules.
+
+  - **Data Access:** Heavily uses the **Repository Pattern** (as seen in `config/repository.php`
+  and the inclusion of `prettus/l5-repository` in `composer.json`) to abstract Eloquent
+  models from the business logic.
+
+
+  ### Structural Evidence
+
+  - **`packages/` folder:** Contains the core logic of the application, separated
+  by domain (Attribute, Category, Checkout, Core, Customer, Inventory, Product, Sales,
+  Tax, etc.).
+
+  - **`composer.json`:** Defines the autoloading strategy for these internal packages,
+  treating them as first-class citizens of the namespace.
+
+  - **`config/concord.php`:** Acts as the registry for internal modules, ensuring
+  they are booted and integrated into the Laravel container.
+
+  - **`config/repository.php`:** Supports the layered approach by providing a standardized
+  interface for data fetching, decoupling the modules from the database schema.
+
+
+  ### Rejection of Other Styles
+
+  - **Not Microservices:** All modules share the same runtime, session, and database
+  connection. There is no evidence of independent deployment units or inter-service
+  communication protocols (like gRPC) within the main repository.
+
+  - **Not Microkernel (Plugin):** While Bagisto supports extensions, the core commerce
+  logic itself is implemented as modules that are integrated at the foundation level
+  through Concord, rather than being optional runtime plugins for a minimal core.'

@@ -16,5 +16,104 @@ languages:
 - Rust
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Microservices
+- Event-Driven
+classification_status: classified
+review_notes: 'PostHog''s architecture is a sophisticated **Modular Monolith** transitioning
+  into a hybrid model that incorporates **Microservices** for high-scale data handling.
+  While the core business logic, API, and UI are increasingly organized into discrete,
+  isolated products, they majorly reside within a single Django-based deployment unit.
+
+
+  ### 1. Modular Monolith (Primary Style)
+
+  The codebase shows a deliberate transition from a legacy monolith (`posthog/`) to
+  a structured modular approach under the `products/` directory.
+
+  - **Enforced Boundaries:** As noted in `docs/internal/monorepo-layout.md`, the architecture
+  uses "vertical slices" where each product (e.g., `experiments`, `feature_flags`)
+  owns its own Django `models.py`, logic, and frontend. The documentation explicitly
+  mentions using tools like `tach` to enforce import boundaries and prevent circular
+  dependencies between products.
+
+  - **Unified Deployment:** Despite the logical separation, these "products" are registered
+  as Django `AppConfig` modules (seen in the `**/apps.py` glob), meaning they are
+  still served by the same primary web process/database migrations.
+
+
+  ### 2. Microservices (Secondary Style)
+
+  PostHog breaks out computationally intensive or specialized concerns into independent
+  services:
+
+  - **Node.js Ingestion:** High-volume event processing is handled by a separate Node.js
+  service (`nodejs/src/ingestion/`), distinct from the Django API. This is a classic
+  microservice pattern where the "write path" is decoupled for performance and scaling.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:06:49Z'
+classification_reasoning: 'PostHog''s architecture is a sophisticated **Modular Monolith**
+  transitioning into a hybrid model that incorporates **Microservices** for high-scale
+  data handling. While the core business logic, API, and UI are increasingly organized
+  into discrete, isolated products, they majorly reside within a single Django-based
+  deployment unit.
+
+
+  ### 1. Modular Monolith (Primary Style)
+
+  The codebase shows a deliberate transition from a legacy monolith (`posthog/`) to
+  a structured modular approach under the `products/` directory.
+
+  - **Enforced Boundaries:** As noted in `docs/internal/monorepo-layout.md`, the architecture
+  uses "vertical slices" where each product (e.g., `experiments`, `feature_flags`)
+  owns its own Django `models.py`, logic, and frontend. The documentation explicitly
+  mentions using tools like `tach` to enforce import boundaries and prevent circular
+  dependencies between products.
+
+  - **Unified Deployment:** Despite the logical separation, these "products" are registered
+  as Django `AppConfig` modules (seen in the `**/apps.py` glob), meaning they are
+  still served by the same primary web process/database migrations.
+
+
+  ### 2. Microservices (Secondary Style)
+
+  PostHog breaks out computationally intensive or specialized concerns into independent
+  services:
+
+  - **Node.js Ingestion:** High-volume event processing is handled by a separate Node.js
+  service (`nodejs/src/ingestion/`), distinct from the Django API. This is a classic
+  microservice pattern where the "write path" is decoupled for performance and scaling.
+
+  - **Independent Services:** The `services/` directory contains standalone deployments
+  like `llm-gateway` and `mcp` (Model Context Protocol).
+
+  - **Temporal:** Extensive use of Temporal (found in `posthog/temporal/`) for orchestrating
+  complex, long-running background tasks as independent units of work.
+
+
+  ### 3. Event-Driven (Secondary Style)
+
+  The system''s backbone is inherently event-driven to handle big data analytics:
+
+  - **Kafka Integration:** Evidence in `nodejs/src/kafka/` (producers/consumers) and
+  `posthog/settings/ingestion.py` shows that events flow through Kafka to decouple
+  ingestion from storage in ClickHouse.
+
+  - **Pub/Sub Patterns:** The presence of `nodejs/src/utils/pubsub.ts` and the "Data
+  Pipelines" feature mentioned in the README highlights an internal architecture focused
+  on reacting to event streams in real-time.
+
+
+  ### Deployment & Data Strategy
+
+  - **Polyglot Persistence:** The system utilizes PostgreSQL (via Django ORM) for
+  relational metadata and ClickHouse for analytical event data, a common pattern in
+  service-based or modular systems requiring both ACID compliance and OLAP performance.
+
+  - **Monorepo Strategy:** The repository uses a monorepo layout to manage multiple
+  languages (Python, TypeScript, Rust) and frameworks while maintaining shared "Platform"
+  or "Common" libraries to prevent code duplication across the modular boundaries.'

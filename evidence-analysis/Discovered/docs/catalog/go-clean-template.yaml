@@ -12,5 +12,66 @@ domain: Developer Tools
 language: Go
 languages:
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Hexagonal Architecture
+- Layered
+- CQRS
+classification_status: classified
+review_notes: "This repository is an explicit implementation of **Hexagonal Architecture**\
+  \ (also known as Ports and Adapters), specifically following the \"Clean Architecture\"\
+  \ flavor popularized by Robert C. Martin. \n\n### Evidence of Hexagonal Architecture\n\
+  The project structure is strictly organized to decouple the business logic (the\
+  \ \"Core\") from technical details (the \"Infrastructure\").\n\n1.  **The Core (Entities\
+  \ & Usecases):** Located in `internal/entity` and `internal/usecase`. These represent\
+  \ the domain models and business rules. Crucially, the README and `internal/usecase/contracts.go`\
+  \ demonstrate that the core defines interfaces (Ports) that external layers must\
+  \ implement.\n2.  **Driving Adapters (Controllers):** Located in `internal/controller`.\
+  \ The repository provides multiple entry points (REST/Fiber, gRPC, AMQP RPC, NATS\
+  \ RPC) that all drive the same underlying business logic. This \"pluggability\"\
+  \ of transport layers is a hallmark of Hexagonal Architecture.\n3.  **Driven Adapters\
+  \ (Repositories):** Located in `internal/repo`. These implement the interfaces defined\
+  \ by the application layer. The segregation between `internal/repo/persistent` (Postgres)\
+  \ and `internal/repo/webapi` (External HTTP APIs) shows that the domain logic doesn't\
+  \ care whether data is stored in a database or fetched from a remote service.\n\
+  4.  **Dependency Inversion:** The `internal/app/app.go` file acts as the \"Composition\
+  \ Root,\" where dependencies are injected upwards. The business logic (`usecase`)\
+  \ has zero imports from the `controller`, `repo`, or `pkg` directories, ensuring\
+  \ it remains \"Clean.\""
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:50:39Z'
+classification_reasoning: "This repository is an explicit implementation of **Hexagonal\
+  \ Architecture** (also known as Ports and Adapters), specifically following the\
+  \ \"Clean Architecture\" flavor popularized by Robert C. Martin. \n\n### Evidence\
+  \ of Hexagonal Architecture\nThe project structure is strictly organized to decouple\
+  \ the business logic (the \"Core\") from technical details (the \"Infrastructure\"\
+  ).\n\n1.  **The Core (Entities & Usecases):** Located in `internal/entity` and `internal/usecase`.\
+  \ These represent the domain models and business rules. Crucially, the README and\
+  \ `internal/usecase/contracts.go` demonstrate that the core defines interfaces (Ports)\
+  \ that external layers must implement.\n2.  **Driving Adapters (Controllers):**\
+  \ Located in `internal/controller`. The repository provides multiple entry points\
+  \ (REST/Fiber, gRPC, AMQP RPC, NATS RPC) that all drive the same underlying business\
+  \ logic. This \"pluggability\" of transport layers is a hallmark of Hexagonal Architecture.\n\
+  3.  **Driven Adapters (Repositories):** Located in `internal/repo`. These implement\
+  \ the interfaces defined by the application layer. The segregation between `internal/repo/persistent`\
+  \ (Postgres) and `internal/repo/webapi` (External HTTP APIs) shows that the domain\
+  \ logic doesn't care whether data is stored in a database or fetched from a remote\
+  \ service.\n4.  **Dependency Inversion:** The `internal/app/app.go` file acts as\
+  \ the \"Composition Root,\" where dependencies are injected upwards. The business\
+  \ logic (`usecase`) has zero imports from the `controller`, `repo`, or `pkg` directories,\
+  \ ensuring it remains \"Clean.\"\n\n### Secondary Styles\n- **Layered:** While it\
+  \ follows Hexagonal principles, it fundamentally uses a horizontal layering strategy\
+  \ (Controllers -> Usecases -> Repositories) common in Go backend development.\n\
+  - **CQRS:** The code hints at a mild CQRS pattern. In `internal/controller`, there\
+  \ is a clear separation in how various RPC and REST handlers invoke specific usecase\
+  \ methods, often separating read operations (Translation History) from write operations\
+  \ (Translation), though they are not fully segregated into different data stores.\n\
+  \n### Style Rejections\n- **Microservices:** While the README mentions microservices,\
+  \ the repository itself is a **Single Service Template**. It provides the structure\
+  \ for *one* service, not the orchestration of many.\n- **Modular Monolith:** There\
+  \ is only one domain here (\"Translation\"). It does not demonstrate the containment\
+  \ of multiple disparate bounded contexts within one binary.\n- **Event-Driven:**\
+  \ Although it includes RabbitMQ and NATS integrations, these are used for **RPC\
+  \ (Request-Reply)** patterns rather than asynchronous event choreography or orchestration."

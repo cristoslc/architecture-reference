@@ -13,5 +13,59 @@ language: Java/Kotlin
 languages:
 - Java/Kotlin
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: "The Apache Kafka repository is structured as a **Modular Monolith**.\
+  \ While it is a distributed system when deployed, the codebase itself is organized\
+  \ into a single build system (Gradle) with strictly defined internal modules that\
+  \ are compiled and versioned together.\n\n### Evidence of Modular Monolith\n1. \
+  \ **Gradle Multi-Project Structure**: The repository uses a single root Gradle build\
+  \ to manage multiple sub-projects (`core`, `clients`, `streams`, `group-coordinator`,\
+  \ `storage`, etc.).\n2.  **Enforced Module Boundaries**: The directory `checkstyle/`\
+  \ contains numerous `import-control-*.xml` files (e.g., `import-control-core.xml`,\
+  \ `import-control-server.xml`). These files are used by the build system to strictly\
+  \ enforce dependency boundaries between modules, preventing \"Big Ball of Mud\"\
+  \ dependency cycles.\n3.  **Core separation**: The functionality is split into logical\
+  \ units:\n    *   `clients`: The Java/c++ client logic.\n    *   `core`: The primary\
+  \ broker logic (traditionally Scala).\n    *   `storage` / `server-common`: Extracted\
+  \ modules to reduce the complexity of the core.\n4.  **Single Versioning**: Though\
+  \ there are many modules, they are released and versioned as a single coherent unit\
+  \ (Apache Kafka)."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:53:25Z'
+classification_reasoning: "The Apache Kafka repository is structured as a **Modular\
+  \ Monolith**. While it is a distributed system when deployed, the codebase itself\
+  \ is organized into a single build system (Gradle) with strictly defined internal\
+  \ modules that are compiled and versioned together.\n\n### Evidence of Modular Monolith\n\
+  1.  **Gradle Multi-Project Structure**: The repository uses a single root Gradle\
+  \ build to manage multiple sub-projects (`core`, `clients`, `streams`, `group-coordinator`,\
+  \ `storage`, etc.).\n2.  **Enforced Module Boundaries**: The directory `checkstyle/`\
+  \ contains numerous `import-control-*.xml` files (e.g., `import-control-core.xml`,\
+  \ `import-control-server.xml`). These files are used by the build system to strictly\
+  \ enforce dependency boundaries between modules, preventing \"Big Ball of Mud\"\
+  \ dependency cycles.\n3.  **Core separation**: The functionality is split into logical\
+  \ units:\n    *   `clients`: The Java/c++ client logic.\n    *   `core`: The primary\
+  \ broker logic (traditionally Scala).\n    *   `storage` / `server-common`: Extracted\
+  \ modules to reduce the complexity of the core.\n4.  **Single Versioning**: Though\
+  \ there are many modules, they are released and versioned as a single coherent unit\
+  \ (Apache Kafka).\n\n### Evidence of Microkernel (Plugin)\nKafka employs a **Microkernel**\
+  \ style for its extensibility. It defines clear internal \"Ports\" or interfaces\
+  \ that allow users to plug in custom logic without modifying the core broker code:\n\
+  1.  **Connectors**: The `connect/` modules (not fully visible in the tree but known\
+  \ via `config/connect-*`) allow for a plugin-based architecture for data I/O.\n\
+  2.  **Pluggable Internal Components**: Kafka uses interfaces for `Authorizer`, `PrincipalBuilder`,\
+  \ and `MetricsReporter`. The directory `tools/tools-api` suggests a stable API surface\
+  \ for external extensions.\n\n### Why not Microservices?\nWhile Kafka is a distributed\
+  \ system of brokers, controllers, and clients, the *codebase structure* is not microservices.\
+  \ There are no independent deployment cycles for the individual modules (e.g., you\
+  \ don't deploy `group-coordinator` independently of the `core` broker). They are\
+  \ bundled into a single binary (`kafka-server-start.sh` runs the broker which includes\
+  \ these modules).\n\n### Why not Layered?\nWhile Kafka has internal layering (network\
+  \ layer, request handling, storage), the top-level organization is defined by functional\
+  \ modules (`streams`, `connect`, `clients`) rather than horizontal layers (controllers,\
+  \ services, repos), making \"Modular Monolith\" a more accurate descriptor."

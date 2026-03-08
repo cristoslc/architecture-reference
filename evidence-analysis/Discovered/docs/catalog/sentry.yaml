@@ -14,5 +14,62 @@ languages:
 - TypeScript
 - Python
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: "The Sentry repository is a classic example of a **Modular Monolith**\
+  \ that has evolved to include significant **Event-Driven** and **Microkernel** characteristics.\
+  \ \n\nWhile Sentry's infrastructure involves multiple distributed components (like\
+  \ Snuba, Relay, and Symbolicator), the core application logic remains housed in\
+  \ a single Python monolith primarily built on Django. \n\n### Reasoning:\n\n1. \
+  \ **Modular Monolith (Primary):**\n    *   The source code is concentrated in `src/sentry/`,\
+  \ which contains a vast array of internal modules (e.g., `src/sentry/organizations`,\
+  \ `src/sentry/projects`, `src/sentry/api`).\n    *   The `INSTALLED_APPS` setting\
+  \ in `src/sentry/conf/server.py` lists dozens of internal components (e.g., `sentry.incidents`,\
+  \ `sentry.discover`, `sentry.replays`) which are integrated into the single Django\
+  \ application context but partitioned into distinct sub-packages.\n    *   The repository\
+  \ uses strict internal boundaries enforced by tooling (see `tools/mypy_helpers/sort_stronger_modules.py`\
+  \ and the `tool.mypy.overrides` section in `pyproject.toml`), which is a hallmark\
+  \ of \"Modular Monoliths\" managing complexity by identifying and strengthening\
+  \ module boundaries over time."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:10:19Z'
+classification_reasoning: "The Sentry repository is a classic example of a **Modular\
+  \ Monolith** that has evolved to include significant **Event-Driven** and **Microkernel**\
+  \ characteristics. \n\nWhile Sentry's infrastructure involves multiple distributed\
+  \ components (like Snuba, Relay, and Symbolicator), the core application logic remains\
+  \ housed in a single Python monolith primarily built on Django. \n\n### Reasoning:\n\
+  \n1.  **Modular Monolith (Primary):**\n    *   The source code is concentrated in\
+  \ `src/sentry/`, which contains a vast array of internal modules (e.g., `src/sentry/organizations`,\
+  \ `src/sentry/projects`, `src/sentry/api`).\n    *   The `INSTALLED_APPS` setting\
+  \ in `src/sentry/conf/server.py` lists dozens of internal components (e.g., `sentry.incidents`,\
+  \ `sentry.discover`, `sentry.replays`) which are integrated into the single Django\
+  \ application context but partitioned into distinct sub-packages.\n    *   The repository\
+  \ uses strict internal boundaries enforced by tooling (see `tools/mypy_helpers/sort_stronger_modules.py`\
+  \ and the `tool.mypy.overrides` section in `pyproject.toml`), which is a hallmark\
+  \ of \"Modular Monoliths\" managing complexity by identifying and strengthening\
+  \ module boundaries over time.\n\n2.  **Event-Driven (Secondary):**\n    *   The\
+  \ configuration and dependencies show heavy reliance on message brokers and asynchronous\
+  \ processing. \n    *   Evidence includes `confluent-kafka` and `sentry-arroyo`\
+  \ in `pyproject.toml`, and the presence of `src/sentry/eventstream`, `src/sentry/consumers`,\
+  \ and `src/sentry/post_process_forwarder`.\n    *   The system heavily utilizes\
+  \ \"Outboxes\" (e.g., `SENTRY_OUTBOX_MODELS` in `server.py`), a common pattern in\
+  \ event-driven systems to ensure atomicity between database updates and event publishing.\n\
+  \n3.  **Microkernel / Plugin (Secondary):**\n    *   Sentry maintains a dedicated\
+  \ plugin architecture found in `src/sentry_plugins/` and `src/sentry/plugins`.\n\
+  \    *   This core-and-extension model allows the base system to remain stable while\
+  \ supporting dozens of third-party integrations (Slack, Jira, GitHub, etc.) through\
+  \ a stable internal API/Contract (`src/sentry_plugins/base.py`).\n\n### Rejection\
+  \ of other styles:\n*   **Microservices:** While the *runtime environment* of Sentry\
+  \ (including Snuba and Relay) is multi-service, this specific repository is not\
+  \ a microservices repo. It contains the primary monolith and its plugins, not a\
+  \ collection of independent services with their own CI/CD lifecycles and distinct\
+  \ codebases.\n*   **Hexagonal Architecture:** While Sentry uses the concept of \"\
+  Services\" (`src/sentry/services`), the core domain is heavily coupled to Django's\
+  \ ORM and models, lacking the strict isolation of the domain layer required for\
+  \ Hexagonal or Clean Architecture."

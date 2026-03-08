@@ -15,5 +15,110 @@ languages:
 - Python
 - C/C++
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: 'Qdrant is structured as a **Modular Monolith** organized within a Rust
+  workspace. While it serves a distributed system (supporting sharding and replication),
+  the codebase itself is maintained as a single unit where logical boundaries are
+  strictly enforced through independent internal crates.
+
+
+  ### 1. Modular Monolith (Primary Style)
+
+  The system is decomposed into highly specialized, decoupled crates located in the
+  `lib/` directory. Each crate represents a clear architectural boundary with its
+  own `Cargo.toml` and `src/lib.rs`.
+
+  - **`lib/segment`**: The core storage and indexing engine (HNSW, flat indexes).
+
+  - **`lib/collection`**: High-level management of vectors, including sharding logic
+  and write-ahead logging.
+
+  - **`lib/storage`**: Handles the persistence layer and global state (e.g., Raft
+  consensus state).
+
+  - **`lib/shard`**: Specifically handles the distribution of data across nodes.
+
+  - **`lib/api`**: Separates interface definitions (gRPC/REST) from core logic.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:07:42Z'
+classification_reasoning: 'Qdrant is structured as a **Modular Monolith** organized
+  within a Rust workspace. While it serves a distributed system (supporting sharding
+  and replication), the codebase itself is maintained as a single unit where logical
+  boundaries are strictly enforced through independent internal crates.
+
+
+  ### 1. Modular Monolith (Primary Style)
+
+  The system is decomposed into highly specialized, decoupled crates located in the
+  `lib/` directory. Each crate represents a clear architectural boundary with its
+  own `Cargo.toml` and `src/lib.rs`.
+
+  - **`lib/segment`**: The core storage and indexing engine (HNSW, flat indexes).
+
+  - **`lib/collection`**: High-level management of vectors, including sharding logic
+  and write-ahead logging.
+
+  - **`lib/storage`**: Handles the persistence layer and global state (e.g., Raft
+  consensus state).
+
+  - **`lib/shard`**: Specifically handles the distribution of data across nodes.
+
+  - **`lib/api`**: Separates interface definitions (gRPC/REST) from core logic.
+
+
+  These modules are not mere folders; the Rust compiler enforces dependency directions
+  (e.g., `segment` cannot import `collection`), ensuring high cohesion and low coupling
+  typical of a well-architected modular monolith.
+
+
+  ### 2. Layered (Secondary Style)
+
+  Within the modules and the main application (`src/`), Qdrant follows a vertical
+  layering pattern:
+
+  - **Presentation/Interface Layer**: Found in `src/actix/` (REST) and `src/tonic/`
+  (gRPC). These handle HTTP/gRPC protocol concerns and authentication.
+
+  - **Service/Orchestration Layer**: Found in `lib/storage` and `lib/collection`,
+  which coordinate actions across different segments or shards.
+
+  - **Domain Layer**: The core search and indexing mathematics found in `lib/segment`
+  and `lib/sparse`.
+
+  - **Infrastructure Layer**: Found in `lib/common`, handling `io_uring`, cancellation
+  tokens, and persistence.
+
+
+  ### 3. Event-Driven (Secondary Style)
+
+  The system implements the **Raft consensus algorithm** (visible in `src/consensus.rs`
+  and the dependency on the `raft` crate). This introduces an event-driven internal
+  architecture for state replication. Changes to the system state (e.g., creating
+  a collection) are treated as proposals/events that must be committed to a log and
+  applied across the cluster. The `wal` (Write-Ahead Log) usage throughout the crates
+  further reinforces a log-centric, event-driven approach to data consistency.
+
+
+  ### Why not Microservices?
+
+  Although Qdrant supports distributed deployment and clustering, the repository is
+  designed to build a single primary binary (`qdrant`). It does not consist of multiple
+  independently deployable business services (like an "Identity Service" and a "Search
+  Service" running as separate processes). The "clustering" is an internal capability
+  of the software rather than the architectural style of the codebase itself.
+
+
+  ### Why not Hexagonal?
+
+  While there is clear separation between the API and the core, the system relies
+  heavily on direct crate dependencies rather than a strict "Ports and Adapters" approach
+  where the core has zero knowledge of the persistence or interface layers. The dependencies
+  in `Cargo.toml` show that the core crates are often aware of the specific storage
+  implementations (like RocksDB).'

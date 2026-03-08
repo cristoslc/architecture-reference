@@ -14,5 +14,81 @@ languages:
 - JavaScript
 - TypeScript
 - Rust
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Event-Driven
+- Layered
+- Microkernel (Plugin)
+classification_status: classified
+review_notes: '### Architecture Analysis
+
+
+  The Supabase Realtime repository is structured as a high-performance, distributed
+  messaging system built on the Elixir/Phoenix ecosystem. Its primary architectural
+  identity is **Event-Driven**, specifically designed to handle the ingestion, transformation,
+  and distribution of asynchronous data streams (Postgres changes, broadcast messages,
+  and presence state).
+
+
+  #### 1. Event-Driven (Primary Style)
+
+  The core purpose and internal organization of the code revolve around event propagation.
+
+  - **Data Ingestion**: It implements a Change Data Capture (CDC) mechanism that listens
+  to Postgres logical replication slots (`lib/realtime/adapters/postgres`).
+
+  - **Pub/Sub Mechanism**: It leverages Phoenix Channels and Elixir’s distributed
+  `PubSub` for message routing. The implementation of `gen_rpc_pub_sub` (found in
+  `lib/realtime/gen_rpc_pub_sub.ex`) indicates a custom, cluster-aware event distribution
+  layer that allows nodes to communicate events efficiently across a cluster.
+
+  - **Asynchronous Flow**: The system is reactive. Events originating in a database
+  or a client are processed by "Extensions" (e.g., `postgres_cdc_rls`) and fanned
+  out to authorized subscribers.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:08:19Z'
+classification_reasoning: "### Architecture Analysis\n\nThe Supabase Realtime repository\
+  \ is structured as a high-performance, distributed messaging system built on the\
+  \ Elixir/Phoenix ecosystem. Its primary architectural identity is **Event-Driven**,\
+  \ specifically designed to handle the ingestion, transformation, and distribution\
+  \ of asynchronous data streams (Postgres changes, broadcast messages, and presence\
+  \ state).\n\n#### 1. Event-Driven (Primary Style)\nThe core purpose and internal\
+  \ organization of the code revolve around event propagation.\n- **Data Ingestion**:\
+  \ It implements a Change Data Capture (CDC) mechanism that listens to Postgres logical\
+  \ replication slots (`lib/realtime/adapters/postgres`).\n- **Pub/Sub Mechanism**:\
+  \ It leverages Phoenix Channels and Elixir’s distributed `PubSub` for message routing.\
+  \ The implementation of `gen_rpc_pub_sub` (found in `lib/realtime/gen_rpc_pub_sub.ex`)\
+  \ indicates a custom, cluster-aware event distribution layer that allows nodes to\
+  \ communicate events efficiently across a cluster.\n- **Asynchronous Flow**: The\
+  \ system is reactive. Events originating in a database or a client are processed\
+  \ by \"Extensions\" (e.g., `postgres_cdc_rls`) and fanned out to authorized subscribers.\n\
+  \n#### 2. Layered (Secondary Style)\nFollowing the standard Phoenix Framework conventions,\
+  \ the repository maintains a clear horizontal separation:\n- **Web/Presentation\
+  \ Layer (`lib/realtime_web/`)**: Handles WebSockets, HTTP controllers for tenant\
+  \ management, and Phoenix Channels (`realtime_channel.ex`).\n- **Business/Domain\
+  \ Layer (`lib/realtime/`)**: Contains the core logic for tenant management, replication\
+  \ handling, and rate-limiting.\n- **Data Access Layer**: Uses Ecto (evident from\
+  \ `priv/repo/migrations` and `lib/realtime/repo.ex`) to manage its own internal\
+  \ state (tenants, extensions) and interfaces with external Postgres databases for\
+  \ CDC.\n\n#### 3. Microkernel (Plugin) (Secondary Style)\nThe system uses an \"\
+  Extension\" architecture to handle different types of realtime functionality.\n\
+  - **Internal Plugins**: The system defines \"Extensions\" (found in `test/extensions`\
+  \ and referenced in the README) like `postgres_cdc_rls`. \n- **Modular Functionality**:\
+  \ The README specifically mentions adding \"extensions\" to a tenant via API. This\
+  \ allows the core server to remain generic while specific processing logic (like\
+  \ Row Level Security for Postgres changes) is encapsulated in specific extension\
+  \ modules.\n\n#### 4. Evidence of Distributed Organization\n- **Cluster Awareness**:\
+  \ The use of `gen_rpc` and variables like `DNS_NODES` and `REBALANCE_CHECK_INTERVAL_IN_MS`\
+  \ shows the system is designed as a distributed cluster of nodes where state (Presence)\
+  \ and events are synchronized across the network.\n- **Native Components**: The\
+  \ inclusion of a Rust-based `native/prometheus_remote_write` indicates a performance-critical\
+  \ sidecar or NIF for handling telemetry data exports, common in high-throughput\
+  \ event systems.\n\n#### Rejection of Other Styles\n- **Microservices**: While part\
+  \ of the larger Supabase suite, this specific repository is a single deployment\
+  \ unit (\"Realtime Server\"). It handles its own database migrations and internal\
+  \ logic as a cohesive system rather than a collection of independent services.\n\
+  - **Modular Monolith**: While it has modules, the separation isn't strictly enforced\
+  \ for the sake of decoupling business domains but rather for technical specializations\
+  \ (Web vs. Replication)."

@@ -12,5 +12,95 @@ domain: Conference Management
 language: C#
 languages:
 - C#
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'The repository is explicitly designed as a **Modular Monolith**, as
+  stated in the README and evidenced by the project structure. The core architecture
+  centers on a single deployable unit (the `Bootstrapper`) that aggregates multiple
+  independent modules located under `src/Modules/`.
+
+
+  ### Primary Style: Modular Monolith
+
+  - **Single Deployment Unit:** The `src/Bootstrapper/Confab.Bootstrapper` project
+  serves as the entry point. Its responsibility is to load and initialize all modules
+  into a single process.
+
+  - **Module Isolation:** Modules (e.g., `Attendances`, `Agendas`, `Tickets`) are
+  organized into separate folders with their own internal layering (Domain, Application,
+  Infrastructure, Api).
+
+  - **Module Loading:** The presence of `src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs`
+  indicates a formal mechanism for discovering and starting these modules within the
+  monolith''s lifecycle.
+
+  - **Strict Boundaries:** The README mentions the use of "local contracts" instead
+  of shared projects to prevent tight coupling between independent modules.
+
+
+  ### Secondary Style: Event-Driven
+
+  - **Inter-Module Communication:** The system uses asynchronous messaging for integration
+  between modules. This is supported by infrastructure in `src/Shared/Confab.Shared.Infrastructure/Messaging`
+  and `Events`.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:44:21Z'
+classification_reasoning: 'The repository is explicitly designed as a **Modular Monolith**,
+  as stated in the README and evidenced by the project structure. The core architecture
+  centers on a single deployable unit (the `Bootstrapper`) that aggregates multiple
+  independent modules located under `src/Modules/`.
+
+
+  ### Primary Style: Modular Monolith
+
+  - **Single Deployment Unit:** The `src/Bootstrapper/Confab.Bootstrapper` project
+  serves as the entry point. Its responsibility is to load and initialize all modules
+  into a single process.
+
+  - **Module Isolation:** Modules (e.g., `Attendances`, `Agendas`, `Tickets`) are
+  organized into separate folders with their own internal layering (Domain, Application,
+  Infrastructure, Api).
+
+  - **Module Loading:** The presence of `src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs`
+  indicates a formal mechanism for discovering and starting these modules within the
+  monolith''s lifecycle.
+
+  - **Strict Boundaries:** The README mentions the use of "local contracts" instead
+  of shared projects to prevent tight coupling between independent modules.
+
+
+  ### Secondary Style: Event-Driven
+
+  - **Inter-Module Communication:** The system uses asynchronous messaging for integration
+  between modules. This is supported by infrastructure in `src/Shared/Confab.Shared.Infrastructure/Messaging`
+  and `Events`.
+
+  - **Infrastructure:** The codebase includes a `Saga` module (`src/Modules/Saga`),
+  which is a common pattern in event-driven systems to manage long-running distributed
+  transactions across boundaries.
+
+
+  ### Secondary Style: Domain-Driven Design (DDD)
+
+  - **Aggregates and Bounded Contexts:** Each module acts as a Bounded Context. Modules
+  like `Agendas` and `Attendances` explicitly follow DDD folder structures (Domain,
+  Application, Infrastructure).
+
+  - **Abstractions:** `src/Shared/Confab.Shared.Abstractions/Kernel` likely contains
+  DDD "Building Blocks" like `AggregateRoot` or `DomainEvent` base classes.
+
+
+  ### Note on Microservices
+
+  While the repository contains a `src/Services` folder and an `APIGateway`, the README
+  clarifies that these are part of a demonstrated transition *to* microservices. The
+  execution instructions specifically point to the `Bootstrapper` (the monolith),
+  and the `docker-compose.yaml` is primarily used for infrastructure (PostgreSQL)
+  rather than a fleet of business services. The core architectural intent remains
+  a Modular Monolith.'

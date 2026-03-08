@@ -13,5 +13,69 @@ language: TypeScript
 languages:
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: '### Analysis
+
+
+  Backstage is a textbook example of a **Microkernel (Plugin)** architecture. Its
+  codebase is structured as a thin core framework that is extended by a vast ecosystem
+  of internal and external plugins.
+
+
+  #### 1. Microkernel (Plugin) Indicators
+
+  - **Extensive Plugin Directory:** The `/plugins` directory contains dozens (hundreds
+  in the full repo) of discrete packages (e.g., `plugins/auth-backend-module-cloudflare-access-provider`,
+  `plugins/catalog-backend-module-bitbucket-cloud`). These are isolated units of functionality.
+
+  - **Plugin Lifecycle & Contracts:** Files like `report.api.md` and `alpha.ts` within
+  the plugin directories indicate strict API surface management. The presence of `package.json`
+  in every plugin folder confirms they are individual NPM packages managed within
+  a monorepo.
+
+  - **Frontend/Backend Plugin Pairs:** The architecture separates "frontend" plugins
+  (React-based UI) and "backend" modules (Node.js services). These are registered
+  into the core "App" or "Backend" via a registry pattern (implied by the `src/index.ts`
+  and `src/module.ts` patterns in many plugins).
+
+  - **Extension Points:** The README explicitly identifies Backstage as an "open source
+  framework" with a "growing ecosystem of open source plugins."'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:41:20Z'
+classification_reasoning: "### Analysis\n\nBackstage is a textbook example of a **Microkernel\
+  \ (Plugin)** architecture. Its codebase is structured as a thin core framework that\
+  \ is extended by a vast ecosystem of internal and external plugins.\n\n#### 1. Microkernel\
+  \ (Plugin) Indicators\n- **Extensive Plugin Directory:** The `/plugins` directory\
+  \ contains dozens (hundreds in the full repo) of discrete packages (e.g., `plugins/auth-backend-module-cloudflare-access-provider`,\
+  \ `plugins/catalog-backend-module-bitbucket-cloud`). These are isolated units of\
+  \ functionality.\n- **Plugin Lifecycle & Contracts:** Files like `report.api.md`\
+  \ and `alpha.ts` within the plugin directories indicate strict API surface management.\
+  \ The presence of `package.json` in every plugin folder confirms they are individual\
+  \ NPM packages managed within a monorepo.\n- **Frontend/Backend Plugin Pairs:**\
+  \ The architecture separates \"frontend\" plugins (React-based UI) and \"backend\"\
+  \ modules (Node.js services). These are registered into the core \"App\" or \"Backend\"\
+  \ via a registry pattern (implied by the `src/index.ts` and `src/module.ts` patterns\
+  \ in many plugins).\n- **Extension Points:** The README explicitly identifies Backstage\
+  \ as an \"open source framework\" with a \"growing ecosystem of open source plugins.\"\
+  \n\n#### 2. Modular Monolith Indicators (Secondary)\nWhen deployed, a typical Backstage\
+  \ instance bundles many of these plugins into a single frontend assembly and a single\
+  \ or small number of backend processes. \n- **Internal Boundaries:** While the plugins\
+  \ are developed separately, they often share a common lifecycle within the main\
+  \ deployment unit.\n- **Dependency Enforcement:** The use of Yarn workspaces and\
+  \ Changesets (`.changeset/`) manages the inter-dependencies between these modules,\
+  \ ensuring that even though it functions as a monolith at runtime, the development\
+  \ boundaries are strictly enforced (\"Modular Monolith\" characteristics).\n\n####\
+  \ 3. Rejected Styles\n- **Microservices:** While Backstage *manages* microservices\
+  \ (mentions \"software catalog for managing all your software such as microservices\"\
+  ), the repository itself is not a collection of independently deployable microservices.\
+  \ It is a monorepo meant to build a single portal instance.\n- **Serverless:** There\
+  \ are no indicators of individual function-level deployments (no `serverless.yml`\
+  \ or AWS SAM templates in the root).\n- **Layered:** Although internal plugins might\
+  \ use layering (controllers/services), the architectural identity of the project\
+  \ is defined by its plugin system rather than its horizontal layering."

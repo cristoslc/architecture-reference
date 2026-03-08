@@ -12,5 +12,65 @@ domain: Real-Time Communications
 language: Go
 languages:
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Service-Based
+- Event-Driven
+- Domain-Driven Design
+classification_status: classified
+review_notes: "LiveKit is organized as a high-performance **Service-Based** architecture,\
+  \ specifically designed as a distributed media server (SFU). While it can be deployed\
+  \ as a \"single binary,\" its internal structure is explicitly designed for multi-node\
+  \ coordination and distributed scaling.\n\n### Primary Style: Service-Based\nThe\
+  \ codebase is structured into coarse-grained functional domains that cooperate within\
+  \ the same process or across a cluster. It avoids the complexity of true granular\
+  \ microservices while maintaining clear service boundaries:\n- **`pkg/service`**:\
+  \ Contains the primary entry points and lifecycle management for various services\
+  \ like `roomservice.go`, `rtcservice.go`, and `ingress.go`. \n- **`pkg/routing`**:\
+  \ Implements global service discovery and request routing. The presence of `redisrouter.go`\
+  \ and `node.go` indicates a system designed to run as multiple nodes coordinated\
+  \ via a shared state store (Redis), where requests are routed to specific nodes\
+  \ owning a \"Room\" (the primary aggregate).\n- **`cmd/server`**: The single entry\
+  \ point that orchestrates these services into a deployable unit.\n\n### Secondary\
+  \ Style: Event-Driven\nThe system relies heavily on asynchronous communication for\
+  \ state synchronization and external integrations:"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:56:16Z'
+classification_reasoning: "LiveKit is organized as a high-performance **Service-Based**\
+  \ architecture, specifically designed as a distributed media server (SFU). While\
+  \ it can be deployed as a \"single binary,\" its internal structure is explicitly\
+  \ designed for multi-node coordination and distributed scaling.\n\n### Primary Style:\
+  \ Service-Based\nThe codebase is structured into coarse-grained functional domains\
+  \ that cooperate within the same process or across a cluster. It avoids the complexity\
+  \ of true granular microservices while maintaining clear service boundaries:\n-\
+  \ **`pkg/service`**: Contains the primary entry points and lifecycle management\
+  \ for various services like `roomservice.go`, `rtcservice.go`, and `ingress.go`.\
+  \ \n- **`pkg/routing`**: Implements global service discovery and request routing.\
+  \ The presence of `redisrouter.go` and `node.go` indicates a system designed to\
+  \ run as multiple nodes coordinated via a shared state store (Redis), where requests\
+  \ are routed to specific nodes owning a \"Room\" (the primary aggregate).\n- **`cmd/server`**:\
+  \ The single entry point that orchestrates these services into a deployable unit.\n\
+  \n### Secondary Style: Event-Driven\nThe system relies heavily on asynchronous communication\
+  \ for state synchronization and external integrations:\n- **`pkg/telemetry`**: A\
+  \ dedicated subsystem for event-based monitoring and analytics (`events.go`, `analyticsservice.go`).\n\
+  - **Webhooks**: Mentioned in the README and implemented as part of the service layer\
+  \ to notify external systems of lifecycle events.\n- **`pkg/routing`**: Uses message-passing\
+  \ patterns (`messagechannel.go`, `fake_message_source.go`) to coordinate state between\
+  \ nodes in a cluster.\n\n### Secondary Style: Domain-Driven Design (DDD)\nThe repository\
+  \ exhibits strong DDD characteristics in its package organization, mirroring the\
+  \ business domain of real-time communication:\n- **Bounded Contexts**: \n    - `pkg/rtc`:\
+  \ Handling the core WebRTC signaling and participant state.\n    - `pkg/sfu`: Logic\
+  \ for selective forwarding, bitrate estimation (`bwe`), and RTP munging.\n    -\
+  \ `pkg/routing`: Logic for cluster-wide room allocation and node selection.\n- **Aggregates**:\
+  \ The \"Room\" is the central aggregate root, managing the lifecycle of \"Participants\"\
+  \ and \"Tracks\" (`pkg/rtc/room.go`, `pkg/rtc/participant.go`).\n\n### Why not other\
+  \ styles?\n- **Microservices**: While it is distributed, the core logic resides\
+  \ in a single repository and is typically deployed as a unified `livekit-server`\
+  \ image rather than a collection of 20+ independent repos/deployments.\n- **Layered**:\
+  \ While there is a `pkg` and `cmd` split, the organization is strictly vertical\
+  \ (by domain: sfu, rtc, routing) rather than horizontal (controllers, services,\
+  \ entities).\n- **Microkernel**: While it supports \"Egress\" and \"Ingress,\" these\
+  \ are treated as separate standalone services (often in different repositories)\
+  \ rather than dynamically loaded plugins in the core server."

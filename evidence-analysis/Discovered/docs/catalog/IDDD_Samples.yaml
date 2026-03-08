@@ -12,5 +12,90 @@ domain: Collaboration
 language: Java/Kotlin
 languages:
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Domain-Driven Design
+- Hexagonal Architecture
+- CQRS
+classification_status: classified
+review_notes: 'This repository is the official reference implementation for Vaughn
+  Vernon''s book "Implementing Domain-Driven Design." As such, it is a canonical example
+  of **Domain-Driven Design (DDD)** organized into distinct **Bounded Contexts**.
+
+
+  ### Primary Style: Domain-Driven Design (DDD)
+
+  The repository is structured as a multi-module Gradle project, where each top-level
+  directory (excluding `iddd_common`) represents a distinct Bounded Context:
+
+  - `iddd_agilepm`: Agile Project Management context.
+
+  - `iddd_collaboration`: Collaboration context.
+
+  - `iddd_identityaccess`: Identity and Access Management context.
+
+
+  Each module contains its own internal domain model (Aggregates, Entities, Value
+  Objects) and domain services, adhering to the principle of linguistic and conceptual
+  boundaries.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:51:48Z'
+classification_reasoning: 'This repository is the official reference implementation
+  for Vaughn Vernon''s book "Implementing Domain-Driven Design." As such, it is a
+  canonical example of **Domain-Driven Design (DDD)** organized into distinct **Bounded
+  Contexts**.
+
+
+  ### Primary Style: Domain-Driven Design (DDD)
+
+  The repository is structured as a multi-module Gradle project, where each top-level
+  directory (excluding `iddd_common`) represents a distinct Bounded Context:
+
+  - `iddd_agilepm`: Agile Project Management context.
+
+  - `iddd_collaboration`: Collaboration context.
+
+  - `iddd_identityaccess`: Identity and Access Management context.
+
+
+  Each module contains its own internal domain model (Aggregates, Entities, Value
+  Objects) and domain services, adhering to the principle of linguistic and conceptual
+  boundaries.
+
+
+  ### Secondary Style: Hexagonal Architecture (Ports and Adapters)
+
+  While not immediately obvious from the 4-level directory tree, the README and the
+  naming conventions within the subprojects confirm a Hexagonal approach. The projects
+  isolate the "Application" and "Domain" layers from technical "Infrastructure." For
+  example:
+
+  - `iddd_identityaccess` mentions a "RESTful client interface" and RabbitMQ integration,
+  which serve as adapters (Infrastructure) to the internal application core.
+
+  - The use of several persistence mechanisms (LevelDB, Hibernate, JDBC) swapped across
+  different modules demonstrates the decoupling of the core logic from external dependencies.
+
+
+  ### Secondary Style: CQRS (Command Query Responsibility Segregation)
+
+  The repository explicitly implements **CQRS** and **Event Sourcing**, particularly
+  within the `iddd_collaboration` module.
+
+  - The README notes: "The iddd_collaboration project uses Event Sourcing and CQRS."
+
+  - It details the separation of a "write model" (Event Sourced in LevelDB) and a
+  "read model" (MySQL-based query engine), a hallmark of the CQRS pattern.
+
+
+  ### Why not Microservices?
+
+  Although the projects represent separate Bounded Contexts and use distinct databases
+  (LevelDB for some, MySQL for others) and messaging (RabbitMQ), they are contained
+  within a single repository and built as a unit. While they *could* be deployed as
+  services, the structure is more aligned with a **Modular Monolith** or a collection
+  of reference architectures. However, since the internal organization strictly follows
+  DDD tactical and strategic patterns, "Domain-Driven Design" is the most accurate
+  classification.'

@@ -14,5 +14,102 @@ languages:
 - C#
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Modular Monolith
+classification_status: classified
+review_notes: 'Radarr is structured as a **Layered** architecture, which is the standard
+  pattern for the NzbDrone/Servarr family of applications. The codebase is organized
+  into distinct horizontal responsibility layers across multiple .NET projects within
+  a single solution (`Radarr.sln`).
+
+
+  ### Primary Style: Layered
+
+  The system follows a clear separation of concerns typical of tiered applications:
+
+  1.  **Presentation Layer (Frontend):** A large React/TypeScript application located
+  in the `/frontend` directory. It communicates with the backend via a REST API.
+
+  2.  **API Layer (`Radarr.Api.V3`):** Defines the external contract and handles HTTP
+  requests.
+
+  3.  **Business Logic Layer (`Radarr.Core` / `NzbDrone.Core`):** This is the heart
+  of the application, containing the "Entities" (Movies, Indexers, Download Clients)
+  and the services that coordinate them (e.g., searching, importing, renaming).
+
+  4.  **Infrastructure/Common Layer (`Radarr.Common`, `Radarr.Http`, `Radarr.SignalR`):**
+  Provides cross-cutting concerns like logging, HTTP clients, disk I/O abstractions,
+  and real-time notifications via SignalR.
+
+  5.  **Host/Bootstrapper Layer (`Radarr.Host`, `Radarr.Console`):** Responsible for
+  dependency injection (DI) setup, internal service orchestration (using a Custom
+  `ServiceFactory` or `ServiceProvider`), and starting the web server.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:08:04Z'
+classification_reasoning: 'Radarr is structured as a **Layered** architecture, which
+  is the standard pattern for the NzbDrone/Servarr family of applications. The codebase
+  is organized into distinct horizontal responsibility layers across multiple .NET
+  projects within a single solution (`Radarr.sln`).
+
+
+  ### Primary Style: Layered
+
+  The system follows a clear separation of concerns typical of tiered applications:
+
+  1.  **Presentation Layer (Frontend):** A large React/TypeScript application located
+  in the `/frontend` directory. It communicates with the backend via a REST API.
+
+  2.  **API Layer (`Radarr.Api.V3`):** Defines the external contract and handles HTTP
+  requests.
+
+  3.  **Business Logic Layer (`Radarr.Core` / `NzbDrone.Core`):** This is the heart
+  of the application, containing the "Entities" (Movies, Indexers, Download Clients)
+  and the services that coordinate them (e.g., searching, importing, renaming).
+
+  4.  **Infrastructure/Common Layer (`Radarr.Common`, `Radarr.Http`, `Radarr.SignalR`):**
+  Provides cross-cutting concerns like logging, HTTP clients, disk I/O abstractions,
+  and real-time notifications via SignalR.
+
+  5.  **Host/Bootstrapper Layer (`Radarr.Host`, `Radarr.Console`):** Responsible for
+  dependency injection (DI) setup, internal service orchestration (using a Custom
+  `ServiceFactory` or `ServiceProvider`), and starting the web server.
+
+
+  ### Secondary Style: Modular Monolith
+
+  While it is a single deployable unit (Monolith), it exhibits characteristics of
+  a **Modular Monolith**:
+
+  - **Strict Boundary Enforcement:** Using separate `.csproj` files (e.g., `Radarr.Core`,
+  `Radarr.Common`, `Radarr.Api`) ensures that the Infrastructure layer cannot accidentally
+  depend on the API layer, enforcing a unidirectional dependency flow.
+
+  - **Platform Abstraction:** The code uses a "Ports and Adapters" approach for platform-specific
+  logic. Projects like `Radarr.Mono` and `Radarr.Windows` provide implementations
+  for disk and OS operations defined by interfaces in `Radarr.Common`.
+
+  - **Internal Messaging:** The presence of `NzbDrone.SignalR` and internal command
+  execution logic suggests an event-like system for internal decoupling, although
+  it remains within a single process.
+
+
+  ### Evidence of Classification:
+
+  - **Solution Structure:** The `Radarr.sln` includes distinct logical segments (Host,
+  Platform, API, Core).
+
+  - **Dependency Flow:** The backend projects are structured such that `Host` depends
+  on `Api` and `Core`, while `Core` depends on `Common`, following classic layering
+  rules.
+
+  - **Single Unit of Deployment:** Despite multiple projects, they are compiled into
+  a single executable (Radarr.exe or binary), as evidenced by the lack of `docker-compose.yml`
+  or microservice orchestration tools in the root.
+
+  - **Testing Archetype:** The repository contains a mirrored test structure (`Radarr.Api.Test`,
+  `Radarr.Core.Test`), which is indicative of a modular maintenance strategy within
+  a monolith.'

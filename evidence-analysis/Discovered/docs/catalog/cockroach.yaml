@@ -13,5 +13,113 @@ language: Go
 languages:
 - Go
 - TypeScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Layered
+- Modular Monolith
+- Event-Driven
+classification_status: classified
+review_notes: 'CockroachDB is structured as a **Layered** architecture, specifically
+  a "Vertical Hardened Layer" approach where each layer (SQL, KV, Distribution, Replication,
+  Storage) provides a clean abstraction for the one above it. While it is a distributed
+  system at runtime, the codebase itself is organized as a **Modular Monolith**—a
+  single repository that compiles into a single binary (`cockroach`) with strictly
+  defined internal boundaries.
+
+
+  ### 1. Primary Style: Layered (Horizontal/Vertical)
+
+  The codebase follows a clear hierarchy of concerns, which is explicitly documented
+  in `pkg/sql/doc.go`. The layers are:
+
+  - **SQL Layer (`pkg/sql`):** Responsible for parsing, query planning, and execution.
+  It translates SQL ASTs into transactional Key-Value operations.
+
+  - **KV Layer (`pkg/kv`):** Handles transactional logic and "Key Addressing." It
+  provides a `DB` client (`pkg/kv/db.go`) used by the SQL layer to interact with the
+  distributed store.
+
+  - **Distribution/Replication Layer (`pkg/kv/kvserver`):** Manages the "Reachable
+  Range" of keys, Raft consensus for replication, and node-to-node communication.
+
+  - **Storage Layer (`pkg/storage`):** The bottom of the stack, providing MVCC (Multi-Version
+  Concurrency Control) on top of an engine (Pebble/RocksDB).
+
+
+  ### 2. Secondary Style: Modular Monolith'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:43:54Z'
+classification_reasoning: 'CockroachDB is structured as a **Layered** architecture,
+  specifically a "Vertical Hardened Layer" approach where each layer (SQL, KV, Distribution,
+  Replication, Storage) provides a clean abstraction for the one above it. While it
+  is a distributed system at runtime, the codebase itself is organized as a **Modular
+  Monolith**—a single repository that compiles into a single binary (`cockroach`)
+  with strictly defined internal boundaries.
+
+
+  ### 1. Primary Style: Layered (Horizontal/Vertical)
+
+  The codebase follows a clear hierarchy of concerns, which is explicitly documented
+  in `pkg/sql/doc.go`. The layers are:
+
+  - **SQL Layer (`pkg/sql`):** Responsible for parsing, query planning, and execution.
+  It translates SQL ASTs into transactional Key-Value operations.
+
+  - **KV Layer (`pkg/kv`):** Handles transactional logic and "Key Addressing." It
+  provides a `DB` client (`pkg/kv/db.go`) used by the SQL layer to interact with the
+  distributed store.
+
+  - **Distribution/Replication Layer (`pkg/kv/kvserver`):** Manages the "Reachable
+  Range" of keys, Raft consensus for replication, and node-to-node communication.
+
+  - **Storage Layer (`pkg/storage`):** The bottom of the stack, providing MVCC (Multi-Version
+  Concurrency Control) on top of an engine (Pebble/RocksDB).
+
+
+  ### 2. Secondary Style: Modular Monolith
+
+  Unlike many distributed systems that split into microservices (e.g., a separate
+  SQL-proxy service and a separate Storage service), CockroachDB modules are co-located
+  and linked into a single executable.
+
+  - **Strict Boundaries:** The `pkg/` structure shows high cohesion (e.g., `pkg/sql`,
+  `pkg/kv`, `pkg/storage`).
+
+  - **Dependency Flow:** The documentation and package structure enforce a downward
+  dependency flow (SQL -> KV -> Storage).
+
+  - **Tooling:** The use of Bazel (`BUILD.bazel` files throughout the tree) is used
+  to manage these internal module boundaries and ensure fast, incremental builds of
+  the monolithic codebase.
+
+
+  ### 3. Secondary Style: Event-Driven
+
+  While not a "Message Bus" architecture in the enterprise sense, the core replication
+  and consistency mechanism is internally event-driven.
+
+  - **Raft Consensus:** The `ConnectionClass` enum in `pkg/rpc/rpcpb/rpc.proto` shows
+  a dedicated `RAFT` connection class. The system relies on a stream of log entries
+  (events) to maintain state across the cluster.
+
+  - **Rangefeeds:** The `pkg/kv/rangefeed` and `pkg/rpc/rpcpb/rpc.proto` (`RANGEFEED`
+  class) indicate an internal architecture capable of pushing changes (events) to
+  subscribers, which is a hallmark of event-driven internal coordination.
+
+
+  ### Evidence Summary
+
+  - **Directory Layout:** The `pkg/` subdirectories (`sql`, `kv`, `storage`, `util`)
+  map directly to the architectural layers described in the documentation.
+
+  - **`pkg/sql/doc.go`:** "The sql package builds on top of this core system (provided
+  by the storage and kv packages) adding parsing, query planning and query execution."
+
+  - **`pkg/storage/doc.go`:** Describes the low-level engine interface, abstracting
+  physical storage from the higher-level transactional KV logic.
+
+  - **Unified Binary:** Despite the complexity, `pkg/cmd/cockroach` serves as the
+  primary entry point for the entire system, confirming the modular monolith deployment
+  unit.'

@@ -14,5 +14,67 @@ languages:
 - C/C++
 - Python
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Domain-Driven Design
+- Layered
+- Hexagonal Architecture
+classification_status: classified
+review_notes: "Dragonfly is structured as a high-performance **Domain-Driven Design\
+  \ (DDD)** system that leverages a **shared-nothing architecture**. The codebase\
+  \ is explicitly partitioned into bounded contexts that separate the technical \"\
+  facade\" (protocol handling) from the \"server\" (domain logic and coordination)\
+  \ and the \"core\" (high-performance primitives).\n\n### 1. Primary Style: Domain-Driven\
+  \ Design (DDD)\nThe repository is organized around the domain of \"In-Memory Data\
+  \ Storage.\" The `src/server` directory acts as the core domain layer, where business\
+  \ logic is split into \"Families\" (e.g., `src/server/set_family.cc`, `src/server/json_family.cc`,\
+  \ `src/server/hset_family.cc`). \n- **Bounded Contexts:** Each \"Family\" represents\
+  \ a Redis-compatible data type context.\n- **Engine/Sharding:** The system uses\
+  \ a \"shared-nothing\" approach where the domain is partitioned into shards (`src/server/engine_shard.h`,\
+  \ `src/server/db_slice.h`). This isn't just a technical detail; it's how the domain\
+  \ state is modeled and accessed.\n- **Transaction Management:** Logic for ensuring\
+  \ atomicity (VLL algorithm mentioned in README) is centralized in `src/server/transaction.cc`,\
+  \ serving as the domain's coordinator.\n\n### 2. Secondary Style: Layered\nDragonfly\
+  \ follows a clear vertical layering strategy within the `src/` directory:"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:46:40Z'
+classification_reasoning: "Dragonfly is structured as a high-performance **Domain-Driven\
+  \ Design (DDD)** system that leverages a **shared-nothing architecture**. The codebase\
+  \ is explicitly partitioned into bounded contexts that separate the technical \"\
+  facade\" (protocol handling) from the \"server\" (domain logic and coordination)\
+  \ and the \"core\" (high-performance primitives).\n\n### 1. Primary Style: Domain-Driven\
+  \ Design (DDD)\nThe repository is organized around the domain of \"In-Memory Data\
+  \ Storage.\" The `src/server` directory acts as the core domain layer, where business\
+  \ logic is split into \"Families\" (e.g., `src/server/set_family.cc`, `src/server/json_family.cc`,\
+  \ `src/server/hset_family.cc`). \n- **Bounded Contexts:** Each \"Family\" represents\
+  \ a Redis-compatible data type context.\n- **Engine/Sharding:** The system uses\
+  \ a \"shared-nothing\" approach where the domain is partitioned into shards (`src/server/engine_shard.h`,\
+  \ `src/server/db_slice.h`). This isn't just a technical detail; it's how the domain\
+  \ state is modeled and accessed.\n- **Transaction Management:** Logic for ensuring\
+  \ atomicity (VLL algorithm mentioned in README) is centralized in `src/server/transaction.cc`,\
+  \ serving as the domain's coordinator.\n\n### 2. Secondary Style: Layered\nDragonfly\
+  \ follows a clear vertical layering strategy within the `src/` directory:\n- **Facade\
+  \ Layer (`src/facade/`):** This is the entry point. It handles networking and protocol\
+  \ parsing (RESP for Redis, Memcached). It transforms external byte streams into\
+  \ \"Commands\" (`src/facade/parsed_command.h`) without knowing how they are executed.\n\
+  - **Service/Server Layer (`src/server/`):** This layer receives parsed commands\
+  \ from the facade. It handles the orchestration of execution across shards and manages\
+  \ the lifecycle of the data store (snapshots, replication).\n- **Core Layer (`src/core/`):**\
+  \ This contains the specialized data structures and algorithmic implementations\
+  \ (e.g., `src/core/dash.h`, `src/core/bloom.cc`, `src/core/string_map.h`). These\
+  \ are the building blocks used by the Server layer.\n\n### 3. Secondary Style: Hexagonal\
+  \ Architecture (Ports and Adapters)\nThe interaction between the `facade` and the\
+  \ `server` implements a Hexagonal pattern:\n- **Ports:** `src/facade/service_interface.h`\
+  \ defines the interface that the storage engine must implement to be satisfy the\
+  \ facade.\n- **Adapters:** The Facade layer itself is a multi-protocol adapter.\
+  \ It allows the core engine to support both Redis and Memcached simultaneously by\
+  \ translating protocol-specific requests into a common execution path within the\
+  \ Server layer.\n\n### Architectural Nuance: Shared-Nothing (via Helio)\nWhile \"\
+  Shared-Nothing\" is often a deployment pattern (cluster), here it is an internal\
+  \ **Software Architecture** pattern. The code enforces strict thread-to-shard affinity.\
+  \ The `helio` library (referenced in the tree and README) provides the underlying\
+  \ fiber/sharding framework, ensuring that `src/server/engine_shard.cc` only operates\
+  \ on data owned by that specific thread, eliminating the need for traditional mutexes\
+  \ across the codebase."

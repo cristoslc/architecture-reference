@@ -14,5 +14,108 @@ languages:
 - TypeScript
 - JavaScript
 - Python
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Event-Driven
+- Domain-Driven Design
+classification_status: classified
+review_notes: 'The Twenty CRM repository is structured as a **Modular Monolith** within
+  an Nx monorepo. While it uses a monorepo structure, the core business logic and
+  API reside almost entirely within a single deployable backend unit (`packages/twenty-server`).
+
+
+  ### 1. Modular Monolith (Primary Style)
+
+  The backend (`twenty-server`) uses NestJS to enforce structural boundaries. Evidence
+  includes:
+
+  - **Centralized API**: Most business logic is concentrated in `packages/twenty-server`,
+  which houses the NestJS application. This is not a microservices architecture because
+  the services (note, connected-account, etc.) are compiled and run as part of a single
+  unified server process.
+
+  - **Internal Module Encapsulation**: The file structure inside `packages/twenty-server/src/modules/`
+  (e.g., `connected-account`, `note`) follows a pattern where each domain has its
+  own `.module.ts`, services, and entities. This allows for clear separation of concerns
+  while maintaining a single deployment unit.
+
+  - **Shared Infrastructure**: The presence of `packages/twenty-shared` and `packages/twenty-ui`
+  indicates a "platform" approach where multiple frontend/backend components share
+  logic and types, typical of a modular monolith that might eventually split into
+  services but currently remains unified.
+
+
+  ### 2. Event-Driven (Secondary Style)
+
+  The architecture incorporates asynchronous, decoupled communication:'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:14:13Z'
+classification_reasoning: 'The Twenty CRM repository is structured as a **Modular
+  Monolith** within an Nx monorepo. While it uses a monorepo structure, the core business
+  logic and API reside almost entirely within a single deployable backend unit (`packages/twenty-server`).
+
+
+  ### 1. Modular Monolith (Primary Style)
+
+  The backend (`twenty-server`) uses NestJS to enforce structural boundaries. Evidence
+  includes:
+
+  - **Centralized API**: Most business logic is concentrated in `packages/twenty-server`,
+  which houses the NestJS application. This is not a microservices architecture because
+  the services (note, connected-account, etc.) are compiled and run as part of a single
+  unified server process.
+
+  - **Internal Module Encapsulation**: The file structure inside `packages/twenty-server/src/modules/`
+  (e.g., `connected-account`, `note`) follows a pattern where each domain has its
+  own `.module.ts`, services, and entities. This allows for clear separation of concerns
+  while maintaining a single deployment unit.
+
+  - **Shared Infrastructure**: The presence of `packages/twenty-shared` and `packages/twenty-ui`
+  indicates a "platform" approach where multiple frontend/backend components share
+  logic and types, typical of a modular monolith that might eventually split into
+  services but currently remains unified.
+
+
+  ### 2. Event-Driven (Secondary Style)
+
+  The architecture incorporates asynchronous, decoupled communication:
+
+  - **Queue Workers**: The stack explicitly mentions **BullMQ** and **Redis**. The
+  presence of `packages/twenty-server/src/queue-worker/queue-worker.module.ts` indicates
+  that heavy tasks or background processes are handled via message queues rather than
+  synchronous requests.
+
+  - **Workflow Triggers**: The README highlights "Automate workflow with triggers
+  and actions," suggesting an internal event bus or pub/sub mechanism is used to react
+  to state changes in the CRM.
+
+
+  ### 3. Domain-Driven Design (Secondary Style)
+
+  The codebase shows strong alignment with DDD principles:
+
+  - **Bounded Contexts**: The directory structure under `packages/twenty-server/src/modules/`
+  reflects business domains (Accounts, Notes, Permissions) rather than technical layers
+  (Controllers vs. Models).
+
+  - **Core Engine vs. Domain**: The import in `clickHouse.module.ts` from `src/engine/core-modules/`
+  suggests a clear distinction between the "Engine" (infrastructure/framework logic)
+  and the "Feature Modules" (domain-specific logic).
+
+  - **Rich Data Modeling**: The use of TypeORM entities alongside specialized DTOs
+  across the various modules supports a domain-centric approach.
+
+
+  ### Rejected Styles
+
+  - **Microservices**: Although it is an Nx monorepo, the deployment pattern is centered
+  around one primary API server (`twenty-server`) and one frontend (`twenty-front`),
+  supported by a worker. It lacks the independent deployability and decentralized
+  data ownership of true microservices.
+
+  - **Layered**: While it uses some horizontal layering (service, entity, dto), the
+  primary organization is vertical (by module/feature), making "Modular Monolith"
+  a more accurate descriptor.'

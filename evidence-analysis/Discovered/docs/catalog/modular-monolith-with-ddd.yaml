@@ -12,5 +12,63 @@ domain: Conference Management
 language: C#
 languages:
 - C#
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Domain-Driven Design
+- CQRS
+- Event-Driven
+classification_status: classified
+review_notes: "The repository is an explicit reference implementation of a **Modular\
+  \ Monolith** using **Domain-Driven Design (DDD)**. The architecture is intentionally\
+  \ designed to demonstrate how to maintain strict boundaries within a single deployment\
+  \ unit (the .NET API).\n\n### Architecture Breakdown\n\n**1. Modular Monolith (Primary\
+  \ Style)**\nThe system is divided into high-level vertical slices (Modules) located\
+  \ in `src/Modules/`. Each module (e.g., `Payments`, `Meetings`, `Administration`)\
+  \ contains its own logic, data access, and domain models. \n*   **Encapsulation:**\
+  \ As per Architecture Decision Record (ADR) `0016`, each module has its own Inversion\
+  \ of Control (IoC) container, preventing accidental leakage of dependencies between\
+  \ modules.\n*   **Public Interface:** ADR `0006` specifies the use of a Facade between\
+  \ the API and each Business Module, ensuring that the API only interacts with a\
+  \ well-defined contract.\n\n**2. Domain-Driven Design (DDD)**"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 1.0
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:01:52Z'
+classification_reasoning: "The repository is an explicit reference implementation\
+  \ of a **Modular Monolith** using **Domain-Driven Design (DDD)**. The architecture\
+  \ is intentionally designed to demonstrate how to maintain strict boundaries within\
+  \ a single deployment unit (the .NET API).\n\n### Architecture Breakdown\n\n**1.\
+  \ Modular Monolith (Primary Style)**\nThe system is divided into high-level vertical\
+  \ slices (Modules) located in `src/Modules/`. Each module (e.g., `Payments`, `Meetings`,\
+  \ `Administration`) contains its own logic, data access, and domain models. \n*\
+  \   **Encapsulation:** As per Architecture Decision Record (ADR) `0016`, each module\
+  \ has its own Inversion of Control (IoC) container, preventing accidental leakage\
+  \ of dependencies between modules.\n*   **Public Interface:** ADR `0006` specifies\
+  \ the use of a Facade between the API and each Business Module, ensuring that the\
+  \ API only interacts with a well-defined contract.\n\n**2. Domain-Driven Design\
+  \ (DDD)**\nThe repository heavily utilizes tactical DDD patterns. Each module is\
+  \ further divided into:\n*   `Domain`: Containing `Aggregates`, `Entities`, `Value\
+  \ Objects`, and `Domain Events` (e.g., `src/Modules/Meetings/Domain`).\n*   `Application`:\
+  \ Containing Command/Query handlers and application services.\n*   `Infrastructure`:\
+  \ Handling persistence and external integrations.\n\n**3. CQRS (Command Query Responsibility\
+  \ Segregation)**\nAs evidenced by ADR `0007` and the directory structure (e.g.,\
+  \ `src/BuildingBlocks/Application/Queries` and `src/BuildingBlocks/Application/Commands`\
+  \ found in documentation), the system separates read and write operations. ADR `0009`\
+  \ specifies a \"2-layered architectural style for reads\" (likely direct SQL via\
+  \ Dapper), while ADR `0010` specifies \"Clean Architecture for writes.\"\n\n**4.\
+  \ Event-Driven**\nWhile the system is a monolith, the modules communicate asynchronously\
+  \ to maintain decoupling. \n*   **Integration Events:** Found in `src/Modules/*/IntegrationEvents/`,\
+  \ these events allow one module to react to changes in another without direct coupling.\n\
+  *   **Implementation:** ADR `0014` confirms event-driven communication, and ADR\
+  \ `0015` specifies an in-memory event bus, demonstrating that while the transport\
+  \ is internal, the architectural pattern is event-driven.\n*   **Outbox Pattern:**\
+  \ The presence of `src/BuildingBlocks/Infrastructure/Outbox` and `Inbox` indicates\
+  \ a robust implementation of eventual consistency and reliable event delivery between\
+  \ modules.\n\n### Evidence Cites\n*   **ADRs:** `docs/architecture-decision-log/`\
+  \ contains the explicit rationale for these styles.\n*   **Module Structure:** `src/Modules/Meetings/`\
+  \ contains `Domain`, `Infrastructure`, `Application`, and `IntegrationEvents` sub-directories.\n\
+  *   **Foundation:** `src/BuildingBlocks/` provides common abstractions for `IAggregateRoot`,\
+  \ `IDomainEvent`, and `IUnitOfWork`, enforcing the DDD and CQRS patterns across\
+  \ all modules.\n*   **API:** `src/API/CompanyName.MyMeetings.API/Modules` likely\
+  \ contains the registration logic that bootstraps each independent module."

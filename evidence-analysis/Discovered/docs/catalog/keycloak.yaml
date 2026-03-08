@@ -14,5 +14,78 @@ languages:
 - Java/Kotlin
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+- Hexagonal Architecture
+classification_status: classified
+review_notes: 'Keycloak is a classic example of a **Microkernel (Plugin)** architecture.
+  While it is delivered as a single deployable unit (typically via the Quarkus distribution
+  found in `./quarkus`), its entire internal design centers around a "Service Provider
+  Interface" (SPI) model.
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The core of Keycloak is a minimal "kernel" that defines how to load, configure,
+  and manage the lifecycle of various components.
+
+  - **Evidence:** The presence of `./server-spi` and `./server-spi-private` at the
+  root level indicates that the system''s contract (the SPIs) is decoupled from the
+  implementations.
+
+  - **Extension Points:** Keycloak is famous for its extensibility. Almost every internal
+  function—authentication flows, database persistence (JPA/NoSQL), user federation
+  (LDAP/Active Directory), and even protocol handling (SAML/OIDC)—is implemented as
+  a "Provider" that plugs into the defined SPIs.
+
+  - **Runtime Discovery:** It uses Java’s `ServiceLoader` mechanism or its own custom
+  provider factory to discover and load JARs at runtime, allowing users to drop custom
+  logic into the `/providers` directory without altering the core codebase.
+
+
+  ### 2. Secondary Style: Modular Monolith
+
+  Despite its extensibility, the repository is managed and deployed as a **Modular
+  Monolith**.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:53:32Z'
+classification_reasoning: "Keycloak is a classic example of a **Microkernel (Plugin)**\
+  \ architecture. While it is delivered as a single deployable unit (typically via\
+  \ the Quarkus distribution found in `./quarkus`), its entire internal design centers\
+  \ around a \"Service Provider Interface\" (SPI) model.\n\n### 1. Primary Style:\
+  \ Microkernel (Plugin)\nThe core of Keycloak is a minimal \"kernel\" that defines\
+  \ how to load, configure, and manage the lifecycle of various components.\n- **Evidence:**\
+  \ The presence of `./server-spi` and `./server-spi-private` at the root level indicates\
+  \ that the system's contract (the SPIs) is decoupled from the implementations.\n\
+  - **Extension Points:** Keycloak is famous for its extensibility. Almost every internal\
+  \ function—authentication flows, database persistence (JPA/NoSQL), user federation\
+  \ (LDAP/Active Directory), and even protocol handling (SAML/OIDC)—is implemented\
+  \ as a \"Provider\" that plugs into the defined SPIs.\n- **Runtime Discovery:**\
+  \ It uses Java’s `ServiceLoader` mechanism or its own custom provider factory to\
+  \ discover and load JARs at runtime, allowing users to drop custom logic into the\
+  \ `/providers` directory without altering the core codebase.\n\n### 2. Secondary\
+  \ Style: Modular Monolith\nDespite its extensibility, the repository is managed\
+  \ and deployed as a **Modular Monolith**.\n- **Evidence:** The top-level `pom.xml`\
+  \ and the rigid structure of modules like `./core`, `./crypto`, `./services`, and\
+  \ `./server-spi` show a strictly organized Maven multi-module project.\n- **Enforcement:**\
+  \ Boundaries are enforced through Maven dependency management. For example, `./core`\
+  \ contains shared models used by both the client and server, while `./services`\
+  \ contains the business logic that should not be directly leaked into the SPI definitions.\n\
+  - **Deployment:** The `./quarkus` directory (specifically `./quarkus/server`) represents\
+  \ the primary assembly point. It packages the various modules into a single optimized\
+  \ runtime. \n\n### 3. Secondary Style: Hexagonal Architecture\nKeycloak exhibits\
+  \ strong **Hexagonal (Ports and Adapters)** characteristics to maintain its vendor-neutral\
+  \ and protocol-neutral stance.\n- **Ports:** The `./server-spi` defines the \"Ports\"\
+  —interfaces for persistence, mailing, and identity brokering.\n- **Adapters:** The\
+  \ implementations found in various sub-modules (like `./crypto/default` vs `./crypto/fips1402`,\
+  \ or the different database drivers managed via Quarkus) act as \"Adapters.\" This\
+  \ allows the core identity logic to remain agnostic of the specific database, crypto\
+  \ library, or theme engine being used.\n\n### Rejection of Microservices\nWhile\
+  \ Keycloak is often *used* within a microservices ecosystem, its internal code structure\
+  \ is NOT a microservices architecture. It does not consist of multiple independently\
+  \ deployable networked services; instead, it is a single engine where \"services\"\
+  \ are internal Java components, even if they are logically isolated behind SPIs."

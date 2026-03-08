@@ -15,5 +15,96 @@ languages:
 - TypeScript
 - Java/Kotlin
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Hexagonal Architecture
+classification_status: classified
+review_notes: 'The Gitpod repository is a classic example of a **Microservices** architecture
+  managed within a monorepo. The system is decomposed into dozens of functional, independently
+  deployable units located under the `components/` directory.
+
+
+  ### Evidence of Microservices
+
+  1. **Service Decomposition**: The `components/` list includes specialized services
+  such as `ws-manager` (workspace lifecycle), `content-service` (storage), `image-builder`
+  (environment provisioning), `server` (business logic/orchestration), and `proxy`.
+
+  2. **Independent Entry Points**: The `main.go` glob results confirm that multiple
+  components maintain their own executable entry points (e.g., `components/public-api-server/main.go`,
+  `components/usage/main.go`, `components/image-builder-bob/main.go`).
+
+  3. **Internal Communication**: The code in `components/ide/code/codehelper/main.go`
+  demonstrates inter-service communication using **gRPC** (e.g., `supervisor.NewStatusServiceClient(supervisorConn)`),
+  which is a hallmark of microservices rather than a simple modular monolith.
+
+  4. **Polyglot Tendencies**: The presence of both `go.mod` files and `package.json`
+  files throughout different components indicates that services are built with the
+  most appropriate runtime for their task.
+
+  5. **Deployment Logic**: The `install/installer` and `install/preview` directories
+  contain logic for rendering Kubernetes manifests, treating the system as a distributed
+  collection of containers.
+
+
+  ### Evidence of Hexagonal Architecture (Secondary)'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:50:21Z'
+classification_reasoning: 'The Gitpod repository is a classic example of a **Microservices**
+  architecture managed within a monorepo. The system is decomposed into dozens of
+  functional, independently deployable units located under the `components/` directory.
+
+
+  ### Evidence of Microservices
+
+  1. **Service Decomposition**: The `components/` list includes specialized services
+  such as `ws-manager` (workspace lifecycle), `content-service` (storage), `image-builder`
+  (environment provisioning), `server` (business logic/orchestration), and `proxy`.
+
+  2. **Independent Entry Points**: The `main.go` glob results confirm that multiple
+  components maintain their own executable entry points (e.g., `components/public-api-server/main.go`,
+  `components/usage/main.go`, `components/image-builder-bob/main.go`).
+
+  3. **Internal Communication**: The code in `components/ide/code/codehelper/main.go`
+  demonstrates inter-service communication using **gRPC** (e.g., `supervisor.NewStatusServiceClient(supervisorConn)`),
+  which is a hallmark of microservices rather than a simple modular monolith.
+
+  4. **Polyglot Tendencies**: The presence of both `go.mod` files and `package.json`
+  files throughout different components indicates that services are built with the
+  most appropriate runtime for their task.
+
+  5. **Deployment Logic**: The `install/installer` and `install/preview` directories
+  contain logic for rendering Kubernetes manifests, treating the system as a distributed
+  collection of containers.
+
+
+  ### Evidence of Hexagonal Architecture (Secondary)
+
+  The repository consistently distinguishes between core logic and external interfaces:
+
+  - **Separation of API and Implementation**: The existence of sibling directories
+  like `content-service` / `content-service-api` and `ws-manager-bridge` / `ws-manager-bridge-api`
+  suggests a strict "Ports and Adapters" approach. The `*-api` components define the
+  "Ports" (Protobuf definitions and generated clients), while the main component provides
+  the "Adapter" (the service implementation).
+
+  - **Common Logic**: The `common-go` and `gitpod-protocol` components act as shared
+  kernels/libraries that enforce standardized communication across the bounded contexts.
+
+
+  ### Rejected Styles
+
+  - **Modular Monolith**: While it is a monorepo, the runtime behavior is distributed.
+  High-performance requirements for workspace management and the use of gRPC for nearly
+  all internal communication clarify that these are not just in-process modules.
+
+  - **Service-Based**: With over 40 distinct components and sophisticated orchestration,
+  this exceeds the "coarse-grained" definition of a service-based architecture and
+  enters full microservices territory.
+
+  - **Microkernel (Plugin)**: While Gitpod *supports* plugins (like VS Code extensions),
+  the architecture of Gitpod itself is defined by the coordination of autonomous services,
+  not a single core with hot-swappable logic modules.'

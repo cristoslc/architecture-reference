@@ -13,5 +13,106 @@ language: Ruby
 languages:
 - Ruby
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Layered
+classification_status: classified
+review_notes: 'Solidus is structured as a **Modular Monolith** organized through a
+  multi-gem workspace. While it is built on Ruby on Rails (which dictates a **Layered**
+  internal structure for each module), the high-level organization is defined by the
+  separation of the system into distinct, semi-autonomous engines that work together
+  within a single deployable context.
+
+
+  ### Evidence of Modular Monolith
+
+  The repository is split into several top-level directories, each functioning as
+  an autonomous Ruby gem (Engine):
+
+  - `/core`: Contains the essential domain models (`spree_core`), business logic,
+  and migrations. It serves as the "kernel" of the system.
+
+  - `/api`: (Referenced in README) Provides the RESTful interface.
+
+  - `/admin` & `/backend`: Provide administrative interfaces.
+
+  - `/legacy_promotions`: A feature-specific module separated from the core to manage
+  technical debt and specific domain logic.
+
+
+  These are not **Microservices** because they are designed to run within the same
+  process, share a common database schema (seen in the shared `db/migrate` patterns
+  across modules), and are typically required together in a single `Gemfile` to produce
+  one Rails application. The README explicitly states: *"When you require the solidus
+  gem... Bundler will install all of the following gems... All of the gems are designed
+  to work together."*'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:11:12Z'
+classification_reasoning: 'Solidus is structured as a **Modular Monolith** organized
+  through a multi-gem workspace. While it is built on Ruby on Rails (which dictates
+  a **Layered** internal structure for each module), the high-level organization is
+  defined by the separation of the system into distinct, semi-autonomous engines that
+  work together within a single deployable context.
+
+
+  ### Evidence of Modular Monolith
+
+  The repository is split into several top-level directories, each functioning as
+  an autonomous Ruby gem (Engine):
+
+  - `/core`: Contains the essential domain models (`spree_core`), business logic,
+  and migrations. It serves as the "kernel" of the system.
+
+  - `/api`: (Referenced in README) Provides the RESTful interface.
+
+  - `/admin` & `/backend`: Provide administrative interfaces.
+
+  - `/legacy_promotions`: A feature-specific module separated from the core to manage
+  technical debt and specific domain logic.
+
+
+  These are not **Microservices** because they are designed to run within the same
+  process, share a common database schema (seen in the shared `db/migrate` patterns
+  across modules), and are typically required together in a single `Gemfile` to produce
+  one Rails application. The README explicitly states: *"When you require the solidus
+  gem... Bundler will install all of the following gems... All of the gems are designed
+  to work together."*
+
+
+  ### Internal Layering
+
+  Within each module (e.g., `/core/app` or `/legacy_promotions/app`), the project
+  follows standard Rails horizontal layering:
+
+  - **Models**: Business logic and data persistence (`core/app/models/spree`).
+
+  - **Controllers/API**: Interface layers.
+
+  - **Subscribers**: Found in `core/app/subscribers`, indicating an internal pub/sub
+  mechanism (often via `Spree::Bus` mentioned in `core/lib/spree/bus.rb`), which allows
+  modules to communicate without tight coupling.
+
+
+  ### Plugin/Extension Capabilities
+
+  While not a pure **Microkernel** architecture in its primary distribution, Solidus
+  heavily utilizes a "Hooks and Overrides" pattern (common in Spree forks) where the
+  core is designed to be extended by third-party "extensions" (external gems). However,
+  within this specific repository''s structure, the "Modular Monolith" description
+  is the most accurate representation of how the code is organized for development
+  and distribution.
+
+
+  ### Rejection of Microservices
+
+  - **Shared Database:** Modules share the same database and migrations are distributed
+  across them.
+
+  - **Deployment:** The platform is deployed as a single unit (a Rails app), not as
+  independent services.
+
+  - **In-process calls:** Communication between components happens via direct Ruby
+  method calls or internal event buses rather than network-bound RPC/REST.'

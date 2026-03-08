@@ -14,5 +14,96 @@ languages:
 - Rust
 - TypeScript
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Modular Monolith
+- Layered
+- Event-Driven
+classification_status: classified
+review_notes: '### Analysis
+
+  Lemmy is structured as a **Modular Monolith** organized within a Rust Cargo workspace.
+  While the system serves a decentralized domain (the Fediverse), the codebase itself
+  is a single logical application partitioned into dozens of internal crates to enforce
+  boundary separation.
+
+
+  #### 1. Internal Boundaries (Modular Monolith)
+
+  The `Cargo.toml` workspace configuration reveals a highly granular modular structure.
+  Instead of a flat `src` directory, the project is split into specialized crates
+  under `crates/`:
+
+  - **Data Access Layer:** `crates/db_schema`, `crates/db_views/*`, and `crates/diesel_utils`.
+
+  - **API and Routing:** `crates/api/*` (subdivided into `api_crud`, `api_utils`,
+  etc.) and `crates/routes`.
+
+  - **Protocol/Domain Logic:** `crates/apub` (ActivityPub implementation) and `crates/email`.
+
+  - **Core Server:** `crates/server`.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.9
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:55:25Z'
+classification_reasoning: '### Analysis
+
+  Lemmy is structured as a **Modular Monolith** organized within a Rust Cargo workspace.
+  While the system serves a decentralized domain (the Fediverse), the codebase itself
+  is a single logical application partitioned into dozens of internal crates to enforce
+  boundary separation.
+
+
+  #### 1. Internal Boundaries (Modular Monolith)
+
+  The `Cargo.toml` workspace configuration reveals a highly granular modular structure.
+  Instead of a flat `src` directory, the project is split into specialized crates
+  under `crates/`:
+
+  - **Data Access Layer:** `crates/db_schema`, `crates/db_views/*`, and `crates/diesel_utils`.
+
+  - **API and Routing:** `crates/api/*` (subdivided into `api_crud`, `api_utils`,
+  etc.) and `crates/routes`.
+
+  - **Protocol/Domain Logic:** `crates/apub` (ActivityPub implementation) and `crates/email`.
+
+  - **Core Server:** `crates/server`.
+
+
+  This structure allows the team to enforce dependency rules (e.g., ensuring `db_schema`
+  does not depend on `api`) while still deploying as a single process.
+
+
+  #### 2. Horizontal Layering (Secondary: Layered)
+
+  Within the modular structure, the repository follows a strict horizontal layering
+  pattern common in Rust/Actix/Diesel applications:
+
+  - **Presentation/Entry:** `crates/api` and `crates/routes` handle HTTP concerns
+  and JSON serialization.
+
+  - **Business Logic:** `crates/apub` and `crates/server` contain the core federation
+  and forum logic.
+
+  - **Persistence:** High reliance on `crates/db_views` and `crates/db_schema` using
+  the Diesel ORM.
+
+
+  #### 3. Activity/Communication (Secondary: Event-Driven)
+
+  While not a distributed event-driven system like a Kafka-based microservices architecture,
+  Lemmy uses an internal event-driven approach for Federation. The existence of `crates/apub/activities`
+  and `migrations` referencing a `persistent-activity-queue` and `federation_worker`
+  indicates an asynchronous, message-based processing model for outgoing and incoming
+  ActivityPub activities (Federation). This is essentially a "worker" pattern within
+  the monolith to handle non-blocking side effects.
+
+
+  #### Why not Microservices?
+
+  Although there are many "crates," they are compiled into a single binary (`lemmy_server`).
+  The repository lacks independent deployment manifests (like K8s service specs per
+  crate) or distinct Dockerfiles for different logic components. The "services" described
+  in the README (like image hosting or UI) are hosted in separate repositories (`lemmy-ui`,
+  `pictrs`), making this specific repository the monolithic backend of a wider distributed
+  system.'

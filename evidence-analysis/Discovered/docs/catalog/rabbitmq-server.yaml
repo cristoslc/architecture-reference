@@ -14,5 +14,106 @@ languages:
 - JavaScript
 - Python
 - Java/Kotlin
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microkernel (Plugin)
+- Modular Monolith
+classification_status: classified
+review_notes: 'The RabbitMQ Server repository is a classic exemplar of the **Microkernel
+  (Plugin)** architecture style, implemented via a **Modular Monolith** build and
+  deployment pattern.
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The core system (the "Microkernel") provides the essential broker services (queueing,
+  exchange logic, and nodal distribution), while virtually all extended functionality—including
+  different messaging protocols (MQTT, STOMP, AMQP 1.0), authentication backends,
+  and management interfaces—is implemented as pluggable modules.
+
+
+  **Evidence:**
+
+  - **Plugin Infrastructure:** The `Makefile` explicitly manages a list of plugins
+  (`include plugins.mk`) and provides variables for `ADDITIONAL_PLUGINS` and `COMMUNITY_PLUGINS`.
+
+  - **Dynamic Loading:** The `enabled_plugins` file (found in several test directories)
+  demonstrates how the system''s capabilities are composed at runtime. The contents
+  show that core protocols like `rabbitmq_mqtt`, `rabbitmq_stomp`, and `rabbitmq_amqp1_0`
+  are treated as plugins rather than hard-coded features.
+
+  - **Contract-Based Extension:** The repository structure relies on Erlang applications
+  as the unit of extension. Each plugin is an independent Erlang application that
+  adheres to specific behaviors (e.g., `rabbit_auth_backend` behavior) expected by
+  the core broker.'
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T07:07:53Z'
+classification_reasoning: 'The RabbitMQ Server repository is a classic exemplar of
+  the **Microkernel (Plugin)** architecture style, implemented via a **Modular Monolith**
+  build and deployment pattern.
+
+
+  ### 1. Primary Style: Microkernel (Plugin)
+
+  The core system (the "Microkernel") provides the essential broker services (queueing,
+  exchange logic, and nodal distribution), while virtually all extended functionality—including
+  different messaging protocols (MQTT, STOMP, AMQP 1.0), authentication backends,
+  and management interfaces—is implemented as pluggable modules.
+
+
+  **Evidence:**
+
+  - **Plugin Infrastructure:** The `Makefile` explicitly manages a list of plugins
+  (`include plugins.mk`) and provides variables for `ADDITIONAL_PLUGINS` and `COMMUNITY_PLUGINS`.
+
+  - **Dynamic Loading:** The `enabled_plugins` file (found in several test directories)
+  demonstrates how the system''s capabilities are composed at runtime. The contents
+  show that core protocols like `rabbitmq_mqtt`, `rabbitmq_stomp`, and `rabbitmq_amqp1_0`
+  are treated as plugins rather than hard-coded features.
+
+  - **Contract-Based Extension:** The repository structure relies on Erlang applications
+  as the unit of extension. Each plugin is an independent Erlang application that
+  adheres to specific behaviors (e.g., `rabbit_auth_backend` behavior) expected by
+  the core broker.
+
+
+  ### 2. Secondary Style: Modular Monolith
+
+  While the system is highly pluggable, it is developed as a "Source Monolith" where
+  all first-party plugins and the core broker code are managed in a unified lifecycle
+  and typically deployed as a single unit (the RabbitMQ release).
+
+
+  **Evidence:**
+
+  - **Unified Build System:** The top-level `Makefile` uses `erlang.mk` to orchestrate
+  the compilation of dozens of separate dependencies (apps) located in the `deps/`
+  directory (referenced in the `create_dist_target` definition).
+
+  - **Enforced Boundaries:** Each directory in `deps/` represents a strictly bounded
+  Erlang application with its own `.app.src` file, meaning dependencies between modules
+  are explicitly declared in application resource files rather than through global
+  namespace access.
+
+  - **Single Deployment Unit:** The `package-generic-unix` and `docker-image` targets
+  bundle the core broker (`rabbit`) and its selected plugins into a single directory
+  structure for distribution, emphasizing that this is not a distributed microservices
+  system internally, but a modular single system.
+
+
+  ### Why not other styles?
+
+  - **Not Microservices:** Although the library of plugins is vast, these plugins
+  run within the same Erlang Virtual Machine (BEAM) process and share the same memory
+  space. They are not independently deployable services communicating over the network.
+
+  - **Not Event-Driven (Internal Architecture):** While RabbitMQ *is* an event broker,
+  its internal organization is defined by the Erlang/OTP Supervision Tree and application
+  modularity, rather than being internally organized around an event bus for its own
+  control plane logic.
+
+  - **Not Layered:** RabbitMQ avoids traditional horizontal layering (UI -> Service
+  -> DB) in favor of a vertical, functional modularity where each protocol or feature
+  is a self-contained vertical slice.'

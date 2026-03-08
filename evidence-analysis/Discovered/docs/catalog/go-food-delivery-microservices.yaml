@@ -13,5 +13,59 @@ language: Go
 languages:
 - Go
 - JavaScript
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Microservices
+- Event-Driven
+- Domain-Driven Design
+- CQRS
+classification_status: classified
+review_notes: "The repository is a textbook implementation of a **Microservices**\
+  \ architecture, explicitly designed as an exemplar of modern distributed systems.\
+  \ \n\n### Architecture Breakdown\n\n1.  **Microservices (Primary Style):**\n   \
+  \ *   **Independent Deployability:** The project contains multiple distinct services\
+  \ under `internal/services/` (`catalogwriteservice`, `catalogreadservice`, and `orderservice`).\
+  \ Each service has its own `Dockerfile`, `go.mod`, `config/`, and `Makefile`, allowing\
+  \ them to be built and deployed independently.\n    *   **Data Sovereignty:** The\
+  \ services utilize different database technologies (Postgres for writes, MongoDB/ElasticSearch\
+  \ for reads, and EventStoreDB for sourcing), aligning with the microservices principle\
+  \ of using the \"right tool for the job.\"\n    *   **Inter-Service Communication:**\
+  \ The system uses gRPC for synchronous real-time communication and RabbitMQ for\
+  \ asynchronous messaging.\n\n2.  **Event-Driven (Secondary Style):**"
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:50:52Z'
+classification_reasoning: "The repository is a textbook implementation of a **Microservices**\
+  \ architecture, explicitly designed as an exemplar of modern distributed systems.\
+  \ \n\n### Architecture Breakdown\n\n1.  **Microservices (Primary Style):**\n   \
+  \ *   **Independent Deployability:** The project contains multiple distinct services\
+  \ under `internal/services/` (`catalogwriteservice`, `catalogreadservice`, and `orderservice`).\
+  \ Each service has its own `Dockerfile`, `go.mod`, `config/`, and `Makefile`, allowing\
+  \ them to be built and deployed independently.\n    *   **Data Sovereignty:** The\
+  \ services utilize different database technologies (Postgres for writes, MongoDB/ElasticSearch\
+  \ for reads, and EventStoreDB for sourcing), aligning with the microservices principle\
+  \ of using the \"right tool for the job.\"\n    *   **Inter-Service Communication:**\
+  \ The system uses gRPC for synchronous real-time communication and RabbitMQ for\
+  \ asynchronous messaging.\n\n2.  **Event-Driven (Secondary Style):**\n    *   The\
+  \ architecture heavily relies on an asynchronous messaging bus (located in `internal/pkg/rabbitmq`\
+  \ and `internal/pkg/core/messaging`).\n    *   It implements **Event Sourcing**\
+  \ (using EventStoreDB) and the **Outbox/Inbox Patterns** for guaranteed message\
+  \ delivery, which are hallmark patterns of robust event-driven systems.\n\n3.  **Domain-Driven\
+  \ Design (Secondary Style):**\n    *   The README and directory structure (e.g.,\
+  \ `internal/pkg/core/domain`) confirm the use of DDD.\n    *   It organizes code\
+  \ around **Bounded Contexts** (Catalogs, Orders) and uses DDD tactical patterns\
+  \ like Aggregates and Value Objects.\n\n4.  **CQRS (Secondary Style):**\n    * \
+  \  The project explicitly separates read and write concerns. The `catalogwriteservice`\
+  \ handles commands and state changes, while `catalogreadservice` handles queries.\n\
+  \    *   It uses the **Mediator pattern** (via `Go-MediatR`) to decouple the delivery\
+  \ mechanism (REST/gRPC) from the business logic handlers.\n\n### Structural Evidence\n\
+  *   **Encapsulation:** Common logic is extracted into a shared library (`internal/pkg`),\
+  \ while service-specific logic is strictly contained within each service's folder\
+  \ using a **Vertical Slice Architecture**. This minimizes horizontal coupling between\
+  \ layers and maximizes cohesion within a feature.\n*   **Dependency Injection:**\
+  \ Uses `uber-go/fx` across all services to manage component lifecycles and dependencies,\
+  \ which facilitates the modularity required for both microservices and clean code\
+  \ within each slice.\n*   **Deployment Units:** Each service directory includes\
+  \ a `cmd` folder and a `Dockerfile`, marking the entry point and deployment container\
+  \ for that specific microservice."

@@ -12,5 +12,54 @@ domain: Developer Tools
 language: Go
 languages:
 - Go
-architecture_styles: []
-classification_status: pending
+architecture_styles:
+- Hexagonal Architecture
+- Layered
+classification_status: classified
+review_notes: "This repository is a textbook implementation of **Hexagonal Architecture**\
+  \ (also known as Ports and Adapters), specifically following the \"Clean Architecture\"\
+  \ flavor popularized by Robert C. Martin. \n\n### Evidence of Hexagonal Architecture:\n\
+  1.  **Dependency Rule**: The directory structure is organized into concentric layers.\
+  \ The `domain/` directory (the core) contains only interfaces and data structures\
+  \ (e.g., `domain/user.go`, `domain/task.go`), which act as the \"Ports.\"\n2.  **Decoupled\
+  \ Adapters**:\n    *   **Driving Adapters**: Found in `api/controller/` and `api/route/`.\
+  \ These handle the delivery mechanism (Gin/HTTP) and depend on the core Usecases.\n\
+  \    *   **Driven Adapters**: Found in `repository/` and `mongo/`. These handle\
+  \ data persistence and infrastructure details, implementing the interfaces defined\
+  \ in the `domain/` layer.\n3.  **Dependency Inversion**: High-level modules (Usecases)\
+  \ do not depend on low-level modules (Repositories/MongoDB). Instead, both depend\
+  \ on abstractions (the Interfaces in `domain/`).\n4.  **Use of Mocks**: Extensive\
+  \ use of `mockery` and the presence of `domain/mocks/` and `mongo/mocks/` confirm\
+  \ that components are isolated from their side-effect-producing dependencies during\
+  \ testing, a hallmark of Hexagonal systems."
+review_required: false
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: openrouter/google/gemini-3-flash-preview
+classification_date: '2026-03-08T06:50:27Z'
+classification_reasoning: "This repository is a textbook implementation of **Hexagonal\
+  \ Architecture** (also known as Ports and Adapters), specifically following the\
+  \ \"Clean Architecture\" flavor popularized by Robert C. Martin. \n\n### Evidence\
+  \ of Hexagonal Architecture:\n1.  **Dependency Rule**: The directory structure is\
+  \ organized into concentric layers. The `domain/` directory (the core) contains\
+  \ only interfaces and data structures (e.g., `domain/user.go`, `domain/task.go`),\
+  \ which act as the \"Ports.\"\n2.  **Decoupled Adapters**:\n    *   **Driving Adapters**:\
+  \ Found in `api/controller/` and `api/route/`. These handle the delivery mechanism\
+  \ (Gin/HTTP) and depend on the core Usecases.\n    *   **Driven Adapters**: Found\
+  \ in `repository/` and `mongo/`. These handle data persistence and infrastructure\
+  \ details, implementing the interfaces defined in the `domain/` layer.\n3.  **Dependency\
+  \ Inversion**: High-level modules (Usecases) do not depend on low-level modules\
+  \ (Repositories/MongoDB). Instead, both depend on abstractions (the Interfaces in\
+  \ `domain/`).\n4.  **Use of Mocks**: Extensive use of `mockery` and the presence\
+  \ of `domain/mocks/` and `mongo/mocks/` confirm that components are isolated from\
+  \ their side-effect-producing dependencies during testing, a hallmark of Hexagonal\
+  \ systems.\n\n### Evidence of Layered Architecture (Secondary):\nWhile the project\
+  \ adheres to Hexagonal principles regarding dependency direction, it retains a distinct\
+  \ **Layered** organization. The path of a request follows a strict horizontal hierarchy:\n\
+  `Route -> Controller -> Usecase -> Repository -> MongoDB`\nThis is explicitly called\
+  \ out in the README under \"Architecture Layers of the project.\"\n\n### Key File\
+  \ Analysis:\n- `domain/`: Contains the Business Entities and the Interface definitions\
+  \ (Ports).\n- `usecase/`: Contains the Application Logic (the Core).\n- `api/`:\
+  \ The Infrastructure layer for External Communication (Driving Adapter).\n- `repository/`:\
+  \ The Infrastructure layer for Persistence (Driven Adapter).\n- `bootstrap/`: The\
+  \ \"Composition Root\" where the dependencies are wired together (Dependency Injection)."
