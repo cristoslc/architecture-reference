@@ -1,10 +1,10 @@
 ---
 title: "Deep-Context Classification Validation"
 artifact: EPIC-006
-status: Proposed
+status: Complete
 author: cristos
 created: 2026-03-04
-last-updated: 2026-03-04
+last-updated: 2026-03-08
 parent-vision: VISION-001
 success-criteria:
   - All classifiable entries (100+) re-validated with cloned repo context
