@@ -17,6 +17,7 @@
 | SPEC-019 | Deep-Context Re-validation Campaign | Re-run deep-context validation on all 163 repos post-SPEC-017, resolving 30 regressions and validating 41 new entries. Uses Claude Code subagents with Opus. | 2026-03-06 | beb158f |
 | SPEC-020 | Catalog Cleanup and Taxonomy Tagging | Remove 43 library/framework/non-software entries, add scope and use_type taxonomy fields to all remaining 120 entries per ADR-001. | 2026-03-06 | ff77e90 |
 | SPEC-021 | Catalog Expansion and Ecosystem Completion | Expand catalog with 30 applications across 10 domains, 19 ecosystem entries, triage 20 uncataloged repos. Production ratio 1.58:1. | 2026-03-07 | f64b466a |
+| SPEC-024 | Deep-Analysis Classification Campaign | All 184 catalog entries classified via clean-slate deep-analysis: 173 GLM-5 native tool-calling + 11 Sonnet subagent fallback. | 2026-03-08 | cdfd4ea7 |
 
 ## Active
 
@@ -30,7 +31,6 @@
 
 | SPEC-022 | Pipeline Run and Frequency Recomputation | Recompute production-only frequency rankings with platform/application splits. Reverted per ADR-002; blocked on SPEC-024. | 2026-03-07 | — |
 | SPEC-023 | Reference Library Rebalancing Update | Update all 8 reference library documents with production-only rankings and platform/application splits. Depends on SPEC-022. | 2026-03-06 | 23bed6f |
-| SPEC-024 | Deep-Analysis Classification Campaign | Deep-validate ~45 new catalog entries via LLM source code inspection per ADR-002. Depends on SPEC-021. | 2026-03-07 | — |
 
 ## Abandoned
 
