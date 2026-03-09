@@ -1,7 +1,7 @@
 ---
 title: "Deep-Analysis Classification Campaign"
 artifact: SPEC-024
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-07
 last-updated: 2026-03-08
@@ -59,6 +59,7 @@ All existing analysis has been stripped from the catalog. Every entry now has `a
 4. No prior classification shown in the analysis prompt (clean-slate, no anchoring)
 5. Catalog YAML files updated in place with new classifications
 6. Classification method recorded as `deep-analysis` (not `deep-validation`)
+7. Actual classification method is `deep-analysis-tooluse` (GLM-5) and `deep-analysis-subagent` (Sonnet 4.6 fallback) rather than the originally planned Gemini Flash approach — ADR-003 and SPIKE-008 redirected the tool selection
 
 ## Catalog YAML output format
 
