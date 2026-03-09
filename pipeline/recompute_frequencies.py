@@ -66,3 +66,17 @@ def compute_frequencies(entries):
             for s in styles:
                 counter[s] += 1
     return dict(counter.most_common())
+
+
+def format_frequency_table(freq, total_entries):
+    """Format frequency dict as a ranked markdown table with percentages."""
+    if not freq:
+        return "No data.\n"
+    lines = [
+        "| Rank | Style | Count | % |",
+        "|------|-------|-------|---|",
+    ]
+    for rank, (style, count) in enumerate(freq.items(), 1):
+        pct = (count / total_entries * 100) if total_entries > 0 else 0
+        lines.append(f"| {rank} | {style} | {count} | {pct:.1f}% |")
+    return "\n".join(lines) + "\n"

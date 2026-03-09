@@ -124,3 +124,26 @@ class TestComputeFrequencies:
         assert freq["Event-Driven"] == 1
         assert freq["Layered"] == 1
         assert freq["Domain-Driven Design"] == 1
+
+
+class TestFormatFrequencyTable:
+    def test_produces_ranked_markdown_table(self):
+        from recompute_frequencies import format_frequency_table
+        freq = {"Event-Driven": 3, "Modular Monolith": 1}
+        total = 4
+        table = format_frequency_table(freq, total)
+        lines = table.strip().split("\n")
+        assert "| Rank |" in lines[0]
+        assert "| 1 | Event-Driven | 3 |" in lines[2]
+        assert "| 2 | Modular Monolith | 1 |" in lines[3]
+
+    def test_percentages_based_on_total_entries(self):
+        from recompute_frequencies import format_frequency_table
+        freq = {"A": 50}
+        table = format_frequency_table(freq, 100)
+        assert "50.0%" in table
+
+    def test_handles_empty_frequencies(self):
+        from recompute_frequencies import format_frequency_table
+        table = format_frequency_table({}, 0)
+        assert "No data" in table or "| Rank |" in table
