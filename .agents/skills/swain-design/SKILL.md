@@ -4,7 +4,6 @@ description: Create, validate, and transition documentation artifacts (Vision, E
 license: UNLICENSED
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 metadata:
-  internal: true
   short-description: Manage spec artifact creation and lifecycle
   version: 1.5.0
   author: cristos

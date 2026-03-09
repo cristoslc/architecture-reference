@@ -4,7 +4,6 @@ description: Cut a release — detect versioning context, generate a changelog f
 license: UNLICENSED
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, AskUserQuestion
 metadata:
-  internal: true
   short-description: Version bump, changelog, and git tag
   version: 1.0.0
   author: cristos

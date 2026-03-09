@@ -4,7 +4,6 @@ description: Pull the latest agents-core scaffolding from upstream into the curr
 license: UNLICENSED
 allowed-tools: Bash, Read, Grep, Glob
 metadata:
-  internal: true
   short-description: Update agents scaffolding from upstream
   version: 1.2.0
   author: cristos

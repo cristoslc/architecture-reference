@@ -1,8 +1,6 @@
 ---
 name: swain
 description: "Meta-router for swain skills. Invoke when the user types /swain or mentions swain by name. Routes to the matching swain-* sub-skill — only load the one that matches."
-metadata:
-  internal: true
 ---
 Invoke the Skill tool for exactly one match. Pass the user's full prompt as args.
 

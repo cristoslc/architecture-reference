@@ -4,7 +4,6 @@ description: Stage all changes, generate a descriptive commit message from the d
 user-invocable: true
 allowed-tools: Bash, Read, Edit
 metadata:
-  internal: true
   short-description: Stage, commit, and push
   version: 1.0.0
   author: cristos
