@@ -181,3 +181,40 @@ class TestBuildComparison:
         assert "C" in styles
         c = next(r for r in rows if r["style"] == "C")
         assert c["old_count"] == 0
+
+
+class TestParseOldFrequencies:
+    def test_extracts_style_counts_from_markdown_table(self):
+        from recompute_frequencies import parse_frequency_table
+        md = """\
+| Architecture Style | Count | Percentage |
+|-------------------|-------|------------|
+| **Modular Monolith** | 55 | 39% |
+| **Event-Driven** | 47 | 33% |
+| **Pipe-and-Filter** | 33 | 23% |
+"""
+        freq, total = parse_frequency_table(md)
+        assert freq["Modular Monolith"] == 55
+        assert freq["Event-Driven"] == 47
+        assert freq["Pipe-and-Filter"] == 33
+
+    def test_strips_bold_markers(self):
+        from recompute_frequencies import parse_frequency_table
+        md = "| **Bold Style** | 10 | 5% |\n"
+        freq, _ = parse_frequency_table(md)
+        assert "Bold Style" in freq
+
+    def test_extracts_total_from_header(self):
+        from recompute_frequencies import parse_source_analysis_baseline
+        md = """\
+## Architecture Style Distribution (Production Only)
+
+Each project may exhibit multiple architecture styles. Production entries only (142 entries):
+
+| Architecture Style | Count | Percentage |
+|-------------------|-------|------------|
+| **Modular Monolith** | 55 | 39% |
+"""
+        freq, total = parse_source_analysis_baseline(md)
+        assert total == 142
+        assert freq["Modular Monolith"] == 55

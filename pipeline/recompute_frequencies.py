@@ -10,6 +10,7 @@ Usage:
 """
 
 import os
+import re
 import sys
 from collections import Counter
 
@@ -101,3 +102,41 @@ def build_comparison(old_freq, old_total, new_freq, new_total):
         })
     rows.sort(key=lambda r: abs(r["change_pp"]), reverse=True)
     return rows
+
+
+def parse_frequency_table(md_text):
+    """Extract style->count mapping from a markdown frequency table."""
+    freq = {}
+    for line in md_text.split("\n"):
+        line = line.strip()
+        if not line.startswith("|") or "---" in line or "Architecture Style" in line:
+            continue
+        parts = [p.strip() for p in line.split("|")]
+        parts = [p for p in parts if p]
+        if len(parts) >= 2:
+            style = parts[0].replace("**", "").strip()
+            try:
+                count = int(parts[1])
+                freq[style] = count
+            except ValueError:
+                continue
+    total = sum(freq.values())
+    return freq, total
+
+
+def parse_source_analysis_baseline(md_text):
+    """Extract the frequency table and entry count from source-analysis.md."""
+    total = 0
+    m = re.search(r"\((\d+)\s+entries\)", md_text)
+    if m:
+        total = int(m.group(1))
+
+    section_start = md_text.find("Architecture Style Distribution")
+    if section_start == -1:
+        section_start = 0
+    section = md_text[section_start:]
+
+    freq, _ = parse_frequency_table(section)
+    if total == 0:
+        total = len(freq)
+    return freq, total
