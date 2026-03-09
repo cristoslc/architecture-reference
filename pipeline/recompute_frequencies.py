@@ -80,3 +80,24 @@ def format_frequency_table(freq, total_entries):
         pct = (count / total_entries * 100) if total_entries > 0 else 0
         lines.append(f"| {rank} | {style} | {count} | {pct:.1f}% |")
     return "\n".join(lines) + "\n"
+
+
+def build_comparison(old_freq, old_total, new_freq, new_total):
+    """Build before/after comparison rows. Returns list of dicts sorted by absolute change."""
+    all_styles = set(old_freq.keys()) | set(new_freq.keys())
+    rows = []
+    for style in all_styles:
+        old_count = old_freq.get(style, 0)
+        new_count = new_freq.get(style, 0)
+        old_pct = (old_count / old_total * 100) if old_total > 0 else 0
+        new_pct = (new_count / new_total * 100) if new_total > 0 else 0
+        rows.append({
+            "style": style,
+            "old_count": old_count,
+            "old_pct": old_pct,
+            "new_count": new_count,
+            "new_pct": new_pct,
+            "change_pp": new_pct - old_pct,
+        })
+    rows.sort(key=lambda r: abs(r["change_pp"]), reverse=True)
+    return rows

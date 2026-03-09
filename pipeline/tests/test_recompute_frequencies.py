@@ -147,3 +147,37 @@ class TestFormatFrequencyTable:
         from recompute_frequencies import format_frequency_table
         table = format_frequency_table({}, 0)
         assert "No data" in table or "| Rank |" in table
+
+
+class TestBuildComparison:
+    def test_computes_percentage_point_change(self):
+        from recompute_frequencies import build_comparison
+        old_freq = {"Event-Driven": 78, "Modular Monolith": 60}
+        old_total = 163
+        new_freq = {"Modular Monolith": 55, "Event-Driven": 47}
+        new_total = 142
+        rows = build_comparison(old_freq, old_total, new_freq, new_total)
+        mm = next(r for r in rows if r["style"] == "Modular Monolith")
+        assert abs(mm["old_pct"] - 36.8) < 0.1
+        assert abs(mm["new_pct"] - 38.7) < 0.1
+        assert abs(mm["change_pp"] - 1.9) < 0.2
+
+    def test_includes_styles_only_in_old(self):
+        from recompute_frequencies import build_comparison
+        old_freq = {"A": 10, "B": 5}
+        new_freq = {"A": 8}
+        rows = build_comparison(old_freq, 100, new_freq, 80)
+        styles = [r["style"] for r in rows]
+        assert "B" in styles
+        b = next(r for r in rows if r["style"] == "B")
+        assert b["new_count"] == 0
+
+    def test_includes_styles_only_in_new(self):
+        from recompute_frequencies import build_comparison
+        old_freq = {"A": 10}
+        new_freq = {"A": 8, "C": 3}
+        rows = build_comparison(old_freq, 100, new_freq, 80)
+        styles = [r["style"] for r in rows]
+        assert "C" in styles
+        c = next(r for r in rows if r["style"] == "C")
+        assert c["old_count"] == 0
