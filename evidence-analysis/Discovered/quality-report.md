@@ -42,10 +42,11 @@ Target: n >= 10 for each of the 12 canonical styles.
 | Hexagonal Architecture | 21 | Yes |
 | Serverless | 1 | **No** (9 short) |
 | Layered | 90 | Yes |
-| Pipe-and-Filter | 0 | **No** (10 short) |
+| Pipeline | 13 | Yes |
+| Microkernel | 85 | Yes |
 | Multi-Agent | 1 | **No** (9 short) |
 
-**7/12 styles meet target coverage.**
+**9/12 styles meet target coverage.**
 
 ## Indeterminate Entries (needs LLM review)
 
@@ -55,10 +56,9 @@ None.
 
 ## Coverage Gaps
 
-The following 5 styles have fewer than 10 samples:
+The following 4 styles have fewer than 10 samples:
 
 - **Service-Based**: 9/10
 - **Space-Based**: 1/10
 - **Serverless**: 1/10
-- **Pipe-and-Filter**: 0/10
 - **Multi-Agent**: 1/10

@@ -42,7 +42,8 @@ CANONICAL_STYLES = [
     "Hexagonal Architecture",
     "Serverless",
     "Layered",
-    "Pipe-and-Filter",
+    "Pipeline",
+    "Microkernel",
     "Multi-Agent",
 ]
 
