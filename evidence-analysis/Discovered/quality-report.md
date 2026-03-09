@@ -1,28 +1,30 @@
 # Dataset Scaling Pipeline - Quality Report
 
-Generated: 2026-03-07
+Generated: 2026-03-09 03:59 UTC
 Total entries: 184
-Production: 142 | Reference: 42
-Platforms: 91 | Applications: 93
-Classified: 132
-Indeterminate (needs classification): 52
+Classified: 184
+Indeterminate (needs LLM review): 0
 
-## Confidence Distribution
+## Confidence Distribution (classified entries only)
 
-No confidence scores available.
+- Median: 0.00
+- IQR (25th-75th): 0.00 - 0.00
+- 90% interval (5th-95th): 0.00 - 0.00
+- Range: 0.00 - 0.00
+- Mean: 0.00 (n=184)
 
-
-## Taxonomy Composition (ADR-001)
-
-| Category | Count | % |
-|----------|-------|---|
-| Production platforms | 87 | 47.3% |
-| Production applications | 55 | 29.9% |
-| Reference platforms | 4 | 2.2% |
-| Reference applications | 38 | 20.7% |
-| **Total** | **184** | |
-
-Production ratio (platform:application): 87:55 = 1.58:1
+```
+  0.0-0.1  | ######################################################################################################################################################################################## (184)
+  0.1-0.2  |  (0)
+  0.2-0.3  |  (0)
+  0.3-0.4  |  (0)
+  0.4-0.5  |  (0)
+  0.5-0.6  |  (0)
+  0.6-0.7  |  (0)
+  0.7-0.8  |  (0)
+  0.8-0.9  |  (0)
+  0.9-1.0  |  (0)
+```
 
 ## Architecture Style Coverage
 
@@ -30,22 +32,33 @@ Target: n >= 10 for each of the 12 canonical styles.
 
 | Style | Count | Target Met |
 |-------|-------|------------|
-| Microservices | 20 | Yes |
-| Event-Driven | 56 | Yes |
-| Modular Monolith | 61 | Yes |
-| Service-Based | 20 | Yes |
-| Domain-Driven Design | 33 | Yes |
-| CQRS | 23 | Yes |
-| Space-Based | 5 | **No** (5 short) |
+| Microservices | 24 | Yes |
+| Event-Driven | 27 | Yes |
+| Modular Monolith | 64 | Yes |
+| Service-Based | 9 | **No** (1 short) |
+| Domain-Driven Design | 19 | Yes |
+| CQRS | 14 | Yes |
+| Space-Based | 1 | **No** (9 short) |
 | Hexagonal Architecture | 21 | Yes |
-| Serverless | 3 | **No** (7 short) |
-| Layered | 34 | Yes |
-| Pipe-and-Filter | 33 | Yes |
-| Multi-Agent | 3 | **No** (7 short) |
-| Plugin/Microkernel | 28 | (non-canonical) |
+| Serverless | 1 | **No** (9 short) |
+| Layered | 90 | Yes |
+| Pipe-and-Filter | 0 | **No** (10 short) |
+| Multi-Agent | 1 | **No** (9 short) |
 
-**9/12 styles meet target coverage.**
+**7/12 styles meet target coverage.**
 
-## Indeterminate Entries
+## Indeterminate Entries (needs LLM review)
 
-52 entries classified as Indeterminate — these need LLM review and/or deep-context validation.
+Entries with confidence < 0.85: 0
+
+None.
+
+## Coverage Gaps
+
+The following 5 styles have fewer than 10 samples:
+
+- **Service-Based**: 9/10
+- **Space-Based**: 1/10
+- **Serverless**: 1/10
+- **Pipe-and-Filter**: 0/10
+- **Multi-Agent**: 1/10
