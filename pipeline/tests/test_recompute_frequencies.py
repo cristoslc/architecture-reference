@@ -220,6 +220,38 @@ Each project may exhibit multiple architecture styles. Production entries only (
         assert total == 142
         assert freq["Modular Monolith"] == 55
 
+    def test_stops_at_next_section(self):
+        from recompute_frequencies import parse_source_analysis_baseline
+        md = """\
+## Architecture Style Distribution (Production Only)
+
+Production entries only (10 entries):
+
+| Architecture Style | Count | Percentage |
+|-------------------|-------|------------|
+| **Event-Driven** | 5 | 50% |
+
+### Platform vs Application Split
+
+| Style | Platforms (6) | % | Applications (4) | % |
+|-------|----------|---|-------------|---|
+| Event-Driven | 3 | 50% | 2 | 50% |
+
+---
+
+## Language Distribution
+
+| Language | Count | Percentage |
+|----------|-------|------------|
+| Go | 31 | 17% |
+| Python | 26 | 14% |
+"""
+        freq, total = parse_source_analysis_baseline(md)
+        assert total == 10
+        assert freq == {"Event-Driven": 5}
+        assert "Go" not in freq
+        assert "Python" not in freq
+
 
 class TestGenerateSourceAnalysis:
     def test_includes_production_only_header(self):

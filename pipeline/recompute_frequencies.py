@@ -138,6 +138,12 @@ def parse_source_analysis_baseline(md_text):
         section_start = 0
     section = md_text[section_start:]
 
+    # Stop at the next section heading (### or ---) after the frequency table
+    # to avoid picking up Language, Domain, QA, and Confidence tables
+    end_match = re.search(r"\n###\s|\n---", section[1:])
+    if end_match:
+        section = section[:end_match.start() + 1]
+
     freq, _ = parse_frequency_table(section)
     if total == 0:
         total = len(freq)
