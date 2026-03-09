@@ -218,3 +218,37 @@ Each project may exhibit multiple architecture styles. Production entries only (
         freq, total = parse_source_analysis_baseline(md)
         assert total == 142
         assert freq["Modular Monolith"] == 55
+
+
+class TestGenerateSourceAnalysis:
+    def test_includes_production_only_header(self):
+        from recompute_frequencies import generate_source_analysis
+        md = generate_source_analysis(
+            all_entries=[{"use_type": "production", "scope": "platform",
+                          "architecture_styles": ["A"], "language": "Go",
+                          "domain": "Infra", "classification_confidence": 0.9,
+                          "classification_status": "classified"}],
+            prod_freq={"A": 1}, plat_freq={"A": 1}, app_freq={},
+            n_prod=1, n_plat=1, n_app=0, n_ref=0, n_total=1,
+        )
+        assert "production" in md.lower()
+        assert "ADR-001" in md
+
+    def test_includes_platform_application_split_table(self):
+        from recompute_frequencies import generate_source_analysis
+        md = generate_source_analysis(
+            all_entries=[
+                {"use_type": "production", "scope": "platform",
+                 "architecture_styles": ["A"], "language": "Go",
+                 "domain": "Infra", "classification_confidence": 0.9,
+                 "classification_status": "classified"},
+                {"use_type": "production", "scope": "application",
+                 "architecture_styles": ["B"], "language": "Python",
+                 "domain": "Web", "classification_confidence": 0.85,
+                 "classification_status": "classified"},
+            ],
+            prod_freq={"A": 1, "B": 1}, plat_freq={"A": 1}, app_freq={"B": 1},
+            n_prod=2, n_plat=1, n_app=1, n_ref=0, n_total=2,
+        )
+        assert "Platform" in md
+        assert "Application" in md

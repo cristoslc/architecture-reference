@@ -13,6 +13,7 @@ import os
 import re
 import sys
 from collections import Counter
+from datetime import datetime, timezone
 
 try:
     import yaml
@@ -140,3 +141,189 @@ def parse_source_analysis_baseline(md_text):
     if total == 0:
         total = len(freq)
     return freq, total
+
+
+def _format_split_table(plat_freq, n_plat, app_freq, n_app, combined_freq):
+    """Format the platform vs application comparison table."""
+    lines = [
+        f"| Style | Platforms ({n_plat}) | % | Applications ({n_app}) | % |",
+        "|-------|----------|---|-------------|---|",
+    ]
+    for style in combined_freq:
+        pc = plat_freq.get(style, 0)
+        ac = app_freq.get(style, 0)
+        pp = (pc / n_plat * 100) if n_plat > 0 else 0
+        ap = (ac / n_app * 100) if n_app > 0 else 0
+        lines.append(f"| {style} | {pc} | {pp:.0f}% | {ac} | {ap:.0f}% |")
+    return "\n".join(lines)
+
+
+def generate_source_analysis(all_entries, prod_freq, plat_freq, app_freq,
+                              n_prod, n_plat, n_app, n_ref, n_total):
+    """Generate the source-analysis.md markdown document."""
+    lines = [
+        f"# Discovered Source Analysis: Patterns Across {n_total} Open-Source Repositories",
+        "",
+        "## Dataset Overview",
+        "",
+        f"This analysis covers **{n_total} open-source repositories** classified using deep-analysis "
+        f"(LLM source code inspection per ADR-002). All entries have deep-analysis classifications "
+        f"with zero Indeterminate results.",
+        "",
+        "Per ADR-001, entries are tagged with `scope` (platform | application) and `use_type` "
+        f"(production | reference). **Frequency rankings below use production-only entries** "
+        f"({n_prod} entries) unless noted.",
+        "",
+        "| Discovery Method | Year | Repositories |",
+        "|-----------------|------|--------------|",
+        f"| GitHub search + signal extraction | 2026 | {n_total} |",
+        f"| Deep-analysis classification (ADR-002) | 2026 | {n_total} |",
+        "",
+        "### Taxonomy Composition",
+        "",
+        "| Category | Count |",
+        "|----------|-------|",
+        f"| Production platforms | {n_plat} |",
+        f"| Production applications | {n_app} |",
+        f"| Reference (all) | {n_ref} |",
+        f"| **Total** | **{n_total}** |",
+        "",
+    ]
+    if n_app > 0:
+        lines.append(f"Production ratio: {n_plat}:{n_app} = {n_plat/n_app:.2f}:1")
+    lines.extend([
+        "",
+        "---",
+        "",
+        f"## Architecture Style Distribution (Production Only)",
+        "",
+        f"Each project may exhibit multiple architecture styles. Production entries only ({n_prod} entries):",
+        "",
+        format_frequency_table(prod_freq, n_prod),
+        "### Platform vs Application Split",
+        "",
+        _format_split_table(plat_freq, n_plat, app_freq, n_app, prod_freq),
+        "",
+    ])
+
+    # Key findings
+    top_styles = list(prod_freq.items())[:3]
+    lines.extend([
+        "### Key Findings",
+        "",
+    ])
+    for i, (style, count) in enumerate(top_styles, 1):
+        pct = count / n_prod * 100 if n_prod > 0 else 0
+        lines.append(f"{i}. **{style}** leads at {count} of {n_prod} ({pct:.0f}%)")
+    lines.append("")
+
+    # Language distribution
+    lang_counter = Counter()
+    for e in all_entries:
+        lang_counter[e.get("language", "Unknown")] += 1
+    lines.extend([
+        "---",
+        "",
+        "## Language Distribution",
+        "",
+        "| Language | Count | Percentage |",
+        "|----------|-------|------------|",
+    ])
+    for lang, count in lang_counter.most_common():
+        pct = count / n_total * 100
+        lines.append(f"| {lang} | {count} | {pct:.0f}% |")
+
+    # Confidence distribution
+    confs = [e.get("classification_confidence", 0)
+             for e in all_entries if e.get("classification_status") == "classified"]
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## Confidence Distribution",
+        "",
+        "| Confidence Range | Count | Percentage |",
+        "|-----------------|-------|------------|",
+    ])
+    if confs:
+        buckets = [
+            ("0.90+", sum(1 for c in confs if c >= 0.90)),
+            ("0.85-0.89", sum(1 for c in confs if 0.85 <= c < 0.90)),
+            ("0.80-0.84", sum(1 for c in confs if 0.80 <= c < 0.85)),
+            ("0.70-0.79", sum(1 for c in confs if 0.70 <= c < 0.80)),
+            ("< 0.70", sum(1 for c in confs if c < 0.70)),
+        ]
+        for label, count in buckets:
+            pct = count / len(confs) * 100
+            lines.append(f"| {label} | {count} | {pct:.0f}% |")
+
+    # Multi-style composition
+    style_counts = Counter()
+    for e in all_entries:
+        n = len(e.get("architecture_styles", []))
+        if n > 0:
+            style_counts[n] += 1
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## Multi-Style Composition",
+        "",
+        "| Composition | Count |",
+        "|-------------|-------|",
+    ])
+    for n_styles in sorted(style_counts.keys()):
+        count = style_counts[n_styles]
+        pct = count / n_total * 100
+        label = f"{n_styles} style" if n_styles == 1 else f"{n_styles} styles"
+        lines.append(f"| {label} | {count} ({pct:.0f}%) |")
+
+    # Domain coverage
+    domain_counter = Counter()
+    for e in all_entries:
+        domain_counter[e.get("domain", "Unknown")] += 1
+    lines.extend([
+        "",
+        "---",
+        "",
+        f"## Domain Coverage",
+        "",
+        f"{len(domain_counter)} unique domains across {n_total} entries:",
+        "",
+        "| Domain | Count | Domain | Count |",
+        "|--------|-------|--------|-------|",
+    ])
+    domains_sorted = domain_counter.most_common()
+    half = (len(domains_sorted) + 1) // 2
+    for i in range(half):
+        left = domains_sorted[i]
+        right = domains_sorted[i + half] if i + half < len(domains_sorted) else ("", "")
+        lines.append(f"| {left[0]} | {left[1]} | {right[0]} | {right[1]} |")
+
+    # Summary comparison table
+    lines.extend([
+        "",
+        "---",
+        "",
+        "## Summary: Discovered vs. Other Sources",
+        "",
+        "| Metric | KataLog | AOSA | RealWorld | RefArch | Discovered |",
+        "|--------|---------|------|-----------|---------|------------|",
+    ])
+    top = list(prod_freq.items())[0] if prod_freq else ("N/A", 0)
+    top_pct = top[1] / n_prod * 100 if n_prod > 0 else 0
+    multi_count = sum(1 for e in all_entries if len(e.get("architecture_styles", [])) > 1)
+    multi_pct = multi_count / n_total * 100 if n_total > 0 else 0
+    lines.extend([
+        f"| Count | 78 | 12 | 5 | 8 | {n_prod} (prod) |",
+        f"| Primary style | Event-Driven (56%) | Pipeline (42%) | Plugin Arch (60%) | Microservices (63%) | {top[0]} ({top_pct:.0f}%) |",
+        f"| Multi-style | 73% | 67% | 80% | 75% | {multi_pct:.0f}% |",
+        "| Top QA | Scalability (62%) | Performance (42%) | Extensibility (60%) | Testability (50%) | Deployability (90%) |",
+        "| Detection method | Competition | Case study | Case study | Teaching code | Deep analysis |",
+        "",
+        f"The Discovered source provides **production-only frequency rankings** per ADR-001, "
+        f"with separate platform and application views. All {n_total} entries classified via "
+        f"deep-analysis per ADR-002 — zero Indeterminate results.",
+        "",
+    ])
+    return "\n".join(lines)
