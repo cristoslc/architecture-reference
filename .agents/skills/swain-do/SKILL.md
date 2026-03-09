@@ -4,6 +4,7 @@ description: Bootstrap, install, and operate an external task-management CLI as 
 license: UNLICENSED
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 metadata:
+  internal: true
   short-description: Bootstrap and operate external task tracking
   version: 2.3.0
   author: cristos

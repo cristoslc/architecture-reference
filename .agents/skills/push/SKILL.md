@@ -3,6 +3,8 @@ name: push
 description: Stage all changes, generate a descriptive commit message from the diff, commit, and push to the current branch's upstream. Handles merge conflicts by preferring local changes for config/project files and upstream for scaffolding.
 user-invocable: true
 allowed-tools: Bash, Read, Edit
+metadata:
+  internal: true
 ---
 
 Run through the following steps in order without pausing for confirmation unless a decision point is explicitly marked as requiring one.

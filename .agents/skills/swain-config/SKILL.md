@@ -4,6 +4,7 @@ description: "ALWAYS invoke this skill at the START of every session before doin
 license: MIT
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 metadata:
+  internal: true
   short-description: Agent routing and swain configuration rules
   version: 1.0.0
   author: cristos

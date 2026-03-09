@@ -4,6 +4,7 @@ description: Full-lifecycle skill management — discover, install, audit, updat
 license: UNLICENSED
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 metadata:
+  internal: true
   short-description: Discover, install, audit, update, and drift-detect agent skills
   related-adr: ADR-002-Remote-Skills-Reference-Pattern, ADR-003-Skill-Manager-Wraps-npx-Skills
   version: 2.1.0

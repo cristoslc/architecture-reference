@@ -4,6 +4,7 @@ description: "Update swain skills to the latest version. Use when the user says 
 user-invocable: true
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob
 metadata:
+  internal: true
   short-description: Update swain skills to latest
   version: 1.0.0
   author: cristos
