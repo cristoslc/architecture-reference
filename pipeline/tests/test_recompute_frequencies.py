@@ -2,6 +2,7 @@
 
 import os
 import sys
+import tempfile
 
 import pytest
 
@@ -252,3 +253,42 @@ class TestGenerateSourceAnalysis:
         )
         assert "Platform" in md
         assert "Application" in md
+
+
+class TestMainOrchestration:
+    def test_dry_run_prints_to_stdout(self, capsys):
+        from recompute_frequencies import run_recomputation
+        run_recomputation(catalog_dir=FIXTURES_DIR, output_dir=None, dry_run=True)
+        captured = capsys.readouterr()
+        assert "Production entries:" in captured.out
+        assert "Event-Driven" in captured.out
+
+    def test_writes_source_analysis_file(self):
+        from recompute_frequencies import run_recomputation
+        with tempfile.TemporaryDirectory() as tmpdir:
+            run_recomputation(catalog_dir=FIXTURES_DIR, output_dir=tmpdir, dry_run=False)
+            sa_path = os.path.join(tmpdir, "source-analysis.md")
+            assert os.path.exists(sa_path)
+            content = open(sa_path).read()
+            assert "Production Only" in content
+
+    def test_writes_frequency_recomputation_file(self):
+        from recompute_frequencies import run_recomputation
+        with tempfile.TemporaryDirectory() as tmpdir:
+            # Create a fake old source-analysis.md for before/after
+            with open(os.path.join(tmpdir, "source-analysis.md"), "w") as f:
+                f.write("""\
+## Architecture Style Distribution (Production Only)
+
+Production entries only (10 entries):
+
+| Architecture Style | Count | Percentage |
+|-------------------|-------|------------|
+| **Event-Driven** | 5 | 50% |
+| **Modular Monolith** | 3 | 30% |
+""")
+            run_recomputation(catalog_dir=FIXTURES_DIR, output_dir=tmpdir, dry_run=False)
+            fr_path = os.path.join(tmpdir, "frequency-recomputation.md")
+            assert os.path.exists(fr_path)
+            content = open(fr_path).read()
+            assert "Before/After" in content or "Rank Changes" in content

@@ -9,6 +9,7 @@ Usage:
     python3 pipeline/recompute_frequencies.py --catalog-dir path/to/catalog --output-dir path/to/output
 """
 
+import argparse
 import os
 import re
 import sys
@@ -327,3 +328,125 @@ def generate_source_analysis(all_entries, prod_freq, plat_freq, app_freq,
         "",
     ])
     return "\n".join(lines)
+
+
+def generate_frequency_recomputation(old_freq, old_total, new_freq, new_total,
+                                      n_plat, n_app):
+    """Generate the frequency-recomputation.md comparison document."""
+    now = datetime.now(timezone.utc).strftime("%Y-%m-%d")
+    n_prod = new_total
+    lines = [
+        "# SPEC-022: Frequency Recomputation Results",
+        "",
+        f"Generated: {now}",
+        f"Catalog: {n_prod} production entries",
+        f"Production split: {n_plat} platforms, {n_app} applications",
+        "Method: Production-only entries, equal weighting per ADR-001",
+        "Classification: Deep-analysis only per ADR-002 (zero Indeterminate)",
+        "",
+        "## Rank Changes",
+        "",
+        "### Before/After Comparison",
+        "",
+        f"| Style | Old ({old_total}) | Old % | New ({new_total} prod) | New % | Change |",
+        "|-------|---------------|-------|----------------|-------|--------|",
+    ]
+    rows = build_comparison(old_freq, old_total, new_freq, new_total)
+    for r in rows:
+        arrow = "↑" if r["change_pp"] > 0 else "↓" if r["change_pp"] < 0 else "—"
+        lines.append(
+            f"| {r['style']} | {r['old_count']} | {r['old_pct']:.1f}% "
+            f"| {r['new_count']} | {r['new_pct']:.1f}% "
+            f"| {arrow} {abs(r['change_pp']):.1f}pp |"
+        )
+    lines.append("")
+    return "\n".join(lines)
+
+
+def run_recomputation(catalog_dir, output_dir, dry_run=False):
+    """Main orchestration: load catalog, compute frequencies, write outputs."""
+    entries = load_catalog(catalog_dir)
+    prod = filter_production(entries)
+    platforms, applications = split_by_scope(prod)
+
+    n_total = len(entries)
+    n_prod = len(prod)
+    n_plat = len(platforms)
+    n_app = len(applications)
+    n_ref = n_total - n_prod
+
+    prod_freq = compute_frequencies(prod)
+    plat_freq = compute_frequencies(platforms)
+    app_freq = compute_frequencies(applications)
+
+    if dry_run:
+        print(f"Production entries: {n_prod} ({n_plat} platforms, {n_app} applications)")
+        print(f"Reference entries: {n_ref}")
+        print(f"Total: {n_total}")
+        print()
+        print("## Combined Production Frequencies")
+        print(format_frequency_table(prod_freq, n_prod))
+        print("## Platform Frequencies")
+        print(format_frequency_table(plat_freq, n_plat))
+        print("## Application Frequencies")
+        print(format_frequency_table(app_freq, n_app))
+        return
+
+    os.makedirs(output_dir, exist_ok=True)
+
+    # Read existing source-analysis.md for before/after baseline
+    sa_path = os.path.join(output_dir, "source-analysis.md")
+    old_freq = {}
+    old_total = 0
+    if os.path.exists(sa_path):
+        with open(sa_path) as f:
+            old_freq, old_total = parse_source_analysis_baseline(f.read())
+
+    # Write source-analysis.md
+    sa_content = generate_source_analysis(
+        entries, prod_freq, plat_freq, app_freq,
+        n_prod, n_plat, n_app, n_ref, n_total,
+    )
+    with open(sa_path, "w") as f:
+        f.write(sa_content)
+    print(f"Written: {sa_path}")
+
+    # Write frequency-recomputation.md
+    if old_freq:
+        fr_content = generate_frequency_recomputation(
+            old_freq, old_total, prod_freq, n_prod, n_plat, n_app,
+        )
+        fr_path = os.path.join(output_dir, "frequency-recomputation.md")
+        with open(fr_path, "w") as f:
+            f.write(fr_content)
+        print(f"Written: {fr_path}")
+    else:
+        print("No previous source-analysis.md found — skipping before/after comparison")
+
+
+def main():
+    default_catalog = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..", "evidence-analysis", "Discovered", "docs", "catalog",
+    )
+    default_output = os.path.join(
+        os.path.dirname(os.path.abspath(__file__)),
+        "..", "evidence-analysis", "Discovered", "docs", "analysis",
+    )
+
+    parser = argparse.ArgumentParser(
+        description="Recompute frequency rankings from production-only catalog entries (read-only)",
+    )
+    parser.add_argument("--catalog-dir", default=default_catalog,
+                        help="Path to catalog directory with *.yaml entries")
+    parser.add_argument("--output-dir", default=default_output,
+                        help="Output directory for analysis files")
+    parser.add_argument("--dry-run", action="store_true",
+                        help="Print tables to stdout without writing files")
+    args = parser.parse_args()
+
+    run_recomputation(args.catalog_dir, args.output_dir, args.dry_run)
+
+
+if __name__ == "__main__":
+    main()
