@@ -11,6 +11,7 @@ Usage:
 
 import os
 import sys
+from collections import Counter
 
 try:
     import yaml
@@ -54,3 +55,14 @@ def split_by_scope(entries):
     platforms = [e for e in entries if e.get("scope") == "platform"]
     applications = [e for e in entries if e.get("scope") == "application"]
     return platforms, applications
+
+
+def compute_frequencies(entries):
+    """Count architecture style occurrences across entries. Returns dict sorted by count descending."""
+    counter = Counter()
+    for e in entries:
+        styles = e.get("architecture_styles", [])
+        if isinstance(styles, list):
+            for s in styles:
+                counter[s] += 1
+    return dict(counter.most_common())
