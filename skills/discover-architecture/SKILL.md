@@ -111,48 +111,31 @@ From README, package metadata, directory naming, and code content. Use specific 
 
 ## Output Format
 
-Produce a markdown report:
+Follow the template at `references/report.template.j2`. The report should fit on roughly one printed page — if you're writing paragraphs, you're writing too much. Specific length targets:
+
+- **Style rationale**: 2-3 sentences. Lead with the structural pattern, cite 1-2 key files, stop. No function-level walkthroughs.
+- **Evidence table**: Comma-separated file paths or short phrases in the Key Evidence column. Not prose.
+- **Quality attributes**: One line per QA. Format: `**Name**: file1, file2, brief note`. No full sentences.
+- **Domain**: One line.
+- **Production context**: 2-4 bullet points, each one fact with a number.
+
+**Example** (correct length):
 
 ```markdown
-# Architecture Analysis: <project name>
+### Pipeline (primary)
 
-**Scope:** platform | application
-**Use-type:** production | reference
-**Primary language:** <language>
-**Confidence:** <0.0-1.0>
+Data flows through five ordered stages in `generate.sh`: fetch → clean → score → compress → render. Each stage writes to `fetched/<timestamp>/` and the next stage reads from it. Partial re-runs (`./generate.sh linear`) confirm stage composability.
+```
 
-## Architecture Styles
+**Not this** (too long — don't trace every function call):
 
-### <Style 1> (primary)
+```markdown
+### Pipeline (primary)
 
-<2-3 sentences explaining WHY this classification, citing specific files and patterns>
-
-### <Style 2> (secondary)
-
-<Same format>
-
-## Evidence Summary
-
-| Style | Confidence | Key Evidence |
-|-------|-----------|-------------|
-| <style> | <0.0-1.0> | <specific files, patterns, classes cited> |
-
-## Quality Attributes Detected
-
-- **<QA>**: <evidence> (e.g., "Deployability: Dockerfile, GitHub Actions CI, Helm charts")
-
-> **Detection limitation:** Quality attributes like Performance, Security, and Testability are architecturally significant but invisible in source code analysis.
-
-## Domain
-
-<domain> — <brief justification>
-
-## Production Context
-
-<How this repo's architecture compares to production evidence:>
-- <Style> appears in N% of 142 production repos in the evidence base
-- <Any notable patterns: "Microkernel + Layered is the most common combination">
-- <Platform/application context if relevant>
+The entire system is structured as an ordered chain of data-transformation
+stages with clear input/output contracts at each boundary. `generate.sh`
+drives five sequential stages: (1) Fetch — independent per-source scripts
+(`sources/linear/fetch.py`, `sources/quickbase/fetch.py` ...) [300 more words]
 ```
 
 If the user wants YAML catalog output (for the evidence base), also produce a YAML entry per the schema in `references/catalog-schema.yaml`.

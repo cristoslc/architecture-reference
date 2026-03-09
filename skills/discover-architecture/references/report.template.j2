@@ -1,4 +1,6 @@
-<!-- Architecture classification report template (Jinja2 syntax). -->
+<!-- Architecture classification report template (Jinja2 syntax).
+     Length guide: the entire report should fit on ~1 printed page.
+     Rationales are 2-3 sentences max. Evidence is terse file paths, not prose. -->
 ---
 project: "{{ project_name }}"
 date: {{ date }}
@@ -16,45 +18,47 @@ styles:
 
 # Architecture Analysis: {{ project_name }}
 
-**Scope:** {{ scope }}
-**Use-type:** {{ use_type }}
-**Primary language:** {{ primary_language }}
-**Confidence:** {{ confidence }}
-{% if analyst %}**Analyst:** {{ analyst }}{% endif %}
-{% if repo_url %}**Repository:** {{ repo_url }}{% endif %}
+| | |
+|---|---|
+| **Scope** | {{ scope }} |
+| **Use-type** | {{ use_type }} |
+| **Language** | {{ primary_language }} |
+| **Confidence** | {{ confidence }} |
+{% if repo_url %}| **Repository** | {{ repo_url }} |{% endif %}
 
-## Architecture Styles
+## Styles
+{# Each rationale: 2-3 sentences. Lead with the structural pattern, cite 1-2 key files, done. #}
 {% for style in styles %}
 ### {{ style.name }} ({{ style.role }})
 
 {{ style.rationale }}
 {% endfor %}
 
-## Evidence Summary
+## Evidence
 
+{# Key Evidence column: comma-separated file paths or short phrases. No prose. #}
 | Style | Confidence | Key Evidence |
 |-------|-----------|-------------|
 {%- for style in styles %}
 | {{ style.name }} | {{ style.confidence }} | {{ style.key_evidence }} |
 {%- endfor %}
 
-## Quality Attributes Detected
+## Quality Attributes
+
+{# One line per QA. Format: "Name: file1, file2, brief note" — no full sentences. #}
 {% for qa in quality_attributes %}
 - **{{ qa.name }}**: {{ qa.evidence }}
 {%- endfor %}
 
-> **Detection limitation:** Quality attributes like Performance, Security, and Testability are architecturally significant but invisible in source code analysis.
-{% if invisible_qas %}
-> **Invisible QAs noted from other evidence:** {{ invisible_qas }}
-{% endif %}
+> Performance, Security, and Testability are architecturally significant but invisible in source code analysis.
 
 ## Domain
 
-{{ domain }} — {{ domain_justification }}
+{{ domain }}{% if domain_justification %} — {{ domain_justification }}{% endif %}
 
 ## Production Context
 
-How this project's architecture compares to the evidence base (142 production repos, SPEC-022):
+{# 2-4 bullet points. Each bullet: one fact with a number. #}
 {% for note in production_context %}
 - {{ note }}
 {%- endfor %}
