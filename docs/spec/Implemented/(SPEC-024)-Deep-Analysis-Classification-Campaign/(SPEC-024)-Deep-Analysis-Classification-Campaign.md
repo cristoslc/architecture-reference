@@ -110,3 +110,4 @@ Fields:
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-07 | f2786ab4 | Initial creation per ADR-002 |
+| Implemented | 2026-03-08 | cdfd4ea7 | All 184 entries classified: 173 GLM-5 native tool-calling + 11 Sonnet subagent fallback |
