@@ -134,3 +134,4 @@ pipeline/llm-validate.sh --priority 1 --limit 5 --verbose --clone-dir /tmp/deep-
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-04 | — | 43 heuristic-only + 57 LLM-classified entries awaiting deep-context validation |
+| Complete | 2026-03-08 | 30f1cca3 | SPEC-013/019 Implemented, SPEC-014/015/016 Abandoned per ADR-002. Superseded by SPEC-024 clean-slate campaign. |
