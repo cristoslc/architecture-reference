@@ -63,9 +63,9 @@ Until the catalog has a balanced mix of platforms and applications, style freque
 |----|-------|--------|-------|
 | [SPEC-020](../../../spec/Implemented/(SPEC-020)-Catalog-Cleanup-and-Taxonomy-Tagging/(SPEC-020)-Catalog-Cleanup-and-Taxonomy-Tagging.md) | Catalog Cleanup and Taxonomy Tagging | Implemented | Remove 43 entries, add scope/use_type fields to remaining |
 | [SPEC-021](../../../spec/Implemented/(SPEC-021)-Application-Discovery-and-Curation/(SPEC-021)-Application-Discovery-and-Curation.md) | Catalog Expansion and Ecosystem Completion | Implemented | 30 apps + 19 ecosystem entries, ratio 1.58:1 |
-| [SPEC-022](../../../spec/Draft/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation.md) | Pipeline Run and Frequency Recomputation | Draft | Reverted per ADR-002; blocked on SPEC-024 |
+| [SPEC-022](../../../spec/Implemented/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation.md) | Pipeline Run and Frequency Recomputation | Implemented | Production-only frequencies with normalized style names |
 | [SPEC-023](../../../spec/Draft/(SPEC-023)-Reference-Library-Rebalancing-Update/(SPEC-023)-Reference-Library-Rebalancing-Update.md) | Reference Library Rebalancing Update | Draft | Update all reference docs with corrected rankings (depends on SPEC-022) |
-| [SPEC-024](../../../spec/Draft/(SPEC-024)-Deep-Analysis-Classification-Campaign/(SPEC-024)-Deep-Analysis-Classification-Campaign.md) | Deep-Analysis Classification Campaign | Draft | Deep-validate ~45 new entries per ADR-002 (depends on SPEC-021) |
+| [SPEC-024](../../../spec/Implemented/(SPEC-024)-Deep-Analysis-Classification-Campaign/(SPEC-024)-Deep-Analysis-Classification-Campaign.md) | Deep-Analysis Classification Campaign | Implemented | All 184 entries classified via deep-analysis |
 
 ## Key Dependencies
 
