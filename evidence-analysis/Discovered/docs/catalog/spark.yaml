@@ -14,9 +14,8 @@ languages:
 - Python
 - Java/Kotlin
 architecture_styles:
+- Layered
 - Modular Monolith
-- Pipeline (Pipe-and-Filter)
-- Microkernel (Plugin)
 classification_status: classified
 review_notes: 'Apache Spark is a classic example of a **Modular Monolith** designed
   as a unified engine. While it is used to build and coordinate distributed systems
@@ -48,89 +47,9 @@ review_notes: 'Apache Spark is a classic example of a **Modular Monolith** desig
   - **DAG Execution:** Spark transforms data through sequential stages (filters, maps,
   joins).'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.54
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:11:32Z'
-classification_reasoning: 'Apache Spark is a classic example of a **Modular Monolith**
-  designed as a unified engine. While it is used to build and coordinate distributed
-  systems at runtime, the repository itself is structured as a collection of strongly
-  decoupled modules within a single build boundary.
-
-
-  ### Primary Style: Modular Monolith
-
-  The codebase is organized into several top-level modules (e.g., `/core`, `/sql`,
-  `/mllib`, `/graphx`, `/launcher`, `/resource-managers`). These modules are distinct
-  Maven projects with their own `pom.xml` files, allowing for internal dependency
-  management.
-
-  - **Enforced Boundaries:** The separation between `core` and high-level tools (like
-  `sql` or `mllib`) is strict. `core` contains the fundamental RDD abstractions and
-  scheduling logic, while other modules depend on `core`.
-
-  - **Single Build System:** All components are versioned together and typically released
-  as a single unified framework, even though they can be included as separate dependencies
-  by users.
-
-
-  ### Secondary Style: Pipeline (Pipe-and-Filter)
-
-  At its architectural heart, Spark’s internal execution model and the way it structures
-  its data processing logic follow the **Pipeline** pattern.
-
-  - **DAG Execution:** Spark transforms data through sequential stages (filters, maps,
-  joins).
-
-  - **Internal Flow:** Evidence of this is found in the `pyspark/pipelines` directory
-  and the high-level `Structured Streaming` and `SQL` logical plans, where data flows
-  through a series of discrete computational filters/transformations.
-
-
-  ### Secondary Style: Microkernel (Plugin)
-
-  Spark uses a **Microkernel** approach to maintain portability across different cluster
-  environments.
-
-  - **Resource Managers:** The `/resource-managers` directory contains "plugins" for
-  different environments like `yarn`, `kubernetes`, and `mesos`. The core engine does
-  not hardcode logic for these; instead, they act as interchangeable adapters that
-  satisfy a core scheduling contract.
-
-  - **Extensibility:** The system allows for external storage connectors and catalog
-  implementations (like Hive), adhering to a plugin-like lifecycle where the core
-  processing engine remains agnostic of the underlying resource provider.
-
-
-  ### Why not Microservices?
-
-  Although Spark facilitates distributed computing, the repository is not a Microservices
-  architecture. The components (driver, worker, executor) are deployment roles of
-  the same codebase, not independently developed and deployable services with their
-  own data schemas and lifecycles.
-
-
-  ### Evidence Cites
-
-  - **Core Abstraction:** `/core/src/main/scala` contains the central engine.
-
-  - **Module Separation:** `/resource-managers/yarn`, `/resource-managers/kubernetes/core`
-  demonstrate isolation of environment-specific logic.
-
-  - **Internal API Boundaries:** The existence of `launcher` (to start applications)
-  vs `core` (to run them) shows clear functional partitioning.
-
-  - **Language Wrappers:** `/python` (PySpark) acts as a high-level interface layer
-  communicating with the JVM core, often via a gateway (noted in `python/pyspark/java_gateway.py`).'
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.54
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.5
-  style_clarity: 0.7
-  alternatives_dismissed: 0.4
-  exploration_completeness: 0.5
-  flags: evidence is mostly directory-level; no specific config values, class names,
-    or interface contracts cited. Pipeline secondary style is weakly supported (pyspark/pipelines
-    reference is a high-level API, not architectural evidence). Microservices dismissal
-    is reasonable but shallow.
+classification_method: deep-analysis-subagent
+classification_confidence: 0.95
+classification_model: claude-sonnet-4-6-subagent
+classification_date: '2026-03-09T01:59:27Z'
+classification_reasoning: Core execution layer with pluggable resource managers and
+  optional feature modules (SQL, Streaming, MLlib) built atop

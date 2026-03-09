@@ -14,9 +14,8 @@ languages:
 - C#
 - TypeScript
 architecture_styles:
-- Domain-Driven Design
 - Event-Driven
-- Hexagonal Architecture
+- CQRS
 classification_status: classified
 review_notes: "This repository is organized as a high-intent **Domain-Driven Design\
   \ (DDD)** framework, specifically focused on Event Sourcing (ES). The architecture\
@@ -32,54 +31,9 @@ review_notes: "This repository is organized as a high-intent **Domain-Driven Des
   \ transitions, which are central tenets of DDD-based Event Sourcing.\n\n2.  **Event-Driven\
   \ (Secondary Style):**"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.8
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:48:27Z'
-classification_reasoning: "This repository is organized as a high-intent **Domain-Driven\
-  \ Design (DDD)** framework, specifically focused on Event Sourcing (ES). The architecture\
-  \ of the codebase itself mirrors the patterns it facilitates for its users, emphasizing\
-  \ clear boundaries between the core domain logic, application services, and infrastructure\
-  \ adapters.\n\n### Evidence for Style Classification:\n\n1.  **Domain-Driven Design\
-  \ (Primary Style):**\n    *   The directory structure under `src/Core/src` explicitly\
-  \ separates concerns into `Eventuous.Domain` and `Eventuous.Application`.\n    *\
-  \   The test suite includes a \"System Under Test\" (SUT) specifically for domain\
-  \ modeling: `test/Eventuous.Sut.Domain/` containing typical DDD tactical patterns:\
-  \ `Booking.cs` (Aggregate), `Money.cs` (Value Object), and `BookingState.cs`.\n\
-  \    *   The project defines a structured approach to Aggregate Roots and State\
-  \ transitions, which are central tenets of DDD-based Event Sourcing.\n\n2.  **Event-Driven\
-  \ (Secondary Style):**\n    *   The entire system is reactive, built around the\
-  \ ingestion, storage, and projection of events. \n    *   The codebase includes\
-  \ deep infrastructure for event-driven patterns: Producers (`src/Core/src/Eventuous.Producers`),\
-  \ Subscriptions (`src/Core/src/Eventuous.Subscriptions`), and Serialization.\n \
-  \   *   Support for multiple message brokers/event stores (Kafka, RabbitMQ, Google\
-  \ PubSub, Azure Service Bus) indicates a heavy focus on asynchronous messaging and\
-  \ event streaming.\n\n3.  **Hexagonal Architecture (Secondary Style):**\n    * \
-  \  The project follows a \"Ports and Adapters\" pattern. The `Core` contains the\
-  \ \"Ports\" (interfaces and base classes for Persistence, Producers, and Subscriptions).\
-  \ \n    *   The \"Adapters\" are separated into individual top-level directories\
-  \ under `src/`: `src/Postgres`, `src/Kafka`, `src/Mongo`, `src/RabbitMq`. Each of\
-  \ these implements the core abstractions for a specific technology.\n    *   This\
-  \ ensures the internal domain and application logic remain isolated from the specific\
-  \ database or messaging technology (KurrentDB vs. Sqlite vs. Postgres).\n\n### Structure\
-  \ Analysis:\n- **Core Unit:** `src/Core` contains the fundamental building blocks\
-  \ (Domain, Application, Persistence, Subscriptions).\n- **Extension/Adapter Units:**\
-  \ Specific folders for SQL, NoSQL, and Messaging provide implementations of the\
-  \ Core interfaces.\n- **Samples:** The `samples/` directory (e.g., `samples/postgres/Bookings`)\
-  \ demonstrates a classic layered approach (Application, Domain, Infrastructure,\
-  \ HttpApi) that utilizes the framework's DDD/Event-Driven capabilities.\n\n### Rejections:\n\
-  - **Microservices:** While the library *supports* building microservices, the repository\
-  \ itself is a monorepo containing a framework and its adapters, not a collection\
-  \ of independently deployable business services.\n- **Modular Monolith:** While\
-  \ strictly modular, the modules are \"Technology Adapters\" rather than \"Business\
-  \ Modules,\" which aligns more closely with the Hexagonal/DDD style for a library.\n\
-  - **Microkernel:** While it uses a plugin-like structure for providers, it relies\
-  \ on standard DI and build-time references rather than a dynamic loader core."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.8
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.82
-  style_clarity: 0.85
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.8
+classification_method: deep-analysis-subagent
+classification_confidence: 0.92
+classification_model: claude-sonnet-4-6-subagent
+classification_date: '2026-03-09T01:59:27Z'
+classification_reasoning: Event sourcing library with IEventStore abstraction, subscriptions,
+  projections-as-read-models, and pluggable brokers

@@ -15,8 +15,6 @@ languages:
 - Python
 architecture_styles:
 - Modular Monolith
-- Event-Driven
-- Hexagonal Architecture
 classification_status: classified
 review_notes: "The Sentry Relay is structured as a **Modular Monolith** built on top\
   \ of a custom actor-like framework defined in `relay-system`. While it is a single\
@@ -37,52 +35,9 @@ review_notes: "The Sentry Relay is structured as a **Modular Monolith** built on
   \ via `tokio` channels, decoupling the HTTP ingestion layer from the processing\
   \ and forwarding layers."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.79
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:08:55Z'
-classification_reasoning: "The Sentry Relay is structured as a **Modular Monolith**\
-  \ built on top of a custom actor-like framework defined in `relay-system`. While\
-  \ it is a single deployable binary, it is meticulously partitioned into dozens of\
-  \ local crates (over 40 workspace members in `Cargo.toml`), each with strictly defined\
-  \ responsibilities and internal APIs.\n\n### 1. Modular Monolith / Actor System\n\
-  The core of the architecture is defined in `relay-system/src/lib.rs`. It provides\
-  \ a `Service` and `Interface` abstraction that mimics the Actor model. Components\
-  \ communicate by sending messages to an `Addr<T>`. \n- **Internal Boundaries:**\
-  \ The `relay-server` crate acts as the primary orchestrator, but high-level logic\
-  \ is delegated to specialized \"services\" located in `relay-server/src/services/`\
-  \ (e.g., `processor.rs`, `outcome.rs`, `upstream.rs`).\n- **Encapsulation:** By\
-  \ splitting the logic into crates like `relay-event-normalization`, `relay-filter`,\
-  \ and `relay-metrics`, the project enforces compile-time boundary checks. Each module\
-  \ owns its specific logic (PII scrubbing, normalization, etc.), preventing a \"\
-  big ball of mud.\"\n\n### 2. Event-Driven (Internal & External)\nThe system is heavily\
-  \ event-driven in two ways:\n- **Internal:** The `relay-system` framework uses asynchronous\
-  \ message passing between services via `tokio` channels, decoupling the HTTP ingestion\
-  \ layer from the processing and forwarding layers.\n- **External:** When the `processing`\
-  \ feature is enabled (as seen in `relay-kafka/src/lib.rs` and the README), Relay\
-  \ acts as a producer in an event-driven pipeline, pushing normalized events into\
-  \ Kafka topics instead of making synchronous HTTP calls to the Sentry upstream.\n\
-  \n### 3. Hexagonal Architecture (Ports and Adapters)\nThe architecture exhibits\
-  \ strong Hexagonal characteristics:\n- **Core Logic:** Crates like `relay-event-normalization`,\
-  \ `relay-filter`, and `relay-sampling` contain the pure domain logic of Sentry's\
-  \ data processing.\n- **Adapters:** The `relay-server/src/endpoints/` directory\
-  \ contains the \"Primary Adapters\" (HTTP/Axum), while `relay-kafka`, `relay-redis`,\
-  \ and `relay-server/src/services/objectstore.rs` act as \"Secondary Adapters\" for\
-  \ external infrastructure. The use of traits and the `relay-system` interface allows\
-  \ the system to switch between \"proxy mode\" (direct forwarding) and \"processing\
-  \ mode\" (Kafka/Redis backend) by swapping these adapters.\n\n### Rejection of Microservices\n\
-  Although the repository contains many crates, they compile into a single unit of\
-  \ deployment (the `relay` binary). There is no evidence of these crates being deployed\
-  \ as independent, network-isolated services within this repository. Instead, it\
-  \ is a highly structured, multi-module application designed for high performance\
-  \ and strict concurrency management."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.79
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.75
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.85
-  flags: multi-label classification (3 styles) reduces clarity score — each individual
-    label is well-supported but the combination makes primary style ambiguous
+classification_method: deep-analysis-subagent
+classification_confidence: 0.75
+classification_model: claude-sonnet-4-6-subagent
+classification_date: '2026-03-09T01:59:27Z'
+classification_reasoning: Single binary deployment with 39 modular Rust crates, clear
+  module boundaries, and actor-based services communicating via message passing

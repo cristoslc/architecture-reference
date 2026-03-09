@@ -18,7 +18,6 @@ languages:
 architecture_styles:
 - Microkernel (Plugin)
 - Pipeline (Pipe-and-Filter)
-- Event-Driven
 classification_status: classified
 review_notes: 'Apache NiFi is a canonical example of a **Microkernel (Plugin)** architecture.
   While it serves a **Pipeline** domain, the codebase is structurally organized around
@@ -50,81 +49,9 @@ review_notes: 'Apache NiFi is a canonical example of a **Microkernel (Plugin)** 
 
   ### Secondary Style: Pipeline (Pipe-and-Filter)'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.82
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:03:11Z'
-classification_reasoning: 'Apache NiFi is a canonical example of a **Microkernel (Plugin)**
-  architecture. While it serves a **Pipeline** domain, the codebase is structurally
-  organized around a rigid core-and-extension separation.
-
-
-  ### Primary Style: Microkernel (Plugin)
-
-  The system is built on a custom plugin mechanism known as NARs (NiFi Archive files).
-  These are specialized artifacts that provide classloader isolation for extensions.
-
-  - **Core (Microkernel):** The `nifi-framework-bundle` contains the orchestration
-  engine, web server (`nifi-web`), and runtime management (`nifi-runtime`). This core
-  provides the lifecycle management for all plugins but remains agnostic of specific
-  data formats or protocols.
-
-  - **Plugin Contract:** The system defines a rigorous API (indicated by `nifi-api`
-  and `nifi-framework-core-api`) that extensions must implement. Key interfaces include
-  `Processor`, `ControllerService`, and `ReportingTask`.
-
-  - **Extensions:** The repository is dominated by `nifi-extension-bundles` (e.g.,
-  `nifi-aws-bundle`, `nifi-kafka-bundle`, `nifi-mongodb-bundle`). Each bundle is a
-  self-contained plugin that can be added or removed without altering the core framework.
-
-  - **Dynamic Loading:** The `nifi-nar-utils` and `nifi-framework-nar-loading-utils`
-  handle the discovery and isolation of these plugins at runtime, a hallmark of the
-  Microkernel style.
-
-
-  ### Secondary Style: Pipeline (Pipe-and-Filter)
-
-  The internal data processing model follows a classic **Pipeline** pattern, specifically
-  "Flow-Based Programming" (a subset of Pipe-and-Filter).
-
-  - **Filters (Processors):** Each processor in the extension bundles acts as a "filter"
-  that transforms or moves data.
-
-  - **Pipes (Connections):** The framework manages the movement of "FlowFiles" (the
-  data unit) between these processors using queues.
-
-  - **Evidence:** The modularization of `nifi-standard-processors` and various `nifi-record-utils`
-  supports this stage-based data flow organization.
-
-
-  ### Secondary Style: Event-Driven
-
-  While the core framework is a microkernel, the communication between components
-  is decoupled and **Event-Driven**.
-
-  - Components react to the presence of data in an incoming queue (triggering the
-  `onTrigger` method).
-
-  - The framework uses a `nifi-framework-cluster-protocol` and leader election (via
-  ZooKeeper bundles) to coordinate events across a distributed cluster.
-
-  - Provenance tracking (`nifi-provenance-repository-bundle`) records every event/transition
-  in the lifecycle of a data unit.
-
-
-  ### Architectural Rejections
-
-  - **Microservices:** While NiFi can run in a cluster, the codebase is a single large
-  build (monorepo) that produces a unified distribution (`nifi-assembly`). It is not
-  a suite of independently deployable network services.
-
-  - **Layered:** Although internal components like `nifi-web` have layering, the overarching
-  structure is defined by the plugin boundary, not horizontal technical tiers.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.82
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.88
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.8
+classification_method: deep-analysis-subagent
+classification_confidence: 0.92
+classification_model: claude-sonnet-4-6-subagent
+classification_date: '2026-03-09T01:59:27Z'
+classification_reasoning: NAR-based plugin system with 60+ isolated extension bundles
+  dynamically loaded via ExtensionManager; processors connected via queue-based pipelines

@@ -15,9 +15,8 @@ languages:
 - JavaScript
 - Ruby
 architecture_styles:
-- Modular Monolith
 - Microkernel (Plugin)
-- Event-Driven
+- Modular Monolith
 classification_status: classified
 review_notes: 'Kill Bill is a classic example of a **Modular Monolith** that leverages
   a **Microkernel (Plugin)** architecture for extensibility and an **Event-Driven**
@@ -52,84 +51,9 @@ review_notes: 'Kill Bill is a classic example of a **Modular Monolith** that lev
   The system is designed to be highly extensible through a plugin architecture (referred
   to in the documentation as the "platform").'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.74
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:54:51Z'
-classification_reasoning: 'Kill Bill is a classic example of a **Modular Monolith**
-  that leverages a **Microkernel (Plugin)** architecture for extensibility and an
-  **Event-Driven** approach for internal component coordination.
-
-
-  ### 1. Primary Style: Modular Monolith
-
-  While the README mentions that the project "does not use a monolithic repository,"
-  this refers to the broader Kill Bill ecosystem (client libraries, documentation,
-  etc.). The core platform itself, contained in this repository, is structured as
-  a Modular Monolith:
-
-  - **Unified Build and Deployment:** The root `pom.xml` defines a single multi-module
-  Maven project. The `profiles/killbill/pom.xml` shows that all functional modules
-  (`account`, `catalog`, `invoice`, `payment`, `subscription`, etc.) are bundled into
-  a single `.war` file (Web Application Archive) for deployment.
-
-  - **Enforced Boundaries via API Module:** The `api/` directory contains the Java
-  interfaces and constants that define the contracts between modules. By separating
-  interfaces into a dedicated module, the system ensures that functional modules interact
-  through defined APIs rather than reaching into each other''s implementation details.
-
-  - **Shared Infrastructure:** All modules share a common infrastructure (Guice for
-  DI, Shiro for security, and a unified `jaxrs` layer for the REST API), which is
-  typical of a monolith rather than a microservices architecture where such concerns
-  would be decentralized.
-
-
-  ### 2. Secondary Style: Microkernel (Plugin)
-
-  The system is designed to be highly extensible through a plugin architecture (referred
-  to in the documentation as the "platform").
-
-  - **Core vs. Plugins:** The "Microkernel" is the Kill Bill engine, which provides
-  essential services like multi-tenancy (`tenant/`), auditing, and the event bus.
-
-  - **Plugin Integration:** The `profiles/killbill/pom.xml` references `kill-bill-platform-osgi`,
-  indicating that it can load external bundles at runtime. The presence of `killbill-plugin-api-*`
-  dependencies (catalog, payment, etc.) confirms that external logic (like a specific
-  payment gateway or taxation engine) is integrated via stable plugin contracts.
-
-
-  ### 3. Secondary Style: Event-Driven
-
-  The internal coordination between modules is decoupled using an asynchronous event-driven
-  model.
-
-  - **Inter-Module Communication:** When an action occurs in one module (e.g., a subscription
-  change), it broadcasts an event. The `invoice` module listens for subscription events
-  to generate new charges, and the `payment` module listens for invoice events to
-  trigger collections.
-
-  - **Evidence:** References to `killbill-queue` (in the profiles POM) and the `beatrix`
-  module (which serves as the "glue" or orchestration layer) indicate a system built
-  on internal message passing to maintain consistency across the modular boundaries
-  without tight coupling.
-
-
-  ### Rejection of Microservices
-
-  Although the modules are logically distinct and the documentation mentions "highly
-  modularized," they are not **Microservices** because they are not independently
-  deployable. They share a single lifecycle, are packaged in a single WAR, and generally
-  operate against a shared database schema (facilitated by the `tenant` module for
-  isolation). The "Service-Based" style was also rejected as the granularity is much
-  finer (10+ modules) than typical service-based architectures.'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.74
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.85
-  alternatives_dismissed: 0.6
-  exploration_completeness: 0.75
-  flags: reasoning cuts off mid-sentence on microservices rejection; OSGI plugin evidence
-    is somewhat indirect (inferred from dependency names rather than explicit plugin
-    loading code)
+classification_method: deep-analysis-subagent
+classification_confidence: 0.85
+classification_model: claude-sonnet-4-6-subagent
+classification_date: '2026-03-09T01:59:27Z'
+classification_reasoning: OSGI-based plugin framework with 135+ plugin integration
+  points, multiple plugin registries, deployed as single WAR with 15 domain modules

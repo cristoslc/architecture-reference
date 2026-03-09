@@ -13,9 +13,8 @@ language: Java/Kotlin
 languages:
 - Java/Kotlin
 architecture_styles:
+- Layered
 - Microkernel (Plugin)
-- Modular Monolith
-- Event-Driven
 classification_status: classified
 review_notes: 'The Confluent Schema Registry is structured as a **Microkernel (Plugin)**
   architecture built within a **Modular Monolith** containing a specialized **Event-Driven**
@@ -42,54 +41,9 @@ review_notes: 'The Confluent Schema Registry is structured as a **Microkernel (P
   to new schema types and encryption backends without modifying the `core` server
   logic.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.76
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:09:41Z'
-classification_reasoning: "The Confluent Schema Registry is structured as a **Microkernel\
-  \ (Plugin)** architecture built within a **Modular Monolith** containing a specialized\
-  \ **Event-Driven** storage engine.\n\n### 1. Primary Style: Microkernel (Plugin)\n\
-  The system's core capability (storing and validating schemas) is designed to be\
-  \ extensible through a plugin architecture. Although the specific `SchemaProvider.java`\
-  \ file was not found under `core/src/main/java`, the `SchemaRegistryConfig.java`\
-  \ defines a `SCHEMA_PROVIDERS_CONFIG` constant and the `pom.xml` reveals a highly\
-  \ modular structure where support for different schema formats (Avro, Protobuf,\
-  \ JSON Schema) is implemented in separate modules:\n- `protobuf-provider`, `json-schema-provider`,\
-  \ `avro-data`\n- `protobuf-serializer`, `json-schema-serializer`, `avro-serializer`\n\
-  - `client-encryption-aws`, `client-encryption-azure`, `client-encryption-hcvault`\n\
-  \nThe system loads these \"providers\" at runtime to extend the registry's support\
-  \ to new schema types and encryption backends without modifying the `core` server\
-  \ logic.\n\n### 2. Secondary Style: Modular Monolith\nThe repository is a large\
-  \ multi-module Maven project where the entire system is typically deployed as a\
-  \ single unit (the `package-schema-registry` module builds a \"fat JAR\" or a single\
-  \ distribution). \n- **Enforced Boundaries:** Logical separation is maintained through\
-  \ Maven modules. The `core` module contains the REST server and lifecycle management,\
-  \ while `client` and specific format libraries are kept distinct to prevent circular\
-  \ dependencies.\n- **Unified Deployment:** The `package-schema-registry` module's\
-  \ assembly descriptors (`standalone.xml`, `package.xml`) bundle all these modules\
-  \ into a single executable service.\n\n### 3. Secondary Style: Event-Driven (Internal\
-  \ Storage)\nWhile the service provides a RESTful interface, its internal persistence\
-  \ mechanism in `KafkaStore.java` is a classic implementation of Event Sourcing/Log-structured\
-  \ storage:\n- **Write Path:** Operations (`put`, `delete`) write to a single-partitioned,\
-  \ compacted Kafka topic (`_schemas` by default). \n- **Read Path:** A `KafkaStoreReaderThread`\
-  \ consumes this topic to build a local in-memory view (via `localStore`).\n- **Consistency:**\
-  \ The `put` operation waits for the reader thread to catch up to the produced offset\
-  \ (`waitUntilKafkaReaderReachesOffset`), ensuring read-after-write consistency within\
-  \ the service instance.\n\n### Execution Analysis\n- **Layered signals:** Rejections\
-  \ of a pure \"Layered\" classification stem from the storage layer's complexity.\
-  \ While it has a REST layer and a storage layer, the circular relationship between\
-  \ the service and the Kafka broker (acting as the log) is more typical of specialized\
-  \ distributed systems than standard horizontal layering.\n- **DDD/CQRS:** While\
-  \ there is a clear separation between the command (writing to Kafka) and the query\
-  \ (reading from local cache), it is an implementation detail of the persistence\
-  \ layer rather than a top-level architectural pattern for business logic."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.76
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.82
-  style_clarity: 0.75
-  alternatives_dismissed: 0.65
-  exploration_completeness: 0.8
-  flags: multi-style classification with three labels somewhat dilutes confidence;
-    primary Microkernel claim is well-supported but secondary labels add ambiguity
+classification_method: deep-analysis-subagent
+classification_confidence: 0.88
+classification_model: claude-sonnet-4-6-subagent
+classification_date: '2026-03-09T01:59:27Z'
+classification_reasoning: Single-deployed REST service with layered request handling
+  (REST-Business-Storage via Kafka) and pluggable schema providers
