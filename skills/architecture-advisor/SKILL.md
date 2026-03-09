@@ -7,7 +7,7 @@ metadata:
   short-description: Production-evidence-based architecture guidance from 142 codebases
   version: 3.0.0
   author: cristos
-  source-repo: https://github.com/cristoslc/architecture-reference-repo
+  source-repo: https://github.com/cristoslc/architecture-reference
 ---
 
 # Architecture Advisor

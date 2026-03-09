@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# sync-references.sh — Fetch reference data from architecture-reference-repo
+# sync-references.sh — Fetch reference data from architecture-reference
 #
 # Sparse-clones the source repository and extracts reference data into the
 # skill's references/ directory, per the Agent Skills spec (agentskills.io).
@@ -27,7 +27,7 @@ SKILL_DIR="$(cd "$SCRIPT_DIR/.." && pwd)"
 REFERENCES_DIR="$SKILL_DIR/references"
 
 # --- Defaults ---
-SOURCE_REPO="https://github.com/cristoslc/architecture-reference-repo"
+SOURCE_REPO="https://github.com/cristoslc/architecture-reference"
 REF="main"
 INCLUDE_EVIDENCE_POOL=false
 STATUS_ONLY=false

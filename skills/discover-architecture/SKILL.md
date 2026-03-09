@@ -7,7 +7,7 @@ metadata:
   short-description: Discover architecture styles through deep source code analysis
   version: 2.0.0
   author: cristos
-  source-repo: https://github.com/cristoslc/architecture-reference-repo
+  source-repo: https://github.com/cristoslc/architecture-reference
 ---
 
 # Discover Architecture

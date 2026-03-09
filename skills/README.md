@@ -16,16 +16,16 @@ Install any skill via `npx skills`:
 
 ```bash
 # Install both architecture skills
-npx skills add cristoslc/architecture-reference-repo --skill discover-architecture architecture-advisor
+npx skills add cristoslc/architecture-reference --skill discover-architecture architecture-advisor
 
 # Install a single skill
-npx skills add cristoslc/architecture-reference-repo --skill architecture-advisor
+npx skills add cristoslc/architecture-reference --skill architecture-advisor
 
 # Install globally (available in all projects)
-npx skills add cristoslc/architecture-reference-repo --skill architecture-advisor -g
+npx skills add cristoslc/architecture-reference --skill architecture-advisor -g
 
 # List available skills
-npx skills add cristoslc/architecture-reference-repo --list
+npx skills add cristoslc/architecture-reference --list
 ```
 
 ## Alternative: remote-skill-manager
@@ -36,7 +36,7 @@ The first skill you install must be done manually — after that, it manages its
 
 ```bash
 # One-time bootstrap: clone and copy remote-skill-manager into your project
-git clone --depth 1 https://github.com/cristoslc/architecture-reference-repo /tmp/arch-ref
+git clone --depth 1 https://github.com/cristoslc/architecture-reference /tmp/arch-ref
 cp -R /tmp/arch-ref/skills/remote-skill-manager .agents/skills/remote-skill-manager
 rm -rf /tmp/arch-ref
 ```
@@ -45,7 +45,7 @@ rm -rf /tmp/arch-ref
 
 ```bash
 bash .agents/skills/remote-skill-manager/scripts/fetch-remote-skill.sh \
-  https://github.com/cristoslc/architecture-reference-repo \
+  https://github.com/cristoslc/architecture-reference \
   skills/architecture-advisor \
   main \
   .agents/skills
@@ -61,7 +61,7 @@ To update remote-skill-manager itself:
 
 ```bash
 bash .agents/skills/remote-skill-manager/scripts/fetch-remote-skill.sh \
-  https://github.com/cristoslc/architecture-reference-repo \
+  https://github.com/cristoslc/architecture-reference \
   skills/remote-skill-manager \
   main \
   .agents/skills
