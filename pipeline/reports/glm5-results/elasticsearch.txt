@@ -1,0 +1,87 @@
+I'll explore the elasticsearch repository to understand its architecture. Let me start with an overview of the directory structure and key configuration files.Let me explore the plugin architecture more deeply:Let me check the stable plugin API documentation to understand the modern plugin architecture better:Now I have enough information to classify this architecture. Let me verify one more thing about the plugin extension mechanism:Based on my thorough investigation, I now have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.95
+---
+
+## Analysis
+
+The Elasticsearch repository exhibits a **Microkernel (Plugin)** architecture with strong supporting evidence.
+
+### Core Evidence for Microkernel (Plugin):
+
+**1. Central Plugin Abstraction**
+- `server/src/main/java/org/elasticsearch/plugins/Plugin.java` is an abstract base class (347 lines) that serves as the primary extension point
+- A comprehensive plugin system with `PluginsService.java` and `PluginsLoader.java` managing plugin discovery, loading, and lifecycle
+- Plugin descriptor files (`plugin-descriptor.properties`, `stable-plugin-descriptor.properties`) define plugin metadata
+
+**2. Multiple Extension Interfaces**
+The codebase defines 17+ plugin extension interfaces in `server/src/main/java/org/elasticsearch/plugins/`:
+- `ActionPlugin` - REST handlers and actions
+- `AnalysisPlugin` - Text analysis components  
+- `ClusterPlugin` - Cluster management behavior
+- `DiscoveryPlugin` - Node discovery mechanisms
+- `EnginePlugin` - Storage engines
+- `IngestPlugin` - Ingest processors
+- `MapperPlugin` - Field type mappings
+- `NetworkPlugin` - Network transports
+- `RepositoryPlugin` - Snapshot repositories
+- `ScriptPlugin` - Scripting languages
+- `SearchPlugin` - Search extensions
+- `ExtensiblePlugin` - Allows plugins to themselves be extended by other plugins
+
+**3. Built-in vs. External Plugins**
+- `modules/` directory: 25 built-in modules (analysis-common, lang-painless, transport-netty4, repository-s3, etc.)
+- `plugins/` directory: 15+ optional plugins (analysis-icu, discovery-ec2, repository-hdfs, etc.)
+- `x-pack/plugin/`: 60+ X-Pack features implemented as plugins
+- All use the **same plugin mechanism** - built-in modules are just pre-installed
+
+**4. Plugin Loading Infrastructure**
+From `PluginsLoader.java`:
+```java
+// Loads plugin bundles from filesystem
+public static Set<PluginBundle> loadModulesBundles(Path modulesDirectory)
+public static Set<PluginBundle> loadPluginsBundles(Path pluginsDirectory)
+```
+Plugins are loaded dynamically with separate classloaders and module layers.
+
+**5. Entitlements Security System**
+The `libs/entitlement/` module provides a security sandbox for plugins, controlling what sensitive operations plugins can perform (file access, network, threads, etc.).
+
+### Supporting Evidence for Layered:
+
+The architecture also exhibits layered organization within the core:
+- **REST Layer**: HTTP handlers in `RestController`, `BaseRestHandler`
+- **Transport Layer**: Node-to-node binary protocol
+- **Action Layer**: `ActionModule` coordinates actions
+- **Service Layer**: Cluster services, indices services
+- **Data Layer**: Lucene integration, translog, storage
+
+This is documented in `docs/internal/GeneralArchitectureGuide.md` and `docs/internal/DistributedArchitectureGuide.md`.
+
+### What Was Rejected:
+
+**Not Microservices**: Elasticsearch is a **single deployable unit**. The `distribution/` directory packages one server into various formats (tar, zip, docker, rpm, deb). While nodes form clusters, each node is a monolithic application, not decomposed into separate services.
+
+**Not Service-Based**: There aren't 2-5 coarse-grained services sharing databases. It's one application with plugins.
+
+**Not Event-Driven**: While there are asynchronous operations and cluster state propagation, the core extension mechanism is the plugin system, not message brokers or event streams.
+
+**Not Hexagonal Architecture**: While abstractions exist, the codebase isn't organized around explicit ports/adapters with inside/outside separation.
+
+**Not DDD**: Though domain concepts exist (indices, shards), the primary organizational structure is plugins extending capabilities, not bounded contexts with aggregates.
+
+### Key Files Cited:
+- `server/src/main/java/org/elasticsearch/plugins/Plugin.java`
+- `server/src/main/java/org/elasticsearch/plugins/PluginsService.java`
+- `server/src/main/java/org/elasticsearch/plugins/PluginsLoader.java`
+- `server/src/main/java/org/elasticsearch/plugins/*Plugin.java` (17 interfaces)
+- `modules/build.gradle` - plugin build configuration
+- `plugins/build.gradle` - plugin build configuration
+- `docs/extend/creating-classic-plugins.md`
+- `docs/extend/creating-stable-plugins.md`
+- `libs/entitlement/` - plugin security sandbox

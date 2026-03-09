@@ -1,0 +1,113 @@
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Analysis
+
+Redis is architected as a **Microkernel (Plugin)** system with a single core server extended by dynamically loaded modules.
+
+### Primary Evidence: Microkernel (Plugin)
+
+**1. Dynamic Plugin Loading via dlopen/dlsym**
+
+The core server loads external modules at runtime using POSIX dynamic loading:
+
+```c
+// src/module.c:13156-13180
+int moduleLoad(const char *path, void **module_argv, int module_argc, int is_loadex) {
+    int (*onload)(void *, void **, int);
+    void *handle;
+    
+    handle = dlopen(path,RTLD_NOW|RTLD_LOCAL);
+    if (handle == NULL) {
+        serverLog(LL_WARNING, "Module %s failed to load: %s", path, dlerror());
+        return C_ERR;
+    }
+    onload = (int (*)(void *, void **, int))(unsigned long) dlsym(handle,"RedisModule_OnLoad");
+    if (onload == NULL) {
+        dlclose(handle);
+        serverLog(LL_WARNING,
+            "Module %s does not export RedisModule_OnLoad() "
+            "symbol. Module not loaded.",path);
+        return C_ERR;
+    }
+    return moduleOnLoad(onload, path, handle, module_argv, module_argc, is_loadex);
+}
+```
+
+**2. Stable Plugin API Contract**
+
+The module API is defined in a 1885-line header file (`src/redismodule.h`) exposing hundreds of functions for:
+- Command creation: `RedisModule_CreateCommand`, `RedisModule_CreateSubcommand`
+- Custom data types: `RedisModule_CreateDataType`
+- Memory management: `RedisModule_Alloc`, `RedisModule_Free`
+- Key operations: `RedisModule_OpenKey`, `RedisModule_Call`
+- Event hooks: `RedisModule_SubscribeToServerEvent`
+
+**3. Plugin Registration Contract**
+
+All modules must implement the entry point:
+
+```c
+// src/modules/helloworld.c:525
+int RedisModule_OnLoad(RedisModuleCtx *ctx, RedisModuleString **argv, int argc) {
+    if (RedisModule_Init(ctx,"helloworld",1,REDISMODULE_APIVER_1)
+        == REDISMODULE_ERR) return REDISMODULE_ERR;
+    
+    if (RedisModule_CreateCommand(ctx,"hello.simple",
+        HelloSimple_RedisCommand,"readonly",0,0,0) == REDISMODULE_ERR)
+        return REDISMODULE_ERR;
+    ...
+}
+```
+
+**4. Production Modules Directory**
+
+The `modules/` directory contains independently buildable extension modules:
+- `vector-sets/` - Vector similarity search with HNSW algorithm
+- `redisbloom/` - Bloom filter data structure
+- `redisearch/` - Full-text search
+- `redisjson/` - JSON document storage
+- `redistimeseries/` - Time series data
+
+**5. Runtime Configuration**
+
+Modules are loaded via `redis.conf`:
+```
+loadmodule /path/to/module.so [args...]
+```
+
+Or dynamically via the `MODULE LOAD` command.
+
+### Secondary Evidence: Layered (Weak)
+
+The codebase shows horizontal organization typical of C projects:
+
+- **Event Loop Layer**: `ae.c`, `ae_epoll.c`, `ae_kqueue.c`, `ae_select.c` - platform-specific event polling
+- **Networking Layer**: `anet.c`, `connection.c`, `networking.c` - socket handling, client connections
+- **Command Processing**: `commands.c`, `db.c`, various `*.c` command implementations
+- **Data Structures**: `adlist.c`, `dict.c`, `quicklist.c`, `ziplist.c`, `rax.c` - core data types
+
+However, this is **not a formally enforced layered architecture**. The `server.h` header includes all internal components, creating cross-layer dependencies. Files like `server.c` directly call into data structures, networking, and event loop. This is standard C code organization, not a Layered architecture pattern.
+
+### Rejected Styles
+
+- **Modular Monolith**: No enforced internal module boundaries within `src/`. Single compilation unit producing `redis-server` binary with shared access to all internals via `server.h`.
+
+- **Event-Driven**: While Redis uses an event loop internally for I/O multiplexing, components don't communicate through asynchronous events. The event loop is an implementation detail for handling client connections, not an architectural communication pattern.
+
+- **Service-Based/Microservices**: Single deployable binary (`redis-server`). No independent deployment units.
+
+- **Hexagonal Architecture**: No ports-and-adapters isolation. The module API is for **extension**, not for isolating the application core from external concerns.
+
+- **Domain-Driven Design**: No bounded contexts, aggregates, value objects, or ubiquitous language patterns. The code is organized around data structures and commands.
+
+- **Pipeline**: No sequential data transformation stages.
+
+### Conclusion
+
+Redis embodies the **Microkernel (Plugin)** pattern: a minimal core server providing essential services (event loop, networking, persistence, basic data types) that can be extended at runtime through dynamically loaded modules implementing a well-defined API contract. This allows functionality like search, JSON, time series, and vector operations to be added without modifying the core.

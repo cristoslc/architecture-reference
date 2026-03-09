@@ -15,7 +15,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Layered
-- Event-Driven
+- Microkernel (Plugin)
 classification_status: classified
 review_notes: 'Outline is structured as a classic **Layered** architecture (specifically
   a specialized Monolith) with a strong **Event-Driven** secondary pattern for asynchronous
@@ -45,79 +45,58 @@ review_notes: 'Outline is structured as a classic **Layered** architecture (spec
   5.  **Presentation Layer** (`server/presenters/`): Handles the transformation of
   internal database models into the JSON formats consumed by the frontend.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.87
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:05:35Z'
-classification_reasoning: 'Outline is structured as a classic **Layered** architecture
-  (specifically a specialized Monolith) with a strong **Event-Driven** secondary pattern
-  for asynchronous processing. While it is housed in a monorepo, the `app` (frontend)
-  and `server` (backend) represent a standard client-server split rather than independent
-  microservices.
-
-
-  ### Primary Style: Layered
-
-  The backend (`server/`) follows a strict horizontal layering common in Node.js/Koa
-  applications:
-
-  1.  **Routing Layer** (`server/routes/`): Entry points for HTTP requests, divided
-  into `api` and `auth`.
-
-  2.  **Business Logic / Command Layer** (`server/commands/`): The `ARCHITECTURE.md`
-  highlights this as the home for "complex commands that perform actions across multiple
-  models," separating orchestration logic from HTTP concerns.
-
-  3.  **Domain/Persistence Layer** (`server/models/`): Uses Sequelize (ORM) to define
-  the data schema and domesticate the database. The logic here includes lifecycle
-  hooks (e.g., `AfterCreate` in `Reaction.ts`).
-
-  4.  **Authorization Layer** (`server/policies/`): Decoupled authorization logic
-  using the `cancan` pattern, separating "who can do what" from the business logic.
-
-  5.  **Presentation Layer** (`server/presenters/`): Handles the transformation of
-  internal database models into the JSON formats consumed by the frontend.
-
-
-  ### Secondary Style: Event-Driven
-
-  The application relies heavily on asynchronous processing and background tasks,
-  a hallmark of Event-Driven systems:
-
-  -   **Queue-Based Processing** (`server/queues/`): Uses Redis and `Bull` for managing
-  background jobs.
-
-  -   **Event Bus**: The `ARCHITECTURE.md` mentions "Processors perform jobs on events
-  from the event bus," indicating that major actions in the system trigger events
-  that are handled out-of-band (e.g., sending emails, updating search indexes).
-
-  -   **Collaborative Real-time**: The `server/collaboration` directory and integration
-  of `Hocuspocus` (Yjs/Websocket) support a real-time, state-sync architecture that
-  operates via event propagation rather than standard request-response.
-
-
-  ### Alternative Styles Considered
-
-  -   **Modular Monolith**: While the `server` has distinct folders (`commands`, `models`,
-  `queues`), these are functional layers (Technostructure) rather than domain-bounded
-  modules. Code is highly coupled via the Sequelize models; therefore, it does not
-  meet the strict criteria for a Modular Monolith.
-
-  -   **Microkernel (Plugin)**: The codebase contains a `plugins` directory and a
-  `PluginManager.ts`, suggesting a plugin architecture for integrations. However,
-  the core system logic is not primarily driven by these plugins; they appear to be
-  extensions for the editor or third-party integrations (Slack, Linear) rather than
-  the foundational architectural pattern.
-
-  -   **Microservices**: The `docker-compose.yml` only includes infrastructure (Postgres,
-  Redis), and the `package.json` suggests a single deployment unit (monolith) for
-  the backend, even if it runs multiple "services" (worker, api, websockets) under
-  a single process manager like `throng`.'
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.87
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.85
-  alternatives_dismissed: 0.9
-  exploration_completeness: 0.88
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:53:34Z'
+classification_reasoning: "## Analysis\n\nOutline is a **Layered architecture with\
+  \ a Microkernel-style plugin system**. The repository is structured as a single\
+  \ deployable monolith with clear horizontal layering on both frontend and backend,\
+  \ extended by a robust plugin infrastructure.\n\n### Primary: Layered Architecture\n\
+  \nThe codebase exhibits classic horizontal layering:\n\n**Backend (Koa/Node.js)**\
+  \ in `server/`:\n- **Routes layer** (`server/routes/`) - API endpoints organized\
+  \ by domain (documents, collections, users, etc.)\n- **Commands layer** (`server/commands/`)\
+  \ - Business logic operations spanning multiple models\n- **Models layer** (`server/models/`)\
+  \ - Sequelize ORM data access with 30+ domain models\n- **Policies layer** (`server/policies/`)\
+  \ - Authorization logic using cancan\n- **Presenters layer** (`server/presenters/`)\
+  \ - JSON serialization transforming models to API responses\n- **Middlewares layer**\
+  \ (`server/middlewares/`) - Request processing (authentication, validation, rate\
+  \ limiting)\n\n**Frontend (React/Vite)** in `app/`:\n- **Scenes** (`app/scenes/`)\
+  \ - Full-page views (route-level components)\n- **Components** (`app/components/`)\
+  \ - Reusable UI components\n- **Stores** (`app/stores/`) - MobX state containers\
+  \ (CollectionsStore, DocumentsStore, etc.)\n- **Models** (`app/models/`) - Client-side\
+  \ domain models with MobX observables\n- **Routes** (`app/routes/`) - Route definitions\
+  \ with lazy loading\n\nThe `docs/ARCHITECTURE.md` explicitly documents this layered\
+  \ organization.\n\n### Secondary: Microkernel (Plugin) Architecture\n\nA sophisticated\
+  \ plugin system extends the core:\n\n**Server PluginManager** (`server/utils/PluginManager.ts`):\n\
+  ```typescript\nexport enum Hook {\n  API = \"api\",\n  AuthProvider = \"authProvider\"\
+  ,\n  Processor = \"processor\",\n  Task = \"task\",\n  UnfurlProvider = \"unfurl\"\
+  ,\n  // ...\n}\n```\n\nPlugins register via hooks for API routes, authentication\
+  \ providers, async processors, tasks, and more. The system dynamically loads plugins\
+  \ at runtime:\n```typescript\nglob.sync(path.join(rootDir, \"plugins/*/server/!(*.test|schema).[jt]s\"\
+  ))\n```\n\n**Client PluginManager** (`app/utils/PluginManager.ts`):\n```typescript\n\
+  export enum Hook {\n  Settings = \"settings\",\n  Imports = \"imports\",\n  Icon\
+  \ = \"icon\",\n}\n```\n\n**20+ plugins** provide integrations:\n- `plugins/slack/`\
+  \ - Slack auth and slash commands\n- `plugins/github/` - GitHub issue unfurling\n\
+  - `plugins/google/` - Google authentication\n- `plugins/linear/`, `plugins/figma/`,\
+  \ `plugins/notion/` - Various integrations\n\nEach plugin has `plugin.json` metadata\
+  \ and optional `client/`, `server/`, and `shared/` directories. Example from `plugins/github/server/index.ts`:\n\
+  ```typescript\nif (enabled) {\n  PluginManager.add([\n    { type: Hook.API, value:\
+  \ router },\n    { type: Hook.Task, value: GitHubWebhookTask },\n    { type: Hook.UnfurlProvider,\
+  \ value: { unfurl: GitHub.unfurl } },\n  ]);\n}\n```\n\n### Why Not Other Styles\n\
+  \n- **Not Microservices**: Single `package.json`, single `Dockerfile`, single build\
+  \ artifact (`build/server/index.js`). The \"services\" (web, worker, collaboration)\
+  \ are runtime modes of the same application sharing one PostgreSQL database.\n\n\
+  - **Not Modular Monolith**: While organized by domain, there's no enforced module\
+  \ boundary system (no package workspaces, module-scoped dependencies, or internal\
+  \ API contracts). The plugin system provides extension, not internal module isolation.\n\
+  \n- **Not Hexagonal**: No ports/adapters pattern. The presenters layer transforms\
+  \ data but isn't an adapter abstraction. Database and external services are accessed\
+  \ directly from models and commands.\n\n- **Event-Driven is internal only**: Bull\
+  \ queues with Redis handle async tasks (emails, notifications, websockets) but this\
+  \ is background job processing within the monolith, not inter-service event communication.\n\
+  \n### Deployment Topology\n\nSingle container deployed with multiple runtime service\
+  \ modes:\n```javascript\n// server/services/index.ts\nexport default {\n  websockets,\
+  \ collaboration, admin, web, worker, cron\n}\n```\n\nServices are selected via CLI\
+  \ flags (`--services=web,worker,collaboration`), allowing horizontal scaling of\
+  \ specific capabilities while remaining a single codebase."

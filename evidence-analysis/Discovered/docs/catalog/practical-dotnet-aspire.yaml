@@ -39,85 +39,58 @@ review_notes: 'The repository is a textbook implementation of a **Microservices*
 
   - `yarp`: Acts as the API Gateway (using Microsoft''s Yet Another Reverse Proxy).'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.87
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:06:56Z'
-classification_reasoning: 'The repository is a textbook implementation of a **Microservices**
-  architecture, explicitly identified as such in the README and demonstrated by its
-  structural organization and deployment strategy.
-
-
-  ### 1. Microservices (Primary)
-
-  The codebase is partitioned into multiple independently deployable services, each
-  with its own project file (`.csproj`), configuration, and domain logic:
-
-  - `product-api`: Manages the product catalog.
-
-  - `counter-api`: Handles order placement.
-
-  - `barista-api`: Manages drink preparation.
-
-  - `kitchen-api`: Manages food preparation.
-
-  - `order-summary`: A reporting/read-side service.
-
-  - `yarp`: Acts as the API Gateway (using Microsoft''s Yet Another Reverse Proxy).
-
-  - **Deployment & Orchestration**: It uses **.NET Aspire** (`app-host/`), which is
-  a cloud-native stack specifically designed for orchestrating microservices. There
-  is also evidence of Kubernetes (`deployment-product-api.yaml`) and Docker Compose
-  (`docker-compose.yaml`) configurations.
-
-
-  ### 2. Event-Driven (Secondary)
-
-  The services communicate asynchronously via a message broker.
-
-  - **Infrastructure**: The README and diagrams specify **RabbitMQ** as the broker.
-
-  - **Code implementation**: All service directories (e.g., `counter-api`, `barista-api`,
-  `kitchen-api`) contain `IntegrationEvents` and `EventHandlers` folders. It uses
-  **MassTransit** to implement the Pub/Sub pattern (notably seen in `KitchenOrderUpdatedConsumer.cs`
-  and `BaristaOrderUpdatedConsumer.cs`).
-
-
-  ### 3. Domain-Driven Design (Secondary)
-
-  Each individual service is organized internally according to DDD tactical patterns
-  and **Vertical Slice** principles:
-
-  - **Bounded Contexts**: Each service represents a distinct business context (Barista,
-  Kitchen, Counter).
-
-  - **Tactical Patterns**: Directories contain `Domain`, `UseCases`, and `Infrastructure`.
-  Files like `Order.cs` (Entity), `OrderPlaced.cs` (Domain Event), and `IOrderRepository.cs`
-  (Interface/Port) indicate a strong adherence to DDD.
-
-  - **CQRS**: The README specifically mentions CQRS with **MediatR**. This is visible
-  in the directory structure through `Commands` and `UseCases` folders (e.g., `PlaceOrderCommand.cs`
-  and `OrderFulfillmentQuery.cs`).
-
-
-  ### Summary of Rejected Styles:
-
-  - **Modular Monolith**: Rejected because services are physically separated into
-  different projects, deployable units, and use a network-level message broker (RabbitMQ)
-  for communication rather than in-process method calls.
-
-  - **Serverless**: While the services are granular, they are implemented as long-running
-  ASP.NET Core applications rather than individual function triggers.
-
-  - **Hexagonal Architecture**: Although "Ports and Adapters" concepts are present
-  (via DDD), the primary organizing principle of the repo is the service boundary
-  and the event-driven interaction rather than strict isolation of the core from the
-  infrastructure within a single unit.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.87
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.92
-  alternatives_dismissed: 0.8
-  exploration_completeness: 0.88
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:32:32Z'
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
+  \ Style: Microservices\n\nThe repository implements a **true microservices architecture**\
+  \ with clear evidence:\n\n**Deployment Topology:**\n- **5 independently deployable\
+  \ services** + API Gateway:\n  - `product-api` - Product catalog service\n  - `counter-api`\
+  \ - Order taking service  \n  - `barista-api` - Beverage preparation service\n \
+  \ - `kitchen-api` - Food preparation service\n  - `order-summary` - Read projection/audit\
+  \ service\n  - `yarp` - API Gateway (reverse proxy)\n\n- **Container orchestration**\
+  \ via `docker-compose.yaml` and Kubernetes manifests (`deployment-product-api.yaml`)\n\
+  - **.NET Aspire orchestration** in `app-host/Program.cs` coordinating services,\
+  \ databases, message broker, and AI models\n\n**Data Ownership:**\n- Each service\
+  \ owns its data store:\n  - `product-api` uses PostgreSQL with Entity Framework\
+  \ (`ProductDbContext`)\n  - `order-summary` uses Marten event store with PostgreSQL\n\
+  \  - Services do not share databases\n\n**Service Discovery & Communication:**\n\
+  - YARP API Gateway (`yarp/appsettings.json`) routes `/p/*` → product-api, `/c/*`\
+  \ → counter-api\n- HTTP-based service-to-service calls via `ItemHttpGateway` using\
+  \ service discovery\n- Async communication via RabbitMQ message broker\n\n### Secondary\
+  \ Style: Event-Driven (Confidence: High)\n\nStrong evidence throughout the codebase:\n\
+  \n**MassTransit/RabbitMQ Integration:**\n- `counter-api/Program.cs` (lines 47-64):\
+  \ Configures MassTransit consumers for `BaristaOrderUpdatedConsumer`, `KitchenOrderUpdatedConsumer`\n\
+  - `barista-api/IntegrationEvents/EventHandlers/BaristaOrderedConsumer.cs`: Consumes\
+  \ `BaristaOrderPlaced` events and publishes `BaristaOrderUpdated`\n- `order-summary/Consumers/OrderConsumer.cs`:\
+  \ Consumes both `BaristaOrderPlaced` and `KitchenOrderPlaced` for event sourcing\n\
+  \n**Domain Events Pattern:**\n- `shared/CoffeeShop.Shared/Domain/Event.cs`: `IDomainEvent`,\
+  \ `EventBase`, `EventWrapper` for domain event abstraction\n- `shared/CoffeeShop.Shared/Domain/Entity.cs`:\
+  \ `IAggregateRoot` with `DomainEvents` collection and `RelayAndPublishEvents` extension\
+  \ method\n- Domain events like `BaristaOrderIn`, `KitchenOrderIn` in `counter-api/Domain/DomainEvents/OrderIn.cs`\n\
+  \n### Secondary Style: Domain-Driven Design (Confidence: Moderate-High)\n\nDD D\
+  \ building blocks are well-implemented:\n\n**Aggregate Roots & Entities:**\n- `EntityRootBase\
+  \ : IAggregateRoot` in `shared/CoffeeShop.Shared/Domain/Entity.cs` (line 19)\n-\
+  \ `Order` entity in `counter-api/Domain/Order.cs` extending `EntityRootBase`\n\n\
+  **Value Objects:**\n- `ValueObject` abstract class with equality components (lines\
+  \ 47-88 in Entity.cs)\n\n**Bounded Contexts:**\n- Each service has its own domain\
+  \ model:\n  - `counter-api/Domain/` - Order, ItemLine, OrderStatus\n  - `barista-api/Domain/`\
+  \ - BaristaItem with ItemType enum (beverages)\n  - `kitchen-api/Domain/` - KitchenOrder\
+  \ with ItemType enum (food)\n  - `product-api/Domain/` - Item entity\n\n**Domain\
+  \ Events:**\n- Services use domain events for in-boundary logic, then publish integration\
+  \ events via MassTransit\n\n### What This Is NOT\n\n- **NOT Layered Architecture**:\
+  \ No horizontal presentation/business/data layers across the system\n- **NOT Modular\
+  \ Monolith**: Multiple deployable containers, not a single unit\n- **NOT Serverless**:\
+  \ No function-as-a-service; uses containers and message queues\n- **NOT CQRS**:\
+  \ Uses MediatR commands/queries but lacks separate read/write models (order-summary\
+  \ has event projections, but this is supplementary)\n- **NOT Hexagonal Architecture**:\
+  \ No explicit ports/adapters pattern despite having gateways\n\n### Key Files Referenced\n\
+  \n| Evidence | File Path |\n|----------|-----------|\n| Service orchestration |\
+  \ `app-host/Program.cs` |\n| API Gateway routes | `yarp/CoffeeShop.Yarp/appsettings.json`\
+  \ |\n| Domain events pattern | `shared/CoffeeShop.Shared/Domain/Entity.cs`, `Event.cs`\
+  \ |\n| Message consumers | `counter-api/IntegrationEvents/EventHandlers/`, `barista-api/IntegrationEvents/EventHandlers/`\
+  \ |\n| Aggregate root | `counter-api/Domain/Order.cs` |\n| Event sourcing | `order-summary/Program.cs`\
+  \ (Marten), `order-summary/Consumers/OrderConsumer.cs` |\n| Container deployment\
+  \ | `app-host/aspirate-output/docker-compose.yaml` |\n| DDD bounded contexts | Each\
+  \ service's `Domain/` folder |"

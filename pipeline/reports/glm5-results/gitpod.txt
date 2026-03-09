@@ -1,0 +1,114 @@
+Let me explore deeper to understand the deployment structure and inter-service communication:Based on my thorough investigation of this codebase, I now have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles:
+  - Event-Driven
+confidence: 0.92
+---
+
+## Analysis
+
+### Primary Classification: Microservices
+
+The Gitpod repository exhibits a clear **Microservices architecture** with strong evidence across multiple dimensions:
+
+**1. Multiple Independently Deployable Services (25+ services)**
+
+The `components/` directory contains numerous distinct services, each with its own:
+- Build configuration (`BUILD.yaml`)
+- Docker container definition (`leeway.Dockerfile` or `Dockerfile`)
+- Module dependencies (`go.mod` for Go services, `package.json` for TypeScript services)
+
+Key services identified:
+- `server` - Main application server (TypeScript)
+- `ws-manager-mk2` - Kubernetes-based workspace manager (Go)
+- `ws-manager-bridge` - Bridge service (TypeScript)
+- `content-service` - Content management (Go)
+- `blobserve` - Blob serving (Go)
+- `image-builder-mk3` - Image building (Go)
+- `registry-facade` - Registry proxy (Go)
+- `ws-daemon` - Workspace daemon (Go)
+- `ws-proxy` - Workspace proxy (Go)
+- `public-api-server` - Public API (Go)
+- `usage` - Usage tracking (Go)
+- `ide-metrics` - Metrics collection (Go)
+- `ide-service` - IDE management (Go)
+- `supervisor` - Workspace supervision (Go)
+- `dashboard` - Frontend UI (TypeScript/React)
+- `spicedb` - Authorization service
+
+**2. gRPC-Based Inter-Service Communication**
+
+Extensive use of Protocol Buffers and gRPC for synchronous service communication:
+- `ws-manager-api/core.proto` - WorkspaceManager service with StartWorkspace, StopWorkspace, Subscribe operations
+- `content-service-api/workspace.proto` - WorkspaceService for content operations
+- `image-builder-api/imgbuilder.proto` - Image building service
+- `public-api/` - Public API definitions
+- `usage-api/` - Usage tracking API
+- `ide-service-api/ide.proto` - IDE service API
+- `supervisor-api/` - Workspace supervisor API
+
+**3. Kubernetes-Native Deployment**
+
+The `install/installer/` directory contains deployment orchestration:
+- Each service has corresponding Kubernetes manifests (deployments, configmaps, services)
+- CRD (Custom Resource Definition) for workspaces in `ws-manager-mk2`
+- Services deployed as separate pods with distinct scaling capabilities
+
+**4. Independent Build Artifacts**
+
+From `components/BUILD.yaml`, each service produces independent Docker images:
+```yaml
+deps:
+  - components/blobserve:docker
+  - components/content-service:docker
+  - components/server:docker
+  - components/ws-manager-mk2:docker
+  - components/ws-proxy:docker
+  # ... 20+ more independent containers
+```
+
+### Secondary Classification: Event-Driven
+
+The architecture incorporates **Event-Driven** patterns via Redis Pub/Sub:
+
+**Evidence from `components/server/src/messaging/redis-subscriber.ts`:**
+```typescript
+const channels = [WorkspaceInstanceUpdatesChannel, PrebuildUpdatesChannel, HeadlessUpdatesChannel];
+await this.redis.subscribe(chan);
+this.redis.on("message", async (channel: string, message: string) => {...});
+```
+
+**Event flow pattern:**
+1. `ws-manager-bridge` receives gRPC stream updates from workspace managers (via Subscribe RPC)
+2. Events are published to Redis channels
+3. Multiple `server` instances subscribe to receive updates
+4. WebSocket clients receive real-time workspace instance updates
+
+This hybrid approach combines:
+- **Synchronous gRPC** for request-response operations
+- **Asynchronous Redis Pub/Sub** for event distribution to multiple server instances
+
+### What This Is NOT
+
+**Not a Modular Monolith:** Services are independently deployable containers, not modules in a single deployable. Each has its own Docker image and Kubernetes deployment configuration.
+
+**Not Service-Based (coarse-grained):** The architecture has 25+ fine-grained services rather than 2-5 coarse-grained services typical of Service-Based architecture.
+
+**Not Layered:** While individual services may have internal layering, the overall architecture is organized around business capabilities (workspace management, content service, image building, usage tracking) rather than horizontal layers.
+
+**Not Hexagonal:** Services don't follow ports-and-adapters pattern consistently. The `gitpod-protocol` package provides shared interfaces, but services don't isolate application cores behind adapter interfaces.
+
+**Not CQRS:** No explicit separation of read/write models across the system.
+
+### Architecture Summary
+
+Gitpod implements a cloud-native microservices architecture designed for Kubernetes deployment:
+- **25+ independent services** with separate build pipelines and containers
+- **gRPC for synchronous service-to-service communication** with Protocol Buffer contracts
+- **Redis Pub/Sub for event distribution** enabling real-time updates across server instances
+- **Shared databases** (MySQL via TypeORM, Redis) rather than database-per-service
+- **Custom Leeway build system** managing cross-service dependencies and Docker image production
+- **Kubernetes installer** generating deployment manifests for all services

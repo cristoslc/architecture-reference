@@ -13,9 +13,8 @@ language: Python
 languages:
 - Python
 architecture_styles:
+- Microkernel (Plugin)
 - Modular Monolith
-- Event-Driven
-- Domain-Driven Design
 classification_status: classified
 review_notes: "The Saleor repository is structured as a **Modular Monolith**. While\
   \ the README emphasizes \"API-only Architecture\" and \"Cloud Native\" capabilities,\
@@ -34,50 +33,47 @@ review_notes: "The Saleor repository is structured as a **Modular Monolith**. Wh
   \ capabilities.\n\n### 2. Event-Driven (Secondary)\nThe codebase shows heavy investment\
   \ in asynchronous communication and external integration via events:"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.75
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:09:17Z'
-classification_reasoning: "The Saleor repository is structured as a **Modular Monolith**.\
-  \ While the README emphasizes \"API-only Architecture\" and \"Cloud Native\" capabilities,\
-  \ the physical code organization in the provided tree confirms a single deployment\
-  \ unit (monolith) with a clear, domain-centric modular structure.\n\n### 1. Modular\
-  \ Monolith (Primary)\nThe core of the application resides under the `saleor/` directory,\
-  \ which is partitioned into high-level domain modules such as `order`, `webhook`,\
-  \ and `thumbnail`. \n- **Domain-based Partitioning:** Each folder (e.g., `saleor/order/`)\
-  \ contains its own `models.py`, `utils.py`, `tasks/`, and `migrations/`. This indicates\
-  \ that while the system is a single Django project, it is strictly organized into\
-  \ functional modules that manage their own logic and data schemas.\n- **Shared Infrastructure:**\
-  \ The existence of a single `pyproject.toml`, `Dockerfile`, and global `conftest.py`\
-  \ indicates a single build and deployment artifact, rather than independently deployable\
-  \ microservices.\n- **Enforced Boundaries (Inferred):** The module structure suggests\
-  \ a \"Screaming Architecture\" where the top-level directories represent the business\
-  \ capabilities.\n\n### 2. Event-Driven (Secondary)\nThe codebase shows heavy investment\
-  \ in asynchronous communication and external integration via events:\n- **Webhooks\
-  \ as First-Class Citizens:** The `saleor/webhook/` directory is expansive, containing\
-  \ logic for `asynchronous` and `synchronous` transports, `circuit_breaker` patterns,\
-  \ and `payload_serializers`. This facilitates an event-driven ecosystem where Saleor\
-  \ notifies external \"Apps\" of internal changes.\n- **Celery Integration:** The\
-  \ presence of `.semgrep/correctness/celery` rules and `tasks/` subdirectories within\
-  \ modules (like `saleor/order/migrations/tasks`) indicates that internal processes\
-  \ are often handled via background task queues, a hallmark of event-driven internal\
-  \ logic.\n\n### 3. Domain-Driven Design (Secondary)\nThe directory structure follows\
-  \ DDD tactical patterns:\n- **Aggregate-like Structure:** The `saleor/order/` directory\
-  \ contains `fetch.py` (likely for domain object retrieval), specialized models,\
-  \ and business logic localized to that domain. \n- **Separation of Concerns:** The\
-  \ use of `response_schemas` and `serializers` within modules like `webhook` suggests\
-  \ a separation between the internal domain model and the external API contract (GraphQL).\n\
-  \n### Rejection of Microservices\nAlthough the README mentions that \"Apps\" are\
-  \ deployed independently and can be scaled independently, these \"Apps\" are external\
-  \ consumers of the Saleor API. The **core engine** (this repository) is a monolithic\
-  \ Django application. The \"Microservices\" feel described in the marketing copy\
-  \ refers to the *extensibility model* (sidecars/webhooks) rather than the internal\
-  \ architecture of this specific codebase."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.75
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.7
-  style_clarity: 0.85
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.7
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:40:02Z'
+classification_reasoning: "## Architecture Classification: Saleor\n\n### Primary:\
+  \ Microkernel (Plugin)\n\nSaleor implements a sophisticated plugin architecture\
+  \ that serves as its primary extension mechanism:\n\n**Core Evidence:**\n\n1. **BasePlugin\
+  \ Abstract Class** (`saleor/plugins/base_plugin.py:100`):\n   - Defines 50+ extension\
+  \ points as callable hooks\n   - Each method follows the `previous_value` pattern\
+  \ where plugins receive and can modify values from preceding plugins in the chain\n\
+  \   - Example hooks: `order_created`, `calculate_checkout_total`, `authorize_payment`,\
+  \ `account_confirmed`, `webhook_notify`\n\n2. **PluginsManager** (`saleor/plugins/manager.py:89`):\n\
+  \   - Central orchestrator that discovers, loads, and chains plugin invocations\n\
+  \   - Manages plugin lifecycle and configuration per channel\n\n3. **Dynamic Plugin\
+  \ Discovery** (`saleor/plugins/__init__.py:6-16`):\n   - `discover_plugins_modules()`\
+  \ function loads plugins via `importlib.metadata.entry_points(group=\"saleor.plugins\"\
+  )`\n   - External plugins can be registered via Python entry points\n\n4. **Built-in\
+  \ Plugins** (`saleor/settings.py:889-906`):\n   - `WebhookPlugin`, `StripeGatewayPlugin`,\
+  \ `BraintreeGatewayPlugin`, `AdyenGatewayPlugin`\n   - `AdminEmailPlugin`, `UserEmailPlugin`,\
+  \ `OpenIDConnectPlugin`, `AvataxPlugin`\n   - Each extends `BasePlugin` and implements\
+  \ specific hooks\n\n5. **Plugin Configuration Model** (`saleor/plugins/models.py`):\n\
+  \   - `PluginConfiguration` stores per-channel plugin settings in database\n   -\
+  \ Supports `CONFIGURATION_PER_CHANNEL` for multi-tenant scenarios\n\n### Secondary:\
+  \ Modular Monolith\n\nSaleor is deployed as a single application with well-organized\
+  \ internal module boundaries:\n\n**Evidence:**\n\n1. **Single Deployable Unit**:\n\
+  \   - One `Dockerfile` producing a single container image\n   - Single entry point\
+  \ via `saleor.asgi:application`\n\n2. **Django Apps as Modules** (`saleor/settings.py:296-339`):\n\
+  \   - ~25 Django apps: `product`, `order`, `checkout`, `account`, `payment`, `discount`,\
+  \ `giftcard`, `warehouse`, `webhook`, `app`, etc.\n   - Each app has: `models.py`,\
+  \ `migrations/`, `tests/`, `tasks.py`, `apps.py`\n\n3. **Module Structure**:\n \
+  \  - Each module owns its database tables (via Django migrations)\n   - Each contributes\
+  \ GraphQL schema components (`saleor/graphql/*/schema.py`)\n   - Independent test\
+  \ suites per module\n\n4. **Shared Database**:\n   - All modules use the same PostgreSQL\
+  \ database\n   - No database-per-module isolation\n\n### Rejected Classifications\n\
+  \n**Not Microservices**: Single deployment unit, shared database, synchronous in-process\
+  \ function calls between modules.\n\n**Not Event-Driven**: Webhooks are external\
+  \ notifications, not internal communication. Celery tasks are background jobs, not\
+  \ event-sourced domain events. Modules call each other directly.\n\n**Not Layered**:\
+  \ No strict presentation/business/data layer separation. GraphQL resolvers interact\
+  \ directly with Django models.\n\n**Not Hexagonal**: No explicit ports/adapters\
+  \ pattern. Django ORM models used directly throughout without repository abstractions.\n\
+  \n**Not Domain-Driven Design**: No aggregate roots, bounded context isolation, or\
+  \ ubiquitous language documentation. Modules share database and can import each\
+  \ other freely."

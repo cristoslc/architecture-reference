@@ -1,0 +1,119 @@
+Based on my thorough exploration of the codebase, I now have sufficient evidence to classify the architecture.---
+verdict: classified
+primary_style: Layered
+secondary_styles: []
+confidence: 0.92
+---
+
+## Architecture Classification: Layered Architecture
+
+The **open-event-server** repository exhibits a classic **Layered Architecture** with horizontal separation of concerns. This is a monolithic Flask-based REST API server with clearly defined layers.
+
+### Primary Evidence for Layered Architecture
+
+**1. Horizontal Layer Organization:**
+
+The codebase is structured with distinct horizontal layers:
+
+- **API Layer** (`app/api/*.py`): 83+ resource files handling HTTP requests/responses using `flask-rest-jsonapi` framework. Each file contains `ResourceDetail`, `ResourceList`, and `ResourceRelationship` classes that map directly to REST endpoints.
+
+- **Schema/Validation Layer** (`app/api/schema/*.py`): Marshmallow-based schemas for request/response serialization, validation, and JSON:API spec compliance. Examples include `EventSchema`, `UserSchema`, `AttendeeSchema`, etc.
+
+- **Model/Data Layer** (`app/models/*.py`): 76 SQLAlchemy model files defining database entities using the Active Record pattern. All models inherit from `db.Model` and define relationships directly on the model classes.
+
+- **Helper/Service Layer** (`app/api/helpers/*.py`): Business logic helpers including `permission_manager.py`, `db.py`, `tasks.py`, `mail.py`, `payment.py`, etc.
+
+**2. Request Flow Pattern:**
+
+The typical request flow follows the layered pattern:
+```
+HTTP Request → API Resource (ResourceDetail/ResourceList) → Schema Validation → Model/DB → Response
+```
+
+Example from `app/api/users.py`:
+```python
+class UserList(ResourceList):
+    def before_create_object(self, data, view_kwargs): ...
+    def after_create_object(self, user, data, view_kwargs): ...
+```
+
+**3. Single Deployable Unit:**
+
+- Single Dockerfile building one container image
+- Single Flask application instance (`app/instance.py`)
+- Single PostgreSQL database shared across all functionality
+- Celery workers for background tasks (same codebase)
+
+**4. Framework-Enforced Layer Separation:**
+
+The `flask-rest-jsonapi` library enforces the layered pattern by requiring:
+- Resource classes for endpoint handling
+- Schema classes for serialization/validation  
+- Models for data persistence
+
+### Directory Structure Evidence
+
+```
+app/
+├── api/                    # API Layer - 83+ resource files
+│   ├── events.py          # ResourceDetail/ResourceList classes
+│   ├── users.py
+│   ├── schema/            # Schema Layer - validation & serialization
+│   │   ├── events.py
+│   │   └── users.py
+│   └── helpers/           # Service/Helper Layer
+│       ├── db.py
+│       ├── permission_manager.py
+│       └── tasks.py
+├── models/                # Data Layer - 76 model files
+│   ├── event.py
+│   ├── user.py
+│   └── __init__.py (SQLAlchemy db instance)
+├── views/                  # Web/Admin Views
+└── extensions/             # Flask extensions
+```
+
+### What This Architecture Is NOT
+
+**Not Microservices:**
+- Single deployable container (one Dockerfile)
+- Single shared PostgreSQL database
+- No service boundaries or inter-service communication
+- All resources in one codebase
+
+**Not Domain-Driven Design:**
+- No bounded contexts or aggregates
+- No value objects or domain services
+- Models are anemic ActiveRecord entities, not rich domain models
+- No ubiquitous language or context mapping
+
+**Not Modular Monolith:**
+- No enforced module boundaries within the codebase
+- No separate packages or internal modules with isolation
+- All code can freely import from any other part (no `internal/` packages)
+
+**Not Hexagonal Architecture:**
+- No ports and adapters pattern
+- No explicit application core isolated from infrastructure
+- Direct database access throughout the API layer via SQLAlchemy models
+
+### Supporting Evidence
+
+**Deployment Configuration** (`docker-compose.yml`):
+```yaml
+services:
+  postgres:  # Single shared database
+  redis:     # Single Redis for caching/celery
+  web:       # Single web service
+  celery:    # Background workers (same codebase)
+```
+
+**Technology Stack:**
+- Flask (web framework) - encourages layered organization
+- SQLAlchemy ORM (Active Record pattern)
+- flask-rest-jsonapi (enforces Resource/Schema separation)
+- Celery (background tasks, same application context)
+
+### Conclusion
+
+This is a textbook example of a **Layered Architecture** in a monolithic Flask application. The layers are clearly separated by responsibility (API handling, validation, data access), but all exist within a single deployable unit sharing a single database. The architecture is well-suited for the REST API server use case, providing clear separation of concerns while maintaining simplicity.

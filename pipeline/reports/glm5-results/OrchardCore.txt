@@ -1,0 +1,116 @@
+I'll explore the OrchardCore repository to classify its architecture. Let me start with an overview of the structure and key files.This is very helpful. The README clearly states OrchardCore is a "modular, multi-tenant application framework and CMS". Let me explore the source structure more deeply to understand the module system.This is very revealing. I see many modules in `src/OrchardCore.Modules`, each with consistent structure (Manifest.cs, Startup.cs, Controllers, Views, etc.). Let me examine the module loading system and Manifest files moreclosely.Now I have sufficient evidence to classify this architecture. Let me verify one more aspect about how modules are discoveredand loaded:I now have comprehensive evidence to classify the OrchardCore architecture. Let me provide my final analysis.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.92
+---
+
+## Architecture Classification: Modular Monolith with Microkernel/Plugin Architecture
+
+### Primary Evidence for Modular Monolith
+
+**Single Deployable Unit:**
+- One web application project (`src/OrchardCore.Cms.Web/OrchardCore.Cms.Web.csproj`) serves as the sole entry point
+- Single Dockerfile producing one container image
+- All modules compile into the same application via MSBuild targets
+
+**92+ Modules with Enforced Boundaries:**
+- Located in `src/OrchardCore.Modules/` with consistent structure
+- Each module has `Manifest.cs` declaring metadata and dependencies:
+```csharp
+[assembly: Module(
+    Name = "Admin",
+    Dependencies = ["OrchardCore.Settings"]
+)]
+```
+- Each module has `Startup.cs` extending `StartupBase` to register services and configure pipelines
+- Module dependencies are explicitly declared and resolved by the `ExtensionManager`
+
+**Feature-Based Enablement System:**
+- Modules can define multiple features via `[Feature]` attributes
+- Features have explicit dependencies managed through `IFeatureInfo.Dependencies`
+- `IShellFeaturesManager` enables/disables features per tenant
+- Services can be conditionally registered using `[RequireFeatures]` attribute
+- `FeatureAttribute` associates services with specific features for conditional activation
+
+### Secondary Evidence for Microkernel (Plugin)
+
+**Dynamic Module Discovery and Loading:**
+- `AssemblyAttributeModuleNamesProvider` discovers modules via assembly attributes
+- `ModularApplicationContext` loads all modules at startup
+- `Module` class encapsulates assembly metadata and embedded resources
+- Core system (`OrchardCore` libraries) provides extension points that modules plug into
+
+**Extension Points Pattern:**
+- `IStartup` interface for module initialization
+- `IShellPipeline` for request pipeline customization
+- `IDisplayDriver<T>` for UI extensibility
+- `IFeatureValidationProvider` for feature validation hooks
+- `IShellContextEvents` for lifecycle hooks
+
+**Theme Plugin System:**
+- Themes are specialized plugins with `[assembly: Theme(...)]` attribute
+- Theme selection via `IThemeSelector` interface
+- Themes can override shapes and templates
+
+### Multi-Tenancy Architecture
+
+**Shell-Based Tenant Isolation:**
+- `ShellHost` manages multiple `ShellContext` instances (one per tenant)
+- Each tenant has its own `IServiceProvider` created by `IShellContainerFactory`
+- `RunningShellTable` routes requests to appropriate tenant by host/path matching
+- `ModularTenantContainerMiddleware` and `ModularTenantRouterMiddleware` handle tenant resolution
+
+```csharp
+public class ShellContext {
+    public ShellSettings Settings { get; set; }
+    public IServiceProvider ServiceProvider { get; set; }
+    public ShellBlueprint Blueprint { get; set; }
+    public IShellPipeline Pipeline { get; set; }
+}
+```
+
+### What This Is NOT
+
+**Not Microservices:**
+- Single deployable application, not distributed services
+- All modules run in the same process
+- Single database connection string per tenant (not service-specific databases)
+
+**Not Traditional Layered:**
+- No horizontal separation into presentation/business/data layers
+- Modules are vertical feature slices (e.g., `OrchardCore.Admin`, `OrchardCore.Media`)
+- Each module contains its own controllers, services, views, and migrations
+
+**Not Event-Driven Architecture:**
+- While modules can use background tasks and events, the primary communication is through dependency injection and service interfaces
+- No message broker infrastructure for inter-module communication
+
+**Not Domain-Driven Design:**
+- No explicit aggregate roots, value objects, or bounded context patterns
+- Feature-based organization doesn't map directly to domain concepts
+- No ubiquitous language enforcement
+
+### Key Architecture Files
+
+| Component | File Path |
+|-----------|-----------|
+| Shell Host | `src/OrchardCore/OrchardCore/Shell/ShellHost.cs` |
+| Module Loader | `src/OrchardCore/OrchardCore.Abstractions/Modules/Module.cs` |
+| Extension Manager | `src/OrchardCore/OrchardCore/Extensions/ExtensionManager.cs` |
+| Feature System | `src/OrchardCore/OrchardCore.Abstractions/Extensions/Features/IFeatureInfo.cs` |
+| Tenant Middleware | `src/OrchardCore/OrchardCore/Modules/ModularTenantContainerMiddleware.cs` |
+
+### Conclusion
+
+OrchardCore is a textbook example of a **Modular Monolith** with a sophisticated **Microkernel/Plugin** extension mechanism. The architecture achieves:
+
+1. **Enforced module boundaries** through explicit dependency declarations
+2. **Feature-level enablement** allowing fine-grained control over functionality
+3. **Multi-tenant isolation** with separate DI containers per tenant
+4. **Extensibility** through well-defined plugin contracts
+
+The system demonstrates that a monolithic deployment can still maintain clean architectural boundaries through disciplined use of module manifests, feature dependencies, and dynamic loading—all while supporting multi-tenancy within a single application instance.

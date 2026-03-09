@@ -14,7 +14,7 @@ languages:
 - Java/Kotlin
 architecture_styles:
 - Microkernel (Plugin)
-- Modular Monolith
+- Layered
 classification_status: classified
 review_notes: "This repository (Elasticsearch) is a classic exemplar of the **Microkernel\
   \ (Plugin)** architecture, implemented within a **Modular Monolith** build structure.\n\
@@ -35,48 +35,58 @@ review_notes: "This repository (Elasticsearch) is a classic exemplar of the **Mi
   \ as the open-source plugins, reinforcing the microkernel pattern at scale.\n\n\
   ### 2. Secondary Style: Modular Monolith"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.86
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:46:59Z'
-classification_reasoning: "This repository (Elasticsearch) is a classic exemplar of\
-  \ the **Microkernel (Plugin)** architecture, implemented within a **Modular Monolith**\
-  \ build structure.\n\n### 1. Primary Style: Microkernel (Plugin)\nThe system is\
-  \ designed around a minimal \"server\" core that is extended via a sophisticated\
-  \ plugin and module system. \n- **Core-Plugin Separation:** The `server/` directory\
-  \ contains the core engine (cluster coordination, transport, and resource management),\
-  \ while high-level features are decoupled into `plugins/` and `modules/`.\n- **Plugin\
-  \ Infrastructure:** The `settings.gradle` file reveals a massive investment in automated\
-  \ discovery of plugins and modules via `addSubProjects('', new File(rootProject.projectDir,\
-  \ 'plugins'))`.\n- **Extensibility Points:** Files such as `PluginsServiceTests.java`\
-  \ and `ExtensionLoaderTests.java` in the `server` module demonstrate the existence\
-  \ of formal `ExtensionPoint` and `SPI` (Service Provider Interface) contracts. These\
-  \ allow plugins to inject custom logic into the core (e.g., `DiscoveryPlugin`, `ActionPlugin`,\
-  \ `AnalysisPlugin`) without the core having a compile-time dependency on the implementations.\n\
-  - **X-Pack as a Plugin Aggregate:** The `x-pack/` directory functions as a massive\
-  \ suite of commercial plugins (security, ml, sql, etc.) that plug into the same\
-  \ kernel as the open-source plugins, reinforcing the microkernel pattern at scale.\n\
-  \n### 2. Secondary Style: Modular Monolith\nDespite its extensibility, the repository\
-  \ is structured as a single, unified build (Monolith).\n- **Single Deployable (mostly):**\
-  \ The final output is typically a single distribution package (as seen in `distribution/`\
-  \ modules) that bundles the core with a selection of modules and plugins. \n- **Internal\
-  \ Boundaries:** There are clear internal boundaries enforced by Gradle subprojects\
-  \ (`libs/`, `modules/`, `server/`). Communication between these modules often uses\
-  \ horizontal internal APIs rather than network calls, making it modular but monolithic\
-  \ in deployment.\n\n### Rejected Styles:\n- **Microservices:** While there are many\
-  \ \"modules,\" they are not independently deployable services that communicate over\
-  \ the network; they are JARs loaded by a single JVM process.\n- **Hexagonal Architecture:**\
-  \ While the grep results show many interfaces, they are primarily used for the plugin\
-  \ system and internal service substitution rather than strict isolation of the domain\
-  \ from all infrastructure (the core is heavily coupled to Lucene and Netty).\n-\
-  \ **Layered:** Although the system has layers (Transport -> Action -> Service ->\
-  \ Store), the dominant architectural characteristic is the vertical plugin-based\
-  \ extensibility rather than horizontal layering."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.86
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.9
-  alternatives_dismissed: 0.85
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:16:12Z'
+classification_reasoning: "## Analysis\n\nThe Elasticsearch repository exhibits a\
+  \ **Microkernel (Plugin)** architecture with strong supporting evidence.\n\n###\
+  \ Core Evidence for Microkernel (Plugin):\n\n**1. Central Plugin Abstraction**\n\
+  - `server/src/main/java/org/elasticsearch/plugins/Plugin.java` is an abstract base\
+  \ class (347 lines) that serves as the primary extension point\n- A comprehensive\
+  \ plugin system with `PluginsService.java` and `PluginsLoader.java` managing plugin\
+  \ discovery, loading, and lifecycle\n- Plugin descriptor files (`plugin-descriptor.properties`,\
+  \ `stable-plugin-descriptor.properties`) define plugin metadata\n\n**2. Multiple\
+  \ Extension Interfaces**\nThe codebase defines 17+ plugin extension interfaces in\
+  \ `server/src/main/java/org/elasticsearch/plugins/`:\n- `ActionPlugin` - REST handlers\
+  \ and actions\n- `AnalysisPlugin` - Text analysis components  \n- `ClusterPlugin`\
+  \ - Cluster management behavior\n- `DiscoveryPlugin` - Node discovery mechanisms\n\
+  - `EnginePlugin` - Storage engines\n- `IngestPlugin` - Ingest processors\n- `MapperPlugin`\
+  \ - Field type mappings\n- `NetworkPlugin` - Network transports\n- `RepositoryPlugin`\
+  \ - Snapshot repositories\n- `ScriptPlugin` - Scripting languages\n- `SearchPlugin`\
+  \ - Search extensions\n- `ExtensiblePlugin` - Allows plugins to themselves be extended\
+  \ by other plugins\n\n**3. Built-in vs. External Plugins**\n- `modules/` directory:\
+  \ 25 built-in modules (analysis-common, lang-painless, transport-netty4, repository-s3,\
+  \ etc.)\n- `plugins/` directory: 15+ optional plugins (analysis-icu, discovery-ec2,\
+  \ repository-hdfs, etc.)\n- `x-pack/plugin/`: 60+ X-Pack features implemented as\
+  \ plugins\n- All use the **same plugin mechanism** - built-in modules are just pre-installed\n\
+  \n**4. Plugin Loading Infrastructure**\nFrom `PluginsLoader.java`:\n```java\n//\
+  \ Loads plugin bundles from filesystem\npublic static Set<PluginBundle> loadModulesBundles(Path\
+  \ modulesDirectory)\npublic static Set<PluginBundle> loadPluginsBundles(Path pluginsDirectory)\n\
+  ```\nPlugins are loaded dynamically with separate classloaders and module layers.\n\
+  \n**5. Entitlements Security System**\nThe `libs/entitlement/` module provides a\
+  \ security sandbox for plugins, controlling what sensitive operations plugins can\
+  \ perform (file access, network, threads, etc.).\n\n### Supporting Evidence for\
+  \ Layered:\n\nThe architecture also exhibits layered organization within the core:\n\
+  - **REST Layer**: HTTP handlers in `RestController`, `BaseRestHandler`\n- **Transport\
+  \ Layer**: Node-to-node binary protocol\n- **Action Layer**: `ActionModule` coordinates\
+  \ actions\n- **Service Layer**: Cluster services, indices services\n- **Data Layer**:\
+  \ Lucene integration, translog, storage\n\nThis is documented in `docs/internal/GeneralArchitectureGuide.md`\
+  \ and `docs/internal/DistributedArchitectureGuide.md`.\n\n### What Was Rejected:\n\
+  \n**Not Microservices**: Elasticsearch is a **single deployable unit**. The `distribution/`\
+  \ directory packages one server into various formats (tar, zip, docker, rpm, deb).\
+  \ While nodes form clusters, each node is a monolithic application, not decomposed\
+  \ into separate services.\n\n**Not Service-Based**: There aren't 2-5 coarse-grained\
+  \ services sharing databases. It's one application with plugins.\n\n**Not Event-Driven**:\
+  \ While there are asynchronous operations and cluster state propagation, the core\
+  \ extension mechanism is the plugin system, not message brokers or event streams.\n\
+  \n**Not Hexagonal Architecture**: While abstractions exist, the codebase isn't organized\
+  \ around explicit ports/adapters with inside/outside separation.\n\n**Not DDD**:\
+  \ Though domain concepts exist (indices, shards), the primary organizational structure\
+  \ is plugins extending capabilities, not bounded contexts with aggregates.\n\n###\
+  \ Key Files Cited:\n- `server/src/main/java/org/elasticsearch/plugins/Plugin.java`\n\
+  - `server/src/main/java/org/elasticsearch/plugins/PluginsService.java`\n- `server/src/main/java/org/elasticsearch/plugins/PluginsLoader.java`\n\
+  - `server/src/main/java/org/elasticsearch/plugins/*Plugin.java` (17 interfaces)\n\
+  - `modules/build.gradle` - plugin build configuration\n- `plugins/build.gradle`\
+  \ - plugin build configuration\n- `docs/extend/creating-classic-plugins.md`\n- `docs/extend/creating-stable-plugins.md`\n\
+  - `libs/entitlement/` - plugin security sandbox"

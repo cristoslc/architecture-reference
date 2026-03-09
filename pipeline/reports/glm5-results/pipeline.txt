@@ -1,0 +1,71 @@
+Let me gather a bit more evidence to finalize my classification:Based on my comprehensive exploration of the repository, I now have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Pipeline (Pipe-and-Filter)
+confidence: 0.92
+---
+
+## Analysis
+
+The Tekton Pipelines repository exhibits a **Microkernel (Plugin)** architecture as its primary style, with **Pipeline (Pipe-and-Filter)** as a secondary architectural pattern.
+
+### Primary: Microkernel (Plugin) Architecture
+
+**Strong evidence for plugin infrastructure:**
+
+1. **Formal Plugin Interface:** The `Resolver` interface in `pkg/resolution/resolver/framework/interface.go` (lines 26-55) defines a clear contract for plugins:
+   - `Initialize(ctx context.Context) error`
+   - `GetName(ctx context.Context) string`
+   - `GetSelector(ctx context.Context) map[string]string`
+   - `ValidateParams(ctx context.Context, params []pipelinev1.Param) error`
+   - `Resolve(ctx context.Context, params []pipelinev1.Param) (ResolvedResource, error)`
+
+2. **Multiple Plugin Implementations:** The codebase contains five built-in resolvers implementing the interface:
+   - `pkg/resolution/resolver/git/resolver.go`
+   - `pkg/resolution/resolver/hub/resolver.go`
+   - `pkg/resolution/resolver/bundle/resolver.go`
+   - `pkg/resolution/resolver/cluster/resolver.go`
+   - `pkg/resolution/resolver/http/resolver.go`
+
+3. **Runtime Registration:** In `cmd/resolvers/main.go` (lines 69-74), plugins are instantiated and registered:
+   ```go
+   sharedmain.MainWithConfig(ctx, "controller", cfg,
+       framework.NewController(ctx, &git.Resolver{}),
+       framework.NewController(ctx, &hub.Resolver{...}),
+       framework.NewController(ctx, &bundle.Resolver{}),
+       framework.NewController(ctx, &cluster.Resolver{}),
+       framework.NewController(ctx, &http.Resolver{}))
+   ```
+
+4. **Extensibility Documentation:** `docs/how-to-write-a-resolver.md` explicitly describes how third parties can create new resolvers without modifying the core system: *"A Resolver is a program that runs in a Kubernetes cluster alongside Tekton Pipelines... This pattern extends beyond just git, allowing a developer to integrate support for other version control systems, cloud buckets, or storage systems without having to modify Tekton Pipelines itself."*
+
+5. **Custom Task Extension Point:** The `CustomRun` CRD documented in `docs/customruns.md` provides another plugin mechanism: *"A CustomRun allows you to instantiate and execute a Custom Task, which can be implemented by a custom task controller running on-cluster."*
+
+### Secondary: Pipeline (Pipe-and-Filter) Architecture
+
+**Evidence for pipeline processing:**
+
+1. **DAG-Based Execution:** `pkg/reconciler/pipeline/dag/dag.go` implements a graph-based pipeline scheduler with:
+   - `Node` struct with `Prev` and `Next` pointers (lines 40-48)
+   - `Graph` struct representing pipeline topology
+   - `GetCandidateTasks()` function for determining schedulable tasks based on completion state
+
+2. **Data Flow Hierarchy:** The CRDs define a clear pipeline structure:
+   - `Pipeline` → `PipelineTask` → `Task` → `Step`
+   - Results and artifacts flow between tasks
+   - Workspaces provide shared data volumes between pipeline stages
+
+3. **Artifact Provenance:** `docs/artifacts.md` describes how data flows through the pipeline with input/output tracking and digest verification.
+
+### What Was Rejected
+
+- **Not Microservices:** While deployed to Kubernetes, this is a single Go module (`go.mod`) with multiple binaries that are components of one coordinated system—not independently deployable services owning their own data.
+
+- **Not Layered Architecture:** Although there are `pkg/apis/` and `pkg/reconciler/` packages, this follows Kubernetes controller patterns (informers/reconcilers), not traditional presentation/business/data horizontal layering.
+
+- **Not Domain-Driven Design:** No bounded contexts, aggregates, entities, or value objects. The code is organized around Kubernetes CRDs and controllers, not domain models.
+
+- **Not Event-Driven (primary):** While events are emitted (cloudevents, K8s events), the core coordination is synchronous reconciliation through Kubernetes controllers watching CRDs, not asynchronous event-driven choreography.

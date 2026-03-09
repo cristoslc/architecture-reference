@@ -1,0 +1,118 @@
+Let me check a few more files to understand the complete dependency structure and confirm the architecture:Now I have sufficient information to classify this architecture. Let me examine the testing approach and directory organization to complete my analysis.Based on my thorough exploration of this repository, I now have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Hexagonal Architecture
+confidence: 0.95
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: **Layered**
+
+The repository explicitly implements **Clean Architecture** (as stated in README: "Clean Architecture template for Golang services" using "principles of Robert Martin (aka Uncle Bob)"), which is fundamentally a layered architecture with dependency inversion.
+
+**Evidence of Layered Structure:**
+
+1. **Clear Horizontal Layers** with explicit separation:
+   - **Entity Layer** (`internal/entity/`) - Business entities, no dependencies on outer layers
+   - **Use Case Layer** (`internal/usecase/`) - Business logic, defines interfaces
+   - **Controller Layer** (`internal/controller/`) - Delivery mechanisms (REST, gRPC, AMQP, NATS)
+   - **Repository Layer** (`internal/repo/`) - Data access implementations
+
+2. **README explicitly documents the layers:**
+   ```
+   Line 145-147: "Dependency injection occurs through the 'New ...' constructors.
+   This technique allows us to layer the application using the Dependency Injection principle.
+   This makes the business logic independent from other layers."
+   ```
+
+3. **Directory structure enforces layer boundaries:**
+   ```
+   internal/
+     app/          # Application composition root
+     controller/   # Handler layer (outer)
+     entity/       # Business entities (inner)
+     repo/         # Data access layer (outer)
+     usecase/      # Business logic layer (inner)
+   ```
+
+### Secondary Style: **Hexagonal Architecture (Ports and Adapters)**
+
+The implementation also exhibits strong Hexagonal Architecture characteristics:
+
+**Evidence:**
+
+1. **Interfaces Define Ports:**
+   - `internal/usecase/contracts.go` defines the business logic port:
+     ```go
+     type Translation interface {
+         Translate(context.Context, entity.Translation) (entity.Translation, error)
+         History(context.Context) (entity.TranslationHistory, error)
+     }
+     ```
+   - `internal/repo/contracts.go` defines repository ports:
+     ```go
+     type TranslationRepo interface {
+         Store(context.Context, entity.Translation) error
+         GetHistory(context.Context) ([]entity.Translation, error)
+     }
+     ```
+
+2. **Multiple Adapters for Same Port:**
+   - Four different delivery mechanism adapters (REST, gRPC, AMQP RPC, NATS RPC) in `internal/controller/`
+   - Two repository adapters (`persistent/` for PostgreSQL, `webapi/` for external API)
+
+3. **Dependency Inversion with Interface Injection:**
+   From `internal/usecase/translation/translation.go`:
+   ```go
+   func New(r repo.TranslationRepo, w repo.TranslationWebAPI) *UseCase {
+       return &UseCase{
+           repo:   r,
+           webAPI: w,
+       }
+   }
+   ```
+   Business logic receives interfaces, not concrete implementations.
+
+4. **README explicitly acknowledges this:**
+   ```
+   Line 439-441: "In addition to Clean architecture, Onion architecture and 
+   Hexagonal (Ports and adapters) are similar to it. Ports and adapters are 
+   very close to Clean Architecture, the differences are mainly in terminology."
+   ```
+
+5. **Testing demonstrates isolation:**
+   - Mocks generated from interfaces (`mocks_repo_test.go`)
+   - Business logic tested independently of infrastructure (`translation_test.go`)
+
+### Why Not Other Styles:
+
+- **Not Microservices**: Single deployable unit (one Dockerfile, one `go.mod`, one `cmd/app/main.go`). This is a monolithic service template.
+
+- **Not Domain-Driven Design**: No bounded contexts, aggregates, domain events, or value objects. Entities are simple data structs, not rich domain models. The `entity/translation.go` contains basic structs without behavior.
+
+- **Not Modular Monolith**: No enforced module boundaries within the codebase. The separation is along layer lines, not feature/module lines.
+
+- **Not Service-Based**: Single service, not multiple coarse-grained services.
+
+### Dependency Flow Verification:
+
+```
+┌─────────────────────────────────────────────────┐
+│  Controllers (REST, gRPC, AMQP, NATS)           │  ← Outer layer
+├─────────────────────────────────────────────────┤
+│  Use Cases (Business Logic)                     │  ← Inner layer
+│     ↓ depends on interfaces (contracts)          │
+├─────────────────────────────────────────────────┤
+│  Repositories (persistent, webapi)              │  ← Outer layer (implementations)
+│     ↑ implement interfaces                       │
+└─────────────────────────────────────────────────┘
+        ┌─────────────────────────┐
+        │  Entities (core domain) │  ← Innermost
+        └─────────────────────────┘
+```
+
+Dependencies point **inward** only (from outer to inner layers), with outer layers implementing interfaces defined for the inner layer's needs.

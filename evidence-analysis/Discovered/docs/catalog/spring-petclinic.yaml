@@ -14,7 +14,6 @@ languages:
 - Java/Kotlin
 architecture_styles:
 - Layered
-- Domain-Driven Design
 classification_status: classified
 review_notes: 'The Spring PetClinic repository is a classic implementation of a **Layered**
   architecture, specifically optimized for the Spring Framework. While it incorporates
@@ -46,73 +45,42 @@ review_notes: 'The Spring PetClinic repository is a classic implementation of a 
   the `OwnerRepository`, bypassing a formal service layer because the business logic
   is simple enough to reside either in the controller or the domain entities themselves.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.74
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:11:59Z'
-classification_reasoning: 'The Spring PetClinic repository is a classic implementation
-  of a **Layered** architecture, specifically optimized for the Spring Framework.
-  While it incorporates some modern organizational patterns, it adheres to the horizontal
-  separation of concerns typical of layered systems.
-
-
-  ### Primary Style: Layered
-
-  The codebase follows a clear horizontal partitioning despite being packaged by feature.
-  The architecture is defined by the flow of data between discrete responsibilities:
-
-  1.  **Presentation Layer:** Handled by `@Controller` classes (e.g., `OwnerController.java`,
-  `VetController.java`) and Thymeleaf templates in `src/main/resources/templates`.
-  The controllers manage web requests, data binding (using `WebDataBinder`), and view
-  resolution.
-
-  2.  **Persistence Layer:** Defined by Spring Data JPA interfaces (e.g., `OwnerRepository.java`,
-  `VetRepository.java`). These interfaces abstract the database interactions, supporting
-  multiple SQL dialects (H2, MySQL, PostgreSQL) through Spring Profiles.
-
-  3.  **Cross-Cutting concerns:** Centrally managed in the `org.springframework.samples.petclinic.system`
-  package, containing `CacheConfiguration`, `WebConfiguration`, and global exception
-  handling.
-
-
-  The implementation is a "skinny service" or "controller-to-repository" variant of
-  the layered style. In many cases, the `OwnerController` interacts directly with
-  the `OwnerRepository`, bypassing a formal service layer because the business logic
-  is simple enough to reside either in the controller or the domain entities themselves.
-
-
-  ### Secondary Style: Domain-Driven Design (DDD)
-
-  The repository shows strong signals of DDD tactical patterns, distinguishing it
-  from an "Anemic Domain Model" typically found in standard Layered applications:
-
-  1.  **Aggregates and Entities:** The `Owner` class acts as an Aggregate Root, controlling
-  access to the `Pet` and `Visit` entities (e.g., the `addVisit` and `getPet` methods).
-
-  2.  **Rich Domain Model:** Unlike simple POJOs, entities like `Owner.java` contain
-  validation logic and business invariant enforcement (e.g., logic to check for duplicate
-  pet names or handling state transitions for new vs. persisted entities).
-
-  3.  **Package by Feature:** The directory structure is organized into bounded contexts
-  (`owner`, `vet`, `system`, `model`) rather than technical layers (`controllers`,
-  `services`, `daos`). This is a hallmark of DDD-oriented organization within a monolith.
-
-
-  ### Deployment Context
-
-  While the repository includes `k8s/` manifests and a `docker-compose.yml`, these
-  are for deploying the single application artifact alongside its database. The presence
-  of a single `pom.xml` and one `PetClinicApplication.java` entry point confirms this
-  is a Monolith, not Microservices. The internal boundaries are logical (package-private
-  classes) rather than physical deployment units.'
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.74
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.8
-  style_clarity: 0.75
-  alternatives_dismissed: 0.6
-  exploration_completeness: 0.8
-  flags: DDD as secondary style is reasonable but 'package by feature' and 'rich domain
-    model' claims may be overstated for this well-known demo app — Owner aggregate
-    root characterization is debatable
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T21:03:05Z'
+classification_reasoning: "## Analysis\n\n**Spring PetClinic is a textbook example\
+  \ of Layered Architecture.**\n\n### Evidence for Layered Architecture\n\n**Horizontal\
+  \ layering with clear separation of concerns:**\n\n1. **Presentation Layer** - Controllers\
+  \ handle HTTP requests:\n   - `OwnerController.java` (line 48: `@Controller`)\n\
+  \   - `VetController.java` (line 35: `@Controller`)\n   - `VisitController.java`,\
+  \ `PetController.java`, `WelcomeController.java`, `CrashController.java`\n\n2. **Data\
+  \ Access Layer** - Repository interfaces abstract persistence:\n   - `OwnerRepository.java`\
+  \ (line 36: `extends JpaRepository<Owner, Integer>`)\n   - `VetRepository.java`\
+  \ (line 38: `extends Repository<Vet, Integer>`)\n   - `PetTypeRepository.java`\n\
+  \n3. **Domain Model Layer** - JPA entities with business data:\n   - `Owner.java`\
+  \ (line 47-48: `@Entity @Table(name = \"owners\")`)\n   - `Pet.java`, `Vet.java`,\
+  \ `Visit.java`, `Specialty.java`, `PetType.java`\n   - Base classes: `BaseEntity.java`,\
+  \ `Person.java`, `NamedEntity.java`\n\n**Direct layer dependencies:** Controllers\
+  \ inject Repositories directly without an intermediate service layer (confirmed\
+  \ by no `@Service` annotations found in codebase). Example from `OwnerController.java`\
+  \ (line 53-57):\n```java\nprivate final OwnerRepository owners;\npublic OwnerController(OwnerRepository\
+  \ owners) {\n    this.owners = owners;\n}\n```\n\n### Single Deployable Unit\n\n\
+  - Single `pom.xml` with one artifact: `spring-petclinic` (line 10-11)\n- Single\
+  \ entry point: `PetClinicApplication.java` with `@SpringBootApplication`\n- No multi-module\
+  \ Maven/Gradle workspace structure\n- k8s deployment shows single container: `k8s/petclinic.yml`\
+  \ (line 32: single `image: dsyer/petclinic`)\n\n### What It Is NOT\n\n**Not Modular\
+  \ Monolith:** No enforced internal module boundaries detected:\n- No `module-info.java`\
+  \ files\n- No ArchUnit or similar architecture enforcement tests\n- No package isolation\
+  \ constraints\n- The `owner/`, `vet/`, `model/` packages are organizational, not\
+  \ architectural boundaries\n\n**Not Microservices:** Single deployable artifact,\
+  \ single database, single service definition in k8s\n\n**Not Service-Based:** Only\
+  \ one service exists\n\n**Not Event-Driven:** No message broker configuration, no\
+  \ event handlers\n\n**Not DDD:** No aggregates, bounded contexts, domain services,\
+  \ or value objects—just anemic entities with getters/setters\n\n**Not Hexagonal:**\
+  \ No ports-and-adapters pattern; repositories are Spring Data interfaces, not abstracted\
+  \ application ports\n\n**Not CQRS:** Single read/write model\n\n### Conclusion\n\
+  \nSpring PetClinic exemplifies the classic **Layered Architecture** pattern with\
+  \ Controller → Repository → Entity layers. It's a well-structured monolithic application\
+  \ demonstrating Spring Boot best practices with clean horizontal separation, but\
+  \ without the module boundary enforcement that would make it a Modular Monolith."

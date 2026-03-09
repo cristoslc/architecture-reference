@@ -1,0 +1,70 @@
+I'll explore the spring-petclinic repository to classify its architecture. Let me start with the overall structure and key files.Let me explore the Java source code structure to understand the internal organization:Now let me examine the actual code structure to understand the layering and organization:Let me check the vet package and model package to confirm the architecture pattern:Let me check the pom.xml and look for any service layer classes:Let me check the deployment configuration and look for any cross-package dependencies:Let me check if there are any cross-package dependencies and examine the application entry point:Let me check the package-info files and examine if there's any layering enforcement:Let me check for any architecture enforcement tools and look at the database configuration:Let me check the application properties and database schema:Now I have sufficient evidence to classify this architecture. Let me provide my final analysis:
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles: []
+confidence: 0.95
+---
+
+## Analysis
+
+**Spring PetClinic is a textbook example of Layered Architecture.**
+
+### Evidence for Layered Architecture
+
+**Horizontal layering with clear separation of concerns:**
+
+1. **Presentation Layer** - Controllers handle HTTP requests:
+   - `OwnerController.java` (line 48: `@Controller`)
+   - `VetController.java` (line 35: `@Controller`)
+   - `VisitController.java`, `PetController.java`, `WelcomeController.java`, `CrashController.java`
+
+2. **Data Access Layer** - Repository interfaces abstract persistence:
+   - `OwnerRepository.java` (line 36: `extends JpaRepository<Owner, Integer>`)
+   - `VetRepository.java` (line 38: `extends Repository<Vet, Integer>`)
+   - `PetTypeRepository.java`
+
+3. **Domain Model Layer** - JPA entities with business data:
+   - `Owner.java` (line 47-48: `@Entity @Table(name = "owners")`)
+   - `Pet.java`, `Vet.java`, `Visit.java`, `Specialty.java`, `PetType.java`
+   - Base classes: `BaseEntity.java`, `Person.java`, `NamedEntity.java`
+
+**Direct layer dependencies:** Controllers inject Repositories directly without an intermediate service layer (confirmed by no `@Service` annotations found in codebase). Example from `OwnerController.java` (line 53-57):
+```java
+private final OwnerRepository owners;
+public OwnerController(OwnerRepository owners) {
+    this.owners = owners;
+}
+```
+
+### Single Deployable Unit
+
+- Single `pom.xml` with one artifact: `spring-petclinic` (line 10-11)
+- Single entry point: `PetClinicApplication.java` with `@SpringBootApplication`
+- No multi-module Maven/Gradle workspace structure
+- k8s deployment shows single container: `k8s/petclinic.yml` (line 32: single `image: dsyer/petclinic`)
+
+### What It Is NOT
+
+**Not Modular Monolith:** No enforced internal module boundaries detected:
+- No `module-info.java` files
+- No ArchUnit or similar architecture enforcement tests
+- No package isolation constraints
+- The `owner/`, `vet/`, `model/` packages are organizational, not architectural boundaries
+
+**Not Microservices:** Single deployable artifact, single database, single service definition in k8s
+
+**Not Service-Based:** Only one service exists
+
+**Not Event-Driven:** No message broker configuration, no event handlers
+
+**Not DDD:** No aggregates, bounded contexts, domain services, or value objects—just anemic entities with getters/setters
+
+**Not Hexagonal:** No ports-and-adapters pattern; repositories are Spring Data interfaces, not abstracted application ports
+
+**Not CQRS:** Single read/write model
+
+### Conclusion
+
+Spring PetClinic exemplifies the classic **Layered Architecture** pattern with Controller → Repository → Entity layers. It's a well-structured monolithic application demonstrating Spring Boot best practices with clean horizontal separation, but without the module boundary enforcement that would make it a Modular Monolith.

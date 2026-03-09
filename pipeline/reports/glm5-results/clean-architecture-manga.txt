@@ -1,0 +1,97 @@
+Let me explore the main application structure in more detail, focusing on the layers and their relationships:Let me check a few more files to confirm the architecture pattern and see if there are any event-driven patterns:Let me check the test structure to confirm the architecture:Now I have a comprehensive understanding of this codebase. Let me analyze the architecture:
+
+## Analysis
+
+### Primary Architecture: **Hexagonal Architecture (Ports and Adapters)**
+
+**Key Evidence:**
+
+1. **Clear concentric layer structure with inward dependencies:**
+   - **Domain layer** (`accounts-api/src/Domain/`): Pure domain with entities (`Account.cs`), value objects (`Money.cs`, `Currency.cs`, `AccountId.cs`), and interfaces defining ports (`IAccountRepository.cs`, `IAccountFactory.cs`)
+   - **Application layer** (`accounts-api/src/Application/`): Use cases and service interfaces (`IUnitOfWork.cs`, `ICurrencyExchange.cs`)
+   - **Infrastructure layer** (`accounts-api/src/Infrastructure/`): Adapters implementing ports (`AccountRepository.cs`, `CurrencyExchangeService.cs`, `EntityFactory.cs`)
+   - **Presentation layer** (`accounts-api/src/WebApi/`): Controllers acting as input adapters
+
+2. **Dependency inversion principle enforced via project references:**
+   - `Domain.csproj` has **no project references** - completely independent
+   - `Application.csproj` → references `Domain` only
+   - `Infrastructure.csproj` → references `Application` only
+   - `WebApi.csproj` → references `Application` and `Infrastructure`
+
+3. **Ports (Interfaces) defined in inner layers:**
+   - `IAccountRepository` (in Domain) - persistence port
+   - `IUnitOfWork` (in Application/Services) - transaction port
+   - `ICurrencyExchange` (in Application/Services) - external service port
+   - `IAccountFactory` (in Domain) - entity creation port
+   - `IOutputPort` interfaces (in each Use Case folder) - output port for presenter pattern
+
+4. **Adapters (Implementations) in outer layers:**
+   - `AccountRepository : IAccountRepository` (in Infrastructure/DataAccess/Repositories/)
+   - `UnitOfWork : IUnitOfWork` (in Infrastructure/DataAccess/)
+   - `CurrencyExchangeService : ICurrencyExchange` (in Infrastructure/CurrencyExchange/)
+   - `EntityFactory : IAccountFactory` (in Infrastructure/DataAccess/)
+   - Controllers implement `IOutputPort` interfaces (input adapters)
+
+5. **Use Cases as central organizing structure** (from README line 4):
+   - Each use case has its own folder with consistent structure: `IXxxUseCase`, `XxxUseCase`, `XxxPresenter`, `IOutputPort`
+   - Use cases orchestrate domain logic without framework dependencies
+
+6. **Presenter pattern for output:**
+   - `IOutputPort` interface in each use case
+   - Controllers implement `IOutputPort` and receive results via `SetOutputPort(this)` pattern
+   - Example: `TransactionsController : ControllerBase, IOutputPort` (line 29 in TransactionsController.cs)
+
+### Secondary Architecture: **Layered Architecture**
+
+The codebase also exhibits **Layered Architecture** characteristics as a secondary style:
+- Horizontal separation: Domain → Application → Infrastructure → Presentation
+- Clear layer responsibilities (domain logic, application orchestration, infrastructure concerns, API endpoints)
+
+However, this is secondary because the critical architectural decision is the **dependency direction** (inward toward domain, not downward through layers), which distinguishes Hexagonal from simple Layered.
+
+### Not Other Styles (Rejection Reasons):
+
+- **Not Microservices**: Single deployable unit (`accounts-api`), one database, monolithic deployment
+- **Not Event-Driven**: No message brokers, no event handlers, synchronous request-response via HTTP
+- **Not CQRS**: No separate read/write models, same repositories handle both queries and commands
+- **Not Modular Monolith**: No internal module boundaries within the single deployable - it's organized by architectural layer, not by business module
+- **Not Domain-Driven Design (as primary style)**: While it uses DDD tactical patterns (Aggregates, Entities, Value Objects, Repositories, Factories), the primary architectural organization is Hexagonal, with DDD patterns used within the Domain layer
+
+---
+---
+verdict: classified
+primary_style: Hexagonal Architecture
+secondary_styles:
+  - Layered Architecture
+confidence: 0.95
+---
+
+This repository implements **Hexagonal Architecture (Ports and Adapters)**, also known as Clean Architecture. The evidence is unambiguous:
+
+**Project Structure (`accounts-api/src/`):**
+- `Domain/` - Core domain with entities, value objects, and interface definitions (ports)
+- `Application/` - Use cases and service interfaces
+- `Infrastructure/` - Implementation of ports (adapters)
+- `WebApi/` - Presentation layer with controllers
+
+**Dependency Direction (verified via `.csproj` files):**
+- Domain has **zero project references** - pure and isolated
+- Application → Domain only
+- Infrastructure → Application only  
+- WebApi → Application + Infrastructure
+
+**Ports (interfaces in inner layers):**
+- `IAccountRepository` (Domain/) - persistence port
+- `IUnitOfWork`, `ICurrencyExchange`, `IUserService` (Application/Services/) - application ports
+- `IOutputPort` interfaces in each use case folder - output ports for presenter pattern
+
+**Adapters (implementations in outer layers):**
+- `AccountRepository : IAccountRepository` (Infrastructure/DataAccess/Repositories/)
+- `UnitOfWork : IUnitOfWork`, `CurrencyExchangeService : ICurrencyExchange` (Infrastructure/)
+- Controllers implementing `IOutputPort` in WebApi/UseCases/
+
+**Use Case Pattern:** Each use case folder contains `IXxxUseCase`, `XxxUseCase`, `IOutputPort`, and `XxxPresenter`, following the Controller-Presenter-Use Case pattern described in the README wiki.
+
+**Domain-Driven Design tactical patterns** are used within the Domain layer (Aggregate Root pattern on `Account`, Value Objects like `Money` and `Currency`, Repository and Factory patterns), but these serve the Hexagonal structure rather than defining the overall architecture.
+
+**Layered Architecture** is present as a secondary style due to the horizontal separation of concerns, but the defining characteristic is the **inward dependency direction** (dependency inversion principle), which distinguishes Hexagonal from traditional Layered.

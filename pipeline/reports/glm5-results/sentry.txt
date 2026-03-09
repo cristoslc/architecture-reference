@@ -1,0 +1,67 @@
+Now I have a comprehensive picture of this codebase. Let me verify one more detail about the deployment:Based on my comprehensive investigation, I can now provide the classification:
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.92
+---
+
+## Analysis
+
+Sentry is a **Modular Monolith** with a sophisticated internal module boundary system and a plugin/integration extension architecture.
+
+### Evidence for Modular Monolith
+
+**Single Deployable Unit:**
+- One `self-hosted/Dockerfile` builds the entire application
+- Single `pyproject.toml` defines all dependencies
+- Entry point: `CMD ["run", "web"]` - unified deployment
+
+**Strong Internal Module Boundaries:**
+- ~150 distinct modules under `src/sentry/` organized by domain feature
+- Each module follows Django app conventions with `apps.py`, `models.py`, endpoints, services
+- Examples: `src/sentry/discover/`, `src/sentry/notifications/`, `src/sentry/incidents/`, `src/sentry/monitors/`, `src/sentry/feedback/`, `src/sentry/uptime/`
+
+**Silo System for Boundary Enforcement:**
+- `src/sentry/silo/base.py` defines `SiloMode` enum: MONOLITH, CONTROL, REGION
+- Endpoints decorated with `@control_silo_endpoint`, `@region_silo_endpoint`, `@all_silo_endpoint` (in `src/sentry/api/base.py`)
+- `EndpointSiloLimit` class enforces which endpoints can run in which silo mode
+- RPC service layer (`src/sentry/hybridcloud/rpc/service.py`) with `RpcService` base class enables cross-silo communication
+
+**Service Abstraction Layer:**
+- 124+ service files under `src/sentry/*/services/`
+- Services like `OrganizationMappingService` (`src/sentry/hybridcloud/services/organization_mapping/service.py`) have:
+  - Abstract service interface
+  - Database-backed implementation
+  - RPC delegation pattern for cross-silo calls
+
+### Evidence for Microkernel (Plugin) as Secondary Style
+
+**Plugin Infrastructure:**
+- `src/sentry/plugins/base/v2.py` defines `IPlugin2` interface with `PluginMount` metaclass
+- Plugins register automatically via mount pattern
+- Rich integration system in `src/sentry/integrations/` with 30+ integrations (GitHub, Slack, Jira, Discord, etc.)
+- `src/sentry_plugins/` contains additional plugin implementations
+
+**Integration Extension Points:**
+- `IntegrationProvider` base class in `src/sentry/integrations/base.py`
+- Well-defined hooks for issue tracking, notifications, repository providers
+- Data forwarding plugins (`src/sentry/integrations/data_forwarding/`)
+
+### What This Is NOT
+
+- **Not Microservices**: Single repository, single Dockerfile, single deployment unit. The silo system is designed for *potential* decomposition but currently runs as a monolith.
+
+- **Not Pure Layered**: While there's API → Service → Model flow, the primary organization is vertical (domain modules) not horizontal (layers). The `api/`, `models/`, `services/` exist *within* each domain module.
+
+- **Not Event-Driven (primary)**: While Kafka consumers exist (`src/sentry/consumers/`) and task workers (`src/sentry/taskworker/`), these are internal implementation details for async processing, not the primary architectural pattern.
+
+### Key Architectural Decisions
+
+1. **Hybrid Cloud Architecture**: The silo system with CONTROL/REGION modes shows this monolith is designed to potentially split into separate deployments while maintaining code cohesion.
+
+2. **RPC Service Pattern**: Services can be called locally or remotely depending on silo mode - a sophisticated abstraction that supports both monolith and potential future microservices.
+
+3. **Django App Modularity**: Leverages Django's app framework for clean module isolation while sharing a single database.

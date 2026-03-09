@@ -1,0 +1,96 @@
+Let me explore the module structure further, particularly the import control files and the connect module to understand the plugin architecture:Let me look at a few more key files to understand the module relationshipsbetter:Let me examine a few more files to confirm the modular structure and layering:Now I have enough evidence to make my classification. Let me provide the final verdict:---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.92
+---
+
+## Architecture Classification for Apache Kafka
+
+### Primary Style: **Modular Monolith**
+
+The Apache Kafka repository exhibits a classic **Modular Monolith** architecture with carefully enforced module boundaries. Key evidence:
+
+**1. Single Deployable Artifact**
+- The Dockerfile (`docker/jvm/Dockerfile`) builds a single release tarball (`kafka.tgz`) containing all components
+- One main entry point (`core/src/main/scala/kafka/Kafka.scala`) starts the unified server
+
+**2. Explicit Module Structure via Gradle**
+The `settings.gradle` defines 40+ subprojects organized into a deliberate module hierarchy:
+```
+clients, core, server, server-common, metadata, storage, raft,
+coordinator-common, group-coordinator, transaction-coordinator,
+share-coordinator, connect:api, connect:runtime, streams, tools...
+```
+
+**3. Enforced Dependency Direction (Layering)**
+The repository has **16 separate import-control XML files** in `checkstyle/` that enforce module boundaries through static analysis. The comment at the top of each file states:
+```xml
+<!-- THINK HARD ABOUT THE LAYERING OF THE PROJECT BEFORE CHANGING THIS FILE -->
+```
+
+Key enforcement rules include:
+- `<disallow pkg="kafka" />` in most files prevents any module from depending on the Scala core server
+- `import-control.xml` (25,600+ bytes, the main file) defines what `org.apache.kafka.common` and `org.apache.kafka.clients` can import
+- Separate control files for `metadata`, `server`, `server-common`, `storage`, `group-coordinator`, `transaction-coordinator`, `coordinator-common` enforce their specific allowed dependencies
+
+**4. Module Dependency Hierarchy**
+The import controls reveal a clear layered dependency graph:
+- `common` (base utilities) → `clients` (client libraries) → `server-common`/`metadata`/`storage` (server infrastructure) → `core` (Scala server) and `server` (Java server)
+- Cross-cutting modules like `raft`, `coordinator-common` have their own controlled imports
+
+---
+
+### Secondary Style: **Microkernel (Plugin)**
+
+Kafka Connect implements a **plugin architecture** within the monolith:
+
+**Plugin API (`connect/api/`)**: Defines extension interfaces:
+- `Connector` and `Task` - base abstractions for connectors
+- `SourceConnector`/`SinkConnector` - direction-specific interfaces  
+- `Transformation` and `Predicate` - message transformation SPIs
+- `Converter`, `HeaderConverter` - serialization SPIs
+
+**Plugin Runtime (`connect/runtime/`)**: Core system that loads plugins:
+- `Plugins.java` - discovers and instantiates plugins
+- `DelegatingClassLoader.java` - custom classloader with comment: *"A custom classloader dedicated to loading Connect plugin classes in classloading isolation"*
+- `PluginClassLoader.java` - isolated classloader per plugin
+- `PluginScanner.java` / `ServiceLoaderScanner.java` - plugin discovery
+
+**Built-in Plugins (`connect/file/`, `connect/json/`, `connect/transforms/`)**: Reference implementations showing the plugin contract in action:
+```java
+// FileStreamSourceConnector extends SourceConnector
+public class FileStreamSourceConnector extends SourceConnector {
+    @Override
+    public Class<? extends Task> taskClass() {
+        return FileStreamSourceTask.class;
+    }
+}
+```
+
+**Plugin Discovery**: Supports both ServiceLoader-based and reflection-based plugin discovery for runtime extension.
+
+---
+
+### Why Not Other Styles
+
+| Style | Reason for Rejection |
+|-------|---------------------|
+| **Microservices** | Single deployable artifact; no independent service deployment |
+| **Layered** | Layering exists within modules, but module boundaries (not layers) are the primary organizing principle |
+| **Hexagonal** | No ports-and-adapters pattern; dependencies flow package-to-package, not inside-out |
+| **DDD** | Modules organized by technical function (storage, metadata, server), not business bounded contexts |
+| **Event-Driven** | Kafka *enables* event-driven systems but its internal codebase uses direct method calls, not event-based internal communication |
+| **Service-Based** | No shared database with 2-5 coarse services; this is a single application |
+
+---
+
+### Summary
+
+Apache Kafka demonstrates a sophisticated **Modular Monolith** architecture where:
+1. The build system (Gradle) defines explicit module boundaries
+2. Static analysis (checkstyle import-control) enforces dependency direction at compile time
+3. A gradual migration from Scala (`core`) to Java modules (`server`, `metadata`, `storage`, etc.) is in progress
+
+The Kafka Connect subsystem adds a **Microkernel/Plugin** architecture for runtime extensibility, with isolated classloading allowing third-party connectors to be loaded without modifying the core system.

@@ -13,9 +13,8 @@ language: Java/Kotlin
 languages:
 - Java/Kotlin
 architecture_styles:
-- Space-Based
+- Modular Monolith
 - Microkernel (Plugin)
-- Pipeline (Pipe-and-Filter)
 classification_status: classified
 review_notes: "Hazelcast is a textbook implementation of a **Space-Based** architecture.\
   \ While it provides features like streaming and SQL, its primary architectural identity\
@@ -36,52 +35,56 @@ review_notes: "Hazelcast is a textbook implementation of a **Space-Based** archi
   \ directory containing modules for `kinesis`, `s3`, `mongodb`, `cdc-postgres`, `kafka`,\
   \ and `elasticsearch`."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.62
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:51:43Z'
-classification_reasoning: "Hazelcast is a textbook implementation of a **Space-Based**\
-  \ architecture. While it provides features like streaming and SQL, its primary architectural\
-  \ identity is a distributed, in-memory data grid designed to eliminate the central\
-  \ database bottleneck by distributing both data and processing across a cluster\
-  \ of nodes.\n\n### 1. Primary Style: Space-Based\nThe core of Hazelcast’s architecture\
-  \ is centered around distributed data structures (maps, queues, topics) that are\
-  \ partitioned across multiple nodes. \n- **Evidence:** The README highlights \"\
-  Distributed, partitioned, queryable key-value store\" and \"Distributed coordination\
-  \ for microservices.\" \n- **Mechanism:** The system uses \"Processing Units\" (Hazelcast\
-  \ nodes) that hold a portion of the data (partitions) and perform operations locally\
-  \ to that data. This is supported by the `docs/design/partitioning` and `docs/design/cluster`\
-  \ directories, which describe split-brain recovery, migration, and anti-entropy\
-  \ mechanisms—all hallmarks of the Space-Based pattern.\n\n### 2. Secondary Style:\
-  \ Microkernel (Plugin)\nHazelcast's extensibility is managed through a sophisticated\
-  \ plugin system, allowing it to integrate with various external ecosystems without\
-  \ bloating the core engine.\n- **Evidence:** The existence of a dedicated `/extensions`\
-  \ directory containing modules for `kinesis`, `s3`, `mongodb`, `cdc-postgres`, `kafka`,\
-  \ and `elasticsearch`.\n- **Mechanism:** The core engine provides \"Ports\" (Connectors)\
-  \ that these plugins implement to ingest or sink data. This allows the core (\"\
-  Jet\" engine and the data grid) to remain independent of the specific data sources\
-  \ it interacts with.\n\n### 3. Secondary Style: Pipeline (Pipe-and-Filter)\nThe\
-  \ \"Jet\" engine within Hazelcast (now unified into the main repo) follows a **Pipeline**\
-  \ architecture for stream and batch processing. \n- **Evidence:** The README mentions\
-  \ \"Stateful and fault-tolerant data processing... using SQL or dataflow API.\"\
-  \ The directory `docs/design/jet` contains design docs for \"stage rebalance,\"\
-  \ \"connectors,\" and \"watermarks.\"\n- **Mechanism:** Data flows through a Directed\
-  \ Acyclic Graph (DAG) of vertices (filters/transformers) and edges (pipes), where\
-  \ each step performs a specific transformation on the stream.\n\n### Architecture\
-  \ Rejection\n- **Microservices:** While Hazelcast supports microservices, the repository\
-  \ itself is a distributed systems platform, not a collection of microservices. It\
-  \ is a set of modules that compile into a unified runtime.\n- **Layered:** Although\
-  \ internal code has layers (API, Service, SPI), the primary structural concern is\
-  \ the horizontal distribution of data and tasks across a network, making \"Layered\"\
-  \ an insufficient description."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.62
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.6
-  style_clarity: 0.75
-  alternatives_dismissed: 0.5
-  exploration_completeness: 0.55
-  flags: evidence relies heavily on directory names and README descriptions rather
-    than actual code patterns; specific config values or API signatures absent; alternatives
-    section is thin (only 2 alternatives briefly dismissed)
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:33:17Z'
+classification_reasoning: "## Analysis\n\n### Primary Style: Modular Monolith\n\n\
+  The Hazelcast repository is architected as a **Modular Monolith** — a single deployable\
+  \ artifact with well-defined and enforced internal module boundaries.\n\n**Key Evidence:**\n\
+  \n1. **Single Deployment Unit**: The build produces one core JAR (`hazelcast.jar`)\
+  \ from the main module. All services (MapService, QueueService, CacheService, etc.)\
+  \ run within the same JVM process.\n\n2. **Service-Based Module Boundaries**: The\
+  \ codebase contains 154+ service classes organized around distributed data structures:\n\
+  \   - `hazelcast/src/main/java/com/hazelcast/map/impl/MapService.java`\n   - `hazelcast/src/main/java/com/hazelcast/collection/impl/queue/QueueService.java`\n\
+  \   - `hazelcast/src/main/java/com/hazelcast/cache/impl/CacheService.java`\n\n3.\
+  \ **Enforced Internal Boundaries**: ArchUnit rules explicitly enforce separation\
+  \ between public API and internal implementation:\n   ```java\n   // PublicApiClassesExposingInternalImplementationCondition.java\n\
+  \   private static final Set<String> INTERNAL_PACKAGE_NAMES = Set.of(\"impl\", \"\
+  internal\");\n   ```\n   Packages like `com.hazelcast.internal.*` and `*.impl` are\
+  \ protected from public API exposure.\n\n4. **Service Interface Contracts**: Services\
+  \ implement well-defined SPI interfaces:\n   ```java\n   // MapService implements\
+  \ 12+ service interfaces\n   public class MapService implements ManagedService,\
+  \ ChunkedMigrationAwareService,\n       PartitionAwareService, RemoteService, EventPublishingService,\
+  \ \n       SplitBrainHandlerService, TransactionalService, ...\n   ```\n\n5. **Centralized\
+  \ Service Management**: The `ServiceManagerImpl` (`hazelcast/src/main/java/com/hazelcast/spi/impl/servicemanager/impl/ServiceManagerImpl.java`)\
+  \ manages all service lifecycle through standard interfaces (`ManagedService.init()`,\
+  \ `ManagedService.shutdown()`).\n\n### Secondary Style: Microkernel (Plugin)\n\n\
+  The architecture exhibits strong **Microkernel/Plugin** characteristics through\
+  \ its extensibility mechanisms:\n\n1. **Service Discovery via ServiceLoader**: Services\
+  \ are discovered via `META-INF/services`:\n   - `hazelcast/src/main/resources/META-INF/services/com.hazelcast.spi.impl.servicemanager.ServiceDescriptorProvider`\n\
+  \   - Multiple extension points use this pattern: `DataConnectionRegistration`,\
+  \ `DiscoveryStrategyFactory`, `SerializerHook`, etc.\n\n2. **Pluggable Extension\
+  \ Modules**: The `extensions/` directory contains optional plugins that can be added\
+  \ to the core:\n   - `extensions/kafka/` - Kafka connector\n   - `extensions/mongodb/`\
+  \ - MongoDB connector\n   - `extensions/elasticsearch/` - Elasticsearch integration\n\
+  \   - `extensions/grpc/`, `extensions/protobuf/`, `extensions/python/`\n\n3. **Dynamic\
+  \ Service Configuration**: `ServiceConfig.java` allows runtime registration of custom\
+  \ services:\n   ```java\n   public class ServiceConfig {\n       private String\
+  \ className;\n       private Object serviceImpl;\n       private Properties properties;\n\
+  \   }\n   ```\n\n4. **Extension Points Throughout**:\n   - `NodeExtension` for extending\
+  \ core node behavior\n   - `DataConnectionRegistration` for pluggable data sources\n\
+  \   - `DiscoveryStrategyFactory` for custom discovery mechanisms\n   - `SerializerHook`\
+  \ for custom serialization\n\n### What This Is NOT\n\n- **Not Microservices**: Single\
+  \ JAR deployment, no independent services owning separate data stores, no inter-service\
+  \ network communication, no container orchestration configs.\n\n- **Not Event-Driven\
+  \ Architecture**: While Hazelcast provides event-based features (topics, event listeners,\
+  \ Jet streaming), these are product capabilities, not the codebase's organizational\
+  \ structure.\n\n- **Not Domain-Driven Design**: Services are organized by technical\
+  \ capability (map, queue, cache, executor), not business domains. No bounded contexts,\
+  \ aggregates, or ubiquitous language patterns.\n\n- **Not Layered Architecture**:\
+  \ No horizontal separation into presentation/business/data layers. Organization\
+  \ is by service capability, not functional layer.\n\n- **Not Space-Based Architecture**:\
+  \ While Hazelcast IS an in-memory data grid (a space-based product), the codebase's\
+  \ organization is service-based modularity, not organized around data grids and\
+  \ processing units."

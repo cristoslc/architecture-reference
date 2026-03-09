@@ -17,7 +17,6 @@ languages:
 architecture_styles:
 - Microkernel (Plugin)
 - Modular Monolith
-- Domain-Driven Design
 classification_status: classified
 review_notes: "Grafana is a classic example of a **Microkernel (Plugin)** architecture,\
   \ where a stable core (the \"kernel\") provides the essential infrastructure (authentication,\
@@ -36,55 +35,146 @@ review_notes: "Grafana is a classic example of a **Microkernel (Plugin)** archit
   While Grafana supports out-of-process plugins, the core repository is shipped as\
   \ a single binary (`grafana-server`). "
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.73
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:51:04Z'
-classification_reasoning: "Grafana is a classic example of a **Microkernel (Plugin)**\
-  \ architecture, where a stable core (the \"kernel\") provides the essential infrastructure\
-  \ (authentication, data routing, web serving) while almost all functional capabilities\
-  \ (visualizations, data sources, alerting integrations) are implemented as plugins.\n\
-  \n### 1. Microkernel (Plugin)\nThe system is designed around a strictly defined\
-  \ extension API. \n- **Plugin Registry:** In `pkg/server/server.go`, the server\
-  \ initializes a `backgroundServiceRegistry`, which manages the lifecycle of various\
-  \ internal and external components.\n- **Pluggability of Core Logic:** The `pkg/plugins`\
-  \ directory contains the orchestration logic for loading both frontend (JS/TS) and\
-  \ backend (Go) plugins. Backend plugins often run as separate processes communicating\
-  \ over gRPC (seen in `pkg/plugins/backendplugin`).\n- **Data Sources as Plugins:**\
-  \ The directory `pkg/tsdb` contains numerous sub-packages (e.g., `loki`, `prometheus`,\
-  \ `mysql`), each acting as an adapter. The README explicitly highlights that \"\
-  Panel plugins offer many different ways to visualize\" and \"mixed data sources\"\
-  \ are supported via custom providers.\n\n### 2. Modular Monolith\nWhile Grafana\
-  \ supports out-of-process plugins, the core repository is shipped as a single binary\
-  \ (`grafana-server`). \n- **Internal Module Boundaries:** The `pkg/services` directory\
-  \ (e.g., `dashboardsnapshots`, `accesscontrol`, `folder`) demonstrates an attempt\
-  \ to keep business logic encapsulated. Each service defines a clear Gomock-compatible\
-  \ interface (e.g., `type Service interface` in `pkg/services/dashboardsnapshots/service.go`),\
-  \ allowing modules to interact via defined contracts rather than direct database\
-  \ access or shared State.\n- **Dependency Injection:** The use of `wire_gen.go`\
-  \ and `wire.go` in `pkg/server` indicates an automated dependency injection setup,\
-  \ which is a hallmark of managing complexity in a modular monolith.\n\n### 3. Domain-Driven\
-  \ Design (DDD)\nThe codebase heavily utilizes DDD tactical patterns to organize\
-  \ its logic:\n- **Bounded Contexts:** The `public/app/features` and `pkg/services`\
-  \ directories are organized by functional domain (Alerting, Dashboards, Users, Auth)\
-  \ rather than technical layers (Controllers, Views).\n- **Service Interfaces:**\
-  \ Nearly every directory in `pkg/services` contains a `service.go` that defines\
-  \ the domain's capabilities as a set of Commands and Queries (e.g., `CreateDashboardSnapshotCommand`),\
-  \ which is a pattern often paired with DDD and CQRS.\n\n### Non-Classified Styles\
-  \ Rejected:\n- **Microservices:** While Grafana connects to many services, the code\
-  \ in this repository is compiled into a single deployment unit (`packaging/` shows\
-  \ wrappers for the single server and CLI). It does not consist of independently\
-  \ deployable business services.\n- **Layered:** Although there is a separation between\
-  \ `pkg` (backend) and `public` (frontend), the internal structure of `pkg` is strictly\
-  \ domain-oriented (`pkg/services/...`) rather than horizontally layered (e.g., it\
-  \ does not have a global `pkg/controllers` or `pkg/repositories` folder)."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.73
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.78
-  alternatives_dismissed: 0.65
-  exploration_completeness: 0.75
-  flags: DDD as tertiary classification is weakly evidenced — naming conventions and
-    service interfaces alone don't confirm DDD; could be simple service-oriented organization
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:28:01Z'
+classification_reasoning: '## Analysis
+
+
+  ### Primary: Microkernel (Plugin) Architecture
+
+
+  Grafana''s architecture is fundamentally defined by its **extensive plugin system**,
+  which is the core extensibility mechanism:
+
+
+  **Evidence from `pkg/plugins/manager/pipeline/`:**
+
+  - Clear plugin lifecycle pipeline with distinct stages: **discovery → bootstrap
+  → validation → initialization → termination**
+
+  - Each stage has well-defined interfaces (`Discoverer`, `Bootstrapper`, `Validator`,
+  `Initializer`, `Terminator`)
+
+
+  **Evidence from `pkg/plugins/backendplugin/`:**
+
+  - Backend plugins run as separate processes communicating via **gRPC** (`client_v2.go`,
+  `grpc_plugin.go`)
+
+  - Plugin interface (`ifaces.go`) defines contracts: `QueryDataHandler`, `CheckHealthHandler`,
+  `StreamHandler`, `CallResourceHandler`, `AdmissionHandler`, `ConversionHandler`
+
+  - Plugins implement `Start()`, `Stop()`, `Decommission()` lifecycle methods
+
+
+  **Evidence from `pkg/plugins/plugins.go`:**
+
+  - Plugin types include: datasource, panel, app, renderer
+
+  - Plugins have signatures, external services, routes, dependencies
+
+  - Frontend plugins loaded dynamically via SystemJS
+
+
+  **Evidence from `apps/plugins/`:**
+
+  - Dedicated app for plugin management with its own API (`plugins.grafana.app`)
+
+
+  ### Secondary: Modular Monolith
+
+
+  Grafana exhibits strong **internal module boundaries** within a single deployable:
+
+
+  **Evidence from `apps/` directory structure:**
+
+  - 20+ self-contained apps: `dashboard`, `alerting`, `annotation`, `playlist`, `plugins`,
+  `secrets`, etc.
+
+  - Each app has its own `go.mod` (Go module) and `Makefile`
+
+  - Apps define resources via **CUE schemas** in `kinds/*.cue` files
+
+
+  **Evidence from architecture documentation (`contribute/architecture/k8s-inspired-backend-arch.md`):**
+
+  - "Grafana is adopting a Kubernetes-inspired, resource-oriented model"
+
+  - Apps define APIs via CUE schemas, generating code through `grafana-app-sdk`
+
+  - Resource APIs follow Kubernetes conventions: `/apis/<group>/<version>/namespaces/<namespace>/<resource>/<name>`
+
+
+  **Evidence from `pkg/registry/apps/apps.go`:**
+
+  - App installers are registered and managed centrally
+
+  - Feature toggles control which apps are enabled
+
+  - Apps are installed via `AppInstaller` interface
+
+
+  **Evidence from `pkg/services/` organization:**
+
+  - Services organized by domain: `accesscontrol`, `annotations`, `dashboards`, `datasources`,
+  `alerting`, etc.
+
+  - Wire dependency injection composes services together
+
+  - Clear package-by-feature hierarchy documented in `contribute/backend/package-hierarchy.md`
+
+
+  **Evidence from single deployable:**
+
+  - Single `Dockerfile` produces one binary
+
+  - Single `go.mod` at root for the main application
+
+  - `pkg/server/wire.go` shows all services wired together
+
+
+  ### Rejected Styles:
+
+
+  - **Not Microservices**: Single binary, single container deployment. No service
+  mesh or inter-service communication. Docker compose files are for development/testing
+  dependencies (databases), not microservices.
+
+
+  - **Not pure Layered**: While there are horizontal layers (API, services, storage),
+  the package organization is **by feature** not by layer. Documentation explicitly
+  states "Grafana has long used a package-by-layer layout" as **legacy**, moving to
+  **package-by-feature**.
+
+
+  - **Not Event-Driven**: The `pkg/bus/bus.go` is a simple in-process event dispatcher
+  for internal notifications, not a message broker architecture. Events are published/subscribed
+  within the same process.
+
+
+  - **Not Hexagonal**: No ports-and-adapters pattern. Dependencies flow inward to
+  services, but there''s no explicit application core isolated via interfaces from
+  infrastructure adapters.
+
+
+  ### Why Not Primary Modular Monolith:
+
+
+  While the modular monolith characteristics are strong, the **plugin system is the
+  defining architectural feature** of Grafana. Plugins are:
+
+  1. Loaded at runtime (not compile-time)
+
+  2. Run as separate processes (backend plugins)
+
+  3. Define the extension contract through interfaces
+
+  4. The primary mechanism for Grafana''s extensibility
+
+
+  The modular app structure (`apps/`) is a secondary organizational pattern that works
+  alongside the plugin system, but plugins are what make Grafana a platform rather
+  than just a well-organized monolith.'

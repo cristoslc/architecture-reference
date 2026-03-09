@@ -14,8 +14,8 @@ languages:
 - Ruby
 - JavaScript
 architecture_styles:
-- Modular Monolith
 - Layered
+- Microkernel (Plugin)
 classification_status: classified
 review_notes: 'Solidus is structured as a **Modular Monolith** organized through a
   multi-gem workspace. While it is built on Ruby on Rails (which dictates a **Layered**
@@ -47,83 +47,63 @@ review_notes: 'Solidus is structured as a **Modular Monolith** organized through
   gem... Bundler will install all of the following gems... All of the gems are designed
   to work together."*'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.74
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:11:12Z'
-classification_reasoning: 'Solidus is structured as a **Modular Monolith** organized
-  through a multi-gem workspace. While it is built on Ruby on Rails (which dictates
-  a **Layered** internal structure for each module), the high-level organization is
-  defined by the separation of the system into distinct, semi-autonomous engines that
-  work together within a single deployable context.
-
-
-  ### Evidence of Modular Monolith
-
-  The repository is split into several top-level directories, each functioning as
-  an autonomous Ruby gem (Engine):
-
-  - `/core`: Contains the essential domain models (`spree_core`), business logic,
-  and migrations. It serves as the "kernel" of the system.
-
-  - `/api`: (Referenced in README) Provides the RESTful interface.
-
-  - `/admin` & `/backend`: Provide administrative interfaces.
-
-  - `/legacy_promotions`: A feature-specific module separated from the core to manage
-  technical debt and specific domain logic.
-
-
-  These are not **Microservices** because they are designed to run within the same
-  process, share a common database schema (seen in the shared `db/migrate` patterns
-  across modules), and are typically required together in a single `Gemfile` to produce
-  one Rails application. The README explicitly states: *"When you require the solidus
-  gem... Bundler will install all of the following gems... All of the gems are designed
-  to work together."*
-
-
-  ### Internal Layering
-
-  Within each module (e.g., `/core/app` or `/legacy_promotions/app`), the project
-  follows standard Rails horizontal layering:
-
-  - **Models**: Business logic and data persistence (`core/app/models/spree`).
-
-  - **Controllers/API**: Interface layers.
-
-  - **Subscribers**: Found in `core/app/subscribers`, indicating an internal pub/sub
-  mechanism (often via `Spree::Bus` mentioned in `core/lib/spree/bus.rb`), which allows
-  modules to communicate without tight coupling.
-
-
-  ### Plugin/Extension Capabilities
-
-  While not a pure **Microkernel** architecture in its primary distribution, Solidus
-  heavily utilizes a "Hooks and Overrides" pattern (common in Spree forks) where the
-  core is designed to be extended by third-party "extensions" (external gems). However,
-  within this specific repository''s structure, the "Modular Monolith" description
-  is the most accurate representation of how the code is organized for development
-  and distribution.
-
-
-  ### Rejection of Microservices
-
-  - **Shared Database:** Modules share the same database and migrations are distributed
-  across them.
-
-  - **Deployment:** The platform is deployed as a single unit (a Rails app), not as
-  independent services.
-
-  - **In-process calls:** Communication between components happens via direct Ruby
-  method calls or internal event buses rather than network-bound RPC/REST.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.74
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.8
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.65
-  flags: Plugin/Microkernel architecture partially described but dismissed without
-    deep analysis of extension system; internal layering evidence is somewhat generic
-    Rails-pattern assertion
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T21:01:57Z'
+classification_reasoning: "## Analysis\n\nSolidus is a complete open-source e-commerce\
+  \ platform built on Ruby on Rails, structured as a **Layered Architecture** with\
+  \ strong **Microkernel (Plugin)** characteristics for extensibility.\n\n### Evidence\
+  \ for Layered Architecture\n\nThe codebase exhibits clear horizontal layering across\
+  \ multiple Rails Engine gems:\n\n1. **Core Layer (`solidus_core`)**: Contains domain\
+  \ models (`app/models/spree/`), concerns, validators, mailers, jobs, and fundamental\
+  \ business logic. Models include `Order`, `Product`, `LineItem`, `Payment`, `Shipment`,\
+  \ `Address`, etc. This layer has no dependencies on other Solidus gems.\n\n2. **API\
+  \ Layer (`solidus_api`)**: RESTful API controllers (`app/controllers/spree/api/`)\
+  \ that depend on `solidus_core` (per `solidus_api.gemspec:29` - `s.add_dependency\
+  \ 'solidus_core', s.version`).\n\n3. **Presentation Layers**: \n   - `solidus_backend`:\
+  \ Traditional admin interface with controllers inheriting from `Spree::BaseController`\n\
+  \   - `solidus_admin`: New admin interface using ViewComponent pattern\n\n4. **Dependency\
+  \ Direction**: The gemspecs show clear unidirectional dependencies—`solidus_backend`\
+  \ depends on `solidus_api` and `solidus_core`, while `solidus_core` has no Solidus\
+  \ dependencies.\n\n### Evidence for Microkernel (Plugin) Architecture\n\nSolidus\
+  \ implements a sophisticated plugin/extension system:\n\n1. **Registration-based\
+  \ Configuration** (`core/lib/spree/core/environment.rb`):\n   ```ruby\n   add_class_set\
+  \ :payment_methods\n   add_class_set :stock_splitters\n   add_class_set :subscribers\n\
+  \   ```\n   This allows extensions to register their implementations at runtime.\n\
+  \n2. **Ability Registration** (`core/app/models/spree/ability.rb:21-23`):\n   ```ruby\n\
+  \   def self.register_ability(ability)\n     abilities.add(ability)\n   end\n  \
+  \ ```\n   Extensions can add authorization abilities without modifying core.\n\n\
+  3. **Component Registry** (`admin/lib/solidus_admin/component_registry.rb`): UI\
+  \ components are resolved from a registry, allowing applications to override them:\n\
+  \   ```ruby\n   SolidusAdmin::Config.components['ui/button'] = \"MyApplication::Button::Component\"\
+  \n   ```\n\n4. **Permission Sets** (`core/lib/spree/core/role_configuration.rb`):\
+  \ Role-based permissions can be extended via `assign_permissions`.\n\n5. **Optional\
+  \ Module Loading** (`promotions/lib/solidus_promotions.rb:14-24`): Extensions gracefully\
+  \ handle optional dependencies:\n   ```ruby\n   begin\n     require \"solidus_admin\"\
+  \n   rescue LoadError\n     # Solidus Admin is not available\n   end\n   ```\n\n\
+  ### Event-Driven Elements (Not Primary)\n\nThe codebase uses the Omnes library for\
+  \ pub/sub (`core/lib/spree/bus.rb`), with events like `order_finalized`, `carton_shipped`,\
+  \ etc. However, this is internal infrastructure for decoupling mailers and notifications—not\
+  \ a primary architectural style. Components don't communicate primarily through\
+  \ events.\n\n### What Was Rejected\n\n- **Not Microservices**: All gems deploy as\
+  \ a single Rails application. There are no independent deployment units, no service\
+  \ boundaries, no inter-service communication. The `docker-compose.yml` shows a single\
+  \ application container for the entire platform.\n\n- **Not Service-Based**: There\
+  \ are no 2-5 coarse-grained services. The modules (core, api, backend, admin) are\
+  \ logical layers, not separate services.\n\n- **Not Modular Monolith**: While there\
+  \ are enforced module boundaries via Rails Engines, the primary organizing principle\
+  \ is horizontal layering (core → api → backend), not vertical domain modules. The\
+  \ boundaries are presentation vs. business logic vs. data access.\n\n- **Not Hexagonal\
+  \ Architecture**: There's no ports-and-adapters pattern. Controllers directly use\
+  \ models via standard Rails conventions. The `BaseController` classes don't implement\
+  \ ports/interfaces that isolate the application core.\n\n- **Not Domain-Driven Design**:\
+  \ While rich domain models exist, there's no bounded context organization, no aggregate\
+  \ patterns, no ubiquitous language segregation. It's standard Rails ActiveRecord\
+  \ domain modeling.\n\n### Conclusion\n\nSolidus follows the classic Rails architecture\
+  \ pattern of **Layered Architecture** (core business logic → API → presentation),\
+  \ enhanced with a **Microkernel/Plugin** extensibility model that allows third-party\
+  \ extensions to register capabilities (payment methods, calculators, permission\
+  \ sets, UI components) without modifying core code. This dual nature is intentional—the\
+  \ layering provides clear separation of concerns, while the plugin architecture\
+  \ enables the vibrant Solidus extension ecosystem."

@@ -14,9 +14,8 @@ languages:
 - C#
 - JavaScript
 architecture_styles:
-- Layered
 - Microkernel (Plugin)
-- Event-Driven
+- Layered
 classification_status: classified
 review_notes: 'The nopCommerce repository is a classic example of a **Layered Architecture**
   (Horizontal Layering) with a highly developed **Microkernel (Plugin)** system. While
@@ -48,52 +47,65 @@ review_notes: 'The nopCommerce repository is a classic example of a **Layered Ar
 
   ### 2. Secondary Style: Microkernel (Plugin)'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.84
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:03:48Z'
-classification_reasoning: "The nopCommerce repository is a classic example of a **Layered\
-  \ Architecture** (Horizontal Layering) with a highly developed **Microkernel (Plugin)**\
-  \ system. While it contains modern elements like Docker support and a REST API,\
-  \ its internal code organization follows the strict separation of concerns typical\
-  \ of ASP.NET \"Onion\" or \"N-Tier\" architectures.\n\n### 1. Primary Style: Layered\
-  \ Architecture\nThe core of the system is divided into clearly defined horizontal\
-  \ layers located in `src/Libraries`:\n- **Nop.Core (Domain Layer):** Contains base\
-  \ entities (`BaseEntity.cs`), domain models (under `Nop.Core/Domain`), and core\
-  \ infrastructure interfaces. It has no dependencies on other layers.\n- **Nop.Data\
-  \ (Data Access Layer):** Implements the Repository pattern (`IRepository.cs`, `EntityRepository.cs`)\
-  \ and handles database-specific logic using FluentMigrator and LinqToDB/Entity Framework\
-  \ concepts.\n- **Nop.Services (Business Logic Layer):** Contains the \"heavy lifting\"\
-  \ of the application, organized by functional domain (e.g., `Customers`, `Orders`,\
-  \ `Catalog`).\n- **Nop.Web (Presentation Layer):** A single monolithic ASP.NET Core\
-  \ MVC application that serves as the entry point for both the public store and the\
-  \ administration area.\n\n### 2. Secondary Style: Microkernel (Plugin)\nNopCommerce\
-  \ uses a \"Microkernel\" approach to extensibility. The core system provides a skeleton\
-  \ of services, while significant functionality (Payment gateways, Tax providers,\
-  \ Shipping methods) is implemented as external plugins located in `src/Plugins`.\
-  \ \n- **Plugin Infrastructure:** Every plugin has a `plugin.json` descriptor and\
-  \ follows a standard contract (e.g., `src/Plugins/Nop.Plugin.Payments.CheckMoneyOrder`).\n\
-  - **Dynamic Loading:** The `IEngine` interface and its implementation handle the\
-  \ discovery and lifecycle of these plugins, allowing the system to be extended without\
-  \ modifying the core codebase.\n\n### 3. Secondary Style: Event-Driven (Internal)\n\
-  The system employs an internal **Event-Driven** pattern to maintain loose coupling\
-  \ between modules.\n- **Pub/Sub Pattern:** Evidence found in `src/Libraries/Nop.Services/Events/IConsumer.cs`\
-  \ and `src/Libraries/Nop.Core/Events` shows a sophisticated internal event bus.\
-  \ When an entity is inserted, updated, or a specific business action occurs, events\
-  \ (e.g., `EntityInsertedEvent<T>`) are published.\n- **Decoupling:** This allows\
-  \ third-party plugins or separate core modules to \"hook\" into business processes\
-  \ (like order placement) without direct hard-coded dependencies.\n\n### Rejected\
-  \ Styles\n- **Microservices:** Despite having a `docker-compose.yml`, it deploys\
-  \ a single logic unit (the web project) and a database. There are no independent\
-  \ service boundaries or network-isolated domains.\n- **Modular Monolith:** While\
-  \ it has modules, they are primarily organized as horizontal layers (Services vs.\
-  \ Data) rather than vertically sliced, independent business modules with strictly\
-  \ enforced boundaries beyond the plugin system."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.84
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.88
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.82
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:49:41Z'
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
+  \ Style: Microkernel (Plugin)\n\nnopCommerce implements a **textbook Microkernel/Plugin\
+  \ architecture** where the core system provides a stable platform that can be extended\
+  \ through dynamically loaded plugins.\n\n**Key Evidence:**\n\n1. **Plugin Infrastructure**\
+  \ (`src/Libraries/Nop.Services/Plugins/`):\n   - `BasePlugin` abstract class and\
+  \ `IPlugin` interface define the plugin contract\n   - `PluginManager<TPlugin>`\
+  \ provides generic plugin loading and lifecycle management\n   - `PluginService`\
+  \ handles plugin discovery, installation, and filtering\n   - `PluginDescriptor`\
+  \ carries metadata (system name, version, friendly name, group, dependencies)\n\n\
+  2. **Plugin Discovery and Loading** (`src/Libraries/Nop.Core/Infrastructure/WebAppTypeFinder.cs`):\n\
+  \   - Dynamic assembly scanning at runtime\n   - Plugins loaded from dedicated `Plugins/`\
+  \ directory\n   - Type finder discovers `INopStartup` implementations in plugins\
+  \ for service registration\n\n3. **Extension Points via Interfaces** (`src/Libraries/Nop.Services/`):\n\
+  \   - `IPaymentMethod : IPlugin` - Payment gateway extensions\n   - `IWidgetPlugin\
+  \ : IPlugin` - UI widget extensions\n   - `IShippingPlugin` / `ITaxProvider` / `IExchangeRateProvider`\
+  \ / `ISearchProvider` - Domain-specific extensions\n   - `IMiscPlugin : IPlugin`\
+  \ - General-purpose extensions\n\n4. **Plugin Lifecycle** (`src/Libraries/Nop.Services/Plugins/BasePlugin.cs`):\n\
+  \   ```csharp\n   Task InstallAsync();\n   Task UninstallAsync();\n   Task UpdateAsync(string\
+  \ currentVersion, string targetVersion);\n   ```\n\n5. **Plugin Configuration**\
+  \ (`src/Plugins/*/plugin.json`):\n   Each plugin includes a JSON manifest defining\
+  \ metadata:\n   ```json\n   {\n     \"Group\": \"Payment methods\",\n     \"FriendlyName\"\
+  : \"PayPal Commerce\",\n     \"SystemName\": \"Payments.PayPalCommerce\",\n    \
+  \ \"Version\": \"5.00.4\"\n   }\n   ```\n\n6. **Runtime Service Registration** (`src/Plugins/Nop.Plugin.Misc.AzureBlob/Infrastructure/PluginNopStartup.cs`):\n\
+  \   Plugins can implement `INopStartup` to register their own services at startup,\
+  \ allowing deep integration with the core system.\n\n### Secondary Style: Layered\n\
+  \nnopCommerce also exhibits classic **Layered Architecture** within the monolithic\
+  \ deployment:\n\n**Layer Structure** (`src/Libraries/`):\n\n1. **Nop.Core** - Domain\
+  \ layer with entities (`BaseEntity`), infrastructure, caching, and configuration\n\
+  2. **Nop.Data** - Data access layer with `IRepository<TEntity>`, `EntityRepository`,\
+  \ and data providers for MS SQL, MySQL, PostgreSQL\n3. **Nop.Services** - Business\
+  \ logic layer with services (`ICustomerService`, `IProductService`, `IOrderService`,\
+  \ etc.) and domain services\n4. **Nop.Web.Framework** - Presentation infrastructure\
+  \ with base controllers, view components, validation\n5. **Nop.Web** - Presentation\
+  \ layer with MVC controllers and views\n\n**Repository Pattern** (`src/Libraries/Nop.Data/IRepository.cs`):\n\
+  ```csharp\npublic partial interface IRepository<TEntity> where TEntity : BaseEntity\n\
+  {\n    Task<TEntity> GetByIdAsync(int? id, ...);\n    Task<IList<TEntity>> GetAllAsync(...);\n\
+  \    Task InsertAsync(TEntity entity, bool publishEvent = true);\n    Task UpdateAsync(TEntity\
+  \ entity, bool publishEvent = true);\n}\n```\n\n**Dependency Flow**: Controllers\
+  \ → Services → Repositories → Data Provider\n\n### Not Event-Driven (Rejection)\n\
+  \nWhile nopCommerce has an event system (`IEventPublisher`, `IConsumer<TEvent>`),\
+  \ it is **not an Event-Driven Architecture**. Events are used for:\n- Entity change\
+  \ notifications (`EntityInsertedEvent`, `EntityUpdatedEvent`)\n- Cache invalidation\n\
+  - Model preparation notifications\n\nThese are internal cross-cutting concerns,\
+  \ not the primary communication mechanism between components. Services call each\
+  \ other directly through dependency injection, not through event brokers.\n\n###\
+  \ Not Microservices (Rejection)\n\nDespite being an eCommerce platform:\n- **Single\
+  \ deployable**: Dockerfile produces one `Nop.Web.dll`\n- **Single database**: All\
+  \ modules share one database (MS SQL/PostgreSQL/MySQL)\n- **In-process communication**:\
+  \ Services communicate via method calls, not network protocols\n- **No service boundaries**:\
+  \ No bounded contexts with separate data ownership\n\n### Deployment Model\n\nThe\
+  \ architecture is a **Modular Monolith** with plugin-based extensibility:\n- Single\
+  \ web application deployed as a container\n- 30+ plugins dynamically loaded at runtime\n\
+  - All code runs in a single process\n- Supports web farms through distributed caching\
+  \ (Redis, SQL Server)\n\n### Conclusion\n\nnopCommerce is a well-designed **Microkernel\
+  \ (Plugin) architecture** with **Layered** internal organization. The plugin system\
+  \ is the defining architectural characteristic, enabling a marketplace ecosystem\
+  \ where third-party developers can extend payment, shipping, tax, authentication,\
+  \ and other functionality through standardized extension points."

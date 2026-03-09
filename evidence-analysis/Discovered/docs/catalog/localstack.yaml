@@ -17,8 +17,6 @@ languages:
 - Ruby
 architecture_styles:
 - Microkernel (Plugin)
-- Layered
-- Service-Based
 classification_status: classified
 review_notes: "The repository is structured as a **Microkernel (Plugin)** architecture,\
   \ using a custom plugin framework called `plux` to manage its extensive suite of\
@@ -37,49 +35,61 @@ review_notes: "The repository is structured as a **Microkernel (Plugin)** archit
   \ provider at runtime based on configuration, which is a hallmark of plugin-based\
   \ systems.\n\n### Secondary Styles"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.82
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:57:14Z'
-classification_reasoning: "The repository is structured as a **Microkernel (Plugin)**\
-  \ architecture, using a custom plugin framework called `plux` to manage its extensive\
-  \ suite of AWS service emulators. \n\n### Core Architectural Evidence\n\n1.  **The\
-  \ Plugin System (`plux`):** The `plux.ini` file is the central \"registry\" for\
-  \ the system. It defines a high-volume of extension points under various namespaces\
-  \ like `localstack.aws.provider`, `localstack.cloudformation.resource_providers`,\
-  \ and `localstack.hooks`. This allows the core runtime (the \"kernel\") to remain\
-  \ agnostic of the specific implementation of over 50+ AWS services (S3, DynamoDB,\
-  \ Lambda, etc.).\n2.  **Runtime Hooks:** The use of hooks (`localstack.hooks.on_infra_start`,\
-  \ `on_infra_ready`) demonstrates a classic Microkernel pattern where the lifecycle\
-  \ of the application is managed by a core engine that executes registered plugin\
-  \ tasks at specific stages.\n3.  **Encapsulated Providers:** The `plux.ini` demonstrates\
-  \ that multiple versions of the same service (e.g., `dynamodb:default` vs `dynamodb:v2`,\
-  \ `events:v1` vs `events:v2`) can exist simultaneously. The core system selects\
-  \ and loads the appropriate provider at runtime based on configuration, which is\
-  \ a hallmark of plugin-based systems.\n\n### Secondary Styles\n\n*   **Layered:**\
-  \ The codebase follows a clear vertical stratification. At the base is the `localstack-core`\
-  \ (runtime/server), followed by an `aws` abstraction layer (handling protocols,\
-  \ service routing, and common handlers), and finally the `services` layer where\
-  \ specific business logic resides. This is evidenced by the `pyproject.toml` dependency\
-  \ groups and the package-dir mapping.\n*   **Service-Based:** While all services\
-  \ run within a single container (the \"Unified Image\" mentioned in the README),\
-  \ they are treated as coarse-grained, semi-autonomous units. The service implementations\
-  \ are largely decoupled from one another, often wrapping external specialized emulators\
-  \ (like `dynamodb-local` or `kinesis-mock`, as seen in the `[localstack.packages]`\
-  \ section of `plux.ini`), but they share a common runtime environment and entry-point.\n\
-  \n### Rejection of Other Styles\n\n*   **Microservices:** Although LocalStack emulates\
-  \ a microservice-rich environment (AWS), the **internal** code architecture is built\
-  \ as a single deployable Python package/Docker image. Services do not communicate\
-  \ over a network internally via gRPC or separate deployments; they are loaded into\
-  \ the same memory space via plugins.\n*   **Modular Monolith:** While it shares\
-  \ some traits (single deployment, modular boundaries), the architecture's reliance\
-  \ on a dynamic plugin loading mechanism (`plux`) and hook-based extensions makes\
-  \ \"Microkernel\" a much more precise description of its structural philosophy."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.82
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.82
-  style_clarity: 0.85
-  alternatives_dismissed: 0.78
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:37:17Z'
+classification_reasoning: "## Architecture Analysis: LocalStack\n\n### Primary Style:\
+  \ Microkernel (Plugin)\n\nLocalStack implements a clear **Microkernel (Plugin) architecture**\
+  \ where a core runtime system provides the infrastructure and AWS services are loaded\
+  \ as discoverable plugins.\n\n### Key Evidence\n\n**1. Plugin Framework (`plux`):**\n\
+  - The repository uses the `plux` plugin framework for dynamic plugin discovery and\
+  \ loading\n- `pyproject.toml` declares `plux>=1.14.0` as a core dependency\n- Entry\
+  \ points are defined in `plux.ini` with multiple plugin namespaces:\n  - `localstack.aws.provider`\
+  \ - AWS service provider plugins\n  - `localstack.cloudformation.resource_providers`\
+  \ - CloudFormation resource plugins\n  - `localstack.openapi.spec` - OpenAPI specification\
+  \ plugins\n  - `localstack.extensions` - Extension plugins\n\n**2. Service Provider\
+  \ Registration (`plux.ini` lines 1-49):**\n```ini\n[localstack.aws.provider]\nacm:default\
+  \ = localstack.services.providers:acm\napigateway:default = localstack.services.providers:apigateway\n\
+  dynamodb:default = localstack.services.providers:dynamodb\nlambda:default = localstack.services.providers:lambda_\n\
+  s3:default = localstack.services.providers:s3\n# ... 30+ more service providers\n\
+  ```\n\n**3. Plugin Decorators (`services/providers.py`):**\n```python\n@aws_provider()\n\
+  def acm():\n    from localstack.services.acm.provider import AcmProvider\n    provider\
+  \ = AcmProvider()\n    return Service.for_provider(provider, dispatch_table_factory=MotoFallbackDispatcher)\n\
+  ```\nEach AWS service is registered as a plugin factory function with the `@aws_provider()`\
+  \ decorator.\n\n**4. Service Plugin Lifecycle (`services/plugins.py`):**\n- `ServiceContainer`\
+  \ class manages plugin lifecycle (states: UNKNOWN, AVAILABLE, STARTING, RUNNING,\
+  \ STOPPED)\n- `ServiceLifecycleHook` provides extension points (`on_after_init`,\
+  \ `on_before_start`, `on_before_stop`)\n- `PluginManager` from `plux` is used to\
+  \ discover and load service plugins\n\n**5. Runtime Hook System (`runtime/hooks.py`):**\n\
+  ```python\non_infra_start = hook_spec(HOOKS_ON_INFRA_START)\non_infra_ready = hook_spec(HOOKS_ON_INFRA_READY)\n\
+  on_infra_shutdown = hook_spec(HOOKS_ON_INFRA_SHUTDOWN)\n```\nA comprehensive hook\
+  \ system allows plugins to register callbacks for infrastructure lifecycle events.\n\
+  \n**6. Extension Points (`extensions/api/extension.py`):**\n```python\nclass Extension(BaseExtension):\n\
+  \    namespace = \"localstack.extensions\"\n    \n    def on_extension_load(self):\
+  \ pass\n    def on_platform_start(self): pass\n    def update_gateway_routes(self,\
+  \ router): pass\n    def update_request_handlers(self, handlers): pass\n    def\
+  \ on_platform_ready(self): pass\n```\nExtensions can inject routes, handlers, and\
+  \ response processors into the gateway.\n\n**7. CloudFormation Resource Provider\
+  \ Plugins:**\nThe `plux.ini` file defines 80+ CloudFormation resource provider plugins,\
+  \ each independently loadable:\n```ini\naws::dynamodb::table = localstack.services.dynamodb.resource_providers.aws_dynamodb_table_plugin:DynamoDBTableProviderPlugin\n\
+  aws::lambda::function = localstack.services.lambda_.resource_providers.aws_lambda_function_plugin:...\n\
+  ```\n\n### Core System vs Plugins\n\n**Core System (Microkernel):**\n- `localstack-core/localstack/runtime/`\
+  \ - Runtime management\n- `localstack-core/localstack/aws/gateway.py` - Request\
+  \ gateway\n- `localstack-core/localstack/aws/chain.py` - Handler chain\n- `localstack-core/localstack/aws/skeleton.py`\
+  \ - Request dispatching\n- Plugin discovery via `plux`\n- Service container and\
+  \ lifecycle management\n\n**Plugins (AWS Services):**\n- Each service in `localstack-core/localstack/services/{s3,dynamodb,lambda_,...}/`\
+  \ is a plugin\n- Services have `provider.py` (API handlers), `models.py` (state),\
+  \ `plugins.py` (registration)\n- Services can have multiple implementations (`dynamodb`\
+  \ vs `dynamodb:v2`)\n\n### Single Deployable\n\nThe architecture is a monolith packaged\
+  \ as a single Docker container, with services loaded as plugins at runtime - this\
+  \ distinguishes it from both microservices (multiple deployables) and modular monolith\
+  \ (internal modules without plugin discovery).\n\n### Rejected Styles\n\n- **Not\
+  \ Microservices**: Single container deployment, not distributed services\n- **Not\
+  \ Modular Monolith**: While services are modular, the defining characteristic is\
+  \ plugin discovery at runtime via entry points, not just internal module boundaries\n\
+  - **Not Layered**: While layers exist (gateway → handler → provider), the primary\
+  \ architectural driver is plugin extensibility\n- **Not Service-Based**: There are\
+  \ 30+ fine-grained services, not 2-5 coarse-grained services\n- **Not Hexagonal**:\
+  \ While there's a gateway, ports/adapters pattern isn't the primary organization\
+  \ - plugins are"

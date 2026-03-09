@@ -15,8 +15,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Modular Monolith
-- Event-Driven
-- Domain-Driven Design
+- Layered
 classification_status: classified
 review_notes: 'The repository is organized as a **Modular Monolith** using the **NestJS**
   framework. While it is managed within a monorepo (`pnpm` workspaces), the core business
@@ -45,78 +44,57 @@ review_notes: 'The repository is organized as a **Modular Monolith** using the *
 
   The system extensively uses asynchronous communication and decoupled event patterns:'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.73
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:42:10Z'
-classification_reasoning: 'The repository is organized as a **Modular Monolith** using
-  the **NestJS** framework. While it is managed within a monorepo (`pnpm` workspaces),
-  the core business logic resides in a single deployable backend unit (`packages/server`)
-  and a frontend unit (`packages/webapp`).
-
-
-  ### Primary Style: Modular Monolith
-
-  The backend (`packages/server`) is strictly partitioned into a high number of fine-grained
-  modules under `src/modules/` (e.g., `Accounts`, `Bills`, `Ledger`, `Currencies`,
-  `SaleInvoices`). These modules encapsulate specific business capabilities.
-
-  - **Enforced Boundaries:** NestJS uses a module-based encapsulation system where
-  components (controllers/services) are private to the module unless explicitly exported.
-
-  - **Unified Deployment:** The `package.json` and `docker-compose.yml` indicate that
-  the system is deployed as a single server instance rather than independent microservices.
-
-  - **Code Organization:** The structure follows a standard NestJS modular pattern
-  where each business domain has its own folder containing its logic, controllers,
-  and services.
-
-
-  ### Secondary Style: Event-Driven
-
-  The system extensively uses asynchronous communication and decoupled event patterns:
-
-  - **Message Brokers:** The presence of `@nestjs/bull`, `@nestjs/bullmq`, and `bull`
-  in `package.json`, combined with a `redis` service in `docker-compose.yml`, indicates
-  a strong reliance on background job processing and task queues.
-
-  - **Internal Events:** The use of `@nestjs/event-emitter` and the existence of `packages/server/src/common/events`
-  suggest that modules communicate via internal pub/sub events rather than direct
-  service-to-service calls, reducing circular dependencies between accounting modules.
-
-
-  ### Secondary Style: Domain-Driven Design (DDD)
-
-  The codebase exhibits several DDD characteristics:
-
-  - **Bounded Contexts:** The `modules/` directory acts as a collection of bounded
-  contexts (e.g., `FinancialStatements`, `InventoryCost`, `TaxRates`).
-
-  - **Rich Domain Concepts:** The inclusion of `fp-ts`, `ramda`, and specific math/money
-  libraries (`js-money`, `mathjs`, `accounting`) suggests a focus on complex domain
-  logic and pure functional operations on financial data.
-
-  - **Infrastructure Isolation:** There is a clear separation between `common` (infrastructure/cross-cutting
-  concerns), `database` (persistence), and `modules` (domain logic).
-
-
-  ### Tech Stack Evidence
-
-  - **Framework:** NestJS (`@nestjs/core`) providing the modular container.
-
-  - **Persistence:** SQL via `Knex` and `Objection.js` (an ORM built on Knex), with
-  specific logic for `tenant` vs `system` databases in `src/database/`.
-
-  - **API:** RESTful API with Swagger documentation (`@nestjs/swagger`) and a dedicated
-  TypeScript SDK (`shared/sdk-ts`) for consumption by the Vite-based React frontend.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.73
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.8
-  alternatives_dismissed: 0.45
-  exploration_completeness: 0.8
-  flags: alternatives_dismissed is weak — microservices and layered architecture not
-    explicitly considered/rejected; DDD classification rests partly on library presence
-    rather than code patterns
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:53:46Z'
+classification_reasoning: "## Analysis\n\n### Architecture Classification: Modular\
+  \ Monolith\n\n**Primary Evidence:**\n\n1. **Single Deployable Unit**: The repository\
+  \ builds a single NestJS server application (`packages/server`) that is deployed\
+  \ as one container. The production Dockerfile (`packages/server/Dockerfile`) produces\
+  \ a single artifact: `node packages/server/dist/main.js`.\n\n2. **Enforced Module\
+  \ Boundaries**: The server contains **79 feature modules** under `packages/server/src/modules/`,\
+  \ each organized around business domains:\n   - Accounts, Bills, Customers, Expenses,\
+  \ Invoices, Banking, Inventory\n   - Each module is a NestJS `@Module` with explicit\
+  \ imports/exports\n   - Modules contain controllers, services, repositories, models,\
+  \ and DTOs\n\n3. **Module Structure Pattern**: Each module follows a consistent\
+  \ structure:\n   - Controllers (`Accounts.controller.ts`) - HTTP layer\n   - Application\
+  \ services (`AccountsApplication.service.ts`) - orchestrates use cases\n   - Granular\
+  \ services (`CreateAccount.service.ts`, `GetAccount.service.ts`) - single responsibility\n\
+  \   - Repositories (`Account.repository.ts`) - data access layer\n   - Models (`Account.model.ts`)\
+  \ - Objection.js ORM entities\n\n4. **Multi-Tenant Database Architecture**: \n \
+  \  - System database for tenant management\n   - Per-tenant databases (`bigcapital_tenant_{organizationId}`)\n\
+  \   - Dynamic connection routing via `TenancyDatabaseProxyProvider` (`src/modules/Tenancy/TenancyDB/TenancyDB.module.ts`)\n\
+  \   - Request-scoped tenancy context with guards (`TenancyGlobalGuard`, `EnsureTenantIsInitializedGuard`)\n\
+  \n5. **Monorepo Structure**: Uses pnpm workspaces + Lerna with shared packages:\n\
+  \   - `packages/server` - Backend monolith\n   - `packages/webapp` - React frontend\n\
+  \   - `shared/` - SDK, utilities, templates\n\n### Secondary Style: Layered\n\n\
+  The architecture exhibits clear horizontal layering within each module:\n- **Presentation\
+  \ Layer**: Controllers handle HTTP requests/responses (`@Controller` classes)\n\
+  - **Application/Business Logic Layer**: Services implement business rules (`@Injectable`\
+  \ services)\n- **Data Access Layer**: Repositories abstract database operations\
+  \ (`TenantRepository` base class)\n- **Models**: Objection.js ORM models extending\
+  \ `BaseModel`\n\nExample from `Accounts.module.ts`:\n```typescript\n@Module({\n\
+  \  imports: [TenancyDatabaseModule, DynamicListModule, ...models],\n  controllers:\
+  \ [AccountsController],\n  providers: [\n    AccountsApplication,\n    CreateAccountService,\n\
+  \    AccountRepository,\n    ...\n  ],\n})\n```\n\n### Not Microservices\n\nThe\
+  \ architecture is explicitly **not microservices**:\n- Single server process, not\
+  \ multiple independently deployable services\n- No service discovery, API gateway,\
+  \ or inter-service communication\n- Database-per-tenant pattern is about multi-tenancy,\
+  \ not service ownership\n- All modules share the same NestJS runtime and dependency\
+  \ injection container\n\n### Not Event-Driven Architecture\n\nWhile the application\
+  \ uses `@nestjs/event-emitter` for internal events (defined in `src/common/events/events.ts`)\
+  \ and BullMQ queues for background jobs, these are implementation details within\
+  \ a monolith—not the primary architectural style. Events are used for side effects\
+  \ (e.g., `onAccountCreated`, `onSaleInvoiceDelivered`) within a single application\
+  \ boundary.\n\n### Not Domain-Driven Design\n\nDespite having domain-oriented modules,\
+  \ the architecture lacks:\n- Aggregates with enforced consistency boundaries\n-\
+  \ Domain events as first-class citizens\n- Bounded context isolation (all modules\
+  \ share the same database schema)\n- Ubiquitous language artifacts\n\nThe modules\
+  \ are organized by business capability but don't implement DDD tactical patterns.\n\
+  \n### Key Files Supporting Classification:\n\n- `packages/server/src/modules/App/App.module.ts`\
+  \ - Root module importing 50+ feature modules\n- `packages/server/src/modules/Tenancy/Tenancy.module.ts`\
+  \ - Tenant isolation guards\n- `packages/server/src/modules/Accounts/Accounts.module.ts`\
+  \ - Typical module structure\n- `packages/server/Dockerfile` - Single container\
+  \ deployment\n- `docker-compose.prod.yml` - 3 services: proxy, server, webapp (not\
+  \ microservices)"

@@ -1,0 +1,128 @@
+Based on my investigation, I have sufficient evidence to classify this architecture. Let me provide my final analysis.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+confidence: 0.92
+---
+
+## Architecture Classification: Lidarr Repository
+
+### Primary Style: Modular Monolith
+
+Lidarr is architected as a **Modular Monolith** - a single deployable application with well-defined internal module boundaries enforced through separate .NET assemblies.
+
+**Evidence:**
+
+1. **Single Deployable Unit**: The application builds to a single executable (`Lidarr`/`NzbDrone.Console`), confirmed by the solution structure showing multiple projects that compile into one application:
+   - `src/NzbDrone/Lidarr.csproj` - Main executable entry point
+   - `src/NzbDrone.Host/Lidarr.Host.csproj` - ASP.NET Core web host
+   - `src/NzbDrone.Core/Lidarr.Core.csproj` - Core business logic
+   - `src/Lidarr.Api.V1/Lidarr.Api.V1.csproj` - REST API layer
+
+2. **Enforced Module Boundaries via Projects**: The solution (`src/Lidarr.sln`) contains ~25 distinct .NET projects with clear separation:
+   - **Core**: `NzbDrone.Core` - Domain logic, data access, services
+   - **API**: `Lidarr.Api.V1`, `Lidarr.Http` - HTTP/REST layer
+   - **Platform**: `NzbDrone.Windows`, `NzbDrone.Mono` - Platform-specific implementations
+   - **Infrastructure**: `NzbDrone.Common` - Cross-cutting concerns
+   - **SignalR**: `NzbDrone.SignalR` - Real-time communication
+
+3. **Project References Define Dependency Graph**: From `Lidarr.Host.csproj`:
+   ```xml
+   <ProjectReference Include="..\Lidarr.Api.V1\Lidarr.Api.V1.csproj" />
+   <ProjectReference Include="..\NzbDrone.Core\Lidarr.Core.csproj" />
+   <ProjectReference Include="..\NzbDrone.Common\Lidarr.Common.csproj" />
+   ```
+
+4. **Clear Module Boundaries in Core**: The `NzbDrone.Core` project organizes functionality into distinct bounded modules:
+   - `Indexers/` - External indexer integrations
+   - `Download/` - Download client management
+   - `Notifications/` - Notification providers
+   - `ImportLists/` - Import list services
+   - `Music/` - Artist/album/track domain
+   - `Datastore/` - Database access layer
+
+### Secondary Style: Event-Driven
+
+The architecture employs significant **Event-Driven** patterns for internal module communication.
+
+**Evidence:**
+
+1. **Event Aggregator Pattern** (`src/NzbDrone.Core/Messaging/Events/EventAggregator.cs`):
+   ```csharp
+   public class EventAggregator : IEventAggregator
+   {
+       public void PublishEvent<TEvent>(TEvent @event) where TEvent : class, IEvent
+       {
+           // Routes events to sync and async handlers
+       }
+   }
+   ```
+
+2. **Event Handler Interfaces** (`src/NzbDrone.Core/Messaging/Events/IHandle.cs`):
+   ```csharp
+   public interface IHandle<TEvent> : IProcessMessage<TEvent> where TEvent : IEvent
+   {
+       void Handle(TEvent message);
+   }
+   public interface IHandleAsync<TEvent> : IProcessMessageAsync<TEvent> where TEvent : IEvent
+   {
+       void HandleAsync(TEvent message);
+   }
+   ```
+
+3. **Extensive Event Usage**: Found across the codebase:
+   - `DownloadEventHub : IHandle<DownloadFailedEvent>, IHandle<DownloadCompletedEvent>, IHandle<DownloadCanBeRemovedEvent>`
+   - `ArtistAddedHandler : IHandle<ArtistAddedEvent>, IHandle<ArtistsImportedEvent>`
+   - `SeedConfigProvider : IHandle<ProviderUpdatedEvent<IIndexer>>`
+
+### Notable Pattern: Plugin-like Provider System
+
+Lidarr implements a sophisticated **Provider/Plugin pattern** via `ThingiProvider` infrastructure:
+
+**Evidence:**
+
+1. **Provider Contract** (`src/NzbDrone.Core/ThingiProvider/IProvider.cs`):
+   ```csharp
+   public interface IProvider
+   {
+       string Name { get; }
+       Type ConfigContract { get; }
+       IEnumerable<ProviderDefinition> DefaultDefinitions { get; }
+       ProviderDefinition Definition { get; set; }
+       ValidationResult Test();
+   }
+   ```
+
+2. **Provider Factory for Dynamic Loading** (`src/NzbDrone.Core/ThingiProvider/ProviderFactory.cs`):
+   ```csharp
+   public abstract class ProviderFactory<TProvider, TProviderDefinition> : IProviderFactory<TProvider, TProviderDefinition>, 
+       IHandle<ApplicationStartedEvent>
+   {
+       // Discovers and instantiates providers dynamically
+       public TProvider GetInstance(TProviderDefinition definition)
+       {
+           var type = GetImplementation(definition);
+           var instance = (TProvider)_container.GetRequiredService(type);
+           // ...
+       }
+   }
+   ```
+
+3. **Concrete Implementations** extend base classes:
+   - `IndexerBase<TSettings>`, `DownloadClientBase<TSettings>`, `NotificationBase<TSettings>`, `ImportListBase<TSettings>`
+   - Each provider type has many implementations (e.g., 20+ download clients: Sabnzbd, Transmission, qBittorrent, etc.)
+
+### What Was Rejected
+
+- **Not Microservices**: Single deployable unit, not distributed services. All modules run in one process.
+- **Not Serverless**: Self-hosted ASP.NET Core application, not function-based.
+- **Not CQRS**: No separate read/write models; uses standard repository pattern with `BasicRepository<T>`.
+- **Not Hexagonal Architecture**: While there's dependency injection and interfaces, no formal ports/adapters isolation. The `ThingiProvider` system is closer to plugin pattern than hexagonal.
+- **Not Domain-Driven Design (DDD)**: While there are domain concepts (Artist, Album, Track), no formal aggregates, bounded contexts, or ubiquitous language modeling is evident.
+
+### Conclusion
+
+Lidarr demonstrates a well-structured **Modular Monolith** with internal module boundaries enforced by separate .NET assemblies. The codebase combines this with **Event-Driven** patterns for loose coupling between modules and a **Provider/Plugin system** for extensibility (indexers, download clients, notifications). This is a mature architecture choice for a self-hosted application that needs extensibility without microservices complexity.

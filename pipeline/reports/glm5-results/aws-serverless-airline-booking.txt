@@ -1,0 +1,102 @@
+Let me look for the state machine definition and understand more about the architecture:Now I have sufficient evidence to classify this architecture. Let me compile my findings:
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles:
+  - Serverless
+  - Event-Driven
+confidence: 0.90
+---
+
+## Architecture Analysis: AWS Serverless Airline Booking
+
+### Primary Style: Microservices
+
+This repository implements a **Microservices architecture** with four distinct, independently deployable services, each owning its own data:
+
+1. **Catalog Service** (`src/backend/catalog/`) — GraphQL API via AppSync, DynamoDB for flight data, VTL resolvers
+2. **Booking Service** (`src/backend/booking/`) — Step Functions state machine orchestrating Lambda functions, DynamoDB for bookings, SNS topic for event publishing
+3. **Payment Service** (`src/backend/payment/`) — Lambda functions wrapping Stripe API, integrates with external payment provider
+4. **Loyalty Service** (`src/backend/loyalty/`) — REST API via API Gateway, TypeScript Lambda functions, separate DynamoDB table
+
+**Evidence from `Makefile` lines 21-27:**
+```makefile
+deploy: ##=> Deploy services
+    $(MAKE) deploy.shared-lambda-layers
+    $(MAKE) deploy.payment
+    $(MAKE) deploy.booking
+    $(MAKE) deploy.loyalty
+```
+
+Each service has its own `template.yaml` (SAM) and deploys independently. Services own their data:
+- **Booking**: Dedicated DynamoDB table via AppSync (`BookingTable`)
+- **Loyalty**: Separate DynamoDB table (`LoyaltyDataTable` in `src/backend/loyalty/template.yaml`)
+- **Catalog**: Dedicated DynamoDB table (`FlightTable`)
+- **Payment**: Integrates with Stripe via Serverless Application Repository
+
+### Secondary Style: Serverless
+
+The entire system is built on AWS serverless primitives:
+- **Compute**: AWS Lambda functions (Python and TypeScript)
+- **API**: AppSync GraphQL, API Gateway REST
+- **Database**: DynamoDB (pay-per-request mode)
+- **Orchestration**: Step Functions state machine for booking workflow
+- **Messaging**: SNS for pub/sub between services
+- **Deployment**: SAM (Serverless Application Model) templates for each service
+
+From `src/backend/booking/template.yaml`:
+```yaml
+AWSTemplateFormatVersion: 2010-09-09
+Transform: AWS::Serverless-2016-10-31
+```
+
+All services use Lambda functions triggered by events (API Gateway, SNS, Step Functions).
+
+### Secondary Style: Event-Driven
+
+The architecture uses event-driven communication patterns:
+
+**SNS Pub/Sub between services** — From `src/backend/loyalty/template.yaml` lines 81-88:
+```yaml
+Events:
+  Listener:
+    Type: SNS
+    Properties:
+      Topic: !Ref BookingSNSTopic
+      FilterPolicy:
+        Booking.Status:
+          - confirmed
+```
+
+**Step Functions Orchestration** — The booking workflow uses a state machine with Saga pattern for distributed transactions (confirmed in `src/backend/booking/README.md` line 50):
+> "Booking state machine handles all operations necessary to create bookings including payment. We use Saga pattern to demonstrate how to implement coordinated transactions, fallback transactions, and dead-letter-queue as part of a state machine."
+
+The state machine definition from `src/backend/booking/template.yaml`:
+```yaml
+StateMachineName: !Sub Airline-ProcessBooking-${Stage}
+DefinitionString: !Sub |
+    {
+        "StartAt": "Reserve Flight",
+        "States": {
+            "Reserve Flight": { ... },
+            ...
+        }
+    }
+```
+
+### What Was Rejected
+
+- **Not Layered**: No horizontal presentation/business/data layering. Services are vertically sliced by business capability (catalog, booking, payment, loyalty).
+
+- **Not Modular Monolith**: Not a single deployable unit. Each service has its own SAM template and CloudFormation stack, deployed independently via separate make targets.
+
+- **Not Service-Based (2-5 coarse services)**: While there are 4 services, the key distinction is that these follow microservice patterns: separate data ownership, event-driven communication, and independent deployability. Service-Based typically implies shared database, which is not the case here.
+
+- **Not CQRS**: No explicit separation of command and query models. While AppSync provides GraphQL queries and mutations, there's no dedicated read/write model separation.
+
+- **Not Hexagonal Architecture**: No ports-and-adapters pattern. Services use Lambda handlers directly without application core isolation.
+
+### Summary
+
+This is a well-architected **Microservices** system built entirely on **Serverless** infrastructure, with **Event-Driven** patterns for inter-service communication (SNS) and workflow orchestration (Step Functions). The services are bounded by business capability, own their data, and communicate through well-defined APIs and events.

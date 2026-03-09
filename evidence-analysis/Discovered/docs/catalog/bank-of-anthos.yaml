@@ -32,42 +32,53 @@ review_notes: "The repository is a textbook example of a **Microservices** archi
   \ Python/Flask for frontend and account services), which is a common characteristic\
   \ of microservice environments."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.87
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:41:39Z'
-classification_reasoning: "The repository is a textbook example of a **Microservices**\
-  \ architecture, designed specifically to demonstrate cloud-native patterns on Kubernetes\
-  \ (GKE/Anthos).\n\n### Evidence of Microservices\n1.  **Independent Deployment Units**:\
-  \ The repository contains multiple distinct services, each with its own `Dockerfile`,\
-  \ `skaffold.yaml`, and Kubernetes manifests (found in `./kubernetes-manifests` and\
-  \ `src/[service]/k8s`).\n2.  **Service Decomposition**: The system is split into\
-  \ functional domains:\n    *   **Identity/Accounts**: `userservice` and `contacts`.\n\
-  \    *   **Ledger/Transactions**: `ledgerwriter`, `balancereader`, and `transactionhistory`.\n\
-  \    *   **Frontend**: A standalone Python web server.\n3.  **Data Sovereignty**:\
-  \ The README and directory structure show separate database instances for different\
-  \ domains: `accounts-db` (PostgreSQL) and `ledger-db` (PostgreSQL).\n4.  **Polyglot\
-  \ Nature**: Services are implemented using different technology stacks (Java/Spring\
-  \ for ledger services, Python/Flask for frontend and account services), which is\
-  \ a common characteristic of microservice environments.\n5.  **Infrastructure as\
-  \ Code (IaC)**: The presence of a massive `iac/` directory containing Terraform\
-  \ for GKE, Anthos Service Mesh (ASM), and cross-service security (JWT secrets) reinforces\
-  \ the distributed nature of the system.\n\n### Discussion on Secondary Styles\n\
-  *   **Polyglot**: This is a strong secondary trait here, as the repo explicitly\
-  \ uses different runtimes (Java vs Python) to show-case Google Cloud's support for\
-  \ diverse environments.\n*   **Modular Monolith (Rejected)**: While the repo contains\
-  \ a `src/ledgermonolith` directory, the README explicitly identifies this as an\
-  \ \"Additional deployment option\" and a migration target (\"Migrating a monolith\
-  \ VM to GKE\"). The primary architecture is the decomposed microservice set.\n*\
-  \   **Event-Driven (Limited Evidence)**: While high-scale banking often uses events,\
-  \ the README describes this as an \"HTTP-based web app.\" Without seeing Kafka or\
-  \ RabbitMQ configurations in the tree, it appears to rely primarily on synchronous\
-  \ REST/gRPC-style communication."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.87
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.95
-  alternatives_dismissed: 0.85
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:52:05Z'
+classification_reasoning: "## Architecture Classification: Microservices\n\n**Bank\
+  \ of Anthos** is a canonical microservices architecture designed for Kubernetes\
+  \ deployment. The evidence is overwhelming:\n\n### Multiple Independently Deployable\
+  \ Services\n\nThe repository contains **9 distinct services**, each with its own\
+  \ deployment configuration:\n\n| Service | Language | Deployed As |\n|---------|----------|-------------|\n\
+  | frontend | Python/Flask | Deployment + Service |\n| userservice | Python/Flask\
+  \ | Deployment + Service |\n| contacts | Python/Flask | Deployment + Service |\n\
+  | ledgerwriter | Java/Spring Boot | Deployment + Service |\n| balancereader | Java/Spring\
+  \ Boot | Deployment + Service |\n| transactionhistory | Java/Spring Boot | Deployment\
+  \ + Service |\n| accounts-db | PostgreSQL | StatefulSet |\n| ledger-db | PostgreSQL\
+  \ | StatefulSet |\n| loadgenerator | Python/Locust | Deployment |\n\nEach service\
+  \ has independent build artifacts (`Dockerfile`, `skaffold.yaml`, `cloudbuild.yaml`)\
+  \ and Kubernetes manifests (`kubernetes-manifests/*.yaml`).\n\n### Database-Per-Service\
+  \ Pattern\n\nTwo independent PostgreSQL databases with clear ownership boundaries:\n\
+  \n- **accounts-db** (line 16-17 of `kubernetes-manifests/accounts-db.yaml`): Owned\
+  \ by the accounts domain (userservice, contacts)\n- **ledger-db** (line 21-22 of\
+  \ `kubernetes-manifests/ledger-db.yaml`): Owned by the ledger domain (ledgerwriter,\
+  \ balancereader, transactionhistory)\n\nEach database is deployed as a separate\
+  \ `StatefulSet` with dedicated `ConfigMap` for configuration.\n\n### Synchronous\
+  \ Service-to-Service Communication\n\nServices communicate via REST over HTTP, not\
+  \ events. The `kubernetes-manifests/config.yaml` defines service endpoints:\n\n\
+  ```yaml\nTRANSACTIONS_API_ADDR: \"ledgerwriter:8080\"\nBALANCES_API_ADDR: \"balancereader:8080\"\
+  \nHISTORY_API_ADDR: \"transactionhistory:8080\"\nCONTACTS_API_ADDR: \"contacts:8080\"\
+  \nUSERSERVICE_API_ADDR: \"userservice:8080\"\n```\n\nThe frontend (`src/frontend/frontend.py`\
+  \ lines 115-134) makes parallel HTTP calls to multiple backend services using a\
+  \ thread pool executor, confirming synchronous orchestration.\n\n### No Event-Driven\
+  \ Infrastructure\n\nSearched for message broker configurations (kafka, rabbitmq,\
+  \ pubsub, queue, event) across all YAML files—**no results found**. Services communicate\
+  \ directly via HTTP, not through an event bus.\n\n### Independent Build Pipeline\n\
+  \nThe root `skaffold.yaml` orchestrates builds across 6 separate modules:\n```yaml\n\
+  requires:\n- configs: [accounts]\n  path: src/accounts/skaffold.yaml\n- configs:\
+  \ [ledger]\n  path: src/ledger/skaffold.yaml\n- configs: [frontend]\n  path: src/frontend/skaffold.yaml\n\
+  # ... etc\n```\n\n### Alternative Monolith Option\n\nThe repository includes `src/ledgermonolith/`—a\
+  \ single Java service that combines ledger-writer, balance-reader, and transaction-history\
+  \ functionality. This exists specifically to demonstrate migration from monolith\
+  \ to microservices, reinforcing that the primary architecture is microservices.\n\
+  \n### What This Is NOT\n\n- **Not Service-Based**: 9 services exceeds the typical\
+  \ 2-5 coarse-grained services definition\n- **Not Modular Monolith**: No single\
+  \ deployable unit; each service is independently containerized and deployed\n- **Not\
+  \ Event-Driven**: No message broker, no pub/sub patterns\n- **Not CQRS**: While\
+  \ balancereader maintains a read-optimized cache, there's no formal CQRS command/query\
+  \ separation—ledgerwriter writes directly to the same ledger-db\n- **Not DDD**:\
+  \ Domain-oriented services exist, but no aggregates, domain events, or bounded context\
+  \ maps\n\nThis is a reference implementation for cloud-native microservices on Kubernetes\
+  \ with Istio service mesh, designed to demonstrate Google Cloud products (GKE, Anthos,\
+  \ Cloud SQL, Cloud Build)."

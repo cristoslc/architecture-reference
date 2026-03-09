@@ -18,7 +18,6 @@ languages:
 architecture_styles:
 - Modular Monolith
 - Layered
-- Event-Driven
 classification_status: classified
 review_notes: 'Qdrant is structured as a **Modular Monolith** organized within a Rust
   workspace. While it serves a distributed system (supporting sharding and replication),
@@ -44,92 +43,54 @@ review_notes: 'Qdrant is structured as a **Modular Monolith** organized within a
 
   - **`lib/api`**: Separates interface definitions (gRPC/REST) from core logic.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.79
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:07:42Z'
-classification_reasoning: 'Qdrant is structured as a **Modular Monolith** organized
-  within a Rust workspace. While it serves a distributed system (supporting sharding
-  and replication), the codebase itself is maintained as a single unit where logical
-  boundaries are strictly enforced through independent internal crates.
-
-
-  ### 1. Modular Monolith (Primary Style)
-
-  The system is decomposed into highly specialized, decoupled crates located in the
-  `lib/` directory. Each crate represents a clear architectural boundary with its
-  own `Cargo.toml` and `src/lib.rs`.
-
-  - **`lib/segment`**: The core storage and indexing engine (HNSW, flat indexes).
-
-  - **`lib/collection`**: High-level management of vectors, including sharding logic
-  and write-ahead logging.
-
-  - **`lib/storage`**: Handles the persistence layer and global state (e.g., Raft
-  consensus state).
-
-  - **`lib/shard`**: Specifically handles the distribution of data across nodes.
-
-  - **`lib/api`**: Separates interface definitions (gRPC/REST) from core logic.
-
-
-  These modules are not mere folders; the Rust compiler enforces dependency directions
-  (e.g., `segment` cannot import `collection`), ensuring high cohesion and low coupling
-  typical of a well-architected modular monolith.
-
-
-  ### 2. Layered (Secondary Style)
-
-  Within the modules and the main application (`src/`), Qdrant follows a vertical
-  layering pattern:
-
-  - **Presentation/Interface Layer**: Found in `src/actix/` (REST) and `src/tonic/`
-  (gRPC). These handle HTTP/gRPC protocol concerns and authentication.
-
-  - **Service/Orchestration Layer**: Found in `lib/storage` and `lib/collection`,
-  which coordinate actions across different segments or shards.
-
-  - **Domain Layer**: The core search and indexing mathematics found in `lib/segment`
-  and `lib/sparse`.
-
-  - **Infrastructure Layer**: Found in `lib/common`, handling `io_uring`, cancellation
-  tokens, and persistence.
-
-
-  ### 3. Event-Driven (Secondary Style)
-
-  The system implements the **Raft consensus algorithm** (visible in `src/consensus.rs`
-  and the dependency on the `raft` crate). This introduces an event-driven internal
-  architecture for state replication. Changes to the system state (e.g., creating
-  a collection) are treated as proposals/events that must be committed to a log and
-  applied across the cluster. The `wal` (Write-Ahead Log) usage throughout the crates
-  further reinforces a log-centric, event-driven approach to data consistency.
-
-
-  ### Why not Microservices?
-
-  Although Qdrant supports distributed deployment and clustering, the repository is
-  designed to build a single primary binary (`qdrant`). It does not consist of multiple
-  independently deployable business services (like an "Identity Service" and a "Search
-  Service" running as separate processes). The "clustering" is an internal capability
-  of the software rather than the architectural style of the codebase itself.
-
-
-  ### Why not Hexagonal?
-
-  While there is clear separation between the API and the core, the system relies
-  heavily on direct crate dependencies rather than a strict "Ports and Adapters" approach
-  where the core has zero knowledge of the persistence or interface layers. The dependencies
-  in `Cargo.toml` show that the core crates are often aware of the specific storage
-  implementations (like RocksDB).'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.79
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.82
-  style_clarity: 0.8
-  alternatives_dismissed: 0.72
-  exploration_completeness: 0.78
-  flags: Event-Driven as a secondary style is weakly justified — Raft consensus and
-    WAL are infrastructure patterns rather than a primary architectural driver; this
-    may inflate classification complexity without strong evidence
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:33:44Z'
+classification_reasoning: "## Architecture Classification: Modular Monolith with Layered\
+  \ Organization\n\n### Primary Style: Modular Monolith\n\nQdrant is a **Modular Monolith**\
+  \ - a single deployable Rust application with strictly enforced internal module\
+  \ boundaries through the Cargo workspace system.\n\n**Key Evidence:**\n\n1. **Single\
+  \ Deployment Unit**: The repository produces one binary (`src/main.rs`) and one\
+  \ Docker image. There are no separate services, just one monolithic application.\n\
+  \n2. **Strong Module Boundaries via Rust Crates**: The `lib/` directory contains\
+  \ **14 internal crates** organized as a Cargo workspace:\n   - `api` - REST and\
+  \ gRPC API definitions\n   - `storage` - Storage orchestration and consensus management\
+  \  \n   - `collection` - Collection lifecycle and operations\n   - `shard` - Distributed\
+  \ sharding logic\n   - `segment` - Core vector storage and indexing\n   - `quantization`,\
+  \ `sparse`, `gridstore`, `posting_list`, `gpu` - Specialized data components\n \
+  \  - `common`, `macros`, `trififo` - Shared infrastructure\n\n3. **Explicit Dependency\
+  \ Enforcement**: Each crate's `Cargo.toml` declares explicit dependencies with path\
+  \ references:\n   ```\n   storage → collection → shard → segment → common/quantization/sparse\n\
+  \   ```\n   Dependencies flow unidirectionally; higher-level modules depend on lower-level\
+  \ ones, never the reverse. Rust's compiler enforces these boundaries at compile\
+  \ time.\n\n4. **Single Entry Point**: `src/main.rs` bootstraps the entire application,\
+  \ initializing the `Dispatcher`, `TableOfContent`, consensus layer, and both Actix\
+  \ (REST) and Tonic (gRPC) servers.\n\n### Secondary Style: Layered\n\nWithin the\
+  \ monolith, there's clear horizontal layering:\n\n| Layer | Components | Responsibility\
+  \ |\n|-------|------------|----------------|\n| **API Layer** | `src/actix/`, `src/tonic/`\
+  \ | HTTP/gRPC request handling, authentication |\n| **Service Layer** | `lib/storage/dispatcher.rs`,\
+  \ `lib/storage/content_manager/toc/` | Operation routing, collection management\
+  \ |\n| **Domain Layer** | `lib/collection/` | Collection operations, sharding, replication\
+  \ |\n| **Data Layer** | `lib/segment/`, `lib/shard/`, `lib/gridstore/` | Vector\
+  \ storage, HNSW indices, payload storage |\n| **Infrastructure** | `lib/common/`,\
+  \ `lib/quantization/` | Utilities, quantization algorithms |\n\nThe layering follows\
+  \ classic patterns: API layer depends on service layer, which depends on domain/data\
+  \ layers.\n\n### What This Is NOT\n\n- **Not Microservices**: Single binary, single\
+  \ Docker image, single process. Clustered deployment uses Raft consensus for replication,\
+  \ but nodes are identical replicas running the same monolith.\n\n- **Not Event-Driven**:\
+  \ While Qdrant uses Raft for distributed consensus and has WAL for durability, this\
+  \ is synchronous replication for data consistency - not asynchronous event-driven\
+  \ messaging. No message brokers (Kafka, RabbitMQ) are involved.\n\n- **Not Microkernel/Plugin**:\
+  \ No plugin loading mechanism, no runtime extensions, no dynamic module system.\
+  \ All functionality is compiled into the single binary.\n\n- **Not CQRS**: Read\
+  \ and write paths share the same segment infrastructure. While there are optimization\
+  \ paths, there's no separate read model/write model separation.\n\n- **Not Domain-Driven\
+  \ Design**: The codebase is organized around technical concerns (segments, shards,\
+  \ storage, API) rather than bounded contexts with aggregates, entities, and value\
+  \ objects.\n\n### Strength of Classification\n\n**High confidence (0.92)** because:\n\
+  - The Cargo workspace structure with path dependencies is definitive evidence of\
+  \ modular monolith architecture\n- Rust's compiler enforces module boundaries at\
+  \ compile time - this cannot be circumvented\n- Single `main.rs` and single `Dockerfile`\
+  \ confirm single deployment unit\n- The layered organization within is well-documented\
+  \ in the crate structure"

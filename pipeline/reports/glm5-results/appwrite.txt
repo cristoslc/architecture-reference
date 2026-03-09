@@ -1,0 +1,99 @@
+Let me examine the worker entrypoints and module structure more closely:Now I have a comprehensive picture. Let me examine one more aspect - the module boundaries:Based on my thorough investigation of the Appwrite repository, I now have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+confidence: 0.92
+---
+
+## Architecture Classification: Modular Monolith with Event-Driven Communication
+
+### Evidence for Modular Monolith (Primary)
+
+**Single Deployable Unit with Internal Modules:**
+- The entire backend is built as a **single PHP codebase** (`appwrite-dev` image) that runs in different modes based on entrypoint
+- All services share the same `composer.json` and are deployed from one image
+- From `docker-compose.yml`, multiple containers run the same image with different entrypoints:
+  - `appwrite` → `app/http.php` (HTTP API)
+  - `appwrite-realtime` → `realtime` entrypoint (WebSocket server)
+  - `appwrite-worker-*` → Various queue workers (8+ workers)
+  - `appwrite-task-*` → Scheduled tasks
+
+**Enforced Module Boundaries:**
+- Clear module structure in `src/Appwrite/Platform/Modules/`:
+  - `Account/` - Authentication, MFA, OAuth
+  - `Databases/` - Database operations  
+  - `Functions/` - Serverless function execution
+  - `Projects/` - Project management
+  - `Console/` - Admin console
+  - `Sites/` - Static site hosting
+  - `Proxy/` - Proxy/domain management
+  - `Tokens/` - Token management
+- Each module follows consistent structure: `Module.php`, `Http/`, `Services/`
+- The `Appwrite.php` platform class orchestrates module registration:
+  ```php
+  $this->addModule(new Account\Module());
+  $this->addModule(new Databases\Module());
+  $this->addModule(new Functions\Module());
+  // etc.
+  ```
+
+**Shared Infrastructure:**
+- Single shared MariaDB database instance (`mariadb` container)
+- Single shared Redis instance for caching and queuing
+- All modules use common database pools and connections
+
+### Evidence for Event-Driven (Secondary)
+
+**Queue-Based Architecture:**
+- Redis serves as the message broker for all async operations
+- `Event.php` defines 12+ distinct queue names for different event types:
+  - `DATABASE_QUEUE_NAME = 'v1-database'`
+  - `FUNCTIONS_QUEUE_NAME = 'v1-functions'`
+  - `MAILS_QUEUE_NAME = 'v1-mails'`
+  - `WEBHOOK_QUEUE_NAME = 'v1-webhooks'`
+  - `AUDITS_QUEUE_NAME = 'v1-audits'`
+  - etc.
+
+**Dedicated Worker Processes:**
+- Separate container deployments for each worker type:
+  - `appwrite-worker-audits` - Processes audit events
+  - `appwrite-worker-functions` - Executes serverless functions
+  - `appwrite-worker-mails` - Sends emails
+  - `appwrite-worker-databases` - Handles database events
+  - `appwrite-worker-webhooks` - Dispatches webhooks
+- Workers pull from specific queues and process asynchronously
+- Real-time WebSocket server (`appwrite-realtime`) pushes events to clients
+
+### What This Is NOT
+
+**Not Microservices:**
+- Single deployable artifact (one image)
+- Shared database (not database-per-service)
+- All modules are in the same codebase with tight integration
+- Workers are scaling replicas of the same monolith, not independent services
+
+**Not Layered Architecture:**
+- No traditional controller/service/repository layering
+- Modules are organized by **domain/bounded context** (Account, Databases, Functions) not by technical layer
+- Each module contains its own HTTP actions and business logic
+
+**Not Service-Based:**
+- More than 2-5 coarse-grained services (has 8+ module domains)
+- Workers are lightweight processes, not full services
+
+**Not Hexagonal:**
+- No explicit ports/adapters pattern
+- Infrastructure concerns (database, Redis) are injected directly
+
+### Deployment Characteristics
+
+The architecture enables **independent scaling** of different processing modes:
+- HTTP API servers can scale independently of workers
+- Real-time WebSocket connections can scale separately
+- Heavy background processing (functions, builds) uses dedicated workers
+- All share the same codebase and can be deployed from a single image
+
+This is a **well-executed modular monolith** that achieves many benefits of microservices (independent scaling, clear boundaries, async processing) without the operational complexity of distributed services.

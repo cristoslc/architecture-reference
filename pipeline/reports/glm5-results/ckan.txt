@@ -1,0 +1,91 @@
+Let me explore the layered structure and check the core organization more deeply.Let me verify the plugin loading mechanism and check how plugins are discovered viaentry points.Based on my comprehensive exploration of the CKAN codebase, I have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Architecture Analysis: CKAN
+
+### Primary Style: Microkernel (Plugin)
+
+CKAN is architected around a sophisticated **plugin system** that is the defining characteristic of its architecture. The evidence is extensive:
+
+**Plugin Infrastructure:**
+- `ckan/plugins/base.py` defines the core `Interface` and `Plugin` base classes, along with `SingletonPlugin` for single-instance plugins
+- `ckan/plugins/core.py` implements the plugin lifecycle: `load()`, `unload()`, `load_all()`, `get_plugin()` - plugins are loaded dynamically at runtime via Python entry points (`ckan.plugins` entry point group)
+- Plugin discovery uses `importlib.metadata.entry_points` to find plugins registered as Python package entry points (lines 10, 37 in `core.py`)
+
+**Extension Interfaces (over 20 defined):**
+The `ckan/plugins/interfaces.py` file defines numerous interfaces that plugins can implement:
+- `IActions`, `IAuthFunctions`, `IConfigurer`, `IDatasetForm`, `IGroupForm`
+- `IBlueprint`, `IResourceController`, `ITemplateHelpers`, `IValidators`
+- `IMiddleware`, `IAuthenticator`, `ITranslation`, `ISignal`, `INotifier`
+- And many more...
+
+**Entry Point Registration (setup.cfg lines 52-119):**
+```ini
+ckan.plugins =
+    tracking = ckanext.tracking.plugin:TrackingPlugin
+    activity = ckanext.activity.plugin:ActivityPlugin
+    datastore = ckanext.datastore.plugin:DatastorePlugin
+    ...
+```
+
+**Built-in Extensions:**
+The `ckanext/` directory contains 20+ bundled plugins that demonstrate the plugin architecture:
+- `datastore/`, `activity/`, `datapusher/` - core functionality as plugins
+- `imageview/`, `videoview/`, `audioview/` - resource view plugins
+- `multilingual/`, `stats/`, `tracking/` - feature extensions
+
+**Plugin Lifecycle Management:**
+```python
+# ckan/plugins/core.py
+def load(*plugins: str, force_update: bool = False) -> Plugin | list[Plugin]:
+    observers = PluginImplementations(interfaces.IPluginObserver)
+    for plugin in plugins:
+        service = _get_service(plugin)
+        for observer_plugin in observers:
+            observer_plugin.before_load(service)
+        _PLUGINS_SERVICE[plugin] = service
+        ...
+```
+
+**Blanket Decorators for Simplified Plugin Development:**
+The `ckan/plugins/blanket.py` provides convenience decorators (`@tk.blanket.actions`, `@tk.blanket.helpers`, etc.) that automate common plugin patterns.
+
+### Secondary Style: Layered
+
+Within the monolithic core, CKAN exhibits classic layered architecture:
+
+**Views/Presentation Layer:** `ckan/views/` - Flask blueprints handling HTTP requests (`dataset.py`, `user.py`, `group.py`, `api.py`)
+
+**Logic/Business Layer:** `ckan/logic/` with subdirectories:
+- `action/` - `create.py`, `get.py`, `update.py`, `delete.py`, `patch.py` - action functions
+- `auth/` - authorization functions organized similarly
+
+**Model/Data Layer:** `ckan/model/` - SQLAlchemy ORM models (`package.py`, `user.py`, `resource.py`, `group.py`, etc.) with `meta.py` for session management
+
+**Library/Helpers:** `ckan/lib/` - utility functions, helpers, signals, jobs
+
+**Single Deployable Unit:**
+- One `wsgi.py` entry point creating a single WSGI application
+- One Python package (`ckan` + `ckanext` namespace package)
+- Configuration via INI files, not service discovery
+
+### What This Is NOT
+
+**Not Microservices:** Single process, single database, single deployment unit. External services like Solr/Redis are infrastructure dependencies, not application services.
+
+**Not Modular Monolith:** No enforced module boundaries at the package level. The plugin system IS the modularization mechanism - modules are implemented as plugins, not as internal bounded contexts.
+
+**Not Hexagonal Architecture:** While plugins use interfaces, these are extension points, not ports/adapters for dependency inversion. The model layer directly uses SQLAlchemy without repository interfaces.
+
+**Not Domain-Driven Design:** No aggregates, value objects, bounded contexts, or ubiquitous language patterns. The domain logic is in `logic/action/` functions, not domain entities.
+
+### Summary
+
+CKAN is a textbook example of a **Microkernel/Plugin architecture**: a stable core system with a well-defined plugin interface contract that allows extensions to be loaded at runtime. The layered organization within the core is secondary to the plugin-centric extensibility that defines CKAN's architecture.

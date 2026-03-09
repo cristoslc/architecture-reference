@@ -1,0 +1,68 @@
+Let me explore the service implementations and communication patterns more deeply:I have gathered sufficient evidence to classify this repository. Let me finalize my analysis.
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles: []
+confidence: 0.98
+---
+
+## Analysis
+
+This repository is a canonical example of a **Microservices architecture**. The evidence is unambiguous:
+
+### Independent Deployable Services
+
+The repository contains **11 independently deployable services** under `src/`, each with:
+- Its own **Dockerfile** (12 Dockerfiles found)
+- Its own **Kubernetes Deployment manifest** in `kubernetes-manifests/` and `helm-chart/templates/`
+- Its own **ServiceAccount** for security isolation
+
+Services include: `adservice`, `cartservice`, `checkoutservice`, `currencyservice`, `emailservice`, `frontend`, `loadgenerator`, `paymentservice`, `productcatalogservice`, `recommendationservice`, `shippingservice`.
+
+### Polyglot Implementation
+
+Each service is written in a different language optimized for its purpose:
+- **Go**: frontend, checkoutservice, productcatalogservice, shippingservice
+- **C#**: cartservice
+- **Node.js**: currencyservice, paymentservice  
+- **Python**: emailservice, recommendationservice
+- **Java**: adservice
+
+### Service-Owned Data
+
+Each service owns its data store independently:
+- `cartservice` uses Redis (`REDIS_ADDR` env var in `kubernetes-manifests/cartservice.yaml:50-51`)
+- `productcatalogservice` loads products from a local JSON file (`products.json`)
+- No shared relational database across services
+
+### gRPC Communication
+
+All inter-service communication happens via **gRPC** with a well-defined contract in `protos/demo.proto`. The proto file defines 10 service interfaces (CartService, RecommendationService, ProductCatalogService, ShippingService, CurrencyService, PaymentService, EmailService, CheckoutService, AdService). Services call each other synchronously:
+
+```go
+// frontend/rpc.go - Frontend calling multiple services
+pb.NewCurrencyServiceClient(fe.currencySvcConn).GetSupportedCurrencies(...)
+pb.NewProductCatalogServiceClient(fe.productCatalogSvcConn).ListProducts(...)
+pb.NewCartServiceClient(fe.cartSvcConn).GetCart(...)
+```
+
+### Orchestration Pattern
+
+The `checkoutservice` demonstrates service orchestration. In `src/checkoutservice/main.go:66-86`, it holds connections to 6 different services and coordinates the checkout flow by calling each in sequence.
+
+### What This Is NOT
+
+- **Not Service-Based**: Service-Based typically has 2-5 coarse-grained services often sharing a database. This has 11+ fine-grained services with independent data stores.
+
+- **Not Layered**: There's no horizontal presentation/business/data layering. Each service is a vertical slice handling its own domain.
+
+- **Not Modular Monolith**: Services are independently deployable containers, not modules within a single deployment unit.
+
+- **Not Event-Driven**: Services communicate via synchronous gRPC calls, not through asynchronous message brokers.
+
+- **Not Hexagonal**: Services don't implement ports/adapters pattern. They're straightforward gRPC servers.
+
+### Confidence
+
+**0.98** — This is the explicit purpose of this repository (as stated in README: "cloud-first microservices demo application"). The architecture signals are clear, consistent, and comprehensive across all dimensions: deployment, data ownership, communication, and technology stack.

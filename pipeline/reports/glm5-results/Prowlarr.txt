@@ -1,0 +1,110 @@
+Based on my comprehensive exploration of the Prowlarr codebase, I now have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+## Architecture Analysis: Prowlarr
+
+### Primary Classification: Microkernel (Plugin)
+
+Prowlarr implements a **Microkernel architecture** with a plugin-based extensibility pattern centered around the "Provider" abstraction. This is the dominant architectural style.
+
+**Key Evidence:**
+
+1. **Provider Plugin System** (`src/NzbDrone.Core/ThingiProvider/`):
+   - Core interface `IProvider` defines the plugin contract with methods like `Test()`, `RequestAction()`, and properties for configuration
+   - Abstract `ProviderFactory<TProvider, TProviderDefinition>` serves as the plugin registry/factory
+   - All extension points use this pattern: `IndexerFactory`, `ApplicationFactory`, `NotificationFactory`, `IndexerProxyFactory`, `DownloadClientFactory`
+
+2. **Runtime Plugin Discovery** (`src/NzbDrone.Common/Composition/Extensions.cs`):
+   ```csharp
+   public static IContainer AutoAddServices(this IContainer container, List<string> assemblyNames)
+   {
+       container.RegisterMany(assemblies,
+           serviceTypeCondition: type => type.IsInterface && !type.FullName.StartsWith("System"),
+           reuse: Reuse.Singleton);
+   }
+   ```
+   - DryIoc DI container automatically discovers and registers all provider implementations
+
+3. **143+ Indexer Implementations** (`src/NzbDrone.Core/Indexers/Definitions/`):
+   - Each indexer (AlphaRatio, Anidex, BroadcastheNet, Cardigann, etc.) is a plugin implementing `IIndexer`
+   - Abstract base class `IndexerBase<TSettings>` provides template method pattern
+   - Indexers can be added without modifying core system
+
+4. **External Definition Loading** (`src/NzbDrone.Core/IndexerVersions/IndexerDefinitionUpdateService.cs`):
+   - Cardigann indexers load YAML definitions from external servers
+   - `https://indexers.prowlarr.com/{branch}/{version}` downloads new indexer definitions at runtime
+   - True plugin capability without code changes
+
+5. **Multiple Extension Points**:
+   - **Indexers**: `IIndexer` with 143+ implementations
+   - **Applications**: `IApplication` for integrations (Sonarr, Radarr, Lidarr, etc.)
+   - **Notifications**: `INotification` for push notifications
+   - **Download Clients**: `IDownloadClient` for torrent/usenet clients
+   - **Indexer Proxies**: `IIndexerProxy` for VPN/proxy support
+
+### Secondary Classification: Layered
+
+Prowlarr exhibits conventional **Layered architecture** as a supporting pattern:
+
+**Horizontal Layers** (from solution structure `src/Prowlarr.sln`):
+- **Presentation Layer**: `frontend/` (React/TypeScript SPA)
+- **API Layer**: `Prowlarr.Api.V1/`, `Prowlarr.Http/` (REST controllers)
+- **Application/Host Layer**: `NzbDrone.Host/`, `NzbDrone.Console/` (bootstrap, lifecycle)
+- **Core Domain Layer**: `NzbDrone.Core/` (business logic, providers, services)
+- **Infrastructure Layer**: `NzbDrone.Common/`, `NzbDrone.Mono/`, `NzbDrone.Windows/` (platform abstractions)
+- **Data Access**: `NzbDrone.Core/Datastore/` (SQLite/PostgreSQL repositories)
+
+**Evidence**:
+- Clean separation via project references and namespaces
+- `Startup.cs` configures ASP.NET Core middleware pipeline
+- Repository pattern in `BasicRepository<TModel>` with event aggregation
+- Controllers in `ProviderControllerBase` delegate to services/factories
+
+### Why Not Other Styles:
+
+- **Not Microservices**: Single deployable application, shared database (SQLite/PostgreSQL), no inter-service communication
+- **Not Domain-Driven Design**: No bounded contexts, aggregates, domain events, or ubiquitous language organization
+- **Not Event-Driven Architecture**: Uses in-process `EventAggregator` for internal decoupling, not external message brokers
+- **Not CQRS**: No separate read/write models
+- **Not Service-Based**: Not multiple coarse-grained services
+
+### Architecture Summary Diagram:
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                   Frontend (React)                       │
+└──────────────────────────┬──────────────────────────────┘
+                           │ HTTP/REST
+┌──────────────────────────▼──────────────────────────────┐
+│              API Layer (Prowlarr.Api.V1)                 │
+│         ProviderControllerBase, REST endpoints          │
+└──────────────────────────┬──────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────┐
+│                   Core (NzbDrone.Core)                   │
+│  ┌─────────────────────────────────────────────────────┐│
+│  │           ProviderFactory<TProvider>               ││
+│  │    Plugin Registry & Runtime Discovery              ││
+│  └──────────────────────┬──────────────────────────────┘│
+│                         │                                │
+│  ┌──────────┬───────────┼───────────┬──────────┐         │
+│  │          │           │           │          │         │
+│  ▼          ▼           ▼           ▼          ▼         │
+│ Indexers  Apps   Notifications  Downloads  Proxies      │
+│ (143+)   (6+)       (20+)        (10+)      (4+)        │
+└──────────────────────────────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────┐
+│              Infrastructure (NzbDrone.Common)            │
+│           DI, HTTP, Disk, Process, Logging              │
+└──────────────────────────────────────────────────────────┘
+```
+
+The **plugin architecture is dominant** because Prowlarr's primary value proposition is managing hundreds of different indexers/trackers through a unified interface. Each indexer is essentially a plugin that can be added, configured, and managed independently.

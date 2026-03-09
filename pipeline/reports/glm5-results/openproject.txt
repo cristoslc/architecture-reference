@@ -1,0 +1,128 @@
+I'll explore the openproject repository to classify its architecture. Let me start with a high-level overview.Let me explore deeper to understand the module structure and architecture patterns.Let me check one more aspect - the hook system and how modules interact with the core:Now I have a comprehensive understanding. Let me verify the deployment model:Now I have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.95
+---
+
+## Architecture Classification: Modular Monolith
+
+OpenProject is a **Modular Monolith** - a single deployable Rails application with enforced internal module boundaries through Rails Engines. The architecture provides a plugin infrastructure that allows features to be developed and packaged as discrete modules while running as a single application.
+
+### Key Evidence
+
+**1. Rails Engines as Module Boundaries**
+
+The `modules/` directory contains 27+ feature modules, each implemented as a proper Rails Engine:
+
+- `modules/costs/`, `modules/webhooks/`, `modules/storages/`, `modules/github_integration/`, etc.
+- Each module has its own: `app/` (models, controllers, views), `config/routes.rb`, `db/migrate/`, `spec/`
+- All extend `Rails::Engine` and include `OpenProject::Plugins::ActsAsOpEngine`
+
+```ruby
+# modules/costs/lib/costs/engine.rb
+module Costs
+  class Engine < ::Rails::Engine
+    include OpenProject::Plugins::ActsAsOpEngine
+    register "costs", author_url: "...", bundled: true do
+      project_module :costs do
+        permission :view_time_entries, ...
+      end
+    end
+  end
+end
+```
+
+**2. Plugin Registration and Integration Contract**
+
+The `ActsAsOpEngine` module (`lib/open_project/plugins/acts_as_op_engine.rb`) provides a structured integration contract:
+- `register` block for permissions, menus, and module registration
+- `patches` method for extending core classes from modules
+- `assets` for asset precompilation registration
+- `override_core_views!` for view customization
+
+**3. Controlled Core Extension via Patches**
+
+Modules extend core functionality through a controlled patching mechanism:
+
+```ruby
+# modules/costs/lib/costs/engine.rb
+patches %i[Project User PermittedParams WorkPackage]
+
+# modules/costs/lib/costs/patches/project_patch.rb
+module Costs::Patches::ProjectPatch
+  def self.included(base)
+    base.class_eval do
+      has_many :rates, class_name: "HourlyRate"
+    end
+  end
+end
+```
+
+**4. Hook System for Event-Based Extension**
+
+The `OpenProject::Hook` system (`lib/open_project/hook.rb`) provides a listener pattern for plugins to extend core behavior without direct coupling:
+- `ViewListener` base class for view extensions
+- `render_on` macro for injecting partials at hook points
+- Plugins register listeners that respond to named hooks
+
+**5. Module Discovery and Loading**
+
+Modules are explicitly defined in `Gemfile.modules` as path-based gems:
+```ruby
+group :opf_plugins do
+  gem 'openproject-auth_plugins', path: 'modules/auth_plugins'
+  gem 'costs', path: 'modules/costs'
+  gem 'openproject-webhooks', path: 'modules/webhooks'
+  # ... 24 more modules
+end
+```
+
+**6. Single Deployment Unit**
+
+The architecture produces a single deployable artifact:
+- One `Dockerfile` (docker/prod/Dockerfile) builds a monolithic Rails application
+- All modules are bundled into the same container
+- Single PostgreSQL database shared across all modules
+- docker-compose.yml shows backend + worker processes for the same codebase
+
+**7. Shared Database, Independent Migrations**
+
+Each module owns its database schema via migrations in `modules/*/db/migrate/`, but all share the same database:
+- Migrations are aggregated during initialization
+- Modules can extend core models (e.g., `Project`, `User`) through patches
+- No service boundaries or inter-service communication
+
+### Architecture Within Modules
+
+Each module follows a **Layered** pattern internally:
+- Controllers (presentation)
+- Models (data access)
+- Services (business logic)
+- Contracts (validation/policies)
+- Views (templates)
+
+This is standard Rails MVC layered architecture, but it's subordinate to the modular monolith structure.
+
+### What This Is NOT
+
+- **NOT Microservices**: Single deployment unit, shared database, no inter-service communication
+- **NOT Service-Based**: No coarse-grained services with separate databases
+- **NOT Hexagonal**: No ports/adapters isolation pattern; plugins extend core directly
+- **NOT Just Layered**: The module boundary enforcement via Engines is the primary architectural feature
+
+### Confidence Assessment
+
+Confidence: 0.95 (Very High)
+
+The evidence is unambiguous:
+- 27+ Rails Engines with standardized integration via `ActsAsOpEngine`
+- Explicit plugin registration, patching, and hook systems
+- Single deployment artifact
+- Shared database across all modules
+- Module discovery via Bundler groups
+
+This is a textbook example of the Modular Monolith pattern in Rails, with mature plugin infrastructure evolved from its Redmine heritage.

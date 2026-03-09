@@ -15,9 +15,8 @@ languages:
 - JavaScript
 - Go
 architecture_styles:
-- Space-Based
-- Event-Driven
 - Modular Monolith
+- Layered
 classification_status: classified
 review_notes: 'Apache Geode is a quintessential implementation of the **Space-Based
   Architecture** style. The repository is organized to build a distributed data management
@@ -46,55 +45,48 @@ review_notes: 'Apache Geode is a quintessential implementation of the **Space-Ba
 
   Geode includes significant infrastructure for asynchronous decoupled communication:'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.51
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:49:45Z'
-classification_reasoning: "Apache Geode is a quintessential implementation of the\
-  \ **Space-Based Architecture** style. The repository is organized to build a distributed\
-  \ data management platform that pools memory, CPU, and storage across multiple nodes\
-  \ (processes) to create a \"tuple space\" or \"data grid.\"\n\n### Primary Style:\
-  \ Space-Based\nThe architecture is centered around the concept of a \"distributed\
-  \ data container\" (the Cache) where state is distributed across processing units.\n\
-  - **Data Partitioning & Replication:** Evidence in the README describes \"partitioned\
-  \ regions\" and \"replicated regions,\" which are core mechanics of Space-Based\
-  \ systems to ensure scalability and high availability without a central bottleneck.\n\
-  - **Shared-Nothing Persistence:** The README explicitly mentions a \"shared nothing\"\
-  \ architecture, a hallmark of space-based systems where each node operates independently.\n\
-  - **Topology Components:** The mention of `Locators` (for discovery and load balancing)\
-  \ and `Servers` (holding the data regions) matches the classic pattern of a processing\
-  \ grid where clients connect to a virtualized pool of resources.\n\n### Secondary\
-  \ Style: Event-Driven\nGeode includes significant infrastructure for asynchronous\
-  \ decoupled communication:\n- **Continuous Query (CQ):** The `geode-cq` module and\
-  \ README mentions of \"reliable asynchronous event notifications\" indicate an internal\
-  \ architecture capable of pub/sub interactions.\n- **WAN Gateway:** The `geode-wan`\
-  \ module suggests event-driven replication across geographically distributed clusters.\n\
-  - **Listeners:** The documentation of \"listeners to receive notifications when\
-  \ data has changed\" confirms an event-driven internal hook system.\n\n### Secondary\
-  \ Style: Modular Monolith\nFrom a codebase organization perspective, the repository\
-  \ is structured as a **Modular Monolith** using a Gradle multi-project layout. \n\
-  - **Enforced Boundaries:** Each directory (e.g., `geode-membership`, `geode-serialization`,\
-  \ `geode-lucene`, `geode-memcached`) represents a distinct functional module with\
-  \ its own `build.gradle`, suggesting a highly decoupled internal structure where\
-  \ the core (`geode-core`, implied by documentation though deep in the tree) is extended\
-  \ by functional sub-modules.\n- **Single System, Multiple Roles:** While it builds\
-  \ into different roles (Locators vs. Servers), it is a single codebase that is managed\
-  \ and released as a unified platform rather than a collection of independent microservices.\
-  \ \n\n### Rejected Styles\n- **Microservices:** While distributed, the nodes (Locators/Servers)\
-  \ are homogenous infrastructure components rather than independent business-domain\
-  \ services. They share the same codebase and are versioned together.\n- **Layered:**\
-  \ While internal modules likely have layers, the primary architectural significance\
-  \ of Geode is its horizontal distribution of data and compute, not a simple Controller-Service-Repository\
-  \ vertical stack."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.51
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.45
-  style_clarity: 0.65
-  alternatives_dismissed: 0.55
-  exploration_completeness: 0.35
-  flags: evidence is mostly README-level and module name observations; no specific
-    code paths, config values, or build file contents cited; Space-Based classification
-    is plausible but reasoning relies heavily on documentation claims rather than
-    code-level evidence
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:23:42Z'
+classification_reasoning: "## Analysis\n\n**Primary Style: Modular Monolith**\n\n\
+  Apache Geode is a textbook example of a well-structured modular monolith with strong\
+  \ evidence:\n\n1. **Single Deployable Unit**: The `geode-assembly` and `geode-server-all`\
+  \ modules aggregate all components into one distribution. Docker packaging (`docker/Dockerfile`,\
+  \ `geode-assembly/Dockerfile`) produces a single container image.\n\n2. **Explicit\
+  \ Module Boundaries**: The codebase is organized into 50+ Gradle subprojects with\
+  \ enforced dependencies:\n   - Core modules: `geode-common`, `geode-logging`, `geode-serialization`,\
+  \ `geode-unsafe`\n   - Main implementation: `geode-core` (the substantial implementation)\n\
+  \   - Feature modules: `geode-wan`, `geode-cq`, `geode-lucene`, `geode-memcached`\n\
+  \   - Extensions: `extensions/geode-modules`, `extensions/geode-modules-session`\n\
+  \n3. **Enforced API Boundaries**: \n   - Gradle build files use `api` vs `implementation`\
+  \ dependencies for explicit visibility control\n   - BOMs (`boms/geode-all-bom`,\
+  \ `boms/geode-client-bom`) provide dependency governance\n   - `internal` packages\
+  \ throughout (e.g., `org.apache.geode.internal.*`, `org.apache.geode.cache.internal.*`)\
+  \ separate public API from implementation\n\n4. **Code Organization Evidence** (`settings.gradle`\
+  \ lines 70-113):\n   ```groovy\n   include 'geode-common'\n   include 'geode-core'\n\
+  \   include 'geode-wan'\n   include 'geode-cq'\n   include 'geode-lucene'\n   ...\n\
+  \   ```\n\n**Secondary Style: Layered**\n\nClear horizontal layering is present:\n\
+  \n1. **Foundation Layer**: `geode-common` (annotations, utilities), `geode-logging`,\
+  \ `geode-serialization`, `geode-unsafe`\n\n2. **Core Business Layer**: `geode-core`\
+  \ contains:\n   - Cache abstraction (`org.apache.geode.cache.*`)\n   - Distributed\
+  \ system implementation (`org.apache.geode.distributed.*`)\n   - Internal cache\
+  \ implementation (`org.apache.geode.internal.cache.*`)\n\n3. **Service Layer**:\
+  \ `geode-wan` (gateway/WAN), `geode-cq` (continuous queries), `geode-lucene` (search\
+  \ indexing)\n\n4. **Presentation/Interface Layer**: `geode-gfsh` (CLI shell), `geode-web`,\
+  \ `geode-web-api`, `geode-web-management`\n\n5. **Assembly Layer**: `geode-assembly`,\
+  \ `geode-server-all` (packaging)\n\n**What This Is NOT:**\n\n- **NOT Microservices**:\
+  \ Single JVM deployment, not multiple independent services. Geode nodes form a peer-to-peer\
+  \ distributed system, not separately deployed microservices.\n\n- **NOT primarily\
+  \ Event-Driven**: While Geode has event capabilities (`CacheListener`, `CacheWriter`,\
+  \ continuous queries), these are features *within* the monolith, not the primary\
+  \ architectural organizing principle.\n\n- **NOT Domain-Driven Design**: Code is\
+  \ organized by technical capability (serialization, logging, core, WAN) rather than\
+  \ bounded contexts.\n\n- **NOT Microkernel/Plugin**: While `Declarable`, `Function`,\
+  \ `CacheLoader`, and `JarDeployer` provide extensibility, the core system isn't\
+  \ structured as a minimal kernel with plugins. The extension points are features\
+  \ of a complete product, not the fundamental architecture.\n\n**Key Evidence Files:**\n\
+  - `settings.gradle` - Shows all 50+ subprojects in single build\n- `geode-server-all/build.gradle`\
+  \ - Aggregates all modules into single artifact\n- `geode-core/src/main/java/org/apache/geode/cache/*.java`\
+  \ - Public API interfaces\n- `geode-core/src/main/java/org/apache/geode/internal/*`\
+  \ - Internal implementation packages"

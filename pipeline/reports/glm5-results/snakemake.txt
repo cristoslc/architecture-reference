@@ -1,0 +1,75 @@
+Let me explore the plugin infrastructure and executor system to understand the architecture better:Let me look at the interface packages to understand the plugin contract better:Now I have sufficient evidence to classify this repository. Let me provide my final analysis:
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+## Analysis
+
+### Primary: Microkernel (Plugin) Architecture
+
+Snakemake exhibits a **clear microkernel architecture** with a well-defined plugin system spanning multiple extension points:
+
+**Plugin Infrastructure Evidence:**
+
+1. **Five distinct plugin interfaces** defined as separate Python packages (see `pyproject.toml` lines 51-56):
+   - `snakemake-interface-executor-plugins>=9.3.2` — Execution environments (local, cluster, cloud)
+   - `snakemake-interface-storage-plugins>=4.3.2` — Storage providers (S3, GCS, Azure, FTP, etc.)
+   - `snakemake-interface-report-plugins>=1.2.0` — Report generation
+   - `snakemake-interface-logger-plugins>=1.1.0` — Logging handlers
+   - `snakemake-interface-scheduler-plugins>=2.0.0` — Job scheduling algorithms
+
+2. **Plugin Registry Pattern**: All plugins are discovered and loaded via registry classes:
+   ```python
+   # From cli.py lines 16-21
+   from snakemake_interface_executor_plugins.registry import ExecutorPluginRegistry
+   from snakemake_interface_storage_plugins.registry import StoragePluginRegistry
+   from snakemake_interface_report_plugins.registry import ReportPluginRegistry
+   from snakemake_interface_logger_plugins.registry import LoggerPluginRegistry
+   from snakemake_interface_scheduler_plugins.registry import SchedulerPluginRegistry
+   ```
+
+3. **Plugin Selection at Runtime** (cli.py lines 1967-1987):
+   ```python
+   executor_plugin = ExecutorPluginRegistry().get_plugin(args.executor)
+   scheduler_plugin = SchedulerPluginRegistry().get_plugin(args.scheduler)
+   report_plugin = ReportPluginRegistry().get_plugin(args.reporter)
+   ```
+
+4. **Built-in Executors as Core Extensions**: The `executors/` directory contains only essential built-in executors (`local.py`, `dryrun.py`, `touch.py`), while cluster/cloud executors (SLURM, Kubernetes, Google Life Sciences, AWS Batch) are provided as external plugins.
+
+5. **Remote Providers Replaced by Plugins** (`src/snakemake/remote/__init__.py`):
+   ```python
+   # remote providers have been replaced by storage plugins
+   raise NotImplementedError(
+       "Remote providers have been replaced by Snakemake storage plugins."
+   )
+   ```
+
+### Secondary: Layered Architecture
+
+Within the microkernel core, Snakemake exhibits **horizontal layering** with clear separation of concerns:
+
+| Layer | Files | Lines | Responsibility |
+|-------|-------|-------|----------------|
+| CLI/Presentation | `cli.py` | 2,282 | Argument parsing, user interaction |
+| API | `api.py` | 831 | Programmatic interface (`SnakemakeApi`, `WorkflowApi`) |
+| Workflow/Orchestration | `workflow.py` | 2,498 | Workflow definition, rule registration |
+| Core Logic | `dag.py`, `jobs.py`, `rules.py`, `parser.py` | 8,000+ | DAG construction, job scheduling, rule parsing |
+| Execution | `executors/`, `scheduling/` | — | Job execution strategies |
+| Infrastructure | `io/`, `deployment/`, `caching/`, `storage/` | — | I/O, deployment, persistence |
+
+### What This Is NOT
+
+- **Not Microservices**: Single deployable Python package, no inter-service communication, no independent deployment units
+- **Not Event-Driven**: No message broker, no asynchronous event handling between services; jobs are scheduled synchronously via the DAG
+- **Not Pipeline (as primary)**: While workflows execute as pipelines, the codebase organization centers on the plugin system, not pipe-and-filter data transformation stages
+- **Not Domain-Driven Design**: No bounded contexts, aggregates, or ubiquitous language patterns; the domain model (rules, jobs, DAG) is relatively flat
+
+### Key Architectural Insight
+
+Snakemake's architecture enables extensibility through a carefully designed plugin contract: interface packages define the API contracts (`snakemake-interface-*`), external plugins implement these interfaces, and the core discovers and invokes them via registries. This allows users to extend Snakemake with new execution backends, storage providers, and schedulers without modifying the core—a textbook microkernel pattern.

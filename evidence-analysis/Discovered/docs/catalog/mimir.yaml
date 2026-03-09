@@ -14,7 +14,6 @@ languages:
 - Go
 architecture_styles:
 - Microservices
-- Event-Driven
 - Modular Monolith
 classification_status: classified
 review_notes: "Grafana Mimir is a classic example of a **Microservices** architecture\
@@ -36,57 +35,59 @@ review_notes: "Grafana Mimir is a classic example of a **Microservices** archite
   \ (Secondary Style)\nMimir relies heavily on event-stream processing for specific\
   \ components, particularly its long-term storage and internal coordination."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.76
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:01:44Z'
-classification_reasoning: "Grafana Mimir is a classic example of a **Microservices**\
-  \ architecture that supports a **Modular Monolith** deployment mode (often referred\
-  \ to as \"monolithic mode\" in the documentation). The codebase is designed around\
-  \ a single shared binary (`cmd/mimir`) that can behave as any one of several distinct\
-  \ services based on a `-target` flag.\n\n### 1. Microservices (Primary Style)\n\
-  The system is built as a collection of specialized services that collaborate to\
-  \ provide Prometheus-compatible storage and querying. \n- **Service Boundaries:**\
-  \ Clear boundaries exist in the `pkg/` directory, including `ingester`, `querier`,\
-  \ `distributor` (implied in logic), `alertmanager`, `scheduler`, and `frontend`.\
-  \ These modules encapsulate specific business logic and maintain their own internal\
-  \ state or access patterns.\n- **Independent Scalability:** The `docker-compose.yml`\
-  \ provides definitive evidence of microservices. It defines separate containers\
-  \ for `ingester-zone-a-1`, `distributor-1`, `querier`, `query-frontend`, `compactor`,\
-  \ and `store-gateway`. Each container runs the same `mimir` binary but passed different\
-  \ `-target` arguments (e.g., `-target=ingester`).\n- **Communication:** Services\
-  \ interact via gRPC (proxied/managed by the `pkg/mimirpb` definitions) and shared\
-  \ state in object storage (S3/Minio).\n\n### 2. Event-Driven (Secondary Style)\n\
-  Mimir relies heavily on event-stream processing for specific components, particularly\
-  \ its long-term storage and internal coordination.\n- **Message Broker:** The `docker-compose.yml`\
-  \ reveals a 3-node **Kafka** cluster as a core dependency for services like the\
-  \ `usage-tracker` and `alertmanager`.\n- **Logic:** The presence of `pkg/util/testkafka`\
-  \ and tools like `kafkatool` indicates that high-volume data coordination and certain\
-  \ status updates are handled via pub/sub or streaming patterns, rather than purely\
-  \ synchronous RPC.\n\n### 3. Modular Monolith (Secondary Style)\nThe \"Monolithic\
-  \ Mode\" mentioned in the README allows Mimir to run all components inside a single\
-  \ process.\n- **Module Management:** In `cmd/mimir/main.go`, the code uses a `ModuleManager`\
-  \ (`t.ModuleManager.UserVisibleModuleNames()`). This orchestrator manages internal\
-  \ dependencies between modules, ensuring that when running in monolithic mode, they\
-  \ start in the correct order. \n- **Code Organization:** The `pkg/mimir/modules.go`\
-  \ file (referenced via the tree) acts as a registry, defining the \"contract\" and\
-  \ lifecycle for each component, allowing them to be packaged together or split apart\
-  \ without changing the core logic.\n\n### Structural Evidence\n- **Binary Entrypoint:**\
-  \ `cmd/mimir/main.go` acts as a multi-call binary. It initializes a `mimir.New(cfg,\
-  \ reg)` instance which then handles the orchestration of the requested \"target\"\
-  \ services.\n- **Service-Specific Logic:** The separation of concerns is rigid.\
-  \ For example, `pkg/ingester` handles write-ahead logging and memory-to-disk flushing,\
-  \ while `pkg/querier` focuses on PromQL execution and distributed query planning.\n\
-  - **Infrastructure:** The architecture assumes a distributed environment, featuring\
-  \ a `ring` mechanism (consistent hashing) for service discovery and shard allocation,\
-  \ which is a hallmark of distributed microservice systems."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.76
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.8
-  alternatives_dismissed: 0.55
-  exploration_completeness: 0.8
-  flags: Event-Driven listed as secondary but evidence is thin — Kafka presence noted
-    but not deeply analyzed; self-reported confidence of 0.95 appears inflated
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:43:16Z'
+classification_reasoning: "## Architecture Analysis: Grafana Mimir\n\n### Primary\
+  \ Classification: Microservices\n\nMimir is architected as a **microservices system**\
+  \ with the following evidence:\n\n**1. Independent Deployable Services via `-target`\
+  \ Flag:**\nFrom `development/mimir-microservices-mode/docker-compose.yml` and `docs/sources/mimir/configure/about-configurations.md`:\n\
+  - Services can be deployed independently: `-target=distributor`, `-target=ingester`,\
+  \ `-target=querier`, `-target=query-frontend`, `-target=store-gateway`, `-target=compactor`,\
+  \ `-target=alertmanager`, `-target=ruler`\n- Each service runs its own process with\
+  \ dedicated HTTP/gRPC ports\n- Multiple replicas of same service type can be deployed\
+  \ (e.g., `ingester-1`, `ingester-2`, `ingester-3`)\n\n**2. gRPC-Based Inter-Service\
+  \ Communication:**\nProto files define clear service interfaces:\n- `pkg/ingester/client/ingester.proto`:\
+  \ Ingester gRPC service\n- `pkg/distributor/distributorpb/distributor.proto`: Distributor\
+  \ gRPC service  \n- `pkg/storegateway/storegatewaypb/gateway.proto`: Store Gateway\
+  \ gRPC service\n- `pkg/frontend/v2/frontendv2pb/frontend.proto`: Query Frontend\
+  \ gRPC service\n\n**3. Service Discovery via Hash Rings:**\nFiles like `pkg/distributor/distributor_ring.go`,\
+  \ `pkg/ingester/ingester_ring.go`, `pkg/storegateway/gateway_ring.go` show each\
+  \ service type maintains its own ring for:\n- Service registration and discovery\n\
+  - Load balancing\n- Replication\n\n**4. Independent Data Ownership:**\n- Each ingester\
+  \ owns a shard of time-series data (consistent hashing via ring)\n- Store Gateway\
+  \ owns specific blocks\n- No shared database between services\n- Object storage\
+  \ (S3/GCS) used as common persistence layer\n\n**5. Distinct Module Boundaries in\
+  \ `pkg/mimir/modules.go`:**\n```go\ndeps := map[string][]string{\n    Distributor:\
+  \    {DistributorService, API, ActiveGroupsCleanupService, Vault, ...},\n    Ingester:\
+  \       {IngesterService, API, ActiveGroupsCleanupService, Vault},\n    StoreGateway:\
+  \   {API, Overrides, MemberlistKV, Vault},\n    QueryFrontend:  {QueryFrontendTripperware,\
+  \ MemberlistKV, Vault},\n    // ... etc\n    All: {QueryFrontend, QueryScheduler,\
+  \ Querier, Ingester, Distributor, StoreGateway, Ruler, Compactor},\n}\n```\n\n###\
+  \ Secondary Classification: Modular Monolith\n\nMimir also supports **monolithic\
+  \ deployment** as evidenced by:\n\n**1. Single Binary Deployment (`-target=all`):**\n\
+  From `development/mimir-monolithic-mode/docker-compose.yml`:\n```yaml\ncommand:\
+  \ [\"sh\", \"-c\", \"sleep 3 && exec ./mimir -config.file=./config/mimir.yaml -target=all\
+  \ ...\"]\n```\n\n**2. Unified Codebase Structure:**\n- Single `cmd/mimir/main.go`\
+  \ entrypoint\n- All modules in `pkg/` directory as separate packages\n- Shared configuration\
+  \ file used across all components\n- Module manager (`pkg/mimir/modules.go`) orchestrates\
+  \ initialization\n\n**3. Explicit Module Dependency Graph:**\nModules have defined\
+  \ dependencies that must be satisfied regardless of deployment mode, creating strong\
+  \ internal boundaries even in monolithic mode.\n\n### What This Is NOT:\n\n- **Not\
+  \ Event-Driven**: Services communicate via synchronous gRPC calls, not through message\
+  \ brokers. No Kafka/RabbitMQ/etc. for inter-service coordination (though Kafka is\
+  \ optional for ingest storage).\n\n- **Not Layered**: This isn't a layered presentation→business→data\
+  \ architecture. Each service is vertically sliced with its own responsibilities.\n\
+  \n- **Not Service-Based (coarse-grained)**: With 10+ distinct deployable services,\
+  \ this goes beyond the typical 2-5 service definition.\n\n- **Not CQRS**: While\
+  \ there's separation between write path (distributor→ingester) and read path (querier→store-gateway),\
+  \ this is standard microservices data flow, not CQRS pattern.\n\n### Conclusion\n\
+  \nMimir is a well-designed system that embodies **microservices architecture** while\
+  \ also supporting **modular monolith deployment**. The same codebase can be deployed\
+  \ as independent services (microservices mode) or as a single binary (monolithic\
+  \ mode), with the module boundaries and gRPC interfaces remaining consistent. This\
+  \ flexibility is a deliberate architectural choice documented in the configuration\
+  \ guide: \"Use a single configuration file, and either pass it to all replicas of\
+  \ Grafana Mimir (if you are running multiple single-process Mimir replicas) or to\
+  \ all components of Grafana Mimir (if you are running Grafana Mimir as microservices).\""

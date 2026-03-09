@@ -1,0 +1,90 @@
+Now I have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+  - Microkernel (Plugin)
+confidence: 0.88
+---
+
+## Analysis
+
+### Primary Style: Modular Monolith
+
+The Lemmy repository is a textbook example of a **Modular Monolith** architecture:
+
+**Evidence from Cargo.toml workspace structure:**
+- The root `Cargo.toml` defines a workspace with ~40+ internal crates (`crates/*`)
+- Each crate is a separate compilation unit with its own `Cargo.toml`, enforcing module boundaries at compile time
+- All crates are published together with identical version numbers (workspace inheritance)
+
+**Single deployable artifact:**
+- `docker/Dockerfile` builds a single binary: `lemmy_server`
+- `crates/server/Cargo.toml` shows it depends on all other crates and produces the final executable
+- The deployment is a single container in `docker-compose.yml` (`lemmy` service)
+
+**Enforced internal module boundaries:**
+```
+crates/
+├── api/           # API layer (api, api_crud, api_common, api_utils, routes)
+├── apub/          # ActivityPub federation (apub, activities, objects, send)
+├── db_schema/     # Database schema and types
+├── db_schema_file/# Generated Diesel schema
+├── db_views/      # 20+ view modules (post, comment, community, etc.)
+├── diesel_utils/  # Database utilities
+├── email/         # Email functionality
+├── routes/        # HTTP routing
+├── utils/         # Shared utilities
+└── server/        # Main entry point
+```
+
+**Dependency enforcement:** Rust's module system and Cargo workspace naturally prevent circular dependencies and enforce unidirectional dependencies between crates.
+
+### Secondary Style: Layered
+
+The codebase exhibits clear horizontal layering:
+
+1. **Data Layer**: `db_schema`, `db_schema_file`, `diesel_utils`, and `db_views/*` - Schema definitions, ORM mappings, and read-optimized views
+
+2. **Business Logic Layer**: `api/api`, `api/api_crud`, `api/api_utils` - Request handlers and business rules
+
+3. **API/HTTP Layer**: `api/routes`, `api/routes_v3`, `routes` - HTTP routing and middleware
+
+4. **Protocol/Federation Layer**: `apub/*` - ActivityPub protocol implementation
+
+Evidence from `crates/api/api_crud/src/post/create.rs`:
+- Handler receives JSON request → validates input → calls database layer → returns response
+- Clear separation between API handling, business logic, and data access
+
+### Secondary Style: Microkernel (Plugin)
+
+**Plugin infrastructure via Extism (WebAssembly):**
+
+From `crates/api/api_utils/src/plugins.rs`:
+```rust
+pub fn plugin_hook_before<T>(name: &'static str, data: T) -> LemmyResult<T>
+pub fn plugin_hook_after<T>(name: &'static str, data: T)
+```
+
+- Plugins loaded from `/plugins` directory at runtime (see docker-compose.yml volume mount)
+- WebAssembly-based plugin system using Extism
+- Plugin hooks for captcha, notifications, and extensibility
+- Core system operates independently; plugins are optional extensions
+
+### What This Is NOT
+
+- **NOT Microservices**: Single binary deployment, single database, no inter-service communication
+- **NOT Serverless**: Standard Actix-web HTTP server, no FaaS configuration
+- **NOT Domain-Driven Design**: Modules organized by technical layers, not bounded contexts; no aggregates, entities, or value objects in the DDD sense
+- **NOT Hexagonal Architecture**: Database access is direct via Diesel ORM without repository interfaces/ports abstraction
+- **NOT Event-Driven Primary**: While `ActivityChannel` uses async channels for ActivityPub federation, this is an implementation detail for async processing, not the primary architectural pattern
+
+### Confidence Rationale
+
+**0.88 confidence** reflects:
+- Strong, clear signals for Modular Monolith (Cargo workspace, single deployable)
+- Unambiguous layered organization in module structure
+- Clear plugin system with hooks and runtime loading
+- Some architectural overlap between "modular monolith" and "layered" which are complementary rather than distinct

@@ -14,7 +14,7 @@ languages:
 - Go
 architecture_styles:
 - Microkernel (Plugin)
-- Pipeline (Pipe-and-Filter)
+- Modular Monolith
 classification_status: classified
 review_notes: '```
 
@@ -44,76 +44,65 @@ review_notes: '```
   and the directory labels) indicates a rigid contract between the kernel (Core) and
   extensions (Providers).'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.63
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:13:37Z'
-classification_reasoning: '```
-
-
-  ### Architecture Analysis
-
-
-  Terraform Core is a classic example of a **Microkernel (Plugin)** architecture.
-  The repository’s structure and documentation explicitly separate the "Core" engine
-  from the "Providers" (plugins) that handle the actual business logic of interacting
-  with infrastructure APIs.
-
-
-  #### Evidence for Microkernel (Plugin)
-
-  1.  **Core-Plugin Separation:** The README states: *"This repository contains only
-  Terraform core... Providers are implemented as plugins."* The core handles the lifecycle,
-  graph evaluation, and CLI, while all resource-specific logic is offloaded to external
-  binaries.
-
-  2.  **Internal Provider Implementation:** The path `internal/provider-simple-v6`
-  shows how Terraform maintains internal mock or simple providers for testing and
-  bootstrapping, mirroring the same interface expected from external plugins.
-
-  3.  **Plugin Protocols:** The presence of `tools/protobuf-compile` and references
-  to gRPC-based provider communication (implied by Terraform''s known architecture
-  and the directory labels) indicates a rigid contract between the kernel (Core) and
-  extensions (Providers).
-
-
-  #### Evidence for Pipeline (Pipe-and-Filter)
-
-  Terraform''s internal execution model follows a sequential flow of data through
-  distinct stages, which is a hallmark of the **Pipeline** style. The directory `internal/terraform`
-  contains logic for these specific stages:
-
-  1.  **Validation:** `internal/terraform/testdata/validate-*`
-
-  2.  **Planning:** `internal/terraform/context_plan.go` (implied) and `testdata/plan-*`
-
-  3.  **Graph Transformation:** The files `internal/terraform/transform_vertex.go`,
-  `transform_provider_prune.go`, and `transform_root_basic.go` show a series of filters
-  that transform a dependency graph into an executable plan.
-
-  4.  **Application:** `internal/terraform/context_apply.go` and `node_resource_apply_instance.go`.
-
-
-  #### Rejection of other styles
-
-  *   **Microservices:** While Terraform uses plugins that run as separate processes,
-  these are not independently deployable services in the cloud sense; they are child
-  processes of a single CLI invocation.
-
-  *   **Layered:** While it has internal packages, the fundamental organizational
-  principle is the Graph Engine and its extension points, not a simple Controller/Service/Repository
-  stack.
-
-  *   **Hexagonal:** The core does use "Ports and Adapters" to talk to providers and
-  state backends, but "Microkernel" more accurately describes the deployment and extension
-  model of the system.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.63
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.55
-  style_clarity: 0.75
-  alternatives_dismissed: 0.65
-  exploration_completeness: 0.5
-  flags: evidence relies partly on known Terraform architecture rather than explicit
-    file-level findings; some paths are hedged with 'implied' qualifiers
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:43:27Z'
+classification_reasoning: "## Analysis\n\n**Primary Classification: Microkernel (Plugin)**\n\
+  \nTerraform exhibits a classic microkernel architecture where a minimal core system\
+  \ is extended through plugins loaded at runtime. The evidence is compelling:\n\n\
+  ### Core System + Plugin Extension Model\n\n1. **Single Core Binary**: Terraform\
+  \ compiles to a single executable (`main.go`), with all core functionality in the\
+  \ `internal/` directory (65+ packages). There's one `go.mod` defining a single module.\n\
+  \n2. **Plugin Infrastructure**: The architecture explicitly separates Terraform\
+  \ Core from providers:\n   - From `README.md` (line 38): *\"This repository contains\
+  \ only Terraform core, which includes the command line interface and the main graph\
+  \ engine. Providers are implemented as plugins, and Terraform can automatically\
+  \ download providers that are published on the Terraform Registry.\"*\n\n3. **go-plugin\
+  \ Integration**: \n   - `go.mod` line 29: `github.com/hashicorp/go-plugin v1.7.0`\n\
+  \   - `main.go` line 17: `\"github.com/hashicorp/go-plugin\"` imported directly\n\
+  \   - `internal/plugin/plugin.go` defines `VersionedPlugins` mapping for protocol\
+  \ versions 5 and 6\n\n4. **gRPC Plugin Protocol**:\n   - Protocol definitions in\
+  \ `docs/plugin-protocol/tfplugin5.proto` and `tfplugin6.proto`\n   - The plugin\
+  \ protocol documentation (`docs/plugin-protocol/README.md`) describes: *\"Terraform\
+  \ plugins are normal executable programs that, when launched, expose gRPC services\
+  \ on a server... Terraform Core discovers and launches plugins, waits for a handshake\
+  \ to be printed on the plugin's stdout, and then connects to the indicated port\
+  \ number as a gRPC client.\"*\n\n5. **Plugin Discovery System**:\n   - `internal/getproviders/`\
+  \ contains 30+ files for discovering, downloading, and caching providers from registries\n\
+  \   - `provider_source.go` builds provider sources from CLI configuration\n\n6.\
+  \ **Provider Interface Contract**:\n   - `internal/providers/provider.go` defines\
+  \ `Interface` with methods: `GetProviderSchema`, `ConfigureProvider`, `ReadResource`,\
+  \ `ApplyResourceChange`, etc.\n   - External providers implement this interface\
+  \ via SDKs that speak the gRPC protocol\n\n### Backend Plugin System\n\nBackends\
+  \ also follow a plugin pattern (though currently compiled in):\n- `internal/backend/backend.go`\
+  \ defines the `Backend` interface\n- `internal/backend/init/init.go` registers backends:\
+  \ local, remote, cloud, plus 10+ remote-state backends (S3, consul, azure, gcs,\
+  \ kubernetes, oci, oss, pg, etc.)\n- Comment notes (line 40-43): *\"Backends are\
+  \ hardcoded into Terraform because the API for backends uses complex structures\
+  \ and supporting that over the plugin system is currently prohibitively difficult.\"\
+  *\n\n### Built-in Plugins\n\nEven internal plugins follow the plugin interface:\n\
+  - `internal/builtin/providers/factories.go` provides `BuiltInProviders()` returning\
+  \ the built-in \"terraform\" provider\n- `internal/builtin/provisioners/` contains\
+  \ file, local-exec, remote-exec provisioners\n\n---\n\n**Secondary Classification:\
+  \ Modular Monolith**\n\nWhile the plugin architecture dominates, Terraform also\
+  \ exhibits modular monolith characteristics:\n\n1. **Strong Internal Package Boundaries**:\
+  \ The `internal/` directory contains 65+ distinct packages (`addrs`, `backend`,\
+  \ `cloud`, `command`, `configs`, `dag`, `states`, `terraform`, etc.), each with\
+  \ clear responsibilities.\n\n2. **Single Deployable Unit**: One binary, one `go.mod`,\
+  \ no sub-modules or separate deployables.\n\n3. **Package Organization**: Clear\
+  \ separation of concerns:\n   - `internal/command/` - CLI commands (140 files)\n\
+  \   - `internal/terraform/` - Core engine (246 files)\n   - `internal/configs/`\
+  \ - Configuration parsing\n   - `internal/states/` - State management\n   - `internal/dag/`\
+  \ - Graph operations\n\n---\n\n**What I Rejected:**\n\n- **Not Microservices**:\
+  \ Single binary, single process (plugins are child processes, not independent services),\
+  \ no network-based service boundaries.\n  \n- **Not Layered**: While there's a request\
+  \ flow (CLI → Backend → Terraform Context), the architecture is organized around\
+  \ the plugin contract, not horizontal layer separation. The `internal/terraform/`\
+  \ package contains both business logic and orchestration.\n\n- **Not Hexagonal**:\
+  \ No explicit ports/adapters pattern. The plugin system serves a similar purpose\
+  \ but follows the microkernel pattern more closely with its discovery, loading,\
+  \ and protocol negotiation mechanisms.\n\n- **Not Pipeline**: Despite the plan/apply\
+  \ workflow, Terraform's core is not organized around data flowing through sequential\
+  \ processing stages. It's organized around a graph-based execution engine (DAG)\
+  \ coordinating plugins."

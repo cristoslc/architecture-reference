@@ -16,7 +16,6 @@ languages:
 - JavaScript
 architecture_styles:
 - Modular Monolith
-- Event-Driven
 - Microkernel (Plugin)
 classification_status: classified
 review_notes: "The Sentry repository is a classic example of a **Modular Monolith**\
@@ -35,49 +34,49 @@ review_notes: "The Sentry repository is a classic example of a **Modular Monolit
   \ of \"Modular Monoliths\" managing complexity by identifying and strengthening\
   \ module boundaries over time."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.86
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:10:19Z'
-classification_reasoning: "The Sentry repository is a classic example of a **Modular\
-  \ Monolith** that has evolved to include significant **Event-Driven** and **Microkernel**\
-  \ characteristics. \n\nWhile Sentry's infrastructure involves multiple distributed\
-  \ components (like Snuba, Relay, and Symbolicator), the core application logic remains\
-  \ housed in a single Python monolith primarily built on Django. \n\n### Reasoning:\n\
-  \n1.  **Modular Monolith (Primary):**\n    *   The source code is concentrated in\
-  \ `src/sentry/`, which contains a vast array of internal modules (e.g., `src/sentry/organizations`,\
-  \ `src/sentry/projects`, `src/sentry/api`).\n    *   The `INSTALLED_APPS` setting\
-  \ in `src/sentry/conf/server.py` lists dozens of internal components (e.g., `sentry.incidents`,\
-  \ `sentry.discover`, `sentry.replays`) which are integrated into the single Django\
-  \ application context but partitioned into distinct sub-packages.\n    *   The repository\
-  \ uses strict internal boundaries enforced by tooling (see `tools/mypy_helpers/sort_stronger_modules.py`\
-  \ and the `tool.mypy.overrides` section in `pyproject.toml`), which is a hallmark\
-  \ of \"Modular Monoliths\" managing complexity by identifying and strengthening\
-  \ module boundaries over time.\n\n2.  **Event-Driven (Secondary):**\n    *   The\
-  \ configuration and dependencies show heavy reliance on message brokers and asynchronous\
-  \ processing. \n    *   Evidence includes `confluent-kafka` and `sentry-arroyo`\
-  \ in `pyproject.toml`, and the presence of `src/sentry/eventstream`, `src/sentry/consumers`,\
-  \ and `src/sentry/post_process_forwarder`.\n    *   The system heavily utilizes\
-  \ \"Outboxes\" (e.g., `SENTRY_OUTBOX_MODELS` in `server.py`), a common pattern in\
-  \ event-driven systems to ensure atomicity between database updates and event publishing.\n\
-  \n3.  **Microkernel / Plugin (Secondary):**\n    *   Sentry maintains a dedicated\
-  \ plugin architecture found in `src/sentry_plugins/` and `src/sentry/plugins`.\n\
-  \    *   This core-and-extension model allows the base system to remain stable while\
-  \ supporting dozens of third-party integrations (Slack, Jira, GitHub, etc.) through\
-  \ a stable internal API/Contract (`src/sentry_plugins/base.py`).\n\n### Rejection\
-  \ of other styles:\n*   **Microservices:** While the *runtime environment* of Sentry\
-  \ (including Snuba and Relay) is multi-service, this specific repository is not\
-  \ a microservices repo. It contains the primary monolith and its plugins, not a\
-  \ collection of independent services with their own CI/CD lifecycles and distinct\
-  \ codebases.\n*   **Hexagonal Architecture:** While Sentry uses the concept of \"\
-  Services\" (`src/sentry/services`), the core domain is heavily coupled to Django's\
-  \ ORM and models, lacking the strict isolation of the domain layer required for\
-  \ Hexagonal or Clean Architecture."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.86
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.88
-  alternatives_dismissed: 0.8
-  exploration_completeness: 0.87
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:58:24Z'
+classification_reasoning: "## Analysis\n\nSentry is a **Modular Monolith** with a\
+  \ sophisticated internal module boundary system and a plugin/integration extension\
+  \ architecture.\n\n### Evidence for Modular Monolith\n\n**Single Deployable Unit:**\n\
+  - One `self-hosted/Dockerfile` builds the entire application\n- Single `pyproject.toml`\
+  \ defines all dependencies\n- Entry point: `CMD [\"run\", \"web\"]` - unified deployment\n\
+  \n**Strong Internal Module Boundaries:**\n- ~150 distinct modules under `src/sentry/`\
+  \ organized by domain feature\n- Each module follows Django app conventions with\
+  \ `apps.py`, `models.py`, endpoints, services\n- Examples: `src/sentry/discover/`,\
+  \ `src/sentry/notifications/`, `src/sentry/incidents/`, `src/sentry/monitors/`,\
+  \ `src/sentry/feedback/`, `src/sentry/uptime/`\n\n**Silo System for Boundary Enforcement:**\n\
+  - `src/sentry/silo/base.py` defines `SiloMode` enum: MONOLITH, CONTROL, REGION\n\
+  - Endpoints decorated with `@control_silo_endpoint`, `@region_silo_endpoint`, `@all_silo_endpoint`\
+  \ (in `src/sentry/api/base.py`)\n- `EndpointSiloLimit` class enforces which endpoints\
+  \ can run in which silo mode\n- RPC service layer (`src/sentry/hybridcloud/rpc/service.py`)\
+  \ with `RpcService` base class enables cross-silo communication\n\n**Service Abstraction\
+  \ Layer:**\n- 124+ service files under `src/sentry/*/services/`\n- Services like\
+  \ `OrganizationMappingService` (`src/sentry/hybridcloud/services/organization_mapping/service.py`)\
+  \ have:\n  - Abstract service interface\n  - Database-backed implementation\n  -\
+  \ RPC delegation pattern for cross-silo calls\n\n### Evidence for Microkernel (Plugin)\
+  \ as Secondary Style\n\n**Plugin Infrastructure:**\n- `src/sentry/plugins/base/v2.py`\
+  \ defines `IPlugin2` interface with `PluginMount` metaclass\n- Plugins register\
+  \ automatically via mount pattern\n- Rich integration system in `src/sentry/integrations/`\
+  \ with 30+ integrations (GitHub, Slack, Jira, Discord, etc.)\n- `src/sentry_plugins/`\
+  \ contains additional plugin implementations\n\n**Integration Extension Points:**\n\
+  - `IntegrationProvider` base class in `src/sentry/integrations/base.py`\n- Well-defined\
+  \ hooks for issue tracking, notifications, repository providers\n- Data forwarding\
+  \ plugins (`src/sentry/integrations/data_forwarding/`)\n\n### What This Is NOT\n\
+  \n- **Not Microservices**: Single repository, single Dockerfile, single deployment\
+  \ unit. The silo system is designed for *potential* decomposition but currently\
+  \ runs as a monolith.\n\n- **Not Pure Layered**: While there's API → Service → Model\
+  \ flow, the primary organization is vertical (domain modules) not horizontal (layers).\
+  \ The `api/`, `models/`, `services/` exist *within* each domain module.\n\n- **Not\
+  \ Event-Driven (primary)**: While Kafka consumers exist (`src/sentry/consumers/`)\
+  \ and task workers (`src/sentry/taskworker/`), these are internal implementation\
+  \ details for async processing, not the primary architectural pattern.\n\n### Key\
+  \ Architectural Decisions\n\n1. **Hybrid Cloud Architecture**: The silo system with\
+  \ CONTROL/REGION modes shows this monolith is designed to potentially split into\
+  \ separate deployments while maintaining code cohesion.\n\n2. **RPC Service Pattern**:\
+  \ Services can be called locally or remotely depending on silo mode - a sophisticated\
+  \ abstraction that supports both monolith and potential future microservices.\n\n\
+  3. **Django App Modularity**: Leverages Django's app framework for clean module\
+  \ isolation while sharing a single database."

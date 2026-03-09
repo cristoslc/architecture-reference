@@ -1,0 +1,137 @@
+Now I have enough evidence to provide a comprehensive classification. Let me examine one more aspect - the integration event flow pattern:Based on my comprehensive exploration of the eShop repository, I can now provide the architecture classification.
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles:
+  - Event-Driven
+  - Domain-Driven Design
+confidence: 0.92
+---
+
+## Architecture Analysis
+
+### Primary Style: Microservices
+
+The eShop repository implements a textbook **Microservices architecture** with the following evidence:
+
+**Multiple Independently Deployable Services:**
+The AppHost (`src/eShop.AppHost/Program.cs`) orchestrates 10+ distinct services:
+- `Basket.API` - Shopping basket service (gRPC, Redis-backed)
+- `Catalog.API` - Product catalog service (PostgreSQL-backed)
+- `Ordering.API` - Order management service (PostgreSQL-backed)
+- `Identity.API` - Authentication/identity service
+- `Webhooks.API` - Webhook management service
+- `PaymentProcessor` - Background payment processing worker
+- `OrderProcessor` - Background order processing worker
+- `WebApp` - Web frontend (Blazor)
+- `WebhookClient` - Webhook client application
+- YARP-based mobile BFF (reverse proxy)
+
+**Database Per Service Pattern:**
+Each service owns its data with separate databases:
+```
+var catalogDb = postgres.AddDatabase("catalogdb");
+var identityDb = postgres.AddDatabase("identitydb");
+var orderDb = postgres.AddDatabase("orderingdb");
+var webhooksDb = postgres.AddDatabase("webhooksdb");
+```
+Basket.API uses Redis for its state, not shared with other services.
+
+**Independent Technology Choices:**
+- Basket.API uses gRPC (`builder.Services.AddGrpc()`)
+- Ordering.API uses REST with API versioning
+- Services can be deployed and scaled independently via .NET Aspire
+
+### Secondary Style: Event-Driven Architecture
+
+Services communicate asynchronously through **integration events** via RabbitMQ:
+
+**Event Bus Infrastructure:**
+```
+var rabbitMq = builder.AddRabbitMQ("eventbus")
+```
+(`src/eShop.AppHost/Program.cs`, lines 8-9)
+
+**Integration Events Flow:**
+- `OrderStartedIntegrationEvent` - published by Ordering.API when order created
+- `OrderStatusChangedToAwaitingValidationIntegrationEvent` - triggers stock validation in Catalog.API
+- `OrderStockConfirmedIntegrationEvent` / `OrderStockRejectedIntegrationEvent` - catalog stock validation results
+- `OrderPaymentSucceededIntegrationEvent` / `OrderPaymentFailedIntegrationEvent` - payment processing results
+
+**Event Handlers Subscribed via Event Bus:**
+```csharp
+// PaymentProcessor/Program.cs
+builder.AddRabbitMqEventBus("EventBus")
+    .AddSubscription<OrderStatusChangedToStockConfirmedIntegrationEvent, 
+                      OrderStatusChangedToStockConfirmedIntegrationEventHandler>();
+```
+
+**Outbox Pattern Implementation:**
+The `IntegrationEventLogService` (`src/IntegrationEventLogEF/`) implements reliable event publishing with transactional integrity - events are stored atomically with domain changes before being published.
+
+### Secondary Style: Domain-Driven Design
+
+Strong DDD tactical patterns in the Ordering bounded context:
+
+**Bounded Context Structure:**
+- `Ordering.Domain` - Pure domain model, no infrastructure dependencies
+- `Ordering.Infrastructure` - Repository implementations, EF Core context
+- `Ordering.API` - Application layer with CQRS handlers
+
+**Aggregate Roots with IAggregateRoot Marker:**
+```csharp
+// Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs
+public class Order : Entity, IAggregateRoot
+```
+
+**Value Objects:**
+```csharp
+// Ordering.Domain/AggregatesModel/OrderAggregate/Address.cs
+// Persisted as EF Core owned entity
+public class Address : ValueObject
+```
+
+**Domain Events:**
+The domain layer contains 8 domain events (`src/Ordering.Domain/Events/`):
+- `OrderStartedDomainEvent`
+- `OrderShippedDomainEvent`
+- `OrderCancelledDomainEvent`
+- `OrderStatusChangedToAwaitingValidationDomainEvent`
+- etc.
+
+**Entity Base Class with Domain Events:**
+```csharp
+// Ordering.Domain/SeedWork/Entity.cs
+private List<INotification> _domainEvents;
+public IReadOnlyCollection<INotification> DomainEvents => _domainEvents?.AsReadOnly();
+public void AddDomainEvent(INotification eventItem) { ... }
+```
+
+**Invariants Protected in Aggregates:**
+```csharp
+// Order.cs - business rules enforced through methods
+public void SetShippedStatus()
+{
+    if (OrderStatus != OrderStatus.Paid)
+    {
+        StatusChangeException(OrderStatus.Shipped);
+    }
+    OrderStatus = OrderStatus.Shipped;
+    AddDomainEvent(new OrderShippedDomainEvent(this));
+}
+```
+
+### Rejected Styles
+
+**Not Layered Monolith:** Services are independently deployable with separate databases, not horizontal layers in a single deployable. Each service has its own Program.cs entry point.
+
+**Not Modular Monolith:** The solution has multiple deployable units (.csproj projects that become separate containers), not a single deployable with enforced module boundaries.
+
+**Not Serverless:** Services are deployed as containers orchestrated by .NET Aspire, not as individual functions triggered by events. PaymentProcessor and OrderProcessor are background workers, not Azure Functions.
+
+**Not CQRS (primary):** While MediatR is used for commands/queries in Ordering.API, this is an application pattern within the microservice, not the primary architectural characteristic. The read/write separation is not at the system level.
+
+## Conclusion
+
+eShop is a **Microservices reference application** built on .NET Aspire, using **Event-Driven** communication between services via RabbitMQ integration events, with **Domain-Driven Design** patterns applied within the Ordering bounded context. This combination is typical for mature microservices implementations where event-driven communication ensures loose coupling between services, while DDD patterns provide rich domain modeling within service boundaries.

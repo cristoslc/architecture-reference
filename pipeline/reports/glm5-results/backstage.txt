@@ -1,0 +1,114 @@
+I'll explore the Backstage repository to classify its architecture. Let me start with a high-level overview.Let me explore the architecture documentation and plugin system moredeeply.Now I have a comprehensive understanding of the Backstage architecture. Let me compile my analysis.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.95
+---
+
+## Analysis
+
+Backstage is definitively a **Microkernel (Plugin) Architecture** with clear **Layered** elements as a secondary pattern.
+
+### Primary: Microkernel (Plugin)
+
+The entire codebase is structured around a plugin system that forms the core architectural principle:
+
+**Core System (Microkernel):**
+- `packages/backend-plugin-api` - Core API defining `createBackendPlugin`, `createBackendModule`, and `createExtensionPoint`
+- `packages/frontend-plugin-api` - Core API for frontend extensions with `createExtension`, `createPlugin`
+- `packages/core-plugin-api` - Base plugin API infrastructure
+- `packages/backend-defaults` - Default service implementations that form the runtime kernel
+
+**Plugin Architecture Evidence:**
+
+1. **Backend Plugins** (154+ plugins in `plugins/`):
+```typescript
+// plugins/catalog-backend/src/service/CatalogPlugin.ts
+export const catalogPlugin = createBackendPlugin({
+  pluginId: 'catalog',
+  register(env) {
+    env.registerExtensionPoint(catalogProcessingExtensionPoint, {...});
+    env.registerInit({...});
+  },
+});
+```
+
+2. **Extension Points** - The core mechanism for plugins to expose customization APIs:
+```typescript
+// plugins/catalog-node/src/extensions.ts
+export const catalogProcessingExtensionPoint =
+  createExtensionPoint<CatalogProcessingExtensionPoint>({
+    id: 'catalog.processing',
+  });
+```
+
+3. **Modules** - Extend plugins via extension points:
+```typescript
+// From docs/backend-system/architecture/06-modules.md
+export const catalogModuleExampleCustomProcessor = createBackendModule({
+  pluginId: 'catalog',
+  moduleId: 'example-custom-processor',
+  register(env) {
+    env.registerInit({
+      deps: { catalog: catalogProcessingExtensionPoint },
+      async init({ catalog }) {
+        catalog.addProcessor(new MyCustomProcessor());
+      },
+    });
+  },
+});
+```
+
+**Key Architectural Constraints:**
+- "Plugins must never communicate with each other directly through code, they may only communicate over the network" (`docs/backend-system/architecture/04-plugins.md`)
+- "Each plugin can be considered to be its own microservice" 
+- Extension points are first-class citizens for customization
+- Clear package naming: `*-backend-module-*` for extension modules
+
+### Secondary: Layered
+
+Clear horizontal separation with defined responsibilities:
+
+**Frontend Layer:**
+- `packages/app` - Application assembly
+- `packages/core-*` - UI components and frontend APIs
+- `plugins/*` (frontend plugins) - UI features
+
+**Backend Layer:**
+- `packages/backend` - Deployment entry point
+- `packages/backend-defaults` - Default service implementations
+- `plugins/*-backend` - Backend plugins
+
+**Data/Model Layer:**
+- `packages/catalog-model` - Shared entity models
+- `packages/catalog-client` - Data access clients
+
+### What This is NOT:
+
+**Not Microservices:** While plugins "can be considered microservices" and the docs mention you can "split this setup into multiple backends," the default deployment is a single monolithic backend. The architecture document states: "While a default Backstage project has all plugins installed within a single backend." The microservices capability is a deployment option, not the primary architectural pattern.
+
+**Not Modular Monolith:** Unlike a modular monolith with enforced internal boundaries, Backstage has a true plugin kernel where plugins are dynamically loaded and communicate through extension points and services, not through internal module APIs.
+
+**Not Hexagonal:** While there are APIs and interfaces, the architecture doesn't center on ports/adapters isolation. The plugin system is the primary extension mechanism, not adapter injection.
+
+**Not Domain-Driven Design:** While there are bounded contexts (catalog, scaffolder, techdocs), the primary organizational principle is the plugin boundary, not domain modeling with aggregates/entities/value objects.
+
+### Structural Evidence:
+
+**Package Organization** (from `package.json` and ADR011):
+```json
+"workspaces": ["packages/*", "plugins/*"]
+```
+
+Naming conventions enforce plugin boundaries:
+- `@backstage/plugin-<name>` - Frontend plugin
+- `@backstage/plugin-<name>-backend` - Backend plugin
+- `@backstage/plugin-<name>-backend-module-<module>` - Extension module
+- `@backstage/plugin-<name>-node` - Extension points and utilities
+
+**154 plugin packages** demonstrate the centrality of the plugin architecture to the entire system.
+
+The documentation explicitly frames everything in terms of plugins, extensions, and extension points - the core concepts of a Microkernel pattern.

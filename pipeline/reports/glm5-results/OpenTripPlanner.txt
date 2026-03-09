@@ -1,0 +1,81 @@
+Let me explore the module structure and dependencies more closely:Based on my comprehensive analysis of the OpenTripPlanner repository, I now have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Modular Monolith
+
+OpenTripPlanner exhibits clear characteristics of a **Modular Monolith** architecture with strongly enforced internal module boundaries:
+
+**1. Single Deployable Unit with Enforced Module Boundaries**
+- The project produces a single unified JAR (`otp-shaded/target/otp-shaded-VERSION.jar`) as documented in `README.md` lines 51-55
+- Uses Maven multi-module structure with explicit modules: `utils`, `domain-core`, `raptor`, `astar`, `street`, `gtfs-realtime-protobuf`, `application` (pom.xml lines 97-107)
+- Architecture tests using ArchUnit enforce package dependencies (see `TimetableRepositoryArchitectureTest.java` and `RaptorArchitectureTest.java`)
+
+**2. Strict Module Isolation**
+- The Raptor module explicitly documents: *"there are no dependencies from Raptor to other parts of OTP code, only to utility classes not found in the JDK"* (`raptor/pom.xml` lines 35-37, `ARCHITECTURE.md` lines 66-69)
+- Each module has controlled dependencies declared in pom.xml (e.g., `raptor` only depends on `utils`, `street` depends on `domain-core` and `astar`)
+- Development Decision Records explicitly state: *"Keep modules clean. Consider adding an `api`, `spi` and mapping code to isolate the module from the rest of the code. Avoid circular dependencies between modules."* (DEVELOPMENT_DECISION_RECORDS.md lines 76-79)
+
+**3. Dependency Enforcement via Architecture Tests**
+The architecture tests enforce allowed dependencies between packages:
+```java
+// From RaptorArchitectureTest.java - explicit dependency boundaries
+RAPTOR_SPI.dependsOn(OTP_UTILS, API_MODEL, API_PATH).verify();
+```
+
+**4. Module Wiring via Dependency Injection**
+- Uses Dagger for component wiring with explicit module classes (`*Module.java` files)
+- Module wiring follows documented pattern: `"Put the wiring code in <module-name>/configure/<Module-name>Module.java"` (DEVELOPMENT_DECISION_RECORDS.md lines 67-68)
+- Clear service/repository interfaces with implementations in `internal` packages (see `service/` directory structure in `application/src/main/java/org/opentripplanner/service/`)
+
+### Secondary Style: Layered Architecture
+
+The codebase exhibits layered architecture patterns within and across modules:
+
+**Layer Organization (from ARCHITECTURE.md lines 21-36):**
+- **Use Case Services**: Stateless services combining multiple domain services (e.g., `RoutingService`, `TransitService`)
+- **Domain Services**: Business logic for specific domains (transit, vehicle position, etc.)
+- **Domain Models**: Encapsulate business areas with separate Service and Repository
+- **Repositories**: Maintain domain models, used by updaters
+
+**Service Package Structure (from service/package.md):**
+```
+o.o.service.<name>
+  configure/          -- Dependency Injection configuration
+  internal/           -- Internal implementation
+  model/              -- Public model/api
+  <Name>Service       -- Interface for read-only service
+  <Name>Repository    -- Interface for updating the model
+```
+
+**API Layer:**
+- GraphQL APIs in `application/src/main/java/org/opentripplanner/apis/`
+- Configuration layer in `standalone/config/` that injects POJOs into components
+
+### Evidence Against Other Styles
+
+- **Not Microservices**: Single deployable JAR, no service boundaries for independent deployment
+- **Not Serverless**: No function-based deployment units, runs as standalone server
+- **Not CQRS**: No separate read/write models documented (though real-time data handling exists)
+- **Not Microkernel/Plugin**: No runtime plugin loading; modules are compile-time defined
+- **Not Event-Driven (primary)**: While real-time updaters exist (`updater/` package), the core architecture is synchronous request-response via GraphQL
+- **Not Hexagonal**: No explicit ports/adapters pattern; uses direct service injection rather than port interfaces
+
+### Conclusion
+
+OpenTripPlanner is a mature, well-structured **Modular Monolith** that has evolved over 15+ years. The architecture emphasizes:
+
+1. **Strong module encapsulation** enforced by both build system (Maven dependencies) and architecture tests (ArchUnit)
+2. **Clear layered structure** within modules following Use Case → Domain Service → Repository patterns
+3. **Explicit dependency injection** via Dagger modules with documented wiring conventions
+4. **Domain-driven design concepts** (aggregates, entities, value objects) applied within modules
+
+The isolated Raptor routing engine module demonstrates particularly strong boundary enforcement, with zero dependencies on the rest of OTP beyond utility classes.

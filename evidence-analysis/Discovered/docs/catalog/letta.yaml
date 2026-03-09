@@ -16,7 +16,6 @@ languages:
 architecture_styles:
 - Layered
 - Microkernel (Plugin)
-- Domain-Driven Design
 classification_status: classified
 review_notes: 'The Letta (formerly MemGPT) repository is organized as a **Layered**
   system with significant **Microkernel (Plugin)** and **Domain-Driven Design (DDD)**
@@ -46,53 +45,55 @@ review_notes: 'The Letta (formerly MemGPT) repository is organized as a **Layere
 
   ### 2. Secondary Style: Microkernel (Plugin)'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.69
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:55:36Z'
-classification_reasoning: "The Letta (formerly MemGPT) repository is organized as\
-  \ a **Layered** system with significant **Microkernel (Plugin)** and **Domain-Driven\
-  \ Design (DDD)** influences. The codebase serves a platform for stateful AI agents,\
-  \ where the structural boundaries are defined by horizontal technical layers and\
-  \ vertical domain concepts.\n\n### 1. Primary Style: Layered\nThe system follows\
-  \ a classic horizontal layering pattern, visible in the directory structure under\
-  \ `letta/`:\n- **Presentation/API Layer**: `letta/server/rest_api/routers` and `letta/server/ws_api`.\
-  \ This layer handles HTTP/WebSocket communication, authentication, and request/response\
-  \ mapping via Pydantic/Marshmallow schemas (found in `letta/schemas/` and `letta/serialize_schemas/`).\n\
-  - **Application/Service Layer**: Logic for managing the \"life cycle\" of agents,\
-  \ conversation flows, and multi-agent coordination is found in `letta/server/server.py`\
-  \ and the various `letta/groups/` managers.\n- **Domain Layer**: The core logic\
-  \ of \"what an agent is\" and how it processes information resides in `letta/agents/`\
-  \ (e.g., `letta_agent_v2.py`, `base_agent.py`).\n- **Data Access/Infrastructure\
-  \ Layer**: Database interactions are centralized in `letta/server/db.py`, `letta/database_utils.py`,\
-  \ and managed via Alembic migrations.\n\n### 2. Secondary Style: Microkernel (Plugin)\n\
-  The system is designed to be highly extensible through a provider/adapter pattern,\
-  \ which qualifies as a **Microkernel** architecture:\n- **LLM/Provider Adapters**:\
-  \ Under `letta/adapters/` and `letta/local_llm/`, there are specific adapters for\
-  \ various backends (OpenAI, Ollama, vLLM, Anthropic). This allows the \"core\" agent\
-  \ logic to remain agnostic of the specific model being used.\n- **Extension Points**:\
-  \ The presence of `letta/plugins/` and `letta/functions/function_sets/` indicates\
-  \ a system where users can inject custom \"tools\" or \"skills\" into the agent's\
-  \ runtime. The agent serves as the \"kernel,\" and tools are external modules loaded\
-  \ into its context.\n\n### 3. Secondary Style: Domain-Driven Design (DDD)\nThe codebase\
-  \ shows a strong orientation toward DDD principles, specifically in how the data\
-  \ and logic are partitioned:\n- **Bounded Contexts**: The `letta/schemas/` directory\
-  \ is highly granular, with distinct models for `agent`, `block` (memory), `tool`,\
-  \ `source`, and `passage`. These represent clear domain entities with specific relationships.\n\
-  - **Aggregates**: The `Agent` (in `letta/agents/`) acts as the primary aggregate\
-  \ root, encompassing `Memory` (blocks) and `Tool` associations, enforcing constraints\
-  \ on how these entities interact during an \"agent loop.\"\n\n### Architecture Rejections\n\
-  - **Microservices**: While there is a `Dockerfile` that packages Postgres, Redis,\
-  \ and an OTEL collector, these are infrastructure dependencies rather than independent\
-  \ business services. The core logic is a single Python monolith. \n- **Hexagonal\
-  \ Architecture**: While it uses \"adapters,\" the internal structure does not strictly\
-  \ follow the \"Ports and Adapters\" pattern where the core is completely decoupled\
-  \ from the framework (it is heavily integrated with FastAPI/Pydantic throughout)."
-confidence_calibration:
-  original_confidence: 0.85
-  calibrated_confidence: 0.69
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.7
-  alternatives_dismissed: 0.55
-  exploration_completeness: 0.72
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:35:29Z'
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
+  \ Style: **Layered Architecture**\n\nThe Letta repository exhibits a clear **horizontal\
+  \ layered architecture** with well-defined separation of concerns:\n\n**Presentation/Interface\
+  \ Layer:**\n- `letta/server/rest_api/routers/` — FastAPI REST endpoints organized\
+  \ by resource (agents, blocks, messages, tools, etc.)\n- `letta/server/ws_api/`\
+  \ — WebSocket API for real-time streaming\n- `letta/cli/` — Command-line interface\n\
+  - `letta/interfaces/` — Streaming interface abstractions for different LLM providers\
+  \ (Anthropic, OpenAI, Gemini)\n\n**Service/Business Logic Layer:**\n- `letta/services/`\
+  \ — Core business services: `AgentManager`, `MessageManager`, `BlockManager`, `PassageManager`,\
+  \ `GroupManager`, `FileManager`, `ToolManager`, etc.\n- Services orchestrate domain\
+  \ operations and encapsulate business rules\n\n**Domain/Agent Layer:**\n- `letta/agents/`\
+  \ — Agent implementations (`LettaAgent`, `LettaAgentV2`, `LettaAgentV3`, `VoiceAgent`,\
+  \ `EphemeralAgent`)\n- `letta/groups/` — Multi-agent coordination patterns\n- `letta/functions/`\
+  \ — Tool/function schema generation and parsing\n\n**Data Access Layer:**\n- `letta/orm/`\
+  \ — SQLAlchemy ORM models for persistence (Agent, Block, Message, Group, etc.)\n\
+  - `letta/schemas/` — Pydantic data transfer objects\n\n**Infrastructure/Adapters\
+  \ Layer:**\n- `letta/llm_api/` — LLM client adapters for multiple providers\n- `letta/services/mcp/`\
+  \ — Model Context Protocol client implementations\n- `letta/adapters/` — Request/response\
+  \ adapters\n\n### Secondary Style: **Microkernel (Plugin)**\n\nThe codebase demonstrates\
+  \ a microkernel pattern through its extensible plugin system:\n\n**Evidence from\
+  \ `letta/plugins/plugins.py`:**\n```python\n@runtime_checkable\nclass SummarizerProtocol(Protocol):\n\
+  \    \"\"\"What a summarizer must implement\"\"\"\n    async def summarize(self,\
+  \ text: str) -> str: ...\n    def get_name(self) -> str: ...\n\ndef get_plugin(plugin_type:\
+  \ str):\n    \"\"\"Get a plugin instance\"\"\"\n    plugin_register = dict(DEFAULT_PLUGINS,\
+  \ **settings.plugin_register_dict)\n    ...\n    module = importlib.import_module(module_path)\n\
+  \    plugin = getattr(module, name)\n```\n\n**Extension Points:**\n1. **Summarizers**\
+  \ — Pluggable summarization implementations\n2. **Tool Executors** (`letta/services/tool_executor/`)\
+  \ — Multiple backends: `BuiltinToolExecutor`, `MCPToolExecutor`, `SandboxToolExecutor`,\
+  \ `ComposioToolExecutor`\n3. **LLM Clients** (`letta/llm_api/llm_client.py`) — Factory\
+  \ pattern selecting from 15+ provider implementations (OpenAI, Anthropic, Google,\
+  \ Azure, Bedrock, etc.)\n4. **Streaming Interfaces** — Provider-specific streaming\
+  \ implementations\n\n### What This Is NOT\n\n**NOT Microservices:**\n- Single deployable\
+  \ artifact (one Dockerfile, one `letta_server` container)\n- Single monolithic codebase\
+  \ (`pyproject.toml` defines one package)\n- Single shared PostgreSQL database with\
+  \ pgvector\n\n**NOT Event-Driven:**\n- No message broker configuration in `compose.yaml`\n\
+  - Synchronous REST API as primary interface\n- Direct method calls between layers\n\
+  \n**NOT Domain-Driven Design:**\n- No bounded context separation\n- No aggregate/value\
+  \ object patterns in domain model\n- Layered organization by technical concern,\
+  \ not domain boundaries\n\n**NOT Multi-Agent Architecture:**\n- While the system\
+  \ manages AI agents, the repository structure itself is not organized around autonomous\
+  \ agent coordination — the agent classes are domain objects within a layered system\n\
+  \n### Deployment Evidence\n\nFrom `compose.yaml`:\n- Single `letta_server` service\n\
+  - Single PostgreSQL database with pgvector extension\n- Optional nginx reverse proxy\n\
+  - All components in one deployable unit\n\n### Confidence Rationale\n\n**0.90 confidence**\
+  \ — The layered pattern is unmistakable with clear horizontal separation. The microkernel/plugin\
+  \ pattern is well-evidenced through Protocol interfaces, dynamic plugin loading,\
+  \ and multiple interchangeable implementations for tool execution and LLM providers.\
+  \ The single-deployable monolith structure eliminates microservices as a consideration."

@@ -1,0 +1,114 @@
+Let me dig deeper into the project structure and dependencies to understand the architectural patterns.Based on my comprehensive exploration of the eShopOnWeb repository, I now have sufficient evidence to provide my final classification.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Hexagonal Architecture
+confidence: 0.90
+---
+
+## Architecture Classification: Layered with Hexagonal Architecture (Clean Architecture)
+
+### Primary Style: Layered Architecture
+
+The repository exhibits a classic **layered architecture** with clear horizontal separation:
+
+**Layer Structure:**
+```
+src/
+├── ApplicationCore/     ← Domain Layer (entities, interfaces, specifications, domain services)
+├── Infrastructure/      ← Data Access Layer (EF Core, repositories, identity, logging)
+├── Web/                 ← Presentation Layer (MVC controllers, Razor Pages, ViewModels)
+└── PublicApi/           ← API Layer (Minimal API endpoints)
+```
+
+**Evidence from dependency analysis:**
+- `Web.csproj` → references ApplicationCore and Infrastructure
+- `Infrastructure.csproj` → references ApplicationCore only
+- `ApplicationCore.csproj` → has NO project references (fully independent)
+
+This demonstrates the classic layered dependency flow: **Presentation → Infrastructure → Core**
+
+**README confirmation:**
+> "Sample ASP.NET Core reference application... demonstrating a **single-process (monolithic) application architecture** and deployment model."
+
+### Secondary Style: Hexagonal Architecture (Clean Architecture)
+
+Strong evidence of **Hexagonal Architecture** patterns:
+
+**Ports (Interfaces in ApplicationCore):**
+- `IRepository<T>`, `IReadRepository<T>` - repository ports
+- `IBasketService`, `IOrderService` - service ports  
+- `IAppLogger<T>`, `IEmailSender` - infrastructure ports
+- `IUriComposer`, `ITokenClaimsService` - utility ports
+
+**Adapters (Implementations in Infrastructure):**
+```csharp
+// Infrastructure/Data/EfRepository.cs
+public class EfRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T> 
+    where T : class, IAggregateRoot
+```
+
+**Core isolation principle:**
+- ApplicationCore has **zero dependencies** on Infrastructure or Presentation
+- All dependencies point **inward** toward the domain core
+- The `Dependencies.cs` file wires up implementations to interfaces
+
+### Domain-Driven Design Elements (Within Layers)
+
+DDD tactical patterns are present within the ApplicationCore layer:
+
+**Aggregates with IAggregateRoot marker:**
+```csharp
+public class Basket : BaseEntity, IAggregateRoot { ... }
+public class Order : BaseEntity, IAggregateRoot { ... }
+```
+
+**Encapsulated collections (DDD pattern):**
+```csharp
+private readonly List<OrderItem> _orderItems = new List<OrderItem>();
+public IReadOnlyCollection<OrderItem> OrderItems => _orderItems.AsReadOnly();
+```
+
+**Specifications pattern for queries:**
+- `BasketWithItemsSpecification`
+- `CatalogFilterSpecification`
+- `CustomerOrdersWithItemsSpecification`
+
+### Deployment Topology
+
+The **docker-compose.yml** reveals a service-based deployment:
+```yaml
+services:
+  eshopwebmvc:      ← Web MVC application
+  eshoppublicapi:   ← Public API  
+  sqlserver:        ← Shared database
+```
+
+Both services share the same SQL Server database with identical connection strings - confirming this is **NOT microservices** but a **Service-Based architecture** (2 coarse-grained services sharing data).
+
+### Rejected Styles
+
+**NOT Microservices:**
+- Explicitly described as "monolithic" in README
+- Both services share the same database (CatalogConnection, IdentityConnection)
+- No independent data ownership per service
+
+**NOT Modular Monolith:**
+- No enforced module boundaries (no vertical slices with isolated schemas)
+- Standard horizontal layering, not vertical module separation
+
+**NOT Event-Driven:**
+- No message broker configuration (RabbitMQ, Kafka, etc.)
+- No event handlers or domain events
+- Synchronous request-response communication
+
+**NOT CQRS:**
+- No separate read/write models
+- MediatR is used minimally for query dispatch (not full CQRS)
+- Same database and repositories for all operations
+
+### Summary
+
+This is a **well-structured Layered Architecture** that embraces **Hexagonal Architecture** principles to keep the domain core isolated from infrastructure concerns. DDD tactical patterns (aggregates, specifications) are employed within the domain layer. The deployment is a simple service-based topology with two applications sharing a database - aligned with the stated goal of demonstrating monolithic architecture patterns for ASP.NET Core.

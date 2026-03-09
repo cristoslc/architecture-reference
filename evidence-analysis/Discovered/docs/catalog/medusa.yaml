@@ -15,8 +15,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Modular Monolith
-- Event-Driven
-- Domain-Driven Design
+- Pipeline (Pipe-and-Filter)
 classification_status: classified
 review_notes: "The Medusa repository is a sophisticated **Modular Monolith** organized\
   \ as a monorepo. While it utilizes a monorepo structure (via Yarn Workspaces and\
@@ -37,51 +36,68 @@ review_notes: "The Medusa repository is a sophisticated **Modular Monolith** org
   \ all modules extend.\n\n### Secondary Style: Event-Driven\nMedusa heavily relies\
   \ on an asynchronous event system for cross-module communication to maintain decoupling. "
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.71
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:16:05Z'
-classification_reasoning: "The Medusa repository is a sophisticated **Modular Monolith**\
-  \ organized as a monorepo. While it utilizes a monorepo structure (via Yarn Workspaces\
-  \ and Turborepo) to manage numerous packages, these packages are designed to be\
-  \ composed into a single runtime application (the Medusa server) rather than deployed\
-  \ as independent microservices.\n\n### Primary Style: Modular Monolith\nThe architecture\
-  \ is centered around \"Commerce Modules\" (found in `packages/modules/`). Each module\
-  \ (e.g., `promotion`, `order`, `cart`) encapsulates its own business logic, data\
-  \ models, and services. \n- **Internal Boundaries:** The use of `MedusaService`\
-  \ and `InjectManager` decorators (seen in `promotion-module.ts`) demonstrates a\
-  \ formal dependency injection system (built on Awilix) that enforces how modules\
-  \ interact.\n- **Unified Deployment:** Although modules are published as separate\
-  \ NPM packages, the primary mode of operation is to install these into a single\
-  \ Medusa project. The `integration-tests` directory shows a \"bootstrap-app\" pattern\
-  \ where all features are loaded into a single server instance for testing, typical\
-  \ of modular monoliths.\n- **Shared Framework:** A core framework (`packages/framework`)\
-  \ provides the underlying primitives (DAL, transaction management, context) that\
-  \ all modules extend.\n\n### Secondary Style: Event-Driven\nMedusa heavily relies\
-  \ on an asynchronous event system for cross-module communication to maintain decoupling.\
-  \ \n- **Evidence:** The presence of `event-bus` modules and the `@EmitEvents()`\
-  \ decorator in the service layer indicates that state changes in one module (e.g.,\
-  \ an Order being placed) trigger side effects in others (e.g., Promotion usage registration\
-  \ or Notifications) via events.\n- **Integration:** The `integration-tests/http/__tests__/event-bus`\
-  \ path further confirms that eventing is a first-class citizen in the communication\
-  \ protocol between boundaries.\n\n### Secondary Style: Domain-Driven Design (DDD)\n\
-  The codebase follows DDD tactical patterns closely.\n- **Bounded Contexts:** Each\
-  \ package in `packages/modules/*` acts as a bounded context with its own domain\
-  \ models and services.\n- **Tactical Patterns:** The code explicitly uses Entities,\
-  \ DTOs (Data Transfer Objects), and Repositories. In `promotion-module.ts`, we see\
-  \ the orchestration of several domain entities (`Promotion`, `Campaign`, `PromotionRule`)\
-  \ behind a service acting as an aggregate root or domain service.\n\n### Why not\
-  \ Microservices?\nWhile it looks like microservices due to the package separation,\
-  \ the \"services\" are typically internal class-based services rather than networked\
-  \ services with independent lifecycles. There is no evidence of service-mesh, individual\
-  \ K8s deployment manifests per module, or separate databases per module in a standard\
-  \ deployment (though the modular design *allows* for data isolation, they are usually\
-  \ collocated in a single Postgres instance)."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.71
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.7
-  style_clarity: 0.8
-  alternatives_dismissed: 0.6
-  exploration_completeness: 0.7
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:41:51Z'
+classification_reasoning: "## Architecture Classification: Modular Monolith with Workflow\
+  \ Orchestration\n\n### Primary Style: Modular Monolith\n\nMedusa is architected\
+  \ as a **modular monolith** with strongly enforced module boundaries. The evidence\
+  \ is compelling:\n\n**Monorepo with Independent Module Packages:**\n- 34 separate\
+  \ module packages under `packages/modules/` (product, order, cart, payment, customer,\
+  \ inventory, etc.)\n- 15+ provider packages under `packages/modules/providers/`\
+  \ (payment-stripe, auth-github, file-s3, notification-sendgrid, etc.)\n- Each module\
+  \ is independently versioned and published to npm (`\"name\": \"@medusajs/product\"\
+  `)\n- Peer dependency enforcement: modules depend on `@medusajs/framework` rather\
+  \ than each other directly\n\n**Module Definition Pattern:**\nEvery module follows\
+  \ a consistent structure (`packages/modules/product/src/index.ts`):\n```typescript\n\
+  export default Module(Modules.PRODUCT, {\n  service: ProductModuleService,\n})\n\
+  ```\n\nEach module includes:\n- Service layer (`services/product-module-service.ts`)\n\
+  - Data models (`models/`)\n- Database migrations (`migrations/`)\n- Joiner configuration\
+  \ (`joiner-config.ts`) for cross-module relationships\n- Integration tests\n\n**Module\
+  \ SDK with Discovery and Loading:**\nThe `packages/core/modules-sdk` provides module\
+  \ registration, discovery, and lifecycle management:\n```typescript\n// packages/core/modules-sdk/src/definitions.ts\n\
+  export const ModulesDefinition: {\n  [key: string]: ModuleDefinition\n} = {\n  [Modules.PRODUCT]:\
+  \ {\n    key: Modules.PRODUCT,\n    defaultPackage: false,\n    label: upperCaseFirst(Modules.PRODUCT),\n\
+  \    isRequired: false,\n    isQueryable: true,\n    dependencies: [Modules.EVENT_BUS,\
+  \ ContainerRegistrationKeys.LOGGER],\n    defaultModuleDeclaration: {\n      scope:\
+  \ MODULE_SCOPE.INTERNAL,\n    },\n  },\n  // ... 30+ module definitions\n}\n```\n\
+  \n**Provider Plugin System:**\nModules accept pluggable providers loaded dynamically\
+  \ (`packages/core/modules-sdk/src/loaders/module-provider-loader.ts`):\n```typescript\n\
+  export async function loadModuleProvider(\n  container: MedusaContainer,\n  provider:\
+  \ ModuleProvider,\n  registerServiceFn?: (klass, container, moduleDetails) => Promise<void>\n\
+  ) {\n  loadedProvider = await dynamicImport(normalizedPath)\n  // ...registers provider\
+  \ services into container\n}\n```\n\nExample: Payment module with Stripe provider\
+  \ (`packages/modules/providers/payment-stripe/src/services/stripe-provider.ts`):\n\
+  ```typescript\nclass StripeProviderService extends StripeBase {\n  static identifier\
+  \ = PaymentProviderKeys.STRIPE\n}\n```\n\n### Secondary Style: Pipeline (Pipe-and-Filter)\n\
+  \nMedusa implements a sophisticated **workflow orchestration engine** that embodies\
+  \ the Pipeline pattern:\n\n**Workflow SDK (`packages/core/workflows-sdk`):**\n-\
+  \ `createStep()` - Define atomic steps with compensation (rollback) handlers\n-\
+  \ `createWorkflow()` - Compose steps into pipelines\n- `WorkflowManager` - Register\
+  \ and execute workflows\n- Transaction orchestrator for distributed transactions\n\
+  \n**Core Flows (`packages/core/core-flows`):**\nPre-built workflow compositions\
+  \ for commerce operations:\n```\nsrc/\n├── api-key/steps/ + workflows/\n├── cart/steps/\
+  \ + workflows/      # 20+ steps, 15+ workflows\n├── customer/steps/ + workflows/\n\
+  ├── fulfillment/steps/ + workflows/\n├── order/steps/ + workflows/\n└── payment/steps/\
+  \ + workflows/\n```\n\n**Step Composition Pattern (`packages/core/workflows-sdk/src/utils/composer/create-step.ts`):**\n\
+  ```typescript\nexport type InvokeFn<TInput, TOutput, TCompensateInput> = (\n  input:\
+  \ TInput,\n  context: StepExecutionContext\n) => StepResponse<TOutput, TCompensateInput>\n\
+  \nexport type CompensateFn<T> = (\n  input: T | undefined,\n  context: StepExecutionContext\n\
+  ) => unknown | Promise<unknown>\n```\n\n**Workflow Definition Example:**\n```typescript\n\
+  const myWorkflow = createWorkflow(\n  \"my-workflow\",\n  (input: WorkflowInput)\
+  \ => {\n    const product = createProductStep(input)\n    return new WorkflowResponse(getProductStep(product.id))\n\
+  \  }\n)\n```\n\n### What This Is NOT\n\n**Not Microservices:**\n- Single deployable\
+  \ application (`packages/medusa/`)\n- Modules share a framework container, not distributed\
+  \ communication\n- No API gateways, service mesh, or inter-service HTTP/gRPC\n-\
+  \ Event bus is optional (local or Redis), not required for module communication\n\
+  \n**Not Service-Based (2-5 coarse services):**\n- 34 fine-grained modules, not 2-5\
+  \ coarse services\n- Each module is a separate npm package with clear boundaries\n\
+  - Modules define cross-module links via joiner configs, not shared databases\n\n\
+  **Not Domain-Driven Design:**\n- No bounded contexts with aggregates/entities/value\
+  \ objects pattern\n- No ubiquitous language or domain events (events are infrastructure-level)\n\
+  - Modules are organized by commerce feature, not strategic domains\n\n**Not Layered\
+  \ Architecture:**\n- No horizontal separation of presentation/business/data layers\n\
+  - Each module contains its own full stack (models, services, migrations)\n- Workflow\
+  \ engine cuts across layers vertically\n\n### Supporting Evidence\n\n**Workspace\
+  \ Configuration (`package.json`):**\n`\n\n[truncated]"

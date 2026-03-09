@@ -1,0 +1,95 @@
+Let me look at a few more files to understand how modules interact with the core system:Now I have enough evidence to classify this architecture. Let me summarize my findings:
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+## Architecture Classification: Akaunting
+
+### Primary Style: Microkernel (Plugin)
+
+**Evidence:**
+
+1. **Module/App System with Lifecycle Management:**
+   - The system uses `akaunting/laravel-module` package for plugin management
+   - `app/Utilities/ModuleActivator.php` implements `ActivatorInterface` to dynamically enable/disable modules per company
+   - Module lifecycle events: `Installed`, `Uninstalled`, `Disabling`, `Enabled` (`app/Events/Module/`)
+   - Module history tracking via `app/Models/Module/ModuleHistory.php`
+
+2. **Module Directory Structure:**
+   - PSR-4 autoloading: `"Modules\\": "modules/"` in `composer.json`
+   - Configured in `config/module.php` with stubs for generating new modules
+   - Module path: `base_path('modules')` with generated Controllers, Models, Views, Routes, etc.
+
+3. **Extension Points via Events:**
+   - `App\Events\Module\PaymentMethodShowing` - allows modules to register payment methods dynamically
+   - `App\Events\Menu\AdminCreated`, `PortalCreated`, `SettingsCreated` - menus can be extended by modules
+   - Report filters: `FilterShowing`, `GroupShowing`, `RowsShowing` - extensible reporting
+
+4. **Route Macros for Module Integration:**
+   - `Route::module()`, `Route::admin()`, `Route::portal()`, `Route::api()` in `app/Providers/Route.php`
+   - Modules can register their own routes with proper namespacing and middleware
+
+5. **Abstract Base Classes for Extension:**
+   - `app/Abstracts/` directory contains: `Model`, `Job`, `Event`, `Widget`, `Report`, `BulkAction`, `Export`, `Import`, `Notification`, `Observer`
+   - These serve as contracts for core and module implementations
+
+6. **App Store Integration:**
+   - README states: "App Store for users and developers"
+   - `app/Traits/Modules.php` - fetches modules from remote API
+   - Modules are installed at runtime, not build-time
+
+### Secondary Style: Layered
+
+**Evidence:**
+
+1. **Laravel MVC Foundation:**
+   - Controllers: `app/Http/Controllers/` with subdirectories for Auth, Banking, Common, Sales, Purchases, Settings
+   - Models: `app/Models/` organized by domain (Auth, Banking, Common, Document, Module, Setting)
+   - Views: `resources/views/` with Blade templates
+   - Routes: `routes/` with admin.php, portal.php, api.php, web.php
+
+2. **HTTP Layer Components:**
+   - Middleware: `app/Http/Middleware/` (Authenticate, IdentifyCompany, etc.)
+   - Requests (Form Validation): `app/Http/Requests/`
+   - Resources (API Transformers): `app/Http/Resources/`
+
+3. **Service/Job Layer:**
+   - `app/Jobs/` for background tasks
+   - `app/Abstracts/Job.php` as base for command pattern
+   - `app/Utilities/` for helper services
+
+4. **Data Access Layer:**
+   - `app/Scopes/Company.php` - Global query scope for multi-tenancy
+   - `app/Traits/Tenants.php` - Company isolation trait
+   - Eloquent models with global scopes
+
+### What Was Rejected:
+
+1. **Not Microservices:**
+   - Single deployable Laravel application
+   - Single `composer.json` and database
+   - No inter-service communication patterns
+
+2. **Not Domain-Driven Design (DDD):**
+   - No bounded contexts with explicit boundaries
+   - No aggregates, entities, value objects pattern
+   - Models follow Active Record pattern, not DDD patterns
+
+3. **Not Event-Driven (as primary):**
+   - Events are synchronous Laravel events, not message broker events
+   - No message queues for inter-component communication
+   - Events serve as plugin extension hooks, not architectural communication
+
+4. **Not Hexagonal:**
+   - No ports/adapters pattern
+   - Controllers directly use Eloquent models
+   - Limited use of repository pattern or domain services
+
+### Conclusion:
+
+Akaunting is a **Modular Monolith** implementing the **Microkernel (Plugin)** pattern. The core system provides accounting functionality, while a sophisticated module/app system allows third-party extensions to be installed, enabled per-tenant, and integrated through events, abstract classes, and route macros. The foundation is a standard **Layered** Laravel MVC architecture, but the defining architectural characteristic is the plugin system that enables the App Store marketplace.

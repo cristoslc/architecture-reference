@@ -1,0 +1,110 @@
+I'll explore this repository systematically to classify its architecture. Let me start with the overall structure and documentation.Excellent! The README is very informative. Let me explore the source code structure to understand the module organization and verify the architectural patterns.Let me examine the domain model and architecture enforcement:Let me examine a few more files to confirm the architecturepatterns:Now I have sufficient evidence. Let me compile the final classification.
+
+---
+verdict: classified
+primary_style: Domain-Driven Design
+secondary_styles:
+  - Hexagonal Architecture
+  - Modular Monolith
+confidence: 0.95
+---
+
+## Analysis
+
+This repository demonstrates a well-structured **Domain-Driven Design (DDD)** architecture as its primary style, with **Hexagonal Architecture** and **Modular Monolith** as secondary architectural patterns. The codebase also incorporates **CQRS** for separating read and write models.
+
+### Primary Style: Domain-Driven Design
+
+**Strong evidence throughout the codebase:**
+
+1. **Bounded Contexts**: The code is explicitly organized into bounded contexts - `lending` and `catalogue` - with clear linguistic boundaries. The documentation states: "bounded contexts should introduce autonomy... each module encapsulating the context has its own local architecture aligned to problem complexity."
+
+2. **Aggregates**: The `Patron` class (`src/main/java/io/pillopl/library/lending/patron/model/Patron.java`) is a clear aggregate root with:
+   - Rich domain behavior (`placeOnHold()`, `checkOut()`, `cancelHold()`)
+   - Domain events (`PatronEvent` hierarchy)
+   - Business rules encapsulated as policies (`PlacingOnHoldPolicy`)
+   - Invariants protected within aggregate boundaries
+   - Version tracking for optimistic concurrency
+
+3. **Domain Events**: Rich event hierarchy (`PatronEvent`, `DomainEvent`) with events like `BookPlacedOnHold`, `BookCheckedOut`, `BookHoldFailed` used for:
+   - Communication between aggregates
+   - Eventual consistency
+   - Updating read models
+
+4. **Ubiquitous Language**: Domain terminology (Patron, Hold, Checkout, Overdue, Circulating vs Restricted books) is used consistently throughout code and documentation.
+
+5. **Value Objects**: Abundant use of value objects: `BookId`, `PatronId`, `LibraryBranchId`, `HoldDuration`, `CheckoutDuration`, `ISBN`.
+
+6. **Domain Policies**: Business rules encapsulated as domain concepts:
+   ```java
+   interface PlacingOnHoldPolicy extends Function3<...> {
+       PlacingOnHoldPolicy onlyResearcherPatronsCanHoldRestrictedBooksPolicy = ...
+       PlacingOnHoldPolicy overdueCheckoutsRejectionPolicy = ...
+       PlacingOnHoldPolicy regularPatronMaximumNumberOfHoldsPolicy = ...
+   }
+   ```
+
+7. **Factories**: `PatronFactory` for aggregate construction with complex initialization.
+
+### Secondary Style: Hexagonal Architecture (within the Lending context)
+
+**Evidence in `src/test/groovy/io/pillopl/library/lending/architecture/LendingHexagonalArchitectureTest.java`:**
+
+ArchUnit tests explicitly enforce hexagonal architecture constraints:
+- Model layer doesn't depend on application, infrastructure, or UI
+- Application layer doesn't depend on infrastructure or UI
+- Clear separation of concerns through package boundaries
+
+**Structure within each bounded context:**
+- `model/` - Domain entities, aggregates, value objects, domain services
+- `application/` - Application services orchestrating use cases
+- `infrastructure/` - Adapters implementing domain interfaces
+- `web/` - Controllers as primary adapters
+
+Example from `PatronConfiguration.java`: Domain interfaces (`Patrons`, `FindAvailableBook`) are implemented by infrastructure adapters (`PatronsDatabaseRepository`) and wired via dependency injection.
+
+### Secondary Style: Modular Monolith
+
+**Evidence from README.md and architecture:**
+
+> "At the very beginning, not to overcomplicate the project, we decided to assign each bounded context to a separate package, which means that the system is a modular monolith."
+
+**ArchUnit enforcement in `ModularArchitectureTest.java`:**
+```java
+catalogue_should_not_depend_on_lending
+commons_should_not_depend_on_catalogue
+commons_should_not_depend_on_lending
+```
+
+**Single deployable unit:**
+- One `pom.xml` (Maven)
+- One Spring Boot application (`LibraryApplication.java`)
+- One Dockerfile
+- One `docker-compose.yml` with a single app service
+
+### Additional Pattern: CQRS
+
+**Explicit separation of read and write models:**
+
+1. **Write Model**: Rich domain model in `patron/model/` with `Patron` aggregate
+2. **Read Models**: 
+   - `PatronProfileReadModel` - projection for patron profile queries
+   - `SheetsReadModel` - projection for daily sheets
+3. **Event handlers updating read models** (`src/main/java/io/pillopl/library/lending/dailysheet/infrastructure/SheetsReadModel.java`):
+   ```java
+   @EventListener
+   public void handle(BookPlacedOnHold event) { ... }
+   @EventListener
+   public void handle(BookCheckedOut event) { ... }
+   ```
+
+### What This Is NOT
+
+- **NOT Microservices**: Single deployable, shared database, bounded contexts are packages not services
+- **NOT Layered (traditional)**: Domain model contains behavior, not just data; hexagonal architecture provides better insulation than traditional layers
+- **NOT Event-Driven Architecture (primary)**: Events are used for eventual consistency and read model updates, but primary communication is direct method calls within aggregates
+
+### Rejected Alternatives
+
+- **Service-Based**: Rejected because this is a single deployable with package-level boundaries, not multiple coarse-grained services
+- **Layered**: Rejected because the architecture uses hexagonal architecture with ports/adapters, and the domain model is rich with behavior (not anemic), which is distinctly different from traditional layering where business logic lives in a "service layer" above passive data entities

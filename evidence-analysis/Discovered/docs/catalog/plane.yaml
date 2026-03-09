@@ -17,7 +17,6 @@ languages:
 architecture_styles:
 - Service-Based
 - Event-Driven
-- Layered
 classification_status: classified
 review_notes: 'The Plane repository follows a **Service-Based** architecture, characterized
   by a few coarse-grained services that collaborate to form the application, while
@@ -47,78 +46,48 @@ review_notes: 'The Plane repository follows a **Service-Based** architecture, ch
 
   ### Secondary Style: Event-Driven'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.77
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:06:15Z'
-classification_reasoning: 'The Plane repository follows a **Service-Based** architecture,
-  characterized by a few coarse-grained services that collaborate to form the application,
-  while sharing a common backing data store.
-
-
-  ### Primary Style: Service-Based
-
-  Unlike a pure Microservices architecture where each service owns its database, Plane''s
-  `docker-compose.yml` reveals that the core functional components (`api`, `worker`,
-  `beat-worker`, `migrator`) all connect to the same PostgreSQL instance (`plane-db`)
-  and Redis instance (`plane-redis`). These services are essentially specialized deployments
-  of the same codebase (the `apps/api` Django application), separated to handle different
-  concerns:
-
-  - **`api`**: Synchronous HTTP/REST request handling.
-
-  - **`worker`/`beat-worker`**: Asynchronous background task processing and scheduled
-  jobs.
-
-  - **`live`**: A separate Node.js service (likely utilizing Hocuspocus/Yjs for real-time
-  collaboration) that handles socket-based traffic.
-
-  - **`web`/`admin`/`space`**: Frontend applications deployed as independent units
-  but acting as consumers of the unified API.
-
-
-  ### Secondary Style: Event-Driven
-
-  The system utilizes **Celery** with **Redis/RabbitMQ** as a message broker to decouple
-  long-running or recurring tasks from the main request-response cycle. The `apps/api/plane/celery.py`
-  file defines a extensive `beat_schedule` for "issue automation," "email notifications,"
-  and "cleanup tasks." This indicates an internal architecture that relies on pub/sub
-  or task-queue patterns for side effects and background processing.
-
-
-  ### Secondary Style: Layered (Internal)
-
-  Within the `apps/api` service, the code follows a traditional horizontal **Layered**
-  pattern common in Django Rest Framework (DRF) applications:
-
-  1.  **Presentation/API Layer**: Found in `apps/api/plane/api/views/`, defining the
-  REST endpoints.
-
-  2.  **Transformation/Validation Layer**: Found in `apps/api/plane/api/serializers/`,
-  handling data mapping.
-
-  3.  **Data/Domain Layer**: Found in `apps/api/plane/db/models/`, where business
-  logic often resides in fat models or mixins (`apps/api/plane/db/mixins.py`).
-
-
-  ### Architectural Observations
-
-  - **Monorepo Structure**: The use of `turbo.json` and a root `package.json` with
-  `apps/` directory demonstrates a managed monorepo for both the Python backend and
-  multiple TypeScript frontends.
-
-  - **Separation of Concerns**: While the backend shares a database, the frontend
-  is strictly partitioned into `web` (main app), `admin` (instance management), and
-  `space` (likely for public/external views), which communicate with the backend via
-  a centralized `proxy` (Caddy).'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.77
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.8
-  alternatives_dismissed: 0.55
-  exploration_completeness: 0.88
-  flags: self-reported confidence (0.92) appears inflated; alternatives like microservices
-    were implicitly contrasted but not explicitly dismissed with evidence; layered
-    is internal-only which may not warrant top-3 architectural classification
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.85
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:32:15Z'
+classification_reasoning: "## Architecture Analysis\n\n### Primary Style: Service-Based\n\
+  \nThe Plane repository exhibits a **Service-Based Architecture** with the following\
+  \ evidence:\n\n**Multiple coarse-grained deployable services** (from `docker-compose.yml`):\n\
+  - **web** (React Router frontend - main UI)\n- **admin** (Admin dashboard frontend)\n\
+  - **space** (Public/shared UI frontend)\n- **api** (Django REST API backend)\n-\
+  \ **worker** + **beat-worker** (Celery background task processors)\n- **live** (WebSocket\
+  \ collaboration server using HocusPocus)\n- **proxy** (Caddy reverse proxy)\n\n\
+  **Shared database** - All services use a single PostgreSQL instance (`plane-db`):\n\
+  ```yaml\nplane-db:\n  image: postgres:15.7-alpine\n```\n\n**Shared caching/messaging\
+  \ infrastructure**:\n- `plane-redis` (Valkey/Redis) for caching and Celery broker\n\
+  - `plane-mq` (RabbitMQ) for message queuing\n\n**Monolithic backend** - The `apps/api`\
+  \ Django application is internally organized as a monolith with layered components:\n\
+  - Views (`apps/api/plane/app/views/`)\n- Serializers (`apps/api/plane/app/serializers/`)\n\
+  - Models (`apps/api/plane/db/models/`)\n- Django apps: `analytics`, `api`, `app`,\
+  \ `authentication`, `bgtasks`, `db`, `license`, `space`, `web`\n\nThis matches the\
+  \ Service-Based pattern: 2-5 coarse-grained services sharing a database, where the\
+  \ backend is monolithic and frontends are separate deployment units.\n\n### Secondary\
+  \ Style: Event-Driven\n\nThe system incorporates **Event-Driven** patterns via Celery\
+  \ background tasks:\n\nFrom `apps/api/plane/celery.py`:\n```python\napp.conf.beat_schedule\
+  \ = {\n    \"check-every-five-minutes-to-send-email-notifications\": {...},\n  \
+  \  \"check-every-day-to-delete-hard-delete\": {...},\n    ...\n}\n```\n\nBackground\
+  \ tasks handle:\n- Email notifications (`email_notification_task`)\n- Issue activities\
+  \ tracking (`issue_activities_task`)\n- Webhook dispatches (`webhook_task`)\n- Cleanup\
+  \ tasks (`cleanup_task`)\n\nThe `live` service uses WebSockets for real-time collaborative\
+  \ editing (HocusPocus/Yjs), enabling event-driven real-time updates.\n\n### What\
+  \ This Is NOT\n\n- **Not Microservices**: Single shared database, coarse-grained\
+  \ services, no clear bounded contexts with independent data ownership\n- **Not Modular\
+  \ Monolith**: Multiple independently deployable services, not a single deployment\
+  \ unit\n- **Not pure Layered**: Multiple deployment units break horizontal layering;\
+  \ frontends are separate from backend\n- **Not Hexagonal**: No ports/adapters pattern;\
+  \ Django ORM directly couples to PostgreSQL\n\n### Frontend Monorepo Structure\n\
+  \nThe frontend uses a **pnpm workspace** (`pnpm-workspace.yaml`) with:\n- 4 applications\
+  \ (`apps/web`, `apps/admin`, `apps/space`, `apps/live`)\n- 14 shared packages (`@plane/types`,\
+  \ `@plane/services`, `@plane/ui`, `@plane/editor`, etc.)\n\nThis is a **monorepo\
+  \ with shared component libraries**, supporting the Service-Based architecture with\
+  \ reusable code across frontends.\n\n### Summary\n\nPlane is a **Service-Based Architecture**\
+  \ with **Event-Driven** secondary characteristics:\n- 5+ deployable services sharing\
+  \ infrastructure\n- Single monolithic Django backend with layered internals\n- Multiple\
+  \ frontend applications for different user contexts\n- Background task processing\
+  \ via Celery for async operations\n- Real-time collaboration via dedicated WebSocket\
+  \ server"

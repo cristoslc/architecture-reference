@@ -34,49 +34,65 @@ review_notes: "The Apache Kafka repository is structured as a **Modular Monolith
   \ there are many modules, they are released and versioned as a single coherent unit\
   \ (Apache Kafka)."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.71
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:53:25Z'
-classification_reasoning: "The Apache Kafka repository is structured as a **Modular\
-  \ Monolith**. While it is a distributed system when deployed, the codebase itself\
-  \ is organized into a single build system (Gradle) with strictly defined internal\
-  \ modules that are compiled and versioned together.\n\n### Evidence of Modular Monolith\n\
-  1.  **Gradle Multi-Project Structure**: The repository uses a single root Gradle\
-  \ build to manage multiple sub-projects (`core`, `clients`, `streams`, `group-coordinator`,\
-  \ `storage`, etc.).\n2.  **Enforced Module Boundaries**: The directory `checkstyle/`\
-  \ contains numerous `import-control-*.xml` files (e.g., `import-control-core.xml`,\
-  \ `import-control-server.xml`). These files are used by the build system to strictly\
-  \ enforce dependency boundaries between modules, preventing \"Big Ball of Mud\"\
-  \ dependency cycles.\n3.  **Core separation**: The functionality is split into logical\
-  \ units:\n    *   `clients`: The Java/c++ client logic.\n    *   `core`: The primary\
-  \ broker logic (traditionally Scala).\n    *   `storage` / `server-common`: Extracted\
-  \ modules to reduce the complexity of the core.\n4.  **Single Versioning**: Though\
-  \ there are many modules, they are released and versioned as a single coherent unit\
-  \ (Apache Kafka).\n\n### Evidence of Microkernel (Plugin)\nKafka employs a **Microkernel**\
-  \ style for its extensibility. It defines clear internal \"Ports\" or interfaces\
-  \ that allow users to plug in custom logic without modifying the core broker code:\n\
-  1.  **Connectors**: The `connect/` modules (not fully visible in the tree but known\
-  \ via `config/connect-*`) allow for a plugin-based architecture for data I/O.\n\
-  2.  **Pluggable Internal Components**: Kafka uses interfaces for `Authorizer`, `PrincipalBuilder`,\
-  \ and `MetricsReporter`. The directory `tools/tools-api` suggests a stable API surface\
-  \ for external extensions.\n\n### Why not Microservices?\nWhile Kafka is a distributed\
-  \ system of brokers, controllers, and clients, the *codebase structure* is not microservices.\
-  \ There are no independent deployment cycles for the individual modules (e.g., you\
-  \ don't deploy `group-coordinator` independently of the `core` broker). They are\
-  \ bundled into a single binary (`kafka-server-start.sh` runs the broker which includes\
-  \ these modules).\n\n### Why not Layered?\nWhile Kafka has internal layering (network\
-  \ layer, request handling, storage), the top-level organization is defined by functional\
-  \ modules (`streams`, `connect`, `clients`) rather than horizontal layers (controllers,\
-  \ services, repos), making \"Modular Monolith\" a more accurate descriptor."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.71
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.7
-  style_clarity: 0.75
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.65
-  flags: Microkernel designation is weakly supported — connector/plugin evidence is
-    mostly inferred from config file names and tool API existence rather than examined
-    plugin interfaces or SPI registries
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T21:12:26Z'
+classification_reasoning: "## Architecture Classification for Apache Kafka\n\n###\
+  \ Primary Style: **Modular Monolith**\n\nThe Apache Kafka repository exhibits a\
+  \ classic **Modular Monolith** architecture with carefully enforced module boundaries.\
+  \ Key evidence:\n\n**1. Single Deployable Artifact**\n- The Dockerfile (`docker/jvm/Dockerfile`)\
+  \ builds a single release tarball (`kafka.tgz`) containing all components\n- One\
+  \ main entry point (`core/src/main/scala/kafka/Kafka.scala`) starts the unified\
+  \ server\n\n**2. Explicit Module Structure via Gradle**\nThe `settings.gradle` defines\
+  \ 40+ subprojects organized into a deliberate module hierarchy:\n```\nclients, core,\
+  \ server, server-common, metadata, storage, raft,\ncoordinator-common, group-coordinator,\
+  \ transaction-coordinator,\nshare-coordinator, connect:api, connect:runtime, streams,\
+  \ tools...\n```\n\n**3. Enforced Dependency Direction (Layering)**\nThe repository\
+  \ has **16 separate import-control XML files** in `checkstyle/` that enforce module\
+  \ boundaries through static analysis. The comment at the top of each file states:\n\
+  ```xml\n<!-- THINK HARD ABOUT THE LAYERING OF THE PROJECT BEFORE CHANGING THIS FILE\
+  \ -->\n```\n\nKey enforcement rules include:\n- `<disallow pkg=\"kafka\" />` in\
+  \ most files prevents any module from depending on the Scala core server\n- `import-control.xml`\
+  \ (25,600+ bytes, the main file) defines what `org.apache.kafka.common` and `org.apache.kafka.clients`\
+  \ can import\n- Separate control files for `metadata`, `server`, `server-common`,\
+  \ `storage`, `group-coordinator`, `transaction-coordinator`, `coordinator-common`\
+  \ enforce their specific allowed dependencies\n\n**4. Module Dependency Hierarchy**\n\
+  The import controls reveal a clear layered dependency graph:\n- `common` (base utilities)\
+  \ → `clients` (client libraries) → `server-common`/`metadata`/`storage` (server\
+  \ infrastructure) → `core` (Scala server) and `server` (Java server)\n- Cross-cutting\
+  \ modules like `raft`, `coordinator-common` have their own controlled imports\n\n\
+  ---\n\n### Secondary Style: **Microkernel (Plugin)**\n\nKafka Connect implements\
+  \ a **plugin architecture** within the monolith:\n\n**Plugin API (`connect/api/`)**:\
+  \ Defines extension interfaces:\n- `Connector` and `Task` - base abstractions for\
+  \ connectors\n- `SourceConnector`/`SinkConnector` - direction-specific interfaces\
+  \  \n- `Transformation` and `Predicate` - message transformation SPIs\n- `Converter`,\
+  \ `HeaderConverter` - serialization SPIs\n\n**Plugin Runtime (`connect/runtime/`)**:\
+  \ Core system that loads plugins:\n- `Plugins.java` - discovers and instantiates\
+  \ plugins\n- `DelegatingClassLoader.java` - custom classloader with comment: *\"\
+  A custom classloader dedicated to loading Connect plugin classes in classloading\
+  \ isolation\"*\n- `PluginClassLoader.java` - isolated classloader per plugin\n-\
+  \ `PluginScanner.java` / `ServiceLoaderScanner.java` - plugin discovery\n\n**Built-in\
+  \ Plugins (`connect/file/`, `connect/json/`, `connect/transforms/`)**: Reference\
+  \ implementations showing the plugin contract in action:\n```java\n// FileStreamSourceConnector\
+  \ extends SourceConnector\npublic class FileStreamSourceConnector extends SourceConnector\
+  \ {\n    @Override\n    public Class<? extends Task> taskClass() {\n        return\
+  \ FileStreamSourceTask.class;\n    }\n}\n```\n\n**Plugin Discovery**: Supports both\
+  \ ServiceLoader-based and reflection-based plugin discovery for runtime extension.\n\
+  \n---\n\n### Why Not Other Styles\n\n| Style | Reason for Rejection |\n|-------|---------------------|\n\
+  | **Microservices** | Single deployable artifact; no independent service deployment\
+  \ |\n| **Layered** | Layering exists within modules, but module boundaries (not\
+  \ layers) are the primary organizing principle |\n| **Hexagonal** | No ports-and-adapters\
+  \ pattern; dependencies flow package-to-package, not inside-out |\n| **DDD** | Modules\
+  \ organized by technical function (storage, metadata, server), not business bounded\
+  \ contexts |\n| **Event-Driven** | Kafka *enables* event-driven systems but its\
+  \ internal codebase uses direct method calls, not event-based internal communication\
+  \ |\n| **Service-Based** | No shared database with 2-5 coarse services; this is\
+  \ a single application |\n\n---\n\n### Summary\n\nApache Kafka demonstrates a sophisticated\
+  \ **Modular Monolith** architecture where:\n1. The build system (Gradle) defines\
+  \ explicit module boundaries\n2. Static analysis (checkstyle import-control) enforces\
+  \ dependency direction at compile time\n3. A gradual migration from Scala (`core`)\
+  \ to Java modules (`server`, `metadata`, `storage`, etc.) is in progress\n\nThe\
+  \ Kafka Connect subsystem adds a **Microkernel/Plugin** architecture for runtime\
+  \ extensibility, with isolated classloading allowing third-party connectors to be\
+  \ loaded without modifying the core system."

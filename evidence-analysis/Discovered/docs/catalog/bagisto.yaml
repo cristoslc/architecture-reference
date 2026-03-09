@@ -16,7 +16,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Modular Monolith
-- Layered
+- Microkernel (Plugin)
 classification_status: classified
 review_notes: 'The Bagisto repository is a definitive example of a **Modular Monolith**
   architecture built on the Laravel framework. While it appears as a standard Laravel
@@ -48,87 +48,57 @@ review_notes: 'The Bagisto repository is a definitive example of a **Modular Mon
   stored in a single repository and deployed as a single unit, fitting the definition
   of a Modular Monolith rather than Microservices.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.85
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:41:33Z'
-classification_reasoning: 'The Bagisto repository is a definitive example of a **Modular
-  Monolith** architecture built on the Laravel framework. While it appears as a standard
-  Laravel application at the root level, the core business logic and functional domains
-  are organized into a strict internal module system managed via the `packages/` directory
-  and the **Concord** library.
-
-
-  ### Architecture Analysis
-
-
-  **1. Modular Monolith (Primary Style)**
-
-  The system is organized around bounded functional domains (e.g., `Attribute`, `Checkout`,
-  `Inventory`, `Sales`, `Tax`) rather than horizontal technical layers (Controllers,
-  Models, Services) alone.
-
-  - **Internal Module Isolation:** Evidence from `composer.json` shows over 30 internal
-  PSR-4 mappings pointing to `packages/Webkul/*`. Each of these packages acts as a
-  self-contained module containing its own Routes, Models, Migrations, and Views.
-
-  - **Concord Orchestration:** The `config/concord.php` file explicitly lists these
-  modules (e.g., `\Webkul\Sales\Providers\ModuleServiceProvider::class`). Concord
-  is a specifically designed library for Laravel to enable modularity by allowing
-  modules to provide their own entities, repositories, and configurations while maintaining
-  a unified application state.
-
-  - **Single Deployment Unit:** Despite the modular internal structure, all code is
-  stored in a single repository and deployed as a single unit, fitting the definition
-  of a Modular Monolith rather than Microservices.
-
-
-  **2. Layered (Secondary Style)**
-
-  Within each module located in `packages/Webkul/{ModuleName}/src`, the codebase follows
-  traditional horizontal layering:
-
-  - **Presentation:** Handled by the `Webkul\Admin` and `Webkul\Shop` modules which
-  act as the UI entry points.
-
-  - **Business Logic:** Encapsulated within Service Providers and separate domain
-  modules.
-
-  - **Data Access:** Heavily uses the **Repository Pattern** (as seen in `config/repository.php`
-  and the inclusion of `prettus/l5-repository` in `composer.json`) to abstract Eloquent
-  models from the business logic.
-
-
-  ### Structural Evidence
-
-  - **`packages/` folder:** Contains the core logic of the application, separated
-  by domain (Attribute, Category, Checkout, Core, Customer, Inventory, Product, Sales,
-  Tax, etc.).
-
-  - **`composer.json`:** Defines the autoloading strategy for these internal packages,
-  treating them as first-class citizens of the namespace.
-
-  - **`config/concord.php`:** Acts as the registry for internal modules, ensuring
-  they are booted and integrated into the Laravel container.
-
-  - **`config/repository.php`:** Supports the layered approach by providing a standardized
-  interface for data fetching, decoupling the modules from the database schema.
-
-
-  ### Rejection of Other Styles
-
-  - **Not Microservices:** All modules share the same runtime, session, and database
-  connection. There is no evidence of independent deployment units or inter-service
-  communication protocols (like gRPC) within the main repository.
-
-  - **Not Microkernel (Plugin):** While Bagisto supports extensions, the core commerce
-  logic itself is implemented as modules that are integrated at the foundation level
-  through Concord, rather than being optional runtime plugins for a minimal core.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.85
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.92
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.82
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:51:20Z'
+classification_reasoning: "## Analysis\n\nBagisto is a Laravel-based e-commerce framework\
+  \ that implements a **Modular Monolith** architecture with clear **Microkernel (Plugin)**\
+  \ characteristics.\n\n### Evidence for Modular Monolith\n\n**Single Deployable with\
+  \ Enforced Module Boundaries:**\n- The entire application is deployed as a single\
+  \ unit via `composer.json` with no separate deployment units\n- Uses `konekt/concord`\
+  \ package specifically designed for Laravel modular monoliths, providing module\
+  \ lifecycle management\n- 31 distinct modules organized under `packages/Webkul/`\
+  \ directory: Admin, Attribute, BookingProduct, CMS, CartRule, CatalogRule, Category,\
+  \ Checkout, Core, Customer, DataGrid, DataTransfer, Inventory, Marketing, Product,\
+  \ Sales, Shipping, Tax, Theme, User, etc.\n\n**Module Structure Consistency:**\n\
+  Each module follows a strict convention with:\n- `Contracts/` - Interfaces for domain\
+  \ entities (e.g., `Product.php`, `Order.php`)\n- `Models/` - Eloquent model implementations\n\
+  - `Repositories/` - Data access layer using `prettus/l5-repository` pattern\n- `Providers/ModuleServiceProvider.php`\
+  \ - Module registration declaring models, migrations, routes\n- `Database/Migrations/`\
+  \ - Module-scoped database migrations (156 total migrations across modules)\n- `Config/`\
+  \ - Module-specific configuration files\n\n**Concord Convention System:**\n```php\n\
+  // config/concord.php\n'modules' => [\n    \\Webkul\\Admin\\Providers\\ModuleServiceProvider::class,\n\
+  \    \\Webkul\\Product\\Providers\\ModuleServiceProvider::class,\n    // ... 28\
+  \ more modules\n]\n```\n\nEach `ModuleServiceProvider` extends `CoreModuleServiceProvider`\
+  \ which enforces:\n- Migration registration per module\n- Model registration per\
+  \ module\n- View registration per module\n- Route registration per module\n\n###\
+  \ Evidence for Microkernel (Plugin) Pattern\n\n**Product Type Plugin System:**\n\
+  ```php\n// packages/Webkul/Product/src/Config/product_types.php\nreturn [\n    'simple'\
+  \ => ['class' => 'Webkul\\Product\\Type\\Simple'],\n    'configurable' => ['class'\
+  \ => 'Webkul\\Product\\Type\\Configurable'],\n    'bundle' => ['class' => 'Webkul\\\
+  Product\\Type\\Bundle'],\n    'downloadable' => ['class' => 'Webkul\\Product\\Type\\\
+  Downloadable'],\n    // ... more types\n];\n```\n\nProduct types are loaded dynamically\
+  \ via configuration with a common `AbstractType` base class that defines the contract.\n\
+  \n**Payment Method Plugin System:**\n```php\n// packages/Webkul/Payment/src/Payment.php\n\
+  foreach (Config::get('payment_methods') as $paymentMethodConfig) {\n    $paymentMethod\
+  \ = app($paymentMethodConfig['class']);\n    if ($paymentMethod->isAvailable())\
+  \ {\n        // ... register method\n    }\n}\n```\n\n**Shipping Carrier Plugin\
+  \ System:**\n```php\n// packages/Webkul/Shipping/src/Shipping.php\nforeach (Config::get('carriers')\
+  \ as $shippingMethod) {\n    $object = new $shippingMethod['class'];\n    if ($rates\
+  \ = $object->calculate()) {\n        // ... collect rates\n    }\n}\n```\n\n###\
+  \ What This Is NOT\n\n- **NOT Microservices**: Single deployment unit, shared database\
+  \ (MySQL), no service boundaries for independent deployment\n- **NOT Layered**:\
+  \ While the code has controllers/repositories/models, the primary organizational\
+  \ principle is vertical modules (Product, Sales, Customer), not horizontal layers\n\
+  - **NOT Domain-Driven Design**: No aggregates, value objects, bounded contexts,\
+  \ or ubiquitous language patterns despite domain-centric organization\n- **NOT Hexagonal**:\
+  \ No ports/adapters pattern; direct Eloquent ORM usage without repository interfaces\
+  \ isolating from persistence\n\n### Architecture Characteristics Summary\n\n| Aspect\
+  \ | Implementation |\n|--------|----------------|\n| **Module Count** | 31 modules\
+  \ under `packages/Webkul/` |\n| **Module Registration** | Central `concord.php`\
+  \ config |\n| **Inter-module Communication** | Direct repository injection + Laravel\
+  \ events |\n| **Event System** | Cross-module events (e.g., `checkout.order.save.after`\
+  \ listened by Product, Admin modules) |\n| **Plugin Points** | Product types, payment\
+  \ methods, shipping carriers |\n| **Database** | Shared MySQL database across all\
+  \ modules |\n| **Deployment** | Single artisan/Laravel application |"

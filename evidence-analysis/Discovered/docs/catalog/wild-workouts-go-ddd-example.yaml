@@ -14,10 +14,9 @@ languages:
 - Go
 - JavaScript
 architecture_styles:
-- Microservices
 - Domain-Driven Design
 - CQRS
-- Hexagonal Architecture
+- Microservices
 classification_status: classified
 review_notes: 'This repository is an exemplar of a **Microservices** architecture,
   explicitly designed to demonstrate **Domain-Driven Design (DDD)**, **CQRS**, and
@@ -46,90 +45,69 @@ review_notes: 'This repository is an exemplar of a **Microservices** architectur
 
   The project explicitly organizes code around Bounded Contexts:'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.81
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:15:04Z'
-classification_reasoning: 'This repository is an exemplar of a **Microservices** architecture,
-  explicitly designed to demonstrate **Domain-Driven Design (DDD)**, **CQRS**, and
-  **Clean/Hexagonal Architecture** within a Go ecosystem.
-
-
-  ### 1. Microservices (Primary Style)
-
-  The codebase is structured into multiple independent services located under the
-  `internal/` directory: `trainings`, `users`, and `trainer`.
-
-  - **Independent Deployment:** The presence of `terraform/service` and `docker/app`
-  strategies implies these are deployed as separate Cloud Run services. Each service
-  has its own `main.go` and `go.mod` (using Go Workspaces/`go.work` for local development).
-
-  - **Communication:** Services interact via gRPC, as evidenced by `api/protobuf/`
-  containing `users.proto` and `trainer.proto`, and the corresponding adapters in
-  `internal/trainings/adapters/users_grpc.go`.
-
-  - **Data Ownership:** Although the directory tree suggests a shared terraform state
-  for Firestore, the README and project intent describe independent services that
-  would typically manage their own persistence context.
-
-
-  ### 2. Domain-Driven Design (DDD) & Hexagonal Architecture
-
-  The project explicitly organizes code around Bounded Contexts:
-
-  - **Domain Layer:** Each service has a `domain/` folder (e.g., `internal/trainings/domain/training`)
-  containing business logic isolated from infrastructure.
-
-  - **Ports and Adapters:** The directory structure specifically uses `ports/` (drivers
-  like `http.go`, `grpc.go`) and `adapters/` (driven actors like `trainings_firestore_repository.go`).
-  This strictly follows Hexagonal Architecture principles to keep the core logic pure.
-
-
-  ### 3. CQRS (Command Query Responsibility Segregation)
-
-  Within the `app/` layer of specific services (e.g., `internal/trainings/app/`),
-  the code is split into:
-
-  - **`command/`**: Handles state-changing operations.
-
-  - **`query/`**: Handles data retrieval.
-
-  - The repository uses decorators (`internal/common/decorator/`) to wrap commands
-  and queries with cross-cutting concerns like logging and metrics, a common pattern
-  in CQRS implementations.
-
-
-  ### 4. Layered (Internal)
-
-  While the system is Microservices-based, each service internally adheres to a **Layered/Clean
-  Architecture** approach:
-
-  1.  **Port/Transport Layer:** `ports/` (REST/OpenAPI, gRPC).
-
-  2.  **Application Layer:** `app/` (Orchestrating commands and queries).
-
-  3.  **Domain Layer:** `domain/` (Business rules).
-
-  4.  **Infrastructure Layer:** `adapters/` (Database persistence, external API clients).
-
-
-  ### Evidence Citations:
-
-  - **Service Boundaries:** `internal/trainings/main.go`, `internal/users/main.go`,
-  `internal/trainer/main.go`.
-
-  - **Infrastructure/Ports:** `internal/trainings/ports/http.go`, `internal/trainings/adapters/trainings_firestore_repository.go`.
-
-  - **Contract-first Design:** `api/openapi/` and `api/protobuf/` defining the service
-  interfaces independently of implementation.
-
-  - **Deployment:** `docker-compose.yml` and `terraform/cloud-run.tf` managing multiple
-  distinct runtime units.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.81
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.92
-  alternatives_dismissed: 0.55
-  exploration_completeness: 0.88
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T21:08:21Z'
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
+  \ Style: Domain-Driven Design (DDD)\n\nThis repository is explicitly designed as\
+  \ a DDD example project, with clear architectural evidence throughout:\n\n**Bounded\
+  \ Contexts:**\nThe codebase is organized into three distinct bounded contexts, each\
+  \ as a separate Go module:\n- `internal/trainer/` - Trainer availability management\n\
+  - `internal/trainings/` - Training session management  \n- `internal/users/` - User\
+  \ balance management\n\nEach context has its own `go.mod` file and domain model.\n\
+  \n**Domain Layer Structure:**\nEach bounded context follows the same DDD-aligned\
+  \ structure:\n- `domain/` - Contains entities, value objects, and repository interfaces\n\
+  - `app/` - Application layer with use cases\n- `adapters/` - Infrastructure adapters\
+  \ implementing domain interfaces\n- `ports/` - Incoming interface adapters (HTTP/gRPC\
+  \ handlers)\n\n**Rich Domain Model Evidence:**\n\nFrom `internal/trainer/domain/hour/hour.go`:\n\
+  - Private encapsulated fields with public getters (`hour time.Time`, `availability\
+  \ Availability`)\n- Factory pattern for entity creation with validation (`NewFactory()`,\
+  \ `FactoryConfig`)\n- Domain invariants enforced in business logic\n- Domain-specific\
+  \ error types (`TooDistantDateError`, `TooEarlyHourError`)\n\nFrom `internal/trainer/domain/hour/availability.go`:\n\
+  - Type-safe value object enum pattern (`Availability` struct instead of string)\n\
+  - Domain behavior methods (`ScheduleTraining()`, `CancelTraining()`, `MakeAvailable()`)\n\
+  \nFrom `internal/trainer/domain/hour/repository.go`:\n- Repository interface defined\
+  \ in domain layer (dependency inversion)\n\n**README Explicit Documentation:**\n\
+  > \"Wild Workouts is an **example Go DDD** project... apply DDD by refactoring\"\
+  \n> \n> Article titles: \"When microservices in Go are not enough: introduction\
+  \ to DDD Lite\", \"Combining DDD, CQRS, and Clean Architecture\"\n\n### Secondary\
+  \ Style: CQRS\n\nClear Command Query Responsibility Segregation within each bounded\
+  \ context:\n\n**Structure Evidence:**\n```\ninternal/trainer/app/\n├── command/\n\
+  │   ├── cancel_training.go\n│   ├── schedule_training.go\n│   └── make_hours_available.go\n\
+  └── query/\n    ├── available_hours.go\n    └── hour_availability.go\n```\n\n**Application\
+  \ Layer Design (`internal/trainer/app/app.go`):**\n```go\ntype Application struct\
+  \ {\n    Commands Commands\n    Queries  Queries\n}\n\ntype Commands struct {\n\
+  \    CancelTraining   command.CancelTrainingHandler\n    ScheduleTraining command.ScheduleTrainingHandler\n\
+  \    // ...\n}\n\ntype Queries struct {\n    HourAvailability      query.HourAvailabilityHandler\n\
+  \    TrainerAvailableHours query.AvailableHoursHandler\n}\n```\n\n**Separate Handler\
+  \ Types:**\n- Command handlers: `decorator.CommandHandler[ScheduleTraining]`\n-\
+  \ Query handlers: `decorator.QueryHandler[AvailableHours, []Date]`\n- Read models\
+  \ for queries: `AvailableHoursReadModel` interface\n\nREADME article 10 explicitly\
+  \ documents this: \"Introducing basic CQRS by refactoring\"\n\n### Secondary Style:\
+  \ Microservices\n\n**Independent Deployment Units:**\n- Three services deployed\
+  \ independently on Google Cloud Run (from `terraform/cloud-run.tf`):\n  - `trainer-http`\
+  \ / `trainer-grpc`\n  - `trainings-http`\n  - `users-http` / `users-grpc`\n\n**Separate\
+  \ Go Modules:**\nGo workspace (`go.work`) defines separate modules for each service:\n\
+  ```go\nuse (\n    ./internal/common\n    ./internal/trainer\n    ./internal/trainings\n\
+  \    ./internal/users\n)\n```\n\n**Inter-Service Communication:**\n- Synchronous\
+  \ gRPC calls between services\n- Protobuf definitions in `api/protobuf/`\n- Services\
+  \ call each other: `trainings` service calls `trainer` and `users` gPC endpoints\
+  \ (from `internal/trainings/adapters/trainer_grpc.go` and `users_grpc.go`)\n\n###\
+  \ What Was Rejected\n\n**Not Hexagonal Architecture:** While there's a `ports/`\
+  \ directory and clear separation of concerns, the pattern is DDD first. The directory\
+  \ naming (ports, adapters) is influenced by hexagonal concepts, but the primary\
+  \ organizational principle is bounded contexts and domain models. This is \"DDD\
+  \ Lite\" as the authors describe it.\n\n**Not Event-Driven:** Services communicate\
+  \ via synchronous gRPC calls, not through events or message brokers. No message\
+  \ queue configuration, event handlers, or async event processing was found.\n\n\
+  **Not Pure Layered:** There's no horizontal layering across the entire application\
+  \ (presentation → business → data). Instead, each bounded context has its own internal\
+  \ vertical architecture.\n\n**Not Serverless (Primary):** While deployed to Cloud\
+  \ Run (serverless platform), the architecture is defined by DDD bounded contexts\
+  \ and microservices patterns. Serverless is the deployment model, not the architectural\
+  \ style.\n\n### Summary\n\nThis repository demonstrates a well-structured DDD implementation\
+  \ with CQRS patterns applied within bounded contexts, deployed as independent microservices.\
+  \ The README and article series explicitly document the intentional evolution from\
+  \ \"too modern\" serverless to DDD-organized architecture, making this an exemplary\
+  \ reference for these architectural styles combined."

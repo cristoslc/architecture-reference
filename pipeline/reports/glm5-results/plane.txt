@@ -1,0 +1,87 @@
+Let me check a few more details to understand the database sharing and service boundaries:Based on my comprehensive exploration of the repository, I now have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Service-Based
+secondary_styles:
+  - Event-Driven
+confidence: 0.85
+---
+
+## Architecture Analysis
+
+### Primary Style: Service-Based
+
+The Plane repository exhibits a **Service-Based Architecture** with the following evidence:
+
+**Multiple coarse-grained deployable services** (from `docker-compose.yml`):
+- **web** (React Router frontend - main UI)
+- **admin** (Admin dashboard frontend)
+- **space** (Public/shared UI frontend)
+- **api** (Django REST API backend)
+- **worker** + **beat-worker** (Celery background task processors)
+- **live** (WebSocket collaboration server using HocusPocus)
+- **proxy** (Caddy reverse proxy)
+
+**Shared database** - All services use a single PostgreSQL instance (`plane-db`):
+```yaml
+plane-db:
+  image: postgres:15.7-alpine
+```
+
+**Shared caching/messaging infrastructure**:
+- `plane-redis` (Valkey/Redis) for caching and Celery broker
+- `plane-mq` (RabbitMQ) for message queuing
+
+**Monolithic backend** - The `apps/api` Django application is internally organized as a monolith with layered components:
+- Views (`apps/api/plane/app/views/`)
+- Serializers (`apps/api/plane/app/serializers/`)
+- Models (`apps/api/plane/db/models/`)
+- Django apps: `analytics`, `api`, `app`, `authentication`, `bgtasks`, `db`, `license`, `space`, `web`
+
+This matches the Service-Based pattern: 2-5 coarse-grained services sharing a database, where the backend is monolithic and frontends are separate deployment units.
+
+### Secondary Style: Event-Driven
+
+The system incorporates **Event-Driven** patterns via Celery background tasks:
+
+From `apps/api/plane/celery.py`:
+```python
+app.conf.beat_schedule = {
+    "check-every-five-minutes-to-send-email-notifications": {...},
+    "check-every-day-to-delete-hard-delete": {...},
+    ...
+}
+```
+
+Background tasks handle:
+- Email notifications (`email_notification_task`)
+- Issue activities tracking (`issue_activities_task`)
+- Webhook dispatches (`webhook_task`)
+- Cleanup tasks (`cleanup_task`)
+
+The `live` service uses WebSockets for real-time collaborative editing (HocusPocus/Yjs), enabling event-driven real-time updates.
+
+### What This Is NOT
+
+- **Not Microservices**: Single shared database, coarse-grained services, no clear bounded contexts with independent data ownership
+- **Not Modular Monolith**: Multiple independently deployable services, not a single deployment unit
+- **Not pure Layered**: Multiple deployment units break horizontal layering; frontends are separate from backend
+- **Not Hexagonal**: No ports/adapters pattern; Django ORM directly couples to PostgreSQL
+
+### Frontend Monorepo Structure
+
+The frontend uses a **pnpm workspace** (`pnpm-workspace.yaml`) with:
+- 4 applications (`apps/web`, `apps/admin`, `apps/space`, `apps/live`)
+- 14 shared packages (`@plane/types`, `@plane/services`, `@plane/ui`, `@plane/editor`, etc.)
+
+This is a **monorepo with shared component libraries**, supporting the Service-Based architecture with reusable code across frontends.
+
+### Summary
+
+Plane is a **Service-Based Architecture** with **Event-Driven** secondary characteristics:
+- 5+ deployable services sharing infrastructure
+- Single monolithic Django backend with layered internals
+- Multiple frontend applications for different user contexts
+- Background task processing via Celery for async operations
+- Real-time collaboration via dedicated WebSocket server

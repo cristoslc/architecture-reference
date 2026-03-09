@@ -1,0 +1,72 @@
+I'll explore the Ecommerce.Api repository to classify its architecture. Let me start with an overview of the structure.The README mentions CQRS and DDD! Let me examine the Commands/Queries structure and the domain entities more closely.Now I have sufficient evidence to classify this architecture. Let me verify a few more details about the project structure.Based on my thorough analysis of the Ecommerce.Api (Streetwood) repository, I can now provide my classification:
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - CQRS
+confidence: 0.88
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Layered Architecture
+
+The repository exhibits a classic **Layered Architecture** with three well-defined horizontal layers:
+
+1. **Presentation Layer (`Streetwood.API`)**: Controllers, view models, middleware, filters, and API configuration
+2. **Application/Data Access Layer (`Streetwood.Infrastructure`)**: Command/query handlers, services, DTOs, mappers, and infrastructure concerns
+3. **Domain/Core Layer (`Streetwood.Core`)**: Domain entities, repository interfaces, database context, migrations, and domain abstractions
+
+**Evidence of strict layering:**
+- Dependencies flow downward only: `Streetwood.API` → `Streetwood.Infrastructure` → `Streetwood.Core` (verified in `.csproj` files)
+- Each layer has distinct responsibilities without cross-cutting concerns
+- `Streetwood.API.csproj` only references `Streetwood.Infrastructure`, not Core directly
+- `Streetwood.Infrastructure.csproj` references `Streetwood.Core` for domain abstractions
+
+### Secondary Style: CQRS
+
+The codebase implements **CQRS (Command Query Responsibility Segregation)** using MediatR:
+
+**Evidence:**
+- README explicitly states: "CQRS (one database :)"
+- Clear directory separation under `src/Streetwood.Infrastructure/`:
+  - `Commands/Handlers/` and `Commands/Models/` for write operations
+  - `Queries/Handlers/` and `Queries/Models/` for read operations
+- Command handlers implement `IRequestHandler<CreateOrderCommandModel, int>` (returns command result)
+- Query handlers implement `IRequestHandler<GetOrderQueryModel, OrderDto>` (returns DTOs)
+- Separate service interfaces: `ICharmCommandService` vs `ICharmQueryService`
+- Controllers dispatch via `IBus.SendAsync()` abstraction over MediatR (see `OrdersController.cs`)
+
+### DDD Lite Elements (Not Primary)
+
+The README mentions "Smart Domain objects (DDD)" and there are DDD-influenced patterns:
+- Rich entities with behavior methods (`Order.cs`, `Product.cs`, `User.cs`)
+- Protected setters with domain methods like `SetName()`, `SetPrice()`, `Close()`
+- Encapsulated collections with `IReadOnlyCollection`
+- Entity base class (`Streetwood.Core/Domain/Abstract/Entity.cs`)
+
+However, it lacks full DDD tactical patterns:
+- No explicit Aggregate Root markers
+- No Bounded Contexts
+- Single shared database context for all entities
+- No value objects identified
+
+### What This Is NOT
+
+- **NOT Microservices**: Single deployable ASP.NET Core application, single database, one solution
+- **NOT Serverless (primary)**: Main API is a traditional web app; `Streetwood.Functions` is a secondary Azure Functions project for background email processing
+- **NOT Hexagonal Architecture**: No explicit ports/adapters pattern; Core layer contains EF Core DbContext, not pure domain isolation
+
+### Deployment Topology
+
+Single monolithic web application with:
+- Main API project (`Streetwood.API`)
+- Auxiliary Azure Functions project (`Streetwood.Functions`) for queue-triggered exception email handling
+- Shared database accessed by the main API
+
+### Architectural Enforcement
+
+- Code analysis ruleset (`streetwood.ruleset`) with StyleCop and FxCop analyzers
+- Convention tests ensuring services are internal and implement interfaces (see `Streetwood.Convention.Tests`)
+- Clear module separation via Autofac DI modules (`RepositoriesModule`, `MediaTrModule`, etc.)

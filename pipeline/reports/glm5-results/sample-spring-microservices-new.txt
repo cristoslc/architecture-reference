@@ -1,0 +1,82 @@
+Based on my comprehensive analysis of the repository, I have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles: []
+confidence: 0.95
+---
+
+## Analysis
+
+This repository demonstrates a clear **Microservices architecture** implemented with Spring Cloud. The evidence is unambiguous:
+
+### Multiple Independently Deployable Services
+
+The codebase consists of **6 separate deployable units**, each built as an independent Spring Boot application with its own container image:
+
+| Service | Purpose | Docker Image |
+|---------|---------|--------------|
+| `employee-service` | Employee CRUD operations | `piomin/employee-service:1.2-SNAPSHOT` |
+| `department-service` | Department CRUD operations | `piomin/department-service:1.2-SNAPSHOT` |
+| `organization-service` | Organization CRUD operations | `piomin/organization-service:1.2-SNAPSHOT` |
+| `gateway-service` | API Gateway | `piomin/gateway-service:1.1-SNAPSHOT` |
+| `config-service` | Centralized configuration | `piomin/config-service:1.1-SNAPSHOT` |
+| `discovery-service` | Service registry (Eureka) | `piomin/discovery-service:1.1-SNAPSHOT` |
+
+**Evidence:** `pom.xml` defines 6 Maven modules; `docker-compose.yml` defines 7 containers (including Zipkin).
+
+### Each Service Owns Its Data
+
+Each business service has its own data repository isolated from others:
+- `EmployeeRepository` in `employee-service` (`EmployeeRepository.java`)
+- `DepartmentRepository` in `department-service`  
+- `OrganizationRepository` in `organization-service`
+
+All use in-memory storage with no shared database — clear data ownership boundaries.
+
+### Service Discovery and Registration
+
+All business services register with Eureka:
+```xml
+<!-- employee-service/pom.xml, department-service/pom.xml, organization-service/pom.xml -->
+<dependency>
+    <groupId>org.springframework.cloud</groupId>
+    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>
+</dependency>
+```
+
+### API Gateway Pattern
+
+`gateway-service` implements Spring Cloud Gateway (`GatewayApplication.java`):
+- Routes requests to downstream services
+- Dynamically discovers services via Eureka
+- Aggregates Swagger UI across all microservices
+
+### Inter-Service Communication via OpenFeign
+
+Services communicate synchronously through declarative HTTP clients:
+- `department-service` → `employee-service` via `EmployeeClient` (`@FeignClient(name = "employee-service")`)
+- `organization-service` → `employee-service` and `department-service` via respective clients
+
+### Infrastructure Services
+
+- **Config Server** (`config-service`): Externalized configuration
+- **Discovery Server** (`discovery-service`): Netflix Eureka
+- **Distributed Tracing**: Zipkin integration with OpenTelemetry
+
+---
+
+### Styles Rejected
+
+- **Service-Based**: Rejected because there are 6 fine-grained independently deployable services, not 2-5 coarse-grained services sharing a database. This is the key distinction.
+
+- **Layered**: Rejected because there is no horizontal layering across the application. Each service has its own controller/repository, but these are isolated within service boundaries, not shared layers.
+
+- **Modular Monolith**: Rejected because this is explicitly NOT a single deployable — each service builds its own Docker image and runs in its own container.
+
+- **Event-Driven**: Rejected because communication is synchronous HTTP via OpenFeign. No message broker (Kafka, RabbitMQ) is present in dependencies or docker-compose.
+
+- **Hexagonal Architecture**: Rejected because there are no explicit ports/adapters patterns. Services use standard Spring MVC controllers with in-memory repositories, not dependency inversion through interfaces.
+
+This is a textbook example of Spring Cloud microservices architecture with all the canonical infrastructure components.

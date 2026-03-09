@@ -1,0 +1,77 @@
+I'll explore the Bitwarden server repository to classify its architecture. Let me start with an overview of the structure and README.I see this is actually the **Nextcloud server** repository (not Bitwarden). Let me explore the architecture more deeply to understand how it's structured.Let me examine a few more key files to understand the layered structure and event-driven aspects:Let me examine one more aspect - how apps extend the system:Now I have enough information to classify this architecture. Let me provide my analysis.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+  - Event-Driven
+confidence: 0.92
+---
+
+## Architecture Analysis: Nextcloud Server
+
+### Primary Classification: Microkernel (Plugin)
+
+Nextcloud Server implements a classic **microkernel/plugin architecture** with a well-defined core system extended by dynamically loaded applications.
+
+**Key Evidence:**
+
+1. **Core Platform (Microkernel)**: The `lib/private/` and `core/` directories form the platform core that provides:
+   - Dependency injection container (`lib/private/AppFramework/DependencyInjection/DIContainer.php`)
+   - Application bootstrap coordinator (`lib/private/AppFramework/Bootstrap/Coordinator.php`)
+   - Event dispatch system (`lib/private/EventDispatcher/EventDispatcher.php`)
+   - Service container with app-scoped containers
+
+2. **Plugin Contract**: Apps implement `IBootstrap` interface (`lib/public/AppFramework/Bootstrap/IBootstrap.php`):
+   ```php
+   interface IBootstrap {
+       public function register(IRegistrationContext $context): void;
+       public function boot(IBootContext $context): void;
+   }
+   ```
+
+3. **Extension Points**: The `IRegistrationContext` (`lib/public/AppFramework/Bootstrap/IRegistrationContext.php`) defines registration methods for:
+   - Services, capabilities, event listeners, middleware
+   - Search providers, dashboard widgets, crash reporters
+   - Authentication providers, notification handlers, etc.
+
+4. **Dynamic App Loading**: Apps are discovered and loaded from `apps/` directory:
+   - Each app has `appinfo/info.xml` declaring metadata, dependencies, and extension points
+   - Apps can be enabled/disabled at runtime
+   - 31 bundled apps: files, settings, dav, federation, oauth2, etc.
+
+5. **Public API Contract**: `lib/public/` contains stable interfaces (`OCP\` namespace) that apps depend on, insulating them from internal implementation changes.
+
+### Secondary: Layered
+
+Within both the core and each app, a layered architecture is maintained:
+
+- **Controller Layer**: HTTP request handling (`Controller/` directories)
+- **Service Layer**: Business logic (`Service/` directories)  
+- **Data Layer**: Database access (`Db/`, `Mapper/` directories)
+
+Example from `apps/files/`:
+```
+Controller/ApiController.php → Service/TagService.php → Db/Mapper/
+```
+
+### Secondary: Event-Driven
+
+The system extensively uses events for decoupled communication:
+
+- `IEventDispatcher` interface for typed event dispatch
+- Apps register listeners via `$context->registerEventListener()`
+- Example: `apps/comments/lib/Activity/Listener.php` listens to `CommentsEvent` and publishes activities
+
+### What This Is NOT
+
+- **NOT Microservices**: Single monolithic deployment unit - all apps run in the same PHP process. No service boundaries, no separate deployment units, no network communication between components.
+
+- **NOT Hexagonal**: While there's a public API (`lib/public/`), the pattern is plugin extension rather than ports-and-adapters. Apps extend the core, they don't plug into application ports.
+
+- **NOT Domain-Driven Design**: No bounded contexts, aggregates, or ubiquitous language organization. Apps are feature modules, not domain contexts.
+
+### Summary
+
+Nextcloud Server is a textbook example of a microkernel architecture: a stable core platform that exposes well-defined extension points, with apps as plugins that extend functionality. The layered organization within each component and the event-driven communication patterns reinforce the modularity and extensibility of the design.

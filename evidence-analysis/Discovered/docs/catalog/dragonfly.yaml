@@ -15,9 +15,7 @@ languages:
 - Python
 - Go
 architecture_styles:
-- Domain-Driven Design
-- Layered
-- Hexagonal Architecture
+- Modular Monolith
 classification_status: classified
 review_notes: "Dragonfly is structured as a high-performance **Domain-Driven Design\
   \ (DDD)** system that leverages a **shared-nothing architecture**. The codebase\
@@ -36,57 +34,51 @@ review_notes: "Dragonfly is structured as a high-performance **Domain-Driven Des
   \ serving as the domain's coordinator.\n\n### 2. Secondary Style: Layered\nDragonfly\
   \ follows a clear vertical layering strategy within the `src/` directory:"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.57
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:46:40Z'
-classification_reasoning: "Dragonfly is structured as a high-performance **Domain-Driven\
-  \ Design (DDD)** system that leverages a **shared-nothing architecture**. The codebase\
-  \ is explicitly partitioned into bounded contexts that separate the technical \"\
-  facade\" (protocol handling) from the \"server\" (domain logic and coordination)\
-  \ and the \"core\" (high-performance primitives).\n\n### 1. Primary Style: Domain-Driven\
-  \ Design (DDD)\nThe repository is organized around the domain of \"In-Memory Data\
-  \ Storage.\" The `src/server` directory acts as the core domain layer, where business\
-  \ logic is split into \"Families\" (e.g., `src/server/set_family.cc`, `src/server/json_family.cc`,\
-  \ `src/server/hset_family.cc`). \n- **Bounded Contexts:** Each \"Family\" represents\
-  \ a Redis-compatible data type context.\n- **Engine/Sharding:** The system uses\
-  \ a \"shared-nothing\" approach where the domain is partitioned into shards (`src/server/engine_shard.h`,\
-  \ `src/server/db_slice.h`). This isn't just a technical detail; it's how the domain\
-  \ state is modeled and accessed.\n- **Transaction Management:** Logic for ensuring\
-  \ atomicity (VLL algorithm mentioned in README) is centralized in `src/server/transaction.cc`,\
-  \ serving as the domain's coordinator.\n\n### 2. Secondary Style: Layered\nDragonfly\
-  \ follows a clear vertical layering strategy within the `src/` directory:\n- **Facade\
-  \ Layer (`src/facade/`):** This is the entry point. It handles networking and protocol\
-  \ parsing (RESP for Redis, Memcached). It transforms external byte streams into\
-  \ \"Commands\" (`src/facade/parsed_command.h`) without knowing how they are executed.\n\
-  - **Service/Server Layer (`src/server/`):** This layer receives parsed commands\
-  \ from the facade. It handles the orchestration of execution across shards and manages\
-  \ the lifecycle of the data store (snapshots, replication).\n- **Core Layer (`src/core/`):**\
-  \ This contains the specialized data structures and algorithmic implementations\
-  \ (e.g., `src/core/dash.h`, `src/core/bloom.cc`, `src/core/string_map.h`). These\
-  \ are the building blocks used by the Server layer.\n\n### 3. Secondary Style: Hexagonal\
-  \ Architecture (Ports and Adapters)\nThe interaction between the `facade` and the\
-  \ `server` implements a Hexagonal pattern:\n- **Ports:** `src/facade/service_interface.h`\
-  \ defines the interface that the storage engine must implement to be satisfy the\
-  \ facade.\n- **Adapters:** The Facade layer itself is a multi-protocol adapter.\
-  \ It allows the core engine to support both Redis and Memcached simultaneously by\
-  \ translating protocol-specific requests into a common execution path within the\
-  \ Server layer.\n\n### Architectural Nuance: Shared-Nothing (via Helio)\nWhile \"\
-  Shared-Nothing\" is often a deployment pattern (cluster), here it is an internal\
-  \ **Software Architecture** pattern. The code enforces strict thread-to-shard affinity.\
-  \ The `helio` library (referenced in the tree and README) provides the underlying\
-  \ fiber/sharding framework, ensuring that `src/server/engine_shard.cc` only operates\
-  \ on data owned by that specific thread, eliminating the need for traditional mutexes\
-  \ across the codebase."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.57
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.55
-  alternatives_dismissed: 0.3
-  exploration_completeness: 0.65
-  flags: multi-label classification with three co-equal styles reduces clarity; DDD
-    label may be overfit — the 'families' pattern is more a command-dispatch/module
-    decomposition than bounded contexts; Hexagonal is plausible but weakly evidenced
-    with only one interface file cited
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:13:57Z'
+classification_reasoning: "## Analysis\n\nDragonfly is a **Modular Monolith** with\
+  \ clearly enforced internal module boundaries, designed for vertical scaling on\
+  \ a single instance.\n\n### Key Evidence for Modular Monolith\n\n**1. Single Deployable\
+  \ Unit**\n- One executable (`dragonfly`) built from `src/server/CMakeLists.txt`:\n\
+  \  ```cmake\n  add_executable(dragonfly dfly_main.cc version_monitor.cc)\n  cxx_link(dragonfly\
+  \ base dragonfly_lib)\n  ```\n\n**2. Enforced Module Boundaries via CMake Targets**\n\
+  The codebase is structured as separate CMake libraries with explicit dependency\
+  \ hierarchies:\n- `dfly_facade` - Connection handling, protocol parsing (Redis/Memcache)\n\
+  - `dfly_core` - Data structures (Dashtable, compact objects, interpreters)\n- `dfly_transaction`\
+  \ - Transaction framework, db_slice, blocking controller\n- `dragonfly_lib` - Main\
+  \ server logic, command families\n\nThe `src/facade/README.md` explicitly states\
+  \ the boundary enforcement:\n> \"It should be separated from the rest of dragonfly\
+  \ server logic and should be self-contained, i.e no redis-lib or server dependencies\
+  \ are allowed.\"\n\n**3. Internal Sharding with Shared-Nothing Threading**\nFrom\
+  \ `docs/df-share-nothing.md`:\n> \"The DF in-memory database is sharded into N parts,\
+  \ where N is less or equal to the number of threads in the system. Each database\
+  \ shard is owned and accessed by a single thread.\"\n\nAnd critically:\n> \"Inter-thread\
+  \ interactions in Dragonfly occur only via passing messages from thread to thread.\"\
+  \n\nThis is enforced through:\n- `EngineShardSet` (`src/server/engine_shard_set.h`)\
+  \ - manages shard collection with message-passing APIs like `Await()`, `Add()`,\
+  \ `RunBriefInParallel()`\n- `EngineShard` (`src/server/engine_shard.h`) - per-thread\
+  \ shard with own `DbSlice`, `TxQueue`, `TaskQueue`\n- Each shard owns its data exclusively—no\
+  \ mutex locks protecting shared data structures\n\n**4. Layered Organization**\n\
+  ```\nsrc/\n├── facade/     # Protocol handling (Redis/Memcache parsers, connections)\n\
+  ├── core/       # Data structures (dash tables, compact objects, JSON)\n├── server/\
+  \     # Business logic (command families, transactions, replication)\n└── redis/\
+  \      # Redis compatibility layer\n```\n\n### What This Is NOT\n\n**NOT Microservices**\
+  \ - Single process, single executable. No independent deployment units. Designed\
+  \ explicitly for vertical scaling within one instance.\n\n**NOT Event-Driven** -\
+  \ While inter-thread communication uses message passing, there is no message broker.\
+  \ Commands are synchronously dispatched to appropriate shards based on key hashing,\
+  \ not published as events.\n\n**NOT Space-Based** - Despite the in-memory nature,\
+  \ Space-Based architecture specifically refers to distributed systems with in-memory\
+  \ data grids across multiple nodes. Dragonfly is a single-process, multi-threaded\
+  \ system.\n\n**NOT Hexagonal** - No ports-and-adapters pattern. The `facade` layer\
+  \ handles protocol compatibility but isn't an adapter pattern in the hexagonal sense.\n\
+  \n### Architectural Highlights\n\nThe architecture is specifically optimized for\
+  \ vertical scaling:\n- Thread-per-core design where each thread handles both I/O\
+  \ and shard ownership\n- Fiber-based concurrency (Boost.Fibers) for non-blocking\
+  \ operations within each thread\n- Dashtable data structure for memory-efficient\
+  \ concurrent access\n- Coordinator pattern in `Transaction` class for multi-key\
+  \ operations across shards\n\nThis is a textbook example of a **Modular Monolith**:\
+  \ a single deployable with well-defined internal module boundaries, clear separation\
+  \ of concerns, and enforced dependencies between components."

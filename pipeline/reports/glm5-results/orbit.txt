@@ -1,0 +1,86 @@
+Based on my thorough exploration of the codebase, I have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Pipeline (Pipe-and-Filter)
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.90
+---
+
+## Analysis
+
+The Orbit repository implements a **distributed actor mesh system** (developed by Electronic Arts) with a clear Pipeline architecture at its core, complemented by a Microkernel-style plugin system.
+
+### Primary Style: Pipeline (Pipe-and-Filter)
+
+The server's message processing is organized around a classic pipeline pattern:
+
+**Evidence:**
+1. **`src/orbit-server/src/main/kotlin/orbit/server/pipeline/Pipeline.kt`** - Central orchestrator that pushes messages through a channel-based processing system using `RailWorker` for parallel rails.
+
+2. **`src/orbit-server/src/main/kotlin/orbit/server/pipeline/step/PipelineStep.kt`** - Defines the filter interface:
+   ```kotlin
+   interface PipelineStep {
+       suspend fun onOutbound(context: PipelineContext, msg: Message): Unit = context.next(msg)
+       suspend fun onInbound(context: PipelineContext, msg: Message): Unit = context.next(msg)
+   }
+   ```
+
+3. **`src/orbit-server/src/main/kotlin/orbit/server/pipeline/PipelineSteps.kt`** - Explicitly wires the sequence:
+   ```kotlin
+   val steps: Array<PipelineStep> = arrayOf(
+       identityStep,
+       routingStep,
+       placementStep,
+       verifyStep,
+       authStep,
+       transportStep
+   )
+   // inbound is up, outbound is down
+   ```
+
+4. Each step independently processes messages and calls `context.next(msg)` to pass data to the next filter — the canonical pipe-and-filter pattern.
+
+5. Concrete steps like `RoutingStep`, `TransportStep`, `PlacementStep` each handle a single responsibility in the message flow.
+
+### Secondary Style: Microkernel (Plugin)
+
+The system provides extensibility through a plugin/dependency-injection mechanism:
+
+**Evidence:**
+1. **`src/orbit-util/src/main/kotlin/orbit/util/di/ComponentContainer.kt`** - Custom DI container with `ExternallyConfigured<T>` interface enabling runtime configuration of implementations.
+
+2. **Pluggable Directory Implementations:**
+   - `NodeDirectory` and `AddressableDirectory` interfaces (`src/orbit-server/src/main/kotlin/orbit/server/mesh/`)
+   - `LocalNodeDirectory`, `LocalAddressableDirectory` (core)
+   - `EtcdNodeDirectory`, `EtcdAddressableDirectory` (separate module: `src/orbit-server-etcd/`)
+
+3. **Pluggable Addressable Construction:**
+   - `AddressableConstructor` interface (`src/orbit-client/src/main/kotlin/orbit/client/addressable/AddressableConstructor.kt`)
+   - `DefaultAddressableConstructor` (core)
+   - `SpringAddressableConstructor` (separate module: `src/orbit-client-spring-plugin/`) for Spring integration
+
+4. **Pluggable Metrics:**
+   - `PrometheusMetrics` as a separate module (`src/orbit-server-prometheus/`)
+
+5. **Container Overrides Hook** - Both `OrbitClientConfig` and `OrbitServerConfig` expose `containerOverrides` allowing external configuration of implementations.
+
+### What Was Rejected
+
+- **Not Microservices**: Single deployable artifact (`orbit-application`), one Dockerfile, one Helm chart. Multiple runtime instances form a cluster, but this is horizontal scaling, not service decomposition.
+
+- **Not Layered**: No horizontal layering (presentation/business/data). The modules are organized by technical capability (proto, client, server, util) not by layers.
+
+- **Not Event-Driven**: No message broker (Kafka, RabbitMQ, etc.). Messages flow synchronously through the processing pipeline. The system is request-response based via gRPC.
+
+- **Not Modular Monolith**: The modules are technical components (util, proto, shared) rather than business domain boundaries. There's no domain-driven decomposition.
+
+- **Not Hexagonal**: While there's dependency injection, there's no explicit ports/adapters separation pattern. The plugin system serves a different purpose.
+
+### Deployment Topology
+
+The system deploys as a single application with cluster capabilities:
+- Docker Compose runs multiple `orbit-server` instances with etcd for distributed state
+- Kubernetes deployment via Helm chart (`charts/orbit/`)
+- gRPC-based communication between mesh nodes

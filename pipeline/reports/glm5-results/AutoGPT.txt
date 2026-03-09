@@ -1,0 +1,109 @@
+Based on my comprehensive investigation of the AutoGPT repository, I can now provide the classification:
+
+---
+verdict: classified
+primary_style: Pipeline (Pipe-and-Filter)
+secondary_styles:
+  - Microservices
+confidence: 0.90
+---
+
+## Analysis
+
+### Primary Architecture: Pipeline (Pipe-and-Filter)
+
+The AutoGPT Platform is built around a **Block-based pipeline system** where:
+
+1. **Blocks are the fundamental processing units** - There are **275+ blocks** in `autogpt_platform/backend/backend/blocks/`, each defining:
+   - Input schema (`BlockSchemaInput`) 
+   - Output schema (`BlockSchemaOutput`)
+   - An async `run()` method that yields output tuples
+
+2. **Graphs (Agents) are composed of connected blocks** - From `backend/data/graph.py`:
+   - `Node` instances reference a `block_id` 
+   - `Link` instances connect source blocks to sink blocks via `source_id`, `sink_id`, `source_name`, `sink_name`
+   - Data flows through the graph from block to block
+
+3. **Execution follows pipeline semantics** - The `ExecutionManager` in `backend/executor/manager.py` orchestrates graph execution by:
+   - Queueing execution via RabbitMQ
+   - Executing blocks in dependency order
+   - Passing output from one block as input to connected blocks
+
+4. **Block categories define processing stages** - From `_base.py`, blocks are categorized as AI, TEXT, SEARCH, LOGIC, COMMUNICATION, etc. - each performing a specific transformation.
+
+5. **Dynamic block discovery** - From `blocks/__init__.py`:
+```python
+def load_all_blocks() -> dict[str, type["AnyBlockSchema"]]:
+    # Dynamically load all modules under backend.blocks
+    for f in current_dir.rglob("*.py"):
+        importlib.import_module(f".{module}", package=__name__)
+    # Load all Block instances from the available modules
+    for block_cls in _all_subclasses(Block):
+        available_blocks[block.id] = block_cls
+```
+
+### Secondary Architecture: Microservices
+
+The platform is deployed as **multiple independently deployable services** (from `docker-compose.platform.yml`):
+
+- **rest_server** - FastAPI REST API (port 8006)
+- **executor** - Graph execution engine (port 8002)  
+- **copilot_executor** - AI copilot processing (port 8008)
+- **websocket_server** - Real-time client updates
+- **database_manager** - Database operations
+- **scheduler_server** - Scheduled job execution
+- **notification_server** - Notification handling
+- **frontend** - Next.js web application
+
+**Asynchronous communication via RabbitMQ** - Services communicate through message queues defined in `backend/data/rabbitmq.py`:
+```python
+class RabbitMQBase(ABC):
+    """Base class for RabbitMQ connections with shared configuration"""
+```
+
+**Shared infrastructure**: PostgreSQL (via Supabase), Redis for caching, RabbitMQ for messaging.
+
+### What This Is NOT
+
+- **NOT Layered** - While there are API/executor/data components, the core abstraction is graph-based flow, not horizontal layering
+- **NOT Modular Monolith** - Multiple independent Docker services with separate deployment units
+- **NOT CQRS** - No explicit read/write model separation
+- **NOT DDD** - No bounded contexts or aggregate patterns
+- **NOT Hexagonal Architecture** - While integrations exist, the core isn't organized around ports-and-adapters isolation
+
+### Supporting Evidence
+
+**Block-based composition** - Example from `blocks/basic.py`:
+```python
+class FileStoreBlock(Block):
+    async def run(self, input_data: Input, ...) -> BlockOutput:
+        yield "file_out", await store_media_file(...)
+```
+
+**Flow control blocks** - `blocks/branching.py` shows conditional routing:
+```python
+class ConditionBlock(Block):
+    # Routes data based on comparison operators
+    # Outputs to yes_output or no_output based on condition
+```
+
+**Graph execution** - From `executor/manager.py`:
+```python
+from backend.data.graph import Link, Node
+from backend.data.execution import GraphExecution, NodeExecutionEntry
+```
+
+**275+ block files** provide extensive processing capabilities:
+```
+$ find autogpt_platform/backend/backend/blocks -name "*.py" -type f | wc -l
+275
+```
+
+### Conclusion
+
+The AutoGPT Platform implements a **Pipeline (Pipe-and-Filter)** architecture where:
+- **Filters** = Blocks (processing units with defined input/output schemas)
+- **Pipes** = Links (connections between block outputs and inputs)
+- **Graphs** = Compositions of interconnected blocks forming complete workflows/agents
+
+This is enhanced by a **Microservices** deployment topology where services communicate asynchronously via RabbitMQ, enabling independent scaling and deployment of the executor, API, scheduler, and other components.

@@ -14,8 +14,8 @@ languages:
 - PHP
 architecture_styles:
 - Domain-Driven Design
+- Layered
 - Hexagonal Architecture
-- Event-Driven
 classification_status: classified
 review_notes: "The repository is a textbook implementation of **Domain-Driven Design\
   \ (DDD)** and **Hexagonal Architecture** (Ports and Adapters) within a PHP/Symfony\
@@ -30,50 +30,67 @@ review_notes: "The repository is a textbook implementation of **Domain-Driven De
   \ specific business requirements, and `Request` objects (DTOs).\n\n2.  **Hexagonal\
   \ Architecture (Ports and Adapters):**"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.83
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:45:17Z'
-classification_reasoning: "The repository is a textbook implementation of **Domain-Driven\
-  \ Design (DDD)** and **Hexagonal Architecture** (Ports and Adapters) within a PHP/Symfony\
-  \ context. The directory structure is explicitly organized by layers that correspond\
-  \ to DDD tactical patterns and hexagonal boundaries.\n\n### Architecture Breakdown:\n\
-  \n1.  **Domain-Driven Design (DDD):**\n    *   The `src/Domain` directory contains\
-  \ the core business logic, organized by sub-domains (aggregates/bounded contexts)\
-  \ like `User`, `Wallet`, `Transaction`, and `Payment`.\n    *   Within these directories,\
-  \ we see DDD artifacts: `Model` (Entities/Aggregates), `ValueObject`, `Repository`\
-  \ (interfaces), `Event` (Domain Events), and `Exception`.\n    *   The `src/Application`\
-  \ layer contains `UseCase` classes, which coordinate the domain objects to satisfy\
-  \ specific business requirements, and `Request` objects (DTOs).\n\n2.  **Hexagonal\
-  \ Architecture (Ports and Adapters):**\n    *   **Application Core:** The combination\
-  \ of `src/Domain` and `src/Application` constitutes the isolated core of the system.\n\
-  \    *   **Infrastructure Adapter:** The `src/Infrastructure` directory contains\
-  \ concrete implementations of domain interfaces. For example, `src/Infrastructure/WalletBundle/Repository`\
-  \ implements the interfaces defined in `src/Domain/Wallet/Repository`. It handles\
-  \ persistence (Doctrine/SQL), messaging (RabbitMQ), and search (ElasticSearch).\n\
-  \    *   **User Interface Adapter:** The `src/UI` directory (specifically `src/UI/RestBundle`)\
-  \ acts as the primary entry point (Driving Adapter), converting HTTP requests into\
-  \ calls to the Application layer.\n\n3.  **Event-Driven:**\n    *   The README and\
-  \ file structure confirm that the system uses a **Command Bus** (`app/config/bundles/bus.yml`)\
-  \ and **Domain Events**.\n    *   Async communication is handled via RabbitMQ (`rabbitmq:multiple-consumer`\
-  \ mentioned in the README). \n    *   Events are also published to an ElasticSearch/Kibana\
-  \ stack for observability/read-modeling, indicating a leaning towards event-driven\
-  \ data flow.\n\n4.  **Monolithic Structure:**\n    *   Despite the modular \"Bundle\"\
-  \ structure in `src/Infrastructure`, this is a **Modular Monolith**. There is a\
-  \ single `AppKernel.php`, a single `composer.json`, and the Docker configuration\
-  \ (`etc/infrastructure/dev/docker-compose.yml`) describes a single PHP-FPM service\
-  \ running the entire application.\n\n### Key Evidence:\n*   **Explicit Layering:**\
-  \ `src/Domain`, `src/Application`, `src/Infrastructure`, and `src/UI`.\n*   **Decoupling:**\
-  \ Domain interfaces (found in `src/Domain/.../Repository`) are separated from Infrastructure\
-  \ implementations (found in `src/Infrastructure/.../Repository`).\n*   **Messaging:**\
-  \ Integration with RabbitMQ and the presence of `DomainEvents` directories.\n* \
-  \  **Framework Usage:** Use of Symfony Bundles to encapsulate infrastructure concerns\
-  \ (e.g., `LeosInfrastructureWalletBundle.php`)."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.83
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.88
-  style_clarity: 0.95
-  alternatives_dismissed: 0.6
-  exploration_completeness: 0.85
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:02:51Z'
+classification_reasoning: "## Analysis\n\nThis repository is a **Domain-Driven Design**\
+  \ implementation with **Layered Architecture** as its structural pattern and **Hexagonal\
+  \ Architecture (Ports & Adapters)** for dependency management.\n\n### Domain-Driven\
+  \ Design Evidence\n\n**Bounded Contexts / Domains:**\nThe codebase is organized\
+  \ around distinct domain contexts:\n- `src/Domain/User/` — User aggregate with entities,\
+  \ value objects, events, repositories\n- `src/Domain/Wallet/` — Wallet aggregate\
+  \ with credit management\n- `src/Domain/Transaction/` — Transaction aggregate with\
+  \ deposit/withdrawal logic\n- `src/Domain/Payment/` — Payment models and details\n\
+  - `src/Domain/Money/` — Money value object\n- `src/Domain/Security/` — Authentication\
+  \ domain concepts\n\n**Aggregates and Entities:**\n- `User` extends `AggregateRoot`\
+  \ (`src/Domain/User/Model/User.php:20`)\n- `AbstractTransaction` extends `AggregateRoot`\
+  \ (`src/Domain/Transaction/Model/AbstractTransaction.php:22`)\n- `Wallet` is an\
+  \ entity within the Wallet aggregate\n\n**Value Objects:**\n- `UserId`, `WalletId`,\
+  \ `TransactionId` — identity value objects\n- `Credit`, `Money`, `Currency` — monetary\
+  \ value objects\n- `AuthUser`, `EncodedPasswordInterface` — security value objects\n\
+  - All are immutable (`final class Credit`, immutable state)\n\n**Domain Events:**\n\
+  - `UserWasCreated`, `UserPasswordWasChanged` (`src/Domain/User/Event/`)\n- `TransactionWasCreated`\
+  \ (`src/Domain/Transaction/Event/`)\n- Events raised from aggregates via `$this->raise(new\
+  \ UserWasCreated(...))` (`src/Domain/User/Model/User.php:75-77`)\n\n**Repository\
+  \ Interfaces in Domain:**\n- `UserRepositoryInterface` (`src/Domain/User/Repository/UserRepositoryInterface.php`)\n\
+  - `WalletRepositoryInterface` (`src/Domain/Wallet/Repository/WalletRepositoryInterface.php`)\n\
+  - `TransactionRepositoryInterface` (`src/Domain/Transaction/Repository/TransactionRepositoryInterface.php`)\n\
+  \n**Domain Factories:**\n- `UserFactoryInterface` defined in domain (`src/Domain/User/Factory/UserFactoryInterface.php`)\n\
+  \n### Layered Architecture Evidence\n\nThe README explicitly states: *\"Code structured\
+  \ in layers as appears in DDD in php book.\"*\n\n**Four distinct horizontal layers:**\n\
+  \n1. **Domain Layer** (`src/Domain/`) — Pure business logic, no infrastructure dependencies\n\
+  \   - Entities, Value Objects, Domain Events, Repository Interfaces, Factory Interfaces\n\
+  \n2. **Application Layer** (`src/Application/`) — Use case orchestration\n   - Handlers\
+  \ like `RegisterUserHandler`, `CreateDepositHandler`\n   - Request DTOs like `Register`,\
+  \ `CreateDeposit`\n\n3. **Infrastructure Layer** (`src/Infrastructure/`) — Technical\
+  \ implementations\n   - Bundle-based organization: `UserBundle`, `WalletBundle`,\
+  \ `TransactionBundle`, etc.\n   - Doctrine ORM repositories: `UserRepository extends\
+  \ EntityRepository implements UserRepositoryInterface`\n   - External integrations:\
+  \ RabbitMQ, ElasticSearch, Redis\n\n4. **UI Layer** (`src/UI/RestBundle/`) — Presentation\n\
+  \   - REST controllers in `UserController`, `WalletController`\n   - Uses FOSRestBundle\
+  \ for API endpoints\n\n### Hexagonal Architecture (Ports & Adapters)\n\n**Ports\
+  \ (Interfaces in Domain):**\n- Repository interfaces: `UserRepositoryInterface`,\
+  \ `WalletRepositoryInterface`\n- Factory interfaces: `UserFactoryInterface`\n- Event\
+  \ dispatcher: `EventDispatcherInterface`\n\n**Adapters (Implementations in Infrastructure):**\n\
+  - `UserRepository` implements `UserRepositoryInterface` (`src/Infrastructure/UserBundle/Repository/UserRepository.php`)\n\
+  - `UserFactory` implements `UserFactoryInterface`\n- `EventDispatcher` implements\
+  \ `EventDispatcherInterface`\n\n**Dependency Inversion:**\nThe Application layer\
+  \ depends on abstractions:\n```php\n// src/Application/UseCase/User/RegisterUserHandler.php:28-29\n\
+  public function __construct(UserRepositoryInterface $repository, UserFactoryInterface\
+  \ $factory)\n```\n\n### Event-Driven Aspects (Supplementary)\n\nThe codebase incorporates\
+  \ domain events with asynchronous processing:\n\n- **Command Bus with Event Middleware:**\
+  \ `EventDispatcherMiddleware`, `EventPublisherMiddleware`, `EventStoreMiddleware`\
+  \ (`app/config/bundles/bus.yml`)\n- **RabbitMQ Integration:** Events published to\
+  \ message broker (`app/config/bundles/rmq.yml:17-41`)\n- **ElasticSearch Event Store:**\
+  \ `AsyncElasticEventStore` for persisting domain events\n- **Event Routing:** `UserWasCreated`,\
+  \ `TransactionWasCreated` routed to specific queues\n\nHowever, events are used\
+  \ **within** the domain layer for side effects (welcome emails, audit), not as the\
+  \ primary inter-component communication pattern. This is characteristic DDD domain\
+  \ event usage, not a full Event-Driven Architecture.\n\n### What This Is NOT\n\n\
+  - **NOT Microservices:** Single Symfony application with one `AppKernel.php`, single\
+  \ docker-compose deployment\n- **NOT CQRS:** No separate read/write models; same\
+  \ entities and repositories used for queries and commands\n- **NOT Modular Monolith:**\
+  \ No explicit module boundaries or package-level isolation — it's layered, not modular\n\
+  - **NOT Service-Based:** Single deployable, not 2-5 coarse-grained services\n\n\
+  ### File Referenc\n\n[truncated]"

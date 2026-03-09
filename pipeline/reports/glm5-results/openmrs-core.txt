@@ -1,0 +1,79 @@
+Now I have enough evidence to classify the architecture. Let me gather a bit more detail on the module extension points.Based on my thorough investigation, I now have sufficient evidence to classify this repository.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Analysis
+
+### Primary: Microkernel (Plugin)
+
+OpenMRS-core implements a **microkernel architecture** with a sophisticated plugin/module system at its core. The evidence is compelling:
+
+**Module Loading Infrastructure:**
+- `api/src/main/java/org/openmrs/module/ModuleFactory.java` - Central factory for loading, starting, stopping, and storing modules at runtime
+- `api/src/main/java/org/openmrs/module/Module.java` - Core module representation with lifecycle state
+- `api/src/main/java/org/openmrs/module/ModuleClassLoader.java` - Custom classloader for module isolation
+- `api/src/main/java/org/openmrs/module/ModuleActivator.java` - Lifecycle callbacks (willStart, started, willStop, stopped)
+
+**Extension Points:**
+- `api/src/main/java/org/openmrs/module/Extension.java` - Abstract base for extensions that "run at certain extension points throughout the user interface"
+- `api/src/main/java/org/openmrs/module/AdvicePoint.java` - AOP-based extension points for cross-cutting concerns
+
+**Runtime Discovery and Loading:**
+```java
+// ModuleFactory.java loads modules from a repository at runtime
+public static void loadModules() {
+    File modulesFolder = ModuleUtil.getModuleRepository();
+    // ... loads module JAR files dynamically
+}
+```
+
+**Explicit Documentation:**
+The README explicitly states: *"OpenMRS has a modular architecture that allows developers to extend the OpenMRS core functionality by creating modules that can easily be added or removed to meet the needs of a specific implementation."*
+
+The system maintains a public [OpenMRS Module Repository](https://addons.openmrs.org/) for third-party modules.
+
+### Secondary: Layered
+
+Within both the core and modules, OpenMRS employs a traditional **layered architecture**:
+
+**Three-Tier Layering:**
+1. **Web Layer** (`web/`, `webapp/`) - Controllers, filters, servlets, JSP views
+2. **Service Layer** (`api/src/main/java/org/openmrs/api/`) - Business logic interfaces and implementations
+3. **Data Access Layer** (`api/src/main/java/org/openmrs/api/db/`) - DAO interfaces with Hibernate implementations
+
+**Evidence from Code Structure:**
+- Service interfaces: `PatientService.java`, `ConceptService.java`, `UserService.java`
+- Service implementations: `PatientServiceImpl.java`, `ConceptServiceImpl.java`
+- DAO interfaces: `PatientDAO.java`, `ConceptDAO.java`
+- DAO implementations: `HibernatePatientDAO.java`, `HibernateConceptDAO.java`
+
+**Spring Configuration:**
+`api/src/main/resources/applicationContext-service.xml` wires services to DAOs via dependency injection:
+```xml
+<bean id="serviceContext" class="org.openmrs.api.context.ServiceContext">
+    <property name="patientService" ref="patientService"/>
+    <property name="conceptService" ref="conceptService"/>
+    ...
+</bean>
+```
+
+### Single Deployable Unit
+
+The project builds to a single `webapp/target/openmrs.war` deployed to Tomcat or Jetty, confirming this is NOT a microservices architecture. All core services share a single database connection and Spring application context.
+
+### What This Is NOT
+
+- **NOT Microservices**: Single WAR file, single database, shared Spring context
+- **NOT Modular Monolith**: Module boundaries are NOT enforced at compile-time; modules are loaded dynamically at runtime from external JARs
+- **NOT Event-Driven**: No message broker configurations, no event sourcing patterns
+- **NOT DDD**: No bounded contexts, aggregates, or domain-centric organization; the structure follows technical layers
+
+### Conclusion
+
+OpenMRS-core is a textbook example of a **microkernel architecture**: a minimal core platform that can be extended through a well-defined plugin/module system. Modules are discovered and loaded at runtime, have their own classloaders, can define extension points, and can be added/removed without modifying the core. This is layered on top of a traditional service/DAO layered architecture for internal code organization.

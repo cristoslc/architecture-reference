@@ -1,0 +1,185 @@
+I'll explore the Vault repository systematically to classify its architecture. Let me start with a high-level overview.Based on my thorough exploration of the Vault repository, I have gathered sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles: []
+confidence: 0.95
+---
+
+## Analysis
+
+Vault implements a classic **Microkernel (Plugin)** architecture with a single deployable core system extended through a well-defined plugin contract.
+
+### Core System Evidence
+
+**Single Deployable:**
+- `main.go` is the sole entry point, delegating to `command.Run()`
+- Single `Dockerfile` produces a single `vault` binary
+- Single `go.mod` at repository root - no multi-module workspace
+
+**Core Orchestrator (`vault/core.go`):**
+The `Core` struct (line 265) is the central coordinator containing:
+- `router *Router` - routes requests to mounted backends
+- `logicalBackends map[string]logical.Factory` - registered secrets engines
+- `credentialBackends map[string]logical.Factory` - registered auth methods
+- `pluginCatalogPath = "core/plugin-catalog/"` - plugin registry storage
+
+### Plugin Contract Evidence
+
+**Interface Definition (`sdk/logical/logical.go`):**
+```go
+type Backend interface {
+    Initialize(context.Context, *InitializationRequest) error
+    HandleRequest(context.Context, *Request) (*Response, error)
+    SpecialPaths() *Paths
+    System() SystemView
+    Logger() log.Logger
+    HandleExistenceCheck(context.Context, *Request) (bool, bool, error)
+    Cleanup(context.Context)
+    InvalidateKey(context.Context, string)
+    Setup(context.Context, *BackendConfig) error
+    Type() BackendType
+}
+
+type Factory func(context.Context, *BackendConfig) (Backend, error)
+```
+
+This interface is the **plugin contract** - all backends must implement it.
+
+### Plugin Loading Infrastructure
+
+**Builtin Plugin Registry (`helper/builtinplugins/registry.go`):**
+```go
+var Registry = newRegistry()
+
+func newMinimalRegistry() *registry {
+    return &registry{
+        credentialBackends: map[string]credentialBackend{
+            "approle":  {Factory: credAppRole.Factory},
+            "cert":     {Factory: credCert.Factory},
+            "userpass": {Factory: credUserpass.Factory},
+        },
+        logicalBackends: map[string]logicalBackend{
+            "kv":      {Factory: logicalKv.Factory},
+            "pki":     {Factory: logicalPki.Factory},
+            "transit": {Factory: logicalTransit.Factory},
+        },
+    }
+}
+```
+
+Builtin plugins are registered at compile-time but follow the same contract.
+
+**External Plugin Loading (`sdk/plugin/plugin.go`, `sdk/plugin/serve.go`):**
+```go
+// Serve is a helper function used to serve a backend plugin.
+func Serve(opts *ServeOpts) error {
+    pluginSets := map[int]plugin.PluginSet{
+        5: {
+            "backend": &GRPCBackendPlugin{
+                Factory: opts.BackendFactoryFunc,
+            },
+        },
+    }
+    serveOpts := &plugin.ServeConfig{
+        HandshakeConfig:  HandshakeConfig,
+        VersionedPlugins: pluginSets,
+        ...
+    }
+    plugin.Serve(serveOpts)
+}
+
+var HandshakeConfig = plugin.HandshakeConfig{
+    MagicCookieKey:   "VAULT_BACKEND_PLUGIN",
+    MagicCookieValue: "6669da05-b1c8-4f49-97d9-c8e5bed98e20",
+}
+```
+
+Uses `github.com/hashicorp/go-plugin` for out-of-process plugin execution via gRPC.
+
+**Plugin Catalog (`vault/plugincatalog/plugin_catalog.go`):**
+```go
+type PluginCatalog struct {
+    builtinRegistry BuiltinRegistry
+    catalogView     logical.Storage
+    directory       string
+    externalPlugins map[externalPluginsKey]*externalPlugin
+}
+```
+
+Manages both builtin and external plugins, handling lifecycle, versioning, and multiplexing.
+
+### Plugin Implementation Examples
+
+**AppRole Auth Method (`builtin/credential/approle/backend.go`):**
+```go
+type backend struct {
+    *framework.Backend
+    salt      *salt.Salt
+    view      logical.Storage
+    roleLocks []*locksutil.LockEntry
+}
+
+func Factory(ctx context.Context, conf *logical.BackendConfig) (logical.Backend, error) {
+    b, err := Backend(conf)
+    if err != nil {
+        return nil, err
+    }
+    if err := b.Setup(ctx, conf); err != nil {
+        return nil, err
+    }
+    return b, nil
+}
+```
+
+**PKI Secrets Engine (`builtin/logical/pki/backend.go`):**
+Similarly implements the `logical.Backend` interface via `framework.Backend`.
+
+### Router-Based Dispatch (`vault/router.go`):
+```go
+type Router struct {
+    root               *radix.Tree
+    storagePrefix      *radix.Tree
+    mountUUIDCache     *radix.Tree
+}
+
+type routeEntry struct {
+    backend     logical.Backend
+    mountEntry  *MountEntry
+    storageView logical.Storage
+}
+```
+
+Requests are routed to mounted plugin backends based on path prefix.
+
+### What Was Rejected
+
+**Not Microservices:**
+- Single binary deployment
+- No inter-service communication
+- No independent deployability of components
+
+**Not Modular Monolith:**
+- No enforced module boundaries in code structure
+- Plugins can be loaded externally, not just internal modules
+- The extension mechanism is the primary architectural feature, not a secondary concern
+
+**Not Layered:**
+- No horizontal layering (presentation/business/data access)
+- The `vault/`, `sdk/`, `api/` structure is about plugin development, not horizontal separation
+- Core functionality and plugins operate at the same abstraction level
+
+**Not Event-Driven:**
+- Primary interaction model is synchronous request/response
+- EventBus exists (`vault/eventbus/bus.go`) but is secondary, used for internal notifications
+- Not the primary architectural characteristic
+
+### Summary
+
+Vault exemplifies the **Microkernel (Plugin)** pattern:
+1. **Core System:** Minimal `Core` with router, mount table, and plugin catalog
+2. **Plugin Contract:** `logical.Backend` interface with `Factory` function
+3. **Plugin Types:** Auth methods (credential), secrets engines (logical), database plugins
+4. **Extension Mechanism:** Both compile-time (builtin registry) and runtime (plugin catalog) loading
+5. **Communication:** gRPC via `go-plugin` for external plugins, direct instantiation for builtin

@@ -38,75 +38,65 @@ review_notes: 'This repository is the official reference implementation for Vaug
   Objects) and domain services, adhering to the principle of linguistic and conceptual
   boundaries.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.74
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:51:48Z'
-classification_reasoning: 'This repository is the official reference implementation
-  for Vaughn Vernon''s book "Implementing Domain-Driven Design." As such, it is a
-  canonical example of **Domain-Driven Design (DDD)** organized into distinct **Bounded
-  Contexts**.
-
-
-  ### Primary Style: Domain-Driven Design (DDD)
-
-  The repository is structured as a multi-module Gradle project, where each top-level
-  directory (excluding `iddd_common`) represents a distinct Bounded Context:
-
-  - `iddd_agilepm`: Agile Project Management context.
-
-  - `iddd_collaboration`: Collaboration context.
-
-  - `iddd_identityaccess`: Identity and Access Management context.
-
-
-  Each module contains its own internal domain model (Aggregates, Entities, Value
-  Objects) and domain services, adhering to the principle of linguistic and conceptual
-  boundaries.
-
-
-  ### Secondary Style: Hexagonal Architecture (Ports and Adapters)
-
-  While not immediately obvious from the 4-level directory tree, the README and the
-  naming conventions within the subprojects confirm a Hexagonal approach. The projects
-  isolate the "Application" and "Domain" layers from technical "Infrastructure." For
-  example:
-
-  - `iddd_identityaccess` mentions a "RESTful client interface" and RabbitMQ integration,
-  which serve as adapters (Infrastructure) to the internal application core.
-
-  - The use of several persistence mechanisms (LevelDB, Hibernate, JDBC) swapped across
-  different modules demonstrates the decoupling of the core logic from external dependencies.
-
-
-  ### Secondary Style: CQRS (Command Query Responsibility Segregation)
-
-  The repository explicitly implements **CQRS** and **Event Sourcing**, particularly
-  within the `iddd_collaboration` module.
-
-  - The README notes: "The iddd_collaboration project uses Event Sourcing and CQRS."
-
-  - It details the separation of a "write model" (Event Sourced in LevelDB) and a
-  "read model" (MySQL-based query engine), a hallmark of the CQRS pattern.
-
-
-  ### Why not Microservices?
-
-  Although the projects represent separate Bounded Contexts and use distinct databases
-  (LevelDB for some, MySQL for others) and messaging (RabbitMQ), they are contained
-  within a single repository and built as a unit. While they *could* be deployed as
-  services, the structure is more aligned with a **Modular Monolith** or a collection
-  of reference architectures. However, since the internal organization strictly follows
-  DDD tactical and strategic patterns, "Domain-Driven Design" is the most accurate
-  classification.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.74
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.9
-  alternatives_dismissed: 0.65
-  exploration_completeness: 0.6
-  flags: evidence relies partly on README and naming conventions rather than direct
-    code inspection; hexagonal architecture claim is inferred rather than demonstrated
-    with package-level paths
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:27:32Z'
+classification_reasoning: "## Architecture Analysis\n\nThis repository is the official\
+  \ reference implementation for Vaughn Vernon's book \"Implementing Domain-Driven\
+  \ Design.\" The architecture is explicitly designed to demonstrate DDD patterns.\n\
+  \n### Primary Style: Domain-Driven Design\n\n**Clear evidence of DDD tactical patterns\
+  \ throughout:**\n\n**1. Bounded Contexts**: The codebase is organized as separate\
+  \ Gradle modules, each representing a bounded context:\n- `iddd_agilepm` - Agile\
+  \ Project Management context\n- `iddd_collaboration` - Collaboration context  \n\
+  - `iddd_identityaccess` - Identity & Access context\n- `iddd_common` - Shared kernel\
+  \ with common domain infrastructure\n\n**2. Domain Model Organization**: Each context\
+  \ follows the `domain/model/<aggregate>` package structure:\n```\niddd_agilepm/domain/model/product/\n\
+  iddd_agilepm/domain/model/team/\niddd_collaboration/domain/model/calendar/\niddd_collaboration/domain/model/forum/\n\
+  iddd_identityaccess/domain/model/identity/\niddd_identityaccess/domain/model/access/\n\
+  ```\n\n**3. Aggregates & Entities**: Clear aggregate roots with identity and lifecycle\
+  \ management:\n- `Product` extends `Entity` base class (`iddd_agilepm/src/main/java/com/saasovation/agilepm/domain/model/product/Product.java`)\n\
+  - `Calendar` extends `EventSourcedRootEntity` (`iddd_collaboration/src/main/java/com/saasovation/collaboration/domain/model/calendar/Calendar.java`)\n\
+  - `Tenant`, `Group`, `User` as aggregate roots in identity context\n\n**4. Value\
+  \ Objects**: `ValueObject` base class and value objects like `TenantId`, `ProductId`,\
+  \ `CalendarId` representing identity without lifecycle.\n\n**5. Domain Events**:\
+  \ Robust event publishing via `DomainEventPublisher` (`iddd_common/src/main/java/com/saasovation/common/domain/model/DomainEventPublisher.java`):\n\
+  ```java\nDomainEventPublisher.instance().publish(new ProductCreated(...));\nDomainEventPublisher.instance().publish(new\
+  \ CalendarCreated(...));\n```\n\n**6. Repositories**: Interface-based repositories\
+  \ defined in domain layer, implemented in adapters:\n- `ProductRepository` interface\
+  \ in domain model\n- `CalendarRepository` interface in domain model\n- Implementations\
+  \ like `LevelDBProductRepository`, `EventStoreCalendarRepository`, `HibernateUserRepository`\n\
+  \n### Secondary Style: Hexagonal Architecture (Ports and Adapters)\n\nThe codebase\
+  \ explicitly follows the ports and adapters pattern:\n\n**Application Layer**: Application\
+  \ services as primary ports:\n- `ProductApplicationService`, `TeamApplicationService`\
+  \ in agilepm\n- `CalendarApplicationService`, `ForumApplicationService` in collaboration\n\
+  - `IdentityApplicationService`, `AccessApplicationService` in identityaccess\n\n\
+  **Port/Adapter Structure**: Clear separation in `port/adapter` packages:\n- `port/adapter/persistence/`\
+  \ - Persistence adapters (LevelDB, Hibernate, EventStore)\n- `port/adapter/messaging/`\
+  \ - Messaging adapters (RabbitMQ, SlothMQ)\n- `port/adapter/notification/` - Notification\
+  \ publishers\n- `port/adapter/service/` - External service adapters\n\n**Infrastructure\
+  \ Layer**: Separate `infrastructure/` packages for technical concerns:\n- `iddd_identityaccess/infrastructure/persistence/`\
+  \ - Hibernate repositories\n- `iddd_identityaccess/infrastructure/services/` - Infrastructure\
+  \ services\n\n### Secondary Style: CQRS\n\nThe `iddd_collaboration` bounded context\
+  \ explicitly implements CQRS:\n\n**Write Model**: Event-sourced domain model using\
+  \ `EventSourcedRootEntity`:\n```java\npublic class Calendar extends EventSourcedRootEntity\
+  \ {\n    protected void when(CalendarCreated anEvent) { ... }\n    protected void\
+  \ when(CalendarDescriptionChanged anEvent) { ... }\n}\n```\n\n**Read Model**: Separate\
+  \ query services with direct database queries:\n```java\npublic class CalendarQueryService\
+  \ extends AbstractQueryService {\n    public Collection<CalendarData> allCalendarsDataOfTenant(String\
+  \ aTenantId) {\n        return this.queryObjects(CalendarData.class, \"select ...\"\
+  );\n    }\n}\n```\n\n**Projections**: Event-driven projections updating read models:\n\
+  ```java\npublic class MySQLCalendarProjection extends AbstractProjection \n    implements\
+  \ EventDispatcher {\n    protected void when(CalendarCreated anEvent) throws Exception\
+  \ { ... }\n}\n```\n\n**README explicitly states**: \"The iddd_collaboration project\
+  \ uses Event Sourcing and CQRS.\"\n\n### Event Sourcing (within collaboration context)\n\
+  \nEvent sourcing infrastructure in `iddd_common`:\n- `EventStore` interface with\
+  \ `LevelDBEventStore`, `HashMapEventStore` implementations\n- `EventSourcedRootEntity`\
+  \ base class with `mutatingEvents()` and `apply()` methods\n- Event stream versioning\
+  \ for optimistic concurrency\n\n### Rejected Classifications\n\n**Not Microservices**:\
+  \ Single deployable unit (Gradle build), no independent deployment, shared database\
+  \ in some contexts.\n\n**Not Modular Monolith**: While there are modules, the primary\
+  \ organization principle is DDD bounded contexts, not just modular decomposition.\
+  \ The ports/adapters pattern adds hexagonal architecture on top.\n\n**Not Layered\
+  \ (pure)**: While there are layers, the architecture is not primarily horizontal\
+  \ layering. \n\n[truncated]"

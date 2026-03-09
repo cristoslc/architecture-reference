@@ -1,0 +1,104 @@
+I'll explore the azure-functions-host repository to classify its architecture. Let me start by examining the directory structureand README.Let me explore the source code structure more deeply, particularly the core abstractions and the worker/plugin architecture.Let me look at a few more key files to solidify my understanding of the extension loading mechanism:Now I have sufficient evidence to make a classification. Let me synthesize my findings:
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+## Analysis
+
+The **azure-functions-host** repository implements the **Azure Functions runtime host** - the core execution engine that runs Azure Functions. This is the infrastructure that *hosts* serverless functions, not the functions themselves.
+
+### Primary Style: Microkernel (Plugin)
+
+The architecture exhibits strong microkernel/plugin characteristics:
+
+**Core System with Plugin Extension Points:**
+
+1. **Extension Loading Infrastructure:**
+   - `ScriptStartupTypeLocator` dynamically discovers and loads extension startup types from extension bundles or NuGet packages
+   - `ExtensionBundleManager` resolves and downloads extension bundles at runtime
+   - `FunctionAssemblyLoadContext` provides isolated assembly loading for extensions and user functions (src/WebJobs.Script/Description/DotNet/FunctionAssemblyLoadContext.cs)
+
+2. **Pluggable Binding Providers:**
+   - `IScriptBindingProvider` interface defines the plugin contract for bindings
+   - `ScriptBindingProvider` base class with `TryCreate()` pattern for extension implementations
+   - `GeneralScriptBindingProvider` enables all SDK extensions to work via metadata
+   - Multiple built-in providers: `CoreExtensionsScriptBindingProvider`, `WebJobsCoreScriptBindingProvider`
+
+3. **Pluggable Function Descriptor Providers:**
+   - `FunctionDescriptorProvider` abstract base class
+   - `DotNetFunctionDescriptorProvider` for .NET functions
+   - `RpcFunctionDescriptorProvider` for RPC-based language workers
+   - `HttpFunctionDescriptorProvider` for HTTP-based custom handlers
+   - `IWorkerFunctionDescriptorProviderFactory` creates appropriate providers dynamically
+
+4. **Pluggable Language Workers:**
+   - `IWorkerChannel` interface for worker communication
+   - `IRpcWorkerChannelFactory` creates gRPC worker channels
+   - `IFunctionInvocationDispatcher` dispatches invocations to workers
+   - Workers run as separate processes (Python, Java, Node.js, PowerShell, etc.)
+   - Worker configurations loaded from `runtimes.json` and `RpcWorkerConfig`
+
+5. **Extension Bundle System:**
+   - Extensions packaged as bundles that can be downloaded and loaded dynamically
+   - Runtime resolution of extension requirements
+   - `ExtensionsManager` handles adding/removing extensions
+
+**Evidence from code:**
+```csharp
+// ScriptStartupTypeLocator.cs - Discovers and loads extension startup types
+public async Task<IEnumerable<Type>> GetExtensionsStartupTypesAsync()
+{
+    // Dynamically resolves extensions from bundles or assemblies
+    ExtensionBundleDetails bundleDetails = await _extensionBundleManager.GetExtensionBundleDetails();
+    // ... loads types dynamically
+}
+```
+
+```csharp
+// FunctionAssemblyLoadContext.cs - Isolated loading for extensions
+public partial class FunctionAssemblyLoadContext : AssemblyLoadContext
+{
+    // Provides assembly isolation for plugins
+}
+```
+
+### Secondary Style: Layered
+
+The codebase exhibits clear horizontal layering:
+
+1. **Abstractions Layer:** `WebJobs.Script.Abstractions` - Core interfaces like `IFunctionProvider`, `BindingMetadata`
+2. **Core Runtime Layer:** `WebJobs.Script` - Script host, function descriptors, binding infrastructure, extension management
+3. **Worker Communication Layer:** `WebJobs.Script.Grpc` - gRPC channels, worker invocation dispatch
+4. **Hosting Layer:** `WebJobs.Script.WebHost` - ASP.NET Core hosting, HTTP routing, web host service
+
+```
+WebJobs.Script.Abstractions (Interfaces)
+        ↓
+WebJobs.Script (Core Runtime)
+        ↓
+WebJobs.Script.Grpc (Worker Communication)
+        ↓
+WebJobs.Script.WebHost (Web Hosting)
+```
+
+### What This Is NOT
+
+- **NOT Microservices:** Single deployable unit (the host), not multiple independently deployable services
+- **NOT Serverless:** This IS the serverless *platform infrastructure*, not serverless *functions*
+- **NOT Event-Driven (primary):** Internal event manager exists (`ScriptEventManager` with Rx) for host lifecycle coordination, but this is internal plumbing, not the defining architecture
+- **NOT CQRS:** No separate read/write models
+- **NOT DDD:** No aggregates, entities, or bounded contexts
+- **NOT Modular Monolith:** Plugins are truly dynamic and isolated, not compile-time modules
+
+### Key Distinctions
+
+The plugin architecture here is particularly sophisticated:
+- Extensions loaded from external bundles (not just assemblies)
+- Custom `AssemblyLoadContext` for isolation
+- Out-of-process workers communicate via gRPC
+- Multiple plugin contracts: bindings, function providers, workers, startup configurations

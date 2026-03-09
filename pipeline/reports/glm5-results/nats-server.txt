@@ -1,0 +1,60 @@
+Let me look at the Server struct definition and check for any module boundaries or layering patterns:Let me check the server struct and code organization patterns:Based on my investigation, I now have sufficient evidence to classify this repository'sarchitecture.Based on my comprehensive investigation of the nats-server repository, I can now provide my classification:
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.72
+---
+
+## Analysis
+
+**Repository Structure:**
+The nats-server repository is a Go application that produces a single deployable binary (the NATS messaging server). The codebase has:
+- Single `go.mod` file (not a workspace)
+- Single `main.go` entry point
+- Core code concentrated in the `server/` package (136 Go files)
+- Supporting packages: `conf/`, `logger/`, `internal/` utilities
+
+**Evidence for Modular Monolith (primary):**
+
+The codebase exhibits modular organization at the file level, with files organized by functional domain:
+- `accounts.go` (137K lines) - Account management
+- `client.go` (196K lines) - Client connection handling  
+- `gateway.go` (103K lines) - Gateway connections
+- `leafnode.go` - Leaf node connections
+- `route.go` - Inter-server routing
+- `jetstream*.go` - JetStream functionality (multiple files totaling ~500K+ lines)
+- `filestore.go`, `memstore.go` - Storage implementations
+- `stream.go`, `consumer.go` - Stream/consumer management
+- `auth.go`, `jwt.go`, `nkey.go` - Authentication
+
+However, the **module boundaries are NOT architecturally enforced** - all files belong to the same `server` package with unrestricted access between components. The "modules" exist as organizational conventions (file naming/grouping) rather than compile-time boundaries.
+
+**Evidence for Layered (secondary):**
+
+There's weak layering visible in:
+- Protocol/parsing layer: `parser.go`, `proto.go`
+- Core business layer: `server.go`, `client.go` 
+- Data access layer: `filestore.go`, `memstore.go`, `dirstore.go`
+
+But layers aren't cleanly separated - `client.go` directly calls storage, protocol handlers directly invoke business logic. The layering is implicit, not enforced.
+
+**What this is NOT:**
+- **Microkernel/Plugin**: No plugin loading mechanism, no extension points
+- **Microservices**: Single deployable binary, not distributed services  
+- **Domain-Driven Design**: No bounded contexts, aggregates, or DDD tactical patterns
+- **Hexagonal**: No ports/adapters pattern, direct implementation coupling
+- **CQRS**: No separate read/write models
+- **Event-Driven**: While NATS IS an event broker, the internal code organization doesn't use event-driven patterns
+- **Space-Based**: No in-memory data grid architecture
+- **Pipeline**: No pipe-and-filter processing
+
+**Architecture Character:**
+This is a classic Go server application - monolithic by design (intentionally so). The NATS server is built as a high-performance messaging broker where direct function calls and shared memory provide the performance characteristics required. The file organization shows domain awareness but prioritizes runtime performance over architectural boundary enforcement.
+
+The single `Server` struct (server.go:169) serves as the central orchestrator, holding references to all subsystems (accounts, clients, routes, gateways, leaf nodes, JetStream, etc.) with direct method calls between components.
+
+**Confidence Rationale:**
+Confidence is 0.72 because while the modular organization is evident, the lack of enforced boundaries makes this a weaker example of Modular Monolith. An argument could be made for "Indeterminate" or "Layered with very weak layering," but Modular Monolith best captures the intentional organization-by-feature within a single deployable unit.

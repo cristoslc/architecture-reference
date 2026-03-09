@@ -15,8 +15,8 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Layered
 - Microkernel (Plugin)
+- Layered
 classification_status: classified
 review_notes: 'The InvenTree repository is a classic **Layered** architecture, specifically
   built on the Django framework. According to the `docs/docs/develop/architecture.md`,
@@ -48,52 +48,50 @@ review_notes: 'The InvenTree repository is a classic **Layered** architecture, s
   and the architecture diagram showing a single `inventree/inventree` image containing
   the Django server processes).'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.69
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:52:44Z'
-classification_reasoning: "The InvenTree repository is a classic **Layered** architecture,\
-  \ specifically built on the Django framework. According to the `docs/docs/develop/architecture.md`,\
-  \ it follows a \"classical Django Application\" structure. The system is organized\
-  \ into a Python/Django backend (located in `src/backend/InvenTree`) and a React-based\
-  \ Single Page Application (SPA) frontend.\n\n### Primary Style: Layered\nThe codebase\
-  \ follows the horizontal layering typical of Django/DRF (Django Rest Framework)\
-  \ applications:\n- **Presentation Layer**: A React SPA frontend served as static\
-  \ files, communicating with the backend via a RESTful API.\n- **Business Logic Layer**:\
-  \ Implemented within Django apps, utilizing services and background workers (Django\
-  \ Q2) for long-running tasks.\n- **Data Access Layer**: Uses Django’s ORM to abstract\
-  \ interactions with PostgreSQL, MySQL, or SQLite.\n- **Infrastructure**: Employs\
-  \ Redis for caching and session management and Gunicorn as the WSGI server.\n\n\
-  The architecture emphasizes a \"modular\" monolith approach where concerns are separated\
-  \ into Django apps, but they are deployed as a single unit (as evidenced by the\
-  \ `docker-compose.yml` and the architecture diagram showing a single `inventree/inventree`\
-  \ image containing the Django server processes).\n\n### Secondary Style: Microkernel\
-  \ (Plugin)\nThe system features a sophisticated **Microkernel** (Plugin) architecture,\
-  \ which is a core part of its extensibility strategy. \n- **Core System**: The \"\
-  InvenTree\" core provides the inventory logic, API, and database management.\n-\
-  \ **Plugins**: As seen in `src/backend/InvenTree/plugin/plugin.py`, the system uses\
-  \ a `Mixin`-based plugin architecture. Plugins can extend the core via specific\
-  \ hooks (`PluginMixinEnum`) for actions, barcodes, currency exchange, notifications,\
-  \ and even UI modifications.\n- **Registry**: The code contains a `registry.py`\
-  \ (referenced in `plugin.py`) that handles the discovery and lifecycle of these\
-  \ plugins, allowing the system to be extended without modifying the core codebase.\n\
-  \n### Evidence\n- **Directory Layout**: Code is centralized in `src/backend/InvenTree`\
-  \ (confirmed by `pyproject.toml` and `architecture.md`).\n- **Deployment**: The\
-  \ architecture diagram in `architecture.md` confirms a monolithic deployment (Gunicorn\
-  \ + Django + Database + Redis).\n- **Plugin Infrastructure**: `src/backend/InvenTree/plugin/plugin.py`\
-  \ defines the base `InvenTreePlugin` class and numerous mixins (Action, API, Barcode,\
-  \ etc.) that define the contract between the core and extensions.\n- **Frontend/Backend\
-  \ Separation**: The \"Frontend Architecture\" section of the docs describes a decoupled\
-  \ React SPA that communicates exclusively via an API, which is a standard pattern\
-  \ for modern layered monoliths."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.69
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.8
-  alternatives_dismissed: 0.45
-  exploration_completeness: 0.7
-  flags: dual classification (Layered + Microkernel) is reasonable but alternatives_dismissed
-    is weak — no explicit rejection of Event-Driven or Modular Monolith styles; evidence
-    relies partly on docs rather than deep code inspection
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:20:39Z'
+classification_reasoning: "## Architecture Analysis: InvenTree\n\n### Primary Style:\
+  \ Microkernel (Plugin)\n\nInvenTree implements a **Microkernel architecture** centered\
+  \ on a sophisticated plugin system that allows the core system to be extended at\
+  \ runtime.\n\n**Key Evidence:**\n\n1. **Plugin Registry** (`src/backend/InvenTree/plugin/registry.py`):\n\
+  \   - Central `PluginsRegistry` class that discovers, loads, and manages plugins\n\
+  \   - Maintains lists of active/inactive plugin instances\n   - Thread-safe loading\
+  \ with locks\n   - Dynamic URL and app registration\n\n2. **Plugin Base Class**\
+  \ (`src/backend/InvenTree/plugin/plugin.py`):\n   - `InvenTreePlugin` base class\
+  \ that all plugins extend\n   - `PluginMixinEnum` defining 20+ extension points\
+  \ (ACTION, API_CALL, BARCODE, LABELS, REPORT, VALIDATION, EVENTS, etc.)\n\n3. **Plugin\
+  \ Mixin System** (`src/backend/InvenTree/plugin/base/`):\n   - `SettingsMixin` -\
+  \ plugins can define custom settings\n   - `AppMixin` - plugins can register as\
+  \ full Django apps with models\n   - `UrlsMixin` - plugins can expose custom URL\
+  \ endpoints\n   - `NavigationMixin` - plugins can add navigation items\n   - `ReportMixin`,\
+  \ `LabelMixin` - plugins can provide report/label generation\n   - `ValidationMixin`\
+  \ - plugins can hook into data validation\n   - `EventMixin` - plugins can respond\
+  \ to system events\n\n4. **Builtin Plugins** (`src/backend/InvenTree/plugin/builtin/`):\n\
+  \   - Core functionality implemented as plugins: barcode, exporters, labels, notifications,\
+  \ currency exchange\n   - `MANDATORY_PLUGINS` list for plugins that provide essential\
+  \ functionality\n\n5. **Sample Plugins** (`src/backend/InvenTree/plugin/samples/`):\n\
+  \   - Demonstrates extension points with working examples\n\n### Secondary Style:\
+  \ Layered\n\nWithin each Django app module, the code follows a classic **Layered\
+  \ architecture** (MVC pattern):\n\n- **Data Layer**: `models.py` - Django ORM models\n\
+  - **API/Controller Layer**: `api.py` - Django REST Framework views\n- **Serialization\
+  \ Layer**: `serializers.py` - Data transformation\n- **Admin Layer**: `admin.py`\
+  \ - Admin interface configuration\n- **Presentation Layer**: `templates/` - HTML\
+  \ templates\n\n**Example** (`src/backend/InvenTree/part/`):\n```\npart/\n├── models.py\
+  \      # Data layer - Part, PartCategory, BomItem models\n├── api.py         # API\
+  \ views - CategoryList, PartList endpoints\n├── serializers.py # DRF serializers\
+  \ for JSON serialization\n├── admin.py       # Django admin configuration\n├── filters.py\
+  \     # Query filtering\n└── tests.py       # Test layer\n```\n\n### What This Is\
+  \ NOT\n\n- **Not Microservices**: Single deployable unit (`inventree/inventree`\
+  \ Docker image), single database, shared codebase\n- **Not Modular Monolith**: While\
+  \ organized into Django apps, there are no enforced module boundaries, separate\
+  \ schemas, or bounded contexts. The apps share the same database and can import\
+  \ each other freely\n- **Not Hexagonal Architecture**: No ports/adapters pattern;\
+  \ uses Django ORM directly throughout\n- **Not Event-Driven Architecture**: While\
+  \ there's an event system for plugins, synchronous REST API calls are the primary\
+  \ communication pattern\n\n### Deployment Topology\n\nFrom `contrib/container/docker-compose.yml`:\n\
+  - Single `inventree-server` container (gunicorn)\n- Background `inventree-worker`\
+  \ container (django-q, same codebase)\n- Shared PostgreSQL database\n- Redis cache\n\
+  - Caddy reverse proxy\n\nThis is a **monolithic deployment** with a background worker\
+  \ process - typical for Django applications with async task requirements."

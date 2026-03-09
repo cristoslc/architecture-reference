@@ -15,7 +15,6 @@ languages:
 architecture_styles:
 - Modular Monolith
 - Event-Driven
-- Domain-Driven Design
 classification_status: classified
 review_notes: 'The repository is a textbook implementation of a **Modular Monolith**.
   It is explicitly designed to demonstrate high cohesion within modules and low coupling
@@ -46,68 +45,66 @@ review_notes: 'The repository is a textbook implementation of a **Modular Monoli
   and `Messaging` directories indicate a robust internal event bus or message broker
   abstraction used for inter-module communication.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.8
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:52:32Z'
-classification_reasoning: 'The repository is a textbook implementation of a **Modular
-  Monolith**. It is explicitly designed to demonstrate high cohesion within modules
-  and low coupling between them, while maintaining a single deployment unit.
-
-
-  ### Evidence of Modular Monolith
-
-  - **Single Deployment Unit**: The `src/Bootstrapper` project acts as the entry point,
-  responsible for initializing all modules and starting a single web application (`Program.cs`,
-  `Startup.cs`).
-
-  - **Enforced Boundaries**: The README explicitly states there are no references
-  between modules. Communication is handled via "local contracts" or asynchronous
-  events, rather than direct project dependencies.
-
-  - **Internal Structure**: The directory `src/Modules/` contains autonomous folders
-  (Customers, Payments, Users, Wallets), each mimicking a microservice''s internal
-  structure (Core, Api, Infrastructure).
-
-
-  ### Evidence of Event-Driven Style
-
-  - **Asynchronous Integration**: The README highlights that integration between modules
-  is based on an "event-driven approach to achieve greater autonomy."
-
-  - **Infrastructure Support**: The `src/Shared/Inflow.Shared.Infrastructure/Events`
-  and `Messaging` directories indicate a robust internal event bus or message broker
-  abstraction used for inter-module communication.
-
-  - **Saga Pattern**: The presence of `src/Modules/Saga` confirms the use of a choreography
-  or orchestration pattern to manage distributed transactions across the autonomous
-  modules without synchronous coupling.
-
-
-  ### Evidence of Domain-Driven Design (DDD)
-
-  - **Bounded Contexts**: Each folder in `src/Modules` represents a clear Bounded
-  Context (Customers, Wallets, etc.).
-
-  - **Tactical Patterns**: The use of a `Core` project within modules (e.g., `Inflow.Modules.Wallets.Core`)
-  typically houses Domain Models, Entities, and Value Objects, while `Inflow.Shared.Abstractions/Kernel`
-  suggests the use of DDD Building blocks like Domain Events.
-
-
-  ### Rejected Styles
-
-  - **Microservices**: While the modules are "autonomous," they are compiled and deployed
-  as a single process by the Bootstrapper. The README even mentions a separate branch/repository
-  for the microservices version, confirming this is the monolithic counterpart.
-
-  - **Layered**: While internal modules may use layers, the primary architectural
-  significance of this repo is the vertical modularity and the bootstrapper pattern,
-  which supersedes a traditional horizontal N-Layer architecture.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.8
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.9
-  alternatives_dismissed: 0.8
-  exploration_completeness: 0.72
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:19:43Z'
+classification_reasoning: "## Classification Analysis\n\n### Primary Style: Modular\
+  \ Monolith\n\n**Inflow is a textbook example of a Modular Monolith architecture.**\
+  \ The evidence is compelling:\n\n**Single Deployment Unit:**\n- One deployable application:\
+  \ `src/Bootstrapper/Inflow.Bootstrapper` \n- A single Docker container runs the\
+  \ entire application (PostgreSQL database only in `docker-compose.yml`)\n- All modules\
+  \ are loaded into the same process via `ModuleLoader.LoadAssemblies()`\n\n**Enforced\
+  \ Module Boundaries:**\n- **Physical separation**: 4 autonomous modules (Customers,\
+  \ Payments, Wallets, Users, plus Saga) each with their own project structure\n-\
+  \ **No cross-module references**: Search for `using Inflow.Modules.(Customers|Payments|Users|Wallets)`\
+  \ returned **no matches** - modules cannot import from each other\n- **Project reference\
+  \ isolation**: Each module's `.csproj` only references Shared.* projects and internal\
+  \ layers—never other modules\n- **InternalsVisibleTo scoping**: `InternalsVisibleTo`\
+  \ attributes restrict visibility to `Api`, `Application`, `Infrastructure`, and\
+  \ `Tests` within the same module (e.g., `Inflow.Modules.Wallets.Core` exposes to\
+  \ `Inflow.Modules.Wallets.Api` but NOT to other modules)\n\n**Module Interface Pattern:**\n\
+  Each module implements `IModule` interface with controlled registration:\n```csharp\n\
+  // src/Modules/Wallets/Inflow.Modules.Wallets.Api/WalletsModule.cs\ninternal class\
+  \ WalletsModule : IModule\n{\n    public string Name { get; } = \"Wallets\";\n \
+  \   public void Register(IServiceCollection services) { ... }\n    public void Use(IApplicationBuilder\
+  \ app) { ... }\n}\n```\n\n**Independent Database Schemas:**\nEach module owns its\
+  \ data with separate schemas:\n- `WalletsDbContext` → `modelBuilder.HasDefaultSchema(\"\
+  wallets\")`\n- `PaymentsDbContext` → `modelBuilder.HasDefaultSchema(\"payments\"\
+  )`\n- `CustomersDbContext` → `modelBuilder.HasDefaultSchema(\"customers\")`\n\n\
+  **Configurable Module Loading:**\n```csharp\n// ModuleLoader.cs\nvar enabled = configuration.GetValue<bool>($\"\
+  {moduleName}:module:enabled\");\nif (!enabled) { disabledModules.Add(file); }\n\
+  ```\n\n### Secondary Style: Event-Driven\n\n**Modules communicate exclusively through\
+  \ events**, achieving strong decoupling:\n\n**Local Contracts Pattern:**\nInstead\
+  \ of sharing types, each module defines its own contract for external events:\n\
+  ```csharp\n// Wallets module defines its own contract for CustomerCompleted\n[Message(\"\
+  customers\")]\ninternal class CustomerCompletedContract : Contract<CustomerCompleted>\n\
+  {\n    public CustomerCompletedContract() { RequireAll(); }\n}\n```\n\n**Cross-Module\
+  \ Event Handlers:**\n```csharp\n// Wallets module handles Customers module events\n\
+  internal sealed class CustomerCompletedHandler : IEventHandler<CustomerCompleted>\n\
+  {\n    public async Task HandleAsync(CustomerCompleted @event, ...)\n    {\n   \
+  \     var owner = new IndividualOwner(@event.CustomerId, ...);\n        await _ownerRepository.AddAsync(owner);\n\
+  \    }\n}\n```\n\n**Inbox/Outbox Pattern:**\nEach module has `InboxMessage` and\
+  \ `OutboxMessage` tables for reliable event delivery.\n\n**Saga Implementation:**\n\
+  A dedicated Saga module orchestrates cross-module business processes (e.g., `CustomerVerified`\
+  \ → `WalletAdded` → `DepositCompleted` → `FundsAdded`).\n\n### Domain-Driven Design\
+  \ Elements (Not Primary Style)\n\nThe codebase incorporates DDD tactical patterns\
+  \ but these serve the module structure rather than define it:\n- Aggregate roots\
+  \ (`Wallet : AggregateRoot<WalletId>`)\n- Value objects (`TransferMetadata`, `OwnerName`,\
+  \ `TaxId`)\n- Domain events (`IDomainEvent`)\n- Bounded contexts (each module =\
+  \ bounded context)\n\nDDD is the **implementation approach within modules**, not\
+  \ the architectural style governing the overall system.\n\n### What Was Rejected\n\
+  \n- **Microservices**: Single process, single deployment, shared database. The `microservices`\
+  \ branch mentioned in README confirms this is intentionally NOT microservices.\n\
+  \n- **Service-Based**: This would imply 2-5 coarse services. Inflow has 5+ fine-grained\
+  \ modules with strict internal boundaries and local contracts—not coarse services\
+  \ sharing a database.\n\n- **Layered**: Not organized horizontally (presentation\
+  \ → business → data). The primary organization is **vertical slices** (modules),\
+  \ with layers existing internally within each module.\n\n- **Hexagonal Architecture**:\
+  \ While abstractions exist (`ICommand`, `IEvent`, `IRepository`), the defining characteristic\
+  \ is module boundaries, not ports/adapters isolation. The `Shared.Abstractions`\
+  \ provides cross-cutting infrastructure, not hexagonal ports.\n\n### Confidence:\
+  \ 0.95\n\nThe architecture is explicitly documented as \"Modular Monolith\" in README,\
+  \ and the code structure matches perfectly. The event-driven secondary style is\
+  \ clearly implemented through local contracts, saga pattern, and inbox/outbox—making\
+  \ this a well-architected modular monolith with event-driven inter-module communication."

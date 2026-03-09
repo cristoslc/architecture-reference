@@ -15,7 +15,6 @@ languages:
 architecture_styles:
 - Hexagonal Architecture
 - Modular Monolith
-- Domain-Driven Design
 classification_status: classified
 review_notes: "The repository is a textbook implementation of **Hexagonal Architecture**\
   \ (also known as Ports and Adapters), specifically under the \"Clean Architecture\"\
@@ -33,46 +32,65 @@ review_notes: "The repository is a textbook implementation of **Hexagonal Archit
   \ these implementations together using a Dependency Injection framework, ensuring\
   \ the Core remains decoupled from technical details."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.82
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:43:28Z'
-classification_reasoning: "The repository is a textbook implementation of **Hexagonal\
-  \ Architecture** (also known as Ports and Adapters), specifically under the \"Clean\
-  \ Architecture\" branding. The physical structure of the repository is designed\
-  \ to enforce the dependency rule where dependencies point inwards toward the domain\
-  \ core.\n\n### Evidence of Hexagonal Architecture\nThe project is split into distinct\
-  \ modules that represent the core and its adapters:\n1.  **Core (`application/core`)**:\
-  \ Contains the Domain Entities and Use Cases. The README explicitly states this\
-  \ should have \"no frameworks, no annotations\" and defines interfaces for data\
-  \ requirements.\n2.  **Adapters (Entrypoints and Dataproviders)**: \n    *   `application/entrypoints`:\
-  \ Acts as the \"Driving Adapters\" (REST APIs, Scheduled Jobs).\n    *   `application/dataproviders`:\
-  \ Acts as the \"Driven Adapters\" (Database, external services).\n3.  **Dependency\
-  \ Inversion**: The Core defines interfaces (Ports) which the Dataproviders implement.\
-  \ The `application/configuration` module acts as the \"Composition Root\" that wires\
-  \ these implementations together using a Dependency Injection framework, ensuring\
-  \ the Core remains decoupled from technical details.\n\n### Evidence of Modular\
-  \ Monolith\nThe repository is structured as a single Gradle multi-project build.\
-  \ While it is organized into high-level technical modules (core, dataproviders,\
-  \ etc.), it compiles into a single deployable unit (`java -jar application/build/clean-architecture-example.jar`).\
-  \ The README notes it is a \"Good monolith with clear use cases that you can split\
-  \ in microservices later,\" confirming its status as a modular monolith.\n\n###\
-  \ Evidence of Domain-Driven Design (DDD)\nThe architecture is heavily influenced\
-  \ by DDD principles:\n*   **Entities**: Logic is encapsulated within domain objects.\n\
-  *   **Bounded Contexts**: Although small, the code is organized around the \"Network\
-  \ Inventory\" domain.\n*   **Ubiquitous Language**: The README and directory structure\
-  \ use domain-specific terms like `BroadbandAccessDevice` and `Reconcile devices`.\n\
-  \n### Style Rejections\n*   **Layered**: Rejected as the primary style because the\
-  \ dependency flow is not traditional horizontal layering (UI -> Service -> DB).\
-  \ Instead, both UI and DB depend on the Core (Dependency Inversion), which is the\
-  \ hallmark of Hexagonal/Clean architecture.\n*   **Microservices**: Explicitly rejected\
-  \ by the README, which describes the project as a monolith intended to demonstrate\
-  \ how to structure code before needing to split into services."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.82
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.82
-  style_clarity: 0.9
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.78
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:56:23Z'
+classification_reasoning: "## Analysis\n\nThis repository is a **textbook implementation\
+  \ of Hexagonal Architecture (Ports and Adapters)**, with **Modular Monolith** as\
+  \ a secondary style due to its single deployable with enforced module boundaries.\n\
+  \n### Evidence for Hexagonal Architecture\n\n**1. Core Module with Application Business\
+  \ Logic**\nThe `application/core` module contains:\n- **Entities**: Plain Java objects\
+  \ (`BroadbandAccessDevice`, `Exchange`, `DeviceType`) with zero framework dependencies\n\
+  - **Use Cases**: Business logic classes (`GetBroadbandAccessDeviceDetailsUseCase`,\
+  \ `ReconcileBroadbandAccessDevicesUseCase`) that orchestrate business operations\n\
+  - **Port Interfaces**: Defined in use case packages - e.g., `GetDeviceDetails`,\
+  \ `GetAllDeviceHostnames`, `GetSerialNumberFromModel`, `UpdateSerialNumberInModel`\n\
+  \nFrom `application/core/build.gradle`:\n```gradle\ndependencies {\n    compile\
+  \ libs.string_utils  // Only utility library - NO frameworks!\n    testCompile libs.unit_tests\n\
+  }\n```\n\n**2. Port Interfaces Defined in Core**\nThe use case `GetBroadbandAccessDeviceDetailsUseCase`\
+  \ depends on an interface it defines:\n```java\npublic class GetBroadbandAccessDeviceDetailsUseCase\
+  \ {\n    private final GetDeviceDetails getDeviceDetails;  // Interface defined\
+  \ in same package\n    \n    public BroadbandAccessDevice getDeviceDetails(String\
+  \ hostname) {\n        BroadbandAccessDevice device = getDeviceDetails.getDetails(hostname);\n\
+  \        // business logic...\n    }\n}\n```\n\nThe interface `GetDeviceDetails`\
+  \ lives in core:\n```java\npackage com.clean.example.core.usecase.broadbandaccessdevice.getdetails;\n\
+  \npublic interface GetDeviceDetails {\n    BroadbandAccessDevice getDetails(String\
+  \ hostname);\n}\n```\n\n**3. Adapters Implement Core Interfaces**\n`BroadbandAccessDeviceDatabaseDataProvider`\
+  \ in the `dataproviders` module implements multiple core interfaces:\n```java\n\
+  public class BroadbandAccessDeviceDatabaseDataProvider implements GetAllDeviceHostnames,\
+  \ \n        GetSerialNumberFromModel, UpdateSerialNumberInModel, GetDeviceDetails,\
+  \ \n        GetAvailablePortsOfAllDevicesInExchange {\n    // Uses Spring JDBC -\
+  \ framework isolated to adapter layer\n}\n```\n\n**4. Entrypoints as Inbound Adapters**\n\
+  REST controllers in `entrypoints` call use cases without knowing implementation\
+  \ details:\n```java\npublic class GetBroadbandAccessDeviceEndpoint {\n    private\
+  \ GetBroadbandAccessDeviceDetailsUseCase getBroadbandAccessDeviceDetailsUseCase;\n\
+  \    // Controller invokes use case, doesn't know about database\n}\n```\n\n**5.\
+  \ Configuration Module Wires Everything**\n`UseCaseConfiguration` injects adapters\
+  \ into use cases:\n```java\n@Bean\npublic GetBroadbandAccessDeviceDetailsUseCase\
+  \ getBroadbandAccessDeviceDetailsUseCase(GetDeviceDetails getDeviceDetails) {\n\
+  \    return new GetBroadbandAccessDeviceDetailsUseCase(getDeviceDetails);\n}\n```\n\
+  \n**6. Dependency Inversion Enforced by Build System**\nThe Gradle dependency structure\
+  \ is critical:\n- `core` → NO application dependencies (only string_utils)\n- `dataproviders`\
+  \ → depends on `core`\n- `entrypoints` → depends on `core`  \n- `configuration`\
+  \ → depends on ALL modules (wiring layer)\n\nThis enforces **dependency inversion**\
+  \ - the core defines interfaces, outer layers implement them.\n\n### Evidence for\
+  \ Modular Monolith (Secondary)\n\n**Single Deployable**: The `configuration` module\
+  \ produces a single Spring Boot JAR:\n```gradle\njar {\n    archiveName = \"clean-architecture-example.jar\"\
+  \n}\n```\n\n**Enforced Module Boundaries**: Gradle subprojects (`core`, `dataproviders`,\
+  \ `entrypoints`, `configuration`) prevent incorrect dependencies at compile time.\
+  \ If `core` tried to import from `dataproviders`, compilation would fail.\n\n**Clear\
+  \ Separation**: Each module has a distinct purpose aligned with Clean Architecture\
+  \ layers.\n\n### What This Is NOT\n\n- **NOT Layered Architecture**: In Layered,\
+  \ dependencies flow downward (Presentation → Business → Data). Here, the dependency\
+  \ direction is **inverted** - core defines interfaces, outer layers implement them.\
+  \ This is the defining difference.\n\n- **NOT Domain-Driven Design**: No bounded\
+  \ contexts, aggregates, repositories (DDD pattern), or ubiquitous language. Entities\
+  \ are simple POJOs, not rich domain models with invariants.\n\n- **NOT Microservices**:\
+  \ Single deployable, shared database, no inter-service communication.\n\n- **NOT\
+  \ Microkernel/Plugin**: No plugin loading mechanism or extension points. The adapters\
+  \ are wired at compile time, not dynamically discovered.\n\nThe README explicitly\
+  \ references Clean Architecture (Uncle Bob's variant of Hexagonal), and the implementation\
+  \ matches perfectly - the \"screaming architecture\" where package structure reveals\
+  \ intent, interfaces in core with implementations in outer layers, and frameworks\
+  \ isolated to adapter modules."

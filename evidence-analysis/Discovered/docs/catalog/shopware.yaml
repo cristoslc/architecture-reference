@@ -15,9 +15,8 @@ languages:
 - JavaScript
 - TypeScript
 architecture_styles:
-- Modular Monolith
 - Microkernel (Plugin)
-- Event-Driven
+- Layered
 classification_status: classified
 review_notes: "Shopware 6 is structured as a **Modular Monolith** that heavily utilizes\
   \ a **Microkernel (Plugin)** architecture for extensibility. While the repository\
@@ -38,53 +37,56 @@ review_notes: "Shopware 6 is structured as a **Modular Monolith** that heavily u
   \ contract for external code to hook into the lifecycle (install, activate, update,\
   \ deactivate)."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.69
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:10:42Z'
-classification_reasoning: "Shopware 6 is structured as a **Modular Monolith** that\
-  \ heavily utilizes a **Microkernel (Plugin)** architecture for extensibility. While\
-  \ the repository contains multiple internal `composer.json` files (e.g., `src/Core`,\
-  \ `src/Storefront`), they are not independently deployable microservices; instead,\
-  \ they represent logical module boundaries within a single unified Symfony application.\n\
-  \n### 1. Modular Monolith\nThe codebase is clearly divided into high-level modules:\
-  \ `Core`, `Storefront`, `Administration`, and `Elasticsearch`. \n- **Internal Boundaries:**\
-  \ The root `composer.json` uses the `replace` field to treat internal directories\
-  \ as versioned packages (`shopware/core`, etc.). This enforced naming and structural\
-  \ separation allows the platform to maintain a \"monorepo\" development style while\
-  \ ensuring that logic remains encapsulated within specific domains (e.g., `src/Core/Checkout`\
-  \ vs `src/Core/Content`).\n- **Single Deployment:** Despite the internal modularity,\
-  \ the system boots a single `Kernel.php` (found in `src/Core/Kernel.php`) and is\
-  \ typically deployed as one unit via the `shopware/production` or flex templates.\n\
-  \n### 2. Microkernel (Plugin)\nThe system is designed around a core \"Kernel\" that\
-  \ supports runtime extensions. \n- **Extension Points:** The `src/Core/Framework/Plugin.php`\
-  \ class defines the contract for external code to hook into the lifecycle (install,\
-  \ activate, update, deactivate).\n- **Dynamic Loading:** The `repositories` section\
-  \ in the main `composer.json` includes `custom/plugins/*`, facilitating a plugin-based\
-  \ architecture where core functionality remains lean while features are added via\
-  \ bundles.\n- **Service Decoration:** Evidence in `coding-guidelines/core/decorator-pattern.md`\
-  \ and the provided `services.xml` snippets show a heavy reliance on Symfony's service\
-  \ container to allow plugins to override or extend core logic.\n\n### 3. Event-Driven\n\
-  The platform uses an internal event system to decouple modules and allow extensions\
-  \ to react to business logic without modifying the core.\n- **Evidence:** The ADRs\
-  \ (e.g., `2020-11-06-creating-events.md`, `2024-06-18-extended-event-system.md`)\
-  \ and the presence of `Event` directories in every major module confirm that inter-module\
-  \ communication is frequently handled via a Pub/Sub pattern.\n- **Message Queue:**\
-  \ The `src/Core/Framework/Adapter/Messenger` (implied by Symfony Messenger dependencies)\
-  \ and the \"Message Queue Stats\" asset in the ADRs indicate asynchronous processing\
-  \ of background tasks.\n\n### 4. Domain-Driven Design (DDD) Influences\nWhile not\
-  \ a pure DDD implementation, the directory structure under `src/Core` (e.g., `Content`,\
-  \ `Checkout`, `System`, `Framework`) follows bounded context principles. ADR `2022-02-24-domain-exceptions.md`\
-  \ confirms a conscious effort to adopt DDD patterns to handle complexity within\
-  \ the monolith."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.69
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.8
-  alternatives_dismissed: 0.45
-  exploration_completeness: 0.72
-  flags: self-reported confidence of 0.95 seems inflated; alternatives like pure Layered
-    or Service-Oriented not explicitly dismissed; Event-Driven as co-primary style
-    is weakly evidenced compared to Modular Monolith and Plugin
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:59:01Z'
+classification_reasoning: "## Analysis\n\nShopware is a **Microkernel (Plugin)** architecture\
+  \ with a **Layered** secondary style. Here's the evidence:\n\n### Primary: Microkernel\
+  \ (Plugin) Architecture\n\n**Core System with Plugin Extension Points:**\n\n1. **Plugin\
+  \ Base Class** (`src/Core/Framework/Plugin.php`):\n   - Plugins extend a `Plugin`\
+  \ class which inherits from `Bundle`\n   - Lifecycle hooks: `install()`, `activate()`,\
+  \ `deactivate()`, `uninstall()`, `update()`\n   - Plugins are discovered and loaded\
+  \ by `KernelPluginLoader` at runtime\n\n2. **Kernel Plugin Loading** (`src/Core/Kernel.php`\
+  \ lines 80-118):\n   ```php\n   public function registerBundles(): iterable {\n\
+  \       // ... loads core bundles\n       yield from $this->pluginLoader->getBundles($kernelParameters,\
+  \ $instantiatedBundleNames);\n   }\n   ```\n   The kernel explicitly loads plugins\
+  \ dynamically, enabling extension without modifying core.\n\n3. **Decoration Pattern**\
+  \ (ADR from 2020-11-25):\n   - Abstract classes with `getDecorated()` method allow\
+  \ plugins to wrap/extend core services\n   - Examples: `AbstractCartLoadRoute`,\
+  \ `AbstractAppLifecycle`, `AbstractTranslator`\n   - Static analysis rules enforce\
+  \ decoration pattern (`DecorationPatternRule.php`)\n\n4. **App System** (`src/Core/Framework/App/`):\n\
+  \   - ADR document explicitly states: \"We need a different extension mechanism\
+  \ besides the well known plugins\"\n   - Apps register via manifest files, webhooks,\
+  \ custom modules\n   - External apps communicate via API without PHP code execution\
+  \ (cloud-compatible)\n\n5. **Extension Directories**:\n   - `custom/plugins/` -\
+  \ local plugins\n   - `custom/apps/` - app extensions\n   - `custom/static-plugins/`\
+  \ - static plugin bundles\n\n### Secondary: Layered Architecture\n\n**Horizontal\
+  \ Layering with Symfony MVC:**\n\n1. **Controller Layer**: \n   - `src/Administration/Controller/`\
+  \ - Admin API endpoints\n   - `src/Storefront/Controller/` - Storefront endpoints\n\
+  \   - `src/Core/Checkout/Cart/` - Cart controllers\n\n2. **Service/Business Logic\
+  \ Layer**:\n   - Services in each domain (e.g., `CartService`, `OrderPersister`)\n\
+  \   - Route handlers (`AbstractCartLoadRoute`, `CartLoadRoute`)\n\n3. **Data Access\
+  \ Layer**:\n   - **Data Abstraction Layer (DAL)** - consistent ORM-like pattern\n\
+  \   - Entity definitions (`ProductDefinition`, `CustomerDefinition`, `OrderDefinition`)\n\
+  \   - Repository pattern (`EntityRepository`, `SalesChannelRepository`)\n\n4. **Domain\
+  \ Organization** within Core:\n   - `Core/Checkout/` - cart, orders, payments, shipping\n\
+  \   - `Core/Content/` - products, categories, CMS, media\n   - `Core/System/` -\
+  \ users, languages, configuration\n\n### What This is NOT:\n\n- **Not Microservices**:\
+  \ Single monolithic Symfony application with one database. All modules deploy together\
+  \ as `shopware/platform`.\n\n- **Not Service-Based**: More than 5 modules; deployed\
+  \ as single unit; not coarse-grained services sharing a database.\n\n- **Not Event-Driven\
+  \ (primary)**: While Flow system exists for business automation (email, state changes),\
+  \ it's secondary to the request-response pattern. Events are processed within the\
+  \ same process, not via external message brokers.\n\n- **Not Hexagonal**: Uses Symfony's\
+  \ standard MVC pattern, not ports-and-adapters with application core isolated from\
+  \ infrastructure.\n\n- **Not DDD (primary)**: While domain modules exist (Checkout,\
+  \ Content, System), there's no explicit aggregate/entity/value object pattern enforcement.\
+  \ Entity definitions are data models, not domain models with behavior.\n\n### Key\
+  \ Architectural Evidence:\n\n- **Single Deployable**: `composer.json` packages everything\
+  \ as `shopware/platform`\n- **Symfony Framework**: Built on Symfony 7 with bundles\
+  \ (Core, Administration, Storefront, Elasticsearch)\n- **Plugin API**: Comprehensive\
+  \ extension points via plugins and apps\n- **Runtime Extension**: Plugins loaded\
+  \ dynamically; decoration chain allows wrapping services\n\nThe architecture prioritizes\
+  \ extensibility through a well-defined plugin system while maintaining a traditional\
+  \ layered structure for the core application."

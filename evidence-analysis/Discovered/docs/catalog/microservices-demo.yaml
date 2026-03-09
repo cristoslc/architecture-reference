@@ -17,7 +17,6 @@ languages:
 - JavaScript
 architecture_styles:
 - Microservices
-- Event-Driven
 classification_status: classified
 review_notes: 'The repository is a textbook example of a **Microservices** architecture,
   designed specifically by Google to demonstrate cloud-native patterns on Kubernetes.
@@ -47,66 +46,46 @@ review_notes: 'The repository is a textbook example of a **Microservices** archi
 
   ### Secondary Style: Event-Driven'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.74
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:01:25Z'
-classification_reasoning: 'The repository is a textbook example of a **Microservices**
-  architecture, designed specifically by Google to demonstrate cloud-native patterns
-  on Kubernetes.
-
-
-  ### Primary Style: Microservices
-
-  The codebase is structured into 11+ autonomous services, each residing in its own
-  directory under `/src/` (e.g., `src/frontend`, `src/cartservice`, `src/paymentservice`).
-  The microservices architecture is evidenced by:
-
-  - **Polyglot Implementation:** Services are written in a variety of languages including
-  Go, C#, Node.js, Python, and Java, which is a hallmark of independent service boundaries.
-
-  - **Independent Deployability:** Each service directory contains its own `Dockerfile`,
-  and the `/kubernetes-manifests` directory contains separate YAML specifications
-  for each service (e.g., `emailservice.yaml`, `paymentservice.yaml`).
-
-  - **Standardized Inter-service Communication:** The services communicate via gRPC.
-  The interface contracts are strictly defined in a central `/protos/demo.proto` file,
-  which is then used to generate code for the various languages (seen in `genproto.sh`
-  scripts across services).
-
-  - **Decentralized Data Management:** The README and architecture diagram indicate
-  that services manage their own state (e.g., `cartservice` uses Redis).
-
-
-  ### Secondary Style: Event-Driven
-
-  While the primary communication is synchronous request-response via gRPC, some orchestration
-  (specifically in the `checkoutservice`) and notification flows (like the `emailservice`)
-  follow event-like patterns where one action triggers downstream asynchronous-style
-  processing across service boundaries.
-
-
-  ### Key Architectural Artifacts:
-
-  - **Service Mesh Integration:** The presence of `istio-manifests/` and references
-  to Cloud Service Mesh indicate the use of a sidecar pattern for observability, security,
-  and traffic management.
-
-  - **Infrastructure as Code:** The `/terraform` and `/kustomize` directories manage
-  the deployment environment, showing how the microservices are orchestrated at the
-  infrastructure level.
-
-  - **API Gateway/Front Door:** The `frontend` service acts as the edge component,
-  translating HTTP/HTML for the user into gRPC calls for the internal backend services.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.74
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.9
-  alternatives_dismissed: 0.4
-  exploration_completeness: 0.8
-  flags: secondary Event-Driven classification is weak — the reasoning itself acknowledges
-    primary communication is synchronous gRPC, and the 'event-like patterns' described
-    are not true event-driven architecture (no message broker, event bus, or async
-    messaging visible); secondary label may be inflated
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.98
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:41:48Z'
+classification_reasoning: "## Analysis\n\nThis repository is a canonical example of\
+  \ a **Microservices architecture**. The evidence is unambiguous:\n\n### Independent\
+  \ Deployable Services\n\nThe repository contains **11 independently deployable services**\
+  \ under `src/`, each with:\n- Its own **Dockerfile** (12 Dockerfiles found)\n- Its\
+  \ own **Kubernetes Deployment manifest** in `kubernetes-manifests/` and `helm-chart/templates/`\n\
+  - Its own **ServiceAccount** for security isolation\n\nServices include: `adservice`,\
+  \ `cartservice`, `checkoutservice`, `currencyservice`, `emailservice`, `frontend`,\
+  \ `loadgenerator`, `paymentservice`, `productcatalogservice`, `recommendationservice`,\
+  \ `shippingservice`.\n\n### Polyglot Implementation\n\nEach service is written in\
+  \ a different language optimized for its purpose:\n- **Go**: frontend, checkoutservice,\
+  \ productcatalogservice, shippingservice\n- **C#**: cartservice\n- **Node.js**:\
+  \ currencyservice, paymentservice  \n- **Python**: emailservice, recommendationservice\n\
+  - **Java**: adservice\n\n### Service-Owned Data\n\nEach service owns its data store\
+  \ independently:\n- `cartservice` uses Redis (`REDIS_ADDR` env var in `kubernetes-manifests/cartservice.yaml:50-51`)\n\
+  - `productcatalogservice` loads products from a local JSON file (`products.json`)\n\
+  - No shared relational database across services\n\n### gRPC Communication\n\nAll\
+  \ inter-service communication happens via **gRPC** with a well-defined contract\
+  \ in `protos/demo.proto`. The proto file defines 10 service interfaces (CartService,\
+  \ RecommendationService, ProductCatalogService, ShippingService, CurrencyService,\
+  \ PaymentService, EmailService, CheckoutService, AdService). Services call each\
+  \ other synchronously:\n\n```go\n// frontend/rpc.go - Frontend calling multiple\
+  \ services\npb.NewCurrencyServiceClient(fe.currencySvcConn).GetSupportedCurrencies(...)\n\
+  pb.NewProductCatalogServiceClient(fe.productCatalogSvcConn).ListProducts(...)\n\
+  pb.NewCartServiceClient(fe.cartSvcConn).GetCart(...)\n```\n\n### Orchestration Pattern\n\
+  \nThe `checkoutservice` demonstrates service orchestration. In `src/checkoutservice/main.go:66-86`,\
+  \ it holds connections to 6 different services and coordinates the checkout flow\
+  \ by calling each in sequence.\n\n### What This Is NOT\n\n- **Not Service-Based**:\
+  \ Service-Based typically has 2-5 coarse-grained services often sharing a database.\
+  \ This has 11+ fine-grained services with independent data stores.\n\n- **Not Layered**:\
+  \ There's no horizontal presentation/business/data layering. Each service is a vertical\
+  \ slice handling its own domain.\n\n- **Not Modular Monolith**: Services are independently\
+  \ deployable containers, not modules within a single deployment unit.\n\n- **Not\
+  \ Event-Driven**: Services communicate via synchronous gRPC calls, not through asynchronous\
+  \ message brokers.\n\n- **Not Hexagonal**: Services don't implement ports/adapters\
+  \ pattern. They're straightforward gRPC servers.\n\n### Confidence\n\n**0.98** —\
+  \ This is the explicit purpose of this repository (as stated in README: \"cloud-first\
+  \ microservices demo application\"). The architecture signals are clear, consistent,\
+  \ and comprehensive across all dimensions: deployment, data ownership, communication,\
+  \ and technology stack."

@@ -17,6 +17,7 @@ languages:
 - Java/Kotlin
 architecture_styles:
 - Microkernel (Plugin)
+- Layered
 - Modular Monolith
 classification_status: classified
 review_notes: 'The Logseq codebase is a sophisticated **Microkernel (Plugin)** architecture
@@ -51,72 +52,58 @@ review_notes: 'The Logseq codebase is a sophisticated **Microkernel (Plugin)** a
   Mobile), the internal logic is managed as a modular monolith with strictly defined
   boundaries:'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.65
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:57:28Z'
-classification_reasoning: 'The Logseq codebase is a sophisticated **Microkernel (Plugin)**
-  architecture built within a **Modular Monolith** structure using ClojureScript.
-
-
-  ### 1. Primary Style: Microkernel (Plugin)
-
-  The system is designed to be highly extensible through a formalized plugin API.
-  This is evidenced by:
-
-  - **Plugin SDK and Contracts:** The `libs/src/modules` directory contains TypeScript
-  definitions for internal service interfaces (`LSPlugin.Search.ts`, `LSPlugin.Storage.ts`,
-  `LSPlugin.Request.ts`). These act as the "contract" between the core kernel and
-  external extensions.
-
-  - **Runtime Plugin Loading:** The `resources/js/lsplugin.core.js` and `lsplugin.user.js`
-  files, alongside references in `shadow-cljs.edn` (e.g., `frontend.config/ENABLE-PLUGINS`),
-  indicate a system that loads and executes third-party code within a sandboxed or
-  managed environment.
-
-  - **Cross-Boundary Communication:** The presence of `libs/src/postmate/index.ts`
-  suggests the use of [Postmate](https://github.com/dollarshaveclub/postmate), a library
-  for secure iFrame-based communication, which is a common implementation detail for
-  microkernel systems that need to isolate plugins while providing an RPC-like bridge
-  to the core.
-
-
-  ### 2. Secondary Style: Modular Monolith
-
-  While the repository produces multiple deployment artifacts (Desktop/Electron, Web,
-  Mobile), the internal logic is managed as a modular monolith with strictly defined
-  boundaries:
-
-  - **Dependency Isolation:** The `deps.edn` file uses `:local/root` to include several
-  sub-modules (e.g., `logseq/graph-parser`, `logseq/db-sync`, `logseq/outliner`, `logseq/shui`).
-  This structure enforces clear boundaries where shared logic is abstracted into internal
-  libraries that the main applications consume.
-
-  - **Service Segregation:** The `shadow-cljs.edn` configuration defines separate
-  builds for the `:app`, `:db-worker`, and `:inference-worker`. This offloads heavy
-  lifting (database indexing and machine learning) to web workers, following a "service-based"
-  organization within the client-side monolith.
-
-  - **Multi-Platform Adapters:** The code is split into `src/main/frontend`, `src/main/mobile`,
-  and `src/main/electron`, allowing a shared core to run across different environments
-  by providing platform-specific implementations of the host environment.
-
-
-  ### 3. Execution Model
-
-  The system relies heavily on a specialized persistence layer (DataScript), treating
-  the document graph as a database. This infrastructure supports the "kernel" by providing
-  a unified reactive data bus that all modules and plugins can query via Datalog,
-  further reinforcing the microkernel pattern where the core''s primary job is state
-  management and plugin coordination.'
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.65
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.8
-  alternatives_dismissed: 0.3
-  exploration_completeness: 0.72
-  flags: alternatives_dismissed is weak — no serious consideration of Event-Driven
-    or Layered as competing patterns; evidence is specific but leans on file names
-    rather than actual code/config content
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:37:56Z'
+classification_reasoning: "## Analysis\n\n### Primary: Microkernel (Plugin)\n\nLogseq\
+  \ has a **substantial plugin architecture** that is central to its design. The evidence\
+  \ is compelling:\n\n**Plugin Infrastructure (`libs/src/`):**\n- **`LSPlugin.core.ts`**\
+  \ (~1,673 lines) - Complete plugin runtime with:\n  - `PluginLocal` class managing\
+  \ individual plugin lifecycle (load, init, settings, dispose)\n  - `LSPluginCore`\
+  \ class as the plugin manager coordinating all plugins\n  - Plugin loading from\
+  \ filesystem (`DIR_PLUGINS = 'plugins'`)\n  - Isolated execution contexts (shadow\
+  \ DOM and iframe modes)\n  - Event-based communication between plugins and host\
+  \ application\n\n- **`LSPlugin.user.ts`** - Rich user-facing plugin API:\n  - `logseq.Editor`\
+  \ proxy for editor operations\n  - `logseq.App` proxy for application operations\
+  \  \n  - `logseq.DB` proxy for database queries\n  - Hook registration (`onBlockChanged`,\
+  \ `onPageChanged`, etc.)\n  - UI injection capabilities\n\n- **`callable.apis.ts`**\
+  \ - Host-exported APIs that plugins can invoke\n\n**Plugin API (`src/main/logseq/api.cljs`):**\n\
+  - ClojureScript API exposing 100+ functions for plugins\n- Organized by domain:\
+  \ `api/app.cljs`, `api/block.cljs`, `api/db.cljs`, `api/editor.cljs`, `api/plugin.cljs`\n\
+  - Hook installation/uninstallation: `install_plugin_hook`, `uninstall_plugin_hook`\n\
+  \n**Plugin Handler (`src/main/frontend/handler/plugin.cljs`):**\n- Plugin lifecycle\
+  \ management\n- Hook system for plugin integration\n- External plugin validation\
+  \ and loading\n\n### Secondary: Layered\n\nThe codebase exhibits clear horizontal\
+  \ layering in `src/main/frontend/`:\n\n1. **Components Layer** (`frontend/components/`)\
+  \ - UI components (80+ files)\n2. **Handler Layer** (`frontend/handler/`) - Business\
+  \ logic/controllers  \n3. **DB Layer** (`frontend/db/`) - Data access and queries\n\
+  \nFrom `CODEBASE_OVERVIEW.md`: *\"Directories and files inside are organized by\
+  \ features or functions\"*, specifically calling out `frontend/components/` for\
+  \ UI and `frontend/handler/` for \"system component like code.\"\n\nThe handler\
+  \ namespace (`frontend/handler.cljs`) acts as an application coordinator, orchestrating\
+  \ startup, initialization, and cross-cutting concerns.\n\n### Secondary: Modular\
+  \ Monolith\n\nLogseq enforces internal module boundaries through the `deps/` directory:\n\
+  \n```\ndeps/\n├── cli/         # CLI tools\n├── common/      # Shared utilities\n\
+  ├── db/          # Database library\n├── db-sync/     # Sync server\n├── graph-parser/\
+  \ # Graph parsing\n├── outliner/    # Outliner operations\n├── publish/     # Publishing\
+  \ tools\n├── publishing/  # Publishing utilities\n└── shui/        # UI component\
+  \ library\n```\n\nEach module has its own `deps.edn` and `package.json` with explicit\
+  \ dependencies via `:local/root`. For example, `deps/outliner/deps.edn`:\n```clojure\n\
+  {:deps\n {logseq/db {:local/root \"../db\"}\n  logseq/graph-parser {:local/root\
+  \ \"../graph-parser\"}}}\n```\n\nThis creates a clear module dependency graph with\
+  \ enforced boundaries, making it a **modular monolith** - single deployable with\
+  \ internal module isolation.\n\n### Why NOT Other Styles\n\n- **NOT Microservices**:\
+  \ Single deployable. `deps/` are libraries, not independent services. The Dockerfile\
+  \ builds one static web app.\n\n- **NOT Event-Driven**: While plugins use EventEmitter,\
+  \ the core application uses synchronous/direct calls. State flows through atoms\
+  \ and React reactivity, not an event bus.\n\n- **NOT CQRS**: No separation of read/write\
+  \ models. DataScript handles both.\n\n- **NOT DDD**: No bounded contexts, aggregates,\
+  \ or ubiquitous language patterns.\n\n- **NOT Hexagonal**: No ports/adapters isolation.\
+  \ Handlers directly access DB and UI.\n\n### Architecture Summary\n\nLogseq is a\
+  \ **knowledge management desktop/mobile/web application** built as a layered monolith\
+  \ with:\n- A comprehensive plugin system (Microkernel pattern) for extensibility\n\
+  - Horizontal layers (Components → Handlers → DB)\n- Internal module boundaries (`deps/`\
+  \ libraries)\n- DataScript as the in-memory database with Datalog queries\n- Web\
+  \ Workers for background database operations\n- Electron wrapper for desktop deployment\n\
+  - Capacitor for mobile deployment"

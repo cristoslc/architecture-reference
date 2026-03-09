@@ -15,9 +15,8 @@ languages:
 - TypeScript
 - Rust
 architecture_styles:
-- Modular Monolith
-- Pipeline (Pipe-and-Filter)
 - Event-Driven
+- Pipeline (Pipe-and-Filter)
 classification_status: classified
 review_notes: "Snuba is structured as a **Modular Monolith** that employs a **Pipeline**\
   \ pattern for query processing and an **Event-Driven** approach for data ingestion.\
@@ -37,57 +36,55 @@ review_notes: "Snuba is structured as a **Modular Monolith** that employs a **Pi
   \ execution engine follows a clear **Pipeline** architecture. Found in `snuba/pipeline/`,\
   \ this sub-system processes SnQL queries through a series of discrete stages:"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.71
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:11:06Z'
-classification_reasoning: "Snuba is structured as a **Modular Monolith** that employs\
-  \ a **Pipeline** pattern for query processing and an **Event-Driven** approach for\
-  \ data ingestion. \n\n### 1. Modular Monolith\nThe codebase is a single Python project\
-  \ (as evidenced by `pyproject.toml` and the shared `snuba/` root), but it is strictly\
-  \ partitioned into functional modules that manage different concerns of the data\
-  \ lifecycle. \n- **Datasets and Entities:** The `snuba/datasets/` directory demonstrates\
-  \ a modular approach to data multi-tenancy. Each dataset (e.g., `events`, `transactions`,\
-  \ `outcomes`, `metrics` in `snuba/datasets/configuration/`) is treated as a pluggable\
-  \ unit with its own schema, processors, and storage logic.\n- **Administrative Logic:**\
-  \ The `snuba/admin/` directory contains a separate frontend (React/TypeScript) and\
-  \ backend logic for system management, siloed from the high-throughput query and\
-  \ ingestion paths.\n- **Unified CLI:** The system is accessed via a single entry\
-  \ point (`snuba.cli:main` defined in `project.scripts`), which allows it to be deployed\
-  \ in different roles (API worker, consumer, migrator) while sharing the same codebase\
-  \ and internal module boundaries.\n\n### 2. Pipeline (Pipe-and-Filter)\nThe query\
-  \ execution engine follows a clear **Pipeline** architecture. Found in `snuba/pipeline/`,\
-  \ this sub-system processes SnQL queries through a series of discrete stages:\n\
-  - **Stages:** `snuba/pipeline/stages/query_processing.py` and `query_execution.py`\
-  \ represent sequential filters where a query is parsed, translated, optimized, and\
-  \ finally executed against Clickhouse.\n- **Composite Processing:** Files like `composite_entity_processing.py`\
-  \ and `storage_query_identity_translate.py` indicate that query transformation is\
-  \ handled as a flow of data through specific handlers.\n\n### 3. Event-Driven (Ingestion)\n\
-  While the query side is Request/Response (Flask-based in `snuba/web/`), the ingestion\
-  \ side is entirely **Event-Driven**.\n- **Kafka Integration:** The system heavily\
-  \ relies on `confluent-kafka` and `sentry-arroyo`.\n- **Consumers:** The presence\
-  \ of `cdc` (Change Data Capture) processors in `snuba/datasets/cdc/` and various\
-  \ `processors/` in `snuba/datasets/` indicates a system designed to react to streams\
-  \ of incoming messages from Kafka, transforming them into Clickhouse writes.\n\n\
-  ### Structural Evidence\n- **Layering within Modules:** The project uses a clear\
-  \ vertical split: `clickhouse/` (Data Access/Dialect), `web/` (Presentation/API),\
-  \ `pipeline/` (Business Logic/Transformation), and `datasets/` (Domain Models).\n\
-  - **Deployment Strategy:** The `gocd/` templates and `bash` scripts (`deploy-py.sh`,\
-  \ `deploy-rs.sh`) imply that while the code is a monolith, it is deployed as multiple\
-  \ functional units (different \"pipelines\" in GoCD) that likely separate the API\
-  \ from the background Kafka consumers.\n- **Rust Integration:** The presence of\
-  \ `rust_snuba` in the workspace suggests a migration toward a polyglot approach\
-  \ for performance-critical components (likely the query parser or consumer), further\
-  \ reinforcing modular boundaries via FFI or sub-process calls."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.71
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.8
-  style_clarity: 0.75
-  alternatives_dismissed: 0.4
-  exploration_completeness: 0.85
-  flags: alternatives_dismissed is weak — no explicit consideration of pure microservices,
-    event sourcing, or layered architecture as alternatives; the three-way classification
-    is plausible but the reasoning doesn't justify why simpler alternatives were ruled
-    out
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T21:00:45Z'
+classification_reasoning: "## Analysis\n\nSnuba is a data platform service that provides\
+  \ a rich data model on top of ClickHouse with fast ingestion and query optimization\
+  \ for Sentry. The architecture is clearly **Event-Driven** with a secondary **Pipeline\
+  \ (Pipe-and-Filter)** pattern.\n\n### Event-Driven Architecture (Primary)\n\nThe\
+  \ repository exhibits strong Event-Driven characteristics:\n\n1. **Kafka-centric\
+  \ data ingestion**: The system's primary data flow is through Kafka consumers. Dependencies\
+  \ include `confluent-kafka>=2.7.0` and `sentry-arroyo>=2.35.0` (a streaming library).\n\
+  \n2. **Multiple consumer entrypoints** (`snuba/cli/`):\n   - `consumer.py` - Main\
+  \ Kafka consumer for raw events\n   - `dlq_consumer.py` - Dead letter queue consumer\n\
+  \   - `accepted_outcomes_consumer.py` - Outcomes processing\n   - `lw_deletions_consumer.py`\
+  \ - Lightweight deletions\n   - `replacer.py` - Replacement message processing\n\
+  \   - `subscriptions_scheduler.py` / `subscriptions_executor.py` - Subscription\
+  \ scheduling\n\n3. **Message-driven architecture**: The core `MessageProcessor`\
+  \ abstract class (`snuba/processor.py:59-69`) processes Kafka messages:\n   ```python\n\
+  \   class MessageProcessor(ABC):\n       def process_message(self, message: Any,\
+  \ metadata: KafkaMessageMetadata) -> Optional[ProcessedMessage]:\n   ```\n\n4. **Streaming\
+  \ query support**: Per README.rst: \"Supports both point in time queries and streaming\
+  \ queries.\"\n\n5. **Rust consumer architecture** (`rust_snuba/ARCHITECTURE.md`):\
+  \ Documents a streaming pipeline with explicit stages processing messages from Kafka\
+  \ to ClickHouse.\n\n### Pipeline (Pipe-and-Filter) Architecture (Secondary)\n\n\
+  The codebase has a well-defined query processing pipeline:\n\n1. **Explicit pipeline\
+  \ framework** (`snuba/pipeline/query_pipeline.py`):\n   ```python\n   class QueryPipelineStage(Generic[Tin,\
+  \ Tout]):\n       \"\"\"This class represents a single stage in the snuba query\
+  \ execution pipeline.\"\"\"\n       def execute(self, pipe_input: QueryPipelineResult[Tin])\
+  \ -> QueryPipelineResult[Tout]:\n   ```\n\n2. **Sequential query processing stages**\
+  \ (`snuba/pipeline/stages/query_processing.py`):\n   - `EntityProcessingStage` -\
+  \ Processes logical queries at entity level\n   - `StorageProcessingStage` - Transforms\
+  \ to ClickHouse queries\n   - `ExecutionStage` - Executes against ClickHouse\n\n\
+  3. **Query flow** (`snuba/web/query.py:44-59`):\n   ```python\n   clickhouse_query\
+  \ = EntityProcessingStage().execute(...)\n   clickhouse_query = StorageProcessingStage().execute(clickhouse_query)\n\
+  \   res = ExecutionStage(...).execute(clickhouse_query)\n   ```\n\n4. **Rust consumer\
+  \ pipeline** (`rust_snuba/ARCHITECTURE.md`): Documents explicit stages: HealthCheck\
+  \ → SetJoinTimeout → MessageTransformers → Reduce → ClickhouseWriterStep\n\n###\
+  \ What This Is NOT\n\n- **NOT Microservices**: Single deployable (one `Dockerfile`),\
+  \ single entrypoint (`snuba/cli:main`), multiple commands within one process.\n\
+  - **NOT Domain-Driven Design**: No aggregates, value objects, or bounded contexts.\
+  \ Dataset/Entity/Storage are data modeling constructs, not domain patterns.\n- **NOT\
+  \ Layered** (in traditional sense): While there's logical/physical separation, it's\
+  \ not the classic presentation/business/data layering. The layers are query-processing\
+  \ stages, not horizontal tiers.\n- **NOT Modular Monolith**: No enforced module\
+  \ boundaries or internal API contracts between modules.\n- **NOT Hexagonal**: No\
+  \ ports-and-adapters pattern; external systems (Kafka, ClickHouse, Redis) are integrated\
+  \ directly.\n\n### Conclusion\n\nSnuba is an Event-Driven system that consumes messages\
+  \ from Kafka and processes them through well-defined pipelines. The query side uses\
+  \ a Pipe-and-Filter pattern for transforming logical queries to physical ClickHouse\
+  \ execution. The ingestion side uses streaming consumers with sequential processing\
+  \ strategies. This dual Event-Driven + Pipeline architecture is typical of modern\
+  \ data processing systems."

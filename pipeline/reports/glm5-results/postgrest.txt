@@ -1,0 +1,81 @@
+Let me check a few more aspects to complete my analysis:Now I have sufficient evidence to provide a classification. Let me review what I've discovered:
+
+**Key findings:**
+1. **Single deployable**: `postgrest.cabal` defines one package, Dockerfile shows single binary
+2. **Clear horizontal layering** from the architecture docs and code:
+   - **HTTP Layer**: Warp server, ApiRequest (parsing), Response (formatting)
+   - **Business Logic Layer**: Plan (intermediate AST), Auth (JWT validation)
+   - **Data Access Layer**: Query (SQL generation), MainTx (execution), SchemaCache (metadata)
+3. **Request flow** (from docs): `Main → CLI → App → Auth → ApiRequest → Plan → Query → MainTx → Response`
+4. **App.hs orchestrates** - imports and composes all modules: Auth, ApiRequest, Plan, Query, MainTx, Response
+5. **No module boundary enforcement** - single package with all code together
+6. **Listener** uses PostgreSQL NOTIFY only for schema cache invalidation, not for core request handling
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles: []
+confidence: 0.92
+---
+
+## Analysis
+
+PostgREST exhibits a classic **Layered Architecture** with clear horizontal separation of concerns:
+
+### Evidence for Layered Architecture
+
+**1. Explicit Layer Separation in Documentation**
+
+The architecture documentation (`docs/explanations/architecture.rst`) explicitly describes a processing pipeline with distinct stages:
+
+- **Main/CLI** → Entry point
+- **App** → "composing the different modules" (orchestration layer)
+- **Auth** → Authentication
+- **ApiRequest** → "parsing the URL query string, request headers, and request body" (presentation layer)
+- **Plan** → "generates an internal AST" (business logic layer)
+- **Query** → "generates the SQL queries" (data access layer)
+- **MainTx** → "parametrizes, prepares, executes SQL queries and decodes their results"
+- **Response** → HTTP response generation (presentation layer)
+
+**2. Layered Import Structure**
+
+In `src/PostgREST/App.hs`, the orchestration layer imports from layers below:
+
+```haskell
+import qualified PostgREST.Auth       as Auth
+import qualified PostgREST.ApiRequest as ApiRequest
+import qualified PostgREST.Plan       as Plan
+import qualified PostgREST.Query      as Query
+import qualified PostgREST.MainTx     as MainTx
+import qualified PostgREST.Response   as Response
+```
+
+**3. Top-Down Request Flow**
+
+Requests flow through layers in order:
+1. HTTP (Warp) → ApiRequest (parsing)
+2. Auth (authentication)
+3. Plan (business logic, AST generation)
+4. Query (SQL generation)
+5. MainTx (database execution)
+6. Response (formatting)
+
+**4. Single Deployable Unit**
+
+- `postgrest.cabal` defines one library with all modules
+- Single executable produced (`main/Main.hs`)
+- Dockerfile shows single static binary deployment
+
+### What This Is NOT
+
+**Not Modular Monolith**: There are no enforced module boundaries. All code is in a single package with no submodule isolation. The code is cohesive, not divided into separately versioned or packaged modules.
+
+**Not Event-Driven**: While `Listener.hs` uses PostgreSQL LISTEN/NOTIFY, this is solely for schema cache invalidation notifications—not for core request handling or inter-service communication. The primary request path is synchronous HTTP request-response.
+
+**Not Hexagonal**: There are no ports-and-adapters pattern. The code directly couples to PostgreSQL (Hasql library) and Warp HTTP server without abstraction layers.
+
+**Not Microservices**: Single deployable binary, single connection pool, single process.
+
+### Conclusion
+
+PostgREST is a textbook example of a Layered Architecture: a single deployable application with horizontal layers where each layer has a specific responsibility and depends only on layers below it. The presentation layer handles HTTP, business logic handles request planning, and data access handles SQL generation and execution.

@@ -1,0 +1,104 @@
+Let me explore the extension system and the main API structure to understand the architecture better.Now I have sufficient evidence to classify the architecture. Let me verify one more detail about the extension loading mechanism.Based on my thorough exploration of the Directus repository, I now have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Architecture Analysis: Directus
+
+### Primary Style: Microkernel (Plugin)
+
+The defining architectural characteristic of Directus is its **extension system** — a robust microkernel pattern where a core system is extended through well-defined plugin interfaces.
+
+**Key Evidence:**
+
+1. **Extension Manager** (`api/src/extensions/manager.ts`):
+   - Central `ExtensionManager` class that dynamically loads, registers, and unloads extensions at runtime
+   - Supports three extension sources: local filesystem, npm modules, and external registry
+   - Hot-reload capability via `EXTENSIONS_AUTO_RELOAD` environment variable
+   - Lifecycle management: `initialize()`, `reload()`, `uninstall()`, `broadcastReloadNotification()`
+
+2. **Multiple Extension Types** (`packages/types/src/extensions/`):
+   - **Hooks** — Filter/action/init/schedule handlers (`hooks.ts`)
+   - **Endpoints** — Custom REST API endpoints via Express Router (`endpoints.ts`)
+   - **Operations** — Flow operation handlers (`operations.ts`)
+   - **Interfaces** — Form field UI components (`interfaces.ts`)
+   - **Displays** — Value display components (`displays.ts`)
+   - **Layouts** — Collection view layouts (`layouts.ts`)
+   - **Modules** — Complete application modules with routes (`modules.ts`)
+   - **Panels** — Dashboard panels (`panels.ts`)
+   - **Themes** — Visual theming (`themes.ts`)
+
+3. **Extension SDK** (`packages/extensions-sdk/`):
+   - CLI tool (`directus-extension`) for scaffolding and building extensions
+   - Templates for creating new extensions
+   - Build tooling using Rollup/Vite for bundling
+
+4. **Sandboxed Extension Execution** (`api/src/extensions/lib/sandbox/`):
+   - API extensions run in isolated-vm for security
+   - Controlled API surface exposed to extensions via `directus:api` module
+   - Request, sleep, log functions provided to sandboxed code
+
+5. **Plugin Pattern for Infrastructure**:
+   - **Storage Drivers**: `@directus/storage` with pluggable drivers (S3, GCS, Azure, Cloudinary, Local, Supabase)
+   - **Auth Providers**: Local, OAuth2, OpenID, LDAP, SAML (`api/src/auth/drivers/`)
+   - **Deployment Providers**: Netlify, Vercel (`api/src/deployment/drivers/`)
+
+### Secondary Style: Layered
+
+Within the core monolith, Directus employs a traditional layered architecture:
+
+**Layers in the API** (`api/src/`):
+- **Controllers** — HTTP request handling (`controllers/*.ts`)
+- **Services** — Business logic (`services/*.ts`)  
+- **Database** — Data access with migrations (`database/`)
+- **Middleware** — Cross-cutting concerns (`middleware/`)
+
+**Monorepo Structure**:
+- `api/` — Backend (Express + Knex)
+- `app/` — Frontend (Vue.js)
+- `sdk/` — JavaScript SDK
+- `packages/` — 20+ shared packages (types, utils, storage, etc.)
+
+### Supporting Pattern: Event-Driven (Minor)
+
+An event emitter system supports cross-cutting concerns:
+- `api/src/emitter.ts` — EventEmitter2-based with filter/action/init channels
+- Flows can be triggered by events (`api/src/flows.ts`)
+- Extensions can register hooks for system events
+
+However, this event system primarily **supports the plugin architecture** rather than being the primary integration mechanism.
+
+### What Was Rejected
+
+**NOT Microservices:**
+- Single Dockerfile producing one deployable unit
+- One Express server (`api/src/app.ts`)
+- Single database connection
+- `docker-compose.yml` is for development only (multiple databases for testing)
+
+**NOT Modular Monolith (DDD sense):**
+- No bounded contexts or aggregates pattern
+- Frontend "modules" (`app/src/modules/`) are UI routing modules, not backend domain modules
+- Services are organized by entity (Items, Users, Files) not by domain context
+
+**NOT Serverless:**
+- Traditional Node.js server deployment
+- PM2 for process management
+- No serverless.yml or SAM templates
+
+### Summary
+
+Directus is a **microkernel architecture** with a layered internal structure. The extension system is not an afterthought — it's the core architectural principle. The system provides:
+
+1. Well-defined extension points via typed APIs
+2. Runtime plugin loading and lifecycle management
+3. Security isolation for untrusted extensions
+4. Multiple extension categories covering both backend and frontend customization
+5. An ecosystem marketplace (`@directus/extensions-registry`)
+
+This architecture allows Directus to be "completely extensible" as stated in its README, enabling white-label CMS customization without forking the core.

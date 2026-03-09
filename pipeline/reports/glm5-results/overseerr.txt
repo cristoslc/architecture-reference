@@ -1,0 +1,79 @@
+Based on my thorough investigation of the Overseerr repository, I now have sufficient evidence to provide a classification.---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.88
+---
+
+## Analysis
+
+Overseerr is a **Layered Architecture** monolith with **Event-Driven** patterns used internally for notifications and data synchronization.
+
+### Evidence for Layered Architecture
+
+**Clear horizontal layer separation:**
+
+1. **Presentation Layer (`src/`)**: Next.js/React frontend with components, pages, hooks, and context providers (`src/components/`, `src/pages/`, `src/hooks/`, `src/context/`)
+
+2. **API/Route Layer (`server/routes/`)**: Express routers handling HTTP endpoints:
+   - `auth.ts`, `request.ts`, `media.ts`, `movie.ts`, `tv.ts`, `user/`, `settings/`
+   - These act as controllers, validating requests and delegating to business logic
+
+3. **Business Logic Layer (`server/lib/`)**: Core domain logic including:
+   - `permissions.ts` - Permission checking logic
+   - `settings.ts` - Application configuration management
+   - `availabilitySync.ts`, `downloadtracker.ts`, `watchlistsync.ts` - Synchronization logic
+   - `notifications/` - Notification management system
+
+4. **Data Access Layer (`server/entity/`)**: TypeORM entities with ORM mappings:
+   - `Media.ts`, `MediaRequest.ts`, `User.ts`, `Issue.ts`, `Session.ts`
+   - Repository pattern via TypeORM's `getRepository()`
+   - Database migrations in `server/migration/`
+
+5. **External API Integration Layer (`server/api/`)**: Integrations with external services:
+   - `plexapi.ts`, `themoviedb/`, `servarr/radarr.ts`, `servarr/sonarr.ts`
+
+**Single deployment unit**: One `Dockerfile`, one `package.json`, producing a single containerized application using Express + Next.js with SQLite database.
+
+### Evidence for Event-Driven (Secondary)
+
+**Internal event-driven patterns:**
+
+1. **TypeORM Subscribers** (`server/subscriber/`):
+   - `MediaRequestSubscriber.ts` - Listens for MediaRequest insert/update events and triggers notifications
+   - `IssueSubscriber.ts`, `IssueCommentSubscriber.ts` - Similar event handling for issues
+
+2. **Notification Agent System** (`server/lib/notifications/`):
+   - Observer pattern with `NotificationManager` class registering multiple agents
+   - 11 notification agents: Discord, Email, Telegram, Slack, Pushover, Webhook, etc.
+   - Events like `MEDIA_PENDING`, `MEDIA_APPROVED`, `MEDIA_AVAILABLE` trigger notifications
+
+3. **Scheduled Jobs** (`server/job/schedule.ts`):
+   - `node-schedule` for periodic sync operations
+   - Plex library scans, Radarr/Sonarr scans, Watchlist sync
+
+These event-driven patterns are **internal implementation details** within the layered monolith, not inter-service communication.
+
+### What This Is NOT
+
+- **Not Microservices**: Single deployable, single database (SQLite), no service boundaries
+- **Not Modular Monolith**: No enforced module boundaries or module-scoped schemas; entities share the same database
+- **Not DDD**: No bounded contexts, aggregates, or value objects pattern visible
+- **Not Hexagonal**: No ports/adapters abstraction; direct dependencies without interface isolation
+- **Not Serverless**: Traditional server deployment via Docker, not function-based
+
+### Deployment Topology
+
+```
+Single Container (Docker)
+├── Express.js Backend (server/)
+│   ├── Routes (API endpoints)
+│   ├── Business Logic (lib/)
+│   ├── Entities (ORM models)
+│   └── SQLite Database
+└── Next.js Frontend (src/)
+    └── React Components/Pages
+```
+
+The architecture follows a classic layered web application pattern with clear separation between presentation, business logic, and data access layers.

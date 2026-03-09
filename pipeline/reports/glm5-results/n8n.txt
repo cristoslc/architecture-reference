@@ -1,0 +1,89 @@
+Let me check the scaling/deployment architecture to confirm single vs multi-service deployment:Let me verify one more aspect - check how nodes are truly loaded as plugins and the extension mechanism:Based on my thorough exploration of the n8n repository, I have gathered sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles: []
+confidence: 0.95
+---
+
+## Analysis
+
+n8n is a **workflow automation platform** built on a **Microkernel (Plugin) architecture**. The core system provides the runtime infrastructure, while all integration capabilities are implemented as dynamically-loaded plugins (called "nodes").
+
+### Primary Evidence for Microkernel (Plugin)
+
+**1. Plugin Loading Infrastructure**
+
+The codebase has a sophisticated plugin loading system at its core:
+
+- `packages/core/src/nodes-loader/directory-loader.ts` - Abstract base class defining the plugin loading contract
+- `packages/core/src/nodes-loader/package-directory-loader.ts` - Loads plugins from npm packages
+- `packages/core/src/nodes-loader/custom-directory-loader.ts` - Loads user-created plugins from custom directories
+- `packages/core/src/nodes-loader/lazy-package-directory-loader.ts` - Lazy loading for memory efficiency
+
+**2. Dynamic Plugin Discovery** (`packages/cli/src/load-nodes-and-credentials.ts`)
+
+```typescript
+// Loads built-in nodes
+await this.loadNodesFromNodeModules(nodeModulesDir, 'n8n-nodes-base');
+await this.loadNodesFromNodeModules(nodeModulesDir, '@n8n/n8n-nodes-langchain');
+
+// Discovers community plugins by convention (n8n-nodes-*)
+const installedPackagePaths = [
+  ...(await glob('n8n-nodes-*', globOptions)),
+  ...(await glob('@*/n8n-nodes-*', { ...globOptions, deep: 2 })),
+];
+
+// Loads from custom directories
+await this.loadNodesFromCustomDirectories();
+```
+
+**3. Plugin Contract** (`packages/workflow/src/interfaces.ts:2030`)
+
+All plugins must extend the `Node` base class:
+
+```typescript
+export abstract class Node {
+  abstract description: INodeTypeDescription;
+  execute?(context: IExecuteFunctions, response?: EngineResponse): Promise<INodeExecutionData[][]>;
+  webhook?(context: IWebhookFunctions): Promise<IWebhookResponseData>;
+  poll?(context: IPollFunctions): Promise<INodeExecutionData[][] | null>;
+}
+```
+
+**4. Extension SDK** (`packages/@n8n/extension-sdk/src/schema.ts`)
+
+A formal extension manifest system with permissions, event subscriptions, and UI extension points:
+
+```typescript
+export const extensionManifestSchema = z.object({
+  name: z.string(),
+  entry: z.object({ backend: z.string(), frontend: z.string() }),
+  permissions: z.object({ frontend: z.array(z.string()), backend: z.array(z.string()) }),
+  events: z.array(z.string()),
+  extends: z.object({ views: z.object({ workflows: z.object({ header: z.string() }) }) }),
+});
+```
+
+**5. Community Node Tooling** (`packages/@n8n/create-node`)
+
+A dedicated CLI tool for scaffolding custom plugins, demonstrating first-class support for the plugin ecosystem.
+
+**6. Massive Plugin Library**
+
+`packages/nodes-base/package.json` contains 965 lines of node and credential registrations—400+ integrations, all loaded as plugins.
+
+### What This Is NOT
+
+**Not Microservices**: A single Dockerfile produces one deployable image. The `worker`, `webhook`, and `start` commands are different runtime modes of the same application, not separate services. All modes share the same database and codebase.
+
+**Not Modular Monolith**: While organized as a pnpm monorepo with internal packages (`packages/@n8n/*`), these are library modules for code organization, not bounded contexts with enforced boundaries. The primary architectural pattern is plugin-based, not module-based.
+
+**Not Layered**: While the implementation uses controllers/services/repositories, this is an internal implementation detail. The defining architectural characteristic is the plugin system that enables extensibility.
+
+**Not Service-Based**: Although n8n can scale horizontally (main + workers + webhooks + Redis queue), this is horizontal scaling of the same application, not decomposition into distinct services with different responsibilities.
+
+### Conclusion
+
+n8n exemplifies the Microkernel (Plugin) pattern: a minimal core system (workflow engine, API, persistence) extended by a rich ecosystem of plugins (nodes) that are discovered and loaded at runtime. The plugin contract is well-defined, the loading infrastructure is sophisticated, and there's dedicated tooling for plugin development. This is the architectural style that defines n8n's identity as an extensible workflow automation platform.

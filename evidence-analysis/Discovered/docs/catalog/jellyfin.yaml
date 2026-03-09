@@ -13,9 +13,8 @@ language: C#
 languages:
 - C#
 architecture_styles:
-- Layered
 - Microkernel (Plugin)
-- Modular Monolith
+- Layered
 classification_status: classified
 review_notes: 'Jellyfin is structured as a **Layered** architecture, which is the
   standard pattern for large .NET applications of its era (descended from Emby). However,
@@ -46,55 +45,47 @@ review_notes: 'Jellyfin is structured as a **Layered** architecture, which is th
 
   ### 2. Microkernel (Plugin) Architecture (Secondary)'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.62
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:53:04Z'
-classification_reasoning: "Jellyfin is structured as a **Layered** architecture, which\
-  \ is the standard pattern for large .NET applications of its era (descended from\
-  \ Emby). However, it exhibits strong **Microkernel** characteristics through its\
-  \ extensive plugin system and **Modular Monolith** traits due to its logical separation\
-  \ of concerns into distinct assemblies.\n\n### 1. Layered Architecture (Primary)\n\
-  The codebase follows a horizontal layering strategy common in .NET development:\n\
-  - **Presentation/API Layer**: Found in `Jellyfin.Server` and `Jellyfin.Api` (not\
-  \ fully visible in the tree but referenced in the README), which handles HTTP requests\
-  \ and hosts the web client.\n- **Service/Logic Layer**: Specifically `MediaBrowser.Providers`\
-  \ and `Jellyfin.Server.Implementations`. These contain the \"Managers\" (e.g., `UserManager.cs`,\
-  \ `ProviderManager.cs`, `SubtitleManager.cs`) that orchestrate business logic.\n\
-  - **Data/Model Layer**: `MediaBrowser.Model` contains Data Transfer Objects (DTOs)\
-  \ and core entities used across all layers, providing a shared language but strictly\
-  \ separating data definitions from logic.\n- **Infrastructure/Implementation**:\
-  \ `Jellyfin.Server.Implementations` provides concrete logic for security, activity\
-  \ logging, and database access.\n\n### 2. Microkernel (Plugin) Architecture (Secondary)\n\
-  Jellyfin is designed to be highly extensible. The directory `MediaBrowser.Providers/Plugins`\
-  \ contains various providers (MusicBrainz, Omdb, Tmdb) that act as internal plugins.\
-  \ \n- The presence of `Plugin.cs` and `Configuration/` folders within these subdirectories\
-  \ indicates a contract-based extension model.\n- The system allows the core server\
-  \ to remain media-agnostic while specialized providers handle metadata fetching,\
-  \ image scraping, and subtitle downloading.\n- The README also notes that the web\
-  \ client is hosted separately or can be disabled (`--nowebclient`), treating the\
-  \ UI as an interchangeable component.\n\n### 3. Modular Monolith (Secondary)\nWhile\
-  \ it is a single deployable unit (the Jellyfin Server), it uses strict assembly\
-  \ boundaries (CSProject files) to enforce modularity.\n- `Emby.Naming`: A dedicated\
-  \ module for parsing file names (TV shows, movies, etc.), isolated from the rest\
-  \ of the server logic.\n- `MediaBrowser.Model`: A central module that ensures all\
-  \ other components adhere to a unified data schema without circular dependencies.\n\
-  - `Jellyfin.Server.Implementations`: Separates the \"how\" (implementation) from\
-  \ the \"what\" (interfaces defined in Providers/Model).\n\n### Rejections\n- **Microservices**:\
-  \ Although the README mentions it is \"only one of many projects,\" the repository\
-  \ itself is a monolithic backend. There is no evidence of service mesh, independent\
-  \ deployment of internal modules, or inter-service RPC (like gRPC) within this repo.\n\
-  - **Hexagonal**: While it uses some interfaces, the directory structure and naming\
-  \ conventions (`Implementations`, `Providers`) lean more towards traditional N-Tier\
-  \ Layering than a strict Ports-and-Adapters/Domain-centric approach."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.62
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.65
-  style_clarity: 0.6
-  alternatives_dismissed: 0.65
-  exploration_completeness: 0.6
-  flags: multi-label classification with three styles may indicate ambiguity; primary
-    style dominance is moderate — layered is claimed primary but microkernel signals
-    are nearly equally weighted
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:31:25Z'
+classification_reasoning: "## Analysis\n\n### Primary Style: **Microkernel (Plugin)**\n\
+  \nJellyfin exhibits a clear **Microkernel/Plugin architecture** as its dominant\
+  \ pattern:\n\n**Evidence:**\n1. **Runtime Plugin Loading**: `PluginManager.cs` (lines\
+  \ 56-87) discovers plugins from a filesystem path, loads them via `AssemblyLoadContext`,\
+  \ and manages their lifecycle:\n   ```csharp\n   _plugins = Directory.Exists(_pluginsPath)\
+  \ ? DiscoverPlugins().ToList() : new List<LocalPlugin>();\n   ```\n\n2. **Plugin\
+  \ Isolation**: `PluginLoadContext.cs` uses .NET's `AssemblyLoadContext` to provide\
+  \ isolated plugin loading, allowing plugins to be loaded/unloaded independently.\n\
+  \n3. **Plugin Contract**: The `IPlugin` interface (`MediaBrowser.Common/Plugins/IPlugin.cs`)\
+  \ and `BasePlugin` abstract class define the contract for plugins, including `OnUninstalling()`,\
+  \ versioning, and data folder management.\n\n4. **Service Registration Entry Point**:\
+  \ `IPluginServiceRegistrator` interface allows plugins to register services with\
+  \ the core DI container:\n   ```csharp\n   void RegisterServices(IServiceCollection\
+  \ serviceCollection, IServerApplicationHost applicationHost);\n   ```\n\n5. **Composition\
+  \ Root with Plugin Integration**: `ApplicationHost.cs` (the \"composition root\"\
+  ) integrates plugins during initialization via `GetExportTypes<T>()` and `GetApiPluginAssemblies()`.\n\
+  \n6. **Extensibility**: The system is designed for third-party extensions—plugins\
+  \ can add new functionality (metadata providers, channels, subtitle providers) without\
+  \ modifying core code.\n\n### Secondary Style: **Layered**\n\nThe codebase also\
+  \ exhibits strong **Layered architecture** characteristics:\n\n**Evidence:**\n1.\
+  \ **Presentation Layer**: `Jellyfin.Api/Controllers/` contains ASP.NET Core API\
+  \ controllers that handle HTTP requests/responses.\n\n2. **Business/Service Layer**:\
+  \ `Emby.Server.Implementations/` contains service implementations (`LibraryManager`,\
+  \ `SessionManager`, `UserManager`, etc.) implementing interfaces from `MediaBrowser.Controller/`.\n\
+  \n3. **Data Access Layer**: `Jellyfin.Server.Implementations/Item/` contains repositories\
+  \ (`BaseItemRepository`, `PeopleRepository`), and `JellyfinDbContext` handles database\
+  \ operations.\n\n4. **Abstraction Layer**: `MediaBrowser.Controller/` defines interfaces\
+  \ (`ILibraryManager`, `ISessionManager`, `IUserManager`) that separate layers.\n\
+  \n5. **Model Layer**: `MediaBrowser.Model/` and `Jellyfin.Data/` contain DTOs and\
+  \ entity definitions.\n\n### What Was Rejected\n\n- **Not Microservices**: Single\
+  \ deployable executable, no independent services, no inter-service communication.\n\
+  - **Not Modular Monolith**: While there are modules, they don't have enforced compile-time\
+  \ boundaries; the plugin system provides runtime modularity.\n- **Not Event-Driven**:\
+  \ Uses WebSockets for client push, but components communicate primarily through\
+  \ direct method calls, not event buses.\n- **Not Hexagonal**: While interfaces exist,\
+  \ they're for layering/extension rather than ports-and-adapters isolation.\n- **Not\
+  \ DDD**: No bounded contexts, aggregates, or ubiquitous language patterns visible.\n\
+  \nThe architecture effectively combines a layered foundation with a microkernel\
+  \ extension mechanism, allowing third-party developers to extend the media server\
+  \ through plugins while maintaining clean internal separation."

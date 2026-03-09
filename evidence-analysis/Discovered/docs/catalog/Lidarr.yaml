@@ -15,8 +15,8 @@ languages:
 - JavaScript
 - TypeScript
 architecture_styles:
-- Layered
 - Modular Monolith
+- Event-Driven
 classification_status: classified
 review_notes: 'Lidarr follows a **Layered** architecture, which is the standard architectural
   pattern for the "Servarr" family of applications (derived from the original NzbDrone/Sonarr
@@ -48,51 +48,68 @@ review_notes: 'Lidarr follows a **Layered** architecture, which is the standard 
 
   ### Evidence of Modular Monolith:'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.78
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:55:59Z'
-classification_reasoning: "Lidarr follows a **Layered** architecture, which is the\
-  \ standard architectural pattern for the \"Servarr\" family of applications (derived\
-  \ from the original NzbDrone/Sonarr codebase). The system is organized into distinct\
-  \ horizontal layers that separate concerns between the host/entry point, the API,\
-  \ and the core business logic.\n\n### Evidence of Layered Architecture:\nThe backend\
-  \ (C#/.NET) is split into several projects that represent the classic horizontal\
-  \ layers:\n1.  **Host/Presentation Layer (`src/NzbDrone.Host`, `src/NzbDrone.Console`)**:\
-  \ These projects handle the application startup, web server hosting (Kestrel), and\
-  \ the integration with the underlying operating system (Windows Services, Mono/Linux\
-  \ daemons).\n2.  **API Layer (`src/Lidarr.Api.V1`)**: This layer handles RESTful\
-  \ endpoints, request/response mapping, and authentication, acting as the gateway\
-  \ for the React-based frontend.\n3.  **Application/Core Layer (`src/NzbDrone.Core`)**:\
-  \ This is the largest project and contains the \"fat\" middle layer. It houses the\
-  \ business logic, domain models, and service classes that orchestrate data between\
-  \ indexers, download clients, and the database.\n4.  **Infrastructure/Common Layer\
-  \ (`src/NzbDrone.Common`, `src/Lidarr.Http`)**: Provides shared utilities, file\
-  \ system abstractions, and HTTP clients used by the upper layers.\n\n### Evidence\
-  \ of Modular Monolith:\nWhile the primary organization is layered, the system exhibits\
-  \ characteristics of a **Modular Monolith**. \n- **Internal Boundaries**: The code\
-  \ is separated into logical \"services\" within `NzbDrone.Core`. These are not independently\
-  \ deployable (they all compile into a single executable), but they maintain loose\
-  \ coupling through an internal event bus (likely using a `Mediator` pattern or similar\
-  \ `IEventAggregator` found in this codebase's lineage).\n- **Single Deployment Unit**:\
-  \ The absence of a `docker-compose.yml` or multiple service manifests, combined\
-  \ with the single `Lidarr.sln` solution file, confirms that the system is deployed\
-  \ as a single application instance, not microservices.\n\n### Why not other styles:\n\
-  - **Microservices**: Rejected because all logic resides within a single solution\
-  \ and is deployed as a single process.\n- **Microkernel (Plugin)**: Although Lidarr\
-  \ supports various indexers and download clients, these are typically integrated\
-  \ as polymorphic implementations of internal interfaces within the `Core` project\
-  \ rather than dynamically loaded external plugins.\n- **Hexagonal**: While there\
-  \ is some separation (especially in `NzbDrone.Common`), the core logic is heavily\
-  \ coupled to the internal framework and models rather than being an isolated \"\
-  inside\" protected by strict ports and adapters."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.78
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.8
-  style_clarity: 0.75
-  alternatives_dismissed: 0.8
-  exploration_completeness: 0.75
-  flags: Microkernel/Plugin partially dismissed but indexer/download client extensibility
-    is a known strong plugin pattern in Servarr apps — may underweight plugin architecture
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:27:12Z'
+classification_reasoning: "## Architecture Classification: Lidarr Repository\n\n###\
+  \ Primary Style: Modular Monolith\n\nLidarr is architected as a **Modular Monolith**\
+  \ - a single deployable application with well-defined internal module boundaries\
+  \ enforced through separate .NET assemblies.\n\n**Evidence:**\n\n1. **Single Deployable\
+  \ Unit**: The application builds to a single executable (`Lidarr`/`NzbDrone.Console`),\
+  \ confirmed by the solution structure showing multiple projects that compile into\
+  \ one application:\n   - `src/NzbDrone/Lidarr.csproj` - Main executable entry point\n\
+  \   - `src/NzbDrone.Host/Lidarr.Host.csproj` - ASP.NET Core web host\n   - `src/NzbDrone.Core/Lidarr.Core.csproj`\
+  \ - Core business logic\n   - `src/Lidarr.Api.V1/Lidarr.Api.V1.csproj` - REST API\
+  \ layer\n\n2. **Enforced Module Boundaries via Projects**: The solution (`src/Lidarr.sln`)\
+  \ contains ~25 distinct .NET projects with clear separation:\n   - **Core**: `NzbDrone.Core`\
+  \ - Domain logic, data access, services\n   - **API**: `Lidarr.Api.V1`, `Lidarr.Http`\
+  \ - HTTP/REST layer\n   - **Platform**: `NzbDrone.Windows`, `NzbDrone.Mono` - Platform-specific\
+  \ implementations\n   - **Infrastructure**: `NzbDrone.Common` - Cross-cutting concerns\n\
+  \   - **SignalR**: `NzbDrone.SignalR` - Real-time communication\n\n3. **Project\
+  \ References Define Dependency Graph**: From `Lidarr.Host.csproj`:\n   ```xml\n\
+  \   <ProjectReference Include=\"..\\Lidarr.Api.V1\\Lidarr.Api.V1.csproj\" />\n \
+  \  <ProjectReference Include=\"..\\NzbDrone.Core\\Lidarr.Core.csproj\" />\n   <ProjectReference\
+  \ Include=\"..\\NzbDrone.Common\\Lidarr.Common.csproj\" />\n   ```\n\n4. **Clear\
+  \ Module Boundaries in Core**: The `NzbDrone.Core` project organizes functionality\
+  \ into distinct bounded modules:\n   - `Indexers/` - External indexer integrations\n\
+  \   - `Download/` - Download client management\n   - `Notifications/` - Notification\
+  \ providers\n   - `ImportLists/` - Import list services\n   - `Music/` - Artist/album/track\
+  \ domain\n   - `Datastore/` - Database access layer\n\n### Secondary Style: Event-Driven\n\
+  \nThe architecture employs significant **Event-Driven** patterns for internal module\
+  \ communication.\n\n**Evidence:**\n\n1. **Event Aggregator Pattern** (`src/NzbDrone.Core/Messaging/Events/EventAggregator.cs`):\n\
+  \   ```csharp\n   public class EventAggregator : IEventAggregator\n   {\n      \
+  \ public void PublishEvent<TEvent>(TEvent @event) where TEvent : class, IEvent\n\
+  \       {\n           // Routes events to sync and async handlers\n       }\n  \
+  \ }\n   ```\n\n2. **Event Handler Interfaces** (`src/NzbDrone.Core/Messaging/Events/IHandle.cs`):\n\
+  \   ```csharp\n   public interface IHandle<TEvent> : IProcessMessage<TEvent> where\
+  \ TEvent : IEvent\n   {\n       void Handle(TEvent message);\n   }\n   public interface\
+  \ IHandleAsync<TEvent> : IProcessMessageAsync<TEvent> where TEvent : IEvent\n  \
+  \ {\n       void HandleAsync(TEvent message);\n   }\n   ```\n\n3. **Extensive Event\
+  \ Usage**: Found across the codebase:\n   - `DownloadEventHub : IHandle<DownloadFailedEvent>,\
+  \ IHandle<DownloadCompletedEvent>, IHandle<DownloadCanBeRemovedEvent>`\n   - `ArtistAddedHandler\
+  \ : IHandle<ArtistAddedEvent>, IHandle<ArtistsImportedEvent>`\n   - `SeedConfigProvider\
+  \ : IHandle<ProviderUpdatedEvent<IIndexer>>`\n\n### Notable Pattern: Plugin-like\
+  \ Provider System\n\nLidarr implements a sophisticated **Provider/Plugin pattern**\
+  \ via `ThingiProvider` infrastructure:\n\n**Evidence:**\n\n1. **Provider Contract**\
+  \ (`src/NzbDrone.Core/ThingiProvider/IProvider.cs`):\n   ```csharp\n   public interface\
+  \ IProvider\n   {\n       string Name { get; }\n       Type ConfigContract { get;\
+  \ }\n       IEnumerable<ProviderDefinition> DefaultDefinitions { get; }\n      \
+  \ ProviderDefinition Definition { get; set; }\n       ValidationResult Test();\n\
+  \   }\n   ```\n\n2. **Provider Factory for Dynamic Loading** (`src/NzbDrone.Core/ThingiProvider/ProviderFactory.cs`):\n\
+  \   ```csharp\n   public abstract class ProviderFactory<TProvider, TProviderDefinition>\
+  \ : IProviderFactory<TProvider, TProviderDefinition>, \n       IHandle<ApplicationStartedEvent>\n\
+  \   {\n       // Discovers and instantiates providers dynamically\n       public\
+  \ TProvider GetInstance(TProviderDefinition definition)\n       {\n           var\
+  \ type = GetImplementation(definition);\n           var instance = (TProvider)_container.GetRequiredService(type);\n\
+  \           // ...\n       }\n   }\n   ```\n\n3. **Concrete Implementations** extend\
+  \ base classes:\n   - `IndexerBase<TSettings>`, `DownloadClientBase<TSettings>`,\
+  \ `NotificationBase<TSettings>`, `ImportListBase<TSettings>`\n   - Each provider\
+  \ type has many implementations (e.g., 20+ download clients: Sabnzbd, Transmission,\
+  \ qBittorrent, etc.)\n\n### What Was Rejected\n\n- **Not Microservices**: Single\
+  \ deployable unit, not distributed services. All modules run in one process.\n-\
+  \ **Not Serverless**: Self-hosted ASP.NET Core application, not function-based.\n\
+  - **Not CQRS**: No separate read/write models; uses standard repository pattern\
+  \ with `BasicRepository<T>`.\n- **Not Hexagonal Architecture**: While there's dependency\
+  \ injection and interfaces, no formal ports/adapters isolation. The `ThingiProvider`\
+  \ system \n\n[truncated]"

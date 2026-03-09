@@ -1,0 +1,110 @@
+Let me look at a few more files to understand the plugin/adapter relationship better:Now I have enough information to make a comprehensive classification. Let me review one more file to confirm the adapterplugin mechanism:Now I have sufficient evidence to classify the architecture. Let me finalize my analysis.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+  - Pipeline (Pipe-and-Filter)
+confidence: 0.88
+---
+
+## Architecture Analysis: dbt-core
+
+### Primary Style: Microkernel (Plugin)
+
+**Strong Evidence:**
+
+1. **Adapter Plugin System** — The core architectural pattern is a plugin system for database adapters. From `ARCHITECTURE.md`:
+   > "dbt uses an adapter-plugin pattern to extend support to different databases, warehouses, query engines, etc."
+   > "Each adapter is a mix of python, Jinja2, and SQL. The adapter code also makes heavy use of Jinja2 to wrap modular chunks of SQL functionality, define default implementations, and allow plugins to override it."
+
+2. **Dynamic Plugin Loading** — Adapters are loaded dynamically at runtime based on configuration:
+   - `core/dbt/config/profile.py`:
+     ```python
+     from dbt.adapters.factory import load_plugin
+     cls = load_plugin(typename)  # Loads adapter by type from profiles.yml
+     ```
+   - `core/dbt/plugins/manager.py`:
+     ```python
+     PLUGIN_MODULE_PREFIX = "dbt_"
+     # Discovers all installed dbt_* packages (dbt-postgres, dbt-snowflake, etc.)
+     ```
+
+3. **Plugin Contract** — Adapters implement a well-defined interface from `dbt-adapters` package:
+   - **Credentials classes** — Connection parameters parsed from `profiles.yml`
+   - **Adapter classes** — Database operations (execute, create_schema, etc.)
+   - **ConnectionManager** — Thread-safe connection pooling
+   - **Relation classes** — Database object abstraction
+   - **Macro dispatch** — `adapter.dispatch()` for polymorphic macro invocation
+
+4. **Extension via Macros** — Beyond Python plugins, dbt supports Jinja macro extensions for materializations. From `core/dbt/clients/README.md`:
+   > "Model materializations are defined by adapters... materializations can be overridden in user projects"
+
+5. **Experimental Plugin API** — A newer plugin mechanism in `core/dbt/plugins/manager.py` allows injecting nodes into the DAG via `dbtPlugin` base class with hooks like `get_nodes()` and `get_manifest_artifacts()`.
+
+### Secondary Style: Layered
+
+**Evidence:**
+
+The codebase exhibits clear horizontal layering with well-defined responsibilities:
+
+| Layer | Location | Responsibility |
+|-------|----------|----------------|
+| CLI | `core/dbt/cli/` | Command parsing, flags, decorators |
+| Task | `core/dbt/task/` | Command orchestration (BaseTask → ConfiguredTask → GraphRunnableTask) |
+| Graph | `core/dbt/graph/` | DAG construction, node selection, execution queue |
+| Parser | `core/dbt/parser/` | File parsing, manifest construction |
+| Compilation | `core/dbt/compilation.py` | Jinja rendering, SQL generation |
+| Contracts | `core/dbt/contracts/` | Data structures, validation schemas |
+| Context | `core/dbt/context/` | Jinja context providers |
+| Clients | `core/dbt/clients/` | External dependencies (Jinja, git, YAML) |
+
+From `docs/arch/4.1_Task_Framework.md`:
+```
+BaseTask
+  └── ConfiguredTask
+       └── GraphRunnableTask
+            └── CompileTask
+                 └── RunTask
+                      └── BuildTask
+```
+
+This shows clear layering where each level adds capabilities.
+
+### Secondary Style: Pipeline (Pipe-and-Filter)
+
+**Evidence:**
+
+The execution flow follows a sequential pipeline pattern documented in `docs/arch/3_Parsing.md`:
+
+1. **Read Files** → Scan project directories
+2. **Load Macros** → Parse macro files first
+3. **Parse Project Files** → Models, snapshots, tests, seeds
+4. **Parse Schema Files** → YAML configurations
+5. **Patch Sources** → Apply source overrides
+6. **Process References** → Resolve `ref()`, `source()`, `doc()`
+7. **Validation** → Check uniqueness, configs
+8. **Write Manifest** → Output `manifest.json`
+
+The DAG execution also follows pipe-and-filter: each node is compiled → executed → results collected.
+
+### What Was Rejected
+
+- **Microservices** — Single deployable package (`dbt-core` on PyPI). No distributed services.
+- **Modular Monolith** — While there are module boundaries, they're not enforced through build/distribution boundaries. Adapters are separate packages, not internal modules.
+- **Event-Driven** — No message brokers or async event handling. Execution is synchronous DAG traversal.
+- **Domain-Driven Design** — No evidence of aggregates, entities, value objects organized around bounded contexts. The structure is technical (parser, compiler, task) rather than domain-driven.
+- **Hexagonal Architecture** — No explicit ports/adapters isolation pattern. The plugin system achieves similar goals but isn't organized as hexagonal architecture.
+
+### Key Architectural Insights
+
+1. **Single Deployable Core** — `pyproject.toml` shows dbt-core as one package with dependencies on `dbt-adapters`, `dbt-common`, etc.
+
+2. **Adapter Factory Pattern** — `core/dbt/cli/requires.py` uses `register_adapter()` and `get_adapter()` factory methods, with adapter instances retrieved from a global factory.
+
+3. **Plugin Discovery** — Uses Python's `pkgutil.iter_modules()` to find `dbt_*` packages at runtime, a classic plugin discovery mechanism.
+
+4. **Extension Points** — Two mechanisms:
+   - **Python adapters** — Implement base classes, loaded dynamically
+   - **Jinja macros** — Override materializations, loaded from project/adapter directories

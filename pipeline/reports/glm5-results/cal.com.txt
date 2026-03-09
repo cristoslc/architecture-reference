@@ -1,0 +1,127 @@
+I'll explore the cal.com repository to classify its architecture. Let me start with an overview.Let me explore the app-store structure more deeply and understand theplugin architecture:Let me check the apps/api structure more and understand the overall deployment:Based on my thorough exploration of the cal.com repository, I now have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.90
+---
+
+## Architecture Analysis
+
+### Primary Style: Modular Monolith
+
+**Strong Evidence:**
+
+1. **Feature-based vertical slices** in `packages/features/`:
+   - Each domain has its own self-contained directory: `bookings/`, `availability/`, `event-types/`, `auth/`, `insights/`, `webhooks/`, etc.
+   - Features include: `services/`, `repositories/`, `components/`, `hooks/`, `lib/`, `types.ts`
+   - Clear public APIs exported from each feature
+
+2. **Enforced module boundaries** with explicit architecture rules:
+   ```typescript
+   // From agents/rules/architecture-feature-boundaries.md
+   // Incorrect - Importing internal implementation details
+   import { calculateSlots } from "@calcom/features/availability/services/internal/slotCalculator";
+   
+   // Correct - Import through the feature's public API
+   import { getAvailability } from "@calcom/features/availability";
+   ```
+
+3. **Repository pattern with dependency injection**:
+   - 30+ repository interfaces: `IBookingAuditRepository`, `IBookingReferenceRepository`, `IBookingReportRepository`, etc.
+   - DI container using `@evyweb/ioctopus` with type-safe module loaders
+   - Services depend on abstractions (interfaces), not concretions:
+   ```typescript
+   // packages/features/booking-audit/di/tokens.ts
+   export const BOOKING_AUDIT_DI_TOKENS = {
+     BOOKING_AUDIT_REPOSITORY: Symbol("BookingAuditRepository"),
+     BOOKING_AUDIT_PRODUCER_SERVICE: Symbol("BookingAuditProducerService"),
+     // ...
+   };
+   ```
+
+4. **Single deployable unit** (primary): 
+   - Dockerfile builds one main application (`@calcom/web`)
+   - All features are compiled into the same deployment artifact
+   - Single PostgreSQL database (not database-per-service)
+
+5. **Clear layering within the monolith**:
+   - `apps/web/modules/` - tRPC hooks and React components (web-specific)
+   - `packages/features/` - Framework-agnostic business logic (shared)
+   - `packages/lib/` - Cross-cutting utilities
+   - `packages/prisma/` - Data access layer
+
+### Secondary Style: Microkernel (Plugin)
+
+**Strong Evidence:**
+
+1. **140+ plugins in App Store** (`packages/app-store/`):
+   - googlecalendar, zoomvideo, stripepayment, hubspot, salesforce, slack, discord, etc.
+   - Each app follows standardized structure: `index.ts`, `api/`, `lib/`, `_metadata.ts`, `config.json`
+
+2. **Generated plugin registry**:
+   ```typescript
+   // packages/app-store/apps.server.generated.ts (auto-generated)
+   export const apiHandlers = {
+     googlecalendar: import("./googlecalendar/api"),
+     zoomvideo: import("./zoomvideo/api"),
+     stripepayment: import("./stripepayment/api"),
+     // 140+ apps...
+   };
+   ```
+
+3. **CLI tool for plugin scaffolding**:
+   - `packages/app-store-cli/` with commands: `create-app`, `edit-app`, `delete-app`
+   - Auto-generates `*.generated.ts` files that register plugins
+
+4. **Plugin metadata and contracts**:
+   ```typescript
+   // packages/app-store/googlecalendar/_metadata.ts
+   export const metadata = {
+     name: "Google Calendar",
+     type: "google_calendar",
+     category: "calendar",
+     isOAuth: true,
+     // Standard plugin interface
+   };
+   ```
+
+5. **Plugin extension points**:
+   - `api/` - API handlers for OAuth callbacks and webhooks
+   - `lib/` - Calendar service implementations
+   - `components/` - UI components (browser-generated)
+
+### Rejected Styles
+
+**Not Microservices** because:
+- Only 2 services (`calcom` and `calcom-api`) sharing a single database
+- No database-per-service pattern
+- Features are not independently deployable
+- All features compile into the same deployment artifact
+
+**Not Event-Driven** because:
+- No message broker (Kafka, RabbitMQ, etc.) in deployment configuration
+- Direct synchronous calls between components
+- No event sourcing or CQRS patterns
+
+**Not Serverless** because:
+- Docker container deployment
+- No AWS Lambda/Firebase functions
+- Traditional server architecture
+
+**Not DDD (Domain-Driven Design)** because:
+- While organized by domain, no formal aggregates, value objects, or bounded context definitions
+- No ubiquitous language documentation
+- No event storming artifacts
+
+### Deployment Topology
+
+From `docker-compose.yml`:
+- **calcom** - Main Next.js web application
+- **calcom-api** - NestJS Platform API (for external integrations)
+- **database** - Shared PostgreSQL instance
+- **redis** - Shared Redis cache
+
+Both services share the same database, confirming the modular monolith architecture with an optional separate API surface for platform consumers.

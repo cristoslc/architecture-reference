@@ -13,8 +13,8 @@ language: Go
 languages:
 - Go
 architecture_styles:
-- Hexagonal Architecture
 - Microkernel (Plugin)
+- Hexagonal Architecture
 classification_status: classified
 review_notes: "The Go SDK for CloudEvents is structured using **Hexagonal Architecture**\
   \ (Ports and Adapters). The codebase is designed to isolate the core domain—the\
@@ -32,50 +32,45 @@ review_notes: "The Go SDK for CloudEvents is structured using **Hexagonal Archit
   \ Kafka message or an HTTP request) into the core `CloudEvent` model. These are\
   \ classic \"Adapters\" that connect the core logic to external infrastructure."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.63
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:09:52Z'
-classification_reasoning: "The Go SDK for CloudEvents is structured using **Hexagonal\
-  \ Architecture** (Ports and Adapters). The codebase is designed to isolate the core\
-  \ domain—the `CloudEvent` entity and its manipulation logic—from the numerous transport\
-  \ protocols (HTTP, Kafka, NATS, AMQP, etc.) that carry these events.\n\n### Reasoning:\n\
-  \n1.  **Core Domain Isolation (The Hexagon):**\n    The core \"inside\" of the application\
-  \ is the `v2/event` and `v2/binding` logic. This layer defines how a CloudEvent\
-  \ is represented in memory and provides abstract interfaces for handling them. The\
-  \ presence of `v2/binding/message.go` and `v2/binding/transformer.go` acts as the\
-  \ primary \"Port,\" defining a generic protocol-agnostic way to interact with an\
-  \ event regardless of its wire format.\n\n2.  **Adapters (The Outside):**\n    The\
-  \ repository contains a vast collection of adapters located in the `protocol/` directory\
-  \ (e.g., `protocol/amqp`, `protocol/kafka_sarama`, `protocol/nats`). Each of these\
-  \ sub-modules implements the logic to map technology-specific envelopes (like a\
-  \ Kafka message or an HTTP request) into the core `CloudEvent` model. These are\
-  \ classic \"Adapters\" that connect the core logic to external infrastructure.\n\
-  \n3.  **Microkernel (Plugin) Characteristics:**\n    The SDK follows a **Microkernel**\
-  \ pattern by providing a minimal core and allowing users to \"plug in\" different\
-  \ transport protocols. Each protocol is a self-contained Go module (demonstrated\
-  \ by the separate `go.mod` files in `protocol/nats/v2/go.mod`, etc.). This decoupling\
-  \ ensures that the core SDK does not have a hard dependency on every possible messaging\
-  \ library, while providing a standardized \"Extension API\" via the `binding` interfaces.\n\
-  \n4.  **Enforcement of Boundaries:**\n    The architecture uses Go's internal package\
-  \ structure and separate modules to enforce strict boundaries. The `v2/binding`\
-  \ layer provides the translation logic (`v2/binding/to_event.go`) that ensures protocol-specific\
-  \ details never leak into the core `Event` object. The `test/integration` suite\
-  \ further validates the pluggability by running the same core logic across multiple\
-  \ different transport adapters.\n\n5.  **Rejection of Other Styles:**\n    - **Layered:**\
-  \ While there is layering, the bi-directional nature (Sending vs. Receiving) and\
-  \ the emphasis on swapping infrastructure (Transports) make Hexagonal a significantly\
-  \ more accurate description.\n    - **Modular Monolith:** While it is a single repository,\
-  \ it is an SDK/Library, not a single deployable unit. Its modularity is geared towards\
-  \ extensibility (Library/Plugin-style) rather than internal monolithic partitioning."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.63
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.55
-  alternatives_dismissed: 0.55
-  exploration_completeness: 0.7
-  flags: dual classification (Hexagonal + Microkernel) weakens style_clarity — these
-    are distinct patterns and the reasoning conflates them without clearly establishing
-    one as primary
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:56:57Z'
+classification_reasoning: "## Analysis\n\nThe **sdk-go** repository implements a **Microkernel\
+  \ (Plugin)** architecture with a minimal core system extended by independently developed\
+  \ protocol binding plugins.\n\n### Core System Evidence\n\nThe `v2/` module serves\
+  \ as the minimal core:\n\n- **`v2/protocol/`** defines the plugin contract through\
+  \ interfaces (`Sender`, `Receiver`, `Requester`, `Responder`, `Closer`, `Opener`\
+  \ in `inbound.go`, `outbound.go`, `lifecycle.go`)\n- **`v2/binding/`** defines the\
+  \ message transformation pipeline (`Message`, `Transformer`, `MessageReader`)\n\
+  - **`v2/client/`** provides the application-facing API that accepts any plugin implementation\n\
+  - **`v2/event/`** provides the canonical event model\n\n### Plugin Architecture\
+  \ Evidence\n\nThe `protocol/` directory contains **9 independently versioned protocol\
+  \ plugins**:\n- `amqp/`, `kafka_confluent/`, `kafka_sarama/`, `mqtt_paho/`, `nats/`,\
+  \ `nats_jetstream/`, `pubsub/`, `stan/`, `ws/`\n\nEach plugin:\n1. **Has its own\
+  \ Go module** (`go.mod` with unique module path like `github.com/cloudevents/sdk-go/protocol/kafka_sarama/v2`)\n\
+  2. **Implements core interfaces** with explicit conformance assertions:\n   ```go\n\
+  \   var _ protocol.Receiver = (*Protocol)(nil)\n   var _ protocol.Sender = (*Protocol)(nil)\n\
+  \   ```\n3. **Depends only on the core**, not other plugins (e.g., `protocol/nats/v2/protocol.go`\
+  \ imports only `github.com/cloudevents/sdk-go/v2/binding` and `v2/protocol`)\n\n\
+  ### Extension Mechanism\n\nThe client uses **duck typing to discover plugin capabilities**\
+  \ (`v2/client/client.go` lines 65-79):\n```go\nfunc New(obj interface{}, opts ...Option)\
+  \ (Client, error) {\n    if p, ok := obj.(protocol.Sender); ok {\n        c.sender\
+  \ = p\n    }\n    if p, ok := obj.(protocol.Requester); ok {\n        c.requester\
+  \ = p\n    }\n    // ... etc\n}\n```\n\nThis allows plugins to be mixed and matched—users\
+  \ import only the protocols they need.\n\n### Additional Plugin Categories\n\nThe\
+  \ `observability/` directory provides **observability plugins** (OpenCensus, OpenTelemetry)\
+  \ following the same pattern—separate modules extending core capabilities.\n\n###\
+  \ Why Hexagonal Architecture as Secondary\n\nThe architecture exhibits **ports and\
+  \ adapters characteristics**:\n- **Ports**: The interfaces in `v2/protocol/` (`Sender`,\
+  \ `Receiver`, etc.) and `v2/binding/` (`Message`, `StructuredWriter`, `BinaryWriter`)\n\
+  - **Adapters**: Each protocol implementation adapts external systems (NATS, Kafka,\
+  \ AMQP) to the port interfaces\n- **Core isolation**: The `client/` package depends\
+  \ only on abstractions, never concrete implementations\n\nHowever, the **primary\
+  \ architectural driver** is the plugin extensibility pattern rather than application-level\
+  \ hexagonal design—this is an SDK, not a business application.\n\n### What Was Rejected\n\
+  \n- **Layered**: No horizontal layering exists (no presentation/business/data separation)\n\
+  - **Modular Monolith**: Not a single deployable unit; each protocol is independently\
+  \ importable\n- **Event-Driven**: While CloudEvents handles events, the SDK's internal\
+  \ architecture uses direct interface calls, not event-based communication\n- **Service-Based/Microservices**:\
+  \ This is a library, not a deployed system of services"

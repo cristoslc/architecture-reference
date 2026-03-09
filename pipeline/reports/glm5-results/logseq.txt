@@ -1,0 +1,104 @@
+Let me explore the architecture more deeply - I can see there's a plugin system and multiple module directories. Let me investigate these further.Based on my thorough investigation of the Logseq repository, I now have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+  - Modular Monolith
+confidence: 0.88
+---
+
+## Analysis
+
+### Primary: Microkernel (Plugin)
+
+Logseq has a **substantial plugin architecture** that is central to its design. The evidence is compelling:
+
+**Plugin Infrastructure (`libs/src/`):**
+- **`LSPlugin.core.ts`** (~1,673 lines) - Complete plugin runtime with:
+  - `PluginLocal` class managing individual plugin lifecycle (load, init, settings, dispose)
+  - `LSPluginCore` class as the plugin manager coordinating all plugins
+  - Plugin loading from filesystem (`DIR_PLUGINS = 'plugins'`)
+  - Isolated execution contexts (shadow DOM and iframe modes)
+  - Event-based communication between plugins and host application
+
+- **`LSPlugin.user.ts`** - Rich user-facing plugin API:
+  - `logseq.Editor` proxy for editor operations
+  - `logseq.App` proxy for application operations  
+  - `logseq.DB` proxy for database queries
+  - Hook registration (`onBlockChanged`, `onPageChanged`, etc.)
+  - UI injection capabilities
+
+- **`callable.apis.ts`** - Host-exported APIs that plugins can invoke
+
+**Plugin API (`src/main/logseq/api.cljs`):**
+- ClojureScript API exposing 100+ functions for plugins
+- Organized by domain: `api/app.cljs`, `api/block.cljs`, `api/db.cljs`, `api/editor.cljs`, `api/plugin.cljs`
+- Hook installation/uninstallation: `install_plugin_hook`, `uninstall_plugin_hook`
+
+**Plugin Handler (`src/main/frontend/handler/plugin.cljs`):**
+- Plugin lifecycle management
+- Hook system for plugin integration
+- External plugin validation and loading
+
+### Secondary: Layered
+
+The codebase exhibits clear horizontal layering in `src/main/frontend/`:
+
+1. **Components Layer** (`frontend/components/`) - UI components (80+ files)
+2. **Handler Layer** (`frontend/handler/`) - Business logic/controllers  
+3. **DB Layer** (`frontend/db/`) - Data access and queries
+
+From `CODEBASE_OVERVIEW.md`: *"Directories and files inside are organized by features or functions"*, specifically calling out `frontend/components/` for UI and `frontend/handler/` for "system component like code."
+
+The handler namespace (`frontend/handler.cljs`) acts as an application coordinator, orchestrating startup, initialization, and cross-cutting concerns.
+
+### Secondary: Modular Monolith
+
+Logseq enforces internal module boundaries through the `deps/` directory:
+
+```
+deps/
+├── cli/         # CLI tools
+├── common/      # Shared utilities
+├── db/          # Database library
+├── db-sync/     # Sync server
+├── graph-parser/ # Graph parsing
+├── outliner/    # Outliner operations
+├── publish/     # Publishing tools
+├── publishing/  # Publishing utilities
+└── shui/        # UI component library
+```
+
+Each module has its own `deps.edn` and `package.json` with explicit dependencies via `:local/root`. For example, `deps/outliner/deps.edn`:
+```clojure
+{:deps
+ {logseq/db {:local/root "../db"}
+  logseq/graph-parser {:local/root "../graph-parser"}}}
+```
+
+This creates a clear module dependency graph with enforced boundaries, making it a **modular monolith** - single deployable with internal module isolation.
+
+### Why NOT Other Styles
+
+- **NOT Microservices**: Single deployable. `deps/` are libraries, not independent services. The Dockerfile builds one static web app.
+
+- **NOT Event-Driven**: While plugins use EventEmitter, the core application uses synchronous/direct calls. State flows through atoms and React reactivity, not an event bus.
+
+- **NOT CQRS**: No separation of read/write models. DataScript handles both.
+
+- **NOT DDD**: No bounded contexts, aggregates, or ubiquitous language patterns.
+
+- **NOT Hexagonal**: No ports/adapters isolation. Handlers directly access DB and UI.
+
+### Architecture Summary
+
+Logseq is a **knowledge management desktop/mobile/web application** built as a layered monolith with:
+- A comprehensive plugin system (Microkernel pattern) for extensibility
+- Horizontal layers (Components → Handlers → DB)
+- Internal module boundaries (`deps/` libraries)
+- DataScript as the in-memory database with Datalog queries
+- Web Workers for background database operations
+- Electron wrapper for desktop deployment
+- Capacitor for mobile deployment

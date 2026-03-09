@@ -1,0 +1,96 @@
+Based on my thorough investigation, I now have enough evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Service-Based
+confidence: 0.90
+---
+
+## Architecture Analysis: PostHog
+
+### Primary Style: Modular Monolith
+
+PostHog is a **Modular Monolith** with enforced internal boundaries. The evidence is compelling:
+
+**1. Single Deployable Django Application**
+The main deployment is a single Django application (`posthog/` + `products/`) with Celery workers:
+- `docker-compose.hobby.yml` shows a single `web` and `worker` service for the Django app
+- All products share the same database (Postgres + ClickHouse)
+- `manage.py` at the root confirms a single Django project
+
+**2. Explicit Module Boundaries with Enforcement**
+The `tach.toml` file defines strict import boundaries between 40+ products:
+```toml
+[[modules]]
+path = "products.feature_flags"
+depends_on = ["ee", "posthog"]
+layer = "non_isolated"
+```
+Products can import from `posthog` and `ee` but not from each other, enforced via the `tach` tool.
+
+**3. Facade Pattern for Inter-Module Communication**
+Per `products/architecture.md`, each product exposes a public interface:
+```
+products/<name>/backend/facade/
+  api.py           # The ONLY file other products may import
+  contracts.py     # Frozen dataclasses (stable DTOs)
+```
+Internal implementation (models, logic) is private.
+
+**4. Turborepo for Selective Testing**
+`turbo.json` defines `backend:test` tasks per product, enabling:
+- Task-level caching
+- Only affected products need retesting when contracts change
+
+**5. Product Structure**
+Each of the 40+ products in `products/` follows the pattern:
+```
+products/feature_flags/
+  backend/          # Django app (models, logic, API)
+  frontend/         # React/TypeScript scenes
+  manifest.tsx      # Route/scene definitions
+  package.json      # Turborepo package
+```
+
+### Secondary Style: Service-Based
+
+PostHog supplements the monolith with specialized services:
+
+**Rust Services (High-Performance Ingestion)**
+The `rust/` workspace contains 40+ crates including:
+- `capture` - Event capture endpoint (handles `/e`, `/batch` routes)
+- `feature-flags` - Feature flag evaluation service
+- `capture-logs` - Log ingestion (OpenTelemetry)
+- `hook-worker/hook-janitor` - Webhook processing
+- `cyclotron-*` - Job queue system
+- `kafka-*` - Kafka infrastructure services
+
+These are **not microservices** — they're coarse-grained services sharing databases with the monolith.
+
+**Standalone Python Services**
+- `services/llm-gateway/` - LLM proxy (FastAPI, separate deployment)
+- `services/mcp/` - MCP server (Cloudflare Workers)
+
+**Node.js Services**
+- `services/oauth-proxy/` - OAuth handling (Cloudflare Workers)
+- `services/stripe-app/` - Stripe integration
+
+### What It's NOT
+
+- **NOT Microservices**: Services share databases (Postgres, ClickHouse, Redis, Kafka); they're coarse-grained (5-6) not fine-grained; main app is monolithic
+- **NOT Layered Architecture**: Products are vertical slices, not horizontal layers; each product has its own models/logic/API
+- **NOT Hexagonal**: Django ORM models are used directly; no ports/adapters abstraction
+- **NOT Serverless**: Uses Docker containers with long-running workers; no FaaS deployment
+
+### Communication Patterns
+
+- **Kafka** for event ingestion pipeline (capture services → ClickHouse)
+- **Celery** for async task processing within Django monolith
+- **HTTP/REST** between services and main app
+- **gRPC** for some Rust service communication
+
+### Summary
+
+PostHog represents a mature **Modular Monolith** with clear product boundaries enforced by tooling (`tach`), facades for inter-module communication (frozen dataclasses), and selective testing (Turborepo). It supplements this with specialized **Service-Based** deployments for high-throughput ingestion (Rust services) and domain-specific needs (LLM gateway, MCP server), but the core application remains a single Django deployable with strong internal modularity.

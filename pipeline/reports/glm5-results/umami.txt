@@ -1,0 +1,65 @@
+Based on my comprehensive exploration of the umami repository, I have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles: []
+confidence: 0.92
+---
+
+## Analysis
+
+**Umami is a classic Layered Architecture** — a single deployable Next.js application organized into horizontal layers with clear separation of concerns.
+
+### Evidence for Layered Architecture
+
+**1. Horizontal Layer Organization:**
+- **API/Controller Layer:** `src/app/api/` contains Next.js API route handlers (e.g., `api/websites/[websiteId]/route.ts`) that handle HTTP requests, validate input via Zod schemas, check permissions, and delegate to queries
+- **Business Logic/Query Layer:** `src/queries/` contains data access functions organized by entity (`prisma/website.ts`, `prisma/user.ts`, etc.) and SQL queries (`sql/events/`, `sql/sessions/`)
+- **Data Access Layer:** `src/lib/prisma.ts`, `src/lib/clickhouse.ts`, `src/lib/db.ts` provide database client abstractions
+- **Presentation Layer:** `src/components/` contains React UI components (charts, metrics, input controls), and `src/app/(main)/` contains page components
+- **Security Layer:** `src/permissions/` contains authorization functions like `canViewWebsite()`, `canUpdateWebsite()`
+
+**2. Typical Layered Request Flow:**
+```typescript
+// API route: src/app/api/websites/[websiteId]/route.ts
+export async function GET(request: Request, { params }) {
+  const { auth, error } = await parseRequest(request);      // Auth
+  if (!(await canViewWebsite(auth, websiteId))) ...         // Permissions
+  const website = await getWebsite(websiteId);              // Query layer
+  return json(website);                                      // Response
+}
+```
+
+**3. Single Deployable Unit:**
+- One `package.json` at repository root
+- Single `Dockerfile` producing one container image
+- `docker-compose.yml` defines exactly one application service (`umami`) plus one database (`db`)
+- No microservices, no separate deployable units
+
+**4. Single Shared Database:**
+- PostgreSQL via Prisma ORM with a unified schema (`prisma/schema.prisma`)
+- Optional ClickHouse for high-volume analytics data
+- Single database connection string (`DATABASE_URL`)
+- No per-service database ownership
+
+### What This Is NOT
+
+**Not Modular Monolith:** There are no enforced internal module boundaries. The `src/` directory is organized by technical role (components, lib, queries, permissions) rather than business domains with encapsulated internals. Code imports freely across the codebase without module-scoped interfaces.
+
+**Not Microservices:** A single container, single database, single deployment unit. The optional Kafka integration is for analytics event ingestion at scale, not for inter-service communication.
+
+**Not Event-Driven:** While the system ingests analytics events, internal component communication is synchronous request-response. There's no event broker mediating between internal modules.
+
+**Not Serverless:** Standard Node.js server deployment via Docker, not function-as-a-service. No serverless.yml, SAM templates, or function-based deployment patterns.
+
+**Not Domain-Driven Design:** No aggregates, entities, value objects, or bounded context patterns. The `src/queries/prisma/` directory has entity-named files, but these are simple data access objects, not DDD domain models with business logic encapsulation.
+
+### Technology Stack Supporting Layered Architecture
+
+- **Framework:** Next.js 15 with App Router
+- **ORM:** Prisma for PostgreSQL
+- **Analytics DB:** Optional ClickHouse for time-series data
+- **Message Queue:** Optional Kafka for high-throughput event ingestion
+- **Caching:** Optional Redis for session/auth caching
+- **UI:** React components with TanStack Query for data fetching

@@ -1,0 +1,92 @@
+Let me explore the project structure more deeply, including the mix.exs file and the application organization.Now I have sufficient information to make a classification. Let me review a few more key files to understand the overall data flow pattern:Based on my thorough exploration of the Plausible Analytics codebase, I have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Modular Monolith
+confidence: 0.92
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: **Layered**
+
+The codebase follows a classic Phoenix/Elixir layered architecture with clear horizontal separation:
+
+**1. Presentation Layer (`lib/plausible_web/`)**
+- Controllers handle HTTP requests (`controllers/`)
+- Views and templates for rendering (`views/`, `templates/`)
+- LiveViews for interactive UI (`live/`)
+- Plugs for request processing pipeline (`plugs/`)
+- Router defines HTTP endpoints (`router.ex`)
+
+**2. Business/Domain Layer (`lib/plausible/`)**
+- Domain contexts: `auth/`, `billing/`, `teams/`, `sites/`, `stats/`, `ingestion/`, `goals/`, `imported/`, `shield/`, etc.
+- Each module encapsulates business logic
+- Example: `Plausible.Stats.Query` builds analytics queries; `Plausible.Sites.Index` manages site listings
+
+**3. Data Access Layer**
+Multiple specialized repositories:
+- `Plausible.Repo` — PostgreSQL (users, sites, teams, billing)
+- `Plausible.ClickhouseRepo` — ClickHouse read-only queries  
+- `Plausible.IngestRepo` — ClickHouse writes for event ingestion
+- `Plausible.AsyncInsertRepo` — Async database operations
+
+### Secondary Style: **Modular Monolith**
+
+**Evidence for Modular Monolith:**
+1. **Single Deployable**: One OTP application (`:plausible`), one Dockerfile artifact
+2. **Organized Domain Modules**: Clear separation into domain contexts
+   - `lib/plausible/auth/` — authentication, users, sessions
+   - `lib/plausible/billing/` — subscriptions, plans, quotas
+   - `lib/plausible/teams/` — team management, memberships
+   - `lib/plausible/stats/` — analytics query building and execution
+   - `lib/plausible/ingestion/` — event processing pipeline
+3. **Single Entry Point**: `Plausible.Application` starts all supervisors and children
+4. **Shared Infrastructure**: Common cache, telemetry, and logging infrastructure
+
+### What This Is NOT
+
+**Not Microservices:**
+- Single deployment artifact (one release)
+- No service boundaries, API gateways, or inter-service communication
+- Direct function calls between all modules
+
+**Not Event-Driven Architecture:**
+- Uses Oban for background jobs (email reports, analytics imports) — standard Elixir pattern
+- WriteBuffer batches ClickHouse inserts for performance — not event-based communication
+- Components communicate via direct function calls, not events
+
+**Not Service-Based:**
+- Not 2-5 coarse-grained services sharing a database
+- Single application with multiple repositories
+
+**Not Hexagonal/Ports & Adapters:**
+- No explicit ports/adapters abstraction layer
+- Controllers call contexts directly; contexts call repos directly
+
+**Not Microkernel/Plugin:**
+- `Plausible.PluginsAPI` is an external API for users, not a plugin system
+- No runtime extension loading mechanism
+
+### Key Architecture Details
+
+**Dual Database Architecture:**
+- PostgreSQL: Transactional data (accounts, configuration)
+- ClickHouse: Analytical data (events_v2, sessions_v2 tables)
+
+This is an optimization for the analytics domain, not a microservices pattern.
+
+**Background Job Processing:**
+- Oban workers in `lib/workers/` for async tasks
+- Email reports, analytics imports, cleanup jobs
+- Standard Phoenix pattern, not event-driven architecture
+
+**Edition Feature Toggles:**
+- `on_ee`/`on_ce` macros conditionally compile features
+- Single codebase serves both Community Edition and Enterprise Edition
+
+### Conclusion
+
+Plausible Analytics is a well-structured **Layered Monolith** with **Modular Monolith** characteristics. The Phoenix framework naturally enforces the layered pattern (controllers → contexts → repos), while the internal organization into domain modules provides clean separation of concerns within a single deployable unit. The dual-database architecture (PostgreSQL + ClickHouse) is a domain-specific optimization for web analytics, not a distributed system pattern.

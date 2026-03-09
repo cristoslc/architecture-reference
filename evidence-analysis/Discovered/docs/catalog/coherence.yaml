@@ -14,7 +14,6 @@ languages:
 - Java/Kotlin
 architecture_styles:
 - Space-Based
-- Microkernel (Plugin)
 - Modular Monolith
 classification_status: classified
 review_notes: "The Oracle Coherence Community Edition repository is a classic implementation\
@@ -34,54 +33,61 @@ review_notes: "The Oracle Coherence Community Edition repository is a classic im
   \ the core handles clustering and sharding, Coherence uses a **Microkernel** approach\
   \ to extend its capabilities over a stable core."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.63
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:44:08Z'
-classification_reasoning: "The Oracle Coherence Community Edition repository is a\
-  \ classic implementation of a **Space-Based Architecture**. \n\n### Primary Style:\
-  \ Space-Based\nThe core identity of Coherence is a distributed data grid. The architecture\
-  \ is designed to solve scalability and concurrency issues by spreading both data\
-  \ and processing across a \"tuple space\" (shared memory grid). \n- **Evidence:**\
-  \ The README explicitly describes it as a \"distributed platform for building grid-based\
-  \ applications,\" utilizing \"partitioning (or sharding) across a number of designated\
-  \ remote nodes.\" \n- **Key Mechanics:** The system implements a distributed `NamedMap<K,V>`\
-  \ where processing logic (Aggregators, EntryProcessors) is sent to the data nodes\
-  \ rather than pulling data to the client. This \"data-local processing\" is a hallmark\
-  \ of Space-Based systems (like GigaSpaces or Apache Ignite).\n- **Core Components:**\
-  \ The directory `prj/coherence-core` and `prj/coherence-core-components` contain\
-  \ the fundamental \"Service 0\" responsible for cluster membership, death detection,\
-  \ and partition management.\n\n### Secondary Style: Microkernel (Plugin)\nWhile\
-  \ the core handles clustering and sharding, Coherence uses a **Microkernel** approach\
-  \ to extend its capabilities over a stable core.\n- **Evidence:** The project uses\
-  \ a modular structure where different protocols and integrations are plugged into\
-  \ the core engine. Examples include `prj/coherence-grpc` (gRPC support), `prj/coherence-json`,\
-  \ `prj/coherence-protobuf`, and `prj/coherence-http-netty`. \n- **Adaptability:**\
-  \ The `PartitionedService` and `ProxyService` mentioned in the documentation act\
-  \ as extension points for different types of transport and storage behaviors.\n\n\
-  ### Secondary Style: Modular Monolith (Development Organization)\nIn terms of code\
-  \ organization, the repository is structured as a **Modular Monolith** (specifically\
-  \ a Maven Multi-Module project).\n- **Structure:** All components (core, tests,\
-  \ plugins, documentation) reside in a single repository under `prj/`. \n- **Boundaries:**\
-  \ The `prj/` directory shows clear logical boundaries (`coherence-concurrent`, `coherence-cdi`,\
-  \ `coherence-jcache`). These are compiled together and often deployed as a set of\
-  \ JARs within a single JVM process (a cluster node), even though the nodes themselves\
-  \ form a distributed system.\n\n### Rejected Styles\n- **Microservices:** While\
-  \ the README mentions \"Microservices integration,\" Coherence itself is the *infrastructure*\
-  \ used by microservices, not a set of microservices. It is a distributed system,\
-  \ but the nodes typically run the same \"CoherenceServer\" role rather than being\
-  \ independent functional domains.\n- **Layered:** While internal modules have layers\
-  \ (API vs. Implementation), the defining characteristic is the distributed sharding\
-  \ and grid processing, which transcends simple horizontal layering."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.63
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.6
-  style_clarity: 0.7
-  alternatives_dismissed: 0.6
-  exploration_completeness: 0.6
-  flags: Space-Based classification is plausible but heavily README-driven; directory
-    paths cited but no deep config/code-level evidence (e.g., partition strategy configs,
-    EntryProcessor implementations, service registry patterns) to firmly distinguish
-    Space-Based from Modular Monolith as primary
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:00:09Z'
+classification_reasoning: "## Analysis\n\n### Primary Style: Space-Based Architecture\n\
+  \nOracle Coherence is a **canonical implementation of Space-Based Architecture**.\
+  \ The evidence is overwhelming:\n\n**1. In-Memory Data Grid Core:**\n- `NamedMap<K,V>`\
+  \ and `NamedCache` interfaces (`prj/coherence-core/src/main/java/com/tangosol/net/NamedMap.java`)\
+  \ provide the distributed data structure abstraction\n- Data is partitioned across\
+  \ cluster nodes via `PartitionedService` interface which manages key-to-partition\
+  \ and partition-to-member mappings\n\n**2. Data-Locality Processing Pattern:**\n\
+  - `InvocableMap` interface (`prj/coherence-core/src/main/java/com/tangosol/util/InvocableMap.java`)\
+  \ explicitly implements \"send code to data\" pattern:\n  > *\"the InvocableMap\
+  \ allows that model of operation to be inverted such that the operations against\
+  \ the Map contents are executed by (and thus within the localized context of) a\
+  \ Map. This is particularly useful in a distributed environment, because it enables\
+  \ the processing to be moved to the location at which the entries-to-be-processed\
+  \ are being managed\"*\n- `EntryProcessor` allows sending functions to storage nodes\
+  \ for local execution\n- Aggregations use map/reduce style parallel processing across\
+  \ partitions\n\n**3. Grid Services Layer:**\nThe `com.tangosol.net` package defines\
+  \ multiple grid services:\n- `PartitionedService` - manages partitioned data distribution\n\
+  - `InvocationService` - distributed computation\n- `ProxyService` - client connectivity\n\
+  - `CacheService` - cache operations\n\n**4. Cluster Membership and Partitioning:**\n\
+  - `Cluster` interface manages grid membership\n- `PartitionedService` tracks partition\
+  \ ownership, backup distribution, and failover\n- `KeyPartitioningStrategy` and\
+  \ `PartitionAssignmentStrategy` define sharding logic\n\n**5. Event-Driven Grid\
+  \ Communication:**\n- `EventInterceptor<E>` interface (`prj/coherence-core/src/main/java/com/tangosol/net/events/EventInterceptor.java`)\
+  \ enables event-driven processing within the grid\n- `MapListener` for data change\
+  \ notifications\n- Events for partition transfer, failover, and cache lifecycle\n\
+  \n### Secondary Style: Modular Monolith\n\n**Evidence for modular monolith organization:**\n\
+  \n**1. Single Deployable with Enforced Module Boundaries:**\n- 38+ Maven modules\
+  \ under `prj/` directory\n- Main artifact `coherence` module aggregates `coherence-core`,\
+  \ `coherence-grpc`, etc. via Maven shading\n- Clear separation: `coherence-core`,\
+  \ `coherence-grpc`, `coherence-cdi`, `coherence-jcache`, `coherence-json`, `coherence-protobuf`\n\
+  \n**2. Module Dependency Structure:**\n```\ncoherence (aggregated distribution)\n\
+  ├── coherence-core (core implementation)\n├── coherence-discovery\n├── coherence-core-components\n\
+  ├── coherence-grpc (protocol layer)\n├── coherence-cdi (integration)\n└── ... other\
+  \ modules\n```\n\n**3. Internal Code Organization:**\n- Core implementation: 2,866\
+  \ Java files in `coherence-core`\n- Package structure reflects technical layering:\n\
+  \  - `com.tangosol.net` - network/grid layer\n  - `com.tangosol.io` - I/O and serialization\n\
+  \  - `com.tangosol.util` - utilities\n  - `com.oracle.coherence.persistence` - persistence\n\
+  \n### What Was Rejected:\n\n- **Not Microservices**: Single deployable JAR; not\
+  \ independent services with separate databases\n- **Not Layered (Primary)**: While\
+  \ there is technical layering, the defining characteristic is Space-Based (in-memory\
+  \ grid, partitioning, data-local processing), not horizontal presentation/business/data\
+  \ separation\n- **Not Event-Driven (Primary)**: Events exist within the grid for\
+  \ notifications and interceptors, but the primary pattern is synchronous data grid\
+  \ access with locality-aware processing\n- **Not DDD**: No bounded contexts or aggregates;\
+  \ organized by technical layers and grid capabilities\n- **Not Hexagonal**: No ports/adapters\
+  \ isolation; configuration and extensibility are handled through ServiceLoader and\
+  \ XML configuration\n- **Not CQRS**: No separate read/write models\n- **Not Serverless**:\
+  \ No function-based deployment model\n\n### Conclusion\n\nCoherence is architected\
+  \ as a **Space-Based Architecture** with **Modular Monolith** code organization.\
+  \ The system is designed around an in-memory data grid where:\n- Data is partitioned\
+  \ and distributed across cluster nodes\n- Processing moves to data locations (not\
+  \ vice versa)\n- Grid services coordinate distributed state\n- Events enable reactive\
+  \ processing within the grid\n\nThe modular monolith structure enables development\
+  \ isolation while producing a single integrated distribution artifact."

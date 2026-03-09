@@ -14,9 +14,8 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Microservices
 - Microkernel (Plugin)
-- Event-Driven
+- Microservices
 classification_status: classified
 review_notes: 'This repository is a textbook example of a **Microservices** architecture
   managed within an **Nx Monorepo**. It utilizes **GraphQL Federation** for the backend
@@ -48,69 +47,59 @@ review_notes: 'This repository is a textbook example of a **Microservices** arch
   - The repository includes a `pnpm create-plugin` CLI tool to scaffold new services,
   adhering to a strict plugin contract so they can be registered by the Core Gateway.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.65
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:47:26Z'
-classification_reasoning: 'This repository is a textbook example of a **Microservices**
-  architecture managed within an **Nx Monorepo**. It utilizes **GraphQL Federation**
-  for the backend and **Module Federation** for the frontend (Micro-frontends) to
-  maintain a decoupled, yet integrated system.
-
-
-  ### Evidence of Microservices
-
-  - **Independent Deployment Units**: Each directory under `backend/plugins/` (e.g.,
-  `sales_api`, `payment_api`, `frontline_api`) and `frontend/plugins/` contains its
-  own `Dockerfile`, `project.json` (Nx configuration), and `package.json`.
-
-  - **Infrastructure**: The README explicitly describes a topology involving an **API
-  Gateway** (Apollo Router) that performs service discovery and routes requests to
-  various "Plugin APIs" (Microservices) on different ports (e.g., Core API on 3300,
-  Gateway on 4000).
-
-  - **Technology Choice**: Use of **GraphQL Federation** is a specific technical solution
-  for composing multiple independent microservice schemas into a single graph.
-
-
-  ### Evidence of Microkernel (Plugin) Architecture
-
-  - The system divides itself into "Core" and "Plugins". The core (found in `backend/erxes-api-shared`
-  and `frontend/core-ui`) provides the fundamental lifecycle management, while specific
-  business domains (Sales, CRM, Finance) are implemented as plugins.
-
-  - The repository includes a `pnpm create-plugin` CLI tool to scaffold new services,
-  adhering to a strict plugin contract so they can be registered by the Core Gateway.
-
-  - Plugins are optional and can be toggled via environment variables (`ENABLED_PLUGINS`),
-  a hallmark of the Microkernel style.
-
-
-  ### Evidence of Event-Driven (Secondary)
-
-  - The README mentions the use of **BullMQ** and **Redis**. In this stack, these
-  are typically used for asynchronous inter-service communication and background job
-  processing, allowing services to remain decoupled via message queues rather than
-  purely synchronous HTTP/GraphQL calls.
-
-
-  ### Structural Observations
-
-  - **Frontend**: Utilizes "Module Federation" via Rspack. Each UI plugin (e.g., `frontend/plugins/sales_ui`)
-  is compiled as a "remote" module loaded by the "shell" (`core-ui`) at runtime.
-
-  - **Shared Libraries**: Uses `backend/erxes-api-shared` and `frontend/libs` to share
-  types and utility functions across microservices, a common practice in monorepo-based
-  microservice architectures to prevent code duplication while maintaining service
-  boundaries.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.65
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.8
-  alternatives_dismissed: 0.3
-  exploration_completeness: 0.7
-  flags: multi-label classification (3 styles) reduces clarity; microkernel vs microservices
-    overlap not fully resolved; alternatives like layered or event-driven as primary
-    not explicitly dismissed with code evidence
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:17:20Z'
+classification_reasoning: "## Analysis\n\nThe erxes repository exhibits a **Microkernel\
+  \ (Plugin)** architecture as its primary style, with **Microservices** as a secondary\
+  \ characteristic.\n\n### Primary: Microkernel (Plugin) Architecture\n\nThe repository\
+  \ is built around a plugin-based architecture with clear evidence:\n\n1. **Plugin\
+  \ Infrastructure and Registration Mechanism** (`backend/erxes-api-shared/src/utils/start-plugin.ts`):\n\
+  \   - A standardized `startPlugin()` function that all plugins must call to initialize\n\
+  \   - Plugins register themselves with the gateway via `joinErxesGateway()` providing\
+  \ name, port, meta information\n   - Each plugin declares its GraphQL schema, tRPC\
+  \ router, REST endpoints, and subscriptions through a consistent contract\n\n2.\
+  \ **Core vs Plugin Separation**:\n   - Core modules (`backend/core-api/`) provide\
+  \ foundational capabilities: contacts, products, segments, automations, documents,\
+  \ notifications\n   - Plugins (`backend/plugins/`) extend functionality: frontline,\
+  \ sales, accounting, content, loyalty, tourism, etc.\n   - The README explicitly\
+  \ states: \"erxes is composed of 2 main components: **Core** & **Plugins**\"\n\n\
+  3. **Plugin Discovery via Redis** (`backend/erxes-api-shared/src/utils/service-discovery.ts`):\n\
+  \   - Plugins register their address in Redis: `erxes-service-${name}`\n   - Gateway\
+  \ discovers plugins dynamically via `getPlugin()` and `getPlugins()`\n   - Environment\
+  \ variable `ENABLED_PLUGINS` controls which plugins are loaded at runtime\n\n4.\
+  \ **Frontend Module Federation** (`frontend/core-ui/module-federation.config.ts`,\
+  \ `frontend/plugins/*/module-federation.config.ts`):\n   - Core UI acts as the host\
+  \ application\n   - Each frontend plugin exposes modules via Module Federation:\
+  \ `exposes: { './config': ..., './frontline': ... }`\n   - Core dynamically loads\
+  \ plugins: `remotes: process.env.ENABLED_PLUGINS?.split(',')`\n\n5. **Plugin Scaffold\
+  \ Script** (`scripts/create-backend-plugin.js`):\n   - Provides a standardized template\
+  \ for creating new plugins\n   - Generates consistent directory structure: `apollo/`,\
+  \ `trpc/`, `modules/`, `db/models/`\n\n### Secondary: Microservices Architecture\n\
+  \nThe system exhibits microservices characteristics with important nuances:\n\n\
+  1. **Independent Deployability**: Each backend plugin has its own Dockerfile:\n\
+  \   - `backend/plugins/frontline_api/Dockerfile`\n   - `backend/plugins/sales_api/Dockerfile`\n\
+  \   - `backend/plugins/accounting_api/Dockerfile`, etc.\n\n2. **Service Discovery**:\
+  \ Plugins register with the gateway via Redis-based service discovery (`joinErxesGateway()`)\n\
+  \n3. **API Gateway Pattern** (`backend/gateway/src/main.ts`):\n   - Single entry\
+  \ point on port 4000\n   - Proxies requests to plugins: `/pl:${serviceName}`\n \
+  \  - Apollo Router for GraphQL Federation\n\n4. **GraphQL Federation**: Each plugin\
+  \ is a subgraph that contributes to the unified GraphQL schema (`buildSubgraphSchema`\
+  \ in start-plugin.ts)\n\n### What This Is NOT\n\n- **NOT a Modular Monolith**: Services\
+  \ are independently deployable containers, not modules within a single process.\
+  \ Each has its own Dockerfile and can be deployed independently.\n\n- **NOT Pure\
+  \ Event-Driven**: While BullMQ is used for automation triggers and internal events\
+  \ (`sendAutomationTrigger`, `eventDispatcher`), the primary communication pattern\
+  \ is synchronous GraphQL/tRPC over HTTP, not asynchronous message passing.\n\n-\
+  \ **NOT Layered**: The architecture is organized around plugin boundaries (vertical\
+  \ slices), not horizontal layers. Each plugin contains its own presentation, business\
+  \ logic, and data access.\n\n- **NOT Hexagonal**: There's no explicit ports/adapters\
+  \ pattern. The plugin contract is the integration mechanism, not dependency inversion\
+  \ through interfaces.\n\n### Key Data Architecture Note\n\nAll services share a\
+  \ single MongoDB instance (`MONGO_URL`). Each plugin creates models against the\
+  \ shared mongoose connection, with tenant isolation achieved through MongoDB's `useDb()`\
+  \ for SaaS multi-tenancy. This is a variation from strict microservices where each\
+  \ service owns its database, but the deployment topology and plugin autonomy align\
+  \ more closely with microkernel + microservices than service-based (which would\
+  \ have fewer, larger services)."

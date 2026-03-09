@@ -15,8 +15,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Domain-Driven Design
-- Hexagonal Architecture
-- Modular Monolith
+- Layered
 classification_status: classified
 review_notes: 'This repository is an exemplar of **Domain-Driven Design (DDD)** and
   **Hexagonal Architecture** (often referred to in the README as "Clean Architecture").
@@ -45,77 +44,58 @@ review_notes: 'This repository is an exemplar of **Domain-Driven Design (DDD)** 
   The project strictly follows the "Dependency Rule," where dependencies point inwards
   toward the domain.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.81
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:45:09Z'
-classification_reasoning: 'This repository is an exemplar of **Domain-Driven Design
-  (DDD)** and **Hexagonal Architecture** (often referred to in the README as "Clean
-  Architecture"). It is structured as a **Modular Monolith** where the application
-  is split into distinct bounded contexts (subdomains) that reside within a single
-  deployment unit.
-
-
-  ### Evidence of Domain-Driven Design (DDD)
-
-  The codebase is explicitly organized around DDD artifacts. The directory structure
-  under `src/modules` reflects bounded contexts (`forum` and `users`).
-
-  - **Tactical Patterns:** The paths `src/shared/domain/AggregateRoot.ts`, `Entity.ts`,
-  and `ValueObject.ts` provide the base classes for DDD tactical patterns.
-
-  - **Aggregates and Value Objects:** Each module has a `/domain` directory containing
-  its core logic (e.g., `src/modules/users/domain` contains the `User` aggregate).
-
-  - **Domain Events:** There is a dedicated system for eventing at `src/shared/domain/events`,
-  used to decouple subdomains (e.g., `userCreated` triggering actions in the forum
-  subdomain).
-
-
-  ### Evidence of Hexagonal / Clean Architecture
-
-  The project strictly follows the "Dependency Rule," where dependencies point inwards
-  toward the domain.
-
-  - **Ports and Adapters:** The presence of `/repos` (Interfaces) and `/infra` (Concrete
-  Implementations) demonstrates the separation of business logic from external concerns.
-  For example, `src/modules/users/repos` likely defines `IUserRepo`, while `src/modules/users/infra`
-  implements it using Sequelize.
-
-  - **Use Cases:** The `src/modules/*/useCases` directories encapsulate application-specific
-  logic, acting as the orchestrators (the "Application Layer" in Clean Architecture).
-
-
-  ### Evidence of Modular Monolith
-
-  While the README mentions the possibility of migrating to microservices, the current
-  implementation is a monolithic deployment:
-
-  - **Single Deployment Unit:** The presence of a root `package.json`, `docker-compose.yml`,
-  and a single `src/index.ts` entry point indicates the code runs as one process.
-
-  - **Module Boundaries:** The code is partitioned into `src/modules/users` and `src/modules/forum`.
-  The README explicitly states that "you won''t see any domain concepts from the user
-  in forum," suggesting rigorous enforcement of module boundaries, a hallmark of a
-  Modular Monolith.
-
-
-  ### Rejected Styles
-
-  - **Microservices:** Although it defines subdomains, they are currently co-located
-  in one repository and share a single deployment lifecycle (verified by the root
-  `Dockerfile` and `entrypoint.sh`).
-
-  - **Layered:** While it has layers (Infra, App, Domain), the primary orientation
-  is "Inside-Out" (Hexagonal) rather than the standard "Top-Down" Database-centric
-  horizontal layering.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.81
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.9
-  alternatives_dismissed: 0.8
-  exploration_completeness: 0.75
-  flags: some paths described as 'likely' rather than confirmed (e.g., IUserRepo),
-    slight speculation in places
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:02:04Z'
+classification_reasoning: "## Analysis\n\nThis repository is a textbook implementation\
+  \ of **Domain-Driven Design (DDD)** with Clean Architecture layering. The evidence\
+  \ is overwhelming and explicit.\n\n### DDD Evidence\n\n**1. Bounded Contexts/Subdomains:**\n\
+  The codebase is explicitly organized into two subdomains as stated in the README:\n\
+  - `src/modules/users/` — User subdomain (authentication, identity management)\n\
+  - `src/modules/forum/` — Forum subdomain (posts, comments, members)\n\nThe README\
+  \ explicitly states: *\"In DDDForum, we have 2 subdomains: The users subdomain and\
+  \ the forum subdomain.\"*\n\n**2. Aggregates and Aggregate Roots:**\nDomain entities\
+  \ extend `AggregateRoot<T>` base class:\n- `src/modules/users/domain/user.ts`: `User\
+  \ extends AggregateRoot<UserProps>`\n- `src/modules/forum/domain/post.ts`: `Post\
+  \ extends AggregateRoot<PostProps>`\n- `src/modules/forum/domain/member.ts`: `Member\
+  \ extends AggregateRoot<MemberProps>`\n\nThe `AggregateRoot` class (`src/shared/domain/AggregateRoot.ts`)\
+  \ manages domain events collection and dispatch.\n\n**3. Value Objects:**\nExtensive\
+  \ use of value objects extending `ValueObject<T>`:\n- Users domain: `UserEmail`,\
+  \ `UserName`, `UserPassword`, `UserId`\n- Forum domain: `PostId`, `PostTitle`, `PostSlug`,\
+  \ `PostText`, `CommentId`, `CommentText`, `MemberId`\n\n**4. Domain Events:**\n\
+  Rich domain event implementation:\n- Events: `UserCreated`, `UserLoggedIn`, `PostCreated`,\
+  \ `CommentPosted`, `PostVotesChanged`\n- `IDomainEvent` interface (`src/shared/domain/events/IDomainEvent.ts`)\n\
+  - `DomainEvents` dispatcher class with `register()`, `dispatch()`, `markAggregateForDispatch()`\
+  \ methods\n- Event handlers implement `IHandle<IDomainEvent>` interface (`src/shared/domain/events/IHandle.ts`)\n\
+  \n**5. Repositories with DDD Patterns:**\nRepository interfaces in domain layer:\n\
+  - `src/modules/users/repos/userRepo.ts`: `IUserRepo` interface with `exists()`,\
+  \ `getUserByUserName()`, `save()` methods\n- Concrete implementations: `SequelizeUserRepo`\
+  \ in `implementations/` subdirectory\n\n**6. Domain Services:**\n- `src/modules/forum/domain/services/postService.ts`\
+  \ — Encapsulates domain logic for voting, commenting\n\n**7. Mappers and DTOs:**\n\
+  - `UserMap`, `PostMap`, `CommentMap` for domain-to-persistence transformation\n\
+  - DTOs for data transfer: `UserDTO`, `PostDTO`, `CreateUserDTO`, etc.\n\n### Layered\
+  \ Architecture (Clean Architecture) Evidence\n\nEach subdomain follows Clean Architecture\
+  \ layering:\n\n- **Domain layer:** `domain/` — Entities, value objects, domain events,\
+  \ domain services\n- **Application layer:** `useCases/` — Use case classes implementing\
+  \ `UseCase<IRequest, IResponse>` interface\n- **Adapter layer:** `repos/` — Repository\
+  \ interfaces, DTOs, mappers\n- **Infrastructure layer:** `infra/` — Controllers,\
+  \ routes, Sequelize implementations, Redis services\n\nThe dependency rule is enforced\
+  \ — application layer depends on domain abstractions, not infrastructure:\n```typescript\n\
+  // CreateUserUseCase depends on IUserRepo interface, not SequelizeUserRepo\nconstructor\
+  \ (userRepo: IUserRepo) {\n  this.userRepo = userRepo;\n}\n```\n\n### What This\
+  \ Is NOT\n\n- **NOT Microservices:** Single deployable unit (`package.json`, single\
+  \ `Dockerfile`). Both subdomains are in one monolithic application.\n- **NOT Hexagonal\
+  \ Architecture:** While similar to hexagonal with ports/adapters, this follows the\
+  \ specific Clean Architecture variant with use case-centric application layer, not\
+  \ generic \"ports.\"\n- **NOT Event-Driven Architecture:** While domain events exist,\
+  \ they are for intra-process communication within the monolith (dispatched synchronously\
+  \ via `DomainEvents.dispatch()`), not message broker-based inter-service communication.\n\
+  - **NOT CQRS:** Single model for reads and writes, no separate read/write models.\n\
+  \n### Deployment Topology\n\nSingle monolith:\n- One `package.json` at root\n- Single\
+  \ `Dockerfile` for the entire application\n- `docker-compose.yml` shows supporting\
+  \ services (MySQL, Redis) but no service decomposition\n\n### Conclusion\n\nThis\
+  \ is an exemplary DDD implementation where the domain model is the heart of the\
+  \ architecture. The bounded contexts (users/forum), aggregates, value objects, domain\
+  \ events, and repositories all follow DDD tactical patterns. The Clean Architecture\
+  \ layering provides the structural organization within each subdomain."

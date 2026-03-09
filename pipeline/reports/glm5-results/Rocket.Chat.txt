@@ -1,0 +1,86 @@
+Let me explore the main package.json and the meteor app structure to understand the deployment and moduleorganization:Let me explore the monorepo structure more deeply and look at the apps-engine for pluginarchitecture:This is very interesting! The docker-compose shows multiple independent services with NATS as a transporter. Let me explore the services architecture and the core-servicespackage:Let me examine the apps engine service and the service architecture more deeply:Let me check a few more files to understand how the microservices mode works:Let me verify the microservices architecture by checking if the services are truly independentlydeployable:Now I have sufficient evidence to classify this repository's architecture. Let me provide my analysis:
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.92
+---
+
+## Analysis
+
+**Primary Style: Microservices**
+
+Rocket.Chat is architected as a **microservices system** with clear evidence:
+
+### Deployment Topology
+The `docker-compose-local.yml` shows **8 independently deployable services**:
+- `rocketchat` (main Meteor application)
+- `authorization-service`
+- `account-service`  
+- `presence-service`
+- `ddp-streamer-service`
+- `queue-worker-service`
+- `omnichannel-transcript-service`
+- Supporting infrastructure: `nats` (message broker), `mongo`, `traefik`
+
+Each service has its own **Dockerfile** (see `ee/apps/*/Dockerfile`) and can be independently built and deployed.
+
+### Service Communication
+Services communicate through **NATS message broker** with Moleculer framework:
+- `network-broker` package uses `moleculer` ServiceBroker
+- Services use `TRANSPORTER` environment variable for inter-service communication
+- Core services define typed event signatures in `packages/core-services/src/events/Events.ts`
+
+### Service Broker Pattern
+The architecture uses a broker abstraction (`packages/core-services/src/LocalBroker.ts` and `ee/packages/network-broker/src/NetworkBroker.ts`) with two modes:
+1. **LocalBroker**: In-process service orchestration (monolith mode)
+2. **NetworkBroker**: Moleculer-based distributed service broker (microservices mode)
+
+The `isRunningMs()` check in `apps/meteor/server/services/startup.ts` conditionally registers services:
+```typescript
+if (!isRunningMs()) {
+    // Services run in-process for monolith
+    api.registerService(new Presence());
+    api.registerService(new Authorization());
+}
+```
+
+### Service Definitions
+Typed service interfaces in `packages/core-services/src/types/` define contracts: `IAccount`, `IAuthorization`, `IPresence`, `IMessageService`, `IOmnichannelService`, etc.
+
+---
+
+**Secondary Style: Microkernel (Plugin)**
+
+The **Apps Engine** (`packages/apps-engine`) implements a plugin architecture:
+
+### Core Plugin Infrastructure
+- **Abstract App base class** (`packages/apps-engine/src/definition/App.ts`): Third-party apps extend this class
+- **AppManager** (`packages/apps-engine/src/server/AppManager.ts`): Loads, manages, and orchestrates app lifecycle
+- **Bridge pattern**: Apps communicate with Rocket.Chat through bridge interfaces (`src/server/bridges/`)
+
+### Plugin Capabilities
+Apps can extend the system through:
+- Event handlers (`AppEvents`)
+- Slash commands (`AppSlashCommandManager`)
+- API extensions (`AppApiManager`)
+- Video conference providers (`AppVideoConfProviderManager`)
+- Scheduled jobs (`AppSchedulerManager`)
+- UI Kit components (`UIActionButtonManager`)
+
+### Runtime Isolation
+The Apps Engine supports isolated runtimes (`src/server/runtime/`), including Deno runtime for sandboxed execution.
+
+---
+
+**What I Rejected:**
+
+- **Layered**: Not a horizontal layering pattern. While there are UI packages and data models, the defining characteristic is service boundaries, not layer separation.
+
+- **Modular Monolith**: While there's a monolith deployment mode, the architecture is explicitly designed for independent service deployment with message broker communication. Services can be scaled independently.
+
+- **Event-Driven Architecture**: While services use events for communication, this is secondary to the microservices pattern. The events are service-to-service communications, not the primary architectural paradigm.
+
+- **Domain-Driven Design**: While there are domain-focused packages (omnichannel, livechat, etc.), the codebase doesn't exhibit DDD tactical patterns like aggregates, bounded contexts with separate databases, or domain events as a primary pattern.

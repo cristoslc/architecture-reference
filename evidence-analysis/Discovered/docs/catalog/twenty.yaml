@@ -16,8 +16,7 @@ languages:
 - Python
 architecture_styles:
 - Modular Monolith
-- Event-Driven
-- Domain-Driven Design
+- Layered
 classification_status: classified
 review_notes: 'The Twenty CRM repository is structured as a **Modular Monolith** within
   an Nx monorepo. While it uses a monorepo structure, the core business logic and
@@ -49,84 +48,52 @@ review_notes: 'The Twenty CRM repository is structured as a **Modular Monolith**
 
   The architecture incorporates asynchronous, decoupled communication:'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.71
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:14:13Z'
-classification_reasoning: 'The Twenty CRM repository is structured as a **Modular
-  Monolith** within an Nx monorepo. While it uses a monorepo structure, the core business
-  logic and API reside almost entirely within a single deployable backend unit (`packages/twenty-server`).
-
-
-  ### 1. Modular Monolith (Primary Style)
-
-  The backend (`twenty-server`) uses NestJS to enforce structural boundaries. Evidence
-  includes:
-
-  - **Centralized API**: Most business logic is concentrated in `packages/twenty-server`,
-  which houses the NestJS application. This is not a microservices architecture because
-  the services (note, connected-account, etc.) are compiled and run as part of a single
-  unified server process.
-
-  - **Internal Module Encapsulation**: The file structure inside `packages/twenty-server/src/modules/`
-  (e.g., `connected-account`, `note`) follows a pattern where each domain has its
-  own `.module.ts`, services, and entities. This allows for clear separation of concerns
-  while maintaining a single deployment unit.
-
-  - **Shared Infrastructure**: The presence of `packages/twenty-shared` and `packages/twenty-ui`
-  indicates a "platform" approach where multiple frontend/backend components share
-  logic and types, typical of a modular monolith that might eventually split into
-  services but currently remains unified.
-
-
-  ### 2. Event-Driven (Secondary Style)
-
-  The architecture incorporates asynchronous, decoupled communication:
-
-  - **Queue Workers**: The stack explicitly mentions **BullMQ** and **Redis**. The
-  presence of `packages/twenty-server/src/queue-worker/queue-worker.module.ts` indicates
-  that heavy tasks or background processes are handled via message queues rather than
-  synchronous requests.
-
-  - **Workflow Triggers**: The README highlights "Automate workflow with triggers
-  and actions," suggesting an internal event bus or pub/sub mechanism is used to react
-  to state changes in the CRM.
-
-
-  ### 3. Domain-Driven Design (Secondary Style)
-
-  The codebase shows strong alignment with DDD principles:
-
-  - **Bounded Contexts**: The directory structure under `packages/twenty-server/src/modules/`
-  reflects business domains (Accounts, Notes, Permissions) rather than technical layers
-  (Controllers vs. Models).
-
-  - **Core Engine vs. Domain**: The import in `clickHouse.module.ts` from `src/engine/core-modules/`
-  suggests a clear distinction between the "Engine" (infrastructure/framework logic)
-  and the "Feature Modules" (domain-specific logic).
-
-  - **Rich Data Modeling**: The use of TypeORM entities alongside specialized DTOs
-  across the various modules supports a domain-centric approach.
-
-
-  ### Rejected Styles
-
-  - **Microservices**: Although it is an Nx monorepo, the deployment pattern is centered
-  around one primary API server (`twenty-server`) and one frontend (`twenty-front`),
-  supported by a worker. It lacks the independent deployability and decentralized
-  data ownership of true microservices.
-
-  - **Layered**: While it uses some horizontal layering (service, entity, dto), the
-  primary organization is vertical (by module/feature), making "Modular Monolith"
-  a more accurate descriptor.'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.71
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.65
-  style_clarity: 0.8
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.65
-  flags: DDD as a tertiary style may be overstated — evidence for bounded contexts
-    is thin (directory naming convention only, no aggregates/domain events/repositories
-    pattern cited explicitly)
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T21:08:12Z'
+classification_reasoning: "## Analysis\n\n### Primary Style: Modular Monolith\n\n\
+  The Twenty repository exhibits strong characteristics of a **Modular Monolith**\
+  \ architecture:\n\n**Single Deployable Unit:**\n- The `docker-compose.yml` (`packages/twenty-docker/docker-compose.yml`)\
+  \ shows a single Docker image (`twentycrm/twenty`) used for both the `server` and\
+  \ `worker` services\n- The worker runs from the same codebase with `yarn worker:prod`\
+  \ command, not as a separate service\n- Single shared PostgreSQL database and Redis\
+  \ instance\n\n**Enforced Internal Module Boundaries:**\n- **278 NestJS modules**\
+  \ organized with clear cohesion\n- Each module in `packages/twenty-server/src/modules/`\
+  \ follows consistent structure:\n  - `standard-objects/` for workspace entities\n\
+  \  - `services/` for business logic\n  - `jobs/` for background processing\n  -\
+  \ `resolvers/` for GraphQL endpoints\n  - `repositories/` for data access\n- Examples\
+  \ include: `calendar/`, `messaging/`, `workflow/`, `favorite/`, `connected-account/`,\
+  \ `dashboard/`\n\n**Module Isolation:**\n- NestJS module system enforces explicit\
+  \ dependencies via `imports` arrays\n- Each module encapsulates its own:\n  - Workspace\
+  \ entities (e.g., `company.workspace-entity.ts`, `person.workspace-entity.ts`)\n\
+  \  - Services with dependency injection\n  - GraphQL resolvers\n  - Background jobs\n\
+  \n**Nx Workspace Enforcing Boundaries:**\n- Monorepo structure (`nx.json` line 2-5)\
+  \ organizes packages\n- Build dependencies enforced (`\"dependsOn\": [\"^build\"\
+  ]`)\n- Tags for scope control (`\"scope:backend\"`, `\"scope:frontend\"`)\n\n###\
+  \ Secondary Style: Layered\n\nHorizontal layering is evident in the backend architecture:\n\
+  \n**API Layer** (`packages/twenty-server/src/engine/api/`):\n- `graphql/` - GraphQL\
+  \ endpoints with Yoga driver\n- `rest/` - REST API controllers\n- `mcp/` - Model\
+  \ Context Protocol support\n\n**Business Logic Layer:**\n- `packages/twenty-server/src/modules/`\
+  \ - Domain business logic (calendar, messaging, workflow)\n- `packages/twenty-server/src/engine/core-modules/`\
+  \ - Infrastructure concerns (auth, billing, email, file-storage)\n\n**Data Access\
+  \ Layer:**\n- TypeORM entities and repositories\n- TwentyORM custom abstraction\
+  \ (`packages/twenty-server/src/engine/twenty-ORM/`)\n- Workspace entities with defined\
+  \ relations\n\n### What This Is NOT\n\n**Not Microservices:**\n- Single deployable\
+  \ Docker image (not independently deployable services)\n- Single shared database\
+  \ (not database-per-service)\n- In-process communication via NestJS modules (not\
+  \ network calls)\n\n**Not Event-Driven Architecture:**\n- BullMQ queues are for\
+  \ background job processing within the monolith, not inter-service communication\n\
+  - EventEmitter2 (`packages/twenty-server/src/engine/workspace-event-emitter/`) handles\
+  \ internal events in-process\n- No message broker for service-to-service communication\n\
+  \n**Not Domain-Driven Design:**\n- No bounded context terminology or aggregates\n\
+  - Workspace entities are ORM models, not DDD entities with invariants\n- Module\
+  \ organization follows NestJS conventions, not DDD tactical patterns\n\n**Not Hexagonal\
+  \ Architecture:**\n- No ports/adapters terminology\n- Uses standard NestJS dependency\
+  \ injection, not explicit adapter interfaces\n- Infrastructure concerns mixed in\
+  \ modules rather than isolated\n\n### Evidence Summary\n\n| Criterion | Finding\
+  \ |\n|-----------|---------|\n| Deployable units | 1 Docker image (server + worker\
+  \ share codebase) |\n| Database topology | Single shared PostgreSQL |\n| Module\
+  \ count | 278 NestJS modules with explicit boundaries |\n| Communication | In-process\
+  \ (NestJS DI), not network-based |\n| Background processing | Queue worker from\
+  \ same codebase (BullMQ) |\n| Frontend | Separate React SPA, not SSR Next.js |"

@@ -1,0 +1,77 @@
+Let me explore further to understand the architecture:Now I have enough information to provide a comprehensive classification. Let me verify one more thing about the relationship between services:Based on my comprehensive exploration of the repository, I now have sufficient evidence to provide the final classification.
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles:
+  - Service-Based
+confidence: 0.88
+---
+
+## Architecture Classification: Microservices with Service-Based Characteristics
+
+### Evidence
+
+**Deployment Topology (docker/docker-compose.yml)**
+The repository defines **13+ independently deployable services** via Docker Compose:
+- `supabase-studio` - Dashboard UI (Next.js)
+- `supabase-kong` - API Gateway (routes traffic to services)
+- `supabase-auth` - Authentication (GoTrue)
+- `supabase-rest` - REST API (PostgREST)
+- `supabase-realtime` - WebSocket server
+- `supabase-storage` - File storage API
+- `supabase-imgproxy` - Image transformation
+- `supabase-meta` - Database management API
+- `supabase-edge-functions` - Serverless functions runtime
+- `supabase-analytics` - Log ingestion/query
+- `supabase-db` - PostgreSQL database
+- `supabase-vector` - Vector embeddings
+- `supabase-pooler` - Connection pooler (Supavisor)
+
+Each service runs in its own container with distinct images (`supabase/gotrue:v2.186.0`, `kong:2.8.1`, etc.).
+
+**API Gateway Pattern (docker/volumes/api/kong.yml)**
+Kong serves as the API Gateway, routing requests by path prefix:
+- `/auth/v1/*` → `http://auth:9999/`
+- `/rest/v1/*` → `http://rest:3000/`
+- `/graphql/v1` → `http://rest:3000/rpc/graphql`
+- `/realtime/v1/*` → `ws://realtime:4000/socket`
+- `/storage/v1/*` → `http://storage:5000/`
+- `/functions/v1/*` → `http://functions:9000/`
+
+**Service Independence**
+- Services can be scaled independently
+- Each has its own health checks and restart policies
+- Services communicate via HTTP/WebSocket through the gateway
+- Services are developed in separate repositories (per README links to `github.com/supabase/gotrue`, `github.com/supabase/realtime`, etc.)
+
+**Shared Database (Service-Based characteristic)**
+All backend services connect to the same PostgreSQL instance:
+```yaml
+GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
+```
+
+Services use different database users (`supabase_auth_admin`) but share the same database cluster—a pattern more aligned with **Service-Based** architecture than pure microservices with separate data stores.
+
+**Monorepo for Frontend (pnpm-workspace.yaml, turbo.json)**
+This repository is primarily a **Turborepo monorepo** for frontend applications:
+- `apps/studio` - Supabase Dashboard
+- `apps/www` - Marketing website
+- `apps/docs` - Documentation site
+- `packages/*` - Shared packages (UI, icons, config)
+
+The monorepo structure supports the development workflow but the **deployment architecture** is microservices.
+
+### What Was Rejected
+
+- **Layered**: No horizontal layering pattern. Services are vertical slices (auth, storage, realtime) not presentation/business/data layers.
+- **Modular Monolith**: Services are separate containers, not internal modules within a single deployable.
+- **Serverless**: Uses Docker containers with `restart: unless-stopped`, not function-based compute.
+- **Event-Driven**: Services communicate synchronously via HTTP through Kong API Gateway, not through message brokers or event streams.
+- **CQRS**: No separation of read/write models observed.
+- **Domain-Driven Design**: Not organized around bounded contexts with aggregates/entities/value objects.
+- **Hexagonal Architecture**: No ports-and-adapters isolation pattern in the services.
+
+### Conclusion
+
+This is a **Microservices** deployment with **Service-Based** characteristics (shared database). The repository itself is the orchestration layer and frontend monorepo, while the actual backend services (auth, storage, realtime, etc.) are independently developed and deployed containers coordinated through an API Gateway.

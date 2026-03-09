@@ -1,0 +1,58 @@
+Based on my thorough exploration of the repository, I now have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Event-Driven
+secondary_styles: []
+confidence: 0.80
+---
+
+## Analysis
+
+### Repository Purpose
+This is an **examples repository** demonstrating Kafka Streams patterns. It contains multiple standalone example applications alongside a significant microservices ecosystem example.
+
+### Key Evidence for Event-Driven Architecture
+
+**1. Service Communication via Kafka Topics**
+The microservices example (`src/main/java/io/confluent/examples/streams/microservices/`) shows services that communicate exclusively through Kafka topics:
+
+- `OrdersService` → produces to `orders` topic
+- `FraudService`, `InventoryService`, `OrderDetailsService` → consume from `orders`, produce to `order-validations`
+- `ValidationsAggregatorService` → consumes from `order-validations` and `orders`, produces validated orders
+
+From `domain/Schemas.java`:
+```java
+public static Topic<String, Order> ORDERS;
+public static Topic<String, OrderValidation> ORDER_VALIDATIONS;
+public static Topic<String, Payment> PAYMENTS;
+```
+
+**2. Event-Based Processing Pattern**
+Each service implements `Service` interface and uses Kafka Streams to process events:
+
+From `FraudService.java`:
+```java
+final KStream<String, Order> orders = builder
+    .stream(ORDERS.name(), Consumed.with(ORDERS.keySerde(), ORDERS.valueSerde()))
+    .filter((id, order) -> OrderState.CREATED.equals(order.getState()));
+// ... process and emit to ORDER_VALIDATIONS topic
+```
+
+**3. Explicit Documentation**
+From `microservices/README.md`:
+> "This small microservices ecosystem showcases an order management workflow... It is built using Kafka Streams, whereby **business events that describe the order management workflow propagate through this ecosystem**."
+
+**4. All Examples Use Kafka Streams**
+Every example in the repository (WordCount, SessionWindows, GlobalKTables, etc.) follows the same pattern: consume from Kafka topics → process stream → produce to Kafka topics.
+
+### What This Is NOT
+
+- **NOT Layered**: No horizontal layering (presentation/business/data). Services are organized by business capability.
+- **NOT Modular Monolith**: Single JAR with `<packaging>jar</packaging>`, no enforced module boundaries, no Maven submodules.
+- **NOT true Microservices deployment**: While the microservices example shows independent services, they're packaged in a single deployable JAR. Services run as separate `main()` methods, not independently deployed units.
+- **NOT Pipeline**: Data flows branch and merge (fan-out to multiple validators, aggregate results), not sequential stages.
+- **NOT CQRS primary**: OrdersService mentions CQRS for reads/writes, but this is a local pattern within one service, not the defining architecture.
+
+### Confidence Rationale
+0.80 confidence reflects that this is fundamentally an **examples repository** rather than a production codebase with a singular architecture. However, the dominant pattern demonstrated throughout—Kafka Streams applications consuming and producing events—is clearly Event-Driven. The microservices example in particular showcases how to build an event-driven microservices ecosystem using Kafka as the event backbone.

@@ -1,0 +1,71 @@
+Let me examine the root pom.xml to understand the module structure, and explore key directories to understand how components are organized.Let me explore the pulsar-io connector architecture and examine how plugins are loaded:Let me check a few more details about the module structure and distribution:Now I have gathered sufficient evidence. Let me provide my final classification:---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Microkernel (Plugin)
+
+Apache Pulsar is architected as a **microkernel system with extensive plugin infrastructure**. The core broker provides a stable runtime that can be extended through dynamically loaded plugins.
+
+**Evidence:**
+
+1. **NAR Plugin System**: Pulsar implements a sophisticated plugin mechanism using NAR (NiFi Archive) packages with isolated classloaders:
+   - `pulsar-common/src/main/java/org/apache/pulsar/common/nar/NarClassLoader.java` — Custom classloader enabling plugin isolation
+   - `NarClassLoaderBuilder.java` and `NarUnpacker.java` — Plugin loading infrastructure
+   - The NAR format allows plugins to have conflicting dependencies without affecting the core system
+
+2. **Protocol Handler Plugins**: The broker supports pluggable messaging protocols:
+   - `pulsar-broker/src/main/java/org/apache/pulsar/broker/protocol/ProtocolHandler.java` — Core interface for protocol extensions
+   - `ProtocolHandlerWithClassLoader.java` wraps handlers with isolated classloaders (lines 31-42 show NarClassLoader integration)
+   - `ProtocolHandlers.load()` discovers and loads handlers from a directory at runtime
+
+3. **Entry Filter Plugins**: Message filtering is extensible:
+   - `pulsar-broker/src/main/java/org/apache/pulsar/broker/service/plugin/EntryFilter.java` — Plugin interface
+   - `EntryFilterWithClassLoader.java` — Isolated execution wrapper
+
+4. **IO Connector Plugins**: 25+ connectors (Kafka, AWS, Elasticsearch, Cassandra, etc.) implement the plugin contract:
+   - `pulsar-io/core/src/main/java/org/apache/pulsar/io/core/Source.java` and `Sink.java` — Core plugin interfaces
+   - `@Connector` annotation provides metadata for plugin discovery
+   - Connectors like `KafkaAbstractSink` implement `Sink<byte[]>` to integrate with the core
+
+5. **Functions Runtime**: User-defined functions are loaded as plugins with isolation:
+   - `pulsar-functions/runtime/src/main/java/org/apache/pulsar/functions/runtime/RuntimeFactory.java` — Creates isolated execution environments
+
+### Secondary Style: Layered
+
+Within the core broker, Pulsar exhibits clear horizontal layering:
+
+| Layer | Location | Components |
+|-------|----------|------------|
+| Protocol/API | `broker/protocol/`, `broker/web/` | ProtocolHandlers, REST API |
+| Service | `broker/service/` | BrokerService, Topic, Subscription, Consumer, Producer |
+| Storage | `managed-ledger/` | ManagedLedger, ManagedCursor interfaces |
+| Admin | `broker/admin/` | AdminResource implementations |
+
+Evidence from directory structure:
+- `pulsar-broker/src/main/java/org/apache/pulsar/broker/service/` contains core domain: `BrokerService.java`, `Topic.java`, `Subscription.java`, `Consumer.java`, `Producer.java`
+- `managed-ledger/src/main/java/org/apache/bookkeeper/mledger/ManagedLedger.java` provides the storage abstraction interface
+
+### Why Not Microservices?
+
+While Pulsar **can be deployed** as separate processes (broker, bookkeeper, zookeeper, proxy, function worker), this is an **operational deployment pattern**, not a codebase architecture property:
+
+1. The repository is a **single monorepo** with Maven multi-module structure
+2. `distribution/server/pom.xml` produces a **single distribution package**
+3. The `pulsar-daemon` script runs components together
+4. `standalone.conf` enables single-process operation for development
+
+The microservice-style deployment exists at the infrastructure level, not the code organization level.
+
+### Why Not Event-Driven?
+
+Although Pulsar is a messaging platform, its **internal code organization** is not event-driven. The broker uses synchronous request-response patterns for client interactions, and while it processes messages asynchronously, the architecture is built around service abstractions (BrokerService, Topic, Subscription) rather than event handlers and message broker communication between internal components.
+
+### Conclusion
+
+Pulsar is a well-designed **Microkernel architecture** where the core broker provides stable extension points (ProtocolHandler, EntryFilter, Source/Sink) that are discovered and loaded at runtime via NAR classloaders. This enables users to extend Pulsar with custom protocols, connectors, and filters without modifying the core. The Layered organization within the broker provides clean separation of concerns between protocol handling, service logic, and storage abstraction.

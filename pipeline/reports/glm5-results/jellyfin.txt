@@ -1,0 +1,81 @@
+Let me explore the plugin architecture and key architectural components:Let me look at more key architectural components to understand the layering and plugin architecture better:Let me examine more of the plugin system and module organization:Now I have sufficient evidence to classify this architecture. Let me review the key findings:
+
+**Key Architectural Evidence:**
+
+1. **Single Deployable Application**: `Jellyfin.Server.csproj` produces a single executable (`<OutputType>Exe</OutputType>`)
+
+2. **Layered Architecture with Clear Horizontal Layers**:
+   - **API Layer**: `Jellyfin.Api/Controllers/` - ASP.NET Core API controllers
+   - **Service/Business Logic**: `Emby.Server.Implementations/` - LibraryManager, SessionManager, etc.
+   - **Data Access**: `Jellyfin.Server.Implementations/Item/`, repositories, `JellyfinDbContext`
+   - **Model**: `MediaBrowser.Model/`, `Jellyfin.Data/`
+   - **Controller Abstractions**: `MediaBrowser.Controller/` - Interface definitions
+
+3. **Robust Plugin System (Microkernel)**:
+   - `PluginManager` discovers and loads plugins from a plugins directory at runtime
+   - `PluginLoadContext` provides isolated assembly loading
+   - `IPluginServiceRegistrator` allows plugins to register services
+   - `IPlugin`, `BasePlugin`, `LocalPlugin` define plugin contracts
+   - Plugins can be installed/uninstalled dynamically
+   - Core system provides stable APIs for plugins to extend
+
+4. **Module Boundaries**: ~20+ separate project modules with defined dependencies via `.csproj` references
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.88
+
+---
+
+## Analysis
+
+### Primary Style: **Microkernel (Plugin)**
+
+Jellyfin exhibits a clear **Microkernel/Plugin architecture** as its dominant pattern:
+
+**Evidence:**
+1. **Runtime Plugin Loading**: `PluginManager.cs` (lines 56-87) discovers plugins from a filesystem path, loads them via `AssemblyLoadContext`, and manages their lifecycle:
+   ```csharp
+   _plugins = Directory.Exists(_pluginsPath) ? DiscoverPlugins().ToList() : new List<LocalPlugin>();
+   ```
+
+2. **Plugin Isolation**: `PluginLoadContext.cs` uses .NET's `AssemblyLoadContext` to provide isolated plugin loading, allowing plugins to be loaded/unloaded independently.
+
+3. **Plugin Contract**: The `IPlugin` interface (`MediaBrowser.Common/Plugins/IPlugin.cs`) and `BasePlugin` abstract class define the contract for plugins, including `OnUninstalling()`, versioning, and data folder management.
+
+4. **Service Registration Entry Point**: `IPluginServiceRegistrator` interface allows plugins to register services with the core DI container:
+   ```csharp
+   void RegisterServices(IServiceCollection serviceCollection, IServerApplicationHost applicationHost);
+   ```
+
+5. **Composition Root with Plugin Integration**: `ApplicationHost.cs` (the "composition root") integrates plugins during initialization via `GetExportTypes<T>()` and `GetApiPluginAssemblies()`.
+
+6. **Extensibility**: The system is designed for third-party extensions—plugins can add new functionality (metadata providers, channels, subtitle providers) without modifying core code.
+
+### Secondary Style: **Layered**
+
+The codebase also exhibits strong **Layered architecture** characteristics:
+
+**Evidence:**
+1. **Presentation Layer**: `Jellyfin.Api/Controllers/` contains ASP.NET Core API controllers that handle HTTP requests/responses.
+
+2. **Business/Service Layer**: `Emby.Server.Implementations/` contains service implementations (`LibraryManager`, `SessionManager`, `UserManager`, etc.) implementing interfaces from `MediaBrowser.Controller/`.
+
+3. **Data Access Layer**: `Jellyfin.Server.Implementations/Item/` contains repositories (`BaseItemRepository`, `PeopleRepository`), and `JellyfinDbContext` handles database operations.
+
+4. **Abstraction Layer**: `MediaBrowser.Controller/` defines interfaces (`ILibraryManager`, `ISessionManager`, `IUserManager`) that separate layers.
+
+5. **Model Layer**: `MediaBrowser.Model/` and `Jellyfin.Data/` contain DTOs and entity definitions.
+
+### What Was Rejected
+
+- **Not Microservices**: Single deployable executable, no independent services, no inter-service communication.
+- **Not Modular Monolith**: While there are modules, they don't have enforced compile-time boundaries; the plugin system provides runtime modularity.
+- **Not Event-Driven**: Uses WebSockets for client push, but components communicate primarily through direct method calls, not event buses.
+- **Not Hexagonal**: While interfaces exist, they're for layering/extension rather than ports-and-adapters isolation.
+- **Not DDD**: No bounded contexts, aggregates, or ubiquitous language patterns visible.
+
+The architecture effectively combines a layered foundation with a microkernel extension mechanism, allowing third-party developers to extend the media server through plugins while maintaining clean internal separation.

@@ -1,0 +1,100 @@
+Let me check a few more details about the plugin system's public API contract mechanism:Let me verify the internal structure of a typical plugin to see if there's layered architecture within plugins:Now I have gathered sufficient evidence to provide a comprehensive classification. Let me summarize my findings:
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Domain-Driven Design
+confidence: 0.92
+---
+
+## Architecture Classification: Microkernel (Plugin) with DDD Organization
+
+### Primary Style: Microkernel (Plugin)
+
+Kibana implements a **canonical microkernel/plugin architecture** with the following strong signals:
+
+**1. Core System vs Plugin Separation**
+- **Core** (`src/core/`) provides runtime and fundamental services: HTTP server, logging, configuration, plugin management, saved objects, security
+- **Plugins** provide virtually all user-facing functionality
+- Documentation explicitly states: *"Almost everything you see in the Kibana UI is built inside a plugin. If you removed all plugins from Kibana, you'd be left with an empty navigation menu, and a set of developer tools."*
+
+**2. Plugin Discovery and Runtime Loading**
+- Plugin discovery system (`src/core/packages/plugins/server-internal/src/discovery/plugins_discovery.ts`) scans configured paths at startup
+- Plugin search paths include: `src/plugins`, `x-pack/plugins`, `x-pack/solutions/*/plugins`
+- Configuration supports `additionalPluginPaths` for external plugins
+- Plugins are loaded dynamically based on manifests (`kibana.json` or `kibana.jsonc`)
+
+**3. Well-Defined Plugin Contract**
+- Each plugin implements lifecycle hooks: `setup()` and `start()`
+- Plugins declare dependencies explicitly in manifests:
+  ```json
+  "requiredPlugins": ["data", "alerting"],
+  "optionalPlugins": ["ml", "fleet"]
+  ```
+- Plugin system performs topological sorting for dependency resolution (`plugins_system.ts` lines 91-170)
+
+**4. Explicit API Boundaries**
+From `src/core/PRINCIPLES.md`:
+- *"Each plugin has to define an explicit API. Any other API's that has not been declared explicitly as public should be considered private."*
+- *"HTTP endpoints belonging to other plugins are considered private. Plugins should expose a JavaScript client on top of these HTTP endpoints for other plugins to consume."*
+
+**5. Third-Party Plugin Support**
+- External plugin development documented at `docs/extend/external-plugin-development.md`
+- Version enforcement: plugins must match Kibana version
+- Plugin generator tooling: `packages/kbn-plugin-generator`
+
+### Secondary Style: Domain-Driven Design
+
+Kibana organizes its plugin ecosystem using DDD principles:
+
+**1. Domain-Driven Plugin Organization**
+- Plugins are organized by business domain (not technical layers):
+  - `x-pack/solutions/observability/` - Observability domain
+  - `x-pack/solutions/security/` - Security domain  
+  - `x-pack/solutions/search/` - Search domain
+  - `x-pack/solutions/workplaceai/` - Workplace AI domain
+
+**2. Explicit Domain Separation Principle**
+From `src/core/PRINCIPLES.md`:
+```
+### Explicit business domains separation
+The plugins code should be structured on the top level to reflect business units.
+// GOOD
+src/plugins
+ - apm
+ - search
+// BAD
+src/plugins
+ - server
+   - apm
+   - search
+```
+
+**3. Bounded Context Visibility**
+- Plugins declare `group` (domain): `"group": "security"`, `"group": "platform"`
+- Plugins declare `visibility`: `"private"` (same-group access) or `"shared"` (cross-group access)
+- This enforces bounded context boundaries between solution domains
+
+**4. Plugin as Bounded Context**
+- Each plugin represents a self-contained bounded context
+- Encapsulated state principle: *"Each plugin encapsulates its internal state. It doesn't rely on any kind of global state."*
+- Plugins expose APIs reflecting domain capabilities
+
+### Evidence Rejected
+
+**Not Layered Architecture**: While individual plugins have `public/` (client) and `server/` (backend) directories, this is a client-server split within each plugin—not a horizontal layering across the entire application. The primary organizational axis is vertical (by plugin/domain), not horizontal (by technical layer).
+
+**Not Modular Monolith**: Kibana is not a monolith with module boundaries—it's a plugin system where components can be added/removed independently. The architecture specifically supports external third-party plugins.
+
+**Not Microservices**: Kibana deploys as a single application, not multiple independently deployable services. All plugins run within the same process.
+
+### Key Files Cited
+
+- `src/core/PRINCIPLES.md` - Core architectural principles
+- `src/core/packages/plugins/server-internal/src/plugins_system.ts` - Plugin lifecycle management
+- `src/core/packages/plugins/server-internal/src/discovery/plugins_discovery.ts` - Plugin discovery
+- `dev_docs/key_concepts/kibana_platform_plugin_intro.mdx` - Platform architecture overview
+- `dev_docs/key_concepts/anatomy_of_a_plugin.mdx` - Plugin structure documentation
+- `x-pack/solutions/security/plugins/security_solution/kibana.jsonc` - Example plugin manifest
+- `docs/extend/external-plugin-development.md` - Third-party plugin support

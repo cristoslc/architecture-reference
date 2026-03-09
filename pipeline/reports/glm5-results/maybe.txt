@@ -1,0 +1,75 @@
+Let me check a few more things to understand if there are any enforced module boundaries or if this is purely a standard layered Rails architecture:Based on my comprehensive exploration, I have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Layered
+confidence: 0.92
+---
+
+## Architecture Classification: Layered (Rails MVC)
+
+The Maybe repository is a **standard Rails monolith** following the classic **Layered Architecture** pattern with clear horizontal separation between controllers, models, views, and background jobs.
+
+### Evidence for Layered Architecture
+
+**1. Classic Rails MVC Structure:**
+- `app/controllers/` - 50+ controllers handling HTTP routing and request processing
+- `app/models/` - 70+ ActiveRecord models with direct database access
+- `app/views/` - ERB templates organized by resource
+- `app/jobs/` - Sidekiq background jobs for async processing
+- `app/helpers/` - View helper modules
+
+**2. Single Deployable Unit:**
+```dockerfile
+# Single Dockerfile producing one deployable artifact
+FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim
+CMD ["./bin/rails", "server"]
+```
+
+**3. Single Shared Database:**
+```ruby
+# Gemfile
+gem "pg", "~> 1.5"  # PostgreSQL as sole data store
+```
+
+The schema shows a monolithic database with 40+ interconnected tables via standard foreign keys (accounts, entries, transactions, families, users, etc.).
+
+**4. Thin Service Layer:**
+Only 2 service objects exist (`ApiRateLimiter`, `NoopApiRateLimiter`), indicating business logic resides primarily in ActiveRecord models rather than a service-oriented layer.
+
+**5. Standard Rails Associations (No Aggregates):**
+```ruby
+# app/models/family.rb
+has_many :users, dependent: :destroy
+has_many :accounts, dependent: :destroy
+has_many :entries, through: :accounts
+has_many :transactions, through: :accounts
+```
+
+Direct ActiveRecord associations without bounded context boundaries.
+
+### What This Is NOT
+
+**Not Modular Monolith:** No enforced internal module boundaries. Models, controllers, and views exist in flat directories without namespace organization. There's no `app/modules/` or package-based isolation.
+
+**Not DDD:** No aggregates, value objects, or bounded contexts. The domain concepts (Family, Account, Transaction, Entry) are standard ActiveRecord models with direct database persistence, not domain entities isolated from infrastructure.
+
+**Not Hexagonal/Ports & Adapters:** Controllers directly access ActiveRecord models without an application service layer. No separation between core domain and external adapters.
+
+**Not Microservices:** Single Rails app, single database, single deployment. The compose file shows one `web` container and one `worker` container running the same codebase.
+
+**Not Event-Driven:** Sidekiq is used for background job processing (e.g., `SyncJob`, `ImportJob`), not for inter-component communication. No event sourcing or message-driven coordination.
+
+**Not CQRS:** Single database with single model for both reads and writes. No separate read/write models.
+
+### Architecture Pattern Summary
+
+| Layer | Location | Responsibility |
+|-------|----------|---------------|
+| Presentation | `app/views/`, `app/javascript/` | ERB templates + Stimulus.js |
+| Controllers | `app/controllers/` | HTTP routing, params handling |
+| Business Logic | `app/models/` | ActiveRecord models with domain logic |
+| Data Access | ActiveRecord (ORM) | PostgreSQL persistence |
+| Background Jobs | `app/jobs/` | Sidekiq async processing |
+
+This is a textbook Rails monolith with horizontal layering following framework conventions, not an architecturally-driven modular design.

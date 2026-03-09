@@ -1,0 +1,73 @@
+Let me check a few more details about the plugin registration and data isolation:Now I have sufficient evidence to make my classification. Let me summarize my findings:
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Microservices
+confidence: 0.88
+---
+
+## Analysis
+
+The erxes repository exhibits a **Microkernel (Plugin)** architecture as its primary style, with **Microservices** as a secondary characteristic.
+
+### Primary: Microkernel (Plugin) Architecture
+
+The repository is built around a plugin-based architecture with clear evidence:
+
+1. **Plugin Infrastructure and Registration Mechanism** (`backend/erxes-api-shared/src/utils/start-plugin.ts`):
+   - A standardized `startPlugin()` function that all plugins must call to initialize
+   - Plugins register themselves with the gateway via `joinErxesGateway()` providing name, port, meta information
+   - Each plugin declares its GraphQL schema, tRPC router, REST endpoints, and subscriptions through a consistent contract
+
+2. **Core vs Plugin Separation**:
+   - Core modules (`backend/core-api/`) provide foundational capabilities: contacts, products, segments, automations, documents, notifications
+   - Plugins (`backend/plugins/`) extend functionality: frontline, sales, accounting, content, loyalty, tourism, etc.
+   - The README explicitly states: "erxes is composed of 2 main components: **Core** & **Plugins**"
+
+3. **Plugin Discovery via Redis** (`backend/erxes-api-shared/src/utils/service-discovery.ts`):
+   - Plugins register their address in Redis: `erxes-service-${name}`
+   - Gateway discovers plugins dynamically via `getPlugin()` and `getPlugins()`
+   - Environment variable `ENABLED_PLUGINS` controls which plugins are loaded at runtime
+
+4. **Frontend Module Federation** (`frontend/core-ui/module-federation.config.ts`, `frontend/plugins/*/module-federation.config.ts`):
+   - Core UI acts as the host application
+   - Each frontend plugin exposes modules via Module Federation: `exposes: { './config': ..., './frontline': ... }`
+   - Core dynamically loads plugins: `remotes: process.env.ENABLED_PLUGINS?.split(',')`
+
+5. **Plugin Scaffold Script** (`scripts/create-backend-plugin.js`):
+   - Provides a standardized template for creating new plugins
+   - Generates consistent directory structure: `apollo/`, `trpc/`, `modules/`, `db/models/`
+
+### Secondary: Microservices Architecture
+
+The system exhibits microservices characteristics with important nuances:
+
+1. **Independent Deployability**: Each backend plugin has its own Dockerfile:
+   - `backend/plugins/frontline_api/Dockerfile`
+   - `backend/plugins/sales_api/Dockerfile`
+   - `backend/plugins/accounting_api/Dockerfile`, etc.
+
+2. **Service Discovery**: Plugins register with the gateway via Redis-based service discovery (`joinErxesGateway()`)
+
+3. **API Gateway Pattern** (`backend/gateway/src/main.ts`):
+   - Single entry point on port 4000
+   - Proxies requests to plugins: `/pl:${serviceName}`
+   - Apollo Router for GraphQL Federation
+
+4. **GraphQL Federation**: Each plugin is a subgraph that contributes to the unified GraphQL schema (`buildSubgraphSchema` in start-plugin.ts)
+
+### What This Is NOT
+
+- **NOT a Modular Monolith**: Services are independently deployable containers, not modules within a single process. Each has its own Dockerfile and can be deployed independently.
+
+- **NOT Pure Event-Driven**: While BullMQ is used for automation triggers and internal events (`sendAutomationTrigger`, `eventDispatcher`), the primary communication pattern is synchronous GraphQL/tRPC over HTTP, not asynchronous message passing.
+
+- **NOT Layered**: The architecture is organized around plugin boundaries (vertical slices), not horizontal layers. Each plugin contains its own presentation, business logic, and data access.
+
+- **NOT Hexagonal**: There's no explicit ports/adapters pattern. The plugin contract is the integration mechanism, not dependency inversion through interfaces.
+
+### Key Data Architecture Note
+
+All services share a single MongoDB instance (`MONGO_URL`). Each plugin creates models against the shared mongoose connection, with tenant isolation achieved through MongoDB's `useDb()` for SaaS multi-tenancy. This is a variation from strict microservices where each service owns its database, but the deployment topology and plugin autonomy align more closely with microkernel + microservices than service-based (which would have fewer, larger services).

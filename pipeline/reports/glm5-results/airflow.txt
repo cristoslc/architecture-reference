@@ -1,0 +1,138 @@
+Based on my comprehensive exploration of the Apache Airflow codebase, I have sufficient evidence to provide my final classification:
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.92
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Microkernel (Plugin)
+
+Apache Airflow exhibits a **clear Microkernel/Plugin architecture** with strong evidence throughout the codebase:
+
+**1. Plugin Discovery via Entry Points**
+Providers are discovered dynamically via Python entry points. Each provider package declares itself using:
+```toml
+# From providers/amazon/pyproject.toml
+[project.entry-points."apache_airflow_provider"]
+provider_info = "airflow.providers.amazon.get_provider_info:get_provider_info"
+```
+
+The core discovers providers at runtime via `shared/providers_discovery/src/airflow_shared/providers_discovery/providers_discovery.py`:
+```python
+def discover_all_providers_from_packages(...):
+    for entry_point, dist in entry_points_with_dist("apache_airflow_provider"):
+        # Dynamically load provider info from installed packages
+        provider_info = entry_point.load()()
+```
+
+**2. 100+ Independent Provider Packages**
+The `providers/` directory contains 100+ independently versioned, installable provider packages:
+- `providers/amazon/` - AWS integrations
+- `providers/google/` - GCP integrations
+- `providers/cncf/kubernetes/` - Kubernetes executor
+- `providers/celery/` - Celery executor
+- `providers/postgres/`, `providers/mysql/`, etc.
+
+Each has its own `pyproject.toml`, independent versioning, and can be installed/uninstalled without modifying the core.
+
+**3. Plugin Manager Architecture**
+From `shared/plugins_manager/src/airflow_shared/plugins_manager/plugins_manager.py`:
+```python
+class AirflowPlugin:
+    """Class used to define AirflowPlugin."""
+    name: str | None = None
+    macros: list[Any] = []
+    admin_views: list[Any] = []
+    flask_blueprints: list[Any] = []
+    fastapi_apps: list[Any] = []
+    executors: list[Any] = []
+    hooks: list[Any] = []
+    listeners: list[Any] = []
+    # ... more extension points
+```
+
+**4. Executor Plugin System**
+From `airflow-core/src/airflow/executors/executor_loader.py`:
+```python
+class ExecutorLoader:
+    executors = {
+        LOCAL_EXECUTOR: "airflow.executors.local_executor.LocalExecutor",
+        CELERY_EXECUTOR: "airflow.providers.celery.executors.celery_executor.CeleryExecutor",
+        KUBERNETES_EXECUTOR: "airflow.providers.cncf.kubernetes.executors.kubernetes_executor.KubernetesExecutor",
+    }
+```
+Executors are loaded dynamically by class path - Celery and Kubernetes executors come from provider packages.
+
+**5. Extension Points**
+Providers contribute pluggable components:
+- **Operators**: Task implementations (e.g., `S3CopyObjectOperator`)
+- **Hooks**: External system interfaces (e.g., `S3Hook`, `BigQueryHook`)
+- **Sensors**: Waiting mechanisms for external conditions
+- **Executors**: Task execution backends
+- **Authentication backends**: Via `providers/fab/`
+- **Secrets backends**: For credential management
+- **Logging backends**: For log storage
+- **Triggers**: For asynchronous deferrable operations
+- **Listeners/Hooks**: Lifecycle event handlers
+
+### Secondary Style: Modular Monolith
+
+The repository also exhibits **Modular Monolith** characteristics:
+
+**1. Monorepo with Clear Module Boundaries**
+```
+airflow-core/      → Core scheduler, API, models
+task-sdk/          → Lightweight SDK for DAG authoring/execution
+providers/         → 100+ provider packages
+shared/            → Shared code between core and SDK
+airflow-ctl/       → Management CLI tool
+chart/             → Kubernetes Helm chart
+```
+
+**2. Task SDK Isolation**
+Workers execute tasks using the Task SDK without requiring the full core. The SDK provides:
+- `airflow.sdk.bases.operator.BaseOperator`
+- `airflow.sdk.bases.hook.BaseHook`
+- `airflow.sdk.definitions.dag.DAG`
+- Task execution runtime (`airflow/sdk/execution_time/`)
+
+**3. Architecture Boundaries Documented**
+From `CLAUDE.md`:
+> 1. Users author DAGs with the Task SDK (`airflow.sdk`).
+> 2. DAG Processor parses DAG files in isolated processes.
+> 3. Scheduler reads serialized DAGs — **never runs user code**.
+> 4. Workers execute tasks via Task SDK — **never access metadata DB directly**.
+> 5. API Server serves the React UI and handles all client-database interactions.
+> 6. Triggerer evaluates deferred tasks in isolated processes.
+
+### What Was Rejected and Why
+
+**Not Microservices**: Despite having independently deployable components (scheduler, webserver, workers, triggerer), these share the same codebase and metadata database. They are deployment units of a single application, not independent services owning their own data.
+
+**Not Layered**: While there are API, service, and data access patterns, the defining characteristic is plugin-based extensibility, not horizontal layer separation.
+
+**Not Hexagonal**: Ports and adapters pattern exists for specific integrations, but it's not the primary organizing principle. The core isn't isolated behind interfaces for the purpose of testing/substitution - the extension happens via explicit plugin contracts.
+
+### Deployment Architecture
+
+The Helm chart (`chart/`) supports Kubernetes deployment with separate components:
+- Scheduler deployment
+- Webserver/API deployment  
+- Worker deployments (configurable replicas)
+- Triggerer deployment
+- DAG processor deployment
+
+This reinforces the modular monolith aspect - one codebase, multiple deployment configurations.
+
+### Conclusion
+
+Apache Airflow is fundamentally designed as a **Microkernel (Plugin)** architecture where:
+- The **core** provides scheduling, orchestration, DAG processing, and API services
+- **Providers** are discoverable plugins loaded at runtime via entry points
+- The plugin contract defines operators, hooks, executors, sensors, and other extension points
+- **Secondary modular monolith** structure organizes the codebase into clear packages with defined boundaries (Task SDK, Core, Providers, Shared)

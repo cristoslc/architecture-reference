@@ -1,0 +1,74 @@
+Let me check the data storage architecture to understand if services share databases or have their own:Let me look at a few more details to finalize my classification:Based on my comprehensive investigation, I now have sufficient evidence to classify this repository's architecture.---
+verdict: classified
+primary_style: Service-Based
+secondary_styles:
+  - Event-Driven
+confidence: 0.88
+---
+
+## Analysis
+
+This repository implements **Sentry's self-hosted deployment** as a containerized service-based architecture with event-driven communication patterns.
+
+### Primary Style: Service-Based
+
+The architecture exhibits clear Service-Based characteristics:
+
+1. **Coarse-grained services sharing databases**: The system comprises 5 logical application services (Sentry, Snuba, Relay, Symbolicator, Vroom) that share infrastructure:
+   - Single PostgreSQL instance (`postgres:14.19-bookworm`) accessed via PgBouncer
+   - Single Redis instance (`redis:6.2.20-alpine`) shared across all services
+   - Single ClickHouse instance for Snuba's event data
+
+   Evidence from `docker-compose.yml`:
+   ```yaml
+   postgres:
+     image: "postgres:14.19-bookworm"
+     volumes:
+       - "sentry-postgres:/var/lib/postgresql/data"
+   redis:
+     image: "redis:6.2.20-alpine"
+     volumes:
+       - "sentry-redis:/data"
+   ```
+
+2. **Single deployment unit**: The entire system is deployed via one `docker-compose.yml` (856 lines) orchestrated by `install.sh`. All 70+ containers are started/stopped together—no independent deployment capability.
+
+3. **2-5 coarse-grained services**: The architecture maps to ~5 main application services:
+   - **Sentry**: Main web application, event processors, task workers
+   - **Snuba**: Event search/analytics service (runs many consumer variants)
+   - **Relay**: Event ingestion and processing frontend
+   - **Symbolicator**: Stack trace symbolication
+   - **Vroom**: Session replay processing
+
+### Secondary Style: Event-Driven
+
+Kafka is central to inter-service communication:
+
+1. **Kafka as message backbone**: `relay/config.example.yml` shows:
+   ```yaml
+   processing:
+     enabled: true
+     kafka_config:
+       - {name: "bootstrap.servers", value: "kafka:9092"}
+   ```
+
+2. **86+ consumer services**: The docker-compose defines numerous Kafka consumers for different event streams:
+   - `snuba-errors-consumer`, `snuba-transactions-consumer`, `snuba-metrics-consumer`
+   - `events-consumer`, `attachments-consumer`, `ingest-replay-recordings`
+   - Subscription consumers for real-time queries
+
+3. **Event flow architecture**: Events enter through Relay → Kafka → various consumers → databases. Services react to events rather than direct synchronous calls.
+
+### Rejected Alternatives
+
+- **Not Microservices**: Services share databases (violates database-per-service principle) and cannot be deployed independently. The README explicitly states this is for "low-volume deployments and proofs-of-concept."
+
+- **Not Layered**: While there's an Nginx reverse proxy, the architecture isn't organized into horizontal layers (presentation/business/data). It's organized around vertical service boundaries.
+
+- **Not Microkernel/Plugin**: The `optional-modifications/patches/` directory provides configuration patches applied during installation, not runtime plugins. The `enhance-image.example.sh` allows Docker image customization but doesn't constitute a plugin architecture.
+
+- **Not Serverless**: All services run as long-lived containers, not event-triggered functions.
+
+### Summary
+
+This is a **Service-Based** architecture because it has coarse-grained services sharing databases in a single deployment unit, with **Event-Driven** communication via Kafka for asynchronous event processing between those services.

@@ -14,7 +14,6 @@ languages:
 - Python
 architecture_styles:
 - Layered
-- Event-Driven
 classification_status: classified
 review_notes: 'The **Open Event Server** is a classic example of a **Layered Architecture**
   (specifically a Web API Monolith). The codebase is organized into horizontal functional
@@ -47,51 +46,63 @@ review_notes: 'The **Open Event Server** is a classic example of a **Layered Arc
   and share the same codebase and database, indicating a monolithic deployment where
   different processes simply execute different entry points of the same application.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.88
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:04:07Z'
-classification_reasoning: "The **Open Event Server** is a classic example of a **Layered\
-  \ Architecture** (specifically a Web API Monolith). The codebase is organized into\
-  \ horizontal functional layers that separate data definitions, business logic/transports,\
-  \ and configuration.\n\n### Primary Style: Layered\nThe repository follows a strict\
-  \ horizontal separation of concerns typical of large-scale Flask applications:\n\
-  1.  **Data Layer (`app/models/`):** A centralized directory containing over 80 SQLAlchemy\
-  \ model files (e.g., `event.py`, `user.py`, `ticket.py`). These models define the\
-  \ schema and relationships but do not contain significant business logic or service\
-  \ boundaries.\n2.  **API/Transport Layer (`app/api/`):** This layer handles the\
-  \ [JSON:API Spec](http://jsonapi.org/) compliance. Files like `events.py` and `sessions.py`\
-  \ act as controllers, managing request parsing, serialization via schemas, and high-level\
-  \ orchestration.\n3.  **View Layer (`app/views/`):** Handles traditional web concerns,\
-  \ health checks, and integrations with external stores like Redis and Elasticsearch.\n\
-  4.  **Common Services/Extensions (`app/extensions/`):** Centralized initialization\
-  \ of cross-cutting concerns like rate limiting (`limiter.py`) and database connections.\n\
-  \nThe deployment model confirmed in `docker-compose.yml` supports this; while there\
-  \ is a `web` service and a `celery` service, they both run from the same image (`eventyay/open-event-server:development`)\
-  \ and share the same codebase and database, indicating a monolithic deployment where\
-  \ different processes simply execute different entry points of the same application.\n\
-  \n### Secondary Style: Event-Driven\nThe system employs an **Event-Driven** approach\
-  \ for asynchronous processing. \n- The presence of a dedicated `celery` service\
-  \ in `docker-compose.yml` and tasks defined in `app/api/celery_tasks.py` indicates\
-  \ that heavy operations (like image resizing, mail sending, and data exports/imports)\
-  \ are offloaded from the request-response cycle. \n- `manage.py` explicitly invokes\
-  \ these tasks (e.g., `resize_event_images_task.delay(...)`), showing a producer-consumer\
-  \ pattern mediated by Redis.\n\n### Why not other styles?\n- **Modular Monolith:**\
-  \ While logic is somewhat split, there is no enforced encapsulation between modules.\
-  \ All models are in a single flat directory and can be imported and joined freely\
-  \ (e.g., `VideoStreamModerator` joining directly with `User`), which violates the\
-  \ strict boundary requirements of a Modular Monolith.\n- **Hexagonal Architecture:**\
-  \ There is no clear \"Port and Adapter\" separation. The models are tightly coupled\
-  \ to the SQLAlchemy ORM, and the API layer is tightly coupled to Flask and the JSON:API\
-  \ spec.\n- **Microservices:** Despite having \"Server\" in the name and multiple\
-  \ containers in Docker, it lacks independent deployability per domain. One database\
-  \ schema serves the entire application, and all code resides in a single repository\
-  \ and single container image."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.88
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.9
-  alternatives_dismissed: 0.9
-  exploration_completeness: 0.85
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:49:12Z'
+classification_reasoning: "## Architecture Classification: Layered Architecture\n\n\
+  The **open-event-server** repository exhibits a classic **Layered Architecture**\
+  \ with horizontal separation of concerns. This is a monolithic Flask-based REST\
+  \ API server with clearly defined layers.\n\n### Primary Evidence for Layered Architecture\n\
+  \n**1. Horizontal Layer Organization:**\n\nThe codebase is structured with distinct\
+  \ horizontal layers:\n\n- **API Layer** (`app/api/*.py`): 83+ resource files handling\
+  \ HTTP requests/responses using `flask-rest-jsonapi` framework. Each file contains\
+  \ `ResourceDetail`, `ResourceList`, and `ResourceRelationship` classes that map\
+  \ directly to REST endpoints.\n\n- **Schema/Validation Layer** (`app/api/schema/*.py`):\
+  \ Marshmallow-based schemas for request/response serialization, validation, and\
+  \ JSON:API spec compliance. Examples include `EventSchema`, `UserSchema`, `AttendeeSchema`,\
+  \ etc.\n\n- **Model/Data Layer** (`app/models/*.py`): 76 SQLAlchemy model files\
+  \ defining database entities using the Active Record pattern. All models inherit\
+  \ from `db.Model` and define relationships directly on the model classes.\n\n- **Helper/Service\
+  \ Layer** (`app/api/helpers/*.py`): Business logic helpers including `permission_manager.py`,\
+  \ `db.py`, `tasks.py`, `mail.py`, `payment.py`, etc.\n\n**2. Request Flow Pattern:**\n\
+  \nThe typical request flow follows the layered pattern:\n```\nHTTP Request → API\
+  \ Resource (ResourceDetail/ResourceList) → Schema Validation → Model/DB → Response\n\
+  ```\n\nExample from `app/api/users.py`:\n```python\nclass UserList(ResourceList):\n\
+  \    def before_create_object(self, data, view_kwargs): ...\n    def after_create_object(self,\
+  \ user, data, view_kwargs): ...\n```\n\n**3. Single Deployable Unit:**\n\n- Single\
+  \ Dockerfile building one container image\n- Single Flask application instance (`app/instance.py`)\n\
+  - Single PostgreSQL database shared across all functionality\n- Celery workers for\
+  \ background tasks (same codebase)\n\n**4. Framework-Enforced Layer Separation:**\n\
+  \nThe `flask-rest-jsonapi` library enforces the layered pattern by requiring:\n\
+  - Resource classes for endpoint handling\n- Schema classes for serialization/validation\
+  \  \n- Models for data persistence\n\n### Directory Structure Evidence\n\n```\n\
+  app/\n├── api/                    # API Layer - 83+ resource files\n│   ├── events.py\
+  \          # ResourceDetail/ResourceList classes\n│   ├── users.py\n│   ├── schema/\
+  \            # Schema Layer - validation & serialization\n│   │   ├── events.py\n\
+  │   │   └── users.py\n│   └── helpers/           # Service/Helper Layer\n│     \
+  \  ├── db.py\n│       ├── permission_manager.py\n│       └── tasks.py\n├── models/\
+  \                # Data Layer - 76 model files\n│   ├── event.py\n│   ├── user.py\n\
+  │   └── __init__.py (SQLAlchemy db instance)\n├── views/                  # Web/Admin\
+  \ Views\n└── extensions/             # Flask extensions\n```\n\n### What This Architecture\
+  \ Is NOT\n\n**Not Microservices:**\n- Single deployable container (one Dockerfile)\n\
+  - Single shared PostgreSQL database\n- No service boundaries or inter-service communication\n\
+  - All resources in one codebase\n\n**Not Domain-Driven Design:**\n- No bounded contexts\
+  \ or aggregates\n- No value objects or domain services\n- Models are anemic ActiveRecord\
+  \ entities, not rich domain models\n- No ubiquitous language or context mapping\n\
+  \n**Not Modular Monolith:**\n- No enforced module boundaries within the codebase\n\
+  - No separate packages or internal modules with isolation\n- All code can freely\
+  \ import from any other part (no `internal/` packages)\n\n**Not Hexagonal Architecture:**\n\
+  - No ports and adapters pattern\n- No explicit application core isolated from infrastructure\n\
+  - Direct database access throughout the API layer via SQLAlchemy models\n\n### Supporting\
+  \ Evidence\n\n**Deployment Configuration** (`docker-compose.yml`):\n```yaml\nservices:\n\
+  \  postgres:  # Single shared database\n  redis:     # Single Redis for caching/celery\n\
+  \  web:       # Single web service\n  celery:    # Background workers (same codebase)\n\
+  ```\n\n**Technology Stack:**\n- Flask (web framework) - encourages layered organization\n\
+  - SQLAlchemy ORM (Active Record pattern)\n- flask-rest-jsonapi (enforces Resource/Schema\
+  \ separation)\n- Celery (background tasks, same application context)\n\n### Conclusion\n\
+  \nThis is a textbook example of a **Layered Architecture** in a monolithic Flask\
+  \ application. The layers are clearly separated by responsibility (API handling,\
+  \ validation, data access), but all exist within a single deployable unit sharing\
+  \ a single database. The architecture is well-suited for the REST API server use\
+  \ case, providing clear separation of concerns while maintaining simplicity."

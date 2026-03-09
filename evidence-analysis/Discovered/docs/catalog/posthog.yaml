@@ -18,8 +18,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Modular Monolith
-- Microservices
-- Event-Driven
+- Service-Based
 classification_status: classified
 review_notes: 'PostHog''s architecture is a sophisticated **Modular Monolith** transitioning
   into a hybrid model that incorporates **Microservices** for high-scale data handling.
@@ -52,79 +51,54 @@ review_notes: 'PostHog''s architecture is a sophisticated **Modular Monolith** t
   service (`nodejs/src/ingestion/`), distinct from the Django API. This is a classic
   microservice pattern where the "write path" is decoupled for performance and scaling.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.66
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:06:49Z'
-classification_reasoning: 'PostHog''s architecture is a sophisticated **Modular Monolith**
-  transitioning into a hybrid model that incorporates **Microservices** for high-scale
-  data handling. While the core business logic, API, and UI are increasingly organized
-  into discrete, isolated products, they majorly reside within a single Django-based
-  deployment unit.
-
-
-  ### 1. Modular Monolith (Primary Style)
-
-  The codebase shows a deliberate transition from a legacy monolith (`posthog/`) to
-  a structured modular approach under the `products/` directory.
-
-  - **Enforced Boundaries:** As noted in `docs/internal/monorepo-layout.md`, the architecture
-  uses "vertical slices" where each product (e.g., `experiments`, `feature_flags`)
-  owns its own Django `models.py`, logic, and frontend. The documentation explicitly
-  mentions using tools like `tach` to enforce import boundaries and prevent circular
-  dependencies between products.
-
-  - **Unified Deployment:** Despite the logical separation, these "products" are registered
-  as Django `AppConfig` modules (seen in the `**/apps.py` glob), meaning they are
-  still served by the same primary web process/database migrations.
-
-
-  ### 2. Microservices (Secondary Style)
-
-  PostHog breaks out computationally intensive or specialized concerns into independent
-  services:
-
-  - **Node.js Ingestion:** High-volume event processing is handled by a separate Node.js
-  service (`nodejs/src/ingestion/`), distinct from the Django API. This is a classic
-  microservice pattern where the "write path" is decoupled for performance and scaling.
-
-  - **Independent Services:** The `services/` directory contains standalone deployments
-  like `llm-gateway` and `mcp` (Model Context Protocol).
-
-  - **Temporal:** Extensive use of Temporal (found in `posthog/temporal/`) for orchestrating
-  complex, long-running background tasks as independent units of work.
-
-
-  ### 3. Event-Driven (Secondary Style)
-
-  The system''s backbone is inherently event-driven to handle big data analytics:
-
-  - **Kafka Integration:** Evidence in `nodejs/src/kafka/` (producers/consumers) and
-  `posthog/settings/ingestion.py` shows that events flow through Kafka to decouple
-  ingestion from storage in ClickHouse.
-
-  - **Pub/Sub Patterns:** The presence of `nodejs/src/utils/pubsub.ts` and the "Data
-  Pipelines" feature mentioned in the README highlights an internal architecture focused
-  on reacting to event streams in real-time.
-
-
-  ### Deployment & Data Strategy
-
-  - **Polyglot Persistence:** The system utilizes PostgreSQL (via Django ORM) for
-  relational metadata and ClickHouse for analytical event data, a common pattern in
-  service-based or modular systems requiring both ACID compliance and OLAP performance.
-
-  - **Monorepo Strategy:** The repository uses a monorepo layout to manage multiple
-  languages (Python, TypeScript, Rust) and frameworks while maintaining shared "Platform"
-  or "Common" libraries to prevent code duplication across the modular boundaries.'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.66
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.75
-  alternatives_dismissed: 0.35
-  exploration_completeness: 0.78
-  flags: self-reported confidence (0.92) appears inflated — alternatives like pure
-    microservices or event-driven as primary are not explicitly dismissed; docs/internal/monorepo-layout.md
-    reference may be hallucinated or paraphrased loosely
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:55:40Z'
+classification_reasoning: "## Architecture Analysis: PostHog\n\n### Primary Style:\
+  \ Modular Monolith\n\nPostHog is a **Modular Monolith** with enforced internal boundaries.\
+  \ The evidence is compelling:\n\n**1. Single Deployable Django Application**\nThe\
+  \ main deployment is a single Django application (`posthog/` + `products/`) with\
+  \ Celery workers:\n- `docker-compose.hobby.yml` shows a single `web` and `worker`\
+  \ service for the Django app\n- All products share the same database (Postgres +\
+  \ ClickHouse)\n- `manage.py` at the root confirms a single Django project\n\n**2.\
+  \ Explicit Module Boundaries with Enforcement**\nThe `tach.toml` file defines strict\
+  \ import boundaries between 40+ products:\n```toml\n[[modules]]\npath = \"products.feature_flags\"\
+  \ndepends_on = [\"ee\", \"posthog\"]\nlayer = \"non_isolated\"\n```\nProducts can\
+  \ import from `posthog` and `ee` but not from each other, enforced via the `tach`\
+  \ tool.\n\n**3. Facade Pattern for Inter-Module Communication**\nPer `products/architecture.md`,\
+  \ each product exposes a public interface:\n```\nproducts/<name>/backend/facade/\n\
+  \  api.py           # The ONLY file other products may import\n  contracts.py  \
+  \   # Frozen dataclasses (stable DTOs)\n```\nInternal implementation (models, logic)\
+  \ is private.\n\n**4. Turborepo for Selective Testing**\n`turbo.json` defines `backend:test`\
+  \ tasks per product, enabling:\n- Task-level caching\n- Only affected products need\
+  \ retesting when contracts change\n\n**5. Product Structure**\nEach of the 40+ products\
+  \ in `products/` follows the pattern:\n```\nproducts/feature_flags/\n  backend/\
+  \          # Django app (models, logic, API)\n  frontend/         # React/TypeScript\
+  \ scenes\n  manifest.tsx      # Route/scene definitions\n  package.json      # Turborepo\
+  \ package\n```\n\n### Secondary Style: Service-Based\n\nPostHog supplements the\
+  \ monolith with specialized services:\n\n**Rust Services (High-Performance Ingestion)**\n\
+  The `rust/` workspace contains 40+ crates including:\n- `capture` - Event capture\
+  \ endpoint (handles `/e`, `/batch` routes)\n- `feature-flags` - Feature flag evaluation\
+  \ service\n- `capture-logs` - Log ingestion (OpenTelemetry)\n- `hook-worker/hook-janitor`\
+  \ - Webhook processing\n- `cyclotron-*` - Job queue system\n- `kafka-*` - Kafka\
+  \ infrastructure services\n\nThese are **not microservices** — they're coarse-grained\
+  \ services sharing databases with the monolith.\n\n**Standalone Python Services**\n\
+  - `services/llm-gateway/` - LLM proxy (FastAPI, separate deployment)\n- `services/mcp/`\
+  \ - MCP server (Cloudflare Workers)\n\n**Node.js Services**\n- `services/oauth-proxy/`\
+  \ - OAuth handling (Cloudflare Workers)\n- `services/stripe-app/` - Stripe integration\n\
+  \n### What It's NOT\n\n- **NOT Microservices**: Services share databases (Postgres,\
+  \ ClickHouse, Redis, Kafka); they're coarse-grained (5-6) not fine-grained; main\
+  \ app is monolithic\n- **NOT Layered Architecture**: Products are vertical slices,\
+  \ not horizontal layers; each product has its own models/logic/API\n- **NOT Hexagonal**:\
+  \ Django ORM models are used directly; no ports/adapters abstraction\n- **NOT Serverless**:\
+  \ Uses Docker containers with long-running workers; no FaaS deployment\n\n### Communication\
+  \ Patterns\n\n- **Kafka** for event ingestion pipeline (capture services → ClickHouse)\n\
+  - **Celery** for async task processing within Django monolith\n- **HTTP/REST** between\
+  \ services and main app\n- **gRPC** for some Rust service communication\n\n### Summary\n\
+  \nPostHog represents a mature **Modular Monolith** with clear product boundaries\
+  \ enforced by tooling (`tach`), facades for inter-module communication (frozen dataclasses),\
+  \ and selective testing (Turborepo). It supplements this with specialized **Service-Based**\
+  \ deployments for high-throughput ingestion (Rust services) and domain-specific\
+  \ needs (LLM gateway, MCP server), but the core application remains a single Django\
+  \ deployable with strong internal modularity."

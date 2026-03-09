@@ -1,0 +1,111 @@
+I'll explore the EventSourcing.NetCore repository to classify its architecture. Let me start with an overview of the structure.Let me explore the Core library in more detail to understand the architectural patterns:Let me explore the repository implementations and sample applications to understand the full architecture:Now I have sufficient evidence to provide my classification. Let me examine one more key file to confirm the Event-Driven aspects:Based on my comprehensive exploration of the EventSourcing.NetCore repository, I now have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: CQRS
+secondary_styles:
+  - Event-Driven
+confidence: 0.92
+---
+
+## Architecture Analysis
+
+The EventSourcing.NetCore repository is a teaching and reference implementation demonstrating Event Sourcing patterns in .NET. The architecture is unequivocally **CQRS (Command Query Responsibility Segregation)** as the primary architectural style, with **Event-Driven** as an essential secondary style.
+
+### Primary Evidence for CQRS
+
+**1. Explicit Command/Query Separation in Core Library:**
+
+The `Core/Commands/` and `Core/Queries/` directories define the CQRS foundation:
+
+- `Core/Commands/ICommandBus.cs` - Command bus interface for write operations
+- `Core/Commands/ICommandHandler.cs` - Command handler contract
+- `Core/Queries/IQueryHandler.cs` - Query handler contract  
+- `Core/Queries/QueryBus.cs` - Query bus implementation
+
+**2. Controller Usage Pattern:**
+
+`Sample/ECommerce/Carts/Carts.Api/Controllers/ShoppingCartsController.cs`:
+```csharp
+public class ShoppingCartsController(
+    ICommandBus commandBus,
+    IQueryBus queryBus,
+    IIdGenerator idGenerator)
+```
+
+Controllers explicitly inject both buses, routing commands for state changes and queries for reads through separate pipelines.
+
+**3. Registration Pattern:**
+
+`Sample/ECommerce/Carts/Carts/ShoppingCarts/Config.cs`:
+```csharp
+private static IServiceCollection AddCommandHandlers(this IServiceCollection services) =>
+    services.AddCommandHandler<OpenShoppingCart, HandleOpenShoppingCart>()
+        .AddCommandHandler<AddProduct, HandleAddProduct>()
+        ...
+
+private static IServiceCollection AddQueryHandlers(this IServiceCollection services) =>
+    services.AddQueryHandler<GetCartById, ShoppingCartDetails?, HandleGetCartById>()
+        .AddQueryHandler<GetCarts, IPagedList<ShoppingCartShortInfo>, HandleGetCarts>()
+```
+
+Command and query handlers are registered separately and handled through distinct pipelines.
+
+**4. Projections for Read Models:**
+
+`Core/Projections/IProjection.cs` and `Core.EntityFramework/Projections/EntityFrameworkProjection.cs` define how read models are built from the event stream - a classic CQRS pattern where writes produce events and reads consume them through projections.
+
+### Secondary Evidence for Event-Driven
+
+**1. Central EventBus:**
+
+`Core/Events/EventBus.cs` implements event publishing with typed handler resolution:
+```csharp
+var eventEnvelopeHandlers = scope.ServiceProvider.GetServices<IEventHandler<EventEnvelope<TEvent>>>();
+foreach (var eventHandler in eventEnvelopeHandlers) { ... }
+```
+
+**2. Process Managers (Sagas):**
+
+`Sample/ECommerce/Orders/Orders/Orders/OrderSaga.cs` coordinates distributed workflows:
+```csharp
+public class OrderSaga(IIdGenerator idGenerator, ICommandBus commandBus):
+    IEventHandler<CartFinalized>,
+    IEventHandler<OrderInitiated>,
+    IEventHandler<PaymentFinalized>,
+    IEventHandler<OrderPaymentRecorded>,
+    IEventHandler<PackageWasSent>,
+    ...
+```
+
+The saga reacts to events and issues commands, implementing the Event-Driven orchestration pattern.
+
+**3. Event Store Subscriptions:**
+
+`Core.EventStoreDB/Subscriptions/EventStoreDBSubscriptionToAll.cs` implements catch-up subscriptions that process events asynchronously to build projections.
+
+**4. Kafka Integration:**
+
+`Core.Kafka/Producers/KafkaProducer.cs` and `Core.Kafka/Consumers/KafkaConsumer.cs` provide external event publishing/consuming, enabling event-driven communication between bounded contexts.
+
+### What This Is NOT
+
+- **Not Microservices**: While the ECommerce sample has separate services (Carts, Orders, Payments, Shipments), the Core library is designed as reusable building blocks. The samples demonstrate both monolithic and distributed deployments.
+
+- **Not Traditional Layered**: There's no horizontal presentation/business/data layering. The organization is vertical around commands, queries, events, and aggregates.
+
+- **Not Hexagonal Architecture**: While there are interfaces (ports), there's no explicit application core isolated via adapters. The focus is on CQRS pipelines and event flow.
+
+### Additional DDD Elements
+
+The codebase exhibits Domain-Driven Design patterns:
+- **Aggregates** (`Core/Aggregates/Aggregate.cs`) with event sourcing
+- **Domain Events** (e.g., `ShoppingCartOpened`, `ProductAdded`)
+- **Bounded Contexts** visible in samples (Carts, Orders, Payments, Shipments as separate modules)
+- **Strongly-typed IDs** with `IIdGenerator`
+
+However, DDD is not the primary architectural driver - it supports the CQRS/Event-Driven implementation.
+
+### Conclusion
+
+This is a reference implementation for Event Sourcing with CQRS as the dominant architectural pattern. The event-driven nature is essential but serves the CQRS separation - events are the mechanism by which the write model communicates changes to the read model. The high confidence (0.92) reflects the explicit, intentional design around these patterns throughout the codebase.

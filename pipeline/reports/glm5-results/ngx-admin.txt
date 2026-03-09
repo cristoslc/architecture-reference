@@ -1,0 +1,105 @@
+Let me examine the core and theme modules more closely to understand the architectural patterns:Let me examine one more aspect - the feature module structure to understand the completepicture:Now I have sufficient evidence to classify this architecture. Let me examine one more file to confirm the pattern:Based on my thorough exploration of the ngx-admin repository, I now have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Hexagonal Architecture
+confidence: 0.85
+---
+
+## Analysis
+
+ngx-admin is a **Layered Architecture** with some **Hexagonal Architecture** patterns, implemented as a single-page Angular application.
+
+### Evidence for Layered Architecture
+
+**Clear horizontal layering is present:**
+
+1. **Core Layer (`@core/`)**: Infrastructure and cross-cutting concerns
+   - Abstract data interfaces (`src/app/@core/data/`) define contracts for data access
+   - Service implementations (`src/app/@core/mock/`) provide concrete data
+   - Utility services (`src/app/@core/utils/`) for analytics, layout, SEO, state management
+   - Guard (`module-import-guard.ts`) enforces singleton pattern - CoreModule can only be loaded once
+
+2. **Theme/Presentation Layer (`@theme/`)**: UI components and styling
+   - Reusable components (Header, Footer, SearchInput)
+   - Layout templates (OneColumn, TwoColumns, ThreeColumns layouts)
+   - Theme definitions (default, cosmic, corporate, dark)
+   - Shared pipes (capitalize, plural, round, timing)
+
+3. **Application/Pages Layer (`pages/`)**: Feature modules organized by functionality
+   - Dashboard, E-commerce, Charts, Forms, Tables, Maps, etc.
+   - Each feature has its own module with routing and components
+   - Lazy-loaded via Angular's `loadChildren` mechanism
+
+4. **Single Deployment Unit**: `angular.json` defines one application project, building to a single `dist/` folder
+
+### Evidence for Hexagonal Patterns (Secondary Style)
+
+**Port/Adapter separation visible in data layer:**
+
+```typescript
+// src/app/@core/data/users.ts - Abstract "port"
+export abstract class UserData {
+  abstract getUsers(): Observable<User[]>;
+  abstract getContacts(): Observable<Contacts[]>;
+  abstract getRecentUsers(): Observable<RecentUsers[]>;
+}
+
+// src/app/@core/mock/users.service.ts - Concrete "adapter"
+@Injectable()
+export class UserService extends UserData {
+  // Implementation returns mock data
+}
+```
+
+**Dependency injection binding interfaces to implementations:**
+```typescript
+// src/app/@core/core.module.ts
+const DATA_SERVICES = [
+  { provide: UserData, useClass: UserService },
+  { provide: ElectricityData, useClass: ElectricityService },
+  // ... 18 more data interfaces bound to implementations
+];
+```
+
+This pattern allows swapping the mock data layer for a real HTTP backend without changing consumers.
+
+### What This Is NOT
+
+- **NOT Microservices/Service-Based**: Single deployable Angular application, no separate services
+- **NOT Modular Monolith**: No enforced module boundaries - Angular modules are organizational, not architecturally encapsulated. The `@core` and `@theme` folders use naming convention only, not actual boundary enforcement.
+- **NOT Microkernel/Plugin**: No runtime plugin loading or extension points beyond Angular's standard module system
+- **NOT Event-Driven**: No message brokers or event-based communication; uses direct service injection
+- **NOT CQRS/Domain-Driven Design**: No aggregates, value objects, bounded contexts, or separate read/write models
+
+### Architecture Diagram
+
+```
+┌─────────────────────────────────────────────────────────┐
+│                    Pages Layer                          │
+│  (Dashboard, E-commerce, Charts, Forms, Tables, etc.)   │
+│                  [Feature Modules]                       │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────┴───────────────────────────────────┐
+│                   Theme Layer                           │
+│      (Header, Footer, Layouts, Pipes, Styles)          │
+│                  [UI Components]                        │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────┴───────────────────────────────────┐
+│                    Core Layer                           │
+│  (Services, Abstract Data Interfaces, State, Auth)     │
+│              [Business Logic Layer]                     │
+└─────────────────────┬───────────────────────────────────┘
+                      │
+┌─────────────────────┴───────────────────────────────────┐
+│              Data Access Layer                          │
+│     (Abstract Interfaces ← DI ← Mock/Real Services)    │
+│                  [Ports/Adapters]                       │
+└─────────────────────────────────────────────────────────┘
+```
+
+The hexagonal patterns in the data layer (abstract interfaces with DI-bound implementations) raise confidence for including it as a secondary style, though the overall structure remains fundamentally layered with top-down dependency flow typical of Angular applications.

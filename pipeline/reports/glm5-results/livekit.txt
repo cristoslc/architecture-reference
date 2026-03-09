@@ -1,0 +1,95 @@
+Let me explore deeper into the architecture. I'll examine the go.mod file, the main entry point, and key architectural components.Let me examine the Dockerfile, look at the service layer organization, and understand the module boundaries better:Let me examine the service layer more closely and look at how packages interact:Let me check for any plugin mechanisms and understand how the system handles extensibility:Let me check for any additional architectural patterns, particularly around the data flow and dependency organization:Based on my thorough exploration of the LiveKit repository, I now have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+## Analysis
+
+### Primary Classification: Modular Monolith
+
+LiveKit is a **single deployable binary** WebRTC SFU (Selective Forwarding Unit) server with well-organized internal module boundaries. Key evidence:
+
+**Single Deployable Unit:**
+- `Dockerfile` produces a single binary: `livekit-server`
+- Single entry point in `cmd/server/main.go`
+- All code in one Go module (`go.mod`) with no submodules
+
+**Enforced Module Boundaries:**
+The `pkg/` directory shows distinct packages with clear responsibilities:
+
+| Package | Responsibility |
+|---------|---------------|
+| `pkg/config/` | Configuration management |
+| `pkg/service/` | API/Service layer (RoomService, RTCService, AgentService, etc.) |
+| `pkg/routing/` | Message routing (LocalRouter, RedisRouter for distributed mode) |
+| `pkg/rtc/` | WebRTC room and participant management |
+| `pkg/sfu/` | Selective Forwarding Unit (media packet handling) |
+| `pkg/telemetry/` | Metrics and observability |
+| `pkg/agent/` | AI agent integration |
+| `pkg/clientconfiguration/` | Client capability management |
+
+**Interface-based Abstractions:**
+The codebase uses Go interfaces extensively with generated mocks (`counterfeiter`) to enforce boundaries:
+- `pkg/service/interfaces.go`: `ObjectStore`, `ServiceStore`, `RoomAllocator`, `AgentStore`
+- `pkg/routing/interfaces.go`: `Router`, `MessageSink`, `MessageSource`
+- `pkg/routing/selector/interfaces.go`: `NodeSelector`
+
+**Distributed Capability via Router Abstraction:**
+```go
+// routing/interfaces.go
+func CreateRouter(rc redis.UniversalClient, node LocalNode, ...) Router {
+    lr := NewLocalRouter(...)
+    if rc != nil {
+        return NewRedisRouter(lr, rc, kps)  // Distributed mode
+    }
+    // Single-node mode
+    return lr
+}
+```
+
+The same binary operates in single-node or distributed mode via Redis pub/sub coordination — this is **horizontal scaling of a monolith**, not microservices.
+
+### Secondary Classification: Layered
+
+The architecture exhibits horizontal layering:
+
+1. **Presentation/API Layer** — `pkg/service/rtcservice.go`, HTTP/Twirp handlers
+2. **Business Logic Layer** — `pkg/service/roomservice.go`, `pkg/service/roommanager.go`
+3. **Communication/Routing Layer** — `pkg/routing/` (LocalRouter, RedisRouter)
+4. **Core Processing Layer** — `pkg/rtc/` (rooms, participants), `pkg/sfu/` (media forwarding)
+5. **Data/State Layer** — `pkg/service/localstore.go`, `pkg/service/redisstore.go`
+
+### What This Is NOT
+
+**Not Microservices:**
+- Single deployable binary, not multiple independently deployable services
+- Services in `pkg/service/` are internal packages, not separate deployments
+- Redis is used for coordination, not as message broker between microservices
+
+**Not Service-Based (distinct from Modular Monolith):**
+- Service-based architecture typically means 2-5 coarse-grained services, each owning its database
+- LiveKit has many more internal packages and uses Redis for coordination, not as primary data store per service
+- No separate database per service pattern
+
+**Not Event-Driven:**
+- Redis pub/sub is used for node coordination in distributed mode, not as primary application architecture
+- Main flow is synchronous request/response via HTTP/Twirp and WebSocket
+- No event sourcing, CQRS, or event-driven orchestration
+
+**Not Domain-Driven Design:**
+- Packages organized by technical capability (`sfu`, `routing`, `rtc`), not bounded contexts
+- No aggregates, entities, value objects pattern
+- Business domain (real-time video) is implicit in technical components
+
+**Not Hexagonal:**
+- Core domain not isolated via ports/adapters pattern
+- Dependencies like Pion WebRTC (`pkg/rtc/`, `pkg/sfu/`) are deeply integrated, not abstracted behind ports
+
+### Conclusion
+
+LiveKit is a well-structured **Modular Monolith** with **Layered** organization. It achieves scalability through stateless horizontal scaling (Redis-based coordination for distributed deployments) rather than decomposing into microservices. The clear package boundaries and interface abstractions make it maintainable as a single codebase while supporting distributed deployment when needed.

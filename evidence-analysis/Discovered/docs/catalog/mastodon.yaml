@@ -15,9 +15,8 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Service-Based
-- Event-Driven
 - Layered
+- Event-Driven
 classification_status: classified
 review_notes: 'Mastodon is structured as a **Service-Based** architecture. While it
   is frequently called a "monolith" in common parlance, its technical organization
@@ -46,85 +45,55 @@ review_notes: 'Mastodon is structured as a **Service-Based** architecture. While
   as the components are tightly coupled via a shared database schema (PostgreSQL)
   and do not own their data exclusively.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.83
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:58:38Z'
-classification_reasoning: 'Mastodon is structured as a **Service-Based** architecture.
-  While it is frequently called a "monolith" in common parlance, its technical organization
-  consists of several coarse-grained, independently deployable services that share
-  the same backend data stores (PostgreSQL and Redis) and business logic definitions.
-
-
-  ### 1. Service-Based Structure
-
-  The system is decomposed into three primary operational services, as evidenced by
-  the `docker-compose.yml` and `Procfile`:
-
-  - **Web Service (`web`)**: A Ruby on Rails application serving the REST API and
-  HTML views.
-
-  - **Streaming Service (`streaming`)**: A Node.js application (located in the `/streaming`
-  directory) specifically designed to handle high-concurrency WebSocket connections.
-  It is a separate codebase with its own `package.json` and logic, yet it shares the
-  same database and Redis instance as the Rails app.
-
-  - **Background Processing (`sidekiq`)**: A dedicated worker service that consumes
-  tasks from Redis.
-
-
-  This separation meets the criteria for Service-Based architecture rather than Microservices,
-  as the components are tightly coupled via a shared database schema (PostgreSQL)
-  and do not own their data exclusively.
-
-
-  ### 2. Event-Driven (Secondary Style)
-
-  The codebase relies heavily on asynchronous event processing to handle the federated
-  nature of the Fediverse.
-
-  - **Sidekiq Workers**: The `app/workers` directory contains several dozen workers
-  (e.g., `DistributionWorker`, `ActivityPub::ProcessingWorker`, `PushUpdateWorker`)
-  that implement a pub/sub-like flow.
-
-  - **ActivityPub Integration**: The system reacts to incoming activities (events)
-  from other servers. The logic in `app/services/activitypub` and many workers in
-  `app/workers/activitypub` handle the ingestion and fan-out of these events asynchronously.
-
-  - **Fan-out Pattern**: The `FanOutOnWriteService` is a classic event-driven pattern
-  used to distribute updates to home feeds and followers.
-
-
-  ### 3. Layered (Secondary Style)
-
-  Internally, the Ruby on Rails component follows a standard **Layered** pattern:
-
-  - **Presentation**: `app/controllers` and `app/serializers`.
-
-  - **Business Logic**: Concentrated in `app/services`. Unlike standard Rails apps
-  that put logic in models, Mastodon uses a Service Layer pattern (e.g., `PostStatusService`,
-  `FollowService`, `AuthorizeFollowService`) to orchestrate complex actions.
-
-  - **Data Access**: `app/models` using ActiveRecord.
-
-  - **Policy**: `app/policies` provides a dedicated authorization layer.
-
-
-  ### Rejection of Other Styles
-
-  - **Microservices**: Rejected because the services share a single large PostgreSQL
-  database and are contained within a single primary repository (though the Node.js
-  streaming part is a distinct sub-folder). They are not "highly decoupled."
-
-  - **Modular Monolith**: Rejected because the deployment is split into distinct processes
-  with different runtimes (Node.js vs Ruby), and the internal Ruby structure does
-  not strictly enforce module boundaries between "Home Feed" and "Notifications" at
-  the language level; they are largely separated by directory naming conventions only.'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.83
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.82
-  alternatives_dismissed: 0.8
-  exploration_completeness: 0.83
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:40:50Z'
+classification_reasoning: "## Architecture Classification: Mastodon\n\n### Primary\
+  \ Style: Layered (Rails MVC)\n\nMastodon follows a classic **Ruby on Rails layered\
+  \ architecture** with clear horizontal separation:\n\n**Presentation Layer (Controllers\
+  \ & Views):**\n- `app/controllers/` contains 31+ controller files (e.g., `accounts_controller.rb`,\
+  \ `statuses_controller.rb`)\n- `app/controllers/api/v1/` provides REST API endpoints\n\
+  - `app/controllers/activitypub/` handles ActivityPub federation protocol\n- `app/views/`\
+  \ contains view templates (HAML)\n- `app/policies/` implements authorization with\
+  \ Pundit\n\n**Business Logic Layer (Services):**\n- `app/services/` contains 75+\
+  \ service objects (e.g., `FanOutOnWriteService`, `DeleteAccountService`, `ProcessAccountService`)\n\
+  - BaseService as abstract parent class pattern\n- Services encapsulate complex business\
+  \ operations\n\n**Data Access Layer (Models):**\n- `app/models/` contains 144+ ActiveRecord\
+  \ models\n- Models inherit from `ApplicationRecord` (standard Rails pattern)\n-\
+  \ Domain entities: Account, Status, Follow, Block, etc.\n- Concerns for shared behaviors\
+  \ (`app/models/concerns/`)\n\n**Supporting Layers:**\n- `app/workers/` - 54 Sidekiq\
+  \ workers for background processing\n- `app/serializers/` - JSON serialization for\
+  \ API responses\n- `app/lib/` - Utility modules and domain logic helpers\n- `app/helpers/`\
+  \ - View helpers\n\n### Secondary Style: Event-Driven\n\nMastodon incorporates significant\
+  \ **event-driven patterns**:\n\n**Redis Pub/Sub for Real-time Streaming:**\n- Separate\
+  \ Node.js streaming server (`streaming/index.js`)\n- Subscribes to Redis channels\
+  \ (`timeline:*`, `public`, `hashtag:*`, etc.)\n- WebSocket connections push real-time\
+  \ updates to clients\n- The Rails app publishes events via `redis.publish()` in\
+  \ `FanOutOnWriteService`\n\n**Background Job Processing (Sidekiq):**\n```yaml\n\
+  # config/sidekiq.yml\n:queues:\n  - [default, 8]\n  - [push, 6]\n  - [ingress, 4]\n\
+  \  - [mailers, 2]\n  - [pull]\n  - [scheduler]\n```\n\nWorkers handle async operations:\n\
+  - `DistributionWorker` - fans out status updates to followers\n- `ActivityPub::DeliveryWorker`\
+  \ - delivers ActivityPub payloads to remote servers\n- `FeedInsertWorker` - inserts\
+  \ statuses into user timelines\n\n### Deployment Topology (Single Monolith)\n\n\
+  The `docker-compose.yml` reveals the deployment:\n```yaml\nservices:\n  web:   \
+  \     # Rails app (puma)\n  streaming:  # Node.js WebSocket server\n  sidekiq: \
+  \   # Background job processor\n  db:         # PostgreSQL (shared)\n  redis:  \
+  \    # Redis (shared)\n```\n\n**All processes share the same database and Redis\
+  \ instance** - this is a single monolithic application with multiple runtime processes,\
+  \ not microservices.\n\n### Why Not Other Styles\n\n**Not Microservices:**\n- Single\
+  \ shared PostgreSQL database\n- Single shared Redis instance  \n- All components\
+  \ must be deployed together\n- No independent service boundaries\n\n**Not Modular\
+  \ Monolith:**\n- No enforced internal module boundaries\n- Services and models exist\
+  \ in global namespace\n- No module-scoped schemas or isolation\n- Standard Rails\
+  \ application structure\n\n**Not Hexagonal Architecture:**\n- Models directly inherit\
+  \ from ActiveRecord (not abstracted)\n- No ports/adapters pattern\n- Controllers\
+  \ access models directly without repository interfaces\n\n**Not Domain-Driven Design:**\n\
+  - No bounded contexts explicitly defined\n- No aggregates, value objects, or domain\
+  \ events pattern\n- Anemic ActiveRecord models with service objects for logic\n\n\
+  ### Key Evidence Files\n\n- `app/controllers/application_controller.rb` - Base controller\
+  \ with concerns\n- `app/services/base_service.rb` - Service object pattern\n- `app/workers/distribution_worker.rb`\
+  \ - Sidekiq worker for fan-out\n- `streaming/index.js` - WebSocket server with Redis\
+  \ pub/sub\n- `config/sidekiq.yml` - Background job queues\n- `docker-compose.yml`\
+  \ - Single-app deployment topology\n- `app/models/status.rb` - ActiveRecord model\
+  \ with concerns"

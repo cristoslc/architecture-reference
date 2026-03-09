@@ -15,8 +15,8 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Layered
 - Microkernel (Plugin)
+- Layered
 - Event-Driven
 classification_status: classified
 review_notes: 'The Prefect repository is primarily structured using a **Layered**
@@ -46,78 +46,63 @@ review_notes: 'The Prefect repository is primarily structured using a **Layered*
 
   ### 2. Secondary Style: Microkernel (Plugin)'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.77
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:07:13Z'
-classification_reasoning: 'The Prefect repository is primarily structured using a
-  **Layered** architecture, though it functions as a sophisticated framework that
-  incorporates **Microkernel (Plugin)** and **Event-Driven** patterns to manage its
-  extensibility and distributed nature.
-
-
-  ### 1. Primary Style: Layered
-
-  The codebase follows a clear horizontal separation of concerns, particularly within
-  the `src/prefect/server` and `src/prefect/client` directories.
-
-  - **Presentation/API Layer**: `src/prefect/server/api/server.py` defines a FastAPI
-  application that aggregates multiple routers (`api.flows`, `api.tasks`, etc.). Reference:
-  `API_ROUTERS` in `server.py`.
-
-  - **Domain/Logic Layer**: The business logic is encapsulated in "models" and "orchestration"
-  logic within `src/prefect/server/models` and `src/prefect/server/orchestration`.
-
-  - **Data Access Layer**: Persistence is abstracted via SQLAlchemy and specific database
-  drivers located in `src/prefect/server/database`.
-
-  - **SDK/Client Layer**: The system provides a high-level SDK (`src/prefect/client`)
-  that abstracts the REST API communication from the user''s workflow code.
-
-
-  ### 2. Secondary Style: Microkernel (Plugin)
-
-  Prefect is designed to be highly extensible. The core engine is a "microkernel"
-  that discovers and loads external functionality:
-
-  - **Registry & Discovery**: `src/prefect/plugins.py` uses Python entry points (`prefect.collections`)
-  to safely load external integrations at runtime.
-
-  - **Blocks System**: The "Blocks" architecture (`src/prefect/blocks`) allows users
-  to plug in various infrastructure providers (Redis, S3, Webhooks) that adhere to
-  a standard interface, effectively extending the system''s capabilities without modifying
-  the core.
-
-
-  ### 3. Secondary Style: Event-Driven
-
-  The orchestration engine relies heavily on an internal event bus to handle the lifecycle
-  of distributed runs:
-
-  - **Event Flow**: The existence of `src/prefect/server/events`, `src/prefect/events/subscribers.py`,
-  and automated triggers within `src/prefect/automations.py` indicates that system
-  state changes (e.g., flow completion, failure) are propagated as events.
-
-  - **Communication**: Components like workers and agents (`src/prefect/agent.py`,
-  `src/prefect/workers`) react to these events to provision infrastructure or execute
-  tasks, decoupled from the central server''s immediate request-response cycle.
-
-
-  ### Why not other styles?
-
-  - **Microservices**: While Prefect can be deployed as several components (Server,
-  Worker, UI), the source code is managed as a unified monorepo where components share
-  core internal schemas and utilities (`src/prefect/_internal`), making it more of
-  a distributed monolith or modular system than independent microservices.
-
-  - **Hexagonal**: While it uses "Blocks" as adapters, the internal structure of the
-  server logic is more traditionally layered rather than strictly following ports-and-adapters
-  boundary enforcement.'
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.77
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.8
-  style_clarity: 0.75
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:33:07Z'
+classification_reasoning: "## Analysis\n\n### Primary: Microkernel (Plugin) Architecture\n\
+  \nPrefect exhibits a clear **Microkernel (Plugin)** architecture with strong evidence:\n\
+  \n**1. Plugin Discovery System** (`src/prefect/plugins.py`):\n```python\ncollection_entrypoints:\
+  \ EntryPoints = entry_points(group=\"prefect.collections\")\n```\nThe core system\
+  \ discovers and loads extensions via Python entry points, a standard plugin mechanism.\n\
+  \n**2. Integration Packages** (`src/integrations/`):\nEach integration (prefect-aws,\
+  \ prefect-kubernetes, prefect-docker, etc.) defines entry points:\n```toml\n[project.entry-points.\"\
+  prefect.collections\"]\nprefect_aws = \"prefect_aws\"\n[project.entry-points.\"\
+  prefect.plugins\"]\naws = \"prefect_aws.plugins\"\n```\nThese are separate Python\
+  \ packages that extend the core without modifying it.\n\n**3. Dynamic Dispatch Registry**\
+  \ (`src/prefect/utilities/dispatch.py`):\n- `_TYPE_REGISTRIES` maintains a global\
+  \ registry mapping dispatch keys to types\n- `@register_base_type` decorator marks\
+  \ base types for extension\n- `lookup_type(Base, key)` dynamically retrieves registered\
+  \ implementations\n\n**4. Extensible Base Types**:\n\n`Block` class (`src/prefect/blocks/core.py:315`):\n\
+  ```python\n@register_base_type\nclass Block(BaseModel, ABC):\n    \"\"\"A base class\
+  \ for implementing a block that wraps an external service.\"\"\"\n```\n\n`BaseWorker`\
+  \ class (`src/prefect/workers/base.py:533`):\n```python\n@register_base_type\nclass\
+  \ BaseWorker(abc.ABC, Generic[C, V, R]):\n    type: str\n    job_configuration:\
+  \ Type[C] = BaseJobConfiguration\n```\n\nIntegration packages provide concrete implementations:\n\
+  - `prefect-aws/prefect_aws/workers/ecs_worker.py` → `ECSWorker(BaseWorker)`\n- `prefect-aws/prefect_aws/s3.py`\
+  \ → `S3Bucket(Block)`\n- `prefect-aws/prefect_aws/credentials.py` → `AwsCredentials(Block)`\n\
+  \n**5. Core System Isolation**:\nThe core `src/prefect/` package defines interfaces\
+  \ (abstract base classes) that integrations implement. The core knows about Blocks\
+  \ and Workers abstractly, but concrete implementations live in integration packages.\n\
+  \n### Secondary: Layered Architecture\n\nWithin the server component, there's clear\
+  \ horizontal layering (`src/prefect/server/`):\n\n- **Presentation Layer**: `server/api/`\
+  \ - FastAPI REST endpoints (flows.py, deployments.py, flow_runs.py)\n- **Service\
+  \ Layer**: `server/services/` - Background services (scheduler, late_runs, foreman)\n\
+  - **Model Layer**: `server/models/` - ORM models for database entities\n- **Database\
+  \ Layer**: `server/database/` - SQLAlchemy interfaces, Alembic migrations\n\nEach\
+  \ layer has limited dependencies on lower layers, following traditional layered\
+  \ architecture patterns.\n\n### Secondary: Event-Driven Components\n\nEvent-driven\
+  \ architecture is present but scoped to specific subsystems:\n\n**Event System**\
+  \ (`src/prefect/events/`):\n- `emit_event()` for publishing events\n- `Event`, `ReceivedEvent`\
+  \ schemas\n- Event filters and subscribers\n\n**Server-Side Event Processing** (`src/prefect/server/events/`):\n\
+  - Event persister service\n- Trigger evaluation service\n- Action execution service\n\
+  \n**Automations** (`src/prefect/events/actions.py`):\n```python\nclass RunDeployment(DeploymentAction):\n\
+  \    \"\"\"Runs the given deployment with the given parameters\"\"\"\nclass CancelFlowRun(Action):\n\
+  \    \"\"\"Cancel a flow run when triggered\"\"\"\n```\n\nEvents trigger actions\
+  \ via automations, but the core flow/task execution model is not primarily event-driven\
+  \ - events are specifically for automation triggers and external integrations.\n\
+  \n### What This Is NOT\n\n- **Not Microservices**: Single deployable server (`Dockerfile`),\
+  \ one main package. Workers communicate with one server, not multiple independent\
+  \ services.\n\n- **Not Service-Based (in the coarse-grained sense)**: While there's\
+  \ a client-server separation, the server is monolithic with internal services, not\
+  \ 2-5 separate services sharing a database.\n\n- **Not CQRS**: No separation between\
+  \ read and write models; the same ORM models serve both.\n\n- **Not DDD**: No bounded\
+  \ contexts, aggregates, or domain-driven organizational structure.\n\n- **Not Hexagonal**:\
+  \ While `Block` abstracts external services, there's no formal ports-and-adapters\
+  \ isolation layer.\n\n- **Not Serverless**: Workers are long-running processes (see\
+  \ `runner/runner.py`), not ephemeral functions triggered by cloud providers.\n\n\
+  ### Deployment Topology\n\nThe architecture supports two deployment modes:\n1. **Self-hosted\
+  \ server**: Single Docker container with FastAPI server + background services\n\
+  2. **Prefect Cloud**: Client connects to managed server\n\nBoth modes use the same\
+  \ plugin mechanism for integrations - packages are installed into the environment\
+  \ and discovered via entry points at import time."

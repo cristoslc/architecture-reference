@@ -15,9 +15,9 @@ languages:
 - Python
 - JavaScript
 architecture_styles:
-- Service-Based
-- Event-Driven
 - Layered
+- Event-Driven
+- Microkernel (Plugin)
 classification_status: classified
 review_notes: 'The repository is structured as a **Service-Based** architecture, characterized
   by a small number of coarse-grained services that share a common data infrastructure.
@@ -47,51 +47,55 @@ review_notes: 'The repository is structured as a **Service-Based** architecture,
   and core logic (`api/core`), but unlike a pure Monolith, they are scaled and managed
   as separate runtime entities.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.76
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:45:52Z'
-classification_reasoning: "The repository is structured as a **Service-Based** architecture,\
-  \ characterized by a small number of coarse-grained services that share a common\
-  \ data infrastructure. While it has components of a monolith (shared codebase in\
-  \ `api/`), its deployment and operational model rely on separating concerns into\
-  \ distinct functional units.\n\n### Primary Style: Service-Based\nThe system decomposes\
-  \ into several primary services that operate independently but are highly coupled\
-  \ at the database level (PostgreSQL). Evidence from `docker-compose.yaml` and the\
-  \ directory structure shows:\n- **`api` service**: The core Flask application providing\
-  \ the RESTful interface for the console and web apps.\n- **`worker` service**: A\
-  \ separate deployment unit running Celery to handle asynchronous tasks (indexing,\
-  \ document processing).\n- **`sandbox` service**: A specialized service for secure\
-  \ code execution (`CODE_EXECUTION_ENDPOINT`), providing a clear boundary for untrusted\
-  \ logic.\n- **`web` service**: A Next.js frontend deployed independently of the\
-  \ backend.\n\nUnlike Microservices, these units share the same database schema (`api/migrations`)\
-  \ and core logic (`api/core`), but unlike a pure Monolith, they are scaled and managed\
-  \ as separate runtime entities.\n\n### Secondary Style: Event-Driven\nThe architecture\
-  \ heavily utilizes an asynchronous, event-driven pattern for its most intensive\
-  \ workloads. \n- **Message Broker**: Extensive use of Redis/Celery (`CELERY_BROKER_URL`)\
-  \ to decouple request handling from background processing.\n- **Task Distribution**:\
-  \ The `api/tasks/` and `api/schedule/` directories contain logic for RAG pipelines,\
-  \ document indexing, and workflow executions that are triggered by events (e.g.,\
-  \ `document_indexing_task.py`, `workflow_execute_task.py`).\n- **Pub/Sub logic**:\
-  \ The presence of `api/core/trigger` suggests an internal mechanism for reacting\
-  \ to system state changes.\n\n### Secondary Style: Layered (Internal)\nWithin the\
-  \ `api` component, the code follows a traditional Layered pattern:\n- **Presentation**:\
-  \ Flask routes (found in `api/app.py` and factory-loaded modules).\n- **Business\
-  \ Logic**: Concentrated in `api/core/`, which acts as the service layer for LLM\
-  \ orchestration, RAG, and Agent logic.\n- **Data Access**: Managed via SQLAlchemy\
-  \ in `api/core/db` and externalized via the `repositories` pattern (e.g., `api/core/repositories/sqlalchemy_workflow_execution_repository.py`).\n\
-  \n### Architectural Observations\n- **Infrastructure Heavy**: The `docker-compose.yaml`\
-  \ reveals a \"Sidecar-rich\" environment with many supporting specialized stores\
-  \ (Vector DBs like Weaviate/Milvus/Qdrant, Redis for caching, etc.), which is typical\
-  \ for modern LLMOps platforms.\n- **Modularity**: While not a \"Modular Monolith\"\
-  \ in the strict sense of enforced boundaries, the separation of `api/core/rag`,\
-  \ `api/core/agent`, and `api/core/workflow` shows a strong attempt to organize the\
-  \ codebase by domain concerns."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.76
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.82
-  style_clarity: 0.78
-  alternatives_dismissed: 0.65
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.82
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:11:06Z'
+classification_reasoning: "## Architecture Analysis: Dify Repository\n\n### Primary\
+  \ Style: Layered Architecture\n\nDify implements a classic **Layered Architecture**\
+  \ with clear horizontal separation:\n\n**Controller Layer** (`api/controllers/`):\n\
+  - `console/` - Admin/console API endpoints (app management, datasets, workspace)\n\
+  - `service_api/` - External service API endpoints  \n- `web/` - End-user web application\
+  \ endpoints\n- `trigger/` - Webhook and trigger endpoints\n- `inner_api/` - Internal\
+  \ API for plugin daemon communication\n\n**Service Layer** (`api/services/`):\n\
+  - Business logic classes: `app_service.py`, `dataset_service.py`, `workflow_service.py`,\
+  \ `account_service.py`, etc.\n- Service classes orchestrate domain operations without\
+  \ direct database coupling\n\n**Repository/Model Layer** (`api/models/`, `api/repositories/`):\n\
+  - SQLAlchemy ORM models: `account.py`, `dataset.py`, `model.py`, `workflow.py`\n\
+  - Repository pattern for data access abstraction\n\n**Core/Domain Layer** (`api/core/`):\n\
+  - Domain logic: `core/app/`, `core/agent/`, `core/tools/`, `core/rag/`\n- `dify_graph/`\
+  \ - Isolated workflow execution engine with strict layering\n\nThe `api/.importlinter`\
+  \ file explicitly enforces dependency rules between modules, particularly isolating\
+  \ `dify_graph` from infrastructure concerns.\n\n### Secondary Style: Event-Driven\n\
+  \n**Asynchronous task processing via Celery**:\n- `api/tasks/` - 30+ Celery task\
+  \ modules for async operations\n- `api/schedule/` - Scheduled task definitions\n\
+  - `api/events/` - Blinker signal-based internal events\n\nKey async operations:\n\
+  - Document indexing (`document_indexing_task.py`, `add_document_to_index_task.py`)\n\
+  - Workflow execution (`async_workflow_tasks.py`)\n- Mail delivery (`mail_*.py` tasks)\n\
+  - Dataset cleanup (`clean_*.py` tasks)\n\nRedis serves as the Celery message broker,\
+  \ enabling decoupled async processing.\n\n### Secondary Style: Microkernel (Plugin)\n\
+  \n**Plugin infrastructure**:\n- `plugin_daemon` service - Separate deployment unit\
+  \ managing plugin lifecycle\n- `core/plugin/` - Plugin management code (installer,\
+  \ entities, implementations)\n- `core/extension/extensible.py` - Dynamic extension\
+  \ scanning and loading\n\nThe system supports extensible:\n- **Tools**: `core/tools/builtin_tool/`,\
+  \ `core/tools/plugin_tool/`\n- **Model providers**: Model runtime plugin architecture\n\
+  - **Data sources**: `core/datasource/` with provider plugins\n- **Moderation**:\
+  \ `core/moderation/` with API and keyword implementations\n\n### Deployment Topology\n\
+  \nDocker Compose defines multiple services but NOT as independent microservices:\n\
+  - **`api` and `worker`** share identical code (`langgenius/dify-api` image) - worker\
+  \ just runs Celery\n- **Shared database** (PostgreSQL/MySQL) across all components\n\
+  - **`web`** - Next.js frontend\n- **`plugin_daemon`** - Plugin execution sandbox\n\
+  - **`sandbox`** - Code execution isolation\n- **Supporting services**: Redis, Nginx,\
+  \ vector DBs\n\nThis is a **modular deployment** of a layered monolith, not true\
+  \ microservices.\n\n### What This Is NOT\n\n- **Not Microservices**: Single codebase,\
+  \ shared database, no bounded context isolation between services\n- **Not Service-Based**:\
+  \ More than 2-3 services, but they're not coarse-grained business services\n- **Not\
+  \ Domain-Driven Design**: No aggregates, value objects, or bounded context patterns\n\
+  - **Not Hexagonal**: No ports/adapters pattern for external interface isolation\n\
+  - **Not CQRS**: No separate read/write model separation\n\n### Key Evidence Files\n\
+  \n- `api/app_factory.py` - Flask application factory with layered extension initialization\n\
+  - `api/.importlinter` - Enforces module boundaries and import restrictions\n- `docker/docker-compose.yaml`\
+  \ - Multi-service deployment (api, worker, web, plugin_daemon)\n- `api/extensions/ext_celery.py`\
+  \ - Celery configuration with task imports\n- `api/core/extension/extensible.py`\
+  \ - Plugin scanning and loading mechanism\n- `api/dify_graph/README.md` - Documents\
+  \ strict layering in workflow engine"

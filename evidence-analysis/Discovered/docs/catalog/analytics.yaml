@@ -14,9 +14,8 @@ languages:
 - JavaScript
 - TypeScript
 architecture_styles:
-- Modular Monolith
 - Layered
-- Pipeline (Pipe-and-Filter)
+- Modular Monolith
 classification_status: classified
 review_notes: "Plausible Analytics is structured as a **Modular Monolith** built on\
   \ the Elixir/Phoenix ecosystem. While it follows the traditional Phoenix horizontal\
@@ -43,49 +42,55 @@ review_notes: "Plausible Analytics is structured as a **Modular Monolith** built
   \ and the standard `Repo` for Postgres), aligning with a domain-specific data management\
   \ strategy within the monolith.\n\n### Why not other styles?"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.78
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:38:37Z'
-classification_reasoning: "Plausible Analytics is structured as a **Modular Monolith**\
-  \ built on the Elixir/Phoenix ecosystem. While it follows the traditional Phoenix\
-  \ horizontal layering (Web vs. Core), the internal organization of the `lib/plausible`\
-  \ directory demonstrates clear vertical boundaries based on domain concerns (e.g.,\
-  \ `ingestion`, `billing`, `auth`, `shield`, `teams`).\n\n### Architectural Evidence\n\
-  \n1.  **Modular Monolith**: The codebase is contained within a single Elixir application\
-  \ but is partitioned into high-level domain modules. Each module (found in `lib/plausible/`)\
-  \ encapsulates its own logic and often its own repository interactions or internal\
-  \ caching strategies (e.g., `plausible/shield` for traffic filtering vs. `plausible/billing`\
-  \ for subscription management). \n2.  **Layered Architecture**: The top-level separation\
-  \ between `lib/plausible` (the domain and business logic) and `lib/plausible_web`\
-  \ (the delivery mechanism via Phoenix controllers, views, and LiveView) is a classic\
-  \ implementation of a layered monolith. The domain logic is isolated from the HTTP\
-  \ handling and UI concerns.\n3.  **Pipeline (Pipe-and-Filter) for Ingestion**: The\
-  \ analytics ingestion path constitutes a specialized pipeline. Files like `lib/plausible/ingestion/persistor.ex`,\
-  \ `write_buffer.ex`, and `event.ex` indicate a flow where incoming data is processed,\
-  \ enriched (geolocation, device detection), buffered, and eventually persisted.\
-  \ The use of a \"Persistor\" with backends (as seen in the requested file) suggests\
-  \ a pluggable strategy for handling high-volume data streams.\n4.  **Hybrid Persistence**:\
-  \ The architecture handles a clear split between relational data (PostgreSQL for\
-  \ users, sites, and settings) and analytical data (ClickHouse). This is reflected\
-  \ in the repository structure with separate repo modules (`ClickhouseRepo`, `IngestRepo`,\
-  \ and the standard `Repo` for Postgres), aligning with a domain-specific data management\
-  \ strategy within the monolith.\n\n### Why not other styles?\n- **Not Microservices**:\
-  \ Despite using two different database types, all logic is compiled and deployed\
-  \ as a single Erlang/OTP release. Communication between modules is via direct function\
-  \ calls, not network protocols.\n- **Not Event-Driven**: While the system processes\
-  \ \"events\" (web analytics hits), the internal code organization does not rely\
-  \ on a message broker (like Kafka or RabbitMQ) for orchestration between its components.\
-  \ It uses synchronous or local asynchronous processing (via Oban workers and Task\
-  \ supervisors).\n- **Not Hexagonal**: While there is some isolation of external\
-  \ APIs (like `google/api.ex` and `s3/client.ex`), the core domain modules are heavily\
-  \ coupled to the Ecto repositories and the database schemas rather than using abstract\
-  \ ports."
-confidence_calibration:
-  original_confidence: 0.8
-  calibrated_confidence: 0.78
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.8
-  style_clarity: 0.75
-  alternatives_dismissed: 0.8
-  exploration_completeness: 0.75
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:47:37Z'
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
+  \ Style: **Layered**\n\nThe codebase follows a classic Phoenix/Elixir layered architecture\
+  \ with clear horizontal separation:\n\n**1. Presentation Layer (`lib/plausible_web/`)**\n\
+  - Controllers handle HTTP requests (`controllers/`)\n- Views and templates for rendering\
+  \ (`views/`, `templates/`)\n- LiveViews for interactive UI (`live/`)\n- Plugs for\
+  \ request processing pipeline (`plugs/`)\n- Router defines HTTP endpoints (`router.ex`)\n\
+  \n**2. Business/Domain Layer (`lib/plausible/`)**\n- Domain contexts: `auth/`, `billing/`,\
+  \ `teams/`, `sites/`, `stats/`, `ingestion/`, `goals/`, `imported/`, `shield/`,\
+  \ etc.\n- Each module encapsulates business logic\n- Example: `Plausible.Stats.Query`\
+  \ builds analytics queries; `Plausible.Sites.Index` manages site listings\n\n**3.\
+  \ Data Access Layer**\nMultiple specialized repositories:\n- `Plausible.Repo` —\
+  \ PostgreSQL (users, sites, teams, billing)\n- `Plausible.ClickhouseRepo` — ClickHouse\
+  \ read-only queries  \n- `Plausible.IngestRepo` — ClickHouse writes for event ingestion\n\
+  - `Plausible.AsyncInsertRepo` — Async database operations\n\n### Secondary Style:\
+  \ **Modular Monolith**\n\n**Evidence for Modular Monolith:**\n1. **Single Deployable**:\
+  \ One OTP application (`:plausible`), one Dockerfile artifact\n2. **Organized Domain\
+  \ Modules**: Clear separation into domain contexts\n   - `lib/plausible/auth/` —\
+  \ authentication, users, sessions\n   - `lib/plausible/billing/` — subscriptions,\
+  \ plans, quotas\n   - `lib/plausible/teams/` — team management, memberships\n  \
+  \ - `lib/plausible/stats/` — analytics query building and execution\n   - `lib/plausible/ingestion/`\
+  \ — event processing pipeline\n3. **Single Entry Point**: `Plausible.Application`\
+  \ starts all supervisors and children\n4. **Shared Infrastructure**: Common cache,\
+  \ telemetry, and logging infrastructure\n\n### What This Is NOT\n\n**Not Microservices:**\n\
+  - Single deployment artifact (one release)\n- No service boundaries, API gateways,\
+  \ or inter-service communication\n- Direct function calls between all modules\n\n\
+  **Not Event-Driven Architecture:**\n- Uses Oban for background jobs (email reports,\
+  \ analytics imports) — standard Elixir pattern\n- WriteBuffer batches ClickHouse\
+  \ inserts for performance — not event-based communication\n- Components communicate\
+  \ via direct function calls, not events\n\n**Not Service-Based:**\n- Not 2-5 coarse-grained\
+  \ services sharing a database\n- Single application with multiple repositories\n\
+  \n**Not Hexagonal/Ports & Adapters:**\n- No explicit ports/adapters abstraction\
+  \ layer\n- Controllers call contexts directly; contexts call repos directly\n\n\
+  **Not Microkernel/Plugin:**\n- `Plausible.PluginsAPI` is an external API for users,\
+  \ not a plugin system\n- No runtime extension loading mechanism\n\n### Key Architecture\
+  \ Details\n\n**Dual Database Architecture:**\n- PostgreSQL: Transactional data (accounts,\
+  \ configuration)\n- ClickHouse: Analytical data (events_v2, sessions_v2 tables)\n\
+  \nThis is an optimization for the analytics domain, not a microservices pattern.\n\
+  \n**Background Job Processing:**\n- Oban workers in `lib/workers/` for async tasks\n\
+  - Email reports, analytics imports, cleanup jobs\n- Standard Phoenix pattern, not\
+  \ event-driven architecture\n\n**Edition Feature Toggles:**\n- `on_ee`/`on_ce` macros\
+  \ conditionally compile features\n- Single codebase serves both Community Edition\
+  \ and Enterprise Edition\n\n### Conclusion\n\nPlausible Analytics is a well-structured\
+  \ **Layered Monolith** with **Modular Monolith** characteristics. The Phoenix framework\
+  \ naturally enforces the layered pattern (controllers → contexts → repos), while\
+  \ the internal organization into domain modules provides clean separation of concerns\
+  \ within a single deployable unit. The dual-database architecture (PostgreSQL +\
+  \ ClickHouse) is a domain-specific optimization for web analytics, not a distributed\
+  \ system pattern."

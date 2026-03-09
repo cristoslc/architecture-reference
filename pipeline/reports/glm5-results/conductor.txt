@@ -1,0 +1,147 @@
+Based on my thorough investigation, I now have sufficient evidence to classify the architecture of Netflix Conductor.
+
+---
+verdict: classified
+primary_style: Hexagonal Architecture
+secondary_styles:
+  - Modular Monolith
+  - Microkernel (Plugin)
+confidence: 0.90
+---
+
+## Architecture Analysis
+
+Netflix Conductor exhibits a **Hexagonal Architecture (Ports and Adapters)** pattern as its primary style, with strong characteristics of **Modular Monolith** and a **Microkernel/Plugin** system for extensibility.
+
+### Evidence for Hexagonal Architecture
+
+**1. Core Domain Defines Port Interfaces (DAOs)**
+
+The `core` module defines persistence abstraction interfaces in `core/src/main/java/com/netflix/conductor/dao/`:
+- `ExecutionDAO` - workflow and task execution storage
+- `QueueDAO` - message queue operations
+- `MetadataDAO` - workflow and task definitions
+- `IndexDAO` - search/indexing operations
+- `EventHandlerDAO` - event handler storage
+
+These are pure interfaces with no implementation details—classic "ports" in hexagonal architecture.
+
+**2. Pluggable Adapter Implementations**
+
+Multiple persistence modules implement these interfaces:
+- `redis-persistence/` - `RedisExecutionDAO`, `RedisMetadataDAO`, `RedisQueueDAO` (implements `QueueDAO`)
+- `cassandra-persistence/` - `CassandraExecutionDAO`, `CassandraMetadataDAO`
+- `es6-persistence/` - `ElasticSearchDAOV6` (implements `IndexDAO`)
+
+Each module uses Spring's `@Conditional` annotations for runtime selection:
+```java
+@Configuration
+@Conditional(AnyRedisCondition.class)  // Redis module
+@ConditionalOnProperty(name = "conductor.db.type", havingValue = "cassandra")  // Cassandra module
+```
+
+**3. Application Core Isolation**
+
+The `core` module contains all business logic with compile-time dependencies only on common models (`conductor-common`) and abstraction interfaces. The server module wires everything together:
+```groovy
+// server/build.gradle
+implementation project(':conductor-rest')
+implementation project(':conductor-core')
+implementation project(':conductor-redis-persistence')
+implementation project(':conductor-cassandra-persistence')
+implementation project(':conductor-es6-persistence')
+```
+
+### Evidence for Modular Monolith
+
+**1. Single Deployable Unit**
+
+The `server` module produces a single Spring Boot JAR:
+```groovy
+bootJar {
+    mainClass = 'com.netflix.conductor.Conductor'
+    classifier = 'boot'
+}
+```
+
+**2. Enforced Module Boundaries via Gradle**
+
+Clear separation into 20+ Gradle subprojects:
+```
+include 'core'
+include 'common'
+include 'server'
+include 'rest'
+include 'client'
+include 'redis-persistence'
+include 'cassandra-persistence'
+include 'es6-persistence'
+include 'http-task'
+include 'json-jq-task'
+...
+```
+
+Each module has explicit dependency declarations (`build.gradle`), preventing circular dependencies.
+
+**3. Layered Organization Within Modules**
+
+- `common` - Domain models, annotations, validation
+- `core` - Business logic, workflow execution engine, service layer
+- `rest` - REST controllers (presentation layer)
+- `server` - Spring Boot application assembly
+
+### Evidence for Microkernel/Plugin Pattern
+
+**1. System Task Plugin Architecture**
+
+Core defines an abstract `WorkflowSystemTask` base class:
+```java
+public abstract class WorkflowSystemTask {
+    private final String taskType;
+    public void start(WorkflowModel workflow, TaskModel task, WorkflowExecutor workflowExecutor) { }
+    public boolean execute(WorkflowModel workflow, TaskModel task, WorkflowExecutor workflowExecutor) { }
+    public void cancel(WorkflowModel workflow, TaskModel task, WorkflowExecutor workflowExecutor) { }
+}
+```
+
+**2. Auto-Discovery via Spring DI**
+
+The `SystemTaskRegistry` auto-discovers all `WorkflowSystemTask` implementations:
+```java
+@Component
+public class SystemTaskRegistry {
+    private final Map<String, WorkflowSystemTask> registry;
+    
+    public SystemTaskRegistry(Set<WorkflowSystemTask> tasks) {
+        this.registry = tasks.stream()
+            .collect(Collectors.toMap(WorkflowSystemTask::getTaskType, Function.identity()));
+    }
+}
+```
+
+**3. Optional Task Modules**
+
+- `http-task` - `HttpTask extends WorkflowSystemTask` (with `@Component(TASK_TYPE_HTTP)`)
+- `json-jq-task` - JSON processing task
+- `awssqs-event-queue` - AWS SQS integration
+
+These are optionally included in the server build, allowing runtime extensibility.
+
+### What Was Rejected
+
+- **Microservices**: Single deployable JAR, not multiple independent services. Docker compose runs one server container with external Redis/ES dependencies.
+
+- **Event-Driven**: While Conductor *orchestrates* event-driven workflows, its internal architecture is synchronous request-response (REST controllers → Services → DAOs). QueueDAO is a persistence mechanism, not an architectural messaging pattern.
+
+- **CQRS**: No separation of read/write models. The same DAO interfaces handle both queries and commands.
+
+- **Domain-Driven Design**: While there are domain concepts (Workflow, Task), the code isn't organized around bounded contexts with aggregates, entities, and value objects as primary structuring mechanism.
+
+### Conclusion
+
+Netflix Conductor is a well-architected **Hexagonal/Modular Monolith** with clean separation between:
+- **Domain Core**: Business logic in `core` with port interfaces
+- **Adapters**: Pluggable persistence implementations (Redis, Cassandra, ES)
+- **Plugin System**: Extensible workflow tasks via Spring auto-wiring
+
+This architecture enables swapping databases without touching business logic and adding new system tasks without modifying the core.

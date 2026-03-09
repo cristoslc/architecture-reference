@@ -16,7 +16,7 @@ languages:
 architecture_styles:
 - Microkernel (Plugin)
 - Layered
-- Modular Monolith
+- Event-Driven
 classification_status: classified
 review_notes: "Nextcloud Server is a classic example of a **Microkernel (Plugin)**\
   \ architecture. The codebase is divided into a \"Core\" system (the microkernel)\
@@ -37,50 +37,48 @@ review_notes: "Nextcloud Server is a classic example of a **Microkernel (Plugin)
   \ and dependency injection for each individual module.\n\n### 2. Layered (Secondary\
   \ Style)"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.82
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:10:32Z'
-classification_reasoning: "Nextcloud Server is a classic example of a **Microkernel\
-  \ (Plugin)** architecture. The codebase is divided into a \"Core\" system (the microkernel)\
-  \ and a vast array of \"Apps\" (the plugins) that extend the system's functionality.\n\
-  \n### 1. Microkernel (Plugin) Evidence\nThe architecture is explicitly designed\
-  \ to be extensible through the `apps/` directory. \n- **Core vs. Extension:** The\
-  \ `lib/` directory contains the core platform services (the microkernel), while\
-  \ `apps/` contains optional but critical units like `encryption`, `files_trashbin`,\
-  \ and `user_ldap`.\n- **Plugin Contracts:** The `lib/public` directory serves as\
-  \ the strictly defined **SDK/API surface** for app developers. The presence of numerous\
-  \ interfaces (e.g., `lib/public/IAppConfig.php`, `lib/public/IUserManager.php`)\
-  \ establishes the contract between the kernel and the plugins.\n- **Plugin Metadata:**\
-  \ Each app contains an `appinfo/info.xml` file (e.g., `apps/encryption/appinfo/info.xml`)\
-  \ that defines how the app hooks into the core system, including background jobs,\
-  \ repair steps, console commands, and settings sections.\n- **Dynamic Loading:**\
-  \ The `OC\\AppFramework\\App` class (found in `lib/private/AppFramework/App.php`)\
-  \ manages the lifecycle of these apps, handling namespacing (`buildAppNamespace`)\
-  \ and dependency injection for each individual module.\n\n### 2. Layered (Secondary\
-  \ Style)\nWithin both the core and the apps, Nextcloud follows a strict horizontal\
-  \ **Layered** pattern, influenced by the Symfony/Pimple stack:\n- **Presentation:**\
-  \ Handled by `Controller` classes (referenced in `App.php` and found within `apps/*/lib/Controller`).\n\
-  - **Domain/Business Logic:** Often located in `Service` or `Manager` classes within\
-  \ the `lib/` folders.\n- **Data Access:** Utilizes a `Migration` layer (seen in\
-  \ `core/Migrations`) and `Mapper`/`Database` abstractions.\n\n### 3. Modular Monolith\
-  \ (Secondary Style)\nWhile it functions as a plugin system, the \"Server\" repository\
-  \ itself is a **Modular Monolith** because it bundles several \"shipped\" apps (like\
-  \ `files`, `settings`, and `dav`) into a single deployment unit. \n- **Enforced\
-  \ Boundaries:** The separation of `lib/public` (exposed API) versus `lib/private`\
-  \ (internal core logic) is a conscious effort to enforce module boundaries and prevent\
-  \ apps from tightly coupling to the core transitionary logic.\n- **Shared Unit:**\
-  \ Despite the modularity, the entire system is typically deployed as a single PHP\
-  \ runtime instance sharing a common configuration and database schema.\n\n### Rejection\
-  \ of Microservices\nAlthough the system has internal \"services,\" they are not\
-  \ independently deployable. They share the same memory space and runtime environment\
-  \ (PHP). Communication is done via direct method calls or an internal `EventDispatcher`\
-  \ rather than network-based RPC or message brokers."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.82
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.9
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:58:07Z'
+classification_reasoning: "## Architecture Analysis: Nextcloud Server\n\n### Primary\
+  \ Classification: Microkernel (Plugin)\n\nNextcloud Server implements a classic\
+  \ **microkernel/plugin architecture** with a well-defined core system extended by\
+  \ dynamically loaded applications.\n\n**Key Evidence:**\n\n1. **Core Platform (Microkernel)**:\
+  \ The `lib/private/` and `core/` directories form the platform core that provides:\n\
+  \   - Dependency injection container (`lib/private/AppFramework/DependencyInjection/DIContainer.php`)\n\
+  \   - Application bootstrap coordinator (`lib/private/AppFramework/Bootstrap/Coordinator.php`)\n\
+  \   - Event dispatch system (`lib/private/EventDispatcher/EventDispatcher.php`)\n\
+  \   - Service container with app-scoped containers\n\n2. **Plugin Contract**: Apps\
+  \ implement `IBootstrap` interface (`lib/public/AppFramework/Bootstrap/IBootstrap.php`):\n\
+  \   ```php\n   interface IBootstrap {\n       public function register(IRegistrationContext\
+  \ $context): void;\n       public function boot(IBootContext $context): void;\n\
+  \   }\n   ```\n\n3. **Extension Points**: The `IRegistrationContext` (`lib/public/AppFramework/Bootstrap/IRegistrationContext.php`)\
+  \ defines registration methods for:\n   - Services, capabilities, event listeners,\
+  \ middleware\n   - Search providers, dashboard widgets, crash reporters\n   - Authentication\
+  \ providers, notification handlers, etc.\n\n4. **Dynamic App Loading**: Apps are\
+  \ discovered and loaded from `apps/` directory:\n   - Each app has `appinfo/info.xml`\
+  \ declaring metadata, dependencies, and extension points\n   - Apps can be enabled/disabled\
+  \ at runtime\n   - 31 bundled apps: files, settings, dav, federation, oauth2, etc.\n\
+  \n5. **Public API Contract**: `lib/public/` contains stable interfaces (`OCP\\`\
+  \ namespace) that apps depend on, insulating them from internal implementation changes.\n\
+  \n### Secondary: Layered\n\nWithin both the core and each app, a layered architecture\
+  \ is maintained:\n\n- **Controller Layer**: HTTP request handling (`Controller/`\
+  \ directories)\n- **Service Layer**: Business logic (`Service/` directories)  \n\
+  - **Data Layer**: Database access (`Db/`, `Mapper/` directories)\n\nExample from\
+  \ `apps/files/`:\n```\nController/ApiController.php → Service/TagService.php → Db/Mapper/\n\
+  ```\n\n### Secondary: Event-Driven\n\nThe system extensively uses events for decoupled\
+  \ communication:\n\n- `IEventDispatcher` interface for typed event dispatch\n- Apps\
+  \ register listeners via `$context->registerEventListener()`\n- Example: `apps/comments/lib/Activity/Listener.php`\
+  \ listens to `CommentsEvent` and publishes activities\n\n### What This Is NOT\n\n\
+  - **NOT Microservices**: Single monolithic deployment unit - all apps run in the\
+  \ same PHP process. No service boundaries, no separate deployment units, no network\
+  \ communication between components.\n\n- **NOT Hexagonal**: While there's a public\
+  \ API (`lib/public/`), the pattern is plugin extension rather than ports-and-adapters.\
+  \ Apps extend the core, they don't plug into application ports.\n\n- **NOT Domain-Driven\
+  \ Design**: No bounded contexts, aggregates, or ubiquitous language organization.\
+  \ Apps are feature modules, not domain contexts.\n\n### Summary\n\nNextcloud Server\
+  \ is a textbook example of a microkernel architecture: a stable core platform that\
+  \ exposes well-defined extension points, with apps as plugins that extend functionality.\
+  \ The layered organization within each component and the event-driven communication\
+  \ patterns reinforce the modularity and extensibility of the design."

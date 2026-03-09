@@ -1,0 +1,65 @@
+Let me explore the server structure more deeply to understand the internal architecture:Now I have enough information to classify this architecture. Let me read a bit more about how plugins are used in the server to confirm the plugin architecture:Now I have enough evidence to provide the classification:
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.88
+---
+
+## Analysis
+
+### Primary Style: Modular Monolith
+
+Mattermost is a **Modular Monolith** with clear evidence of enforced internal module boundaries:
+
+**Single Deployable Unit:**
+- README states: "runs as a single Linux binary"
+- Single `server/cmd/mattermost/main.go` entry point
+- Uses PostgreSQL as single database
+- Job server runs within the same process (not separate services)
+
+**Enforced Internal Module Boundaries:**
+The codebase shows strong separation into distinct modules:
+
+1. **`server/channels/api4/`** - API/HTTP handler layer with 120+ route definition files
+2. **`server/channels/app/`** - Business logic layer with 241 Go files handling domain operations
+3. **`server/channels/store/`** - Data access layer with typed store interfaces (`TeamStore`, `ChannelStore`, `PostStore`, etc.)
+4. **`server/public/model/`** - Shared domain models (260+ files)
+5. **`server/platform/services/`** - Platform services (cache, searchengine, telemetry, etc.)
+
+The `Store` interface in `server/channels/store/store.go` (lines 25-104) enforces data access patterns with 40+ typed store interfaces, preventing direct database access from upper layers.
+
+### Secondary Style: Microkernel (Plugin)
+
+Mattermost has a **robust plugin system** that extends the core at runtime:
+
+**Plugin Infrastructure Evidence:**
+- `server/public/plugin/environment.go` - Environment struct manages plugin lifecycle (lines 51-63)
+- `server/public/plugin/hooks.go` - 40+ hook IDs for plugin event interception (OnActivate, MessageWillBePosted, UserHasLoggedIn, etc.)
+- `server/public/plugin/api.go` - API interface exposing 100+ methods to plugins
+- Uses Hashicorp go-plugin for process isolation (line 18: `plugin "github.com/hashicorp/go-plugin"`)
+- Plugin manifest system for metadata definition
+
+**Enterprise Extensions via Interfaces:**
+The `server/einterfaces/` directory defines enterprise extension interfaces:
+- `LdapInterface`, `SamlInterface`, `ComplianceInterface`, `MessageExportInterface`
+- `AccessControlServiceInterface` combining PolicyAdministrationPoint and PolicyDecisionPoint
+- Enterprise features loaded via Go's init() pattern (`server/enterprise/external_imports.go`)
+
+This creates a two-tier extension model:
+1. **Runtime plugins** via Hashicorp plugin system (external developers)
+2. **Build-time enterprise extensions** via einterfaces (internal enterprise edition)
+
+### Rejected Classifications
+
+**Not Microservices:** Single binary, single database, no service boundaries with independent deployment. All modules share the same process and database connection pool.
+
+**Not Layered (pure):** While there are horizontal layers (API → App → Store), the plugin architecture and enterprise extension interfaces make this more than just simple layering. The `einterfaces` pattern allows enterprise features to inject implementations across layers.
+
+**Not Hexagonal Architecture:** No explicit ports/adapters pattern. The `einterfaces` pattern is similar but not implemented as true hexagonal architecture with inbound/outbound ports. The plugin system is the primary extension mechanism, not adapter injection.
+
+**Not Domain-Driven Design:** While there are domain concepts (Team, Channel, Post, User), there's no evidence of bounded contexts, aggregates, or ubiquitous language organization. The modules are organized by technical layer (api, app, store) rather than domain boundaries.
+
+**Not Event-Driven:** Background jobs exist (`server/channels/jobs/`) for scheduled tasks, but primary communication is synchronous HTTP API. WebSocket support exists for real-time updates but isn't the core architectural pattern.

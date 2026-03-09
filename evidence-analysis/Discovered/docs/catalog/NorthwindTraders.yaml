@@ -17,7 +17,6 @@ languages:
 architecture_styles:
 - Hexagonal Architecture
 - CQRS
-- Domain-Driven Design
 classification_status: classified
 review_notes: 'This repository is a classic implementation of **Hexagonal Architecture**
   (commonly referred to in the .NET ecosystem as **Clean Architecture**, as explicitly
@@ -49,87 +48,54 @@ review_notes: 'This repository is a classic implementation of **Hexagonal Archit
 
   ### Evidence for CQRS (Command Query Responsibility Segregation)'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.83
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:03:55Z'
-classification_reasoning: 'This repository is a classic implementation of **Hexagonal
-  Architecture** (commonly referred to in the .NET ecosystem as **Clean Architecture**,
-  as explicitly stated in the README). The codebase is structured into concentric
-  layers where dependencies point inwards toward the core logic, isolating the application
-  from external concerns like databases and UI frameworks.
-
-
-  ### Evidence for Hexagonal Architecture
-
-  The project is divided into distinct projects within the `Src/` directory that map
-  directly to Hexagonal/Clean layers:
-
-  1.  **Domain (`Src/Domain`)**: The "Center." It contains enterprise logic, entities
-  (e.g., `Customer.cs`, `Product.cs`), and value objects (`AdAccount.cs`), with zero
-  dependencies on other layers.
-
-  2.  **Application (`Src/Application`)**: The "Core." This layer defines the interfaces
-  (`Src/Application/Common/Interfaces`) that act as **Ports**. It contains the business
-  flow logic and is independent of data access or UI frameworks.
-
-  3.  **Infrastructure/Persistence (`Src/Infrastructure`, `Src/Persistence`)**: The
-  **Adapters**. These projects implement the interfaces defined in the Application
-  layer (e.g., `NorthwindDbContext.cs` implementing database access).
-
-  4.  **WebUI (`Src/WebUI`)**: The entry point or "Primary Adapter," containing the
-  controllers and the frontend (Angular).
-
-
-  ### Evidence for CQRS (Command Query Responsibility Segregation)
-
-  The internal structure of the `Application` layer is strictly organized by Commands
-  and Queries rather than by service-based grouping:
-
-  - `Src/Application/Customers/Commands`
-
-  - `Src/Application/Customers/Queries`
-
-  - `Src/Application/Products/Commands`
-
-  - `Src/Application/Products/Queries`
-
-  This layout, combined with the presence of `Behaviours` (typically used with MediatR
-  in .NET), indicates that the system separates read and write operations into distinct
-  objects.
-
-
-  ### Evidence for Domain-Driven Design (DDD)
-
-  The repository employs several DDD tactical patterns:
-
-  - **Entities and Value Objects**: Located in `Src/Domain/Entities` and `Src/Domain/ValueObjects`,
-  using a base `ValueObject` class to handle equality logic.
-
-  - **Bounded Contexts**: While organized as a single monolith, the folder names under
-  `Application` (Customers, Products, Employees) align with domain boundaries.
-
-  - **Auditable Entities**: Uses a common `AuditableEntity` base to manage metadata
-  across the domain.
-
-
-  ### Rejected Styles
-
-  - **Layered (Traditional)**: Rejected because it does not follow the traditional
-  "UI -> Service -> Data" dependency flow; instead, it uses Dependency Inversion to
-  ensure the Core is independent of the Database.
-
-  - **Microservices**: Rejected as the solution compiles into a single deployable
-  unit (the WebUI project) and sits within a single `.sln` (solution) file.
-
-  - **Modular Monolith**: While it has modules, the separation is primarily by technical
-  layer (Clean Architecture) rather than strict vertical functional slicing that encapsulates
-  its own persistence per module.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.83
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.9
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:32:49Z'
+classification_reasoning: "## Analysis\n\nThis repository implements **Hexagonal Architecture\
+  \ (Ports and Adapters)** using the Clean Architecture pattern, with **CQRS** as\
+  \ a secondary pattern implemented via MediatR.\n\n### Evidence for Hexagonal Architecture\n\
+  \n**1. Clear dependency inversion with ports defined in the Application layer:**\n\
+  - `Src/Application/Common/Interfaces/INorthwindDbContext.cs` - defines the data\
+  \ access interface (port)\n- `Src/Application/Common/Interfaces/INotificationService.cs`\
+  \ - defines external service interface\n- `Src/Application/Common/Interfaces/ICurrentUserService.cs`\
+  \ - defines authentication context interface\n- `Src/Application/Common/Interfaces/IDateTime.cs`\
+  \ - defines time abstraction\n\n**2. Adapters implementing ports in outer layers:**\n\
+  - `Src/Persistence/NorthwindDbContext.cs` implements `INorthwindDbContext` (adapter\
+  \ for data persistence)\n- `Src/Infrastructure/NotificationService.cs` implements\
+  \ `INotificationService` (adapter for notifications)\n- `Src/WebUI/Services/CurrentUserService.cs`\
+  \ implements `ICurrentUserService` (adapter for HTTP context)\n- `Src/Infrastructure/MachineDateTime.cs`\
+  \ implements `IDateTime` (adapter for system time)\n\n**3. Strict dependency flow\
+  \ enforcement:**\n- **Domain layer** (`Src/Domain/Domain.csproj`): Pure .NET Standard\
+  \ 2.1, no external project references - contains only entities, value objects, and\
+  \ domain logic\n- **Application layer**: References Domain and Common only - defines\
+  \ interfaces implemented by outer layers\n- **Infrastructure/Persistence layers**:\
+  \ Reference Application (implementing its interfaces)\n- **Presentation layer**\
+  \ (`Src/WebUI`): References all inner layers but is the outermost layer\n\n**4.\
+  \ Solution structure organization (`Northwind.sln`):**\n```\nCore folder:\n  - Common,\
+  \ Domain, Application\nInfrastructure folder:\n  - Infrastructure, Persistence \
+  \ \nPresentation folder:\n  - WebUI\n```\n\n### Evidence for CQRS\n\n**1. Command/Query\
+  \ separation using MediatR:**\n- Commands: `CreateProductCommand`, `UpdateProductCommand`,\
+  \ `DeleteProductCommand` (`Src/Application/Products/Commands/`)\n- Queries: `GetProductsListQuery`,\
+  \ `GetProductDetailQuery`, `GetProductsFileQuery` (`Src/Application/Products/Queries/`)\n\
+  \n**2. Separate handlers for each operation:**\n- `CreateProductCommandHandler :\
+  \ IRequestHandler<CreateProductCommand, int>`\n- `GetProductsListQueryHandler :\
+  \ IRequestHandler<GetProductsListQuery, ProductsListVm>`\n\n**3. Pipeline behaviors\
+  \ for cross-cutting concerns:**\n- `RequestValidationBehavior<TRequest, TResponse>`\
+  \ (`Src/Application/Common/Behaviours/`)\n- `RequestPerformanceBehaviour<TRequest,\
+  \ TResponse>`\n\n### Why not primarily Domain-Driven Design?\n\nWhile the codebase\
+  \ uses some DDD tactical patterns:\n- **Value Objects**: `ValueObject` base class\
+  \ (`Src/Domain/Common/ValueObject.cs`), `AdAccount` value object\n- **Domain Exceptions**:\
+  \ `AdAccountInvalidException`\n\nIt lacks key strategic DDD elements:\n- No Aggregate\
+  \ Root pattern implementation\n- No Bounded Contexts (single domain model for entire\
+  \ application)\n- No Repository pattern abstraction (uses DbContext directly via\
+  \ interface)\n\n### Why not primarily Layered?\n\nWhile there are layers, this is\
+  \ not traditional layered architecture because:\n- **Dependency inversion**: Inner\
+  \ layers define interfaces that outer layers implement (not top-down dependencies)\n\
+  - **Application core independence**: Domain and Application layers have no infrastructure\
+  \ dependencies\n- **Ports and Adapters pattern**: The key distinction is that business\
+  \ logic doesn't depend on infrastructure - infrastructure depends on business logic\
+  \ abstractions\n\n### Why not Microservices?\n\nThis is a single deployable monolithic\
+  \ application:\n- Single `WebUI.csproj` as the deployable unit\n- Single database\
+  \ context (`NorthwindDbContext`)\n- Angular SPA served from same host\n- All projects\
+  \ compile into one deployment artifact"

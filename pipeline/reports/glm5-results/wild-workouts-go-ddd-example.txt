@@ -1,0 +1,131 @@
+Based on my investigation, I have sufficient evidence to classify this repository's architecture.
+
+---
+verdict: classified
+primary_style: Domain-Driven Design
+secondary_styles:
+  - CQRS
+  - Microservices
+confidence: 0.90
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Domain-Driven Design (DDD)
+
+This repository is explicitly designed as a DDD example project, with clear architectural evidence throughout:
+
+**Bounded Contexts:**
+The codebase is organized into three distinct bounded contexts, each as a separate Go module:
+- `internal/trainer/` - Trainer availability management
+- `internal/trainings/` - Training session management  
+- `internal/users/` - User balance management
+
+Each context has its own `go.mod` file and domain model.
+
+**Domain Layer Structure:**
+Each bounded context follows the same DDD-aligned structure:
+- `domain/` - Contains entities, value objects, and repository interfaces
+- `app/` - Application layer with use cases
+- `adapters/` - Infrastructure adapters implementing domain interfaces
+- `ports/` - Incoming interface adapters (HTTP/gRPC handlers)
+
+**Rich Domain Model Evidence:**
+
+From `internal/trainer/domain/hour/hour.go`:
+- Private encapsulated fields with public getters (`hour time.Time`, `availability Availability`)
+- Factory pattern for entity creation with validation (`NewFactory()`, `FactoryConfig`)
+- Domain invariants enforced in business logic
+- Domain-specific error types (`TooDistantDateError`, `TooEarlyHourError`)
+
+From `internal/trainer/domain/hour/availability.go`:
+- Type-safe value object enum pattern (`Availability` struct instead of string)
+- Domain behavior methods (`ScheduleTraining()`, `CancelTraining()`, `MakeAvailable()`)
+
+From `internal/trainer/domain/hour/repository.go`:
+- Repository interface defined in domain layer (dependency inversion)
+
+**README Explicit Documentation:**
+> "Wild Workouts is an **example Go DDD** project... apply DDD by refactoring"
+> 
+> Article titles: "When microservices in Go are not enough: introduction to DDD Lite", "Combining DDD, CQRS, and Clean Architecture"
+
+### Secondary Style: CQRS
+
+Clear Command Query Responsibility Segregation within each bounded context:
+
+**Structure Evidence:**
+```
+internal/trainer/app/
+├── command/
+│   ├── cancel_training.go
+│   ├── schedule_training.go
+│   └── make_hours_available.go
+└── query/
+    ├── available_hours.go
+    └── hour_availability.go
+```
+
+**Application Layer Design (`internal/trainer/app/app.go`):**
+```go
+type Application struct {
+    Commands Commands
+    Queries  Queries
+}
+
+type Commands struct {
+    CancelTraining   command.CancelTrainingHandler
+    ScheduleTraining command.ScheduleTrainingHandler
+    // ...
+}
+
+type Queries struct {
+    HourAvailability      query.HourAvailabilityHandler
+    TrainerAvailableHours query.AvailableHoursHandler
+}
+```
+
+**Separate Handler Types:**
+- Command handlers: `decorator.CommandHandler[ScheduleTraining]`
+- Query handlers: `decorator.QueryHandler[AvailableHours, []Date]`
+- Read models for queries: `AvailableHoursReadModel` interface
+
+README article 10 explicitly documents this: "Introducing basic CQRS by refactoring"
+
+### Secondary Style: Microservices
+
+**Independent Deployment Units:**
+- Three services deployed independently on Google Cloud Run (from `terraform/cloud-run.tf`):
+  - `trainer-http` / `trainer-grpc`
+  - `trainings-http`
+  - `users-http` / `users-grpc`
+
+**Separate Go Modules:**
+Go workspace (`go.work`) defines separate modules for each service:
+```go
+use (
+    ./internal/common
+    ./internal/trainer
+    ./internal/trainings
+    ./internal/users
+)
+```
+
+**Inter-Service Communication:**
+- Synchronous gRPC calls between services
+- Protobuf definitions in `api/protobuf/`
+- Services call each other: `trainings` service calls `trainer` and `users` gPC endpoints (from `internal/trainings/adapters/trainer_grpc.go` and `users_grpc.go`)
+
+### What Was Rejected
+
+**Not Hexagonal Architecture:** While there's a `ports/` directory and clear separation of concerns, the pattern is DDD first. The directory naming (ports, adapters) is influenced by hexagonal concepts, but the primary organizational principle is bounded contexts and domain models. This is "DDD Lite" as the authors describe it.
+
+**Not Event-Driven:** Services communicate via synchronous gRPC calls, not through events or message brokers. No message queue configuration, event handlers, or async event processing was found.
+
+**Not Pure Layered:** There's no horizontal layering across the entire application (presentation → business → data). Instead, each bounded context has its own internal vertical architecture.
+
+**Not Serverless (Primary):** While deployed to Cloud Run (serverless platform), the architecture is defined by DDD bounded contexts and microservices patterns. Serverless is the deployment model, not the architectural style.
+
+### Summary
+
+This repository demonstrates a well-structured DDD implementation with CQRS patterns applied within bounded contexts, deployed as independent microservices. The README and article series explicitly document the intentional evolution from "too modern" serverless to DDD-organized architecture, making this an exemplary reference for these architectural styles combined.

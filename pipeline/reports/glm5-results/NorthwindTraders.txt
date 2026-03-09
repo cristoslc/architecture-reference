@@ -1,0 +1,83 @@
+Now I have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Hexagonal Architecture
+secondary_styles:
+  - CQRS
+confidence: 0.88
+---
+
+## Analysis
+
+This repository implements **Hexagonal Architecture (Ports and Adapters)** using the Clean Architecture pattern, with **CQRS** as a secondary pattern implemented via MediatR.
+
+### Evidence for Hexagonal Architecture
+
+**1. Clear dependency inversion with ports defined in the Application layer:**
+- `Src/Application/Common/Interfaces/INorthwindDbContext.cs` - defines the data access interface (port)
+- `Src/Application/Common/Interfaces/INotificationService.cs` - defines external service interface
+- `Src/Application/Common/Interfaces/ICurrentUserService.cs` - defines authentication context interface
+- `Src/Application/Common/Interfaces/IDateTime.cs` - defines time abstraction
+
+**2. Adapters implementing ports in outer layers:**
+- `Src/Persistence/NorthwindDbContext.cs` implements `INorthwindDbContext` (adapter for data persistence)
+- `Src/Infrastructure/NotificationService.cs` implements `INotificationService` (adapter for notifications)
+- `Src/WebUI/Services/CurrentUserService.cs` implements `ICurrentUserService` (adapter for HTTP context)
+- `Src/Infrastructure/MachineDateTime.cs` implements `IDateTime` (adapter for system time)
+
+**3. Strict dependency flow enforcement:**
+- **Domain layer** (`Src/Domain/Domain.csproj`): Pure .NET Standard 2.1, no external project references - contains only entities, value objects, and domain logic
+- **Application layer**: References Domain and Common only - defines interfaces implemented by outer layers
+- **Infrastructure/Persistence layers**: Reference Application (implementing its interfaces)
+- **Presentation layer** (`Src/WebUI`): References all inner layers but is the outermost layer
+
+**4. Solution structure organization (`Northwind.sln`):**
+```
+Core folder:
+  - Common, Domain, Application
+Infrastructure folder:
+  - Infrastructure, Persistence  
+Presentation folder:
+  - WebUI
+```
+
+### Evidence for CQRS
+
+**1. Command/Query separation using MediatR:**
+- Commands: `CreateProductCommand`, `UpdateProductCommand`, `DeleteProductCommand` (`Src/Application/Products/Commands/`)
+- Queries: `GetProductsListQuery`, `GetProductDetailQuery`, `GetProductsFileQuery` (`Src/Application/Products/Queries/`)
+
+**2. Separate handlers for each operation:**
+- `CreateProductCommandHandler : IRequestHandler<CreateProductCommand, int>`
+- `GetProductsListQueryHandler : IRequestHandler<GetProductsListQuery, ProductsListVm>`
+
+**3. Pipeline behaviors for cross-cutting concerns:**
+- `RequestValidationBehavior<TRequest, TResponse>` (`Src/Application/Common/Behaviours/`)
+- `RequestPerformanceBehaviour<TRequest, TResponse>`
+
+### Why not primarily Domain-Driven Design?
+
+While the codebase uses some DDD tactical patterns:
+- **Value Objects**: `ValueObject` base class (`Src/Domain/Common/ValueObject.cs`), `AdAccount` value object
+- **Domain Exceptions**: `AdAccountInvalidException`
+
+It lacks key strategic DDD elements:
+- No Aggregate Root pattern implementation
+- No Bounded Contexts (single domain model for entire application)
+- No Repository pattern abstraction (uses DbContext directly via interface)
+
+### Why not primarily Layered?
+
+While there are layers, this is not traditional layered architecture because:
+- **Dependency inversion**: Inner layers define interfaces that outer layers implement (not top-down dependencies)
+- **Application core independence**: Domain and Application layers have no infrastructure dependencies
+- **Ports and Adapters pattern**: The key distinction is that business logic doesn't depend on infrastructure - infrastructure depends on business logic abstractions
+
+### Why not Microservices?
+
+This is a single deployable monolithic application:
+- Single `WebUI.csproj` as the deployable unit
+- Single database context (`NorthwindDbContext`)
+- Angular SPA served from same host
+- All projects compile into one deployment artifact

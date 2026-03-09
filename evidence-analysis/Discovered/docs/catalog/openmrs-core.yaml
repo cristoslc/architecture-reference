@@ -14,8 +14,8 @@ languages:
 - Java/Kotlin
 - JavaScript
 architecture_styles:
-- Layered
 - Microkernel (Plugin)
+- Layered
 classification_status: classified
 review_notes: 'The OpenMRS Core repository follows a traditional **Layered** architecture
   as its primary structural pattern, heavily integrated with a **Microkernel (Plugin)**
@@ -44,74 +44,53 @@ review_notes: 'The OpenMRS Core repository follows a traditional **Layered** arc
 
   ### 2. Secondary Style: Microkernel (Plugin)'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.78
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:04:21Z'
-classification_reasoning: 'The OpenMRS Core repository follows a traditional **Layered**
-  architecture as its primary structural pattern, heavily integrated with a **Microkernel
-  (Plugin)** system for extensibility.
-
-
-  ### 1. Primary Style: Layered
-
-  The repository is organized into distinct functional layers partitioned by Maven
-  modules. This is a classic "horizontal" separation:
-
-  - **`api/`**: The Core/Business Logic layer. It contains the domain entities, service
-  interfaces (e.g., `PatientService`, `EncounterService`), and the data access logic
-  (historically using Hibernate).
-
-  - **`web/`**: The Presentation/Application layer. This contains the controllers
-  and web-specific logic that exposes the API via a web interface or REST.
-
-  - **`webapp/`**: The Deployment unit. This serves as the assembly point for the
-  WAR file, integrating the `api` and `web` layers into a single deployable artifact
-  (`openmrs.war`).
-
-  - **`liquibase/`**: Dedicated module for database schema management, reinforcing
-  a centralized data-driven approach common in layered monoliths.
-
-
-  ### 2. Secondary Style: Microkernel (Plugin)
-
-  While the core is a monolith, its defining architectural feature is its **module
-  system**, which allows the core (the "microkernel") to be extended without modifying
-  its source code.
-
-  - **Extending via Modules**: The README explicitly highlights "Extending OpenMRS
-  with Modules," describing a system where `.omod` (OpenMRS Module) files are loaded
-  at runtime.
-
-  - **Plugin Infrastructure**: The `test-suite/module` directory demonstrates how
-  isolated modules (with their own `api` and `omod` sub-modules) interface with the
-  core.
-
-  - **Plugin Registry**: The core provides the lifecycle management and extension
-  points (hooks) that allow external modules to contribute new services, UI fragments,
-  and database changes.
-
-
-  ### 3. Rejected Styles
-
-  - **Microservices**: Although there is a `docker-compose.yml` and integration with
-  ElasticSearch/Grafana, these are supporting infrastructure for a single deployment
-  unit (`openmrs.war`). The core itself is not split into independently deployable
-  business services.
-
-  - **Modular Monolith**: While it is a monolith with modules, it lacks the strict
-  internal encapsulation (e.g., package-private boundaries or Java Modules) typically
-  associated with modern "Modular Monoliths." Instead, it uses a traditional Layered
-  approach where the `web` layer depends heavily on the `api` layer.
-
-  - **Hexagonal Architecture**: The core does not strictly isolate the domain from
-  infrastructure via ports and adapters; it is tightly coupled to specific frameworks
-  like Spring and Hibernate within the `api` module.'
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.78
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.8
-  alternatives_dismissed: 0.85
-  exploration_completeness: 0.72
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:51:55Z'
+classification_reasoning: "## Analysis\n\n### Primary: Microkernel (Plugin)\n\nOpenMRS-core\
+  \ implements a **microkernel architecture** with a sophisticated plugin/module system\
+  \ at its core. The evidence is compelling:\n\n**Module Loading Infrastructure:**\n\
+  - `api/src/main/java/org/openmrs/module/ModuleFactory.java` - Central factory for\
+  \ loading, starting, stopping, and storing modules at runtime\n- `api/src/main/java/org/openmrs/module/Module.java`\
+  \ - Core module representation with lifecycle state\n- `api/src/main/java/org/openmrs/module/ModuleClassLoader.java`\
+  \ - Custom classloader for module isolation\n- `api/src/main/java/org/openmrs/module/ModuleActivator.java`\
+  \ - Lifecycle callbacks (willStart, started, willStop, stopped)\n\n**Extension Points:**\n\
+  - `api/src/main/java/org/openmrs/module/Extension.java` - Abstract base for extensions\
+  \ that \"run at certain extension points throughout the user interface\"\n- `api/src/main/java/org/openmrs/module/AdvicePoint.java`\
+  \ - AOP-based extension points for cross-cutting concerns\n\n**Runtime Discovery\
+  \ and Loading:**\n```java\n// ModuleFactory.java loads modules from a repository\
+  \ at runtime\npublic static void loadModules() {\n    File modulesFolder = ModuleUtil.getModuleRepository();\n\
+  \    // ... loads module JAR files dynamically\n}\n```\n\n**Explicit Documentation:**\n\
+  The README explicitly states: *\"OpenMRS has a modular architecture that allows\
+  \ developers to extend the OpenMRS core functionality by creating modules that can\
+  \ easily be added or removed to meet the needs of a specific implementation.\"*\n\
+  \nThe system maintains a public [OpenMRS Module Repository](https://addons.openmrs.org/)\
+  \ for third-party modules.\n\n### Secondary: Layered\n\nWithin both the core and\
+  \ modules, OpenMRS employs a traditional **layered architecture**:\n\n**Three-Tier\
+  \ Layering:**\n1. **Web Layer** (`web/`, `webapp/`) - Controllers, filters, servlets,\
+  \ JSP views\n2. **Service Layer** (`api/src/main/java/org/openmrs/api/`) - Business\
+  \ logic interfaces and implementations\n3. **Data Access Layer** (`api/src/main/java/org/openmrs/api/db/`)\
+  \ - DAO interfaces with Hibernate implementations\n\n**Evidence from Code Structure:**\n\
+  - Service interfaces: `PatientService.java`, `ConceptService.java`, `UserService.java`\n\
+  - Service implementations: `PatientServiceImpl.java`, `ConceptServiceImpl.java`\n\
+  - DAO interfaces: `PatientDAO.java`, `ConceptDAO.java`\n- DAO implementations: `HibernatePatientDAO.java`,\
+  \ `HibernateConceptDAO.java`\n\n**Spring Configuration:**\n`api/src/main/resources/applicationContext-service.xml`\
+  \ wires services to DAOs via dependency injection:\n```xml\n<bean id=\"serviceContext\"\
+  \ class=\"org.openmrs.api.context.ServiceContext\">\n    <property name=\"patientService\"\
+  \ ref=\"patientService\"/>\n    <property name=\"conceptService\" ref=\"conceptService\"\
+  />\n    ...\n</bean>\n```\n\n### Single Deployable Unit\n\nThe project builds to\
+  \ a single `webapp/target/openmrs.war` deployed to Tomcat or Jetty, confirming this\
+  \ is NOT a microservices architecture. All core services share a single database\
+  \ connection and Spring application context.\n\n### What This Is NOT\n\n- **NOT\
+  \ Microservices**: Single WAR file, single database, shared Spring context\n- **NOT\
+  \ Modular Monolith**: Module boundaries are NOT enforced at compile-time; modules\
+  \ are loaded dynamically at runtime from external JARs\n- **NOT Event-Driven**:\
+  \ No message broker configurations, no event sourcing patterns\n- **NOT DDD**: No\
+  \ bounded contexts, aggregates, or domain-centric organization; the structure follows\
+  \ technical layers\n\n### Conclusion\n\nOpenMRS-core is a textbook example of a\
+  \ **microkernel architecture**: a minimal core platform that can be extended through\
+  \ a well-defined plugin/module system. Modules are discovered and loaded at runtime,\
+  \ have their own classloaders, can define extension points, and can be added/removed\
+  \ without modifying the core. This is layered on top of a traditional service/DAO\
+  \ layered architecture for internal code organization."

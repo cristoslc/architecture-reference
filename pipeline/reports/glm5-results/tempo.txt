@@ -1,0 +1,91 @@
+Now I have sufficient evidence. Let me check one more thing about the storage abstraction to see if there's any hexagonal architecture influence:Based on my comprehensive analysis of the Tempo repository, I now have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Event-Driven
+confidence: 0.90
+---
+
+## Analysis
+
+**Primary Style: Modular Monolith**
+
+Tempo exhibits clear characteristics of a Modular Monolith architecture:
+
+### Single Deployable with Runtime Target Selection
+- **One binary, one build artifact**: The entire system builds from a single `go.mod` into one `tempo` binary (`cmd/tempo/main.go`, `cmd/tempo/Dockerfile`)
+- **Same Docker image for all modes**: `grafana/tempo:latest` is used across all deployment targets
+- **Runtime target selection**: The `-target` flag determines which modules run: `-target=all` (single-binary), `-target=distributor`, `-target=querier`, `-target=query-frontend`, `-target=live-store`, `-target=metrics-generator`, `-target=backend-scheduler`, `-target=backend-worker`, etc.
+
+### Enforced Internal Module Boundaries
+The module system is explicitly defined in `cmd/tempo/app/modules.go`:
+
+```go
+func (t *App) setupModuleManager() error {
+    mm := modules.NewManager(log.Logger)
+    
+    mm.RegisterModule(Distributor, t.initDistributor)
+    mm.RegisterModule(Querier, t.initQuerier)
+    mm.RegisterModule(QueryFrontend, t.initQueryFrontend)
+    mm.RegisterModule(MetricsGenerator, t.initGenerator)
+    mm.RegisterModule(BlockBuilder, t.initBlockBuilder)
+    mm.RegisterModule(BackendScheduler, t.initBackendScheduler)
+    mm.RegisterModule(BackendWorker, t.initBackendWorker)
+    mm.RegisterModule(LiveStore, t.initLiveStore)
+    mm.RegisterModule(SingleBinary, nil)
+    
+    deps := map[string][]string{
+        QueryFrontend:    {Common, Store, OverridesAPI},
+        Distributor:      {Common, LiveStoreRing, MetricsGeneratorRing, PartitionRing},
+        Querier:          {Common, Store, LiveStoreRing, PartitionRing},
+        SingleBinary:     {BackendScheduler, BackendWorker, QueryFrontend, Querier, Distributor, MetricsGenerator, BlockBuilder, LiveStore},
+    }
+    // ...
+}
+```
+
+Each module has explicit initialization functions (`initDistributor`, `initQuerier`, etc.) and declared dependencies. The `modules.Manager` from `grafana/dskit` enforces these boundaries at startup.
+
+### Module Organization
+The `modules/` directory contains independently organized components:
+- `distributor/` - receives traces, forwards to ingesters
+- `querier/` - handles trace queries
+- `frontend/` - query frontend with sharding/caching
+- `generator/` - metrics generator from spans
+- `ingester/` - builds blocks from traces
+- `storage/` - storage abstraction layer
+- `cache/` - caching layer (memcached, redis)
+- `backendscheduler/`, `backendworker/`, `blockbuilder/`, `livestore/` - backend processing
+
+### Deployment Flexibility
+Docker Compose examples demonstrate both modes:
+- **Single-binary**: `command: "-target=all -config.file=/etc/tempo.yaml"` (`example/docker-compose/single-binary/docker-compose.yaml`)
+- **Distributed**: Separate containers per target (`example/docker-compose/distributed/docker-compose.yaml`)
+
+### Ring-Based Coordination
+Tempo uses rings for service discovery and sharding (inherited from Cortex/Loki architecture):
+- `LiveStoreRing`, `MetricsGeneratorRing`, `PartitionRing` for component coordination
+- Memberlist-based KV store for distributed state
+
+**Secondary Style: Event-Driven**
+
+Tempo optionally supports Kafka for the ingest pipeline:
+- `pkg/ingest/config.go` defines `KafkaConfig` for trace ingestion
+- `modules/generator/generator.go` consumes from Kafka (`kgo.Record`)
+- Example configurations include Redpanda (Kafka-compatible) for ingestion
+
+However, this is an optional feature rather than the core architectural pattern—the primary communication path is synchronous gRPC between modules.
+
+---
+
+**What was rejected:**
+
+- **Microservices**: Not applicable because there's a single binary/repository, no independent deployment lifecycle per service, and modules can run in-process.
+  
+- **Layered Architecture**: Not applicable because the organization is vertical by functional capability (distributor, querier, ingester) rather than horizontal layers (presentation, business, data).
+
+- **Service-Based**: While Tempo can run as distributed services, the coarse-grained service definition (2-5 services sharing a database) doesn't match Tempo's fine-grained, ring-sharded component model.
+
+- **Hexagonal Architecture**: While there are interfaces (e.g., `backend.Reader`, `backend.Writer`), the pattern isn't applied comprehensively—the module system is the dominant organizational pattern.

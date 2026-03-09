@@ -15,7 +15,7 @@ languages:
 - Go
 architecture_styles:
 - Microkernel (Plugin)
-- Event-Driven
+- Layered
 classification_status: classified
 review_notes: "The Debezium repository is structured as a **Microkernel (Plugin)**\
   \ architecture. The system's core design is built around the Kafka Connect framework,\
@@ -37,50 +37,48 @@ review_notes: "The Debezium repository is structured as a **Microkernel (Plugin)
   \ Embedded:** A lightweight wrapper that allows the same plugins to run inside a\
   \ custom Java application."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.78
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:45:24Z'
-classification_reasoning: "The Debezium repository is structured as a **Microkernel\
-  \ (Plugin)** architecture. The system's core design is built around the Kafka Connect\
-  \ framework, where the \"kernel\" provides the runtime environment (lifecycle management,\
-  \ configuration, and offset storage) and the individual \"plugins\" are the database-specific\
-  \ connectors.\n\n### Evidence of Microkernel (Plugin) Style:\n1.  **Strict Plugin\
-  \ Boundaries:** The repository is a mono-repo containing dozens of independent modules\
-  \ (`debezium-connector-postgres`, `debezium-connector-mysql`, `debezium-connector-oracle`,\
-  \ etc.). These modules are not \"services\" in the traditional sense; they are JARs\
-  \ intended to be loaded into a host runtime (Kafka Connect or the Debezium Embedded\
-  \ engine).\n2.  **Shared Core Framework:** The `debezium-core` and `debezium-common`\
-  \ modules define the SPI (Service Provider Interface) and common abstractions that\
-  \ every connector must implement.\n3.  **Extensibility via Transforms and Storage:**\
-  \ Aside from connectors, the repository includes `debezium-transforms` and `debezium-storage`.\
-  \ These represent additional plugin types (SMTs - Single Message Transforms) that\
-  \ can be plugged into the data pipeline without modifying the core engine.\n4. \
-  \ **Runtime Hosting:** The README explicitly mentions two ways to run these plugins:\n\
-  \    *   **Kafka Connect:** A distributed host for these plugins.\n    *   **Debezium\
-  \ Embedded:** A lightweight wrapper that allows the same plugins to run inside a\
-  \ custom Java application.\n\n### Evidence of Event-Driven Style:\n1.  **Reactive\
-  \ Core:** The primary purpose of the codebase is to transform database logs into\
-  \ a stream of \"Change Data Events.\"\n2.  **Pub/Sub Integration:** Within `debezium-storage`,\
-  \ there are implementations for Kafka, Redis, and RocketMQ, facilitating the asynchronous\
-  \ distribution of events.\n3.  **Outbox Pattern:** The existence of `debezium-quarkus-outbox-reactive`\
-  \ indicates specialized support for event-driven integration patterns between microservices.\n\
-  \n### Rejection of Other Styles:\n*   **Microservices:** While Debezium is used\
-  \ *to build* microservices, the repository itself is not a collection of independent\
-  \ services. You do not deploy \"the Postgres Connector\" as a standalone REST service;\
-  \ you deploy it as a plugin into a Kafka Connect cluster.\n*   **Layered:** While\
-  \ individual modules have internal layering (e.g., `debezium-core` has internal\
-  \ packages for logic), the fundamental organization of the *entire* repository is\
-  \ defined by the horizontal extensibility of connectors, not vertical layers of\
-  \ a single application.\n*   **Modular Monolith:** Although it's a single repository,\
-  \ the artifacts are intended for independent distribution and use in a distributed\
-  \ system, unlike a modular monolith which typically targets a single deployment\
-  \ unit."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.78
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.85
-  alternatives_dismissed: 0.8
-  exploration_completeness: 0.7
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:09:46Z'
+classification_reasoning: "## Analysis\n\n### Primary Style: Microkernel (Plugin)\n\
+  \nDebezium exhibits a clear **Microkernel/Plugin architecture** where a core framework\
+  \ provides extension points for pluggable connectors:\n\n**Evidence of plugin infrastructure:**\n\
+  1. **Java ServiceLoader mechanism** extensively used for runtime plugin discovery:\n\
+  \   - `META-INF/services/org.apache.kafka.connect.source.SourceConnector` in every\
+  \ connector module\n   - `META-INF/services/io.debezium.spi.snapshot.Snapshotter`\
+  \ for pluggable snapshot strategies\n   - `META-INF/services/io.debezium.pipeline.signal.actions.SignalActionProvider`\
+  \ for signal handlers\n   - `META-INF/services/io.debezium.pipeline.notification.channels.NotificationChannel`\
+  \ for notification channels\n   - `META-INF/services/io.debezium.ai.embeddings.EmbeddingsModelFactory`\
+  \ for AI embedding providers\n\n2. **Explicit SPI interfaces** in `debezium-api`\
+  \ module:\n   - `Snapshotter` interface for custom snapshot behavior\n   - `CustomConverter`\
+  \ interface for value conversion customization\n   - `PostProcessor` interface for\
+  \ event post-processing\n   - `TopicNamingStrategy` for custom topic naming\n\n\
+  3. **Connector abstraction hierarchy**:\n   - `BaseSourceConnector` → `RelationalBaseSourceConnector`\
+  \ → `BinlogConnector` → concrete implementations (MySqlConnector, MariaDBConnector)\n\
+  \   - Each connector module is independently deployable as a JAR that plugs into\
+  \ the Kafka Connect runtime\n\n4. **Storage plugin modules**:\n   - `debezium-storage-kafka`,\
+  \ `debezium-storage-file`, `debezium-storage-s3`, `debezium-storage-azure-blob`,\
+  \ etc. - all pluggable storage backends\n\n### Secondary Style: Layered\n\nThe codebase\
+  \ also exhibits horizontal layering:\n\n**Layer structure:**\n1. **API Layer** (`debezium-api`):\
+  \ Defines SPIs, interfaces, and contracts\n2. **Core Layer** (`debezium-core`):\
+  \ Common implementation shared across connectors\n3. **Implementation Layer** (`debezium-connector-*`):\
+  \ Concrete connector implementations\n4. **Support Layer** (`debezium-transforms`,\
+  \ `debezium-embedded`): Cross-cutting concerns\n\n**Dependency direction:** Connectors\
+  \ depend on core, core depends on api - never reversed.\n\n### Why Not Other Styles\n\
+  \n- **Not Event-Driven**: While Debezium *produces* change events as its business\
+  \ function, the internal architecture doesn't use event-based communication between\
+  \ components. Components call each other directly, not through message brokers.\n\
+  \n- **Not Microservices**: All connector modules are library JARs, not independently\
+  \ deployed services. They run within Kafka Connect's runtime, not as separate processes.\n\
+  \n- **Not Domain-Driven Design**: The code organization follows technical boundaries\
+  \ (API, core, connectors by database type) rather than business domains/bounded\
+  \ contexts.\n\n- **Not Hexagonal Architecture**: While there are interfaces (SPIs),\
+  \ they're designed for extensibility rather than isolating the application core\
+  \ from external concerns via ports and adapters.\n\n### Key Files Referenced\n\n\
+  - `pom.xml` - Maven multi-module aggregator with 30+ modules\n- `debezium-api/src/main/java/io/debezium/spi/snapshot/Snapshotter.java`\
+  \ - SPI interface\n- `debezium-api/src/main/java/io/debezium/spi/converter/CustomConverter.java`\
+  \ - Customization SPI\n- `debezium-core/src/main/java/io/debezium/connector/common/BaseSourceConnector.java`\
+  \ - Core abstraction\n- `debezium-connector-mysql/src/main/java/io/debezium/connector/mysql/MySqlConnector.java`\
+  \ - Concrete plugin implementation\n- `META-INF/services/*` - Service loader registration\
+  \ files across modules"

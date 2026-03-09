@@ -15,7 +15,6 @@ languages:
 - JavaScript
 architecture_styles:
 - Microkernel (Plugin)
-- Modular Monolith
 - Layered
 classification_status: classified
 review_notes: '### Architecture Analysis
@@ -41,95 +40,55 @@ review_notes: '### Architecture Analysis
 
   - `@strapi/upload`, `@strapi/i18n`, `@strapi/permissions`: Functional extensions.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.54
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:12:35Z'
-classification_reasoning: '### Architecture Analysis
-
-
-  Strapi is structured as a **Microkernel (Plugin)** architecture. The core system
-  provides a minimal engine that manages the application lifecycle, while all functional
-  domains (Authentication, Content-Management, Upload, Internationalization) are implemented
-  as independent plugins that register themselves with the core.
-
-
-  #### 1. Microkernel (Plugin) Style
-
-  The most defining characteristic of Strapi''s architecture is its plugin system.
-  As seen in `packages/core/strapi/package.json`, the main `@strapi/strapi` package
-  acts as an orchestrator, pulling in multiple internal packages:
-
-  - `@strapi/admin`: The dashboard UI.
-
-  - `@strapi/content-manager`: Logic for managing data.
-
-  - `@strapi/content-type-builder`: Logic for schema modification.
-
-  - `@strapi/upload`, `@strapi/i18n`, `@strapi/permissions`: Functional extensions.
-
-
-  The code is designed so that the "Core" provides hooks and a registry (as evidenced
-  by `docs/docs/api/container.mdx` and `docs/docs/api/strapi-server.mdx`). Plugins
-  follow a strict contract, typically exporting a `strapi-server.js` or `strapi-admin.js`
-  file to hook into the backend or frontend respectively.
-
-
-  #### 2. Modular Monolith
-
-  While the repository is a monorepo containing dozens of packages, when a user runs
-  `yarn dev`, these are bundled into a **single deployable unit** (a Node.js application).
-  The boundaries between `@strapi/database`, `@strapi/utils`, and `@strapi/logger`
-  are strictly enforced by package boundaries within the monorepo, preventing spaghetti
-  dependencies. This internal modularity allows for the replacement of specific components
-  (like swapping the underlying database via `@strapi/database`) without affecting
-  the core engine.
-
-
-  #### 3. Layered (Internal Implementation)
-
-  Within each module or plugin, Strapi follows a traditional **Layered** pattern (MVC-inspired):
-
-  - **Controllers**: Handle incoming HTTP requests (Koa-based).
-
-  - **Services**: Contain business logic and are reusable across controllers.
-
-  - **Models/Content-Types**: Define the data schema.
-
-  - **Policies/Middlewares**: Handle cross-cutting concerns like security and validation
-  (seen in `examples/complex/config/middlewares.ts`).
-
-
-  #### Evidence from Files:
-
-  - **`packages/core/strapi/package.json`**: Shows the orchestration of the various
-  `@strapi/*` modules.
-
-  - **`examples/plugins/`**: Demonstrates the plugin contract where internal or external
-  logic is injected into the core.
-
-  - **`docs/docs/api/event-hub.mdx`**: Points to an internal event bus used for communication
-  between disconnected modules, supporting the decoupled plugin nature.
-
-  - **`tests/api/core/...` and `tests/api/plugins/...`**: The testing structure mirrors
-  the separation between the core framework and the functional plugins.
-
-
-  ### Summary
-
-  Strapi uses a **Microkernel** approach to maintain a highly extensible CMS. It leverages
-  a **Modular Monolith** structure for development and deployment, ensuring that while
-  the system is a single unit, its internal concerns remain strictly separated and
-  swappable.'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.54
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.55
-  style_clarity: 0.72
-  alternatives_dismissed: 0.3
-  exploration_completeness: 0.5
-  flags: evidence relies heavily on package.json and docs/examples rather than core
-    source files; no alternative architectures (e.g., Event-Driven, Hexagonal) explicitly
-    considered and rejected; internal source structure of the plugin registry/kernel
-    not directly examined
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:42:38Z'
+classification_reasoning: "## Analysis\n\n### Primary: Microkernel (Plugin) Architecture\n\
+  \nStrapi is fundamentally designed as a **plugin-based system** with a core runtime\
+  \ that loads and orchestrates plugins at startup:\n\n**Plugin Loading Infrastructure:**\n\
+  - `packages/core/core/src/loaders/plugins/index.ts` - Central plugin loader that\
+  \ discovers, validates, and initializes plugins\n- `packages/core/core/src/registries/plugins.ts`\
+  \ - Plugin registry with `add()`, `get()`, `getAll()` methods\n- Plugins declare\
+  \ themselves via `strapi-server.js` entry point with a well-defined contract\n\n\
+  **Plugin Contract (defaultPlugin in loaders/plugins/index.ts:18-32):**\n```javascript\n\
+  const defaultPlugin = {\n  bootstrap() {},\n  destroy() {},\n  register() {},\n\
+  \  config: { default: {}, validator() {} },\n  routes: [],\n  controllers: {},\n\
+  \  services: {},\n  policies: {},\n  middlewares: {},\n  contentTypes: {},\n};\n\
+  ```\n\n**Internal vs External Plugins:**\n- `INTERNAL_PLUGINS` list in `get-enabled-plugins.ts:36-44`\
+  \ defines core plugins always loaded: content-manager, content-type-builder, email,\
+  \ upload, i18n, content-releases, review-workflows\n- External plugins loaded from\
+  \ `node_modules` or local paths via `plugins.js` config\n\n**Provider Extension\
+  \ Pattern:**\n- `packages/providers/` contains swappable implementations (email-amazon-ses,\
+  \ email-sendgrid, upload-aws-s3, upload-cloudinary)\n- Providers implement `init()`\
+  \ interface, allowing runtime replacement\n\n**User Extension Mechanism:**\n- `applyUserExtension()`\
+  \ function loads user overrides from `extensions/` directory\n- Users can override\
+  \ plugin schemas and inject custom `strapi-server.js` to mutate plugin behavior\n\
+  \n**Admin Panel Plugin System:**\n- `packages/core/admin/admin/src/StrapiApp.tsx`\
+  \ - Admin-side plugin registration with `appPlugins`, `registerPlugin()`, injection\
+  \ zones\n- `PluginsInitializer.tsx` - Orchestrates plugin initialization lifecycle\
+  \ in the frontend\n\n### Secondary: Layered Architecture\n\nWithin each plugin and\
+  \ the core, Strapi follows a traditional layered pattern:\n\n**MVC-style Organization:**\n\
+  - **Routes Layer**: `packages/core/core/src/services/server/register-routes.ts`\
+  \ - Route registration\n- **Controllers Layer**: `packages/core/core/src/registries/controllers.ts`\
+  \ - Request handling\n- **Services Layer**: `packages/core/core/src/registries/services.ts`\
+  \ - Business logic\n- **Data Layer**: `packages/core/database/` - Database abstraction\n\
+  \n**Core API Structure (`packages/core/core/src/core-api/`):**\n```\ncore-api/\n\
+  \  controller/    # Request handlers\n  routes/        # Route definitions\n  service/\
+  \       # Business logic\n```\n\nEach plugin (e.g., `packages/plugins/i18n/server/src/`)\
+  \ follows this same pattern with `controllers/`, `services/`, `routes/`, `content-types/`.\n\
+  \n### What This Is NOT\n\n**Not Microservices:** Single Node.js process, single\
+  \ database connection, no service-to-service communication. The monorepo packages\
+  \ are library modules, not independent services.\n\n**Not Modular Monolith:** While\
+  \ organized as packages, they don't represent enforced internal module boundaries\
+  \ within a single deployable. They're framework components published separately\
+  \ to npm, designed to be extended via plugins.\n\n**Not Hexagonal Architecture:**虽有\
+  \ dependency injection (`Container` class), but lacks the ports-and-adapters separation.\
+  \ Controllers directly access `strapi` global service locator rather than depending\
+  \ on injected interfaces.\n\n**Not Domain-Driven Design:** Code is organized by\
+  \ technical layer (controllers, services) within plugins, not by bounded context\
+  \ with aggregates/entities/value objects.\n\n### Conclusion\n\nStrapi is a **plugin-based\
+  \ CMS framework** where the core provides the runtime, registry, and extension points,\
+  \ while plugins provide features. Users extend the system by installing plugins,\
+  \ creating local plugins, or overriding plugin behavior through extensions. This\
+  \ is the canonical Microkernel pattern: a minimal core with a rich plugin ecosystem."

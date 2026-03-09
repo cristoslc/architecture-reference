@@ -19,7 +19,7 @@
 set -uo pipefail
 
 MODEL="openrouter/z-ai/glm-5"
-CHAIN_LIMIT=30
+CHAIN_LIMIT=15
 CLONE_DIR=".clone-cache"
 VERBOSE=false
 DRY_RUN=false

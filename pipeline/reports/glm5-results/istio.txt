@@ -1,0 +1,80 @@
+Let me explore the main components more deeply, particularly the pilot (control plane), and look for deployment configurations.Let me examine the architecture documents and the core components more closely:Let me examine a few more files to confirm the module boundaries and the overall structure:Let me verify more about the extension mechanisms and deployment topology:Let me look at one more aspect - the overall module organization and verify the single binary nature:Now I have sufficient evidence to provide my classification. Let me verify one final aspect about the historical consolidation:Based on my comprehensive investigation, I'm ready to provide the classification.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.92
+---
+
+## Architecture Analysis: Istio Control Plane (Istiod)
+
+### Primary Classification: Modular Monolith
+
+The Istio repository is a **Modular Monolith** architecture. This classification is explicitly confirmed by the project's own architecture documentation at `architecture/networking/pilot.md`:
+
+> "Istiod is structured as a **modular monolith**, housing a wide range of functionality from certificate signing, proxy configuration (XDS), traditional Kubernetes controllers, and more."
+
+**Key Evidence:**
+
+1. **Single Deployable Binary:** The control plane is packaged as a single binary (`pilot-discovery`), built from `pilot/cmd/pilot-discovery/main.go`. The Dockerfile at `pilot/docker/Dockerfile.pilot` simply copies this single binary.
+
+2. **Enforced Internal Module Boundaries:** The codebase has clear module organization under `pilot/pkg/`:
+   - `pilot/pkg/model/` - Core domain models and abstractions
+   - `pilot/pkg/xds/` - XDS protocol server and discovery API
+   - `pilot/pkg/networking/` - Networking configuration generation
+   - `pilot/pkg/serviceregistry/` - Service discovery integrations
+   - `pilot/pkg/security/` - Security and certificate management
+   - `pilot/pkg/bootstrap/` - Server initialization
+
+3. **Unified Server Structure:** The `Server` struct in `pilot/pkg/bootstrap/server.go` (lines 104-150) consolidates all components:
+   ```go
+   type Server struct {
+       XDSServer *xds.DiscoveryServer
+       configController model.ConfigStoreController
+       // ... single process managing all control plane functions
+   }
+   ```
+
+4. **Historical Consolidation:** Previously, Istio had separate microservices (Pilot, Citadel, Galley, Mixer). These were deliberately consolidated into a single `istiod` binary for operational simplicity. A search for these legacy components confirms they no longer exist as separate entities.
+
+5. **Single Go Module:** The `go.mod` file defines a single module `istio.io/istio` - all internal packages are part of one compilation unit.
+
+### Secondary Classification: Microkernel (Plugin)
+
+The architecture has limited plugin characteristics for **data plane extensibility**:
+
+**Evidence:**
+
+1. **EnvoyFilter API** (`pilot/pkg/model/envoyfilter.go`): Allows runtime patching of Envoy configuration with custom filters through Kubernetes CRDs.
+
+2. **WasmPlugin Support** (`pilot/pkg/networking/core/extension/wasmplugin.go`): Enables loading WebAssembly plugins into the Envoy proxy data plane.
+
+3. **Plugin Pattern in Networking** (`pilot/pkg/networking/plugin/`): Internal authentication/authorization plugins for config generation.
+
+However, these are **configuration-driven data plane extensions**, not control plane code plugins loaded at runtime. The Microkernel pattern applies weakly and only to the extensibility surface, not the core architecture.
+
+### What This Is NOT:
+
+- **Not Microservices:** Single control plane binary, not multiple independently deployable services. The historical microservices architecture was deliberately consolidated.
+
+- **Not Layered:** While there are internal abstractions (ConfigStore → PushContext → Generators → XDS), this is not MVC-style presentation/business/data layering.
+
+- **Not Event-Driven:** Uses Kubernetes watches and XDS push mechanisms, but this is a control loop pattern, not a message broker-based event-driven architecture.
+
+- **Not DDD:** Contains domain concepts (Service, Proxy, Workload) but is not organized around bounded contexts with aggregates/entities/value objects.
+
+### Deployment Components
+
+The repository produces multiple deployable artifacts, but the control plane is singular:
+
+| Component | Purpose | Dockerfile |
+|-----------|---------|------------|
+| `pilot-discovery` (istiod) | Unified control plane | `pilot/docker/Dockerfile.pilot` |
+| `pilot-agent` | Sidecar proxy entrypoint | `pilot/docker/Dockerfile.proxyv2` |
+| `ztunnel` | Ambient mode proxy | `pilot/docker/Dockerfile.ztunnel` |
+| `istioctl` | CLI tool | `istioctl/docker/Dockerfile.istioctl` |
+| `istio-cni` | CNI plugin | `cni/deployments/kubernetes/Dockerfile.install-cni` |
+
+The architecture follows the service mesh pattern where a centralized control plane manages distributed data plane proxies.

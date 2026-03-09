@@ -1,0 +1,69 @@
+Let me check the middleware plugins integration more closely:Now I have sufficient evidence to classify this repository.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Analysis
+
+Traefik exhibits a clear **Microkernel (Plugin) architecture** as its primary organizational pattern, with secondary Layered characteristics in its internal package organization.
+
+### Evidence for Microkernel (Plugin)
+
+**1. Plugin Infrastructure with Dynamic Loading**
+- `pkg/plugins/manager.go` implements a full plugin lifecycle manager that downloads, validates (via hash), and installs plugins from `https://plugins.traefik.io/public/`
+- `pkg/plugins/builder.go` builds middleware and provider plugins at runtime, supporting two execution runtimes: **Yaegi** (Go interpreter) and **WebAssembly (WASM)**
+- `pkg/plugins/types.go:9-11` defines plugin types: `typeMiddleware` and `typeProvider`
+
+**2. Well-Defined Extension Contracts**
+- `pkg/provider/provider.go:8-14` defines the core Provider interface:
+  ```go
+  type Provider interface {
+      Provide(configurationChan chan<- dynamic.Message, pool *safe.Pool) error
+      Init() error
+  }
+  ```
+- `pkg/plugins/builder.go:14` defines the middleware Constructor type:
+  ```go
+  type Constructor func(context.Context, http.Handler) (http.Handler, error)
+  ```
+
+**3. Plugin Integration Points**
+- `pkg/server/middleware/plugins.go:14-17` defines `PluginsBuilder` interface that bridges plugin middleware into the core routing system
+- `cmd/traefik/plugins.go:18-25` initializes the plugin builder and integrates it with the static configuration
+- The RouterFactory in `pkg/server/routerfactory.go:33` explicitly holds a `pluginBuilder` dependency
+
+**4. Provider Aggregation Pattern**
+- `pkg/provider/aggregator/aggregator.go:62-68` aggregates all providers (both built-in and plugin-based) uniformly
+- Built-in providers (Docker, Kubernetes, ECS, Consul, etc.) and plugin providers implement the identical `Provider` interface
+- The aggregator treats all providers polymorphically regardless of origin
+
+**5. Single Deployable Core**
+- `Dockerfile` shows Traefik is deployed as a single binary: `COPY ./dist/$TARGETPLATFORM/traefik /`
+- `go.mod` confirms it's a single Go module (`github.com/traefik/traefik/v3`)
+- The core system is complete and functional without any plugins
+
+### Evidence for Layered (Secondary)
+
+The internal package structure shows horizontal layering:
+- **Configuration Layer**: `pkg/config/static/`, `pkg/config/dynamic/`
+- **Provider Layer**: `pkg/provider/` with subdirectories for each provider type
+- **Server/Router Layer**: `pkg/server/`, `pkg/server/router/`
+- **Middleware Layer**: `pkg/middlewares/` with 20+ built-in middleware implementations
+- **Transport Layer**: `pkg/tcp/`, `pkg/udp/`, `pkg/tls/`
+
+The middleware builder in `pkg/server/middleware/middlewares.go` demonstrates the layering through its imports of all built-in middleware packages (lines 13-40).
+
+### What Was Rejected
+
+**Not Microservices**: Single binary deployment, single Go module, no inter-service communication. The README explicitly states: "Packaged as a single binary file."
+
+**Not Modular Monolith**: While there are clear package boundaries, the defining characteristic is the **runtime plugin loading** capability. Modular monoliths have compile-time module boundaries; Traefik has true dynamic extension via Yaegi interpreter and WASM runtime.
+
+**Not Event-Driven Architecture**: While configuration changes flow through channels (`dynamic.Message`), this is internal communication within the monolith, not architectural event-driven messaging between independent components.
+
+**Not Hexagonal Architecture**: There are no explicit "ports" (interfaces) and "adapters" pattern. The plugin interfaces serve as extension points, not as isolation boundaries between application core and external world.</arg_value></tool_call>

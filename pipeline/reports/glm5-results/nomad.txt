@@ -1,0 +1,132 @@
+Let me explore the plugin architecture more deeply - this looks like a strong microkernel pattern:Based on my comprehensive exploration of the Nomad repository, I now have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Architecture Classification: Microkernel (Plugin) with Layered Components
+
+### Primary Style: Microkernel (Plugin)
+
+Nomad is architected as a **microkernel with a plugin system** - this is HashiCorp's signature architecture pattern. The evidence is extensive:
+
+**Plugin Infrastructure:**
+
+1. **Plugin Interface Definitions** (`plugins/`):
+   - `plugins/base/base.go`: Defines `BasePlugin` interface that ALL plugins must implement (`PluginInfo()`, `ConfigSchema()`, `SetConfig()`)
+   - `plugins/drivers/driver.go`: `DriverPlugin` interface for task execution (Docker, QEMU, Java, Exec)
+   - `plugins/device/plugin.go`: `DevicePlugin` interface for hardware device management (GPU, FPGA)
+   - `plugins/csi/plugin.go`: CSI plugin interface for storage
+
+2. **Plugin Registry & Types** (`plugins/base/plugin.go`):
+   ```go
+   const (
+       PluginTypeBase   = "base"
+       PluginTypeDriver  = "driver"
+       PluginTypeDevice  = "device"
+   )
+   ```
+
+3. **Plugin Loading System** (`helper/pluginutils/loader/loader.go`):
+   - `PluginLoader` scans plugin directories for binaries
+   - Supports both **internal plugins** (compiled into binary) and **external plugins** (separate binaries)
+   - Version negotiation via API versioning
+   - Plugin fingerprinting and configuration schema validation
+
+4. **Plugin Managers** (runtime orchestration):
+   - `client/pluginmanager/drivermanager/manager.go`: Manages driver plugin lifecycle
+   - `client/devicemanager/manager.go`: Manages device plugins
+   - `client/pluginmanager/csimanager/manager.go`: Manages CSI storage plugins
+
+5. **Built-in Driver Plugins** (`drivers/`):
+   - `drivers/docker/` - Docker container driver (2063 lines)
+   - `drivers/qemu/` - QEMU virtual machine driver
+   - `drivers/java/` - Java execution driver
+   - `drivers/exec/` - Executable driver
+   - `drivers/rawexec/` - Raw execution driver
+
+Each driver can be built as a standalone plugin binary (`drivers/docker/cmd/main.go`):
+```go
+func main() {
+    // Serve the plugin
+    plugins.ServeCtx(factory)
+}
+```
+
+6. **gRPC Plugin Communication** (`plugins/drivers/plugin.go`):
+   - Uses `github.com/hashicorp/go-plugin` for process isolation
+   - Plugins communicate over gRPC with handshake authentication
+   - Plugin binaries are launched as separate processes
+
+### Secondary Style: Layered
+
+Within the microkernel, Nomad exhibits clear horizontal layering:
+
+**Layer Structure:**
+1. **API Layer** (`api/`): Go client library for external integration
+2. **Command/Agent Layer** (`command/agent/`): HTTP server, CLI commands, configuration
+3. **Server Business Logic** (`nomad/`): Scheduling, Raft consensus, state management
+4. **Client Business Logic** (`client/`): Allocation management, fingerprinting, task execution
+5. **Scheduler Layer** (`scheduler/`): Job scheduling algorithms
+6. **Plugin Layer** (`plugins/`, `drivers/`): Extensible task execution
+
+**Raft Consensus Layer** (`nomad/server.go`):
+- Uses HashiCorp's Raft library for distributed state
+- State stored in BoltDB/WAL
+- In-memory state via go-memdb (`nomad/state/`)
+
+### Why NOT Other Styles:
+
+- **Not Microservices**: Single binary deployment (`main.go`), single process per agent. No service boundaries with independent deployment.
+- **Not Service-Based**: No 2-5 coarse-grained services sharing a database.
+- **Not Event-Driven**: Uses synchronous RPC for communication. Raft for consensus, not message brokers.
+- **Not Modular Monolith**: While it's a single binary, the defining characteristic is the plugin extension mechanism, not just internal module boundaries.
+- **Not CQRS**: Single state store, no separate read/write models.
+- **Not DDD**: Code organized by technical function (client, server, scheduler, plugins), not bounded contexts/aggregates.
+
+### Key Architecture Diagram:
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                      Nomad Agent (main.go)                   │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │              Core System (Microkernel)                 │  │
+│  │  ┌─────────────┐  ┌─────────────┐  ┌──────────────┐  │  │
+│  │  │   Server    │  │   Client    │  │  Scheduler   │  │  │
+│  │  │  (Raft/FSM) │  │  (Allocs)    │  │  (Planner)   │  │  │
+│  │  └─────────────┘  └─────────────┘  └──────────────┘  │  │
+│  │                                                       │  │
+│  │  ┌──────────────────────────────────────────────────┐ │  │
+│  │  │           Plugin Managers                        │ │  │
+│  │  │  ┌──────────┐ ┌───────────┐ ┌────────────────┐ │ │  │
+│  │  │  │ Driver   │ │  Device   │ │ CSI Manager    │ │ │  │
+│  │  │  │ Manager  │ │  Manager  │ │                │ │ │  │
+│  │  │  └──────────┘ └───────────┘ └────────────────┘ │ │  │
+│  │  └──────────────────────────────────────────────────┘ │  │
+│  └───────────────────────────────────────────────────────┘  │
+│                                                             │
+│  ┌───────────────────────────────────────────────────────┐  │
+│  │                  Plugin System (gRPC)                 │  │
+│  │  ┌──────────┐ ┌────────┐ ┌──────┐ ┌──────────────┐  │  │
+│  │  │ Docker   │ │ QEMU   │ │ Java │ │ Device/GPU   │  │  │
+│  │  │ Driver   │ │ Driver │ │Driver│ │ Plugins      │  │  │
+│  │  └──────────┘ └────────┘ └──────┘ └──────────────┘  │  │
+│  │         (Built-in or External Binaries)              │  │
+│  └───────────────────────────────────────────────────────┘  │
+└─────────────────────────────────────────────────────────────┘
+```
+
+### Confidence Justification
+
+**0.92 confidence** because:
+- The plugin architecture is unambiguous and pervasive throughout the codebase
+- Clear separation between core and extension points
+- Plugin loading, lifecycle management, and gRPC communication are explicit
+- Multiple plugin types (drivers, devices, CSI) all follow the same pattern
+- The layered organization within the core is also well-defined
+
+The only minor ambiguity is that built-in drivers can be compiled into the main binary, which slightly blurs the microkernel boundary, but the architecture is still fundamentally plugin-based with extension points designed for external plugins.

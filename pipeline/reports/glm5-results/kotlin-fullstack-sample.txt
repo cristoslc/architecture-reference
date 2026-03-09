@@ -1,0 +1,62 @@
+Let me check if there are any shared modules or additional configuration:Based on my thorough exploration, I now have sufficient evidence to classify this architecture.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Service-Based
+confidence: 0.82
+---
+
+## Analysis
+
+### Repository Structure
+
+This is a Kotlin full-stack sample application called "Thinkter" - a simple microblogging app. The repository uses a **Gradle multi-project structure** with exactly two subprojects:
+
+```
+settings.gradle:
+  include "backend", "frontend"
+```
+
+### Deployment Units
+
+**Two separate deployables:**
+1. **Backend** (Kotlin/JVM): Runs on Ktor framework with Jetty server on port 9090
+2. **Frontend** (Kotlin/JS): Compiles to JavaScript, runs via webpack dev server on port 8080, proxies API calls to backend
+
+### Layered Architecture Evidence (Primary Style)
+
+The **backend** exhibits clear horizontal layering:
+
+1. **Presentation/API Layer**: Ktor routing handlers (`Application.kt`, `Index.kt`, `Login.kt`, `Register.kt`, `PostThought.kt`, etc.) define HTTP endpoints using Ktor's location-based routing
+
+2. **Business Logic/Service Layer**: The `ThinkterStorage` interface (`backend/src/org/jetbrains/demo/thinkter/dao/ThinkterStorage.kt`) defines domain operations like `createThought`, `deleteThought`, `userThoughts`, `top`, `latest`
+
+3. **Data Access Layer**: `ThinkterDatabase` implements `ThinkterStorage` using the Squash ORM to interact with H2 database (lines 14-134 in `ThinkterDatabase.kt`)
+
+4. **Model Layer**: Data classes in `model/atoms.kt` and `model/responses.kt` define domain entities (`Thought`, `User`) and response DTOs
+
+### Service-Based Evidence (Secondary Style)
+
+This qualifies as a **coarse-grained service-based architecture**:
+- Exactly 2 services (frontend, backend)
+- Backend owns the database exclusively (H2 via Squash ORM)
+- Frontend communicates with backend via REST API (`frontend/src/org/jetbrains/demo/thinkter/Rpc.kt`)
+- Frontend has no direct database access
+
+### What This Is NOT
+
+- **NOT Microservices**: Only 2 services, and more importantly, this is a frontend/backend split rather than domain-bounded contexts. Both services work with the same domain (thoughts/users), not different domains.
+
+- **NOT Modular Monolith**: No shared module boundaries - in fact, model classes (`Thought`, `User`, response DTOs) are **duplicated** between `backend/src/.../model/` and `frontend/src/.../model/` rather than shared via a common Kotlin module.
+
+- **NOT DDD**: No bounded contexts, aggregates, value objects, or ubiquitous language structure. Simple CRUD-style data access.
+
+- **NOT Event-Driven**: No message broker, event handlers, or async event communication. Synchronous HTTP request/response only.
+
+- **NOT Hexagonal/Ports & Adapters**: No explicit ports (interfaces) and adapters pattern. The `ThinkterStorage` interface is a DAO pattern, not a port in the hexagonal sense.
+
+### Confidence Assessment
+
+**0.82** - The layered structure is clear in the backend, and the service-based separation between frontend/backend is unambiguous. Slightly less than 0.85 confidence because the backend's layers are not strictly enforced (service layer logic is minimal), and this could also be viewed simply as "client-server architecture" rather than explicitly layered. However, the horizontal separation (API handlers → storage interface → database implementation) follows the layered pattern sufficiently to classify with confidence.

@@ -1,0 +1,152 @@
+I'll explore this repository systematically to classify its architecture. Let me start with an overview of the structure and key files.Now I have sufficient evidence to classify the architecture. Let me check one more thing - the shared kernel and how the servicesare organized.Based on my comprehensive exploration of the repository, I now have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles:
+  - Event-Driven
+  - CQRS
+  - Domain-Driven Design
+confidence: 0.92
+---
+
+## Architecture Classification Analysis
+
+### Primary: **Microservices Architecture**
+
+The repository exhibits clear microservices architecture with the following evidence:
+
+**Deployment Independence:**
+- Three independently deployable services: `catalogreadservice`, `catalogwriteservice`, `orderservice`
+- Each service has its own `go.mod` file, `Dockerfile`, and can be built/deployed independently
+- Docker compose orchestration with separate infrastructure services (RabbitMQ, PostgreSQL, MongoDB, EventStoreDB, Redis, Elasticsearch)
+
+**Database-per-Service:**
+- `catalogwriteservice` → PostgreSQL (`catalogs_write_service` database)
+- `catalogreadservice` → MongoDB + Redis + Elasticsearch  
+- `orderservice` → MongoDB + EventStoreDB
+- Each service owns its data completely
+
+**Service Communication:**
+- Asynchronous messaging via RabbitMQ (integration events like `ProductCreatedV1`, `OrderCreatedV1`)
+- Synchronous gRPC for internal service calls (protobuf definitions in `api/protobuf/`)
+- REST endpoints for external APIs
+
+**Evidence from configs** (`config.development.json` files):
+```json
+"appOptions": { "serviceName": "catalogwriteservice" }
+"grpcOptions": { "port": ":6003" }
+"echoHttpOptions": { "port": ":7000" }
+```
+
+---
+
+### Secondary: **Event-Driven Architecture**
+
+Strong evidence for event-driven communication:
+
+**Message Broker Infrastructure:**
+- RabbitMQ configuration in all services (`rabbitmqOptions`)
+- Custom event bus implementation (`internal/pkg/rabbitmq/bus/rabbitmq-bus.go`)
+- Producer/Consumer pattern for publishing and consuming events
+
+**Integration Events:**
+```go
+// internal/services/catalogwriteservice/internal/products/features/creatingproduct/v1/events/integrationevents/product_created.go
+type ProductCreatedV1 struct {
+    *types.Message
+    *dtoV1.ProductDto
+}
+```
+
+**Event Publishing** (from `create_product_handler.go`):
+```go
+err = c.RabbitmqProducer.PublishMessage(ctx, productCreated, nil)
+```
+
+**Event Sourcing in OrderService:**
+- Uses EventStoreDB for persisting events
+- `EventSourcedAggregateRoot` base type
+- Domain events like `OrderCreatedV1` applied via `When()` method
+- Projections to MongoDB and Elasticsearch read models
+
+---
+
+### Secondary: **CQRS Pattern**
+
+Clear Command Query Responsibility Segregation:
+
+**Separate Read/Write Services:**
+- `catalogwriteservice` - handles product writes (CRUD operations)
+- `catalogreadservice` - handles product reads (queries, search)
+
+**Command/Query Types** (`internal/pkg/core/cqrs/`):
+```go
+type Command interface { isCommand(); Request; TypeInfo }
+type Query interface { isQuery(); Request; TypeInfo }
+```
+
+**Vertical Slice Feature Organization:**
+```
+features/
+  creatingproduct/v1/
+    create_product.go          # Command
+    create_product_handler.go  # Command Handler
+  gettingproducts/v1/
+    get_products.go            # Query
+    get_products_handler.go    # Query Handler
+```
+
+**Mediator Pattern** using `go-mediatr` library for dispatching commands/queries to handlers.
+
+---
+
+### Secondary: **Domain-Driven Design**
+
+DDD tactical patterns throughout:
+
+**Aggregates:**
+```go
+// internal/services/orderservice/internal/orders/models/orders/aggregate/order.go
+type Order struct {
+    *models.EventSourcedAggregateRoot
+    shopItems       []*value_objects.ShopItem
+    accountEmail    string
+    deliveryAddress string
+    // ...
+}
+```
+
+**Value Objects:**
+```go
+// internal/services/orderservice/internal/orders/models/orders/value_objects/shop_item.go
+type ShopItem struct {
+    title       string
+    description string
+    quantity    uint64
+    price       float64
+}
+```
+
+**Domain Events:**
+- `OrderCreatedV1`, `ProductCreatedV1` domain events
+- Domain exceptions (`InvalidDeliveryAddressError`, `OrderNotFoundError`)
+
+**Bounded Contexts:**
+- Separate services represent different bounded contexts (Orders, Catalogs)
+- Each service has its own domain models, repositories, and business logic
+
+---
+
+### Not Classified As:
+
+- **Layered Architecture**: No horizontal layering (presentation/business/data). Instead, vertical slices organize by features.
+- **Modular Monolith**: Services are independently deployable with separate databases, not a single deployable unit.
+- **Hexagonal Architecture**: While there are ports/adapters patterns for infrastructure (repositories, gRPC), the primary organization is by vertical slices and bounded contexts, not ports-and-adapters.
+- **Serverless**: No serverless functions (AWS Lambda, etc.), all services are containerized applications.
+
+---
+
+### Architecture Summary
+
+This is a **Microservices architecture** with strong **Event-Driven**, **CQRS**, and **DDD** influences. Each service is independently deployable, owns its database, and communicates asynchronously via RabbitMQ integration events. The OrderService implements Event Sourcing with projections to read models, while the Catalog services follow a simpler CRUD pattern with separate read/write services. Code is organized using **Vertical Slice Architecture** within each service, grouping by features/use cases rather than technical layers.

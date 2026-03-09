@@ -1,0 +1,94 @@
+I now have sufficient evidence to classify this architecture. Let me provide my analysis.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+  - Microkernel (Plugin)
+confidence: 0.82
+---
+
+## Architecture Analysis: Dify Repository
+
+### Primary Style: Layered Architecture
+
+Dify implements a classic **Layered Architecture** with clear horizontal separation:
+
+**Controller Layer** (`api/controllers/`):
+- `console/` - Admin/console API endpoints (app management, datasets, workspace)
+- `service_api/` - External service API endpoints  
+- `web/` - End-user web application endpoints
+- `trigger/` - Webhook and trigger endpoints
+- `inner_api/` - Internal API for plugin daemon communication
+
+**Service Layer** (`api/services/`):
+- Business logic classes: `app_service.py`, `dataset_service.py`, `workflow_service.py`, `account_service.py`, etc.
+- Service classes orchestrate domain operations without direct database coupling
+
+**Repository/Model Layer** (`api/models/`, `api/repositories/`):
+- SQLAlchemy ORM models: `account.py`, `dataset.py`, `model.py`, `workflow.py`
+- Repository pattern for data access abstraction
+
+**Core/Domain Layer** (`api/core/`):
+- Domain logic: `core/app/`, `core/agent/`, `core/tools/`, `core/rag/`
+- `dify_graph/` - Isolated workflow execution engine with strict layering
+
+The `api/.importlinter` file explicitly enforces dependency rules between modules, particularly isolating `dify_graph` from infrastructure concerns.
+
+### Secondary Style: Event-Driven
+
+**Asynchronous task processing via Celery**:
+- `api/tasks/` - 30+ Celery task modules for async operations
+- `api/schedule/` - Scheduled task definitions
+- `api/events/` - Blinker signal-based internal events
+
+Key async operations:
+- Document indexing (`document_indexing_task.py`, `add_document_to_index_task.py`)
+- Workflow execution (`async_workflow_tasks.py`)
+- Mail delivery (`mail_*.py` tasks)
+- Dataset cleanup (`clean_*.py` tasks)
+
+Redis serves as the Celery message broker, enabling decoupled async processing.
+
+### Secondary Style: Microkernel (Plugin)
+
+**Plugin infrastructure**:
+- `plugin_daemon` service - Separate deployment unit managing plugin lifecycle
+- `core/plugin/` - Plugin management code (installer, entities, implementations)
+- `core/extension/extensible.py` - Dynamic extension scanning and loading
+
+The system supports extensible:
+- **Tools**: `core/tools/builtin_tool/`, `core/tools/plugin_tool/`
+- **Model providers**: Model runtime plugin architecture
+- **Data sources**: `core/datasource/` with provider plugins
+- **Moderation**: `core/moderation/` with API and keyword implementations
+
+### Deployment Topology
+
+Docker Compose defines multiple services but NOT as independent microservices:
+- **`api` and `worker`** share identical code (`langgenius/dify-api` image) - worker just runs Celery
+- **Shared database** (PostgreSQL/MySQL) across all components
+- **`web`** - Next.js frontend
+- **`plugin_daemon`** - Plugin execution sandbox
+- **`sandbox`** - Code execution isolation
+- **Supporting services**: Redis, Nginx, vector DBs
+
+This is a **modular deployment** of a layered monolith, not true microservices.
+
+### What This Is NOT
+
+- **Not Microservices**: Single codebase, shared database, no bounded context isolation between services
+- **Not Service-Based**: More than 2-3 services, but they're not coarse-grained business services
+- **Not Domain-Driven Design**: No aggregates, value objects, or bounded context patterns
+- **Not Hexagonal**: No ports/adapters pattern for external interface isolation
+- **Not CQRS**: No separate read/write model separation
+
+### Key Evidence Files
+
+- `api/app_factory.py` - Flask application factory with layered extension initialization
+- `api/.importlinter` - Enforces module boundaries and import restrictions
+- `docker/docker-compose.yaml` - Multi-service deployment (api, worker, web, plugin_daemon)
+- `api/extensions/ext_celery.py` - Celery configuration with task imports
+- `api/core/extension/extensible.py` - Plugin scanning and loading mechanism
+- `api/dify_graph/README.md` - Documents strict layering in workflow engine

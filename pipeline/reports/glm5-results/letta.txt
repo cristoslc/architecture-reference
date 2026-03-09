@@ -1,0 +1,97 @@
+Let me explore deeper into the architecture. I'll look at the main entry points, plugin system, and deployment configuration.Now let me examine one more area - the LLM client abstraction to confirm the plugin/adapter pattern:Now I have sufficient evidence to classify the architecture. Let me provide my final analysis.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.90
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: **Layered Architecture**
+
+The Letta repository exhibits a clear **horizontal layered architecture** with well-defined separation of concerns:
+
+**Presentation/Interface Layer:**
+- `letta/server/rest_api/routers/` — FastAPI REST endpoints organized by resource (agents, blocks, messages, tools, etc.)
+- `letta/server/ws_api/` — WebSocket API for real-time streaming
+- `letta/cli/` — Command-line interface
+- `letta/interfaces/` — Streaming interface abstractions for different LLM providers (Anthropic, OpenAI, Gemini)
+
+**Service/Business Logic Layer:**
+- `letta/services/` — Core business services: `AgentManager`, `MessageManager`, `BlockManager`, `PassageManager`, `GroupManager`, `FileManager`, `ToolManager`, etc.
+- Services orchestrate domain operations and encapsulate business rules
+
+**Domain/Agent Layer:**
+- `letta/agents/` — Agent implementations (`LettaAgent`, `LettaAgentV2`, `LettaAgentV3`, `VoiceAgent`, `EphemeralAgent`)
+- `letta/groups/` — Multi-agent coordination patterns
+- `letta/functions/` — Tool/function schema generation and parsing
+
+**Data Access Layer:**
+- `letta/orm/` — SQLAlchemy ORM models for persistence (Agent, Block, Message, Group, etc.)
+- `letta/schemas/` — Pydantic data transfer objects
+
+**Infrastructure/Adapters Layer:**
+- `letta/llm_api/` — LLM client adapters for multiple providers
+- `letta/services/mcp/` — Model Context Protocol client implementations
+- `letta/adapters/` — Request/response adapters
+
+### Secondary Style: **Microkernel (Plugin)**
+
+The codebase demonstrates a microkernel pattern through its extensible plugin system:
+
+**Evidence from `letta/plugins/plugins.py`:**
+```python
+@runtime_checkable
+class SummarizerProtocol(Protocol):
+    """What a summarizer must implement"""
+    async def summarize(self, text: str) -> str: ...
+    def get_name(self) -> str: ...
+
+def get_plugin(plugin_type: str):
+    """Get a plugin instance"""
+    plugin_register = dict(DEFAULT_PLUGINS, **settings.plugin_register_dict)
+    ...
+    module = importlib.import_module(module_path)
+    plugin = getattr(module, name)
+```
+
+**Extension Points:**
+1. **Summarizers** — Pluggable summarization implementations
+2. **Tool Executors** (`letta/services/tool_executor/`) — Multiple backends: `BuiltinToolExecutor`, `MCPToolExecutor`, `SandboxToolExecutor`, `ComposioToolExecutor`
+3. **LLM Clients** (`letta/llm_api/llm_client.py`) — Factory pattern selecting from 15+ provider implementations (OpenAI, Anthropic, Google, Azure, Bedrock, etc.)
+4. **Streaming Interfaces** — Provider-specific streaming implementations
+
+### What This Is NOT
+
+**NOT Microservices:**
+- Single deployable artifact (one Dockerfile, one `letta_server` container)
+- Single monolithic codebase (`pyproject.toml` defines one package)
+- Single shared PostgreSQL database with pgvector
+
+**NOT Event-Driven:**
+- No message broker configuration in `compose.yaml`
+- Synchronous REST API as primary interface
+- Direct method calls between layers
+
+**NOT Domain-Driven Design:**
+- No bounded context separation
+- No aggregate/value object patterns in domain model
+- Layered organization by technical concern, not domain boundaries
+
+**NOT Multi-Agent Architecture:**
+- While the system manages AI agents, the repository structure itself is not organized around autonomous agent coordination — the agent classes are domain objects within a layered system
+
+### Deployment Evidence
+
+From `compose.yaml`:
+- Single `letta_server` service
+- Single PostgreSQL database with pgvector extension
+- Optional nginx reverse proxy
+- All components in one deployable unit
+
+### Confidence Rationale
+
+**0.90 confidence** — The layered pattern is unmistakable with clear horizontal separation. The microkernel/plugin pattern is well-evidenced through Protocol interfaces, dynamic plugin loading, and multiple interchangeable implementations for tool execution and LLM providers. The single-deployable monolith structure eliminates microservices as a consideration.

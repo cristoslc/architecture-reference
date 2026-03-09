@@ -1,0 +1,89 @@
+Based on my thorough investigation, I now have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Domain-Driven Design
+secondary_styles:
+  - Layered
+confidence: 0.95
+---
+
+## Analysis
+
+This repository is a textbook implementation of **Domain-Driven Design (DDD)** with Clean Architecture layering. The evidence is overwhelming and explicit.
+
+### DDD Evidence
+
+**1. Bounded Contexts/Subdomains:**
+The codebase is explicitly organized into two subdomains as stated in the README:
+- `src/modules/users/` — User subdomain (authentication, identity management)
+- `src/modules/forum/` — Forum subdomain (posts, comments, members)
+
+The README explicitly states: *"In DDDForum, we have 2 subdomains: The users subdomain and the forum subdomain."*
+
+**2. Aggregates and Aggregate Roots:**
+Domain entities extend `AggregateRoot<T>` base class:
+- `src/modules/users/domain/user.ts`: `User extends AggregateRoot<UserProps>`
+- `src/modules/forum/domain/post.ts`: `Post extends AggregateRoot<PostProps>`
+- `src/modules/forum/domain/member.ts`: `Member extends AggregateRoot<MemberProps>`
+
+The `AggregateRoot` class (`src/shared/domain/AggregateRoot.ts`) manages domain events collection and dispatch.
+
+**3. Value Objects:**
+Extensive use of value objects extending `ValueObject<T>`:
+- Users domain: `UserEmail`, `UserName`, `UserPassword`, `UserId`
+- Forum domain: `PostId`, `PostTitle`, `PostSlug`, `PostText`, `CommentId`, `CommentText`, `MemberId`
+
+**4. Domain Events:**
+Rich domain event implementation:
+- Events: `UserCreated`, `UserLoggedIn`, `PostCreated`, `CommentPosted`, `PostVotesChanged`
+- `IDomainEvent` interface (`src/shared/domain/events/IDomainEvent.ts`)
+- `DomainEvents` dispatcher class with `register()`, `dispatch()`, `markAggregateForDispatch()` methods
+- Event handlers implement `IHandle<IDomainEvent>` interface (`src/shared/domain/events/IHandle.ts`)
+
+**5. Repositories with DDD Patterns:**
+Repository interfaces in domain layer:
+- `src/modules/users/repos/userRepo.ts`: `IUserRepo` interface with `exists()`, `getUserByUserName()`, `save()` methods
+- Concrete implementations: `SequelizeUserRepo` in `implementations/` subdirectory
+
+**6. Domain Services:**
+- `src/modules/forum/domain/services/postService.ts` — Encapsulates domain logic for voting, commenting
+
+**7. Mappers and DTOs:**
+- `UserMap`, `PostMap`, `CommentMap` for domain-to-persistence transformation
+- DTOs for data transfer: `UserDTO`, `PostDTO`, `CreateUserDTO`, etc.
+
+### Layered Architecture (Clean Architecture) Evidence
+
+Each subdomain follows Clean Architecture layering:
+
+- **Domain layer:** `domain/` — Entities, value objects, domain events, domain services
+- **Application layer:** `useCases/` — Use case classes implementing `UseCase<IRequest, IResponse>` interface
+- **Adapter layer:** `repos/` — Repository interfaces, DTOs, mappers
+- **Infrastructure layer:** `infra/` — Controllers, routes, Sequelize implementations, Redis services
+
+The dependency rule is enforced — application layer depends on domain abstractions, not infrastructure:
+```typescript
+// CreateUserUseCase depends on IUserRepo interface, not SequelizeUserRepo
+constructor (userRepo: IUserRepo) {
+  this.userRepo = userRepo;
+}
+```
+
+### What This Is NOT
+
+- **NOT Microservices:** Single deployable unit (`package.json`, single `Dockerfile`). Both subdomains are in one monolithic application.
+- **NOT Hexagonal Architecture:** While similar to hexagonal with ports/adapters, this follows the specific Clean Architecture variant with use case-centric application layer, not generic "ports."
+- **NOT Event-Driven Architecture:** While domain events exist, they are for intra-process communication within the monolith (dispatched synchronously via `DomainEvents.dispatch()`), not message broker-based inter-service communication.
+- **NOT CQRS:** Single model for reads and writes, no separate read/write models.
+
+### Deployment Topology
+
+Single monolith:
+- One `package.json` at root
+- Single `Dockerfile` for the entire application
+- `docker-compose.yml` shows supporting services (MySQL, Redis) but no service decomposition
+
+### Conclusion
+
+This is an exemplary DDD implementation where the domain model is the heart of the architecture. The bounded contexts (users/forum), aggregates, value objects, domain events, and repositories all follow DDD tactical patterns. The Clean Architecture layering provides the structural organization within each subdomain.

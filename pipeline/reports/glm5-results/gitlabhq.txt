@@ -1,0 +1,78 @@
+I'll explore the gitlabhq repository to classify its architecture. Let me start with the directory structure and README.Let me explore more of the directory structure to understand the full architecture:This is very revealing! I see `bounded_contexts.yml` which explicitly defines domain bounded contexts. Let me explore how these bounded contexts are organized and enforced:Let me check for domain enforcement patterns:Let me look at a few more details to complete my understanding:Now I have sufficient evidence to classify the architecture. Let me provide my final analysis:
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Domain-Driven Design
+confidence: 0.88
+---
+
+## Architecture Classification: GitLab (gitlabhq)
+
+### Primary Style: Layered Architecture
+
+GitLab is fundamentally a **Ruby on Rails application** implementing classic layered architecture with clear horizontal separation:
+
+**Evidence of Layering:**
+- **Controllers** (`app/controllers/`): 60+ controllers handling HTTP requests, organized by resource
+- **Models** (`app/models/`): 315+ ActiveRecord model files (~42,000 lines), data access layer via `ApplicationRecord`
+- **Services** (`app/services/`): 167+ service objects for business logic encapsulation
+- **Finders** (`app/finders/`): Dedicated query layer keeping complex queries out of models
+- **Policies** (`app/policies/`): Authorization layer using `DeclarativePolicy::Base`
+- **Workers** (`app/workers/`): Background job processing via Sidekiq
+- **Presenters/Serializers** (`app/presenters/`, `app/serializers/`): View/serialization layer
+- **API Layer** (`lib/api/`): REST API built on Grape framework
+
+**Single Deployable Unit:**
+- One Rails application deployed via Puma
+- Single shared PostgreSQL database
+- Sidekiq for background job processing
+- All components run in a single application process
+
+### Secondary Style: Domain-Driven Design
+
+GitLab explicitly organizes code by **bounded contexts**, documented in `config/bounded_contexts.yml`:
+
+```yaml
+domains:
+  Ci:
+    description: Create and run CI/CD pipelines
+    feature_categories:
+      - continuous_integration
+      - pipeline_composition
+  Authn:
+    description: Authentication layer
+  Authz:
+    description: Authorization layer
+  # ~50+ bounded contexts defined
+```
+
+**Domain Namespacing Throughout:**
+- Models: `app/models/ci/`, `app/models/authz/`, `app/models/authn/`, etc.
+- Services: `app/services/ci/`, `app/services/authn/`, `app/services/authz/`
+- Finders: `app/finders/ci/`, etc.
+- Workers: `app/workers/ci/`
+
+**Database Schema Organization** (`db/gitlab_schemas/`):
+- `gitlab_ci.yaml` - CI domain tables
+- `gitlab_main_org.yaml` - Organization tables
+- `gitlab_main_user.yaml` - User domain
+- `gitlab_sec.yaml` - Security domain
+
+**Feature Categories:** 150+ feature categories mapped to bounded contexts in `config/feature_categories.yml`
+
+### What This Is NOT
+
+- **NOT Microservices**: Single monolithic Rails app with shared database. No independent deployment units.
+- **NOT Modular Monolith**: While domains are namespaced, there's no compile-time enforcement of module boundaries. Domains can reference each other freely.
+- **NOT Event-Driven**: Uses Sidekiq for background jobs, but not message broker-based pub/sub.
+- **NOT Hexagonal Architecture**: No ports-and-adapters pattern. Uses ActiveRecord directly throughout.
+
+### Key Files Supporting Classification
+
+1. `config/bounded_contexts.yml` - Explicit domain context definitions
+2. `config/feature_categories.yml` - 150+ feature categories mapped to domains
+3. `db/gitlab_schemas/` - Database schemas organized by domain
+4. `doc/development/architecture.md` - Architecture documentation
+5. Directory structure showing domain namespacing (`app/models/ci/`, `app/services/authz/`, etc.)

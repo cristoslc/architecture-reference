@@ -1,0 +1,99 @@
+I'll explore the Sonarr repository to classify its architecture. Let me start with a high-level overview.Let me examine the solution structure and key architectural files to understand the module boundaries better.Let me examine the core module structure more closely, particularly looking at the organization and dependencypatterns.Let me check a few more key architectural aspects to completemy analysis.---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.90
+---
+
+## Architecture Analysis: Sonarr
+
+### Primary Style: Modular Monolith
+
+Sonarr is architected as a **Modular Monolith** with sophisticated internal module boundaries and a powerful plugin system.
+
+**Evidence:**
+
+1. **Single Deployable Unit**: The application builds as one cohesive unit with `Sonarr.Console` and `Sonarr.Host` as entry points. A single ASP.NET Core web application hosts all functionality. Docker and native packages deploy one application.
+
+2. **Enforced Module Boundaries via C# Projects**: The codebase is organized into 27 separate projects with clear separation:
+   - `Sonarr.Core` - Core domain logic (2794 C# files)
+   - `Sonarr.Common` - Shared infrastructure utilities
+   - `Sonarr.Http` - HTTP/API infrastructure
+   - `Sonarr.Api.V3` / `Sonarr.Api.V5` - API controllers (versioned)
+   - `Sonarr.Windows` / `Sonarr.Mono` - Platform-specific implementations
+
+3. **Clear Layered Organization**:
+   - **API Layer**: Controllers in `Sonarr.Api.V3/V5` (e.g., `SeriesController`, `IndexerController`)
+   - **Service Layer**: Domain services in `Sonarr.Core` (e.g., `SeriesService`, `DownloadService`)
+   - **Repository Layer**: Data access via `BasicRepository<T>` and specialized repositories (e.g., `SeriesRepository`)
+   - **Infrastructure**: Database, HTTP, disk operations in supporting classes
+
+4. **Single Database**: The application uses a single database (SQLite or PostgreSQL) managed through `MainDatabase` and `LogDatabase`, with all modules sharing the same data store.
+
+### Secondary Style: Microkernel (Plugin)
+
+Sonarr implements a **Microkernel/Plugin architecture** through its `ThingiProvider` infrastructure, which is a central architectural pattern for extensibility.
+
+**Evidence:**
+
+1. **Plugin Infrastructure (`ThingiProvider`)**: Located in `src/NzbDrone.Core/ThingiProvider/`, this provides the core plugin mechanism:
+   - `IProvider` interface defines the plugin contract
+   - `ProviderFactory<TProvider, TDefinition>` manages plugin lifecycle
+   - `ProviderDefinition` holds plugin configuration
+   - `IProviderConfig` for settings validation
+
+2. **Runtime Plugin Discovery**: From `Extensions.cs`:
+   ```csharp
+   container.RegisterMany(assemblies,
+       serviceTypeCondition: type => type.IsInterface && 
+           !type.FullName.StartsWith("System"),
+       reuse: Reuse.Singleton);
+   ```
+   Plugins are discovered via reflection and registered with the DI container.
+
+3. **Provider Base Classes**: Each plugin type has an abstract base class:
+   - `IndexerBase<TSettings>` - For RSS/indexing plugins (Newznab, Torznab, etc.)
+   - `DownloadClientBase<TSettings>` - For download clients (Sabnzbd, Transmission, qBittorrent, etc.)
+   - `NotificationBase<TSettings>` - For notification plugins (Email, Discord, Slack, etc.)
+   - `ImportListBase<TSettings>` - For import list plugins (Trakt, Plex, etc.)
+
+4. **Concrete Implementations**: Each provider type has numerous implementations:
+   - **Indexers**: 15+ implementations (Newznab, Torznab, BroadcastheNet, etc.)
+   - **Download Clients**: 20+ implementations (Sabnzbd, Deluge, Transmission, qBittorrent, rTorrent, etc.)
+   - **Notifications**: 20+ implementations (Discord, Slack, Email, Plex, Kodi, etc.)
+   - **Import Lists**: 10+ implementations (Trakt, Plex, Sonarr, etc.)
+
+5. **Factory Pattern**: Each provider type has a factory that manages instances:
+   ```csharp
+   public class IndexerFactory : ProviderFactory<IIndexer, IndexerDefinition>, IIndexerFactory
+   ```
+
+### Event-Driven Elements
+
+The application uses internal event-driven communication for decoupling:
+
+- `EventAggregator` with `IHandle<TEvent>` and `IHandleAsync<TEvent>` handlers
+- Domain events: `SeriesAddedEvent`, `DownloadCompletedEvent`, `ProviderAddedEvent`, etc.
+- In-memory event dispatching (not external message broker)
+- Command pattern: `CommandExecutor` with `IExecute<TCommand>` for background tasks
+
+This is **internal event-driven architecture** within the monolith, not a distributed event system.
+
+### Rejected Styles
+
+- **Not Microservices**: Single deployable, single database, single process, single team ownership
+- **Not Hexagonal/Ports & Adapters**: Services directly depend on repositories; no explicit ports/adapters separation
+- **Not DDD**: No aggregates, bounded contexts, or ubiquitous language organization; uses straightforward service/repository patterns
+- **Not CQRS**: Same models for reads and writes
+- **Not Serverless**: Self-hosted ASP.NET Core application
+- **Not Space-Based**: No in-memory data grid or distributed caching architecture
+
+### Key Architectural Files
+
+- `src/NzbDrone.Core/ThingiProvider/` - Plugin infrastructure
+- `src/NzbDrone.Host/Bootstrap.cs` - Application bootstrap and DI configuration
+- `src/NzbDrone.Common/Composition/Extensions.cs` - Auto-registration via reflection
+- `src/NzbDrone.Core/Messaging/Events/EventAggregator.cs` - Internal event bus
+- `src/NzbDrone.Core/Datastore/BasicRepository.cs` - Repository base class
+- `src/Sonarr.Api.V3/` - API layer controllers

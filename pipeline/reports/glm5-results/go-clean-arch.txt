@@ -1,0 +1,71 @@
+I'll explore this repository systematically to classify its architecture. Let me start with the overall structure and README.Let me explore the key source files to understand the architecture implementation:Let me check if there are any tests to understand the mocking patterns better:Now I have a comprehensive understanding of this architecture. Let me finalize my classification.Based on my thorough exploration of this repository, I have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Hexagonal Architecture
+confidence: 0.95
+---
+
+## Analysis
+
+This repository is a textbook implementation of **Clean Architecture** (as explicitly stated in the README), which manifests as a **Layered architecture with Hexagonal Architecture characteristics**.
+
+### Evidence for Layered Architecture (Primary)
+
+The codebase exhibits clear horizontal layering with four distinct layers:
+
+1. **Domain Layer** (`domain/`): Contains pure business entities (`Article`, `Author`) and domain errors with zero external dependencies
+2. **Service/Usecase Layer** (`article/`): Business logic orchestration - the `Service` struct coordinates between repositories
+3. **Delivery Layer** (`internal/rest/`): HTTP handlers using Echo framework - receives requests, validates, calls service
+4. **Repository Layer** (`internal/repository/mysql/`): Data access implementations for MySQL
+
+The dependency flow follows strict layer boundaries:
+- `internal/rest/article.go:23-30` defines `ArticleService` interface for the delivery layer
+- `article/service.go:16-30` defines `ArticleRepository` and `AuthorRepository` interfaces
+- `internal/repository/mysql/article.go` implements the repository interface
+
+### Evidence for Hexagonal Architecture (Secondary)
+
+The codebase implements the **ports and adapters** pattern characteristic of Hexagonal Architecture:
+
+1. **Consumer-side interface definitions**: Interfaces are defined by their consumers, not providers:
+   - `article/service.go:16-30` - Repository interfaces defined in the service layer (business logic), not repository layer
+   - `internal/rest/article.go:23-30` - Service interface defined in the delivery layer
+
+2. **Dependency Inversion**: The `article/service.go:38-43` constructor accepts interfaces, allowing any implementation:
+   ```go
+   func NewService(a ArticleRepository, ar AuthorRepository) *Service
+   ```
+
+3. **Adapters (implementations)** are isolated in `internal/`:
+   - MySQL repository implementations are internal adapters
+   - REST handlers are external delivery adapters
+   - The `internal/README.md` explicitly states this prevents "exposure of detailed implementations... to the public"
+
+4. **Testability through mocking**: `article/mocks/` contains generated mocks enabling service testing without database:
+   ```go
+   mockArticleRepo := new(mocks.ArticleRepository)
+   u := article.NewService(mockArticleRepo, mockAuthorrepo)
+   ```
+
+### What Was Rejected
+
+- **Not Microservices**: Single deployable unit (`app/main.go`), single Dockerfile, single database instance
+- **Not Modular Monolith**: No explicit module boundaries, no separate `go.mod` per module, no module-scoped packages
+- **Not DDD**: No aggregates, value objects, bounded contexts, or rich domain behavior - entities are anemic data structures
+- **Not Event-Driven**: No message brokers, no event handlers, no async messaging patterns
+- **Not CQRS**: No separation of read/write models
+
+### Composition Root Pattern
+
+The `app/main.go:75-81` demonstrates classic dependency injection wiring:
+```go
+authorRepo := mysqlRepo.NewAuthorRepository(dbConn)
+articleRepo := mysqlRepo.NewArticleRepository(dbConn)
+svc := article.NewService(articleRepo, authorRepo)
+rest.NewArticleHandler(e, svc)
+```
+
+This explicit composition at the application entry point is characteristic of both Layered and Hexagonal architectures where dependencies flow inward and are wired at the outermost layer.

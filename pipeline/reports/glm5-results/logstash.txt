@@ -1,0 +1,63 @@
+Let me explore the plugin architecture and pipeline implementation more deeply:Let me check a few more files to solidify my understanding of the pipeline execution model:Based on my thorough exploration of the Logstash codebase, I now have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Pipeline (Pipe-and-Filter)
+confidence: 0.95
+---
+
+## Analysis
+
+Logstash exhibits a **Microkernel (Plugin)** architecture as its primary structural pattern, with **Pipeline (Pipe-and-Filter)** as a strong secondary characteristic.
+
+### Primary: Microkernel (Plugin)
+
+The plugin architecture is the defining organizational principle of Logstash:
+
+1. **Well-defined Plugin API**: The `co.elastic.logstash.api` package (`logstash-core/src/main/java/co/elastic/logstash/api/`) defines interfaces for all plugin types:
+   - `Input.java` - produces events
+   - `Filter.java` - transforms events  
+   - `Output.java` - ships events to destinations
+   - `Codec.java` - encodes/decodes data streams
+
+2. **Plugin Discovery and Registration**: The `PluginRegistry` (`logstash-core/src/main/java/org/logstash/plugins/discovery/PluginRegistry.java`) discovers plugins at runtime by scanning for `@LogstashPlugin` annotations via `PackageScanner`.
+
+3. **Plugin Isolation**: `PluginClassLoader` (`logstash-core/src/main/java/org/logstash/plugins/PluginClassLoader.java`) provides isolated classloading for Java plugins, preventing dependency conflicts with core.
+
+4. **Plugin Manager CLI**: `bin/logstash-plugin` and `lib/pluginmanager/main.rb` provide tooling for installing, removing, updating, and generating plugins from remote repositories.
+
+5. **Plugin Factory**: `PluginFactoryExt` (`logstash-core/src/main/java/org/logstash/plugins/factory/PluginFactoryExt.java`) is the factory that instantiates plugins based on configuration.
+
+6. **Extensibility by Design**: As stated in README.md: "Logstash has over 200 plugins, and you can write your own very easily as well." Plugins are Ruby gems or Java JARs hosted in separate repositories under `logstash-plugins` GitHub organization.
+
+### Secondary: Pipeline (Pipe-and-Filter)
+
+Data processing follows a classic pipe-and-filter model:
+
+1. **Sequential Stages**: The documentation (`docs/reference/how-logstash-works.md`) explicitly states: "The Logstash event processing pipeline has three stages: inputs → filters → outputs. Inputs generate events, filters modify them, and outputs ship them elsewhere."
+
+2. **Pipeline IR**: `PipelineIR` (`logstash-core/src/main/java/org/logstash/config/ir/PipelineIR.java`) compiles configurations into a graph with clearly defined stages: input section → queue → filter section → output section.
+
+3. **Dataset Execution**: The `Dataset` interface (`logstash-core/src/main/java/org/logstash/config/ir/compiler/Dataset.java`) represents "one step of execution flow of a batch" - each filter, output, or conditional branch is a Dataset in the pipeline.
+
+4. **Worker Loop**: `WorkerLoop` (`logstash-core/src/main/java/org/logstash/execution/WorkerLoop.java`) pulls batches from a queue and processes them through the compiled pipeline.
+
+5. **Configuration Format**: Pipeline configs (`config/logstash-sample.conf`) explicitly define the flow:
+   ```
+   input { ... }
+   filter { ... }  # optional
+   output { ... }
+   ```
+
+### What This Is NOT
+
+- **Not Microservices**: Single deployable artifact built via Gradle; runs as one JVM process.
+- **Not Event-Driven**: While Logstash can consume events, internally it uses a synchronous pull-based worker model, not message-driven choreography between services.
+- **Not Layered**: No horizontal presentation/business/data layers - instead organized around vertical plugin extension points.
+- **Not Modular Monolith**: While it has modules, the primary organizational principle is the plugin extension mechanism, not internal module boundaries.
+
+### Conclusion
+
+Logstash is architected as a **microkernel with plugins** where the core provides the plugin API, discovery, classloading isolation, and pipeline execution engine, while plugins provide all actual input/filter/output functionality. The **pipeline pattern** defines how data flows through the plugin chain, making these patterns complementary and deeply intertwined in Logstash's design.

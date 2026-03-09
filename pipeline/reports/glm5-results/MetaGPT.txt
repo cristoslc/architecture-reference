@@ -1,0 +1,89 @@
+I'll explore the MetaGPT repository to classify its architecture. Let me start with the directory structure and README.Let me explore the core architecture components - roles, actions, team coordination, and how agents communicate.Let me explore the environment and message passing, and see how roles coordinate.Let me look at more specifics of how agents are implemented and explore the examples directory to understand multi-agent patterns.Let me check a few more files to understand if there are DDD patterns or otherarchitectural elements.Now I have enough information to classify this architecture. Let me examine a few more key files to confirmmy understanding.Now I have sufficient evidence to classify this architecture. Let me provide my final analysis.
+
+---
+verdict: classified
+primary_style: Multi-Agent
+secondary_styles:
+  - Event-Driven
+confidence: 0.95
+---
+
+## Architecture Classification: Multi-Agent
+
+**MetaGPT is a Multi-Agent framework** designed for orchestrating autonomous AI agents that collaborate to solve complex tasks.
+
+### Core Architectural Evidence:
+
+**1. Agent as Primary Abstraction**
+- The `Role` class (`metagpt/roles/role.py`) defines autonomous agents with:
+  - Identity (`name`, `profile`, `goal`, `constraints`)
+  - Memory (`Memory` for storing messages and history)
+  - Cognition (`_think()`, `_observe()`, `_act()` methods)
+  - Autonomy (`react_mode`: REACT, BY_ORDER, PLAN_AND_ACT)
+  - Planning capability (`Planner` for task decomposition)
+
+**2. Team Coordination**
+- `Team` class (`metagpt/team.py`) orchestrates multiple agents:
+```python
+class Team(BaseModel):
+    env: Optional[Environment] = None
+    def hire(self, roles: list[Role]):
+        self.env.add_roles(roles)
+```
+- Agents are "hired" into a shared environment where they interact
+
+**3. Message-Based Communication**
+- Agents communicate via `Message` objects with routing metadata (`send_to`, `cause_by`, `sent_from`)
+- `Environment.publish_message()` distributes messages to subscribing agents
+- Each agent watches for specific action types via `_watch([ActionClass])` to determine relevance
+
+**4. Standard Operating Procedures (SOP)**
+From `software_company.py`:
+```python
+company.hire([
+    TeamLeader(),
+    ProductManager(),
+    Architect(),
+    Engineer2(),
+    DataAnalyst(),
+])
+```
+- Predefined workflows: ProductManager watches UserRequirement → Architect watches WritePRD → Engineer watches WriteTasks
+- The README explicitly states: **"Code = SOP(Team)"** - codifying coordinated agent behavior
+
+**5. Autonomous Behavior Patterns**
+From `metagpt/roles/role.py`:
+```python
+class RoleReactMode(str, Enum):
+    REACT = "react"
+    BY_ORDER = "by_order"
+    PLAN_AND_ACT = "plan_and_act"
+```
+- Agents can reason and act autonomously, not just execute predefined workflows
+
+### Secondary Style: Event-Driven
+
+The coordination mechanism between agents follows an event-driven pattern:
+- Messages contain `cause_by` (what action triggered this message)
+- Agents subscribe to specific action types and react when relevant messages arrive
+- The `Environment` acts as an event bus routing messages between agents
+
+From `environment/base_env.py`:
+```python
+def publish_message(self, message: Message, peekable: bool = True) -> bool:
+    """Distribute the message to the recipients."""
+```
+
+### Rejected Alternatives:
+
+- **Not Microservices**: Single deployable unit (`pip install metagpt`), no independent service boundaries, no network communication between components
+- **Not Pipeline**: Agents can react dynamically (REACT mode), not just sequential stages. Communication is bidirectional and context-aware
+- **Not Domain-Driven Design**: While there are domain concepts (ProductManager, Architect), the primary organization is around *autonomous agents*, not bounded contexts or aggregates
+- **Not Modular Monolith**: The module structure (`actions/`, `roles/`, `tools/`) supports the multi-agent paradigm but isn't about enforcing module boundaries in the traditional sense
+- **Not Hexagonal**: No ports-and-adapters isolation pattern; agents directly interact with LLMs and tools
+
+### Key Differentiating Features:
+1. **Agent autonomy**: Each agent can think, plan, and act independently
+2. **Coordination via SOP**: Structured workflows define how agents interact
+3. **Memory and state**: Agents maintain conversation history and working memory
+4. **Tool extensibility**: `@register_tool` decorator allows dynamic capability addition

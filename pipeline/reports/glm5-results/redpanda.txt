@@ -1,0 +1,97 @@
+Based on my comprehensive exploration of the Redpanda repository, I have sufficient evidence to provide the classification.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.90
+---
+
+## Analysis
+
+### Primary Classification: Modular Monolith
+
+**Evidence for Single Deployable Unit:**
+
+1. **Single Entry Point and Binary:** The repository produces a single `redpanda` binary from `src/v/redpanda/main.cc`, which instantiates one `application` object that orchestrates all functionality:
+   ```cpp
+   // src/v/redpanda/main.cc
+   int main(int argc, char** argv, char** /*env*/) {
+       syschecks::initialize_intrinsics();
+       application app;
+       debug::app = &app;
+       return app.run(argc, argv);
+   }
+   ```
+
+2. **Bazel Build Structure:** The root `BUILD` file confirms single deployable targets:
+   ```python
+   alias(
+       name = "redpanda",
+       actual = "//src/v/redpanda:redpanda",
+   )
+   alias(
+       name = "rpk",  # Separate CLI tool, not a service
+       actual = "//src/go/rpk/cmd/rpk:rpk_wrapper",
+   )
+   ```
+
+3. **No Microservice Artifacts:** No k8s manifests, helm charts, or docker-compose for production deployment of multiple services. The `tests/docker/docker-compose.yml` is solely for test infrastructure (minio, mysql for integration tests).
+
+**Evidence for Enforced Internal Module Boundaries:**
+
+1. **Clear Directory-Based Module Separation:** The `src/v/` directory contains 50+ well-separated modules:
+   - `cluster/` - Cluster management and metadata (284 files)
+   - `kafka/` - Kafka protocol implementation
+   - `raft/` - Raft consensus implementation
+   - `storage/` - Storage layer
+   - `cloud_storage/` - Tiered storage to S3/GCS/Azure
+   - `transform/` - Data transforms framework
+   - `wasm/` - WebAssembly runtime
+   - `pandaproxy/` - HTTP proxy and schema registry
+
+2. **Bazel Build Enforcement:** Each module has its own `BUILD` file with explicit dependencies, preventing circular dependencies and enforcing boundaries at compile time.
+
+3. **Internal Communication via Defined Interfaces:** The `application.h` class shows explicit wiring of 50+ sharded services with clear dependency injection patterns:
+   ```cpp
+   ss::sharded<cluster::partition_manager> partition_manager;
+   ss::sharded<cluster::metadata_cache> metadata_cache;
+   ss::sharded<kafka::group_router> group_router;
+   ss::sharded<storage::api> storage;
+   ss::sharded<raft::group_manager> raft_group_manager;
+   ```
+
+4. **Controller Pattern:** A central `cluster::controller` class coordinates cross-cutting concerns with explicit sharded service references, not loose coupling through events.
+
+### Secondary Classification: Microkernel (Plugin)
+
+**Evidence for Plugin Architecture:**
+
+1. **WebAssembly Data Transforms:** The system has a full plugin infrastructure for user-defined transformations:
+   - `src/v/wasm/` - Wasmtime-based WASM runtime engine
+   - `src/v/transform/` - Transform management and execution framework
+   - `src/transform-sdk/` - SDKs for C++, Go, Python, JavaScript
+
+2. **Plugin Frontend:** Explicit plugin management service (`src/v/cluster/plugin_frontend.h`):
+   ```cpp
+   // The plugin frontend takes care of all (WASM) plugin related functionality
+   class plugin_frontend : public ss::peering_sharded_service<plugin_frontend> {
+       ss::future<errc> upsert_transform(model::transform_metadata, ...);
+       ss::future<mutation_result> remove_transform(model::transform_name, ...);
+   };
+   ```
+
+3. **Runtime Plugin Loading:** From `src/v/wasm/README.md`: "A factory represents a compiled artifact that can cheaply be made into engines for a given core. Since compilation and the resulting artifacts are very expensive, we only create one per process."
+
+### Rejected Classifications
+
+- **Not Microservices:** No independent service deployments. Everything runs in one process. No inter-service communication protocols (REST/gRPC between services).
+
+- **Not Event-Driven:** While Redpanda IS an event streaming platform, its internal architecture uses direct method calls, futures/promises (Seastar), and Raft consensus—not internal event queues or message brokers between components.
+
+- **Not Layered:** While there are clear concerns (protocol, business logic, storage), the architecture doesn't follow strict horizontal layering. Modules communicate laterally through direct sharded service references.
+
+- **Not Service-Based:** There aren't 2-5 coarse-grained services sharing a database. It's a single cohesive application with many internal modules.
+
+- **Not Hexagonal:** No explicit ports/adapters pattern. The application uses direct dependency injection rather than inverted dependencies through interfaces.

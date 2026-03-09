@@ -1,0 +1,72 @@
+Now let me look at one more key file to understand the transaction/coordinator pattern:Based on my thorough exploration of the Dragonfly repository, I have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles: []
+confidence: 0.92
+---
+
+## Analysis
+
+Dragonfly is a **Modular Monolith** with clearly enforced internal module boundaries, designed for vertical scaling on a single instance.
+
+### Key Evidence for Modular Monolith
+
+**1. Single Deployable Unit**
+- One executable (`dragonfly`) built from `src/server/CMakeLists.txt`:
+  ```cmake
+  add_executable(dragonfly dfly_main.cc version_monitor.cc)
+  cxx_link(dragonfly base dragonfly_lib)
+  ```
+
+**2. Enforced Module Boundaries via CMake Targets**
+The codebase is structured as separate CMake libraries with explicit dependency hierarchies:
+- `dfly_facade` - Connection handling, protocol parsing (Redis/Memcache)
+- `dfly_core` - Data structures (Dashtable, compact objects, interpreters)
+- `dfly_transaction` - Transaction framework, db_slice, blocking controller
+- `dragonfly_lib` - Main server logic, command families
+
+The `src/facade/README.md` explicitly states the boundary enforcement:
+> "It should be separated from the rest of dragonfly server logic and should be self-contained, i.e no redis-lib or server dependencies are allowed."
+
+**3. Internal Sharding with Shared-Nothing Threading**
+From `docs/df-share-nothing.md`:
+> "The DF in-memory database is sharded into N parts, where N is less or equal to the number of threads in the system. Each database shard is owned and accessed by a single thread."
+
+And critically:
+> "Inter-thread interactions in Dragonfly occur only via passing messages from thread to thread."
+
+This is enforced through:
+- `EngineShardSet` (`src/server/engine_shard_set.h`) - manages shard collection with message-passing APIs like `Await()`, `Add()`, `RunBriefInParallel()`
+- `EngineShard` (`src/server/engine_shard.h`) - per-thread shard with own `DbSlice`, `TxQueue`, `TaskQueue`
+- Each shard owns its data exclusively—no mutex locks protecting shared data structures
+
+**4. Layered Organization**
+```
+src/
+├── facade/     # Protocol handling (Redis/Memcache parsers, connections)
+├── core/       # Data structures (dash tables, compact objects, JSON)
+├── server/     # Business logic (command families, transactions, replication)
+└── redis/      # Redis compatibility layer
+```
+
+### What This Is NOT
+
+**NOT Microservices** - Single process, single executable. No independent deployment units. Designed explicitly for vertical scaling within one instance.
+
+**NOT Event-Driven** - While inter-thread communication uses message passing, there is no message broker. Commands are synchronously dispatched to appropriate shards based on key hashing, not published as events.
+
+**NOT Space-Based** - Despite the in-memory nature, Space-Based architecture specifically refers to distributed systems with in-memory data grids across multiple nodes. Dragonfly is a single-process, multi-threaded system.
+
+**NOT Hexagonal** - No ports-and-adapters pattern. The `facade` layer handles protocol compatibility but isn't an adapter pattern in the hexagonal sense.
+
+### Architectural Highlights
+
+The architecture is specifically optimized for vertical scaling:
+- Thread-per-core design where each thread handles both I/O and shard ownership
+- Fiber-based concurrency (Boost.Fibers) for non-blocking operations within each thread
+- Dashtable data structure for memory-efficient concurrent access
+- Coordinator pattern in `Transaction` class for multi-key operations across shards
+
+This is a textbook example of a **Modular Monolith**: a single deployable with well-defined internal module boundaries, clear separation of concerns, and enforced dependencies between components.

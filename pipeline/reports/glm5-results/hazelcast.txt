@@ -1,0 +1,82 @@
+Let me check the ArchUnit rules and package structure for architectural enforcement:Let me look at a few more key architectural aspects:Based on my comprehensive exploration, I have sufficient evidence to classify this repository's architecture.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.88
+---
+
+## Analysis
+
+### Primary Style: Modular Monolith
+
+The Hazelcast repository is architected as a **Modular Monolith** — a single deployable artifact with well-defined and enforced internal module boundaries.
+
+**Key Evidence:**
+
+1. **Single Deployment Unit**: The build produces one core JAR (`hazelcast.jar`) from the main module. All services (MapService, QueueService, CacheService, etc.) run within the same JVM process.
+
+2. **Service-Based Module Boundaries**: The codebase contains 154+ service classes organized around distributed data structures:
+   - `hazelcast/src/main/java/com/hazelcast/map/impl/MapService.java`
+   - `hazelcast/src/main/java/com/hazelcast/collection/impl/queue/QueueService.java`
+   - `hazelcast/src/main/java/com/hazelcast/cache/impl/CacheService.java`
+
+3. **Enforced Internal Boundaries**: ArchUnit rules explicitly enforce separation between public API and internal implementation:
+   ```java
+   // PublicApiClassesExposingInternalImplementationCondition.java
+   private static final Set<String> INTERNAL_PACKAGE_NAMES = Set.of("impl", "internal");
+   ```
+   Packages like `com.hazelcast.internal.*` and `*.impl` are protected from public API exposure.
+
+4. **Service Interface Contracts**: Services implement well-defined SPI interfaces:
+   ```java
+   // MapService implements 12+ service interfaces
+   public class MapService implements ManagedService, ChunkedMigrationAwareService,
+       PartitionAwareService, RemoteService, EventPublishingService, 
+       SplitBrainHandlerService, TransactionalService, ...
+   ```
+
+5. **Centralized Service Management**: The `ServiceManagerImpl` (`hazelcast/src/main/java/com/hazelcast/spi/impl/servicemanager/impl/ServiceManagerImpl.java`) manages all service lifecycle through standard interfaces (`ManagedService.init()`, `ManagedService.shutdown()`).
+
+### Secondary Style: Microkernel (Plugin)
+
+The architecture exhibits strong **Microkernel/Plugin** characteristics through its extensibility mechanisms:
+
+1. **Service Discovery via ServiceLoader**: Services are discovered via `META-INF/services`:
+   - `hazelcast/src/main/resources/META-INF/services/com.hazelcast.spi.impl.servicemanager.ServiceDescriptorProvider`
+   - Multiple extension points use this pattern: `DataConnectionRegistration`, `DiscoveryStrategyFactory`, `SerializerHook`, etc.
+
+2. **Pluggable Extension Modules**: The `extensions/` directory contains optional plugins that can be added to the core:
+   - `extensions/kafka/` - Kafka connector
+   - `extensions/mongodb/` - MongoDB connector
+   - `extensions/elasticsearch/` - Elasticsearch integration
+   - `extensions/grpc/`, `extensions/protobuf/`, `extensions/python/`
+
+3. **Dynamic Service Configuration**: `ServiceConfig.java` allows runtime registration of custom services:
+   ```java
+   public class ServiceConfig {
+       private String className;
+       private Object serviceImpl;
+       private Properties properties;
+   }
+   ```
+
+4. **Extension Points Throughout**:
+   - `NodeExtension` for extending core node behavior
+   - `DataConnectionRegistration` for pluggable data sources
+   - `DiscoveryStrategyFactory` for custom discovery mechanisms
+   - `SerializerHook` for custom serialization
+
+### What This Is NOT
+
+- **Not Microservices**: Single JAR deployment, no independent services owning separate data stores, no inter-service network communication, no container orchestration configs.
+
+- **Not Event-Driven Architecture**: While Hazelcast provides event-based features (topics, event listeners, Jet streaming), these are product capabilities, not the codebase's organizational structure.
+
+- **Not Domain-Driven Design**: Services are organized by technical capability (map, queue, cache, executor), not business domains. No bounded contexts, aggregates, or ubiquitous language patterns.
+
+- **Not Layered Architecture**: No horizontal separation into presentation/business/data layers. Organization is by service capability, not functional layer.
+
+- **Not Space-Based Architecture**: While Hazelcast IS an in-memory data grid (a space-based product), the codebase's organization is service-based modularity, not organized around data grids and processing units.

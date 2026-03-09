@@ -15,9 +15,8 @@ languages:
 - JavaScript
 - Go
 architecture_styles:
-- Modular Monolith
 - Layered
-- Event-Driven
+- Domain-Driven Design
 classification_status: classified
 review_notes: 'GitLab is organized as a **Modular Monolith**. While it exhibits traditional
   Ruby on Rails horizontal layering (Models, View, Controllers), it employs a sophisticated
@@ -50,51 +49,45 @@ review_notes: 'GitLab is organized as a **Modular Monolith**. While it exhibits 
 
   - **Presentation:** Handled by `app/controllers` and the Grape API in `lib/api`.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.62
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:50:09Z'
-classification_reasoning: "GitLab is organized as a **Modular Monolith**. While it\
-  \ exhibits traditional Ruby on Rails horizontal layering (Models, View, Controllers),\
-  \ it employs a sophisticated structural pattern to maintain boundaries between its\
-  \ open-source core (CE), Enterprise Edition (EE), and JiHu (JH) versions within\
-  \ a single codebase.\n\n### Primary Style: Modular Monolith\nThe \"Module\" aspect\
-  \ of this monolith is most evident in the way GitLab manages its different editions.\
-  \ The `config/application.rb` file reveals a custom loading mechanism (`load_paths`)\
-  \ that dynamically injects directories from `/ee` and `/jh` into the Rails eager\
-  \ load paths.\n- **Dependency Inversion/Prepending:** It uses Ruby's `Module#prepend`\
-  \ pattern (e.g., `config.class.prepend(::Gitlab::Patch::DatabaseConfig)`) and specific\
-  \ `Gitlab.ee { ... }` blocks to extend core classes without modifying the base files\
-  \ directly. This allows the Enterprise features to exist as a separate module layer\
-  \ on top of the FOSS core.\n- **Namespacing:** The directory structure under `app/models/`\
-  \ and `app/services/` shows a clear transition toward domain-specific subdirectories\
-  \ (e.g., `app/models/ci/`, `app/models/clusters/`, `app/models/design_management/`),\
-  \ though a large \"God Object\" legacy persists in the root `app/models/` folder\
-  \ (e.g., `project.rb`, `user.rb`).\n\n### Secondary Style: Layered\nAs a standard\
-  \ Rails application, it adheres to a **Layered** architecture:\n- **Presentation:**\
-  \ Handled by `app/controllers` and the Grape API in `lib/api`.\n- **Business Logic:**\
-  \ Historically in models, but now heavily migrated to a dedicated **Service Layer**\
-  \ found in `app/services/`. This layer abstracts complex operations (like `protected_branches/update_service.rb`)\
-  \ away from the ActiveRecord models.\n- **Persistence:** Contained in `app/models`\
-  \ and `lib/gitlab/database`.\n\n### Secondary Style: Event-Driven\nThe codebase\
-  \ incorporates an internal **Event-Driven** architecture to decouple side effects.\
-  \ \n- Evidence: `lib/gitlab/event_store.rb` and the presence of `app/services/audit_events/processor.rb`\
-  \ indicate a pub/sub mechanism where domain events (like a repository push or user\
-  \ creation) trigger disparate handlers across the monolith.\n- This is distinct\
-  \ from its external infrastructure (Sidekiq/Redis), which it uses for asynchronous\
-  \ task processing.\n\n### Why not Microservices?\nAlthough GitLab self-hosts and\
-  \ integrates with many components (Gitaly, Workhorse, Runner), the core repository\
-  \ is a single deployable Ruby on Rails unit. The distinct components it communicates\
-  \ with (like `Gitaly` via gRPC) are treated as external services rather than the\
-  \ internal architecture of this specific repository."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.62
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.6
-  style_clarity: 0.7
-  alternatives_dismissed: 0.5
-  exploration_completeness: 0.6
-  flags: evidence is moderately specific (config/application.rb, some directory paths)
-    but lacks deep code-level verification of the event store mechanism and module
-    boundary claims; microservices dismissed but plugin/hexagonal not considered
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:26:29Z'
+classification_reasoning: "## Architecture Classification: GitLab (gitlabhq)\n\n###\
+  \ Primary Style: Layered Architecture\n\nGitLab is fundamentally a **Ruby on Rails\
+  \ application** implementing classic layered architecture with clear horizontal\
+  \ separation:\n\n**Evidence of Layering:**\n- **Controllers** (`app/controllers/`):\
+  \ 60+ controllers handling HTTP requests, organized by resource\n- **Models** (`app/models/`):\
+  \ 315+ ActiveRecord model files (~42,000 lines), data access layer via `ApplicationRecord`\n\
+  - **Services** (`app/services/`): 167+ service objects for business logic encapsulation\n\
+  - **Finders** (`app/finders/`): Dedicated query layer keeping complex queries out\
+  \ of models\n- **Policies** (`app/policies/`): Authorization layer using `DeclarativePolicy::Base`\n\
+  - **Workers** (`app/workers/`): Background job processing via Sidekiq\n- **Presenters/Serializers**\
+  \ (`app/presenters/`, `app/serializers/`): View/serialization layer\n- **API Layer**\
+  \ (`lib/api/`): REST API built on Grape framework\n\n**Single Deployable Unit:**\n\
+  - One Rails application deployed via Puma\n- Single shared PostgreSQL database\n\
+  - Sidekiq for background job processing\n- All components run in a single application\
+  \ process\n\n### Secondary Style: Domain-Driven Design\n\nGitLab explicitly organizes\
+  \ code by **bounded contexts**, documented in `config/bounded_contexts.yml`:\n\n\
+  ```yaml\ndomains:\n  Ci:\n    description: Create and run CI/CD pipelines\n    feature_categories:\n\
+  \      - continuous_integration\n      - pipeline_composition\n  Authn:\n    description:\
+  \ Authentication layer\n  Authz:\n    description: Authorization layer\n  # ~50+\
+  \ bounded contexts defined\n```\n\n**Domain Namespacing Throughout:**\n- Models:\
+  \ `app/models/ci/`, `app/models/authz/`, `app/models/authn/`, etc.\n- Services:\
+  \ `app/services/ci/`, `app/services/authn/`, `app/services/authz/`\n- Finders: `app/finders/ci/`,\
+  \ etc.\n- Workers: `app/workers/ci/`\n\n**Database Schema Organization** (`db/gitlab_schemas/`):\n\
+  - `gitlab_ci.yaml` - CI domain tables\n- `gitlab_main_org.yaml` - Organization tables\n\
+  - `gitlab_main_user.yaml` - User domain\n- `gitlab_sec.yaml` - Security domain\n\
+  \n**Feature Categories:** 150+ feature categories mapped to bounded contexts in\
+  \ `config/feature_categories.yml`\n\n### What This Is NOT\n\n- **NOT Microservices**:\
+  \ Single monolithic Rails app with shared database. No independent deployment units.\n\
+  - **NOT Modular Monolith**: While domains are namespaced, there's no compile-time\
+  \ enforcement of module boundaries. Domains can reference each other freely.\n-\
+  \ **NOT Event-Driven**: Uses Sidekiq for background jobs, but not message broker-based\
+  \ pub/sub.\n- **NOT Hexagonal Architecture**: No ports-and-adapters pattern. Uses\
+  \ ActiveRecord directly throughout.\n\n### Key Files Supporting Classification\n\
+  \n1. `config/bounded_contexts.yml` - Explicit domain context definitions\n2. `config/feature_categories.yml`\
+  \ - 150+ feature categories mapped to domains\n3. `db/gitlab_schemas/` - Database\
+  \ schemas organized by domain\n4. `doc/development/architecture.md` - Architecture\
+  \ documentation\n5. Directory structure showing domain namespacing (`app/models/ci/`,\
+  \ `app/services/authz/`, etc.)"

@@ -1,0 +1,73 @@
+Let me explore the architecture more deeply - examining the cmd directory structure, looking at how components interact, and understanding the plugin system.Let me examine the examples for pipeline patterns and check for event-driven aspects:Based on my thorough analysis, I have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Pipeline (Pipe-and-Filter)
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.88
+---
+
+## Analysis
+
+### Primary Style: Pipeline (Pipe-and-Filter)
+
+Argo Workflows implements a classic **Pipeline (Pipe-and-Filter)** architecture, where workflows are defined as Directed Acyclic Graphs (DAGs) or sequential Steps through which data flows:
+
+**Key Evidence:**
+
+1. **Workflow Definition Language** (`examples/dag-coinflip.yaml`, `examples/steps.yaml`): Workflows are explicitly defined as pipelines of interconnected tasks:
+   - DAG templates specify task dependencies explicitly (`depends: "A"`, `depends: "B && C"`)
+   - Steps templates define sequential/parallel execution stages
+   - Each step is a filter/container that processes inputs and produces outputs
+
+2. **Pipeline Execution Engine** (`workflow/controller/dag.go`, `workflow/controller/steps.go`):
+   - `dagContext` tracks task dependencies and execution order
+   - `executeSteps()` method orchestrates step-by-step pipeline execution
+   - Tasks have explicit dependencies forming a DAG structure
+
+3. **Artifact Passing Between Steps** (`workflow/artifacts/`): 
+   - Artifacts flow between pipeline stages
+   - Output from one step becomes input to the next
+   - Multiple artifact backends (S3, GCS, Azure, HTTP, Git) support the pipe metaphor
+
+4. **Documentation Confirms** (`docs/architecture.md`):
+   > "Model multi-step workflows as a sequence of tasks or capture the dependencies between tasks using a directed acyclic graph (DAG)."
+
+### Secondary Style: Microkernel (Plugin)
+
+The system implements a **Microkernel/Plugin** architecture for extensibility:
+
+**Key Evidence:**
+
+1. **Artifact Plugin System** (`docs/artifact-plugin.md`, `workflow/artifacts/plugin/plugin.go`):
+   - Well-defined gRPC interface (`artifact.proto`)
+   - Plugins run as sidecars communicating via Unix sockets
+   - Core system loads plugins dynamically at runtime
+   - Supports plugins in any language (Go, Python, Java, Rust)
+
+2. **Template Executor Plugins** (`pkg/plugins/executor/`, `workflow/executor/plugins/rpc/plugin.go`):
+   - `TemplateExecutor` plugin interface
+   - Plugins execute custom templates via RPC
+   - Registered via ConfigMap configuration
+
+3. **Plugin Spec** (`pkg/plugins/spec/plugin_types.go`):
+   - Sidecar-based plugin registration
+   - Validated plugin contracts with required fields (ports, resources, security context)
+
+### What This Is NOT
+
+**NOT Microservices**: Despite multiple deployables (workflow-controller, argo-server, argoexec), this is a monolithic codebase (`go.mod` has one module). The components are not independent services - they're a controller, API server, and executor that work in concert on a single workflow engine.
+
+**NOT Event-Driven** (primary style): While the controller uses Kubernetes informers and workqueues (event-driven implementation detail), the **architectural pattern** is Pipeline - workflows are defined as data transformation pipelines, not as event-sourced aggregates. The workqueue is a reconciliation mechanism, not the defining architectural characteristic.
+
+**NOT Layered**: There's no horizontal presentation/business/data layering. The architecture is organized around workflow execution (controller, operator, DAG, steps) and extensibility (plugins), not separation of concerns layers.
+
+### Deployment Architecture
+
+From `Dockerfile` and `manifests/`:
+- **workflow-controller**: Kubernetes controller that reconciles Workflow CRDs
+- **argo-server**: API server (gRPC+HTTP) serving the UI and clients  
+- **argoexec**: Executor binary that runs inside workflow pods (init, wait, emissary containers)
+
+The architecture leverages Kubernetes as the deployment platform - workflows run as pods, the controller watches for CRD changes, and artifacts flow through the defined pipeline structure.

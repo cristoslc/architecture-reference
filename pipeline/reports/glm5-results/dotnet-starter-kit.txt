@@ -1,0 +1,79 @@
+Based on my comprehensive exploration, I now have sufficient evidence to classify this repository.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Domain-Driven Design
+confidence: 0.92
+---
+
+## Analysis
+
+The **dotnet-starter-kit** is a **Modular Monolith** with strong **Domain-Driven Design** influences.
+
+### Primary Classification: Modular Monolith
+
+**Evidence for enforced internal module boundaries:**
+
+1. **Single Deployable Unit**: One API host (`Playground.Api`) loads all modules at runtime. The solution has no separate deployment artifacts per module.
+
+2. **Module Discovery & Loading Plugin System** (`src/BuildingBlocks/Web/Modules/ModuleLoader.cs`):
+   - Runtime discovery via reflection scanning `FshModuleAttribute`
+   - Modules self-register: `[assembly: FshModule(typeof(IdentityModule), 100)]`
+   - Standardized lifecycle: `IModule` interface with `ConfigureServices()` and `MapEndpoints()`
+
+3. **Architecture Tests Enforce Module Isolation** (`src/Tests/Architecture.Tests/ModuleArchitectureTests.cs`):
+   ```csharp
+   // Module runtime project must not reference other module runtime project. 
+   // Only contracts or building block projects are allowed.
+   isSelfReference.ShouldBeTrue($"Module runtime project '{currentName}' must not reference...");
+   ```
+
+4. **Contracts Pattern**: Each module has two projects:
+   - `Modules.Identity.Contracts` — pure DTOs, interfaces, events (no EF, Hangfire, or implementation deps)
+   - `Modules.Identity` — implementation, features, infrastructure
+   - `ContractsPurityTests.cs` enforces contracts remain free of infrastructure concerns
+
+5. **Module-to-Module Communication via Contracts Only**: Modules depend on each other's contracts, never implementations.
+
+### Secondary Classification: Domain-Driven Design
+
+**Evidence:**
+
+1. **Aggregate Roots & Entities** (`src/BuildingBlocks/Core/Domain/`):
+   - `AggregateRoot<TId>`, `BaseEntity<TId>` with domain event support
+   - `IDomainEvent`, `IHasDomainEvents` interfaces
+
+2. **Bounded Contexts as Modules**: Identity, Multitenancy, and Auditing are separate bounded contexts, each with:
+   - Own DbContext (`IdentityDbContext`, `TenantDbContext`, `AuditDbContext`)
+   - Own domain models (`FshUser`, `FshRole`, `Tenant`, `Audit`)
+   - Own feature slices
+
+3. **Vertical Slice Features**: Each use case organized as self-contained folder:
+   ```
+   Features/v1/Users/RegisterUser/
+     ├── RegisterUserEndpoint.cs
+     ├── RegisterUserCommandHandler.cs
+     └── RegisterUserCommandValidator.cs
+   ```
+
+4. **Layered Dependency Enforcement** (`src/Tests/Architecture.Tests/LayerDependencyTests.cs`):
+   - Tests enforce "Domain → Application → Infrastructure → Presentation" flow
+   - Core must not depend on EF Core or ASP.NET Core
+   - Domain types isolated from persistence and infrastructure
+
+### What This Is NOT
+
+- **NOT Microservices**: Single deployable, shared process, no inter-service communication protocols
+- **NOT Hexagonal Architecture**: Organization is around modules/bounded contexts, not ports/adapters isolation
+- **NOT Event-Driven (primary)**: Eventing exists (`IIntegrationEvent`, `InMemoryEventBus`, `RabbitMqEventBus`) but serves as cross-module communication within the monolith, not the primary architectural driver
+
+### Architecture Test Suite
+
+The repository includes comprehensive architecture guardrails (13+ test files) that validate:
+- Module independence (`ModuleArchitectureTests.cs`)
+- Layer dependencies (`LayerDependencyTests.cs`)
+- Contracts purity (`ContractsPurityTests.cs`)
+- Feature version isolation (`FeatureArchitectureTests.cs`)
+- Building block independence (`BuildingBlocksIndependenceTests.cs`)

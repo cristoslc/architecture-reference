@@ -1,0 +1,102 @@
+I'll explore the nhost repository to classify its architecture. Let me start with an overview of the structure.Let me explore the services structure and deployment configuration more deeply.Let me examine the relationship between services and check if there are any additional architecturalpatterns.Let me check if there are additional services and verify the database schemaseparation.Let me verify one more aspect - the package structure for the JS/TS dashboard to understand its internal architecture.Based on my comprehensive analysis, I now have sufficient evidence to classify this architecture.
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles:
+  - Service-Based
+confidence: 0.88
+
+---
+
+## Architecture Analysis: Nhost Repository
+
+### Primary Classification: Microservices
+
+The Nhost repository implements a **Microservices architecture** with multiple independently deployable services that own their data schemas.
+
+### Key Evidence
+
+**1. Multiple Independently Deployable Services:**
+
+The repository contains distinct services deployed as separate containers (from `examples/docker-compose/docker-compose.yaml`):
+
+- **Auth Service** (`services/auth/`) - Go-based authentication service (image: `nhost/auth:0.40.2`)
+- **Storage Service** (`services/storage/`) - Go-based file storage service (image: `nhost/storage:0.7.2`)
+- **Hasura GraphQL Engine** - External GraphQL API layer
+- **PostgreSQL** - Shared database with schema isolation
+- **Functions** - Node.js serverless functions runtime
+- **MinIO** - S3-compatible object storage
+- **Traefik** - API Gateway/Ingress controller
+
+**2. Database Schema Isolation Per Service:**
+
+Each service owns its own database schema, following the database-per-service pattern at the schema level:
+
+- Auth service creates and manages `auth` schema (`services/auth/docker/initdb.d/0001-create-schema.sql`)
+- Storage service creates and manages `storage` schema (`services/storage/migrations/postgres/000001_create-initial-tables.up.sql`)
+
+Each service runs its own migrations independently:
+```go
+// services/auth/go/migrations/postgres.go
+const schemaName = "auth"
+
+// services/storage/migrations/postgres.go  
+const schemaName = "storage"
+```
+
+**3. Independent Service Entry Points:**
+
+Each service is a standalone Go application:
+- `services/auth/main.go` - Auth API server on port 4000
+- `services/storage/main.go` - Storage API server
+
+Both services expose REST APIs (via OpenAPI specifications) and operate independently.
+
+**4. Service Communication Pattern:**
+
+Services communicate synchronously via HTTP/GraphQL:
+- Auth service connects to Hasura GraphQL for metadata operations
+- Storage service uses Hasura GraphQL for file metadata (`services/storage/metadata/hasura.go`)
+
+```go
+// Storage service queries Hasura for metadata
+func (md *FileMetadataSummaryFragment) ToControllerType() controller.FileSummary {...}
+```
+
+**5. Independent Versioning:**
+
+Services have independent release cycles:
+- Auth: version 0.40.2
+- Storage: version 0.7.2
+
+**6. Monorepo Structure:**
+
+The repository uses workspace-based organization:
+- `pnpm-workspace.yaml` for JavaScript/TypeScript packages
+- Go modules for Go services
+- Clear separation between services, CLI tools, SDKs, and dashboard
+
+### What Was Rejected
+
+**Not Event-Driven:** No message brokers (Kafka, RabbitMQ, NATS) or event-sourcing patterns were found. Services communicate synchronously via HTTP/GraphQL APIs.
+
+**Not Modular Monolith:** Services are deployed as separate Docker containers, not as modules within a single deployable. Each service has its own database schema and can be deployed independently.
+
+**Not Serverless:** While the platform supports serverless functions, the core services (auth, storage) are long-running Go services, not function-based.
+
+**Not Service-Based (as primary):** While there's some database sharing (PostgreSQL), the services have clear schema isolation and independent deployability, pushing this beyond coarse-grained service-based into microservices territory.
+
+### Secondary Style: Service-Based
+
+The architecture has Service-Based characteristics as a secondary classification because:
+- Only 2 coarse-grained backend services (auth, storage) owned by Nhost
+- Services share a PostgreSQL instance (with schema isolation)
+- Hasura acts as a unified GraphQL gateway layer
+
+### Additional Components
+
+- **CLI** (`cli/`): Development tooling that orchestrates Docker Compose for local development
+- **Dashboard** (`dashboard/`): Next.js web application for platform management
+- **nhost-js** (`packages/nhost-js/`): JavaScript SDK client library
+- **Docs** (`docs/`): Documentation site (Astro-based)

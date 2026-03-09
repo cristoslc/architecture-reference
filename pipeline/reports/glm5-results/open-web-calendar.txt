@@ -1,0 +1,106 @@
+Now I have sufficient evidence to classify this architecture. Let me look at a few more details about how the layersare organized:Based on my comprehensive exploration of the repository, I now have sufficient evidence to provide the final classification:
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles: []
+confidence: 0.92
+---
+
+## Architecture Analysis: Open Web Calendar
+
+### Primary Classification: **Layered Architecture**
+
+The open-web-calendar repository exhibits a classic **Layered Architecture** with clear horizontal separation of concerns:
+
+#### Evidence of Layered Structure
+
+**1. Presentation/Handler Layer** (`open_web_calendar/app.py`):
+- Flask application with route handlers (`@app.route`)
+- HTTP request/response handling
+- Template rendering and static file serving
+- Configuration endpoints for JavaScript frontend
+- ~520 lines of controller code
+
+```python
+@app.route("/calendar.<ext>", methods=["GET", "OPTIONS"])
+def get_calendar(ext):
+    """Return a calendar."""
+    specification = get_specification()
+    if ext == "events.json":
+        return get_conversion(ConvertToEvents, specification)
+    if ext == "ics":
+        return get_conversion(ConvertToICS, specification)
+```
+
+**2. Business Logic/Conversion Layer** (`open_web_calendar/convert/`):
+- `ConversionStrategy` abstract base class defines the contract
+- Concrete strategies: `ConvertToEvents`, `ConvertToICS`, `ConvertToCalendars`
+- Encapsulates calendar transformation logic
+- Independent of HTTP layer
+
+```python
+class ConversionStrategy:
+    """Base class for conversions."""
+    def retrieve_calendars(self): ...
+    def merge(self): ...
+    def collect_components_from(self, index, calendars): ...
+```
+
+**3. Data Access/Calendar Source Layer** (`open_web_calendar/calendars/`):
+- Abstract `Calendars` base class with unified interface
+- Concrete implementations for different sources:
+  - `ICSCalendars` - handles ICS file sources
+  - `CalDAVCalendars` - handles CalDAV protocol sources
+- `get_events_between()`, `get_icalendars()` as common operations
+
+```python
+class Calendars(ABC):
+    """Base class for calendars."""
+    @abstractmethod
+    def get_events_between(self, start, end) -> list[Event]: ...
+    @abstractmethod
+    def get_icalendars(self) -> list[Calendar]: ...
+```
+
+**4. Configuration Layer** (`open_web_calendar/config.py`):
+- Environment-based configuration management
+- Separation of configuration concerns from application logic
+
+**5. Template/Static Resources** (`open_web_calendar/templates/`, `open_web_calendar/static/`):
+- HTML templates for different views (index.html, about.html, calendar templates)
+- JavaScript, CSS, and image assets
+
+#### Single Deployable Unit
+
+Evidence from deployment configuration:
+- Single `Dockerfile` building one container
+- Single `Procfile` with one web process: `web: gunicorn open_web_calendar.app:app`
+- Single `pyproject.toml` packaging one Python package
+- Single Flask application instance (`app = Flask(__name__)`)
+
+#### Dependency Flow
+
+The dependencies flow downward through layers:
+- Presentation → Business Logic → Data Access
+- Flask routes use conversion strategies
+- Conversion strategies use calendar abstractions
+- No circular dependencies or violations of layer boundaries
+
+### Styles Considered and Rejected
+
+**Not Microservices**: Single deployable unit, no service boundaries, no inter-service communication, shared process memory.
+
+**Not Modular Monolith**: While there are well-organized packages (`calendars/`, `convert/`), there's no explicit module boundary enforcement. The code is organized by layer rather than by vertical feature modules.
+
+**Not Event-Driven**: No message brokers, event buses, or async event handling. All operations are synchronous HTTP request/response.
+
+**Not Hexagonal/Ports & Adapters**: While abstract interfaces exist (`Calendars`, `ConversionStrategy`), there's no explicit separation of ports (application interfaces) from adapters (infrastructure implementations). The Flask app directly instantiates and uses strategies.
+
+**Not DDD**: No bounded contexts, aggregates, entities, or value objects organized around domain concepts. The organization is technical (by layer) not domain-driven.
+
+**Not Microkernel/Plugin**: No plugin loading mechanism, no runtime extension points. The conversion strategies are selected by file extension but are all built-in and statically defined.
+
+### Conclusion
+
+The architecture is a well-structured **Layered Architecture** typical of Flask web applications. The code demonstrates clean separation between presentation (Flask routes/templates), business logic (conversion strategies), and data access (calendar sources). The Strategy pattern is used within the business logic layer for extensibility, but this is an implementation pattern rather than a defining architectural style.

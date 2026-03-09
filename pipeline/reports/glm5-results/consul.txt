@@ -1,0 +1,105 @@
+I'll explore the Consul repository to classify its architecture. Let me start with the directory structure andREADME.Let me explore the main entry point and go.mod to understand the modulestructure:Let me explore the core server architecture and understand the deploymentmodel:Let me look at the layered structure more closely and understand the communication patterns:Let me examine the Raft integration and state store moreclosely:Now let me check a bit more about how modulesinteract:Based on my thorough exploration of the Consul repository, I now have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Modular Monolith
+confidence: 0.90
+---
+
+## Architecture Analysis: HashiCorp Consul
+
+### Primary Classification: Layered Architecture
+
+Consul implements a classic **Layered Architecture** with clear horizontal separation of concerns:
+
+**1. API/Presentation Layer** (`agent/*_endpoint.go`, `agent/grpc-external/`, `agent/dns/`, `command/`)
+- HTTP REST endpoints for catalog, ACL, health, coordinate, config operations
+- gRPC external services (`agent/grpc-external/services/`)
+- DNS interface for service discovery
+- CLI commands in `command/` directory (40+ subdirectories for different command groups)
+
+**2. Business Logic/Service Layer** (`agent/consul/server.go`, `agent/consul/client.go`)
+- Core `Server` struct (~2025 lines) handling Raft-based consensus
+- `Client` struct for agent-to-server communication
+- Domain-specific handlers: `Catalog`, `ACL`, `Health`, `Connect`, `PreparedQuery`
+- Controller pattern in `internal/controller/` for Kubernetes-style reconciliation
+
+**3. State/Data Layer** (`agent/consul/fsm/`, `agent/consul/state/`)
+- FSM (Finite State Machine) for Raft log application
+- MemDB-based state store with tables for nodes, services, ACLs, sessions, etc.
+- Snapshot/restore capabilities
+- Event publishing for state change notifications
+
+**Evidence from code:**
+```
+agent/consul/catalog_endpoint.go:76-80
+type Catalog struct {
+    srv    *Server
+    logger hclog.Logger
+}
+```
+
+Endpoints depend on the Server, which depends on the State Store - classic layered dependency.
+
+### Secondary Style: Modular Monolith
+
+Consul exhibits **Modular Monolith** characteristics with enforced internal boundaries:
+
+**Single Deployable:**
+- One `main.go` entry point
+- Single binary built via Dockerfile
+- Go module with replace directives for internal packages (`api/`, `sdk/`, `proto-public/`)
+
+**Organized Module Structure (~708 Go files in agent/ alone):**
+- `acl/` - Access control logic
+- `agent/` - Core agent with endpoints
+- `agent/cache/` - Caching layer
+- `agent/consul/` - Server/client logic, Raft integration
+- `agent/structs/` - Domain objects
+- `internal/controller/` - Reconciliation controllers
+- `internal/storage/` - Storage backends
+- `command/` - CLI interface
+
+**Module Boundary Evidence:**
+- `agent/consul/state/store.go` encapsulates all state operations
+- `internal/controller/controller.go` implements independent controller pattern
+- Clear separation between packages with explicit interfaces
+
+**Enterprise/OSS Boundary:**
+- `*_ce.go` files define Community Edition stubs (e.g., `agent/setup_ce.go`, `agent/consul/server_ce.go`)
+- Build tags separate enterprise features
+
+### What This is NOT:
+
+- **NOT Microservices**: Single binary deployed across all nodes (servers and clients run the same binary with different configurations)
+  
+- **NOT Event-Driven Architecture**: While Consul has event mechanisms (Serf gossip, event publishers in `agent/consul/stream/`), the core architecture is **synchronous request-response with Raft consensus**, not event-sourced. Writes go through Raft log replication.
+
+- **NOT CQRS**: Single MemDB state store; no separate read/write models
+
+- **NOT Hexagonal/Ports-Adapters**: Direct package coupling without ports/adapters abstraction. Internal packages import each other directly.
+
+- **NOT Microkernel/Plugin**: No runtime plugin loading. Extension is via build-time enterprise integration.
+
+### Key Architectural Elements:
+
+1. **Raft Consensus**: Distributed state management via `github.com/hashicorp/raft` with FSM implementation
+   ```
+   fsm/fsm.go:48-68 - FSM struct with state store and event publisher
+   ```
+
+2. **Serf Gossip**: Member discovery and health checking via `github.com/hashicorp/serf`
+
+3. **Controller Pattern**: Kubernetes-inspired reconciliation loops in `internal/controller/manager.go`
+
+4. **State Management**: MemDB (in-memory database) with ~30+ table schemas for different entity types
+
+### Confidence Rationale: 0.90
+
+- **Clear layered structure** evident from directory organization and dependency flow
+- **Single deployable** confirmed via `main.go`, Dockerfile, and go.mod
+- **Module boundaries** enforced through Go package structure
+- **Not ambiguous**: Clear separation between API, business logic, and state layers
+- Minor complexity from distributed consensus mechanisms doesn't change the fundamental layered organization

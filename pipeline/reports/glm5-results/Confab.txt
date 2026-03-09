@@ -1,0 +1,109 @@
+I'll explore the Confab repository to classify its architecture. Let me start with a high-level overview.The README explicitly states this is a **modular monolith architecture**. Let me verify this by examining the actual structure and implementation.Excellent evidence so far! I can see a clear modular structure with a single Bootstrapper as the entry point. Let me examine the module infrastructure and how boundaries are enforced.Let me examine the module infrastructure for inter-module communication and check a concrete module implementation.I now have sufficient evidence to classify this repository. Let me verify one more aspect about the deployment model.Now I have comprehensive evidence to classify this architecture.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Domain-Driven Design
+confidence: 0.95
+---
+
+## Architecture Classification: Modular Monolith
+
+### Evidence for Modular Monolith
+
+**Single Deployable with Module Boundaries:**
+- The `Bootstrapper` project (`src/Bootstrapper/Confab.Bootstrapper/Confab.Bootstrapper.csproj`) references all modules and serves as the single entry point
+- All modules are compiled into one application and run via `dotnet run` from the Bootstrapper
+
+**Explicit Module Contract (`IModule` interface):**
+```csharp
+// src/Shared/Confab.Shared.Abstractions/Modules/IModule.cs
+public interface IModule
+{
+    string Name { get; }
+    string Path { get; }
+    IEnumerable<string> Policies => null;
+    void Register(IServiceCollection services);
+    void Use(IApplicationBuilder app);
+}
+```
+
+**Dynamic Module Loading with Enable/Disable Support:**
+```csharp
+// src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs
+var enabled = configuration.GetValue<bool>($"{moduleName}:module:enabled");
+if (!enabled) { disabledModules.Add(file); }
+```
+
+**Inter-Module Communication via Local Contracts:**
+- `IModuleClient` provides `SendAsync()` for request/response and `PublishAsync()` for broadcast
+- Type translation via serialization prevents direct type dependencies between modules:
+```csharp
+// src/Shared/Confab.Shared.Infrastructure/Modules/ModuleClient.cs
+private T TranslateType<T>(object value)
+    => _moduleSerializer.Deserialize<T>(_moduleSerializer.Serialize(value));
+```
+
+**Separate Database Schemas Per Module:**
+```csharp
+// src/Modules/Agendas/Confab.Modules.Agendas.Infrastructure/EF/AgendasDbContext.cs
+protected override void OnModelCreating(ModelBuilder modelBuilder)
+{
+    modelBuilder.HasDefaultSchema("agendas");
+}
+```
+
+**7 Well-Defined Modules:**
+- Agendas, Attendances, Conferences, Saga, Speakers, Tickets, Users
+- Each has its own namespace: `Confab.Modules.*`
+- Each has internal layering (Api/Application/Domain/Infrastructure or Core)
+
+### Evidence for Domain-Driven Design (Secondary)
+
+**Aggregate Root Pattern:**
+```csharp
+// src/Shared/Confab.Shared.Abstractions/Kernel/Types/AggregateRoot.cs
+public abstract class AggregateRoot<T>
+{
+    public IEnumerable<IDomainEvent> Events => _events;
+    protected void AddEvent(IDomainEvent @event) { ... }
+}
+```
+
+**Domain Entities with Business Logic:**
+```csharp
+// src/Modules/Agendas/Confab.Modules.Agendas.Domain/Submissions/Entities/Submission.cs
+public sealed class Submission : AggregateRoot
+{
+    public void Approve() => ChangeStatus(SubmissionStatus.Approved, SubmissionStatus.Rejected);
+    // Business logic encapsulated in entity methods
+}
+```
+
+**Domain Events and Handlers:**
+```csharp
+// src/Modules/Agendas/Confab.Modules.Agendas.Domain/Agendas/Events/Handlers/SubmissionApprovedHandler.cs
+internal sealed class SubmissionApprovedHandler : IDomainEventHandler<SubmissionStatusChanged>
+```
+
+**Domain Services, Repositories, and Value Objects present in module Domain layers**
+
+### What This Architecture Is NOT
+
+- **NOT Microservices**: The README explicitly states this is a modular monolith. All modules deploy together through the Bootstrapper. The `APIGateway` and `Services/Tickets` projects exist for future microservices transition demonstration, not current deployment.
+
+- **NOT Just Layered**: While modules have internal horizontal layers (Api/Application/Domain/Infrastructure), the **primary architectural driver is vertical module boundaries** with enforced isolation. Horizontal layering is secondary.
+
+- **NOT Service-Based**: Service-Based architecture has 2-5 coarse-grained services often sharing a database. This has 7 fine-grained modules with separate schemas and stronger isolation through local contracts.
+
+### Conclusion
+
+Confab is a textbook example of **Modular Monolith** architecture with strong module boundary enforcement through:
+1. Explicit `IModule` contracts
+2. Dynamic loading with enable/disable capability
+3. Separate database schemas per module
+4. Local contracts approach for inter-module communication (no shared types)
+5. Serialization-based type translation preventing direct dependencies
+
+The DDD patterns (aggregates, domain events, entities with business logic) are applied **within modules**, making DDD a complementary secondary style supporting the modular monolith primary architecture.

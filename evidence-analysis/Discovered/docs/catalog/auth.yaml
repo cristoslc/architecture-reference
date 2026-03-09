@@ -14,6 +14,7 @@ languages:
 - Go
 architecture_styles:
 - Layered
+- Modular Monolith
 classification_status: classified
 review_notes: "The Supabase Auth (formerly GoTrue) repository is a classic example\
   \ of a **Layered Architecture** (specifically a variation of the Service/Repository\
@@ -29,50 +30,168 @@ review_notes: "The Supabase Auth (formerly GoTrue) repository is a classic examp
   \    *   **Foundational/Utility Layers (`internal/crypto/`, `internal/observability/`,\
   \ `internal/ratelimit/`)**: Provides cross-cutting concerns used by other layers."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.78
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:40:30Z'
-classification_reasoning: "The Supabase Auth (formerly GoTrue) repository is a classic\
-  \ example of a **Layered Architecture** (specifically a variation of the Service/Repository\
-  \ or MVC pattern common in Go web applications).\n\n### Evidence of Layered Architecture:\n\
-  \n1.  **Clear Vertical Separation of Concerns**: The `internal/` directory is organized\
-  \ into distinct horizontal layers that manage specific ranges of responsibility:\n\
-  \    *   **Presentation/API Layer (`internal/api/`)**: Contains HTTP handlers, routing\
-  \ logic, and request/response parsing (e.g., `signup.go`, `token.go`, `logout.go`).\n\
-  \    *   **Data Access/Model Layer (`internal/models/`)**: Defines the structure\
-  \ of the entities (User, Session, RefreshToken) and contains the logic for interacting\
-  \ with the database.\n    *   **External Service Adapters (`internal/mailer/`, `internal/storage/`)**:\
-  \ Abstracts side effects like sending emails or managing database connections.\n\
-  \    *   **Foundational/Utility Layers (`internal/crypto/`, `internal/observability/`,\
-  \ `internal/ratelimit/`)**: Provides cross-cutting concerns used by other layers.\n\
-  \n2.  **Single Deployment Unit**: The project compiles into a single binary (`auth`).\
-  \ The `cmd/` directory contains the entry points (CLI commands) that initialize\
-  \ the shared configuration and start the single long-running process (`serve_cmd.go`).\n\
-  \n3.  **Dependency Flow**: The architecture follows a typical top-down dependency\
-  \ flow. The `api` layer depends on `models` and `utilities`. The `models` package\
-  \ handles the persistence logic, and the `cmd` package wires these layers together.\n\
-  \n### Why other styles were rejected:\n\n*   **Microservices**: Although the README\
-  \ mentions it is a \"microservice\" in the context of the larger Supabase platform,\
-  \ the repository itself is a self-contained, single-purpose service. Internally,\
-  \ it is not composed of multiple independently deployable microservices.\n*   **Modular\
-  \ Monolith**: While there is internal package separation, the packages are highly\
-  \ coupled to the specific domain of authentication. There aren't \"enforced\" boundaries\
-  \ between disparate business sub-domains (e.g., Billing vs. Auth) typical of a Modular\
-  \ Monolith; everything is inside the Auth domain.\n*   **Hexagonal Architecture**:\
-  \ While there is some use of interfaces (e.g., in the `mailer` package with `noopclient`,\
-  \ `taskclient`, etc.), the core business logic is heavily interleaved with database\
-  \ models (`internal/models`) rather than being isolated in a pure \"domain\" layer\
-  \ that is agnostic of the persistence framework.\n*   **Microkernel/Plugin**: External\
-  \ OAuth providers and mailers are implemented as internal packages rather than dynamically\
-  \ loaded plugins or independent components following a strict plugin contract.\n\
-  *   **Event-Driven**: While the system may emit logs or audit entries, the internal\
-  \ request processing is synchronous/request-response based."
-confidence_calibration:
-  original_confidence: 0.85
-  calibrated_confidence: 0.78
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.8
-  alternatives_dismissed: 0.85
-  exploration_completeness: 0.75
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:47:25Z'
+classification_reasoning: '## Architecture Analysis: Supabase Auth (GoTrue)
+
+
+  ### Primary Style: Layered
+
+
+  The codebase exhibits a classic **Layered Architecture** with well-defined horizontal
+  separation of concerns:
+
+
+  **1. API/Presentation Layer** (`internal/api/`)
+
+  - HTTP handlers organized by functionality: `signup.go`, `token.go`, `user.go`,
+  `auth.go`, `admin.go`, etc.
+
+  - Chi router for request routing (`router.go`)
+
+  - Middleware for cross-cutting concerns: authentication, rate limiting, logging,
+  request tracing
+
+  - Request/response handling with parameter validation
+
+
+  **2. Business/Domain Layer** (`internal/models/`)
+
+  - Domain entities: `User`, `Session`, `Identity`, `Factor`, `RefreshToken`, `AuditLogEntry`,
+  etc.
+
+  - Business logic methods on models (e.g., `NewUser()`, `NewUserWithPasswordHash()`)
+
+  - Entity relationships defined via pop ORM tags (`has_many` associations)
+
+
+  **3. Data Access Layer** (`internal/storage/`)
+
+  - Database connection management (`dial.go`)
+
+  - Transaction handling via `Connection` struct
+
+  - Built on gobuffalo/pop ORM for PostgreSQL
+
+
+  **4. Infrastructure/Configuration Layer** (`internal/conf/`, `internal/observability/`)
+
+  - Configuration loading from environment variables and files
+
+  - JWT key management (`jwk.go`)
+
+  - Logging, metrics, and tracing setup
+
+
+  ### Secondary Style: Modular Monolith
+
+
+  The codebase demonstrates **Modular Monolith** characteristics with enforced internal
+  module boundaries:
+
+
+  ```
+
+  internal/
+
+  ├── api/           # HTTP layer (113+ files)
+
+  ├── models/        # Domain models (38+ files)
+
+  ├── storage/       # Data access
+
+  ├── conf/          # Configuration
+
+  ├── crypto/        # Cryptography utilities
+
+  ├── mailer/        # Email abstractions
+
+  ├── tokens/        # JWT token service
+
+  ├── ratelimit/     # Rate limiting
+
+  ├── hooks/         # Extension hooks system
+
+  └── observability/ # Metrics & tracing
+
+  ```
+
+
+  Each package has clear responsibilities:
+
+  - **Enforced boundaries**: Go''s `internal/` directory prevents external imports
+
+  - **Single deployable**: One binary (`main.go` → single `Dockerfile`)
+
+  - **Single database**: PostgreSQL with managed migrations (`migrations/`)
+
+  - **Cohesive modules**: Each package focuses on one concern (crypto, tokens, mailer,
+  etc.)
+
+
+  ### Evidence Summary
+
+
+  | Aspect | Finding |
+
+  |--------|---------|
+
+  | **Entry point** | Single `main.go` calling `cmd.RootCommand()` |
+
+  | **Deployment** | Single Docker image, single `auth` binary |
+
+  | **Database** | Single PostgreSQL instance, migrations embedded |
+
+  | **Layers** | Clear API → Models → Storage separation |
+
+  | **Module organization** | `internal/` packages with distinct responsibilities
+  |
+
+
+  ### What This Is NOT
+
+
+  - **Not Microservices**: Single deployable unit, no service boundary definitions,
+  no inter-service communication
+
+  - **Not Hexagonal**: No ports/adapters pattern, domain models directly use ORM persistence
+
+  - **Not DDD**: No bounded contexts, aggregates, or ubiquitous language organization—straightforward
+  entity models
+
+  - **Not Event-Driven**: No message broker, no async event handlers—synchronous request
+  handling
+
+  - **Not Microkernel/Plugin**: Hooks are extensibility points for external calls
+  (HTTP/Postgres functions), not runtime plugins loaded into the core
+
+
+  ### Extensibility Mechanism
+
+
+  The `internal/hooks/` package provides a **hook-based extensibility system**:
+
+  - **Hook types**: `SendSMS`, `SendEmail`, `CustomizeAccessToken`, `MFAVerification`,
+  `PasswordVerification`, etc.
+
+  - **Dispatchers**: HTTP-based (`hookshttp`) and Postgres function-based (`hookspgfunc`)
+
+  - **Purpose**: Allow external systems to intercept/authenticate events, not plugin
+  architecture
+
+
+  This is more of an **extension point pattern** than a full microkernel—hooks are
+  synchronous invocations during request processing, not independently deployed plugins.
+
+
+  ### Conclusion
+
+
+  Supabase Auth is a well-organized **Layered Modular Monolith**—a focused authentication
+  service built as a single deployable with clean separation between HTTP handling,
+  domain logic, and data access layers. The Go `internal/` directory enforces module
+  boundaries, while the layered approach keeps responsibilities clear. This is a pragmatic
+  architecture for an authentication service that needs to be reliable, maintainable,
+  and performant.'

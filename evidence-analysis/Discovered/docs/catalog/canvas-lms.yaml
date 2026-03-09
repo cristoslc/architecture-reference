@@ -15,7 +15,6 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Modular Monolith
 - Layered
 - Microkernel (Plugin)
 classification_status: classified
@@ -36,58 +35,55 @@ review_notes: "The Canvas LMS codebase is a high-scale **Modular Monolith** buil
   \ teams own discrete sections of the monolithic codebase.\n\n**2. Microkernel /\
   \ Plugin Architecture (Secondary Style):**"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.71
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:42:57Z'
-classification_reasoning: "The Canvas LMS codebase is a high-scale **Modular Monolith**\
-  \ built on the Ruby on Rails framework. While it follows traditional Rails horizontal\
-  \ layering (Models, Controllers, Views), it employs sophisticated internal modularization\
-  \ strategies to manage its massive scale.\n\n### Architecture Breakdown\n\n**1.\
-  \ Modular Monolith (Primary Style):**\nThe repository is a single deployable unit,\
-  \ but it heavily utilizes a \"local gem\" strategy to enforce module boundaries.\
-  \ The `gems/` directory contains over 40 internal libraries (e.g., `gems/event_stream`,\
-  \ `gems/lti_outbound`, `gems/canvas_quiz_statistics`). These are not standard third-party\
-  \ dependencies; they are decoupled business logic and utility components authored\
-  \ specifically for Canvas. \n- **Enforcement:** The `Gemfile` dynamically loads\
-  \ these local gems. This separation ensures that core system components (like `canvas_quiz_statistics`)\
-  \ have their own test suites and dependency graphs, preventing the \"Big Ball of\
-  \ Mud\" often found in large Rails apps.\n- **Code Ownership:** The presence of\
-  \ `config/code_ownership.yml` further indicates a modular approach where specific\
-  \ teams own discrete sections of the monolithic codebase.\n\n**2. Microkernel /\
-  \ Plugin Architecture (Secondary Style):**\nCanvas implements a robust plugin system\
-  \ located in `gems/plugins/`.\n- **Evidence:** The directory `gems/plugins/` contains\
-  \ optional features like `academic_benchmark`, `moodle_importer`, and `account_reports`.\
-  \ \n- **Mechanism:** The `Gemfile` shows logic to evaluate `_before.rb` and `Gemfile.d/*.rb`\
-  \ files from these plugins, allowing them to hook into the core system at boot time\
-  \ without modifying the core codebase directly. This aligns with the Microkernel\
-  \ pattern where a stable core is extended via specialized modules.\n\n**3. Layered\
-  \ (Secondary Style):**\nAt its core, it remains a Ruby on Rails application. The\
-  \ `app/` directory follows the standard Model-View-Controller (MVC) pattern. \n\
-  - **Business Logic:** Much of the core domain logic resides in `app/models` (though\
-  \ not shown in full, the standard Rails structure is evident).\n- **Presentation:**\
-  \ The `app/messages/` directory shows an extensive set of notification templates\
-  \ (`.erb`), and the `ui/` directory indicates a complex frontend layered on top\
-  \ of the backend API.\n\n### Significant Design Patterns\n- **Frontend Modularization:**\
-  \ The `ui/features/` directory mirrors the modular intent of the backend, organizing\
-  \ React/TypeScript code by feature (e.g., `speed_grader`, `calendar`) rather than\
-  \ technology.\n- **Service Integration:** While not a microservices architecture,\
-  \ the codebase is designed to interact with numerous external services via configuration\
-  \ (e.g., `config/amazon_s3.yml`, `config/dynamodb.yml`, `config/sentry.yml`), showing\
-  \ a \"Service-Oriented Monolith\" tendency where heavy lifting (like job processing\
-  \ or file storage) is offloaded.\n\n### Rejection of Other Styles\n- **Microservices:**\
-  \ All core components and \"gems\" are contained within a single repository and\
-  \ typically share a primary database (`config/database.yml`), ruling out a true\
-  \ Microservices architecture.\n- **Hexagonal:** While the separation into gems provides\
-  \ some isolation, the app does not strictly follow the Ports and Adapters pattern;\
-  \ models are still heavily coupled to ActiveRecord and the database."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.71
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.8
-  style_clarity: 0.75
-  alternatives_dismissed: 0.5
-  exploration_completeness: 0.75
-  flags: reasoning is cut off mid-sentence in 'Rejection of Other Styles'; microservices
-    briefly mentioned but other styles like event-driven or pipeline not considered
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:12:13Z'
+classification_reasoning: "## Analysis\n\n**Primary Style: Layered (MVC)**\n\nCanvas\
+  \ LMS is a classic Ruby on Rails monolithic application with a traditional layered\
+  \ MVC architecture:\n\n- **Controllers Layer** (`app/controllers/`): 220+ controller\
+  \ files handling HTTP routing and request processing. The `ApplicationController`\
+  \ serves as the base, with controllers like `accounts_controller.rb` (109,918 lines),\
+  \ `assignments_controller.rb`, etc.\n  \n- **Models Layer** (`app/models/`): 330+\
+  \ ActiveRecord model files (~82,614 total lines of model code) representing domain\
+  \ entities like `Account`, `Course`, `Assignment`, `User`, `Enrollment`. Models\
+  \ use ActiveRecord ORM with direct database relationships (e.g., `Account` has_many\
+  \ `:courses`, `:enrollments`, `:sub_accounts`).\n\n- **Views Layer** (`app/views/`):\
+  \ Traditional Rails view templates with ERB files for rendering HTML.\n\n- **Helpers**\
+  \ (`app/helpers/`): 75+ helper modules for view logic extraction.\n\n- **Services**\
+  \ (`app/services/`): Service objects for complex business operations (e.g., `GradeService`,\
+  \ `VideoCaptionService`).\n\n- **Serializers/Presenters**: Additional layers for\
+  \ JSON API responses and presentation logic.\n\n**Secondary Style: Microkernel (Plugin)**\n\
+  \nCanvas implements a plugin architecture through Rails Engines:\n\n1. **Plugin\
+  \ Discovery**: `Gemfile.d/plugins.rb` loads plugins from `gems/plugins/*`\n\n2.\
+  \ **Plugin Registration**: Each plugin registers via `Canvas::Plugin.register`:\n\
+  \   ```ruby\n   # gems/plugins/qti_exporter/lib/qti_exporter/engine.rb\n   Canvas::Plugin.register\
+  \ :qti_converter, :export_system, {\n     name: \"QTI Converter\",\n     settings:\
+  \ { worker: \"QtiWorker\", provides: { qti: Qti::Converter } }\n   }\n   ```\n\n\
+  3. **Six Bundled Plugins**:\n   - `academic_benchmark` - Academic standards importer\n\
+  \   - `account_reports` - Account-level reporting functionality\n   - `moodle_importer`\
+  \ - Moodle course migration\n   - `qti_exporter` - QTI quiz format conversion\n\
+  \   - `respondus_soap_endpoint` - Respondus integration\n   - `simply_versioned`\
+  \ - Versioning support\n\n4. **Plugin Contract**: Each plugin is a Rails Engine\
+  \ that:\n   - Defines a `config.to_prepare` block\n   - Registers with the `Canvas::Plugin`\
+  \ system with metadata, settings, and capabilities\n   - Can provide views (`app/views/`),\
+  \ configuration, and domain logic\n   - Integrates into specific extension points\
+  \ (e.g., `:export_system` tag)\n\n5. **Core Plugin System** (`lib/base/canvas/plugin.rb`):\
+  \ Manages plugin lifecycle, settings, validation, and discovery via `Canvas::Plugin.find`,\
+  \ `Canvas::Plugin.all_for_tag(tag)`.\n\n**What I Rejected:**\n\n- **Microservices**:\
+  \ Single deployable Rails app, single PostgreSQL database, no service boundaries.\
+  \ Docker Compose shows one `web` service and background `jobs` worker.\n\n- **Modular\
+  \ Monolith**: No enforced module boundaries or internal domain separation. While\
+  \ internal gems exist (~50 in `gems/`), they're organizational utilities, not bounded\
+  \ contexts. The plugin system is for external extensions, not internal modularization.\n\
+  \n- **Event-Driven**: `LiveEventsObserver` exists for analytics/integration event\
+  \ emission, but events don't drive application flow. The observer pattern is a supplementary\
+  \ feature.\n\n- **Domain-Driven Design**: No aggregates, value objects, or bounded\
+  \ contexts. Models are ActiveRecord with anemic domain logic focused on database\
+  \ persistence.\n\n- **Hexagonal Architecture**: No ports/adapters isolation. ActiveRecord\
+  \ models directly couple to the database; controllers directly instantiate models.\n\
+  \n**Evidence Summary:**\n- Single `Dockerfile` building one application image\n\
+  - 85,000+ lines of controller code, 82,000+ lines of model code in classic MVC layers\n\
+  - Plugin system with 6 extensions using `Rails::Engine` + `Canvas::Plugin.register`\n\
+  - Single database with migrations in `db/migrate/`\n- `config.ru` runs `CanvasRails::Application`\
+  \ as the sole entry point"

@@ -15,8 +15,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Microkernel (Plugin)
-- Pipeline (Pipe-and-Filter)
-- Modular Monolith
+- Layered
 classification_status: classified
 review_notes: 'The Nextflow codebase is a sophisticated implementation of a **Microkernel
   (Plugin)** architecture, designed to provide a lightweight core engine that is extended
@@ -50,54 +49,66 @@ review_notes: 'The Nextflow codebase is a sophisticated implementation of a **Mi
   organization of the execution engine follows the **Pipeline (Pipe-and-Filter)**
   pattern.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.72
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:02:42Z'
-classification_reasoning: "The Nextflow codebase is a sophisticated implementation\
-  \ of a **Microkernel (Plugin)** architecture, designed to provide a lightweight\
-  \ core engine that is extended through a robust plugin system for platform-specific\
-  \ execution (AWS, Google Cloud, Kubernetes) and feature sets.\n\n### 1. Primary\
-  \ Style: Microkernel (Plugin)\nThe repository demonstrates a classic Microkernel\
-  \ structure where the \"core\" (found in `modules/nextflow` and `modules/nf-commons`)\
-  \ contains the workflow orchestration logic, and all external integrations are treated\
-  \ as isolated plugins.\n- **Plugin Isolation:** The `plugins/` directory contains\
-  \ numerous independent projects (e.g., `nf-amazon`, `nf-google`, `nf-k8s`, `nf-tower`)\
-  \ each with its own `build.gradle` and `VERSION` file.\n- **Plugin Lifecycle & Registry:**\
-  \ As evidenced by `adr/20250922-plugin-spec.md`, the system includes a formal specification\
-  \ for plugins (JSON-based metadata) that allows the core and external tools (like\
-  \ language servers) to understand extension points (ConfigScopes, Functions, Operators)\
-  \ without loading the JVM bytecode.\n- **Dynamic Loading:** The `releaseInfo` task\
-  \ in the root `build.gradle` generates a `plugins-info.txt` file, which the core\
-  \ engine uses to manage and validate versioned plugin sets at runtime.\n\n### 2.\
-  \ Secondary Style: Pipeline (Pipe-and-Filter)\nWhile \"Dataflow\" is the domain-specific\
-  \ term used in the README, the internal software organization of the execution engine\
-  \ follows the **Pipeline (Pipe-and-Filter)** pattern.\n- **Dataflow Logic:** The\
-  \ core engine (specifically `modules/nextflow`) is built to manage the flow of asynchronous\
-  \ data tasks (Filters) connected by asynchronous channels (Pipes), as reflected\
-  \ in the package structure `./modules/nextflow/src/main/groovy/nextflow/trace` and\
-  \ the heavy reliance on GPars for actor-based concurrency.\n- **Functional Operators:**\
-  \ The plugin spec explicitly defines \"Operators\" as part of the extension API,\
-  \ reinforcing that the system's primary architectural purpose is to chain discrete\
-  \ computational units.\n\n### 3. Secondary Style: Modular Monolith\nThe core of\
-  \ the system is organized as a **Modular Monolith** via a Gradle multi-project build.\n\
-  - **Internal Boundaries:** The `modules/` directory separates the engine into `nf-lang`\
-  \ (the DSL), `nf-httpfs` (filesystem abstraction), `nf-commons` (shared utilities),\
-  \ and `nextflow` (the main orchestrator). \n- **Deployment:** Despite the modularity,\
-  \ these core components are compiled and shipped as a single unit or a tightly coupled\
-  \ set of JARs, distinct from the independently versioned `plugins/`.\n\n### Rejected\
-  \ Styles\n- **Microservices:** Although it integrates with many cloud services,\
-  \ the Nextflow application itself is a single command-line tool/orchestrator, not\
-  \ a distributed system of independent services.\n- **Hexagonal Architecture:** While\
-  \ it uses \"Plugins\" to adapt to different clouds (which resembles \"Adapters\"\
-  ), the internal core does not strictly follow the Ports-and-Adapters package naming\
-  \ or strict boundary enforcement typically seen in Hexagonal implementations. It\
-  \ favors a more direct Plugin/Kernel relationship."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.72
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.78
-  alternatives_dismissed: 0.65
-  exploration_completeness: 0.7
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:46:14Z'
+classification_reasoning: "## Architecture Classification: Microkernel (Plugin)\n\n\
+  ### Primary Evidence for Microkernel/Plugin Architecture\n\n**1. PF4J Plugin Framework\
+  \ Integration**\n\nThe codebase uses `org.pf4j` (Plugin Framework for Java) as its\
+  \ plugin infrastructure:\n\n```groovy\n// modules/nf-commons/src/main/nextflow/plugin/BasePlugin.groovy\n\
+  abstract class BasePlugin extends Plugin {\n    BasePlugin(PluginWrapper wrapper)\
+  \ {\n        super(wrapper)\n    }\n    // ...\n}\n```\n\n```groovy\n// modules/nf-commons/src/main/nextflow/plugin/PluginsFacade.groovy\n\
+  class PluginsFacade implements PluginStateListener {\n    private CustomPluginManager\
+  \ manager\n    // Uses DefaultPluginManager from pf4j\n}\n```\n\n**2. Well-Defined\
+  \ Extension Point Contract**\n\nOver 55 `ExtensionPoint` interfaces and implementations\
+  \ discovered throughout the codebase:\n\n- `PluginExtensionPoint` - Channel factories,\
+  \ operators, functions\n- `Executor` - Execution backends (AWS Batch, Google, Azure,\
+  \ Kubernetes, Slurm, etc.)\n- `FileSystemPathFactory` - Pluggable filesystems (S3,\
+  \ GCS, Azure Blob)\n- `TraceObserverFactory` - Observability/telemetry extensions\n\
+  - `ContainerResolver` - Container resolution strategies\n- `MailProvider` - Email\
+  \ notification backends\n- `SecretsProvider` - Secrets management\n- `CacheFactory`\
+  \ - Caching backends\n- `DaemonLauncher` - Daemon mode extensions\n- CLI command\
+  \ extensions: `KubeCommand`, `AuthCommand`, `LaunchCommand`, `LinCommand`\n\n**3.\
+  \ Built-in Plugins as Extensions**\n\nThe `plugins/` directory contains 9 built-in\
+  \ plugins that extend the core:\n\n| Plugin | Purpose | Key Extension Points |\n\
+  |--------|---------|---------------------|\n| `nf-amazon` | AWS integration | `AwsBatchExecutor`,\
+  \ `S3PathFactory`, `AwsFusionEnv` |\n| `nf-google` | GCP integration | Google Batch\
+  \ executor, GCS filesystem |\n| `nf-azure` | Azure integration | Azure Batch executor,\
+  \ Blob storage |\n| `nf-k8s` | Kubernetes | Kubernetes executor |\n| `nf-tower`/`nf-seqera`\
+  \ | Tower platform | Trace observers, secrets providers |\n| `nf-wave` | Container\
+  \ management | Container resolvers |\n| `nf-cloudcache` | Cloud caching | Cache\
+  \ factory |\n| `nf-console` | Console UI | Console extensions |\n\nEach plugin declares\
+  \ extension points in its build configuration:\n\n```groovy\n// plugins/nf-amazon/build.gradle\n\
+  nextflowPlugin {\n    extensionPoints = [\n        'nextflow.cloud.aws.batch.AwsBatchExecutor',\n\
+  \        'nextflow.cloud.aws.config.AwsConfig',\n        // ...\n    ]\n}\n```\n\
+  \n**4. Dynamic Plugin Discovery and Loading**\n\n```groovy\n// modules/nf-commons/src/main/nextflow/plugin/Plugins.groovy\n\
+  static <T> List<T> getExtensions(Class<T> type) {\n    INSTANCE.getExtensions(type)\n\
+  }\n\nstatic <T> List<T> getPriorityExtensions(Class<T> type, String group=null)\
+  \ {\n    INSTANCE.getPriorityExtensions(type, group)\n}\n```\n\nPlugins are loaded\
+  \ from a registry (`https://registry.nextflow.io/api`) and discovered at runtime\
+  \ via pf4j's `DefaultPluginManager`.\n\n**5. Core System with Minimal Essential\
+  \ Functionality**\n\nThe core (`modules/nextflow/`) contains:\n- Session management\
+  \ (`Session.groovy`)\n- Workflow orchestration (`processor/`, `executor/`)\n- Script\
+  \ execution (`script/`)\n- Channel/dataflow operations (`extension/`, `Channel.groovy`)\n\
+  \nExecutors are discovered via plugin system:\n\n```groovy\n// modules/nextflow/src/main/groovy/nextflow/executor/ExecutorFactory.groovy\n\
+  ExecutorFactory(PluginManager manager) {\n    if( manager!=null ) {\n        final\
+  \ executors = manager.getExtensionClasses(Executor)\n        // Extension executors\
+  \ from plugins...\n    }\n}\n```\n\n### Secondary Style: Layered\n\nThe internal\
+  \ code organization within the core module shows horizontal layering:\n- `cli/`\
+  \ - Command-line interface layer\n- `config/` - Configuration layer  \n- `script/`\
+  \ - Script processing layer\n- `processor/` - Task processing layer\n- `executor/`\
+  \ - Execution layer\n- `file/` - File operations layer\n\nHowever, this is a secondary\
+  \ characteristic - the **primary architectural driver** is the plugin system.\n\n\
+  ### What This Is NOT\n\n- **NOT Microservices**: Single deployable shadow JAR (`shadowJar`\
+  \ task creates `nextflow-one.jar`)\n- **NOT Modular Monolith**: Plugins are dynamically\
+  \ loaded, not compile-time modules\n- **NOT Service-Based**: Single application,\
+  \ not coarse-grained services\n- **NOT Event-Driven**: While GPars dataflow is used\
+  \ internally, plugins don't communicate via events\n\n### Conclusion\n\nNextflow\
+  \ implements a textbook **Microkernel (Plugin)** architecture:\n1. **Core system**\
+  \ provides essential workflow execution engine\n2. **Plugin framework** (pf4j) manages\
+  \ lifecycle, discovery, and isolation\n3. **Extension points** define contracts\
+  \ for plugins\n4. **Plugins** extend functionality (executors, filesystems, observability,\
+  \ etc.)\n5. **Dynamic loading** at runtime based on configuration\n\nThe architecture\
+  \ enables Nextflow to support dozens of execution platforms, cloud providers, and\
+  \ integrations through a clean plugin contract while maintaining a stable core."

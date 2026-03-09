@@ -15,8 +15,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Hexagonal Architecture
-- Microservices
-- Domain-Driven Design
+- Layered Architecture
 classification_status: classified
 review_notes: 'The repository is a textbook implementation of **Hexagonal Architecture**
   (also known as Ports and Adapters or Clean Architecture), as explicitly stated in
@@ -45,93 +44,33 @@ review_notes: 'The repository is a textbook implementation of **Hexagonal Archit
   The README explicitly maps these to "Ports", "Adapters", "Left Side" (Driving),
   and "Right Side" (Driven).'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.77
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:43:35Z'
-classification_reasoning: 'The repository is a textbook implementation of **Hexagonal
-  Architecture** (also known as Ports and Adapters or Clean Architecture), as explicitly
-  stated in the README and demonstrated by the directory structure within the `accounts-api`.
-
-
-  ### Primary Style: Hexagonal Architecture
-
-  The core logic is isolated from external frameworks and delivery mechanisms. This
-  is evidenced by the project structure under `accounts-api/src/`:
-
-  - **Domain**: Contains the business entities (`Account.cs`) and repository interfaces
-  / "Ports" (`IAccountRepository.cs`).
-
-  - **Application**: Contains the orchestration logic and use cases (`UseCases/`).
-  It defines how the system reacts to requests without knowing if they come from a
-  Web API or a test.
-
-  - **Infrastructure**: Contains the "Adapters" that implement the ports, such as
-  `DataAccess` (Entity Framework) and `CurrencyExchange` (external service integration).
-
-  - **WebApi**: Acts as the entry point (driving adapter), handling HTTP concerns
-  and mapping to Application use cases.
-
-
-  The README explicitly maps these to "Ports", "Adapters", "Left Side" (Driving),
-  and "Right Side" (Driven).
-
-
-  ### Secondary Style: Microservices
-
-  While the demo describes a specific domain (Virtual Wallet), it is architected as
-  a set of independently deployable services:
-
-  - `accounts-api`: The main business logic service.
-
-  - `identity-server`: An independent service for authentication/authorization.
-
-  - `wallet-spa`: A standalone React frontend.
-
-  - `nginx`: Acts as a gateway/reverse proxy.
-
-  - `sql-server`: The data storage layer.
-
-
-  The presence of a `docker-compose.yml` and separate `Dockerfiles` for each folder
-  (`./wallet-spa/Dockerfile`, `./accounts-api/src/WebApi/Dockerfile`, `./identity-server/Dockerfile`)
-  confirms that these are intended to run as separate deployment units.
-
-
-  ### Secondary Style: Domain-Driven Design (DDD)
-
-  The codebase uses specific DDD tactical patterns to organize the internal logic
-  of the `Domain` layer:
-
-  - **Aggregate Roots**: `Account.cs` is treated as an aggregate.
-
-  - **Value Objects**: Found in `accounts-api/src/Domain/ValueObjects`.
-
-  - **Repositories and Factories**: Interfaces like `IAccountRepository.cs` and `IAccountFactory.cs`
-  are defined within the Domain to maintain encapsulation.
-
-  - **Bounded Contexts**: The README and structure suggest the "Accounts" context
-  is the primary focus of this specific service.
-
-
-  ### Summary of Component Boundaries
-
-  1. **Module Boundaries**: Strictly enforced by C# project references. The `Domain`
-  project has no dependencies, `Application` depends only on `Domain`, and `Infrastructure`/`WebApi`
-  depend on `Application`.
-
-  2. **Deployment**: Independent via Docker containers.
-
-  3. **Communication**: The SPA communicates with the `accounts-api` over HTTP, mediated
-  by NGINX, and uses `identity-server` for OAuth/OIDC flows.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.77
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.9
-  alternatives_dismissed: 0.45
-  exploration_completeness: 0.85
-  flags: multi-label classification (3 styles) makes style_clarity harder to assess;
-    alternatives_dismissed is weak — no explicit rejection of e.g. Layered or Clean
-    Architecture as distinct classifications
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:57:00Z'
+classification_reasoning: "verdict: classified\nprimary_style: Hexagonal Architecture\n\
+  secondary_styles:\n  - Layered Architecture\nconfidence: 0.95\n---\n\nThis repository\
+  \ implements **Hexagonal Architecture (Ports and Adapters)**, also known as Clean\
+  \ Architecture. The evidence is unambiguous:\n\n**Project Structure (`accounts-api/src/`):**\n\
+  - `Domain/` - Core domain with entities, value objects, and interface definitions\
+  \ (ports)\n- `Application/` - Use cases and service interfaces\n- `Infrastructure/`\
+  \ - Implementation of ports (adapters)\n- `WebApi/` - Presentation layer with controllers\n\
+  \n**Dependency Direction (verified via `.csproj` files):**\n- Domain has **zero\
+  \ project references** - pure and isolated\n- Application → Domain only\n- Infrastructure\
+  \ → Application only  \n- WebApi → Application + Infrastructure\n\n**Ports (interfaces\
+  \ in inner layers):**\n- `IAccountRepository` (Domain/) - persistence port\n- `IUnitOfWork`,\
+  \ `ICurrencyExchange`, `IUserService` (Application/Services/) - application ports\n\
+  - `IOutputPort` interfaces in each use case folder - output ports for presenter\
+  \ pattern\n\n**Adapters (implementations in outer layers):**\n- `AccountRepository\
+  \ : IAccountRepository` (Infrastructure/DataAccess/Repositories/)\n- `UnitOfWork\
+  \ : IUnitOfWork`, `CurrencyExchangeService : ICurrencyExchange` (Infrastructure/)\n\
+  - Controllers implementing `IOutputPort` in WebApi/UseCases/\n\n**Use Case Pattern:**\
+  \ Each use case folder contains `IXxxUseCase`, `XxxUseCase`, `IOutputPort`, and\
+  \ `XxxPresenter`, following the Controller-Presenter-Use Case pattern described\
+  \ in the README wiki.\n\n**Domain-Driven Design tactical patterns** are used within\
+  \ the Domain layer (Aggregate Root pattern on `Account`, Value Objects like `Money`\
+  \ and `Currency`, Repository and Factory patterns), but these serve the Hexagonal\
+  \ structure rather than defining the overall architecture.\n\n**Layered Architecture**\
+  \ is present as a secondary style due to the horizontal separation of concerns,\
+  \ but the defining characteristic is the **inward dependency direction** (dependency\
+  \ inversion principle), which distinguishes Hexagonal from traditional Layered."

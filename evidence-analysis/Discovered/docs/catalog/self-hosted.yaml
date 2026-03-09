@@ -14,7 +14,7 @@ languages:
 - Python
 - JavaScript
 architecture_styles:
-- Microservices
+- Service-Based
 - Event-Driven
 classification_status: classified
 review_notes: "This repository is a textbook example of a **Microservices** architecture,\
@@ -36,48 +36,48 @@ review_notes: "This repository is a textbook example of a **Microservices** arch
   \ or Python, which can be scaled independently based on the type of traffic (errors\
   \ vs. transactions)."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.83
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:10:01Z'
-classification_reasoning: "This repository is a textbook example of a **Microservices**\
-  \ architecture, specifically optimized for self-hosted deployment. While the core\
-  \ \"Sentry\" application is a large Django-based service, the overall system is\
-  \ composed of multiple independently scalable and specialized services that own\
-  \ their own data domains and communicate over the network.\n\n### Evidence of Microservices\n\
-  The `docker-compose.yml` file reveals a highly decoupled service topology where\
-  \ functional boundaries are strictly enforced:\n1.  **Service Separation**: Distinct\
-  \ services exist for ingestion (**Relay**), query processing (**Snuba**), symbolication\
-  \ (**Symbolicator**), and the main web UI/worker logic (**Sentry/Web**).\n2.  **Data\
-  \ Ownership**: \n    *   **Clickhouse** serves as the primary data store for event\
-  \ search and analytics, managed via the **Snuba** service.\n    *   **Postgres**\
-  \ stores relational metadata (users, projects, settings), managed by the Sentry\
-  \ core.\n    *   **SeaweedFS** (S3-compatible) is used for \"NodeStorage\" (blob\
-  \ storage for raw event payloads), as seen in `sentry.conf.example.py` under `SENTRY_NODESTORE`.\n\
-  3.  **Independent Scaling and Technology Stacks**: The \"Snuba\" suite includes\
-  \ various specialized consumers (e.g., `snuba-transactions-consumer`, `snuba-metrics-consumer`)\
-  \ written in Rust or Python, which can be scaled independently based on the type\
-  \ of traffic (errors vs. transactions).\n\n### Evidence of Event-Driven Architecture\n\
-  The system relies heavily on an asynchronous, event-based backplane:\n1.  **Kafka\
-  \ Message Broker**: Kafka serves as the central nervous system. The `docker-compose.yml`\
-  \ shows dozens of consumers (`snuba-errors-consumer`, `snuba-outcomes-consumer`,\
-  \ etc.) that react to events published by the ingestion pipeline.\n2.  **Producer/Consumer\
-  \ Pattern**: `sentry.conf.example.py` explicitly configures `SENTRY_EVENTSTREAM`\
-  \ to use `KafkaEventStream`. This decouples the ingestion of a crash report from\
-  \ its eventual processing, storage in Clickhouse, and alerting logic.\n3.  **Buffered\
-  \ Processing**: The use of Redis as a buffer (`SENTRY_BUFFER = \"sentry.buffer.redis.RedisBuffer\"\
-  `) further reinforces the asynchronous nature of the system's state updates.\n\n\
-  ### Considerations\n*   **Layered (Internal)**: Internally, the Sentry Python service\
-  \ follows a Layered/MVC pattern (Django), but the *repository's architecture*—the\
-  \ way the entire system is structured and deployed—transcends a single monolith.\n\
-  *   **Modular Monolith (Rejected)**: While Sentry started as a monolith, this repository\
-  \ demonstrates its evolution into specialized services (Relay, Snuba, Symbolicator)\
-  \ that are no longer part of the same codebase or deployment unit."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.83
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.88
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:44:05Z'
+classification_reasoning: "## Analysis\n\nThis repository implements **Sentry's self-hosted\
+  \ deployment** as a containerized service-based architecture with event-driven communication\
+  \ patterns.\n\n### Primary Style: Service-Based\n\nThe architecture exhibits clear\
+  \ Service-Based characteristics:\n\n1. **Coarse-grained services sharing databases**:\
+  \ The system comprises 5 logical application services (Sentry, Snuba, Relay, Symbolicator,\
+  \ Vroom) that share infrastructure:\n   - Single PostgreSQL instance (`postgres:14.19-bookworm`)\
+  \ accessed via PgBouncer\n   - Single Redis instance (`redis:6.2.20-alpine`) shared\
+  \ across all services\n   - Single ClickHouse instance for Snuba's event data\n\n\
+  \   Evidence from `docker-compose.yml`:\n   ```yaml\n   postgres:\n     image: \"\
+  postgres:14.19-bookworm\"\n     volumes:\n       - \"sentry-postgres:/var/lib/postgresql/data\"\
+  \n   redis:\n     image: \"redis:6.2.20-alpine\"\n     volumes:\n       - \"sentry-redis:/data\"\
+  \n   ```\n\n2. **Single deployment unit**: The entire system is deployed via one\
+  \ `docker-compose.yml` (856 lines) orchestrated by `install.sh`. All 70+ containers\
+  \ are started/stopped together—no independent deployment capability.\n\n3. **2-5\
+  \ coarse-grained services**: The architecture maps to ~5 main application services:\n\
+  \   - **Sentry**: Main web application, event processors, task workers\n   - **Snuba**:\
+  \ Event search/analytics service (runs many consumer variants)\n   - **Relay**:\
+  \ Event ingestion and processing frontend\n   - **Symbolicator**: Stack trace symbolication\n\
+  \   - **Vroom**: Session replay processing\n\n### Secondary Style: Event-Driven\n\
+  \nKafka is central to inter-service communication:\n\n1. **Kafka as message backbone**:\
+  \ `relay/config.example.yml` shows:\n   ```yaml\n   processing:\n     enabled: true\n\
+  \     kafka_config:\n       - {name: \"bootstrap.servers\", value: \"kafka:9092\"\
+  }\n   ```\n\n2. **86+ consumer services**: The docker-compose defines numerous Kafka\
+  \ consumers for different event streams:\n   - `snuba-errors-consumer`, `snuba-transactions-consumer`,\
+  \ `snuba-metrics-consumer`\n   - `events-consumer`, `attachments-consumer`, `ingest-replay-recordings`\n\
+  \   - Subscription consumers for real-time queries\n\n3. **Event flow architecture**:\
+  \ Events enter through Relay → Kafka → various consumers → databases. Services react\
+  \ to events rather than direct synchronous calls.\n\n### Rejected Alternatives\n\
+  \n- **Not Microservices**: Services share databases (violates database-per-service\
+  \ principle) and cannot be deployed independently. The README explicitly states\
+  \ this is for \"low-volume deployments and proofs-of-concept.\"\n\n- **Not Layered**:\
+  \ While there's an Nginx reverse proxy, the architecture isn't organized into horizontal\
+  \ layers (presentation/business/data). It's organized around vertical service boundaries.\n\
+  \n- **Not Microkernel/Plugin**: The `optional-modifications/patches/` directory\
+  \ provides configuration patches applied during installation, not runtime plugins.\
+  \ The `enhance-image.example.sh` allows Docker image customization but doesn't constitute\
+  \ a plugin architecture.\n\n- **Not Serverless**: All services run as long-lived\
+  \ containers, not event-triggered functions.\n\n### Summary\n\nThis is a **Service-Based**\
+  \ architecture because it has coarse-grained services sharing databases in a single\
+  \ deployment unit, with **Event-Driven** communication via Kafka for asynchronous\
+  \ event processing between those services."

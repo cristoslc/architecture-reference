@@ -17,7 +17,6 @@ languages:
 architecture_styles:
 - Hexagonal Architecture
 - Domain-Driven Design
-- Modular Monolith
 classification_status: classified
 review_notes: 'This repository is a quintessential implementation of **Hexagonal Architecture**
   (also known as Clean, Onion, or Ports-and-Adapters). The project structure is explicitly
@@ -52,79 +51,64 @@ review_notes: 'This repository is a quintessential implementation of **Hexagonal
 
   ### Secondary Style: Domain-Driven Design (DDD)'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.76
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:43:41Z'
-classification_reasoning: 'This repository is a quintessential implementation of **Hexagonal
-  Architecture** (also known as Clean, Onion, or Ports-and-Adapters). The project
-  structure is explicitly designed to isolate the core business logic from external
-  concerns like databases, UI, and third-party services.
-
-
-  ### Primary Style: Hexagonal Architecture
-
-  The codebase is divided into distinct projects that represent the layers of Clean
-  Architecture:
-
-  - **`src/Clean.Architecture.Core` (The Center):** Contains the domain model (entities,
-  aggregates, and domain events) and abstractions (interfaces). It has zero dependencies
-  on external projects or infrastructure libraries. Citing paths: `src/Clean.Architecture.Core/ContributorAggregate`
-  and `src/Clean.Architecture.Core/Interfaces`.
-
-  - **`src/Clean.Architecture.UseCases`:** Sits around the Core. It defines the application
-  logic using the Mediator pattern, orchestrating how domain objects interact to fulfill
-  specific business requirements. Citing paths: `src/Clean.Architecture.UseCases/Contributors/Create`
-  and `src/Clean.Architecture.UseCases/Contributors/List`.
-
-  - **`src/Clean.Architecture.Infrastructure` (Adapters):** Implements the interfaces
-  defined in the Core. It contains the data access logic (Entity Framework, Repositories)
-  and external services (Email). Citing paths: `src/Clean.Architecture.Infrastructure/Data/EfRepository.cs`
-  and `src/Clean.Architecture.Infrastructure/Email/MimeKitEmailSender.cs`.
-
-  - **`src/Clean.Architecture.Web` (Entry Point):** The presentation layer that handles
-  HTTP requests. It depends on `Core` and `UseCases`, and wires up the `Infrastructure`
-  implementation via Dependency Injection.
-
-
-  ### Secondary Style: Domain-Driven Design (DDD)
-
-  The architecture strongly incorporates DDD tactical patterns. The business logic
-  is organized into **Aggregates** (e.g., `ContributorAggregate`), and it uses **Specifications**
-  for querying, **Domain Events** for side effects, and **Value Objects** (like `PhoneNumber.cs`
-  and `ContributorName.cs`). The folder structure under `Core` reflects these boundaries.
-
-
-  ### Secondary Style: Modular Monolith
-
-  While the primary focus is Hexagonal, the project serves as a template for a **Modular
-  Monolith**. It uses a `SharedKernel` approach (referenced in the README) and `ServiceDefaults`
-  to maintain clean boundaries within a single deployable unit. The repository even
-  provides a "Minimal Clean" version (`MinimalClean/` directory) which adopts **Vertical
-  Slice Architecture** (organizing by features rather than layers), showing a transition
-  between structural styles within the same ecosystem.
-
-
-  ### Key Evidence
-
-  1.  **Dependency Inversion:** The `Infrastructure` project depends on `Core` interfaces,
-  rather than the `Core` depending on the Database.
-
-  2.  **Mediator Pattern:** The use of `MediatorConfig.cs` and the `UseCases` project
-  indicates a "Command/Query" approach to handling application requests without coupling
-  the Web layer to the Domain logic.
-
-  3.  **Domain Event Dispatching:** The presence of `EventDispatcherInterceptor.cs`
-  in the Infrastructure layer demonstrates how domain-level events are translated
-  into infrastructure-level actions (like database commits or message sending).'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.76
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.9
-  alternatives_dismissed: 0.45
-  exploration_completeness: 0.8
-  flags: Vertical Slice alternative noted but not seriously considered as primary;
-    'Modular Monolith' as secondary is weakly justified — mainly inferred from README
-    reference and SharedKernel mention rather than concrete module boundary evidence
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:16:40Z'
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
+  \ Style: Hexagonal Architecture (Ports and Adapters)\n\nThis repository implements\
+  \ **Hexagonal Architecture** (also known as Ports and Adapters or Clean Architecture),\
+  \ which the README explicitly acknowledges:\n\n> \"Clean Architecture is just the\
+  \ latest in a series of names for the same loosely-coupled, dependency-inverted\
+  \ architecture. You will also find it named hexagonal, ports-and-adapters, or onion\
+  \ architecture.\"\n\n**Key Evidence:**\n\n1. **Dependency Inversion with Core at\
+  \ Center** (`src/*/Clean.Architecture.*.csproj`):\n   - `Core.csproj` — Zero project\
+  \ references; depends only on domain-focused NuGet packages\n   - `UseCases.csproj`\
+  \ — References only Core\n   - `Infrastructure.csproj` — References Core and UseCases\n\
+  \   - `Web.csproj` — References Infrastructure and UseCases (composition root)\n\
+  \n2. **Ports (Interfaces) Defined in Core** (`src/Clean.Architecture.Core/Interfaces/`):\n\
+  \   - `IEmailSender` — Abstraction for email delivery\n   - `IDeleteContributorService`\
+  \ — Abstraction for domain service\n   - Repository interfaces via `IRepository<T>`\
+  \ from Ardalis.SharedKernel\n\n3. **Adapters (Implementations) in Infrastructure**\
+  \ (`src/Clean.Architecture.Infrastructure/`):\n   - `MimeKitEmailSender` and `FakeEmailSender`\
+  \ implement `IEmailSender`\n   - `EfRepository<T>` implements repository interfaces\n\
+  \   - `AppDbContext` implements data persistence adapter\n   - Infrastructure README\
+  \ confirms: *\"Infrastructure classes implement interfaces found in the Core (Use\
+  \ Cases) project(s).\"*\n\n4. **DI Wire-up at Composition Root** (`src/Clean.Architecture.Web/Configurations/ServiceConfigs.cs`):\n\
+  \   ```csharp\n   services.AddScoped<IEmailSender, MimeKitEmailSender>();\n   services.AddScoped(typeof(IRepository<>),\
+  \ typeof(EfRepository<>));\n   ```\n\n### Secondary Style: Domain-Driven Design\n\
+  \nThe Core project implements DDD tactical patterns:\n\n1. **Aggregates** (`src/Clean.Architecture.Core/ContributorAggregate/Contributor.cs`):\n\
+  \   ```csharp\n   public class Contributor(ContributorName name) : EntityBase<Contributor,\
+  \ ContributorId>, IAggregateRoot\n   ```\n\n2. **Value Objects** using Vogen library:\n\
+  \   - `ContributorId` — Strongly-typed ID with validation\n   - `ContributorName`\
+  \ — Value object with length constraints\n   - `PhoneNumber` — Encapsulated phone\
+  \ number value\n\n3. **Domain Events** (`src/Clean.Architecture.Core/ContributorAggregate/Events/`):\n\
+  \   - `ContributorNameUpdatedEvent`\n   - `ContributorDeletedEvent`\n   - Events\
+  \ raised via `RegisterDomainEvent()` on entity base\n\n4. **Domain Event Handlers**\
+  \ in Core:\n   ```csharp\n   public class ContributorNameUpdatedEmailNotificationHandler(\n\
+  \     ILogger<...> logger, IEmailSender emailSender) \n     : INotificationHandler<ContributorNameUpdatedEvent>\n\
+  \   ```\n\n5. **Specifications** (`src/Clean.Architecture.Core/ContributorAggregate/Specifications/ContributorByIdSpec.cs`)\n\
+  \n6. **Domain Services** (`src/Clean.Architecture.Core/Services/DeleteContributorService.cs`)\n\
+  \n### CQRS Organization\n\nThe UseCases project follows CQRS separation (`src/Clean.Architecture.UseCases/Contributors/`):\n\
+  \n- **Commands** (mutate state): `CreateContributorCommand`, `DeleteContributorCommand`,\
+  \ `UpdateContributorCommand`\n- **Queries** (read-only): `ListContributorsQuery`,\
+  \ `GetContributorQuery`\n- Handlers implement `ICommandHandler<,>` and `IQueryHandler<,>`\n\
+  \n### Single Deployable Unit (Not Microservices)\n\nThis is a **modular monolith**\
+  \ with enforced internal boundaries:\n- Single executable: `Clean.Architecture.Web.csproj`\
+  \ (output type `Exe`)\n- `AspireHost` project is for local development orchestration\
+  \ only\n- No Dockerfiles or container deployment manifests\n- All layers compile\
+  \ into a single deployment unit\n\n### What Was Rejected\n\n- **Microservices**:\
+  \ Rejected — Single deployable web application, not distributed services\n- **Layered\
+  \ (traditional)**: Rejected — Traditional layered puts UI at top, business logic\
+  \ in middle, data at bottom with dependencies flowing downward. This architecture\
+  \ has dependencies flowing **inward** toward Core (dependency inversion principle)\n\
+  - **Modular Monolith**: Considered, but the defining characteristic here is the\
+  \ **ports-and-adapters pattern with dependency inversion**, not merely having module\
+  \ boundaries. The hexagonal pattern is the primary organizing principle\n- **Event-Driven**:\
+  \ Rejected — While domain events exist, they're used for in-process coordination\
+  \ within the monolith, not asynchronous message broker communication between services\n\
+  \n### Summary\n\nThe CleanArchitecture repository is a textbook implementation of\
+  \ **Hexagonal Architecture** with strong **Domain-Driven Design** influences. The\
+  \ architecture achieves:\n- Dependency inversion pointing toward Core\n- Infrastructure\
+  \ as pluggable adapters\n- Domain model isolation from framework concerns\n- Testability\
+  \ through port abstractions"

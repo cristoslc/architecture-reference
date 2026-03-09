@@ -1,0 +1,83 @@
+Now let me examine a bit more about the processing pipeline structure to confirm the architecture:Now I have enough evidence to make a classification. Let me verify a couple more things to ensure accuracy:---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Modular Monolith
+
+The Relay repository is a **Modular Monolith** - a single deployable unit with strongly enforced internal module boundaries.
+
+**Key Evidence:**
+
+1. **Single Deployable Artifact**: The `Dockerfile.release` produces a single container image with one binary (`/bin/relay`). The main entry point is `relay/src/main.rs` which compiles into a single executable.
+
+2. **Rust Workspace with ~30 Crates**: The root `Cargo.toml` defines:
+   ```toml
+   [workspace]
+   members = ["relay", "relay-*", "relay-*/fuzz/", "tools/*"]
+   default-members = ["relay"]
+   ```
+   This creates approximately 30 independent crates, each with:
+   - Its own `Cargo.toml` declaring explicit dependencies
+   - A well-defined `lib.rs` with documented public API
+   - Clear responsibility boundaries
+
+3. **Compiler-Enforced Module Boundaries**: Rust's visibility rules enforce that:
+   - Each crate can only access publicly exported items from other crates
+   - Dependencies must be explicitly declared in `Cargo.toml`
+   - Circular dependencies are prohibited by the compiler
+
+4. **Focused Crate Responsibilities**: Each crate owns a specific domain:
+   - `relay-auth` → Authentication and crypto
+   - `relay-filter` → Inbound data filtering
+   - `relay-pii` → PII scrubbing
+   - `relay-metrics` → Metrics protocol and aggregation
+   - `relay-sampling` → Dynamic sampling decisions
+   - `relay-quotas` → Rate limiting
+   - `relay-event-normalization` → Event processing logic
+   - `relay-event-schema` → Event type definitions
+   - `relay-server` → HTTP endpoints and services
+
+5. **Documented Module Purpose**: Each crate has clear documentation in its `lib.rs`:
+   ```rust
+   //! Event normalization and processing.
+   //! Quotas and rate limiting for Relay.
+   //! Sampling logic for performing sampling decisions of incoming events.
+   ```
+
+### Secondary Style: Layered
+
+Within `relay-server`, there's clear horizontal layering:
+
+- **Presentation Layer**: `endpoints/` directory contains HTTP handlers (`store.rs`, `forward.rs`, `health_check.rs`, etc.)
+- **Service Layer**: `services/` directory contains business logic services (`processor.rs`, `upstream.rs`, `buffer/`, `metrics/`)
+- **Processing Layer**: `processing/` directory contains data transformation pipelines
+- **Middleware Layer**: `middlewares/` for cross-cutting concerns (CORS, metrics, decompression)
+
+The `endpoints/mod.rs` shows clean route registration:
+```rust
+pub fn all_routes(config: &Config) -> Router<ServiceState> {
+    public_routes_raw(config).merge(internal_routes(config))
+}
+```
+
+### What This Is NOT
+
+- **NOT Microservices**: Single binary, single Dockerfile, no service mesh or inter-service communication. Kafka is used for output to downstream systems, not for internal communication.
+
+- **NOT Domain-Driven Design**: While domain concepts exist (events, transactions, spans, sessions), there are no aggregates, value objects, repositories, or bounded contexts in the DDD sense. The modules are organized by technical capability rather than business domains.
+
+- **NOT Event-Driven Architecture**: The system processes events (in the Sentry sense of error/transaction events), but internal components communicate via direct function calls, not via message brokers or event buses.
+
+- **NOT Hexagonal Architecture**: No ports-and-adapters pattern. Services directly depend on concrete implementations (Redis, Kafka) rather than abstracting them behind interfaces for easy substitution.
+
+- **NOT Pipeline (as primary)**: While the `processing/` subsystem shows pipeline characteristics with sequential stages (expand → filter → process → finalize), this pattern is localized to one subsystem and not the overall architecture.
+
+### Conclusion
+
+The Rust workspace structure provides the defining characteristic of this architecture: **compile-time enforcement of module boundaries** within a single deployable. This is the essence of a Modular Monolith - maintaining the deployment simplicity of a monolith while achieving the architectural clarity typically associated with separate services. The explicit dependency graph in `Cargo.toml` and Rust's visibility rules make it impossible to accidentally create "spaghetti" dependencies between modules.

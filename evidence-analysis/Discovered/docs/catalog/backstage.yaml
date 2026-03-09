@@ -15,7 +15,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Microkernel (Plugin)
-- Modular Monolith
+- Layered
 classification_status: classified
 review_notes: '### Analysis
 
@@ -44,46 +44,62 @@ review_notes: '### Analysis
   - **Extension Points:** The README explicitly identifies Backstage as an "open source
   framework" with a "growing ecosystem of open source plugins."'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.76
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:41:20Z'
-classification_reasoning: "### Analysis\n\nBackstage is a textbook example of a **Microkernel\
-  \ (Plugin)** architecture. Its codebase is structured as a thin core framework that\
-  \ is extended by a vast ecosystem of internal and external plugins.\n\n#### 1. Microkernel\
-  \ (Plugin) Indicators\n- **Extensive Plugin Directory:** The `/plugins` directory\
-  \ contains dozens (hundreds in the full repo) of discrete packages (e.g., `plugins/auth-backend-module-cloudflare-access-provider`,\
-  \ `plugins/catalog-backend-module-bitbucket-cloud`). These are isolated units of\
-  \ functionality.\n- **Plugin Lifecycle & Contracts:** Files like `report.api.md`\
-  \ and `alpha.ts` within the plugin directories indicate strict API surface management.\
-  \ The presence of `package.json` in every plugin folder confirms they are individual\
-  \ NPM packages managed within a monorepo.\n- **Frontend/Backend Plugin Pairs:**\
-  \ The architecture separates \"frontend\" plugins (React-based UI) and \"backend\"\
-  \ modules (Node.js services). These are registered into the core \"App\" or \"Backend\"\
-  \ via a registry pattern (implied by the `src/index.ts` and `src/module.ts` patterns\
-  \ in many plugins).\n- **Extension Points:** The README explicitly identifies Backstage\
-  \ as an \"open source framework\" with a \"growing ecosystem of open source plugins.\"\
-  \n\n#### 2. Modular Monolith Indicators (Secondary)\nWhen deployed, a typical Backstage\
-  \ instance bundles many of these plugins into a single frontend assembly and a single\
-  \ or small number of backend processes. \n- **Internal Boundaries:** While the plugins\
-  \ are developed separately, they often share a common lifecycle within the main\
-  \ deployment unit.\n- **Dependency Enforcement:** The use of Yarn workspaces and\
-  \ Changesets (`.changeset/`) manages the inter-dependencies between these modules,\
-  \ ensuring that even though it functions as a monolith at runtime, the development\
-  \ boundaries are strictly enforced (\"Modular Monolith\" characteristics).\n\n####\
-  \ 3. Rejected Styles\n- **Microservices:** While Backstage *manages* microservices\
-  \ (mentions \"software catalog for managing all your software such as microservices\"\
-  ), the repository itself is not a collection of independently deployable microservices.\
-  \ It is a monorepo meant to build a single portal instance.\n- **Serverless:** There\
-  \ are no indicators of individual function-level deployments (no `serverless.yml`\
-  \ or AWS SAM templates in the root).\n- **Layered:** Although internal plugins might\
-  \ use layering (controllers/services), the architectural identity of the project\
-  \ is defined by its plugin system rather than its horizontal layering."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.76
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.85
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.7
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:50:38Z'
+classification_reasoning: "## Analysis\n\nBackstage is definitively a **Microkernel\
+  \ (Plugin) Architecture** with clear **Layered** elements as a secondary pattern.\n\
+  \n### Primary: Microkernel (Plugin)\n\nThe entire codebase is structured around\
+  \ a plugin system that forms the core architectural principle:\n\n**Core System\
+  \ (Microkernel):**\n- `packages/backend-plugin-api` - Core API defining `createBackendPlugin`,\
+  \ `createBackendModule`, and `createExtensionPoint`\n- `packages/frontend-plugin-api`\
+  \ - Core API for frontend extensions with `createExtension`, `createPlugin`\n- `packages/core-plugin-api`\
+  \ - Base plugin API infrastructure\n- `packages/backend-defaults` - Default service\
+  \ implementations that form the runtime kernel\n\n**Plugin Architecture Evidence:**\n\
+  \n1. **Backend Plugins** (154+ plugins in `plugins/`):\n```typescript\n// plugins/catalog-backend/src/service/CatalogPlugin.ts\n\
+  export const catalogPlugin = createBackendPlugin({\n  pluginId: 'catalog',\n  register(env)\
+  \ {\n    env.registerExtensionPoint(catalogProcessingExtensionPoint, {...});\n \
+  \   env.registerInit({...});\n  },\n});\n```\n\n2. **Extension Points** - The core\
+  \ mechanism for plugins to expose customization APIs:\n```typescript\n// plugins/catalog-node/src/extensions.ts\n\
+  export const catalogProcessingExtensionPoint =\n  createExtensionPoint<CatalogProcessingExtensionPoint>({\n\
+  \    id: 'catalog.processing',\n  });\n```\n\n3. **Modules** - Extend plugins via\
+  \ extension points:\n```typescript\n// From docs/backend-system/architecture/06-modules.md\n\
+  export const catalogModuleExampleCustomProcessor = createBackendModule({\n  pluginId:\
+  \ 'catalog',\n  moduleId: 'example-custom-processor',\n  register(env) {\n    env.registerInit({\n\
+  \      deps: { catalog: catalogProcessingExtensionPoint },\n      async init({ catalog\
+  \ }) {\n        catalog.addProcessor(new MyCustomProcessor());\n      },\n    });\n\
+  \  },\n});\n```\n\n**Key Architectural Constraints:**\n- \"Plugins must never communicate\
+  \ with each other directly through code, they may only communicate over the network\"\
+  \ (`docs/backend-system/architecture/04-plugins.md`)\n- \"Each plugin can be considered\
+  \ to be its own microservice\" \n- Extension points are first-class citizens for\
+  \ customization\n- Clear package naming: `*-backend-module-*` for extension modules\n\
+  \n### Secondary: Layered\n\nClear horizontal separation with defined responsibilities:\n\
+  \n**Frontend Layer:**\n- `packages/app` - Application assembly\n- `packages/core-*`\
+  \ - UI components and frontend APIs\n- `plugins/*` (frontend plugins) - UI features\n\
+  \n**Backend Layer:**\n- `packages/backend` - Deployment entry point\n- `packages/backend-defaults`\
+  \ - Default service implementations\n- `plugins/*-backend` - Backend plugins\n\n\
+  **Data/Model Layer:**\n- `packages/catalog-model` - Shared entity models\n- `packages/catalog-client`\
+  \ - Data access clients\n\n### What This is NOT:\n\n**Not Microservices:** While\
+  \ plugins \"can be considered microservices\" and the docs mention you can \"split\
+  \ this setup into multiple backends,\" the default deployment is a single monolithic\
+  \ backend. The architecture document states: \"While a default Backstage project\
+  \ has all plugins installed within a single backend.\" The microservices capability\
+  \ is a deployment option, not the primary architectural pattern.\n\n**Not Modular\
+  \ Monolith:** Unlike a modular monolith with enforced internal boundaries, Backstage\
+  \ has a true plugin kernel where plugins are dynamically loaded and communicate\
+  \ through extension points and services, not through internal module APIs.\n\n**Not\
+  \ Hexagonal:** While there are APIs and interfaces, the architecture doesn't center\
+  \ on ports/adapters isolation. The plugin system is the primary extension mechanism,\
+  \ not adapter injection.\n\n**Not Domain-Driven Design:** While there are bounded\
+  \ contexts (catalog, scaffolder, techdocs), the primary organizational principle\
+  \ is the plugin boundary, not domain modeling with aggregates/entities/value objects.\n\
+  \n### Structural Evidence:\n\n**Package Organization** (from `package.json` and\
+  \ ADR011):\n```json\n\"workspaces\": [\"packages/*\", \"plugins/*\"]\n```\n\nNaming\
+  \ conventions enforce plugin boundaries:\n- `@backstage/plugin-<name>` - Frontend\
+  \ plugin\n- `@backstage/plugin-<name>-backend` - Backend plugin\n- `@backstage/plugin-<name>-backend-module-<module>`\
+  \ - Extension module\n- `@backstage/plugin-<name>-node` - Extension points and utilities\n\
+  \n**154 plugin packages** demonstrate the centrality of the plugin architecture\
+  \ to the entire system.\n\nThe documentation explicitly frames everything in terms\
+  \ of plugins, extensions, and extension points - the core concepts of a Microkernel\
+  \ pattern."

@@ -1,0 +1,123 @@
+Now I have sufficient evidence to classify the architecture. Let me examine the extension registration mechanism more closely to confirm myunderstanding.---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Analysis
+
+The Envoy repository exhibits a **Microkernel (Plugin)** architecture with strong supporting evidence of a plugin/extension system as its primary organizational pattern.
+
+### Key Evidence for Microkernel (Plugin)
+
+**1. Factory Registry Pattern (`envoy/registry/registry.h`)**
+The core of Envoy's extension system is a factory registry:
+- `FactoryRegistry<Base>` - Template-based registry for implementation factories
+- `RegisterFactory<T, Base>` - Static registration mechanism for plugins
+- `FactoryCategoryRegistry` - Organizes factories by category (e.g., `envoy.filters.http`)
+
+```cpp
+// Key registration pattern used throughout extensions
+LEGACY_REGISTER_FACTORY(RouterFilterConfig, Server::Configuration::NamedHttpFilterConfigFactory, "envoy.router");
+```
+
+**2. Extension Directory Structure (`source/extensions/`)**
+
+The repository contains **50+ extension categories** including:
+- `filters/http/` - HTTP filters (router, cors, jwt_authn, ext_authz, etc.)
+- `filters/network/` - Network layer filters
+- `access_loggers/` - Pluggable access logging
+- `clusters/` - Upstream cluster implementations
+- `transport_sockets/` - TLS and other transport implementations
+- `tracers/` - Distributed tracing integrations
+- `health_checkers/` - Health check implementations
+- `stat_sinks/` - Stats export destinations
+
+**3. Extension Configuration (`source/extensions/extensions_build_config.bzl`)**
+649 lines of extension definitions that can be selectively compiled:
+```python
+EXTENSIONS = {
+    "envoy.filters.http.router": "//source/extensions/filters/http/router:config",
+    "envoy.filters.http.cors": "//source/extensions/filters/http/cors:config",
+    "envoy.access_loggers.file": "//source/extensions/access_loggers/file:config",
+    # ... hundreds more
+}
+```
+
+**4. Plugin Contracts via Base Classes (`envoy/server/filter_config.h`)**
+Each extension category defines a contract:
+```cpp
+class NamedHttpFilterConfigFactory : public Config::TypedFactory {
+  // Plugin must implement createFilterFactoryFromProto()
+  virtual absl::StatusOr<Http::FilterFactoryCb> createFilterFactoryFromProto(...) PURE;
+  std::string category() const override { return "envoy.filters.http"; }
+};
+```
+
+**5. Dynamic Module Loading (`source/extensions/dynamic_modules/dynamic_modules.h`)**
+Runtime plugin loading capability:
+```cpp
+// Load plugins via dlopen or static linking
+absl::StatusOr<DynamicModulePtr> newDynamicModule(const std::filesystem::path& object_file_absolute_path, ...);
+absl::StatusOr<DynamicModulePtr> newDynamicModuleByName(const absl::string_view module_name, ...);
+```
+
+**6. Extension Metadata (`source/extensions/extensions_metadata.yaml`)**
+Each extension is documented with security posture and status:
+```yaml
+envoy.filters.http.router:
+  categories: [envoy.filters.http]
+  security_posture: robust_to_untrusted_downstream
+  status: stable
+```
+
+**7. Contrib Extensions (`contrib/`)**
+A separate directory for community-contributed extensions that integrate via the same plugin mechanism.
+
+### Layered Elements (Secondary)
+
+Envoy also exhibits some layered characteristics:
+- `envoy/` - Public API interfaces (pure virtual classes)
+- `source/common/` - Core implementation layer (http, network, router)
+- `source/exe/` - Application entry point
+- Extension interfaces follow the pattern: interface → factory → implementation
+
+### Architecture Summary
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    Extension Registry                        │
+│  (FactoryCategoryRegistry - categories & factories)          │
+└─────────────────────────────────────────────────────────────┘
+                              │
+       ┌──────────────────────┴──────────────────────┐
+       │                                              │
+┌──────▼──────┐  ┌──────────────┐  ┌──────────────────▼─────────────┐
+│ HTTP Filters │  │ Access Loggers│  │ Clusters, Transport Sockets, │
+│ (router,     │  │ (file, grpc, │  │ Health Checkers, Tracers,     │
+│  cors, jwt)  │  │  otel, wasm)  │  │ Stats Sinks, Matchers, etc.   │
+└─────────────┘  └──────────────┘  └────────────────────────────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │   Core Kernel     │
+                    │  (source/common/) │
+                    │ - HTTP/Network    │
+                    │ - Router          │
+                    │ - Upstream        │
+                    └───────────────────┘
+                              │
+                    ┌─────────▼─────────┐
+                    │  Public APIs      │
+                    │  (envoy/ header   │
+                    │   interfaces)     │
+                    └───────────────────┘
+```
+
+### What This Architecture is NOT
+
+- **Not Microservices**: Single deployable binary, all extensions run in-process
+- **Not Modular Monolith**: The defining characteristic is the plugin registry pattern, not just module organization
+- **Not Hexagonal**: While there are interfaces, the primary extension mechanism is plugin registration, not ports/adapters isolation
+- **Not Event-Driven**: Though Envoy processes network events, the *code organization* is plugin-based, not event-sourced

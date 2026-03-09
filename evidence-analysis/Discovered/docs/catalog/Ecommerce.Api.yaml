@@ -13,9 +13,8 @@ language: C#
 languages:
 - C#
 architecture_styles:
-- CQRS
 - Layered
-- Domain-Driven Design
+- CQRS
 classification_status: classified
 review_notes: '### Architectural Analysis
 
@@ -42,55 +41,48 @@ review_notes: '### Architectural Analysis
 
   #### Evidence of Layered/Hexagonal influence:'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.74
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:46:48Z'
-classification_reasoning: "### Architectural Analysis\n\nThe repository is a classic\
-  \ example of a **CQRS (Command Query Responsibility Segregation)** architecture\
-  \ implemented within a .NET environment. The README explicitly identifies the use\
-  \ of CQRS and MediatR, and the directory structure reinforces this through a strict\
-  \ separation of read and write concerns at the infrastructure level.\n\n#### Evidence\
-  \ of CQRS:\n- **Separation of Models:** Under `src/Streetwood.Infrastructure`, there\
-  \ are distinct directories for `Commands` and `Queries`.\n- **Handler Pattern:**\
-  \ The presence of `Commands/Handlers` and `Queries/Handlers` indicates the use of\
-  \ the Mediator pattern (via MediatR) to decouple the entry points (API Controllers)\
-  \ from the execution logic.\n- **DTOs vs Domain:** A large collection of DTOs in\
-  \ `src/Streetwood.Infrastructure/Dto` is used for queries, while the `src/Streetwood.Core/Domain`\
-  \ contains the entities used for command-side persistence and state transitions.\n\
-  \n#### Evidence of Layered/Hexagonal influence:\n- **Horizontal Layering:** The\
-  \ project is split into standard layers:\n  - `Streetwood.API`: The Presentation\
-  \ layer (Controllers, ViewModels).\n  - `Streetwood.Infrastructure`: The Application/Service\
-  \ layer containing business logic, mappers, and the MediatR implementation.\n  -\
-  \ `Streetwood.Core`: The Data/Domain layer containing Entity Framework entities,\
-  \ migrations, and repository abstractions.\n- **Dependency Inversion:** The use\
-  \ of Autofac modules (e.g., `RepositoriesModule.cs`, `ServicesModule.cs`) and abstractions\
-  \ in `Streetwood.Core/Managers` shows an effort to maintain clean boundaries between\
-  \ technical infrastructure and core logic.\n\n#### Evidence of Domain-Driven Design\
-  \ (DDD):\n- **Rich Domain Model:** The README mentions \"Smart domain objects (DDD)\"\
-  , and the code contains a `src/Streetwood.Core/Domain` directory. This suggests\
-  \ that business rules are encapsulated within entities rather than leaked into \"\
-  Anemic\" services.\n- **Aggregates:** The test factory structure (e.g., `ProductFactory.cs`,\
-  \ `OrderFactory.cs` in `tests/Streetwood.Test.Helpers`) suggests the existence of\
-  \ aggregate roots.\n\n#### Other Observations:\n- **Deployment:** The presence of\
-  \ `src/Streetwood.Functions` suggests a hybrid deployment model where the main API\
-  \ handles the majority of traffic, but background or event-based tasks (like `ExceptionQueueFunction`)\
-  \ are offloaded to Serverless functions.\n- **Validation:** Clear separation of\
-  \ concerns with `CustomValidators` and `Filters` in the API layer ensures that the\
-  \ Domain layer is not cluttered with HTTP-specific validation logic.\n\n#### Rejected\
-  \ Styles:\n- **Microservices:** While there are Azure Functions, the core business\
-  \ logic (Orders, Products, Users, Auth) resides in a single solution with a shared\
-  \ database and a single API project, making it a Monolith.\n- **Modular Monolith:**\
-  \ Although it uses layers, there is no evidence of strict vertical slicing (e.g.,\
-  \ `Features.Orders`, `Features.Products`) with enforced boundaries between them;\
-  \ instead, it uses global layers (Infrastructure/Core)."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.74
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.8
-  alternatives_dismissed: 0.65
-  exploration_completeness: 0.75
-  flags: DDD evidence is relatively weak — relies on README claim and factory class
-    names rather than observed domain behavior or aggregate root enforcement in code
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:16:40Z'
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
+  \ Style: Layered Architecture\n\nThe repository exhibits a classic **Layered Architecture**\
+  \ with three well-defined horizontal layers:\n\n1. **Presentation Layer (`Streetwood.API`)**:\
+  \ Controllers, view models, middleware, filters, and API configuration\n2. **Application/Data\
+  \ Access Layer (`Streetwood.Infrastructure`)**: Command/query handlers, services,\
+  \ DTOs, mappers, and infrastructure concerns\n3. **Domain/Core Layer (`Streetwood.Core`)**:\
+  \ Domain entities, repository interfaces, database context, migrations, and domain\
+  \ abstractions\n\n**Evidence of strict layering:**\n- Dependencies flow downward\
+  \ only: `Streetwood.API` → `Streetwood.Infrastructure` → `Streetwood.Core` (verified\
+  \ in `.csproj` files)\n- Each layer has distinct responsibilities without cross-cutting\
+  \ concerns\n- `Streetwood.API.csproj` only references `Streetwood.Infrastructure`,\
+  \ not Core directly\n- `Streetwood.Infrastructure.csproj` references `Streetwood.Core`\
+  \ for domain abstractions\n\n### Secondary Style: CQRS\n\nThe codebase implements\
+  \ **CQRS (Command Query Responsibility Segregation)** using MediatR:\n\n**Evidence:**\n\
+  - README explicitly states: \"CQRS (one database :)\"\n- Clear directory separation\
+  \ under `src/Streetwood.Infrastructure/`:\n  - `Commands/Handlers/` and `Commands/Models/`\
+  \ for write operations\n  - `Queries/Handlers/` and `Queries/Models/` for read operations\n\
+  - Command handlers implement `IRequestHandler<CreateOrderCommandModel, int>` (returns\
+  \ command result)\n- Query handlers implement `IRequestHandler<GetOrderQueryModel,\
+  \ OrderDto>` (returns DTOs)\n- Separate service interfaces: `ICharmCommandService`\
+  \ vs `ICharmQueryService`\n- Controllers dispatch via `IBus.SendAsync()` abstraction\
+  \ over MediatR (see `OrdersController.cs`)\n\n### DDD Lite Elements (Not Primary)\n\
+  \nThe README mentions \"Smart Domain objects (DDD)\" and there are DDD-influenced\
+  \ patterns:\n- Rich entities with behavior methods (`Order.cs`, `Product.cs`, `User.cs`)\n\
+  - Protected setters with domain methods like `SetName()`, `SetPrice()`, `Close()`\n\
+  - Encapsulated collections with `IReadOnlyCollection`\n- Entity base class (`Streetwood.Core/Domain/Abstract/Entity.cs`)\n\
+  \nHowever, it lacks full DDD tactical patterns:\n- No explicit Aggregate Root markers\n\
+  - No Bounded Contexts\n- Single shared database context for all entities\n- No value\
+  \ objects identified\n\n### What This Is NOT\n\n- **NOT Microservices**: Single\
+  \ deployable ASP.NET Core application, single database, one solution\n- **NOT Serverless\
+  \ (primary)**: Main API is a traditional web app; `Streetwood.Functions` is a secondary\
+  \ Azure Functions project for background email processing\n- **NOT Hexagonal Architecture**:\
+  \ No explicit ports/adapters pattern; Core layer contains EF Core DbContext, not\
+  \ pure domain isolation\n\n### Deployment Topology\n\nSingle monolithic web application\
+  \ with:\n- Main API project (`Streetwood.API`)\n- Auxiliary Azure Functions project\
+  \ (`Streetwood.Functions`) for queue-triggered exception email handling\n- Shared\
+  \ database accessed by the main API\n\n### Architectural Enforcement\n\n- Code analysis\
+  \ ruleset (`streetwood.ruleset`) with StyleCop and FxCop analyzers\n- Convention\
+  \ tests ensuring services are internal and implement interfaces (see `Streetwood.Convention.Tests`)\n\
+  - Clear module separation via Autofac DI modules (`RepositoriesModule`, `MediaTrModule`,\
+  \ etc.)"

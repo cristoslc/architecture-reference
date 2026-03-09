@@ -1,0 +1,82 @@
+Let me explore the plugin system and Django app structure moredeeply:Based on my thorough exploration of the InvenTree repository, I now have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.88
+---
+
+## Architecture Analysis: InvenTree
+
+### Primary Style: Microkernel (Plugin)
+
+InvenTree implements a **Microkernel architecture** centered on a sophisticated plugin system that allows the core system to be extended at runtime.
+
+**Key Evidence:**
+
+1. **Plugin Registry** (`src/backend/InvenTree/plugin/registry.py`):
+   - Central `PluginsRegistry` class that discovers, loads, and manages plugins
+   - Maintains lists of active/inactive plugin instances
+   - Thread-safe loading with locks
+   - Dynamic URL and app registration
+
+2. **Plugin Base Class** (`src/backend/InvenTree/plugin/plugin.py`):
+   - `InvenTreePlugin` base class that all plugins extend
+   - `PluginMixinEnum` defining 20+ extension points (ACTION, API_CALL, BARCODE, LABELS, REPORT, VALIDATION, EVENTS, etc.)
+
+3. **Plugin Mixin System** (`src/backend/InvenTree/plugin/base/`):
+   - `SettingsMixin` - plugins can define custom settings
+   - `AppMixin` - plugins can register as full Django apps with models
+   - `UrlsMixin` - plugins can expose custom URL endpoints
+   - `NavigationMixin` - plugins can add navigation items
+   - `ReportMixin`, `LabelMixin` - plugins can provide report/label generation
+   - `ValidationMixin` - plugins can hook into data validation
+   - `EventMixin` - plugins can respond to system events
+
+4. **Builtin Plugins** (`src/backend/InvenTree/plugin/builtin/`):
+   - Core functionality implemented as plugins: barcode, exporters, labels, notifications, currency exchange
+   - `MANDATORY_PLUGINS` list for plugins that provide essential functionality
+
+5. **Sample Plugins** (`src/backend/InvenTree/plugin/samples/`):
+   - Demonstrates extension points with working examples
+
+### Secondary Style: Layered
+
+Within each Django app module, the code follows a classic **Layered architecture** (MVC pattern):
+
+- **Data Layer**: `models.py` - Django ORM models
+- **API/Controller Layer**: `api.py` - Django REST Framework views
+- **Serialization Layer**: `serializers.py` - Data transformation
+- **Admin Layer**: `admin.py` - Admin interface configuration
+- **Presentation Layer**: `templates/` - HTML templates
+
+**Example** (`src/backend/InvenTree/part/`):
+```
+part/
+├── models.py      # Data layer - Part, PartCategory, BomItem models
+├── api.py         # API views - CategoryList, PartList endpoints
+├── serializers.py # DRF serializers for JSON serialization
+├── admin.py       # Django admin configuration
+├── filters.py     # Query filtering
+└── tests.py       # Test layer
+```
+
+### What This Is NOT
+
+- **Not Microservices**: Single deployable unit (`inventree/inventree` Docker image), single database, shared codebase
+- **Not Modular Monolith**: While organized into Django apps, there are no enforced module boundaries, separate schemas, or bounded contexts. The apps share the same database and can import each other freely
+- **Not Hexagonal Architecture**: No ports/adapters pattern; uses Django ORM directly throughout
+- **Not Event-Driven Architecture**: While there's an event system for plugins, synchronous REST API calls are the primary communication pattern
+
+### Deployment Topology
+
+From `contrib/container/docker-compose.yml`:
+- Single `inventree-server` container (gunicorn)
+- Background `inventree-worker` container (django-q, same codebase)
+- Shared PostgreSQL database
+- Redis cache
+- Caddy reverse proxy
+
+This is a **monolithic deployment** with a background worker process - typical for Django applications with async task requirements.

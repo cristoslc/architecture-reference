@@ -15,7 +15,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Layered
-- Domain-Driven Design
+- Event-Driven
 classification_status: classified
 review_notes: "### Architecture Analysis\n\nOverseerr is structured as a **Layered\
   \ Monolith**. The codebase is explicitly split into a frontend (Next.js/React, implied\
@@ -30,46 +30,50 @@ review_notes: "### Architecture Analysis\n\nOverseerr is structured as a **Layer
   \ (SQL schema changes), and `server/subscriber/` (database lifecycle hooks).\n\n\
   #### Why Layered?"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.87
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:05:41Z'
-classification_reasoning: "### Architecture Analysis\n\nOverseerr is structured as\
-  \ a **Layered Monolith**. The codebase is explicitly split into a frontend (Next.js/React,\
-  \ implied by `next.config.js` and `public/`) and a backend (Express.js, located\
-  \ in the `server/` directory). \n\nThe backend follows a classic horizontal layering\
-  \ pattern:\n1.  **Routing/Presentation Layer**: Found in `server/routes/`, where\
-  \ API endpoints (e.g., `movie.ts`, `auth.ts`, `settings/`) are defined.\n2.  **Logic/Service\
-  \ Layer**: Found in `server/lib/`, containing business logic for scanners (`scanners/`),\
-  \ notification handling (`notifications/`), and external service integrations (Sonarr/Radarr/Plex).\n\
-  3.  **Data Access/Persistence Layer**: Controlled via **TypeORM**, evidenced by\
-  \ `server/entity/` (database schemas like `User.ts`, `MediaRequest.ts`), `server/migration/`\
-  \ (SQL schema changes), and `server/subscriber/` (database lifecycle hooks).\n\n\
-  #### Why Layered?\nThe tree demonstrates a strict separation of concerns by technical\
-  \ role rather than deployment unit. There is a single `Dockerfile` and a single\
-  \ `server/index.ts` entry point, confirming it is a monolithic deployment. The organization\
-  \ of `routes -> lib -> entity` is the hallmark of the Layered style.\n\n#### Why\
-  \ Domain-Driven Design (Secondary)?\nWhile primarily layered, the project exhibits\
-  \ strong DDD influences in its internal organization:\n- **Entity Identification**:\
-  \ The `server/entity/` folder contains clear domain models (`MediaRequest`, `Issue`,\
-  \ `User`) that encapsulate the state of the media management bounded context.\n\
-  - **Bounded Contexts**: The folders within `server/lib/` and `server/routes/` are\
-  \ high-level domain concepts (Notifications, Scanners, Settings, Identity) that\
-  \ correspond to specific areas of the application's business logic.\n\n#### Rejected\
-  \ Styles:\n- **Microservices**: Rejected because there is only one `package.json`,\
-  \ one `Dockerfile`, and the internal modules communicate via direct imports rather\
-  \ than network protocols (gRPC/REST).\n- **Hexagonal**: While there are \"adapters\"\
-  \ for external APIs (in `server/api/`), the core business logic in `server/lib/`\
-  \ is tightly coupled to the TypeORM entities, rather than being isolated via strictly\
-  \ defined ports/interfaces.\n- **Event-Driven**: Although there are \"Subscribers\"\
-  \ in `server/subscriber/`, these are TypeORM database hooks used for side effects\
-  \ (like triggering notifications), which is a common pattern in monolithic apps\
-  \ rather than a full Event-Driven Architecture."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.87
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.88
-  alternatives_dismissed: 0.9
-  exploration_completeness: 0.82
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:29:32Z'
+classification_reasoning: "## Analysis\n\nOverseerr is a **Layered Architecture**\
+  \ monolith with **Event-Driven** patterns used internally for notifications and\
+  \ data synchronization.\n\n### Evidence for Layered Architecture\n\n**Clear horizontal\
+  \ layer separation:**\n\n1. **Presentation Layer (`src/`)**: Next.js/React frontend\
+  \ with components, pages, hooks, and context providers (`src/components/`, `src/pages/`,\
+  \ `src/hooks/`, `src/context/`)\n\n2. **API/Route Layer (`server/routes/`)**: Express\
+  \ routers handling HTTP endpoints:\n   - `auth.ts`, `request.ts`, `media.ts`, `movie.ts`,\
+  \ `tv.ts`, `user/`, `settings/`\n   - These act as controllers, validating requests\
+  \ and delegating to business logic\n\n3. **Business Logic Layer (`server/lib/`)**:\
+  \ Core domain logic including:\n   - `permissions.ts` - Permission checking logic\n\
+  \   - `settings.ts` - Application configuration management\n   - `availabilitySync.ts`,\
+  \ `downloadtracker.ts`, `watchlistsync.ts` - Synchronization logic\n   - `notifications/`\
+  \ - Notification management system\n\n4. **Data Access Layer (`server/entity/`)**:\
+  \ TypeORM entities with ORM mappings:\n   - `Media.ts`, `MediaRequest.ts`, `User.ts`,\
+  \ `Issue.ts`, `Session.ts`\n   - Repository pattern via TypeORM's `getRepository()`\n\
+  \   - Database migrations in `server/migration/`\n\n5. **External API Integration\
+  \ Layer (`server/api/`)**: Integrations with external services:\n   - `plexapi.ts`,\
+  \ `themoviedb/`, `servarr/radarr.ts`, `servarr/sonarr.ts`\n\n**Single deployment\
+  \ unit**: One `Dockerfile`, one `package.json`, producing a single containerized\
+  \ application using Express + Next.js with SQLite database.\n\n### Evidence for\
+  \ Event-Driven (Secondary)\n\n**Internal event-driven patterns:**\n\n1. **TypeORM\
+  \ Subscribers** (`server/subscriber/`):\n   - `MediaRequestSubscriber.ts` - Listens\
+  \ for MediaRequest insert/update events and triggers notifications\n   - `IssueSubscriber.ts`,\
+  \ `IssueCommentSubscriber.ts` - Similar event handling for issues\n\n2. **Notification\
+  \ Agent System** (`server/lib/notifications/`):\n   - Observer pattern with `NotificationManager`\
+  \ class registering multiple agents\n   - 11 notification agents: Discord, Email,\
+  \ Telegram, Slack, Pushover, Webhook, etc.\n   - Events like `MEDIA_PENDING`, `MEDIA_APPROVED`,\
+  \ `MEDIA_AVAILABLE` trigger notifications\n\n3. **Scheduled Jobs** (`server/job/schedule.ts`):\n\
+  \   - `node-schedule` for periodic sync operations\n   - Plex library scans, Radarr/Sonarr\
+  \ scans, Watchlist sync\n\nThese event-driven patterns are **internal implementation\
+  \ details** within the layered monolith, not inter-service communication.\n\n###\
+  \ What This Is NOT\n\n- **Not Microservices**: Single deployable, single database\
+  \ (SQLite), no service boundaries\n- **Not Modular Monolith**: No enforced module\
+  \ boundaries or module-scoped schemas; entities share the same database\n- **Not\
+  \ DDD**: No bounded contexts, aggregates, or value objects pattern visible\n- **Not\
+  \ Hexagonal**: No ports/adapters abstraction; direct dependencies without interface\
+  \ isolation\n- **Not Serverless**: Traditional server deployment via Docker, not\
+  \ function-based\n\n### Deployment Topology\n\n```\nSingle Container (Docker)\n\
+  ├── Express.js Backend (server/)\n│   ├── Routes (API endpoints)\n│   ├── Business\
+  \ Logic (lib/)\n│   ├── Entities (ORM models)\n│   └── SQLite Database\n└── Next.js\
+  \ Frontend (src/)\n    └── React Components/Pages\n```\n\nThe architecture follows\
+  \ a classic layered web application pattern with clear separation between presentation,\
+  \ business logic, and data access layers."

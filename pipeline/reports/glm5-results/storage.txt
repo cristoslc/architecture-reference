@@ -1,0 +1,101 @@
+Now I have enough evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Hexagonal Architecture
+confidence: 0.88
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Layered
+
+The Supabase Storage repository exhibits a clear **horizontal layering** pattern with well-defined separation of concerns:
+
+**1. HTTP/Presentation Layer** (`src/http/`)
+- Routes organized by domain: `bucket/`, `object/`, `s3/`, `tus/`, `iceberg/`, `vector/`, `render/`, `cdn/`
+- Plugins for cross-cutting concerns: `jwt.ts`, `metrics.ts`, `tracing.ts`, `storage.ts`
+- Schema definitions and error handlers
+
+**2. Service/Business Layer** (`src/storage/`)
+- `Storage` class as the main orchestrator (`src/storage/storage.ts`)
+- `ObjectStorage` for object operations (`src/storage/object.ts`)
+- Renderers for image transformation (`src/storage/renderer/`)
+
+**3. Data Access Layer** (`src/storage/database/`)
+- `Database` interface defining data operations (`adapter.ts`)
+- `StorageKnexDB` concrete implementation (`knex.ts`)
+
+**4. Infrastructure Layer** (`src/internal/`)
+- Database connections and pooling (`internal/database/`)
+- Queue management (`internal/queue/`)
+- Monitoring and metrics (`internal/monitoring/`)
+- Authentication/crypto (`internal/auth/`)
+
+**5. Backend Storage Layer** (`src/storage/backend/`)
+- `StorageBackendAdapter` abstract class
+- `S3Backend` and `FileBackend` implementations
+
+### Secondary Style: Hexagonal Architecture (Ports and Adapters)
+
+The codebase demonstrates strong hexagonal characteristics through explicit **ports and adapters**:
+
+**Ports (Interfaces):**
+- `StorageBackendAdapter` (`src/storage/backend/adapter.ts`) - defines storage operations like `getObject`, `uploadObject`, `deleteObject` as abstract methods
+- `Database` interface (`src/storage/database/adapter.ts`) - defines 40+ data operations as an interface contract
+
+**Adapters:**
+- `S3Backend` implements `StorageBackendAdapter` for S3-compatible storage
+- `FileBackend` implements `StorageBackendAdapter` for local filesystem storage  
+- `StorageKnexDB` implements `Database` for PostgreSQL via Knex
+
+**Application Core:**
+The `Storage` class (`src/storage/storage.ts`) serves as the application core, receiving dependencies via constructor injection:
+```typescript
+constructor(
+  public readonly backend: StorageBackendAdapter,
+  public readonly db: Database,
+  public readonly location: StorageObjectLocator
+) {}
+```
+
+This allows the core business logic to be completely isolated from infrastructure concerns.
+
+### What Was Rejected
+
+**Not Microservices:**
+- Single `Dockerfile` producing one deployable artifact
+- Single `package.json` with one application entry point
+- No service-to-service communication patterns
+
+**Not Modular Monolith:**
+- No npm workspaces or internal package boundaries
+- No enforced module isolation (direct imports across all `src/` directories)
+- No separate compilation units or dependency enforcement
+
+**Not Primarily Event-Driven:**
+While the system has event-driven elements:
+- pg-boss queue for background jobs (`src/internal/queue/`)
+- Event classes like `ObjectCreated`, `BucketDeleted` (`src/storage/events/lifecycle/`)
+- Separate worker process (`src/start/worker.ts`)
+
+These are **secondary** concerns for:
+- Webhook notifications
+- Background migrations
+- Async cleanup operations
+
+The **primary request flow** remains synchronous HTTP request → route handler → Storage service → database/backend.
+
+### Deployment Structure
+
+The system is a **single deployable service** that can run in two modes:
+1. **Server mode**: HTTP API handling requests (`src/start/server.ts`)
+2. **Worker mode**: Background job processing (`src/start/worker.ts`)
+
+Both share the same codebase and can be deployed together or separately, but they form a single architectural unit.
+
+### Conclusion
+
+The architecture is a well-structured **Layered system** with strong **Hexagonal** influences through its port/adapter pattern for storage backends and database access. This design enables testing, flexibility in storage backend selection (S3 vs file), and clean separation of concerns while maintaining the simplicity of a monolithic deployment.

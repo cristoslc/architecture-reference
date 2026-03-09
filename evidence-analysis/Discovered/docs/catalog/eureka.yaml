@@ -15,8 +15,7 @@ languages:
 - JavaScript
 architecture_styles:
 - Layered
-- Microkernel (Plugin)
-- Service-Based
+- Hexagonal Architecture
 classification_status: classified
 review_notes: 'The Netflix Eureka repository follows a **Layered** architecture at
   its core, but it is specifically designed as a **Service-Based** infrastructure
@@ -47,58 +46,62 @@ review_notes: 'The Netflix Eureka repository follows a **Layered** architecture 
   multiple cloud environments (AWS being the primary one) while keeping the core logic
   environment-agnostic.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.59
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:47:55Z'
-classification_reasoning: "The Netflix Eureka repository follows a **Layered** architecture\
-  \ at its core, but it is specifically designed as a **Service-Based** infrastructure\
-  \ component that utilizes a **Microkernel (Plugin)** approach for extensibility\
-  \ (especially regarding cloud provider integrations).\n\n### 1. Primary Style: Layered\n\
-  The codebase is structured around traditional horizontal layers. Despite the complex\
-  \ distribution logic, the internal organization of modules like `eureka-core` and\
-  \ `eureka-client` relies on standard Java patterns for separation of concerns:\n\
-  - **API/Resources Layer:** Found in `eureka-resources` and the `webapp` directories\
-  \ in `eureka-server`, handling RESTful interactions.\n- **Service/Logic Layer:**\
-  \ `DiscoveryClient.java` and associated classes in `eureka-core` handle the orchestration\
-  \ of registration, heartbeats, and registry fetches.\n- **Data/Registry Layer:**\
-  \ The `com.netflix.eureka.registry` package (implied by references in `EurekaServerConfig.java`)\
-  \ manages the in-memory state of service instances.\n\n### 2. Secondary Style: Microkernel\
-  \ (Plugin)\nEureka is built to be extended via \"Adapters\" or \"Plugins,\" a necessity\
-  \ for supporting multiple cloud environments (AWS being the primary one) while keeping\
-  \ the core logic environment-agnostic.\n- **Evidence in `EurekaServerConfig.java`:**\
-  \ The interface contains multiple hooks for AWS-specific logic, such as `getAWSAccessId()`,\
-  \ `shouldUseAwsAsgApi()`, and `AwsBindingStrategy`.\n- **Evidence in `DiscoveryClient.java`:**\
-  \ The constructor dynamically loads a `BackupRegistry` implementation via reflection:\
-  \ `backupRegistryInstance = (BackupRegistry) Class.forName(backupRegistryClassName).newInstance();`.\
-  \ This is a classic Microkernel pattern where the core system survives even if the\
-  \ extension (plugin) is missing or substituted.\n- **Evidence in Project Structure:**\
-  \ Separate modules like `eureka-client-jersey2` and `eureka-client-archaius2` act\
-  \ as pluggable transport or configuration providers for the core client.\n\n###\
-  \ 3. Secondary Style: Service-Based\nWhile often associated with \"Microservices\"\
-  \ because it is a discovery engine *for* microservices, Eureka itself is a **Service-Based**\
-  \ system. \n- It consists of two primary, coarse-grained units: the **Eureka Server**\
-  \ (the registry) and the **Eureka Client** (the SDK integrated into other apps).\n\
-  - The \"Services\" here are not dozens of tiny fractured units, but 2-3 robust,\
-  \ specialized services that coordinate state via peer-to-peer replication (as seen\
-  \ in `EurekaServerConfig.java`'s peer replication parameters like `getPeerEurekaNodesUpdateIntervalMs`).\n\
-  \n### Why not other styles?\n- **Not Microservices:** The repository does not contain\
-  \ multiple independently deployable business services; it is a single specialized\
-  \ system (Server + Client).\n- **Not Event-Driven:** While it handles \"events\"\
-  \ (registrations), the internal communication is primarily synchronous REST combined\
-  \ with scheduled polling/heartbeats (as seen in `DiscoveryClient`'s use of `ScheduledExecutorService`\
-  \ and `heartbeatExecutor`), rather than a message broker-based architecture.\n-\
-  \ **Not Hexagonal:** While it uses interfaces for configuration, the core logic\
-  \ is heavily coupled with specific Netflix libraries (Archaius, Servo, Guice) rather\
-  \ than being isolated in a pure domain \"honeycomb.\""
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.59
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.65
-  style_clarity: 0.55
-  alternatives_dismissed: 0.55
-  exploration_completeness: 0.6
-  flags: multi-style classification with weak dominance — Layered is asserted as primary
-    but evidence is generic Java package structure; Microkernel evidence is more specific
-    and compelling; Service-Based application to a library/framework is debatable
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.85
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:19:36Z'
+classification_reasoning: "## Architecture Analysis for Eureka Repository\n\n### Primary\
+  \ Classification: Layered Architecture\n\nThe Eureka repository exhibits a classic\
+  \ **Layered Architecture** with clear horizontal separation of concerns:\n\n**Evidence\
+  \ for Layered Architecture:**\n\n1. **Presentation Layer (REST Resources)**\n  \
+  \ - Located in `eureka-core/src/main/java/com/netflix/eureka/resources/`\n   - JAX-RS\
+  \ annotated classes: `ApplicationsResource.java`, `InstanceResource.java`, `VIPResource.java`,\
+  \ `StatusResource.java`\n   - Handles HTTP request/response, content negotiation,\
+  \ and routing\n   - Delegates business logic to lower layers\n\n2. **Business Logic\
+  \ Layer (Service/Registry)**\n   - Core registry interfaces and implementations\
+  \ in `eureka-core/src/main/java/com/netflix/eureka/registry/`\n   - Key classes:\
+  \ `InstanceRegistry`, `AbstractInstanceRegistry`, `PeerAwareInstanceRegistryImpl`\n\
+  \   - Handles registration, renewal, cancellation, eviction, and replication logic\n\
+  \   - Lease management: `LeaseManager` interface\n\n3. **Data Access Layer (In-Memory\
+  \ Storage)**\n   - `ConcurrentHashMap<String, Map<String, Lease<InstanceInfo>>>`\
+  \ as the primary registry storage\n   - `ResponseCacheImpl` for cached responses\n\
+  \   - Read/write locks for concurrency control\n\n**Module Structure Supporting\
+  \ Layers:**\n```\neureka-server/     → Presentation/Web Layer (WAR deployment)\n\
+  eureka-core/       → Business Logic + Data Access\neureka-client/     → Client Library\
+  \ (used by both external apps and server for peer replication)\neureka-resources/\
+  \  → Static web resources (UI)\n```\n\n### Secondary Classification: Hexagonal Architecture\
+  \ (Ports and Adapters)\n\nEvidence for hexagonal patterns:\n\n1. **Core Interfaces\
+  \ (Ports):**\n   - `LookupService<T>` - defines service discovery contract\n   -\
+  \ `EurekaClient` - extends `LookupService`, defines client operations\n   - `EurekaServerConfig`\
+  \ - server configuration interface\n   - `InstanceRegistry` extends `LeaseManager<T>`\
+  \ and `LookupService<String>`\n\n2. **Pluggable Implementations (Adapters):**\n\
+  \   - Multiple HTTP client implementations: `eureka-client-jersey2`, `eureka-core-jersey2`\n\
+  \   - Configuration adapters: `eureka-client-archaius2` (Archaius 2.x configuration\
+  \ system)\n   - Dependency injection frameworks: `eureka-server-governator` (alternative\
+  \ DI using Netflix Governator)\n\n3. **Dependency Injection:**\n   - Heavy use of\
+  \ Google Guice: `@Inject`, `@Singleton` annotations throughout\n   - `EurekaModule.java`\
+  \ provides bindings with clear separation of interface and implementation:\n   \
+  \  ```java\n     bind(EurekaClient.class).to(DiscoveryClient.class).in(Scopes.SINGLETON);\n\
+  \     bind(EurekaClientConfig.class).toProvider(DefaultEurekaClientConfigProvider.class);\n\
+  \     ```\n\n### What This Is NOT:\n\n- **Not Microservices**: This is a single\
+  \ deployable unit (WAR file). While Eureka *enables* microservice discovery, the\
+  \ repository itself is one monolithic application.\n\n- **Not Modular Monolith**:\
+  \ While there are separate Gradle modules (`eureka-client`, `eureka-core`, `eureka-server`),\
+  \ these are library modules for reuse and packaging, not enforced bounded contexts.\
+  \ The `eureka-client` is used both as a standalone library AND embedded in the server\
+  \ for peer-to-peer communication.\n\n- **Not Event-Driven**: Eureka uses synchronous\
+  \ REST calls for communication, not message brokers or event streams. Peer replication\
+  \ uses HTTP batch requests (`PeerEurekaNode`, `ReplicationTaskProcessor`).\n\n-\
+  \ **Not Service-Based**: There's no concept of multiple coarse-grained services\
+  \ sharing a database. This is one service (the Eureka server) with its own in-memory\
+  \ data store.\n\n### Architecture Characteristics:\n\n- **REST API**: JAX-RS (Jersey)\
+  \ based HTTP endpoints\n- **Peer-to-Peer Replication**: Eureka servers replicate\
+  \ state to each other (`PeerEurekaNodes`, `PeerEurekaNode`)\n- **In-Memory Registry**:\
+  \ No persistent database; data is maintained in memory with lease-based expiration\n\
+  - **Client Library**: The `DiscoveryClient` provides registration, heartbeat, and\
+  \ service discovery capabilities\n- **Servlet Container Deployment**: Packaged as\
+  \ WAR file, runs in servlet containers\n\n### Conclusion:\n\nEureka implements a\
+  \ **Layered Architecture** with **Hexagonal Architecture** influences. The primary\
+  \ structure is horizontal layering (presentation → business logic → data), while\
+  \ the dependency injection and interface-driven design allow for pluggable implementations\
+  \ of HTTP clients and configuration systems."

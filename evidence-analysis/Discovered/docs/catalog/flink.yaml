@@ -15,9 +15,8 @@ languages:
 - Python
 - TypeScript
 architecture_styles:
-- Pipeline (Pipe-and-Filter)
-- Microkernel (Plugin)
 - Modular Monolith
+- Microkernel (Plugin)
 classification_status: classified
 review_notes: 'Apache Flink is a distributed data processing engine that fundamentally
   implements a **Pipeline (Pipe-and-Filter)** architecture at its core execution level,
@@ -49,95 +48,60 @@ review_notes: 'Apache Flink is a distributed data processing engine that fundame
   Flink acts as a core execution engine (the kernel) that is highly extensible through
   a strict plugin architecture.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.62
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:49:00Z'
-classification_reasoning: 'Apache Flink is a distributed data processing engine that
-  fundamentally implements a **Pipeline (Pipe-and-Filter)** architecture at its core
-  execution level, while using a **Microkernel (Plugin)** approach for extensibility
-  and a **Modular Monolith** structure for the source repository management.
-
-
-  ### 1. Primary Style: Pipeline (Pipe-and-Filter)
-
-  The core of Flink’s architecture is the transformation of data streams through a
-  series of filters, maps, and aggregations.
-
-  - **Dataflow DAG:** The `ExecutionGraph` (found in `flink-runtime`) represents the
-  central data structure coordinating distributed execution. It explicitly handles
-  `JobVertex` (filters/processors) and `IntermediateResult` (pipes/buffers).
-
-  - **Stream/Batch Unification:** As seen in the README examples, the programming
-  model follows a linear pipeline construction (`map().keyBy().window().sum()`), which
-  the runtime translates into a physical pipeline of operators connected by distribution
-  channels.
-
-  - **Back-pressure:** The mention of "Natural back-pressure" in the README is a hallmark
-  of sophisticated Pipe-and-Filter systems where downstream filters can signal upstream
-  ones to slow data production.
-
-
-  ### 2. Secondary Style: Microkernel (Plugin)
-
-  Flink acts as a core execution engine (the kernel) that is highly extensible through
-  a strict plugin architecture.
-
-  - **Factory/SPI Pattern:** The `Factory.java` file in `flink-table` confirms the
-  use of Java''s Service Provider Interface (SPI) for discovering extensions. This
-  allows users to plug in custom connectors, formats, and file systems without modifying
-  the core.
-
-  - **Externalized Connectors:** The README and the `flink-connectors/` directory
-  structure demonstrate that most IO logic (Kafka, Cassandra, ES) is treated as external
-  plugins that adhere to the core''s interfaces.
-
-  - **Filesystems and Formats:** The presence of `flink-filesystems/` and `flink-formats/`
-  indicates a system where the "Kernel" (runtime) knows how to execute a graph, but
-  relies on "Plugins" to read/write data in specific formats or from specific storage
-  layers (S3, OSS, HDFS).
-
-
-  ### 3. Secondary Style: Modular Monolith
-
-  Despite being a distributed system when deployed, the repository itself is structured
-  as a **Modular Monolith** (specifically a Maven Multi-Module project) with strong
-  internal boundaries.
-
-  - **Strict Boundary Enforcement:** The existence of `archunit-violations/stored.rules`
-  across various modules (`flink-core`, `flink-table`, etc.) suggests that the developers
-  use ArchUnit to programmatically enforce dependency rules between modules, preventing
-  unintended coupling (e.g., ensuring local table logic doesn''t leak into the global
-  runtime).
-
-  - **Logical Layering:** The directory tree shows a clear separation between `flink-core`
-  (base abstractions), `flink-runtime` (the execution engine), and `flink-streaming-java`/`flink-table`
-  (API layers).
-
-
-  ### Why not Microservices?
-
-  While Flink deploys separate processes (JobManager, TaskManager), these are specialized
-  workers of a single platform rather than independent business services. The repository
-  is a single codebase for a unified framework, not a collection of independent domain
-  services.
-
-
-  ### Why not Event-Driven?
-
-  While Flink *processes* events and is often used in Event-Driven architectures,
-  the internal structure of the Flink engine itself is more aligned with a coordinated
-  dataflow/pipeline than a decoupled pub/sub system. The "events" in Flink are data
-  items moving through a graph, not necessarily architectural control events.'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.62
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.65
-  style_clarity: 0.72
-  alternatives_dismissed: 0.45
-  exploration_completeness: 0.6
-  flags: multi-style classification with three co-primary styles reduces clarity;
-    evidence references specific paths but relies partly on README and directory names
-    rather than deep code inspection; microservices alternative is truncated mid-sentence
-    suggesting incomplete reasoning
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:19:35Z'
+classification_reasoning: "## Architecture Classification: Apache Flink\n\n### Primary\
+  \ Style: Modular Monolith\n\nApache Flink is architected as a **Modular Monolith**\
+  \ with strong internal module boundaries enforced through Maven's multi-module structure\
+  \ and ArchUnit architecture tests.\n\n**Evidence:**\n\n1. **Single Deployable Unit**:\
+  \ The `flink-dist` module produces a unified distribution. The `bin.xml` assembly\
+  \ creates a single `flink-dist-{version}.jar` placed in `lib/` alongside core libraries,\
+  \ forming one cohesive runtime.\n\n2. **Enforced Module Boundaries**: Flink uses\
+  \ a dedicated `flink-architecture-tests` module containing ArchUnit rules that enforce\
+  \ dependency constraints. Key rules include:\n   - `ConnectorRules.java`: \"Connector\
+  \ production code must depend only on public API when outside of connector packages\"\
+  \n   - `ApiAnnotationRules.java`: Enforces that `@Public` API methods only use `@Public`\
+  \ types\n   - `TableApiRules.java`: Enforces visibility annotations and proper package\
+  \ structure\n\n3. **Clear Module Hierarchy** (~40 modules in `pom.xml`):\n   - Core:\
+  \ `flink-annotations`, `flink-core-api`, `flink-core`\n   - Runtime: `flink-runtime`,\
+  \ `flink-runtime-web`\n   - APIs: `flink-datastream-api`, `flink-streaming-java`,\
+  \ `flink-table-*`\n   - Extensions: `flink-connectors`, `flink-formats`, `flink-metrics`,\
+  \ `flink-filesystems`, `flink-state-backends`\n\n4. **API Visibility System**: Uses\
+  \ annotations (`@Public`, `@PublicEvolving`, `@Internal`, `@Experimental`) to define\
+  \ public API contracts, with architecture tests ensuring internal modules don't\
+  \ leak implementation details.\n\n5. **Dependency Graph**: Clear module dependencies\
+  \ flow from `flink-core-api` → `flink-core` → `flink-runtime` → higher-level APIs.\
+  \ The `pom.xml` shows disciplined layering.\n\n### Secondary Style: Microkernel\
+  \ (Plugin)\n\nFlink incorporates a **Plugin Architecture** for runtime extensibility\
+  \ without modifying the core.\n\n**Evidence:**\n\n1. **Plugin System** (`flink-core/src/main/java/org/apache/flink/core/plugin/`):\n\
+  \   - `PluginManager` interface: Manages cluster plugins loaded via separate classloaders\n\
+  \   - `PluginLoader`: Uses `ServiceLoader` to discover SPI implementations\n   -\
+  \ `Plugin` interface: Base interface for plugins with `configure()` lifecycle\n\
+  \   - `PluginClassLoader`: Custom classloader isolating plugin dependencies from\
+  \ Flink core\n\n2. **Plugin Distribution**: The `plugins.xml` assembly shows plugins\
+  \ deployed to `plugins/` directory:\n   - `plugins/metrics-jmx/`, `plugins/metrics-prometheus/`,\
+  \ `plugins/metrics-graphite/`, etc.\n   - `plugins/external-resource-gpu/`\n   -\
+  \ Each plugin is a self-contained JAR loaded at runtime\n\n3. **Extension Points\
+  \ via SPI**:\n   - **State Backends**: Multiple implementations (`flink-statebackend-rocksdb`,\
+  \ `flink-statebackend-heap-spillable`, `flink-statebackend-forst`) following `StateBackend`\
+  \ interface\n   - **Metrics Reporters**: Pluggable implementations in `flink-metrics-*`\
+  \ modules\n   - **Filesystems**: Pluggable filesystems (`flink-s3-fs-*`, `flink-azure-fs-*`,\
+  \ etc.)\n   - **Connectors**: `flink-connector-base` defines SPI for external system\
+  \ connections\n\n### What Was Rejected\n\n- **NOT Microservices**: Flink distributes\
+  \ as a single monolithic deployment unit. The runtime itself is not decomposed into\
+  \ independently deployable services.\n\n- **NOT Layered** (primarily): While there's\
+  \ API/implementation separation, the architecture emphasizes **module** boundaries\
+  \ over horizontal layers. Modules like `flink-connectors`, `flink-formats`, `flink-state-backends`\
+  \ are vertical domains, not horizontal layers.\n\n- **NOT Event-Driven**: Though\
+  \ Flink processes streaming data (its business domain), the internal codebase structure\
+  \ is not organized around event-driven communication between components.\n\n- **NOT\
+  \ Hexagonal**: No explicit ports/adapters pattern. The plugin system serves extensibility\
+  \ but doesn't follow hexagonal architecture patterns.\n\n### Summary\n\nFlink exemplifies\
+  \ a mature Modular Monolith with clear module boundaries enforced through tooling\
+  \ (ArchUnit, Maven modules, API annotations). Its plugin system provides the extensibility\
+  \ needed for a data processing framework—allowing users to add metrics reporters,\
+  \ filesystems, and state backends without touching core code. The architecture tests\
+  \ in `flink-architecture-tests` actively prevent erosion of module boundaries, making\
+  \ this a well-maintained modular monolith."

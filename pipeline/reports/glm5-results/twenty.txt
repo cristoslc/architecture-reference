@@ -1,0 +1,94 @@
+Let me explore the key architectural components - the docker configuration, server structure, and package organization:Let me explore the server's module structure and the Nx configuration to understand the internal architecture:Let me check a few more details to confirm the architecture classification:Based on my thorough investigation, I now have sufficient evidence to provide the architecture classification.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Analysis
+
+### Primary Style: Modular Monolith
+
+The Twenty repository exhibits strong characteristics of a **Modular Monolith** architecture:
+
+**Single Deployable Unit:**
+- The `docker-compose.yml` (`packages/twenty-docker/docker-compose.yml`) shows a single Docker image (`twentycrm/twenty`) used for both the `server` and `worker` services
+- The worker runs from the same codebase with `yarn worker:prod` command, not as a separate service
+- Single shared PostgreSQL database and Redis instance
+
+**Enforced Internal Module Boundaries:**
+- **278 NestJS modules** organized with clear cohesion
+- Each module in `packages/twenty-server/src/modules/` follows consistent structure:
+  - `standard-objects/` for workspace entities
+  - `services/` for business logic
+  - `jobs/` for background processing
+  - `resolvers/` for GraphQL endpoints
+  - `repositories/` for data access
+- Examples include: `calendar/`, `messaging/`, `workflow/`, `favorite/`, `connected-account/`, `dashboard/`
+
+**Module Isolation:**
+- NestJS module system enforces explicit dependencies via `imports` arrays
+- Each module encapsulates its own:
+  - Workspace entities (e.g., `company.workspace-entity.ts`, `person.workspace-entity.ts`)
+  - Services with dependency injection
+  - GraphQL resolvers
+  - Background jobs
+
+**Nx Workspace Enforcing Boundaries:**
+- Monorepo structure (`nx.json` line 2-5) organizes packages
+- Build dependencies enforced (`"dependsOn": ["^build"]`)
+- Tags for scope control (`"scope:backend"`, `"scope:frontend"`)
+
+### Secondary Style: Layered
+
+Horizontal layering is evident in the backend architecture:
+
+**API Layer** (`packages/twenty-server/src/engine/api/`):
+- `graphql/` - GraphQL endpoints with Yoga driver
+- `rest/` - REST API controllers
+- `mcp/` - Model Context Protocol support
+
+**Business Logic Layer:**
+- `packages/twenty-server/src/modules/` - Domain business logic (calendar, messaging, workflow)
+- `packages/twenty-server/src/engine/core-modules/` - Infrastructure concerns (auth, billing, email, file-storage)
+
+**Data Access Layer:**
+- TypeORM entities and repositories
+- TwentyORM custom abstraction (`packages/twenty-server/src/engine/twenty-ORM/`)
+- Workspace entities with defined relations
+
+### What This Is NOT
+
+**Not Microservices:**
+- Single deployable Docker image (not independently deployable services)
+- Single shared database (not database-per-service)
+- In-process communication via NestJS modules (not network calls)
+
+**Not Event-Driven Architecture:**
+- BullMQ queues are for background job processing within the monolith, not inter-service communication
+- EventEmitter2 (`packages/twenty-server/src/engine/workspace-event-emitter/`) handles internal events in-process
+- No message broker for service-to-service communication
+
+**Not Domain-Driven Design:**
+- No bounded context terminology or aggregates
+- Workspace entities are ORM models, not DDD entities with invariants
+- Module organization follows NestJS conventions, not DDD tactical patterns
+
+**Not Hexagonal Architecture:**
+- No ports/adapters terminology
+- Uses standard NestJS dependency injection, not explicit adapter interfaces
+- Infrastructure concerns mixed in modules rather than isolated
+
+### Evidence Summary
+
+| Criterion | Finding |
+|-----------|---------|
+| Deployable units | 1 Docker image (server + worker share codebase) |
+| Database topology | Single shared PostgreSQL |
+| Module count | 278 NestJS modules with explicit boundaries |
+| Communication | In-process (NestJS DI), not network-based |
+| Background processing | Queue worker from same codebase (BullMQ) |
+| Frontend | Separate React SPA, not SSR Next.js |

@@ -1,0 +1,103 @@
+Let me check the build structure and services to confirm deployment patterns:Now I have sufficient evidence to classify this repository. Let me provide the final analysis:
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.88
+---
+
+## Analysis
+
+Outline is a **Layered architecture with a Microkernel-style plugin system**. The repository is structured as a single deployable monolith with clear horizontal layering on both frontend and backend, extended by a robust plugin infrastructure.
+
+### Primary: Layered Architecture
+
+The codebase exhibits classic horizontal layering:
+
+**Backend (Koa/Node.js)** in `server/`:
+- **Routes layer** (`server/routes/`) - API endpoints organized by domain (documents, collections, users, etc.)
+- **Commands layer** (`server/commands/`) - Business logic operations spanning multiple models
+- **Models layer** (`server/models/`) - Sequelize ORM data access with 30+ domain models
+- **Policies layer** (`server/policies/`) - Authorization logic using cancan
+- **Presenters layer** (`server/presenters/`) - JSON serialization transforming models to API responses
+- **Middlewares layer** (`server/middlewares/`) - Request processing (authentication, validation, rate limiting)
+
+**Frontend (React/Vite)** in `app/`:
+- **Scenes** (`app/scenes/`) - Full-page views (route-level components)
+- **Components** (`app/components/`) - Reusable UI components
+- **Stores** (`app/stores/`) - MobX state containers (CollectionsStore, DocumentsStore, etc.)
+- **Models** (`app/models/`) - Client-side domain models with MobX observables
+- **Routes** (`app/routes/`) - Route definitions with lazy loading
+
+The `docs/ARCHITECTURE.md` explicitly documents this layered organization.
+
+### Secondary: Microkernel (Plugin) Architecture
+
+A sophisticated plugin system extends the core:
+
+**Server PluginManager** (`server/utils/PluginManager.ts`):
+```typescript
+export enum Hook {
+  API = "api",
+  AuthProvider = "authProvider",
+  Processor = "processor",
+  Task = "task",
+  UnfurlProvider = "unfurl",
+  // ...
+}
+```
+
+Plugins register via hooks for API routes, authentication providers, async processors, tasks, and more. The system dynamically loads plugins at runtime:
+```typescript
+glob.sync(path.join(rootDir, "plugins/*/server/!(*.test|schema).[jt]s"))
+```
+
+**Client PluginManager** (`app/utils/PluginManager.ts`):
+```typescript
+export enum Hook {
+  Settings = "settings",
+  Imports = "imports",
+  Icon = "icon",
+}
+```
+
+**20+ plugins** provide integrations:
+- `plugins/slack/` - Slack auth and slash commands
+- `plugins/github/` - GitHub issue unfurling
+- `plugins/google/` - Google authentication
+- `plugins/linear/`, `plugins/figma/`, `plugins/notion/` - Various integrations
+
+Each plugin has `plugin.json` metadata and optional `client/`, `server/`, and `shared/` directories. Example from `plugins/github/server/index.ts`:
+```typescript
+if (enabled) {
+  PluginManager.add([
+    { type: Hook.API, value: router },
+    { type: Hook.Task, value: GitHubWebhookTask },
+    { type: Hook.UnfurlProvider, value: { unfurl: GitHub.unfurl } },
+  ]);
+}
+```
+
+### Why Not Other Styles
+
+- **Not Microservices**: Single `package.json`, single `Dockerfile`, single build artifact (`build/server/index.js`). The "services" (web, worker, collaboration) are runtime modes of the same application sharing one PostgreSQL database.
+
+- **Not Modular Monolith**: While organized by domain, there's no enforced module boundary system (no package workspaces, module-scoped dependencies, or internal API contracts). The plugin system provides extension, not internal module isolation.
+
+- **Not Hexagonal**: No ports/adapters pattern. The presenters layer transforms data but isn't an adapter abstraction. Database and external services are accessed directly from models and commands.
+
+- **Event-Driven is internal only**: Bull queues with Redis handle async tasks (emails, notifications, websockets) but this is background job processing within the monolith, not inter-service event communication.
+
+### Deployment Topology
+
+Single container deployed with multiple runtime service modes:
+```javascript
+// server/services/index.ts
+export default {
+  websockets, collaboration, admin, web, worker, cron
+}
+```
+
+Services are selected via CLI flags (`--services=web,worker,collaboration`), allowing horizontal scaling of specific capabilities while remaining a single codebase.

@@ -1,0 +1,70 @@
+Let me check one more area - the dependency direction and how the segments are structured:Now I have sufficient evidence to classify this architecture. Let me provide the final analysis.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Architecture Classification: Modular Monolith with Layered Organization
+
+### Primary Style: Modular Monolith
+
+Qdrant is a **Modular Monolith** - a single deployable Rust application with strictly enforced internal module boundaries through the Cargo workspace system.
+
+**Key Evidence:**
+
+1. **Single Deployment Unit**: The repository produces one binary (`src/main.rs`) and one Docker image. There are no separate services, just one monolithic application.
+
+2. **Strong Module Boundaries via Rust Crates**: The `lib/` directory contains **14 internal crates** organized as a Cargo workspace:
+   - `api` - REST and gRPC API definitions
+   - `storage` - Storage orchestration and consensus management  
+   - `collection` - Collection lifecycle and operations
+   - `shard` - Distributed sharding logic
+   - `segment` - Core vector storage and indexing
+   - `quantization`, `sparse`, `gridstore`, `posting_list`, `gpu` - Specialized data components
+   - `common`, `macros`, `trififo` - Shared infrastructure
+
+3. **Explicit Dependency Enforcement**: Each crate's `Cargo.toml` declares explicit dependencies with path references:
+   ```
+   storage → collection → shard → segment → common/quantization/sparse
+   ```
+   Dependencies flow unidirectionally; higher-level modules depend on lower-level ones, never the reverse. Rust's compiler enforces these boundaries at compile time.
+
+4. **Single Entry Point**: `src/main.rs` bootstraps the entire application, initializing the `Dispatcher`, `TableOfContent`, consensus layer, and both Actix (REST) and Tonic (gRPC) servers.
+
+### Secondary Style: Layered
+
+Within the monolith, there's clear horizontal layering:
+
+| Layer | Components | Responsibility |
+|-------|------------|----------------|
+| **API Layer** | `src/actix/`, `src/tonic/` | HTTP/gRPC request handling, authentication |
+| **Service Layer** | `lib/storage/dispatcher.rs`, `lib/storage/content_manager/toc/` | Operation routing, collection management |
+| **Domain Layer** | `lib/collection/` | Collection operations, sharding, replication |
+| **Data Layer** | `lib/segment/`, `lib/shard/`, `lib/gridstore/` | Vector storage, HNSW indices, payload storage |
+| **Infrastructure** | `lib/common/`, `lib/quantization/` | Utilities, quantization algorithms |
+
+The layering follows classic patterns: API layer depends on service layer, which depends on domain/data layers.
+
+### What This Is NOT
+
+- **Not Microservices**: Single binary, single Docker image, single process. Clustered deployment uses Raft consensus for replication, but nodes are identical replicas running the same monolith.
+
+- **Not Event-Driven**: While Qdrant uses Raft for distributed consensus and has WAL for durability, this is synchronous replication for data consistency - not asynchronous event-driven messaging. No message brokers (Kafka, RabbitMQ) are involved.
+
+- **Not Microkernel/Plugin**: No plugin loading mechanism, no runtime extensions, no dynamic module system. All functionality is compiled into the single binary.
+
+- **Not CQRS**: Read and write paths share the same segment infrastructure. While there are optimization paths, there's no separate read model/write model separation.
+
+- **Not Domain-Driven Design**: The codebase is organized around technical concerns (segments, shards, storage, API) rather than bounded contexts with aggregates, entities, and value objects.
+
+### Strength of Classification
+
+**High confidence (0.92)** because:
+- The Cargo workspace structure with path dependencies is definitive evidence of modular monolith architecture
+- Rust's compiler enforces module boundaries at compile time - this cannot be circumvented
+- Single `main.rs` and single `Dockerfile` confirm single deployment unit
+- The layered organization within is well-documented in the crate structure

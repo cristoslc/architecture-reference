@@ -1,0 +1,130 @@
+Let me explore the structure more deeply - this appears to be a Ruby project with multiple modules.Let me examine more of the architecture to understand the module boundaries and deployment structure.Based on my thorough investigation, I now have sufficient evidence to classify this repository's architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Analysis
+
+The Decidim repository implements a **Microkernel (Plugin) architecture** as its primary architectural style.
+
+### Evidence for Microkernel (Plugin) Architecture
+
+**1. Core System with Plugin Registration API**
+
+The core provides a well-defined plugin contract through manifest classes:
+
+- `lib/decidim/core.rb` defines `register_component` and `register_participatory_space` methods (lines 846, 861)
+- `decidim-core/lib/decidim/component_manifest.rb` - Defines the complete plugin contract with settings, hooks, permissions, GraphQL types, and resources
+- `decidim-core/lib/decidim/participatory_space_manifest.rb` - Similar contract for participatory space plugins
+- `decidim-core/lib/decidim/manifest_registry.rb` - Registry that holds all registered manifests
+
+**2. Plugin Modules (27 separate gems)**
+
+The repository contains 27 distinct plugin modules, each as a Rails Engine:
+- `decidim-proposals`, `decidim-meetings`, `decidim-budgets`, `decidim-comments`
+- `decidim-accountability`, `decidim-surveys`, `decidim-debates`, `decidim-blogs`
+- `decidim-participatory_processes`, `decidim-assemblies`, `decidim-conferences`
+- `decidim-admin`, `decidim-api`, `decidim-system`, `decidim-verifications`
+
+Each plugin is a separate gem with its own `*.gemspec` file.
+
+**3. Self-Registration Pattern**
+
+Plugins register themselves via a DSL at boot time. For example, in `decidim-proposals/lib/decidim/proposals/component.rb`:
+
+```ruby
+Decidim.register_component(:proposals) do |component|
+  component.engine = Decidim::Proposals::Engine
+  component.admin_engine = Decidim::Proposals::AdminEngine
+  component.icon = "media/images/decidim_proposals.svg"
+  component.actions = %w(like vote create withdraw amend comment)
+  component.permissions_class_name = "Decidim::Proposals::Permissions"
+  
+  component.settings(:global) do |settings|
+    settings.attribute :vote_limit, type: :integer
+    # ... more settings
+  end
+  
+  component.on(:create) do |instance|
+    # Lifecycle hook
+  end
+  
+  component.register_resource(:proposal) do |resource|
+    resource.model_class_name = "Decidim::Proposals::Proposal"
+    resource.searchable = true
+  end
+end
+```
+
+**4. Extension Points via Hooks**
+
+The core provides multiple extension mechanisms:
+- **Lifecycle hooks**: `component.on(:create)`, `component.on(:publish)`
+- **View hooks**: `Decidim.view_hooks.register(:participatory_space_highlighted_elements)`
+- **Event subscriptions**: `Decidim::Comments::CommentCreation.subscribe`
+- **Content processors**: `config.content_processors += [:proposal]`
+
+**5. Single Deployable Unit**
+
+All plugins are packaged into a single Rails application:
+- `lib/decidim.rb` requires all modules into one application
+- `decidim-generators` creates a new Rails app that bundles all engines together
+- Components share a single database via Rails Engine namespacing
+
+**6. Polymorphic Component Model**
+
+From `decidim-core/app/models/decidim/component.rb`:
+```ruby
+class Component < ApplicationRecord
+  belongs_to :participatory_space, polymorphic: true
+  
+  def manifest
+    Decidim.find_component_manifest(manifest_name)
+  end
+end
+```
+
+The core doesn't know specific components - it discovers them via manifests.
+
+### Evidence for Layered Architecture (Secondary)
+
+Within each module and the core, Rails MVC provides horizontal layering:
+- `app/controllers/` - Presentation layer
+- `app/models/` - Domain/ business logic
+- `app/forms/`, `app/commands/` - Application services
+- `app/views/`, `app/cells/` - View templates
+
+This is implementation detail within each plugin rather than the primary architectural organization.
+
+### Why Not Other Styles
+
+**NOT Microservices:**
+- Single Rails application deployed as one unit
+- Shared PostgreSQL database with polymorphic associations
+- All modules run in the same process
+- No service boundaries or inter-service communication
+
+**NOT Domain-Driven Design (Bounded Contexts):**
+- While modules represent domain boundaries (proposals, meetings, budgets), they're implemented as plugins to a core kernel, not autonomous contexts
+- They share the same database schema and models
+
+**NOT Service-Based:**
+- This is more than 2-5 coarse-grained services; it's a plugin ecosystem with 27 modules
+- All modules share the same database rather than owning their data
+
+**NOT Hexagonal Architecture:**
+- No ports/adapters pattern
+- Direct framework coupling (Rails Engines) rather than interface-based isolation
+
+### Conclusion
+
+Decidim is a **textbook example of a Microkernel (Plugin) architecture**:
+- Core kernel (`decidim-core`) defines extension points and contracts
+- Plugins (`decidim-*`) register via manifests and implement those contracts
+- Plugins can be added/removed without modifying the core
+- The system is delivered as a single deployable Rails application

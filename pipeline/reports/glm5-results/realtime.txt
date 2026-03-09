@@ -1,0 +1,74 @@
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.85
+---
+
+## Classification Analysis
+
+### Primary: Modular Monolith
+
+**Strong Evidence:**
+
+1. **Single Deployable Unit:** The repository builds a single Elixir/OTP application (`app: :realtime` in `mix.exs`), compiled into one release artifact via `mix release`, deployed as a single Docker container (`Dockerfile` line 92: `/app/_build/${MIX_ENV}/rel/realtime`).
+
+2. **Enforced Internal Module Boundaries:** Clear namespace separation between bounded contexts:
+   - `lib/realtime/` — Core business logic, tenant management, distributed coordination
+   - `lib/realtime_web/` — Phoenix web layer (channels, controllers, plugs, views)
+   - `lib/extensions/` — Extension point for CDC drivers with defined behaviours
+   - `beacon/` — Internal library for distributed process group membership (separate mix project at `beacon/mix.exs`, included as path dependency)
+
+3. **Module Isolation:** Each context has internal structure and supervision:
+   - `realtime/tenants/` has its own supervisor tree (`Connect`, `Migrations`, `Rebalancer`, `ReplicationConnection`, `Janitor`)
+   - `extensions/postgres_cdc_rls/` is a self-contained module with supervisor, message dispatcher, replication poller
+   - `realtime_web/channels/` encapsulates WebSocket channel logic with handlers for broadcast, presence, and message dispatch
+
+### Secondary: Layered
+
+**Supporting Evidence:**
+
+The codebase follows Phoenix's conventional layered architecture:
+
+1. **Presentation Layer:** `lib/realtime_web/` — Phoenix Endpoint (`endpoint.ex`), Router (`router.ex`), Controllers, Channels, Views, LiveView components
+2. **Application/Business Layer:** `lib/realtime/api/`, `lib/realtime/tenants/` — Domain logic, tenant management, authorization policies
+3. **Data Access Layer:** `lib/realtime/repo.ex`, `lib/realtime/database.ex`, Ecto schemas in `lib/realtime/api/tenant.ex`
+
+This is standard Phoenix organization — not a primary architectural driver but clearly present.
+
+### What Was Rejected
+
+**Rejected: Event-Driven as Primary Style**
+
+While the system heavily uses PubSub and event-like patterns (PostgreSQL logical replication, WebSocket channels, `TenantBroadcaster`), this is **communication infrastructure within a monolith**, not an architectural pattern defining module boundaries. The events flow through internal modules of the same deployable unit — not between independent services. The distributed PubSub (via `gen_rpc`) is for scaling the monolith across nodes, not decoupling services.
+
+**Rejected: Microkernel/Plugin**
+
+The extension system (`Realtime.PostgresCdc` behaviour with callbacks at `lib/realtime/postgres_cdc.ex:82-86`) appears plugin-like, but:
+- Only one implementation exists (`Extensions.PostgresCdcRls`)
+- Extensions are configured at compile time (`Application.compile_env(:realtime, :extensions)` at line 9)
+- No runtime plugin loading mechanism
+- This is a **build-time extension point** for code organization, not a microkernel architecture
+
+**Rejected: Microservices**
+
+Single OTP application, single Docker image, single release artifact. No service decomposition. The clustering (`libcluster`, `syn`, `gen_rpc`) is for **horizontal scaling of the same monolithic application** across regions/nodes, not for inter-service communication.
+
+**Rejected: Service-Based**
+
+Only one service exists. There's no decomposition into 2-5 coarse-grained services sharing a database.
+
+### Key Architectural Discriminators
+
+| Aspect | Evidence |
+|--------|----------|
+| Deployment units | Single (`mix release` → one artifact) |
+| Module boundaries | Namespaced contexts with clear responsibility |
+| Boundary enforcement | Elixir module system, behaviours, supervision trees |
+| Communication | Internal function calls + distributed PubSub for scaling |
+| Data ownership | Shared Postgres, tenant-isolated connections |
+
+### Confidence Rationale
+
+0.85 confidence — The modular monolith classification is clear from the single deployment unit with well-organized internal module boundaries. The layered aspect is secondary (standard Phoenix convention). The only ambiguity is the rich distributed systems infrastructure (`gen_rpc`, `syn`, `Beacon`) which might suggest event-driven to some, but this is horizontal scaling machinery, not architectural decomposition.

@@ -15,9 +15,9 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Microservices
-- Domain-Driven Design
+- Modular Monolith
 - Hexagonal Architecture
+- Layered
 classification_status: classified
 review_notes: "This repository is a comprehensive architectural reference project.\
   \ While it contains multiple implementations (including a Monolith and a Modular\
@@ -35,57 +35,66 @@ review_notes: "This repository is a comprehensive architectural reference projec
   \ of a Microservices architecture.\n    *   **API Gateways:** It implements specialized\
   \ gateways in `src/Microservices/Gateways.WebAPI` and `src/Microservices/Gateways.GraphQL`."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.79
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:07:02Z'
-classification_reasoning: "This repository is a comprehensive architectural reference\
-  \ project. While it contains multiple implementations (including a Monolith and\
-  \ a Modular Monolith inside the `src/` directory), the **Microservices** architecture\
-  \ is the most feature-complete and sophisticated representation of the codebase's\
-  \ organization, specifically designed for independent deployment and scaling.\n\n\
-  ### Architectural Evidence:\n\n1.  **Microservices (Primary Style):**\n    The directory\
-  \ `src/Microservices/` contains distinct, independently deployable services such\
-  \ as:\n    *   `Services.Notification`, `Services.Identity`, `Services.Product`,\
-  \ `Services.AuditLog`, `Services.Storage`, and `Services.Configuration`.\n    *\
-  \   **Independent Deployment Units:** Each service contains its own solution (`.sln`)\
-  \ file, `docker build.txt` file, and dedicated API/Background projects.\n    * \
-  \  **Orchestration & Infrastructure:** The repo includes a root `docker-compose.yml`\
-  \ (in the Microservices folder), Kubernetes manifests (`.k8s/*.yaml`), and Helm\
-  \ charts (`.helm/`), which are key indicators of a Microservices architecture.\n\
-  \    *   **API Gateways:** It implements specialized gateways in `src/Microservices/Gateways.WebAPI`\
-  \ and `src/Microservices/Gateways.GraphQL`.\n\n2.  **Domain-Driven Design (Secondary\
-  \ Style):**\n    Each microservice and the monolith variants follow DDD principles:\n\
-  \    *   **Bounded Contexts:** Services are split by domain concerns (Identity,\
-  \ Product, AuditLog).\n    *   **Internal Structure:** Within each service (e.g.,\
-  \ `src/Microservices/Common/ClassifiedAds.Domain`), there are clear separations\
-  \ for Domain logic, Application logic, and Persistence.\n    *   **Contracts:**\
-  \ Shared integration definitions are managed via `src/Microservices/Contracts`.\n\
-  \n3.  **Hexagonal Architecture (Secondary Style):**\n    The README explicitly documents\
-  \ and diagrammatically explains the use of Hexagonal and Onion patterns. This is\
-  \ physically realized in the code through:\n    *   **Ports & Adapters:** The `ClassifiedAds.Infrastructure`\
-  \ and `ClassifiedAds.Persistence.*` projects act as adapters for external concerns\
-  \ (SQL Server, MySQL, Azure S3, RabbitMQ).\n    *   **Persistence Ignorance:** The\
-  \ core logic depends on interfaces defined in the Domain/Application layers, with\
-  \ concrete implementations injected via the Infrastructure layers.\n\n### Communication\
-  \ Patterns:\n*   **Event-Driven:** The README and app settings reveal extensive\
-  \ use of message brokers (RabbitMQ, Kafka, Azure Service Bus) to handle cross-service\
-  \ events like `FileUploadedEvent` and `EmailMessageCreatedEvent`.\n*   **Synchronous\
-  \ Communication:** Service-to-service communication also utilizes gRPC, evidenced\
-  \ by `.proto` files implied in `ClassifiedAds.Services.*.Grpc` projects and K8s\
-  \ configuration for gRPC services.\n\n### Note on Multi-Architectural Nature:\n\
-  The repository is explicitly designed to demonstrate different \"scales\" of architecture.\
-  \ While the `src/Monolith` directory exists, the repository's metadata (CI/CD workflows,\
-  \ infrastructure scripts, and root documentation) focuses heavily on the complexities\
-  \ of the Microservices implementation, making it the primary architectural exemplar."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.79
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.9
-  alternatives_dismissed: 0.6
-  exploration_completeness: 0.8
-  flags: monolith/modular-monolith alternatives acknowledged but not deeply dismissed;
-    multi-architecture repo may make single primary classification misleading despite
-    strong microservices evidence
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:33:05Z'
+classification_reasoning: "## Analysis\n\nThe **Practical.CleanArchitecture** repository\
+  \ demonstrates multiple architectural approaches across three separate solution\
+  \ variants (Monolith, ModularMonolith, Microservices). The most architecturally\
+  \ significant and well-structured variant is the **ModularMonolith**, which exhibits\
+  \ clear modular monolith characteristics with enforced internal boundaries.\n\n\
+  ### Evidence for Modular Monolith (Primary)\n\n**1. Explicit Module Boundaries:**\n\
+  The ModularMonolith solution (`src/ModularMonolith/ClassifiedAds.ModularMonolith.slnx`)\
+  \ shows clear module organization:\n- `ClassifiedAds.Modules.AuditLog`\n- `ClassifiedAds.Modules.Configuration`\n\
+  - `ClassifiedAds.Modules.Identity`\n- `ClassifiedAds.Modules.Notification`\n- `ClassifiedAds.Modules.Product`\n\
+  - `ClassifiedAds.Modules.Storage`\n\nEach module is a separate project with self-contained\
+  \ features, controllers, entities, and persistence.\n\n**2. Module Isolation via\
+  \ Separate DbContexts:**\nEach module owns its data context:\n```csharp\n// ClassifiedAds.Modules.Product/ServiceCollectionExtensions.cs\n\
+  services.AddDbContext<ProductDbContext>(options => options.UseSqlServer(settings.ConnectionStrings.Default...));\n\
+  ```\nEach module has its own connection string configuration, enabling database-per-module\
+  \ or shared database scenarios.\n\n**3. Inter-Module Communication via Contracts:**\n\
+  The `ClassifiedAds.Contracts` project defines service interfaces that modules use\
+  \ to communicate:\n```csharp\n// ClassifiedAds.Contracts/AuditLog/Services/IAuditLogService.cs\n\
+  public interface IAuditLogService\n{\n    Task AddAsync(AuditLogEntryDTO auditLog,\
+  \ string requestId);\n    Task<List<AuditLogEntryDTO>> GetAuditLogEntriesAsync(AuditLogEntryQueryOptions\
+  \ query);\n}\n```\n\n**4. Single Deployable Unit:**\nThe docker-compose.yml for\
+  \ ModularMonolith shows a single `webapi` container:\n```yaml\nwebapi:\n    image:\
+  \ classifiedads.modularmonolith.webapi\n    # All modules are deployed together\n\
+  ```\n\n**5. Module Registration Pattern:**\nModules are registered via extension\
+  \ methods in Program.cs:\n```csharp\n.AddAuditLogModule()\n.AddConfigurationModule()\n\
+  .AddIdentityModule()\n.AddNotificationModule()\n.AddProductModule()\n.AddStorageModule()\n\
+  ```\n\n### Evidence for Hexagonal Architecture (Secondary)\n\n**1. Ports and Adapters:**\n\
+  - Domain layer defines interfaces (`IRepository<TEntity, TKey>`, `IFileStorageManager`,\
+  \ `IMessageSender<T>`)\n- Infrastructure layer provides implementations (`LocalFileStorageManager`,\
+  \ `RabbitMQSender`, `AzureBlobStorageManager`)\n- Application core is isolated from\
+  \ infrastructure concerns\n\n**2. Architecture Tests Enforce Dependency Direction:**\n\
+  ```csharp\n// DomainTests.cs\n[Fact]\npublic void DomainShouldNotHaveDependencyOnInfrastructure()\n\
+  {\n    var result = Types.InAssembly(typeof(Entity<>).Assembly)\n        .ShouldNot()\n\
+  \        .HaveDependencyOn(\"ClassifiedAds.Infrastructure\")\n        .GetResult();\n\
+  \    Assert.True(result.IsSuccessful);\n}\n```\n\n**3. Adapters Pattern:**\nInfrastructure\
+  \ implementations act as adapters (e.g., multiple storage adapters: Local, Azure\
+  \ Blob, Amazon S3):\n```csharp\npublic class LocalFileStorageManager : IFileStorageManager\n\
+  public class AmazonS3StorageManager : IFileStorageManager\npublic class AzureBlobStorageManager\
+  \ : IFileStorageManager\n```\n\n### Evidence for Layered (Secondary)\n\n**1. Horizontal\
+  \ Layering:**\n- `ClassifiedAds.Domain` - Core domain entities, value objects, repository\
+  \ interfaces\n- `ClassifiedAds.Application` - Application services, CQRS primitives\n\
+  - `ClassifiedAds.Infrastructure` - Infrastructure implementations\n- `ClassifiedAds.CrossCuttingConcerns`\
+  \ - Cross-cutting concerns\n- Presentation layer (`ClassifiedAds.WebAPI`, `ClassifiedAds.BlazorServerSide`)\n\
+  \n**2. CQRS Pattern Implementation:**\n```csharp\npublic interface ICommand { }\n\
+  public interface IQuery<TResult> { }\npublic interface ICommandHandler<TCommand>\
+  \ { }\npublic interface IQueryHandler<TQuery, TResult> { }\n```\n\n### What Was\
+  \ Rejected\n\n**Not Microservices (for ModularMonolith):**\nWhile the repository\
+  \ includes a Microservices variant, the ModularMonolith is explicitly a single deployable.\
+  \ Each module has its own database configuration but they're deployed together,\
+  \ not as independent services.\n\n**Not Event-Driven (Primary):**\nWhile RabbitMQ/Kafka\
+  \ message bus infrastructure exists and domain events are used, the primary communication\
+  \ pattern is synchronous through interfaces, not asynchronous event-driven choreography.\n\
+  \n**Not Domain-Driven Design (in full):**\nWhile there are value objects (`Address`,\
+  \ `Money`), aggregates (`IAggregateRoot`), and repository abstractions, the bounded\
+  \ contexts are more module-based than true DDD bounded contexts with ubiquitous\
+  \ language.\n\n### Conclusion\n\nThe repository is a **reference implementation\
+  \ demonstrating multiple architectural styles**. The most sophisticated variant\
+  \ is the ModularMonolith, which properly demonstrates how to structure a monolithic\
+  \ application with enforced module boundaries that could later be extracted into\
+  \ microservices. The hexagonal and layered patterns\n\n[truncated]"

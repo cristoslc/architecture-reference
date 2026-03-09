@@ -1,0 +1,73 @@
+Let me examine how pipelines are triggered and the data flow more closely:Based on my comprehensive exploration of the Pachyderm codebase, I have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Pipeline (Pipe-and-Filter)
+secondary_styles:
+  - Microservices
+confidence: 0.82
+---
+
+## Architecture Analysis: Pachyderm
+
+### Primary Classification: Pipeline (Pipe-and-Filter)
+
+Pachyderm is fundamentally a **data pipeline orchestration platform**. The evidence strongly supports this classification:
+
+**Pipeline-centric data model:**
+- `src/pps/pps.proto` defines `Pipeline`, `Job`, `PFSInput` (PFS = Pachyderm File System), and `Transform` messages
+- Pipelines specify input repositories, transformation code (user container images), and output repositories
+- Data flows from input repos through transform stages to output repos (examples/opencv/edges.py reads from `/pfs/images` and writes to `/pfs/out`)
+
+**Pipeline execution architecture:**
+- `src/server/pps/server/pipeline_controller.go` manages pipeline lifecycle and state machines
+- `src/server/worker/pipeline/transform/transform.go` implements the transform stage that processes data
+- `src/server/worker/datum/datum.go` manages "datums" (data units) - the fundamental processing units that flow through pipelines
+- Workers process datums from input file sets, transform them, and write to output
+
+**Key pipeline code paths:**
+```
+src/server/pps/server/      # Pipeline orchestration
+src/server/worker/pipeline/ # Pipeline execution (transform, spout, service)
+src/server/worker/datum/    # Datum (data unit) processing
+```
+
+### Secondary Style: Microservices
+
+Pachyderm deploys as multiple independently scalable services on Kubernetes:
+
+**Deployment topology** (from `etc/helm/pachyderm/templates/`):
+- `pachd/deployment.yaml` - Main server (multiple modes: full, enterprise, sidecar, paused)
+- `worker/` - Dynamic workers created per pipeline
+- `etcd/` - Metadata storage
+- PostgreSQL + pgbouncer - Database layer
+- Console (frontend/backend) - UI service
+
+**Service separation:**
+- PFS (Pachyderm File System) - Data storage layer (`src/server/pfs/`)
+- PPS (Pachyderm Pipeline System) - Pipeline execution layer (`src/server/pps/`)
+- Auth, Admin, Enterprise, Identity, License - Cross-cutting services
+
+**Worker architecture:**
+- Workers are Kubernetes pods spawned dynamically per pipeline (`src/server/pps/server/worker_rc.go`)
+- Each pipeline gets its own worker pods with user-specified container images
+- Workers pull data from PFS, transform it, and push results back
+
+### What was Rejected
+
+**Not Event-Driven (primary):** While pipelines are triggered by data commits and workers subscribe to jobs, the core architectural pattern is pipeline-based data transformation, not event choreography. Events (commits) trigger pipeline runs, but the data flow is fundamentally through processing stages.
+
+**Not Layered:** While there are layers (PFS storage, PPS processing, API), the primary organization is around pipeline stages and data flow, not horizontal abstraction layers.
+
+**Not Domain-Driven Design:** Though there are bounded contexts (PFS, PPS, Auth), the codebase is organized around pipeline execution mechanics rather than domain aggregates and entities.
+
+**Not Modular Monolith:** The system is explicitly deployed as separate services (pachd, workers, console, etc.) orchestrated by Kubernetes.
+
+### Key Evidence Files
+
+- `src/pps/pps.proto` - Pipeline definition with Transform, PFSInput, Job
+- `src/server/cmd/worker/main.go` - Worker initialization for pipeline execution  
+- `src/server/worker/pipeline/transform/transform.go` - Data transformation stage
+- `etc/helm/pachyderm/templates/pachd/deployment.yaml` - Kubernetes deployment configuration
+- `examples/opencv/edges.py` - Example showing `/pfs/images` → transform → `/pfs/out` pattern
+- `src/server/pps/server/worker_rc.go` - Dynamic worker pod creation for pipelines

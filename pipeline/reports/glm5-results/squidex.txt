@@ -1,0 +1,137 @@
+Let me explore the backend source structure more deeply:Let me explore the domain structure and look for CQRS patterns:Let me explore the infrastructure layer and API controllers to understand the layering and CQRS patterns better:Let me look at the core CQRS implementation and a sample domain object:Let me examine the event sourcing infrastructure and look at API controllers to understand the command dispatching:Let me examine the plugin infrastructure and the sample plugin to understand the microkernel pattern:Let me examine the contents queries service to understand the read/write separation in CQRS:Let me verify the module boundaries and deployment model:Based on my comprehensive analysis of the Squidex repository, I now have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: CQRS
+secondary_styles:
+  - Microkernel (Plugin)
+  - Event-Driven
+confidence: 0.92
+---
+
+## Analysis
+
+Squidex is a headless CMS built with a **CQRS with Event Sourcing** architecture as its primary style, with strong secondary elements of Microkernel (Plugin) and Event-Driven patterns.
+
+### Primary Style: CQRS (Command Query Responsibility Segregation)
+
+The codebase exhibits definitive CQRS patterns:
+
+**1. Command/Query Separation:**
+- Commands: `CreateContent`, `UpdateContent`, `DeleteApp`, `CreateAsset` in `backend/src/Squidex.Domain.Apps.Entities/*/Commands/`
+- Queries: Dedicated query services like `IContentQueryService`, `ContentQueryService`, `AssetQueryService` in `*/Queries/` directories
+- Controllers clearly separate operations - `ContentsController` uses `ICommandBus` for writes and `IContentQueryService` for reads
+
+**2. Event Sourcing Infrastructure:**
+- `DomainObject<T>` base class (`backend/src/Squidex.Infrastructure/Commands/DomainObject.cs`) manages aggregate state through events
+- `IPersistence<T>` interface handles snapshot and event persistence
+- Events stored in `Squidex.Domain.Apps.Events/` with domain events like `AppCreated`, `ContentCreated`, `AssetUpdated`
+
+**3. Aggregate Roots with Event Application:**
+```csharp
+// AppDomainObject.cs - commands produce events
+public override Task<CommandResult> ExecuteAsync(IAggregateCommand command, CancellationToken ct)
+{
+    switch (command)
+    {
+        case CreateApp create:
+            return ApplyReturn(create, c => { Create(c); return Snapshot; }, ct);
+    }
+}
+```
+
+**4. Separate Read Models:**
+- `IContentRepository` provides query-specific interfaces for reading projected content
+- `ContentQueryService` handles optimized read queries independent of write model
+
+**5. Explicit CQRS Mention:**
+- README.md states: "We build it with ASP.NET Core and CQRS"
+
+### Secondary Style: Microkernel (Plugin)
+
+The system has a well-defined plugin infrastructure:
+
+**Plugin Contract (`IPlugin`):**
+```csharp
+// backend/src/Squidex.Infrastructure/Plugins/IPlugin.cs
+public interface IPlugin
+{
+    void ConfigureServices(IServiceCollection services, IConfiguration config);
+    void ConfigureServicesPost(IServiceCollection services, IConfiguration config);
+}
+```
+
+**Dynamic Plugin Loading:**
+- `PluginManager` uses `McMaster.NETCore.Plugins` to load assemblies at runtime
+- Plugins discovered via reflection: `assembly.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t))`
+
+**Rich Extension Ecosystem (`backend/extensions/Squidex.Extensions/`):**
+- 20+ action plugins: `KafkaPlugin`, `ElasticSearchPlugin`, `AlgoliaPlugin`, `WebhookPlugin`, `SlackPlugin`
+- Asset metadata sources: `AzureMetadataSourcePlugin`
+- Text indexing: `AzureTextPlugin`, `ElasticSearchTextPlugin`
+- Each plugin registers its own services and flow steps
+
+### Secondary Style: Event-Driven
+
+The system uses events for cross-cutting concerns:
+
+**Event Consumers:**
+```csharp
+// RuleEnqueuer.cs
+public sealed class RuleEnqueuer : IEventConsumer, IRuleEnqueuer
+{
+    public async Task On(IEnumerable<Envelope<IEvent>> events) { ... }
+}
+```
+
+**Event Flow:**
+- Domain events persist to event store (MongoDB, GetEventStore, or SQL)
+- `IEventConsumer` implementations (like `RuleEnqueuer`) subscribe to events
+- Events trigger rules, update projections, and synchronize read models
+
+**Messaging Infrastructure:**
+- `MessagingServices.cs` configures channels for backup, rules execution, and distributed processing
+- Worker processes consume events for background tasks
+
+### What Was Rejected
+
+**Not Microservices:**
+- Single `Dockerfile` produces one deployable unit (`Squidex.dll`)
+- No service boundaries with independent deployment
+- Single shared database (MongoDB/SQL)
+
+**Not Modular Monolith:**
+- While well-organized into layers, there's no enforced module boundary system
+- All projects compile into a single application
+
+**Not Domain-Driven Design (Bounded Contexts):**
+- Although domain-driven naming exists (App, Schema, Content aggregates), there's no explicit bounded context isolation
+- Single domain model shared across the application
+
+**Not Hexagonal Architecture:**
+- No explicit ports/adapters pattern
+- Infrastructure concerns (persistence, event store) are abstracted but not through a formal port/adapter structure
+
+### Architecture Summary
+
+```
+┌─────────────────────────────────────────────────────────────┐
+│                    API Layer (Controllers)                   │
+│         Squidex.Web / Areas/Api/Controllers                 │
+├─────────────────────┬───────────────────────────────────────┤
+│    Commands (Write) │        Queries (Read)                  │
+│    ICommandBus      │    IContentQueryService               │
+│    DomainObject<T>  │    IContentRepository                 │
+├─────────────────────┴───────────────────────────────────────┤
+│              Domain Layer (Entities)                         │
+│    Squidex.Domain.Apps.Entities (Apps, Contents, Assets)    │
+├─────────────────────────────────────────────────────────────┤
+│              Event Sourcing Infrastructure                   │
+│    IPersistence, IEventStore, IEventConsumer                │
+├─────────────────────────────────────────────────────────────┤
+│              Plugin System (Microkernel)                     │
+│    IPlugin, PluginManager → Extensions (Kafka, ES, etc.)    │
+└─────────────────────────────────────────────────────────────┘
+```
+
+This is a sophisticated, well-architected system combining CQRS/ES for domain logic, a plugin system for extensibility, and event-driven patterns for cross-cutting concerns—all deployed as a single monolithic application.

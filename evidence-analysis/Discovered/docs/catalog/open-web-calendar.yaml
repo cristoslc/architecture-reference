@@ -47,61 +47,63 @@ review_notes: 'The repository follows a traditional **Layered** architecture com
   layers (calendars, features, templates) rather than autonomous business modules
   with strict interface enforcement.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.75
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:04:13Z'
-classification_reasoning: 'The repository follows a traditional **Layered** architecture
-  common in Python web applications (likely Flask, given the `app.py`, `static`, and
-  `templates` structure). It is a monolithic application designed for a single deployment
-  unit (as evidenced by the root `Dockerfile`, `Procfile`, and `app.py`).
-
-
-  ### Evidence for Layered Architecture:
-
-  1.  **Presentation Layer**: The system uses a standard web frontend directory structure
-  with `open_web_calendar/templates/` for HTML Jinja-style templates and `open_web_calendar/static/`
-  for CSS/JS assets. There is a clear separation between the server-side rendering
-  logic and the client-side behaviors (found in `open_web_calendar/static/js/`).
-
-  2.  **Logic/Service Layer**: Files like `open_web_calendar/calendars/` contain the
-  core business logic for processing different calendar formats. The presence of `base.py`,
-  `ics.py`, and `caldav.py` suggests an abstraction layer for handling data sources.
-
-  3.  **Data/Utility Layer**: Modules such as `encryption.py`, `url.py`, and `util.py`
-  provide cross-cutting concerns and low-level data handling.
-
-
-  ### Why not other styles:
-
-  - **Microservices**: There is no evidence of service boundaries, independent scaling
-  units, or inter-service communication. The `docker-compose.yml` in docs is for self-hosting
-  the single app, not a fleet of services.
-
-  - **Modular Monolith**: While there are sub-directories, they appear to be functional
-  layers (calendars, features, templates) rather than autonomous business modules
-  with strict interface enforcement.
-
-  - **Hexagonal Architecture**: Although there is an `interface.py` in the `calendars/info`
-  directory, the overall structure does not strictly follow the "ports and adapters"
-  pattern where the core is isolated from the framework (Flask/Web).
-
-  - **Event-Driven**: The code is request-response based (HTTP), fetching ICS/CalDAV
-  data synchronously or via cache upon user request.
-
-
-  ### Note on "Microkernel (Plugin)":
-
-  The repository contains a feature file `issue-32-activate-plugins.feature`, suggesting
-  plugin support might be a planned or minor feature. However, looking at the directory
-  structure, there is no established "plugins" directory or substantial loading infrastructure
-  within `open_web_calendar` that would elevate this to a primary architecture style.
-  It remains a standard layered web monolith.'
-confidence_calibration:
-  original_confidence: 0.85
-  calibrated_confidence: 0.75
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.7
-  style_clarity: 0.75
-  alternatives_dismissed: 0.85
-  exploration_completeness: 0.72
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:51:11Z'
+classification_reasoning: "## Architecture Analysis: Open Web Calendar\n\n### Primary\
+  \ Classification: **Layered Architecture**\n\nThe open-web-calendar repository exhibits\
+  \ a classic **Layered Architecture** with clear horizontal separation of concerns:\n\
+  \n#### Evidence of Layered Structure\n\n**1. Presentation/Handler Layer** (`open_web_calendar/app.py`):\n\
+  - Flask application with route handlers (`@app.route`)\n- HTTP request/response\
+  \ handling\n- Template rendering and static file serving\n- Configuration endpoints\
+  \ for JavaScript frontend\n- ~520 lines of controller code\n\n```python\n@app.route(\"\
+  /calendar.<ext>\", methods=[\"GET\", \"OPTIONS\"])\ndef get_calendar(ext):\n   \
+  \ \"\"\"Return a calendar.\"\"\"\n    specification = get_specification()\n    if\
+  \ ext == \"events.json\":\n        return get_conversion(ConvertToEvents, specification)\n\
+  \    if ext == \"ics\":\n        return get_conversion(ConvertToICS, specification)\n\
+  ```\n\n**2. Business Logic/Conversion Layer** (`open_web_calendar/convert/`):\n\
+  - `ConversionStrategy` abstract base class defines the contract\n- Concrete strategies:\
+  \ `ConvertToEvents`, `ConvertToICS`, `ConvertToCalendars`\n- Encapsulates calendar\
+  \ transformation logic\n- Independent of HTTP layer\n\n```python\nclass ConversionStrategy:\n\
+  \    \"\"\"Base class for conversions.\"\"\"\n    def retrieve_calendars(self):\
+  \ ...\n    def merge(self): ...\n    def collect_components_from(self, index, calendars):\
+  \ ...\n```\n\n**3. Data Access/Calendar Source Layer** (`open_web_calendar/calendars/`):\n\
+  - Abstract `Calendars` base class with unified interface\n- Concrete implementations\
+  \ for different sources:\n  - `ICSCalendars` - handles ICS file sources\n  - `CalDAVCalendars`\
+  \ - handles CalDAV protocol sources\n- `get_events_between()`, `get_icalendars()`\
+  \ as common operations\n\n```python\nclass Calendars(ABC):\n    \"\"\"Base class\
+  \ for calendars.\"\"\"\n    @abstractmethod\n    def get_events_between(self, start,\
+  \ end) -> list[Event]: ...\n    @abstractmethod\n    def get_icalendars(self) ->\
+  \ list[Calendar]: ...\n```\n\n**4. Configuration Layer** (`open_web_calendar/config.py`):\n\
+  - Environment-based configuration management\n- Separation of configuration concerns\
+  \ from application logic\n\n**5. Template/Static Resources** (`open_web_calendar/templates/`,\
+  \ `open_web_calendar/static/`):\n- HTML templates for different views (index.html,\
+  \ about.html, calendar templates)\n- JavaScript, CSS, and image assets\n\n#### Single\
+  \ Deployable Unit\n\nEvidence from deployment configuration:\n- Single `Dockerfile`\
+  \ building one container\n- Single `Procfile` with one web process: `web: gunicorn\
+  \ open_web_calendar.app:app`\n- Single `pyproject.toml` packaging one Python package\n\
+  - Single Flask application instance (`app = Flask(__name__)`)\n\n#### Dependency\
+  \ Flow\n\nThe dependencies flow downward through layers:\n- Presentation → Business\
+  \ Logic → Data Access\n- Flask routes use conversion strategies\n- Conversion strategies\
+  \ use calendar abstractions\n- No circular dependencies or violations of layer boundaries\n\
+  \n### Styles Considered and Rejected\n\n**Not Microservices**: Single deployable\
+  \ unit, no service boundaries, no inter-service communication, shared process memory.\n\
+  \n**Not Modular Monolith**: While there are well-organized packages (`calendars/`,\
+  \ `convert/`), there's no explicit module boundary enforcement. The code is organized\
+  \ by layer rather than by vertical feature modules.\n\n**Not Event-Driven**: No\
+  \ message brokers, event buses, or async event handling. All operations are synchronous\
+  \ HTTP request/response.\n\n**Not Hexagonal/Ports & Adapters**: While abstract interfaces\
+  \ exist (`Calendars`, `ConversionStrategy`), there's no explicit separation of ports\
+  \ (application interfaces) from adapters (infrastructure implementations). The Flask\
+  \ app directly instantiates and uses strategies.\n\n**Not DDD**: No bounded contexts,\
+  \ aggregates, entities, or value objects organized around domain concepts. The organization\
+  \ is technical (by layer) not domain-driven.\n\n**Not Microkernel/Plugin**: No plugin\
+  \ loading mechanism, no runtime extension points. The conversion strategies are\
+  \ selected by file extension but are all built-in and statically defined.\n\n###\
+  \ Conclusion\n\nThe architecture is a well-structured **Layered Architecture** typical\
+  \ of Flask web applications. The code demonstrates clean separation between presentation\
+  \ (Flask routes/templates), business logic (conversion strategies), and data access\
+  \ (calendar sources). The Strategy pattern is used within the business logic layer\
+  \ for extensibility, but this is an implementation pattern rather than a defining\
+  \ architectural style."

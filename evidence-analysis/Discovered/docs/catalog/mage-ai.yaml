@@ -15,9 +15,8 @@ languages:
 - JavaScript
 - TypeScript
 architecture_styles:
-- Modular Monolith
-- Hexagonal Architecture
 - Pipeline (Pipe-and-Filter)
+- Modular Monolith
 classification_status: classified
 review_notes: "The Mage OSS repository is a **Modular Monolith** designed as a data\
   \ orchestration engine. While it supports distributed execution, the codebase itself\
@@ -37,51 +36,59 @@ review_notes: "The Mage OSS repository is a **Modular Monolith** designed as a d
   Mage heavily utilizes the **Ports and Adapters** pattern, specifically for its \"\
   Block\" and \"IO\" systems to maintain isolation from external infrastructure:"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.74
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:58:27Z'
-classification_reasoning: "The Mage OSS repository is a **Modular Monolith** designed\
-  \ as a data orchestration engine. While it supports distributed execution, the codebase\
-  \ itself is structured as a single integrated Python package (`mage-ai`) with a\
-  \ React-based frontend integrated into the same deployment unit.\n\n### 1. Modular\
-  \ Monolith (Primary Style)\nThe system is organized into high-level functional modules\
-  \ within `mage_ai/` that represent distinct domains of the application, yet they\
-  \ run under a single process (as seen in `server.py`). \n- **Decoupled domains:**\
-  \ Modules like `mage_ai/orchestration`, `mage_ai/data_preparation`, `mage_ai/api`,\
-  \ and `mage_ai/streaming` have clear boundaries but share the same database (`mage_ai/orchestration/db`)\
-  \ and memory space within the Tornado server.\n- **Unified Entry Point:** `mage_ai/server/server.py`\
-  \ acts as the core controller, initializing everything from user authentication\
-  \ to scheduler managers and websocket servers in a single application lifecycle.\n\
-  - **Internal Modules:** Instead of independent services, it uses internal logic\
-  \ separation (e.g., `variable_manager`, `repo_manager`) to handle the complexity\
-  \ of data pipeline management.\n\n### 2. Hexagonal Architecture (Secondary Style)\n\
-  Mage heavily utilizes the **Ports and Adapters** pattern, specifically for its \"\
-  Block\" and \"IO\" systems to maintain isolation from external infrastructure:\n\
-  - **Adapters (IO and Executors):** The `mage_ai/io/` directory contains various\
-  \ data connectors (Redshift, BigQuery, S3) that inherit from a `BaseSQL` or `BaseConfigLoader`.\
-  \ The logic for interacting with these external systems is isolated from the core\
-  \ pipeline logic.\n- **Executors:** In `mage_ai/data_preparation/executors/`, there\
-  \ are adapters for different execution environments (ECS, K8s, PySpark). The core\
-  \ system interacts with an `executor_factory.py`, decoupling the \"Pipeline\" entitiy\
-  \ from the specific infrastructure where it runs.\n\n### 3. Pipeline / Pipe-and-Filter\
-  \ (Secondary Style)\nAt its core, the software's execution model and code organization\
-  \ reflect a **Pipeline** architecture. \n- **The Block Model:** The system is built\
-  \ around \"blocks\" (`mage_ai/data_preparation/models/block`), which are independent\
-  \ units of logic (Load, Transform, Export).\n- **Data Flow:** The architecture enforces\
-  \ a DAG (Directed Acyclic Graph) structure where data flows sequentially or in parallel\
-  \ through these blocks, which is a classic implementation of a processing pipeline.\n\
-  \n### Why not Microservices?\nAlthough Mage can trigger jobs on K8s or ECS, the\
-  \ **orchestrator itself** is not a set of microservices. There is no evidence of\
-  \ independent service-to-service communication via gRPC or internal REST APIs between\
-  \ the scheduler and the API; they are components within the same Python runtime.\
-  \ The `docker-compose` and README emphasize a \"local first\" self-hosted experience\
-  \ that functions as a single unit."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.74
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.8
-  style_clarity: 0.75
-  alternatives_dismissed: 0.6
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:41:00Z'
+classification_reasoning: "## Architecture Analysis: Mage-AI\n\n### Primary Style:\
+  \ Pipeline (Pipe-and-Filter)\n\nMage-AI is fundamentally architected as a **pipeline\
+  \ orchestration system** where data flows through discrete processing units called\
+  \ \"blocks.\" This is the defining architectural pattern:\n\n**Evidence:**\n\n1.\
+  \ **Blocks as Filters** (`mage_ai/data_preparation/models/block/`):\n   - Blocks\
+  \ are the fundamental processing units with distinct types: data loaders (sources),\
+  \ transformers (processors), data exporters (sinks), sensors, callbacks, conditionals\n\
+  \   - Each block receives input from upstream blocks, processes it, and produces\
+  \ output for downstream blocks\n   - `block_factory.py` creates appropriate block\
+  \ instances based on type configuration\n   - `constants.py` maps block types to\
+  \ concrete classes (e.g., `DATA_LOADER`, `TRANSFORMER`, `DATA_EXPORTER`)\n\n2. **Pipelines\
+  \ as Pipes** (`mage_ai/data_preparation/models/pipeline.py`):\n   - The `Pipeline`\
+  \ class orchestrates block execution in dependency order\n   - Data flows between\
+  \ blocks through the pipeline infrastructure\n   - Supports cyclic detection and\
+  \ upstream/downstream dependency resolution\n\n3. **Executor Framework** (`mage_ai/data_preparation/executors/`):\n\
+  \   - `PipelineExecutor` and `BlockExecutor` handle execution at pipeline and block\
+  \ granularity\n   - `ExecutorFactory` selects appropriate executor based on environment\
+  \ (local, ECS, K8s, PySpark)\n   - Each block can potentially execute in a different\
+  \ runtime environment\n\n4. **Streaming Extension** (`mage_ai/streaming/`):\n  \
+  \ - `SourceFactory` and `SinkFactory` create streaming connectors\n   - Reinforces\
+  \ the pipe-and-filter pattern with continuous data flow\n\n### Secondary Style:\
+  \ Modular Monolith\n\nMage is deployed as a **single deployable unit** with well-organized\
+  \ internal module boundaries:\n\n**Evidence:**\n\n1. **Single Deployable**:\n  \
+  \ - One `setup.py` producing a single `mage-ai` package\n   - Single Docker image\
+  \ (`Dockerfile`)\n   - One entry point: `mage=mage_ai.cli.main:app`\n\n2. **Clear\
+  \ Module Boundaries**:\n   - `api/` - REST API layer with resources, policies, presenters,\
+  \ parsers (layered sub-structure)\n   - `data_preparation/` - Core models (blocks,\
+  \ pipelines) and executors\n   - `orchestration/` - Scheduling, job management,\
+  \ database models with Alembic migrations\n   - `io/` - Data connectors implementing\
+  \ `BaseIO` abstract class (20+ implementations)\n   - `streaming/` - Streaming sources\
+  \ and sinks\n   - `server/` - Tornado web server, WebSocket server, kernel management\n\
+  \   - `services/` - External service integrations (AWS, GCP, Spark, Slack, etc.)\n\
+  \n3. **Shared Database**:\n   - SQLAlchemy ORM models in `orchestration/db/models/`\n\
+  \   - Alembic migrations for schema evolution\n\n### Rejected Styles\n\n- **NOT\
+  \ Microservices**: Single process deployment, shared database, no service boundary\
+  \ isolation. The system runs as one monolithic application.\n\n- **NOT Event-Driven\
+  \ (as primary)**: While Mage supports event triggers (`orchestration/triggers/event_trigger.py`)\
+  \ and streaming pipelines, these are features built *on top of* the pipeline architecture—not\
+  \ the foundational pattern. Core execution is synchronous pipeline orchestration.\n\
+  \n- **NOT Microkernel/Plugin**: Extensions (`extensions/great_expectations/`) are\
+  \ built-in and statically defined, not dynamically loaded at runtime. No plugin\
+  \ discovery or registration mechanism exists.\n\n- **NOT Domain-Driven Design**:\
+  \ No bounded contexts, aggregates, value objects, or ubiquitous language patterns.\
+  \ The domain model is technical (blocks/pipelines) rather than business-oriented.\n\
+  \n- **NOT Hexagonal Architecture**: While `BaseIO` provides abstraction over data\
+  \ sources, there's no explicit ports-and-adapters pattern with application core\
+  \ isolation.\n\n### Summary\n\nMage-AI implements a classic **Pipe-and-Filter architecture**\
+  \ specialized for data pipeline orchestration. Blocks are the filters that transform\
+  \ data; pipelines are the pipes that connect them. This is wrapped in a **Modular\
+  \ Monolith** deployment structure with clear internal organization. The architecture\
+  \ is purpose-built for its mission: enabling users to build, execute, and monitor\
+  \ data pipelines through composable, reusable processing blocks."

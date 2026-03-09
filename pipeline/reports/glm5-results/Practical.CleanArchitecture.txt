@@ -1,0 +1,126 @@
+Let me examine the ModularMonolith more closely to see how modules are structured:Based on my comprehensive exploration of the repository, I now have sufficient evidence to provide the classification.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Hexagonal Architecture
+  - Layered
+confidence: 0.90
+---
+
+## Analysis
+
+The **Practical.CleanArchitecture** repository demonstrates multiple architectural approaches across three separate solution variants (Monolith, ModularMonolith, Microservices). The most architecturally significant and well-structured variant is the **ModularMonolith**, which exhibits clear modular monolith characteristics with enforced internal boundaries.
+
+### Evidence for Modular Monolith (Primary)
+
+**1. Explicit Module Boundaries:**
+The ModularMonolith solution (`src/ModularMonolith/ClassifiedAds.ModularMonolith.slnx`) shows clear module organization:
+- `ClassifiedAds.Modules.AuditLog`
+- `ClassifiedAds.Modules.Configuration`
+- `ClassifiedAds.Modules.Identity`
+- `ClassifiedAds.Modules.Notification`
+- `ClassifiedAds.Modules.Product`
+- `ClassifiedAds.Modules.Storage`
+
+Each module is a separate project with self-contained features, controllers, entities, and persistence.
+
+**2. Module Isolation via Separate DbContexts:**
+Each module owns its data context:
+```csharp
+// ClassifiedAds.Modules.Product/ServiceCollectionExtensions.cs
+services.AddDbContext<ProductDbContext>(options => options.UseSqlServer(settings.ConnectionStrings.Default...));
+```
+Each module has its own connection string configuration, enabling database-per-module or shared database scenarios.
+
+**3. Inter-Module Communication via Contracts:**
+The `ClassifiedAds.Contracts` project defines service interfaces that modules use to communicate:
+```csharp
+// ClassifiedAds.Contracts/AuditLog/Services/IAuditLogService.cs
+public interface IAuditLogService
+{
+    Task AddAsync(AuditLogEntryDTO auditLog, string requestId);
+    Task<List<AuditLogEntryDTO>> GetAuditLogEntriesAsync(AuditLogEntryQueryOptions query);
+}
+```
+
+**4. Single Deployable Unit:**
+The docker-compose.yml for ModularMonolith shows a single `webapi` container:
+```yaml
+webapi:
+    image: classifiedads.modularmonolith.webapi
+    # All modules are deployed together
+```
+
+**5. Module Registration Pattern:**
+Modules are registered via extension methods in Program.cs:
+```csharp
+.AddAuditLogModule()
+.AddConfigurationModule()
+.AddIdentityModule()
+.AddNotificationModule()
+.AddProductModule()
+.AddStorageModule()
+```
+
+### Evidence for Hexagonal Architecture (Secondary)
+
+**1. Ports and Adapters:**
+- Domain layer defines interfaces (`IRepository<TEntity, TKey>`, `IFileStorageManager`, `IMessageSender<T>`)
+- Infrastructure layer provides implementations (`LocalFileStorageManager`, `RabbitMQSender`, `AzureBlobStorageManager`)
+- Application core is isolated from infrastructure concerns
+
+**2. Architecture Tests Enforce Dependency Direction:**
+```csharp
+// DomainTests.cs
+[Fact]
+public void DomainShouldNotHaveDependencyOnInfrastructure()
+{
+    var result = Types.InAssembly(typeof(Entity<>).Assembly)
+        .ShouldNot()
+        .HaveDependencyOn("ClassifiedAds.Infrastructure")
+        .GetResult();
+    Assert.True(result.IsSuccessful);
+}
+```
+
+**3. Adapters Pattern:**
+Infrastructure implementations act as adapters (e.g., multiple storage adapters: Local, Azure Blob, Amazon S3):
+```csharp
+public class LocalFileStorageManager : IFileStorageManager
+public class AmazonS3StorageManager : IFileStorageManager
+public class AzureBlobStorageManager : IFileStorageManager
+```
+
+### Evidence for Layered (Secondary)
+
+**1. Horizontal Layering:**
+- `ClassifiedAds.Domain` - Core domain entities, value objects, repository interfaces
+- `ClassifiedAds.Application` - Application services, CQRS primitives
+- `ClassifiedAds.Infrastructure` - Infrastructure implementations
+- `ClassifiedAds.CrossCuttingConcerns` - Cross-cutting concerns
+- Presentation layer (`ClassifiedAds.WebAPI`, `ClassifiedAds.BlazorServerSide`)
+
+**2. CQRS Pattern Implementation:**
+```csharp
+public interface ICommand { }
+public interface IQuery<TResult> { }
+public interface ICommandHandler<TCommand> { }
+public interface IQueryHandler<TQuery, TResult> { }
+```
+
+### What Was Rejected
+
+**Not Microservices (for ModularMonolith):**
+While the repository includes a Microservices variant, the ModularMonolith is explicitly a single deployable. Each module has its own database configuration but they're deployed together, not as independent services.
+
+**Not Event-Driven (Primary):**
+While RabbitMQ/Kafka message bus infrastructure exists and domain events are used, the primary communication pattern is synchronous through interfaces, not asynchronous event-driven choreography.
+
+**Not Domain-Driven Design (in full):**
+While there are value objects (`Address`, `Money`), aggregates (`IAggregateRoot`), and repository abstractions, the bounded contexts are more module-based than true DDD bounded contexts with ubiquitous language.
+
+### Conclusion
+
+The repository is a **reference implementation demonstrating multiple architectural styles**. The most sophisticated variant is the ModularMonolith, which properly demonstrates how to structure a monolithic application with enforced module boundaries that could later be extracted into microservices. The hexagonal and layered patterns provide the foundation for the modular structure.

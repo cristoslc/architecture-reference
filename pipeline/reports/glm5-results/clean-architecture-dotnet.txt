@@ -1,0 +1,122 @@
+Based on my thorough exploration of the repository, I now have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Hexagonal Architecture
+secondary_styles:
+  - Domain-Driven Design
+  - CQRS
+  - Microservices
+confidence: 0.92
+---
+
+## Architecture Classification Analysis
+
+### Primary: Hexagonal Architecture (Ports and Adapters)
+
+The repository exhibits a textbook implementation of Hexagonal/Clean Architecture with clear separation between application core and infrastructure adapters.
+
+**Evidence:**
+
+1. **Tripartite project structure per service** - Every domain service follows the pattern:
+   - `ProductService.Api` - API layer (controllers, integration handlers)
+   - `ProductService.AppCore` - Application core (domain entities, use cases)
+   - `ProductService.Infrastructure` - Infrastructure adapters (data access, repositories)
+
+   Same pattern for Customer and Setting services.
+
+2. **Dependency inversion** - The core defines interfaces (ports) and infrastructure provides implementations (adapters):
+   - `IRepository<TEntity>` interface in `src/N8T.Core/Repository/IRepository.cs` defines the port
+   - `RepositoryBase<TDbContext, TEntity>` in `src/N8T.Infrastructure.EfCore/Repository.cs` implements the adapter
+   - `IEventBus` interface in `src/N8T.Infrastructure/Bus/IEventBus.cs` defines the messaging port
+   - `DaprEventBus` in `src/N8T.Infrastructure/Bus/Dapr/Internal/DaprEventBus.cs` provides the Dapr adapter
+
+3. **Application core isolation** - Domain entities (`Product.cs`, `Customer.cs`) in `AppCore/Core/` have no infrastructure dependencies. Use cases in `AppCore/UseCases/` only depend on repository interfaces, not implementations.
+
+### Secondary: Domain-Driven Design
+
+**Evidence:**
+
+1. **Aggregate roots with domain events** - Entities extend `EntityRootBase` implementing `IAggregateRoot`:
+   ```csharp
+   public class Product : EntityRootBase { ... }
+   public class Customer : EntityRootBase { ... }
+   ```
+
+2. **Rich domain behavior** - Factory methods on entities encapsulate creation logic:
+   ```csharp
+   public static Product Create(string name, int quantity, decimal cost, ProductCode productCode)
+   {
+       Product product = new() { ... };
+       product.AddDomainEvent(new ProductCreatedIntegrationEvent { ... });
+       return product;
+   }
+   ```
+
+3. **Specification pattern** - Domain specifications for queries:
+   - `ProductByIdQuerySpec`, `CustomerAlreadyRegisteredSpec` in respective `Core/Specs/` folders
+
+4. **Bounded contexts** - Separate services (Product, Customer, Setting) with owned databases and integration events for cross-context communication.
+
+### Secondary: CQRS (Command Query Responsibility Segregation)
+
+**Evidence:**
+
+1. **Command/Query interfaces** in `src/N8T.Core/Domain/Cqrs.cs`:
+   ```csharp
+   public interface ICommand<T> : IRequest<ResultModel<T>>
+   public interface IQuery<T> : IRequest<ResultModel<T>>
+   public interface ICreateCommand<TRequest, TResponse> : ICommand<TResponse>, ITxRequest
+   public interface IListQuery<TResponse> : IQuery<TResponse>
+   ```
+
+2. **Separated use case handlers** - `UseCases/Commands/` and `UseCases/Queries/` folders in each AppCore project:
+   - Commands: `CreateProduct.cs`, `CreateCustomer.cs`
+   - Queries: `GetProductById.cs`, `GetProducts.cs`
+
+3. **MediatR dispatch** - Commands and queries flow through MediatR pipeline with behaviors for transactions, validation, and logging.
+
+### Secondary: Microservices
+
+**Evidence:**
+
+1. **Multiple independently deployable services** in `docker-compose.yml`:
+   - `productapp` (port 5003)
+   - `customerapp` (port 5004)  
+   - `settingapp` (port 5005)
+   - `webapigatewayapp` (YARP API Gateway on port 5000)
+   - `IdentityServer` (authentication)
+
+2. **Database per service** - Each service has its own `MainDbContext`:
+   - `ProductService.Infrastructure/Data/MainDbContext.cs`
+   - `CustomerService.Infrastructure/Data/MainDbContext.cs`
+
+3. **Dapr sidecars** - Each service paired with Dapr for service invocation and pub/sub messaging.
+
+4. **Integration events for inter-service communication**:
+   - `ProductCreatedIntegrationEvent` in `CoolStore.IntegrationEvents`
+   - `CustomerCreatedIntegrationEvent` subscribed by ProductService in `IntegrationEventHandler.cs`
+
+### What Was Rejected
+
+- **Layered Architecture**: While layered, the architecture goes far beyond simple horizontal layers—it implements ports and adapters with dependency inversion pointing toward the domain core.
+
+- **Modular Monolith**: Clearly not a monolith; services are separate deployables with independent databases.
+
+- **Serverless**: No function-as-a-service components; these are containerized services.
+
+- **Space-Based Architecture**: No in-memory data grids or distributed caching patterns.
+
+- **Pipeline/Pipe-and-Filter**: No sequential processing stages.
+
+- **Microkernel/Plugin**: No plugin infrastructure or runtime extension mechanisms.
+
+### Summary
+
+This repository demonstrates a sophisticated implementation combining multiple architectural patterns:
+- **Hexagonal Architecture** as the foundational structure (ports/adapters separation)
+- **DDD** for domain modeling (aggregates, specifications, bounded contexts)
+- **CQRS Lite** for read/write separation (commands and queries via MediatR)
+- **Microservices** for deployment topology (independent services, event-driven integration)
+
+The README explicitly references this combination: "Minimal Clean Architecture, Domain-driven Design Lite, CQRS Lite" and cites the Domain-Driven Hexagon pattern, confirming the architectural intent.

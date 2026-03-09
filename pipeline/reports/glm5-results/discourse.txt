@@ -1,0 +1,79 @@
+Based on my exploration, I now have sufficient evidence to classify this repository.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Analysis
+
+Discourse is a **Ruby on Rails forum/community platform** with a sophisticated plugin architecture as its primary organizational pattern.
+
+### Primary Style: Microkernel (Plugin)
+
+The repository exhibits strong evidence of a Microkernel/Plugin architecture:
+
+**Plugin Discovery and Loading** (`lib/plugin/instance.rb`):
+- 1,654-line `Plugin::Instance` class with 172+ registration methods
+- `Plugin::Instance.find_all(parent_path)` discovers plugins via `plugin.rb` files in subdirectories
+- `Plugin::Metadata.parse(source)` extracts plugin metadata from plugin.rb files
+
+**Plugin Extension Points** - The plugin API allows extensions to:
+- `register_asset` / `register_svg_icon` / `register_locale` - Add assets, icons, translations
+- `add_to_serializer` - Extend API response serializers
+- `add_admin_route` - Add admin UI routes
+- `register_modifier` - Register behavior modifiers
+- `after_initialize` / `reloadable_patch` - Hook into Rails initialization and monkey-patch core classes
+
+**Plugin Directory Structure** (`plugins/`):
+- 43 official plugins bundled in the repository (chat, discourse-ai, discourse-assign, etc.)
+- Each plugin has standardized structure: `plugin.rb`, `config/routes.yml`, `config/settings.yml`, `app/`, `lib/`, `db/`
+
+**Plugin Integration Example** (`plugins/chat/plugin.rb` lines 100-115):
+```ruby
+reloadable_patch do |plugin|
+  Guardian.prepend Chat::GuardianExtensions
+  UserNotifications.prepend Chat::UserNotificationsExtension
+  Category.prepend Chat::CategoryExtension
+  Reviewable.prepend Chat::ReviewableExtension
+  # ... more extensions
+end
+```
+
+**Plugin Registry** (`lib/discourse_plugin_registry.rb`):
+- `define_register` / `define_filtered_register` for registration hooks
+- Filters registered values by plugin enabled state: `filter_map { |h| h[:value] if h[:plugin].enabled? }`
+- Supports auth providers, javascripts, stylesheets, custom fields, reviewable types, etc.
+
+**Plugin Enable/Disable** via site settings:
+- `enabled_site_setting :chat_enabled` in plugin.rb creates toggle
+- Plugins check `plugin.enabled?` to conditionally include functionality
+
+### Secondary Style: Layered (Rails MVC)
+
+The core application follows standard Rails layered architecture:
+
+- **Controllers** (86 files in `app/controllers/`): Handle HTTP requests, authentication, request/response
+- **Services** (60+ files in `app/services/`): Business logic layer (e.g., `post_alerter.rb`, `search_indexer.rb`, `badge_granter.rb`)
+- **Models** (279 files in `app/models/`): ActiveRecord domain models and data access
+- **Serializers** (219 files in `app/serializers/`): API response formatting
+- **Jobs** (`app/jobs/` with `regular/`, `scheduled/`, `onceoff/`): Background processing via Sidekiq
+
+### What Was Rejected
+
+**Not Microservices**: Single Rails application with one Gemfile, one database. All 43 plugins load into the same process; they're not separate deployable units.
+
+**Not Serverless**: Standard Rails deployment (Unicorn/Puma web servers) with Sidekiq workers, not Lambda/functions.
+
+**Not Event-Driven (primary)**: While the system uses Sidekiq jobs and MessageBus for real-time features, these are implementation details within a layered architecture, not the primary organizational pattern.
+
+**Not CQRS**: Standard ActiveRecord patterns for both reads and writes with no separate read/write models.
+
+**Not Modular Monolith**: The plugin system provides runtime extension, not compile-time module boundaries. The core is designed to be extended by plugins at runtime, not partitioned into internal modules.
+
+### Conclusion
+
+Discourse is a textbook example of a **Microkernel (Plugin) architecture** where a relatively thin core provides extension points that plugins use to add major features (chat, AI, calendar, etc.). The core handles authentication, database access, and extension loading, while plugins add domain-specific functionality through a well-defined plugin API with ~172 registration methods. The Rails MVC layered structure is secondary, providing the standard web application scaffolding.

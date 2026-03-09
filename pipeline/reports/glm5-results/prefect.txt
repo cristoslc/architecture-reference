@@ -1,0 +1,145 @@
+I'll explore the Prefect repository systematically to classify its architecture. Let me start with an overview of the structure.Let me explore the main source code structure:Let me look at how integrations are structured and how they registeras plugins:Let me check the server architecture and services more closely:Let me examine a few more key files to understand the plugin loading mechanism better:Now I have a comprehensive understanding of the Prefect architecture. Let me synthesize my findings:
+
+## Summary of Key Findings
+
+**Plugin/Extension Architecture:**
+- Core `src/prefect/` with plugin entry points (`prefect.collections`, `prefect.plugins`)
+- 18+ integration packages in `src/integrations/` (prefect-aws, prefect-azure, etc.)
+- Dynamic dispatch system (`src/prefect/utilities/dispatch.py`) with `@register_base_type` decorator
+- Registry-based type lookup for extensibility
+
+**Layered Server Architecture:**
+- CLI layer (`cli/`)
+- Client layer (`client/`)
+- API layer (`server/api/` - FastAPI endpoints)
+- Service layer (`server/services/`)
+- Model layer (`server/models/`)
+- Database layer (`server/database/`)
+
+**Event-Driven Components:**
+- Event system for automations (`events/`, `server/events/`)
+- Trigger-based action execution
+- Event persister and subscriber services
+
+**Single Deployable:**
+- Main package is `prefect` with one `pyproject.toml`
+- Integrations are separate packages with their own build configs
+- Client package (`client/`) is a minimal subset
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+  - Event-Driven
+confidence: 0.90
+---
+
+## Analysis
+
+### Primary: Microkernel (Plugin) Architecture
+
+Prefect exhibits a clear **Microkernel (Plugin)** architecture with strong evidence:
+
+**1. Plugin Discovery System** (`src/prefect/plugins.py`):
+```python
+collection_entrypoints: EntryPoints = entry_points(group="prefect.collections")
+```
+The core system discovers and loads extensions via Python entry points, a standard plugin mechanism.
+
+**2. Integration Packages** (`src/integrations/`):
+Each integration (prefect-aws, prefect-kubernetes, prefect-docker, etc.) defines entry points:
+```toml
+[project.entry-points."prefect.collections"]
+prefect_aws = "prefect_aws"
+[project.entry-points."prefect.plugins"]
+aws = "prefect_aws.plugins"
+```
+These are separate Python packages that extend the core without modifying it.
+
+**3. Dynamic Dispatch Registry** (`src/prefect/utilities/dispatch.py`):
+- `_TYPE_REGISTRIES` maintains a global registry mapping dispatch keys to types
+- `@register_base_type` decorator marks base types for extension
+- `lookup_type(Base, key)` dynamically retrieves registered implementations
+
+**4. Extensible Base Types**:
+
+`Block` class (`src/prefect/blocks/core.py:315`):
+```python
+@register_base_type
+class Block(BaseModel, ABC):
+    """A base class for implementing a block that wraps an external service."""
+```
+
+`BaseWorker` class (`src/prefect/workers/base.py:533`):
+```python
+@register_base_type
+class BaseWorker(abc.ABC, Generic[C, V, R]):
+    type: str
+    job_configuration: Type[C] = BaseJobConfiguration
+```
+
+Integration packages provide concrete implementations:
+- `prefect-aws/prefect_aws/workers/ecs_worker.py` → `ECSWorker(BaseWorker)`
+- `prefect-aws/prefect_aws/s3.py` → `S3Bucket(Block)`
+- `prefect-aws/prefect_aws/credentials.py` → `AwsCredentials(Block)`
+
+**5. Core System Isolation**:
+The core `src/prefect/` package defines interfaces (abstract base classes) that integrations implement. The core knows about Blocks and Workers abstractly, but concrete implementations live in integration packages.
+
+### Secondary: Layered Architecture
+
+Within the server component, there's clear horizontal layering (`src/prefect/server/`):
+
+- **Presentation Layer**: `server/api/` - FastAPI REST endpoints (flows.py, deployments.py, flow_runs.py)
+- **Service Layer**: `server/services/` - Background services (scheduler, late_runs, foreman)
+- **Model Layer**: `server/models/` - ORM models for database entities
+- **Database Layer**: `server/database/` - SQLAlchemy interfaces, Alembic migrations
+
+Each layer has limited dependencies on lower layers, following traditional layered architecture patterns.
+
+### Secondary: Event-Driven Components
+
+Event-driven architecture is present but scoped to specific subsystems:
+
+**Event System** (`src/prefect/events/`):
+- `emit_event()` for publishing events
+- `Event`, `ReceivedEvent` schemas
+- Event filters and subscribers
+
+**Server-Side Event Processing** (`src/prefect/server/events/`):
+- Event persister service
+- Trigger evaluation service
+- Action execution service
+
+**Automations** (`src/prefect/events/actions.py`):
+```python
+class RunDeployment(DeploymentAction):
+    """Runs the given deployment with the given parameters"""
+class CancelFlowRun(Action):
+    """Cancel a flow run when triggered"""
+```
+
+Events trigger actions via automations, but the core flow/task execution model is not primarily event-driven - events are specifically for automation triggers and external integrations.
+
+### What This Is NOT
+
+- **Not Microservices**: Single deployable server (`Dockerfile`), one main package. Workers communicate with one server, not multiple independent services.
+
+- **Not Service-Based (in the coarse-grained sense)**: While there's a client-server separation, the server is monolithic with internal services, not 2-5 separate services sharing a database.
+
+- **Not CQRS**: No separation between read and write models; the same ORM models serve both.
+
+- **Not DDD**: No bounded contexts, aggregates, or domain-driven organizational structure.
+
+- **Not Hexagonal**: While `Block` abstracts external services, there's no formal ports-and-adapters isolation layer.
+
+- **Not Serverless**: Workers are long-running processes (see `runner/runner.py`), not ephemeral functions triggered by cloud providers.
+
+### Deployment Topology
+
+The architecture supports two deployment modes:
+1. **Self-hosted server**: Single Docker container with FastAPI server + background services
+2. **Prefect Cloud**: Client connects to managed server
+
+Both modes use the same plugin mechanism for integrations - packages are installed into the environment and discovered via entry points at import time.

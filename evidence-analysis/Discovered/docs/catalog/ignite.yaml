@@ -17,8 +17,7 @@ languages:
 - Python
 architecture_styles:
 - Microkernel (Plugin)
-- Layered
-- Space-Based
+- Modular Monolith
 classification_status: classified
 review_notes: 'Apache Ignite 2.x is fundamentally structured using a **Microkernel
   (Plugin)** architecture. The system’s "kernel" (implemented in `IgniteKernal.java`)
@@ -59,74 +58,64 @@ review_notes: 'Apache Ignite 2.x is fundamentally structured using a **Microkern
   (e.g., `TcpDiscoverySpi`). This ensures that the kernel logic is independent of
   the underlying network or storage implementation.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.71
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:52:20Z'
-classification_reasoning: 'Apache Ignite 2.x is fundamentally structured using a **Microkernel
-  (Plugin)** architecture. The system’s "kernel" (implemented in `IgniteKernal.java`)
-  acts as a central coordinator that manages the lifecycle of various pluggable components,
-  referred to internally as "Processors" and "Managers."
-
-
-  ### Evidence for Microkernel (Plugin) Style:
-
-  1.  **Central Dispatcher/Kernel:** The `IgniteKernal.java` file (found in `modules/core`)
-  is the heart of the system. Its primary role is to initialize the `GridKernalContext`,
-  which aggregates various internal components. As seen in the provided code, it orchestrates
-  the `start()` and `stop()` sequences for a wide array of specialized modules (e.g.,
-  `GridCacheProcessor`, `GridQueryProcessor`, `GridDiscoveryManager`).
-
-  2.  **Explicit Plugin Contract:** The `PluginProvider.java` interface defines a
-  strict contract for extending the system. It includes lifecycle hooks (`start`,
-  `stop`, `onIgniteStart`), extension registration (`initExtensions`), and the ability
-  to contribute to the discovery protocol (`provideDiscoveryData`).
-
-  3.  **Component Loading:** The system distinguishes between "Processors" (which
-  implement core logic like SQL or Caching) and "Managers" (which provide a layer
-  of indirection over SPIs, like Discovery or Communication). The README and code
-  paths confirm that these can be swapped or added via the `ServiceLoader` or explicit
-  configuration in `IgniteConfiguration`.
-
-  4.  **Separation of Core and Extensions:** The `modules/` directory shows a clear
-  split. `modules/core` contains the kernel and base abstractions, while high-level
-  features like `modules/indexing` (SQL via H2/Lucene), `modules/spring`, and `modules/zookeeper`
-  are decoupled from the core and loaded as optional modules.
-
-
-  ### Secondary Styles:
-
-  *   **Layered:** Within the core and managers, Ignite uses a traditional horizontal
-  layering. The `GridManager` classes act as a facade/abstraction layer over the **SPI
-  (Service Provider Interface)** layer, which contains the actual implementations
-  (e.g., `TcpDiscoverySpi`). This ensures that the kernel logic is independent of
-  the underlying network or storage implementation.
-
-  *   **Space-Based:** While this describes the deployment topology (distributed in-memory
-  data grid), the *code structure* supports this via specialized processors for affinity,
-  distributed data structures, and the "Durable Memory" architecture referenced in
-  the documentation. The architecture is specifically organized to handle tuple-space-like
-  interactions (MapReduce, distributed closures) across a cluster.
-
-
-  ### Rejection of Other Styles:
-
-  *   **Microservices:** Although many modules exist, they are designed to be compiled
-  and run within a single JVM process (a "Node"). They are not independently deployable
-  services but rather modular components of a single distributed system.
-
-  *   **Modular Monolith:** While it is a single deployable unit with modules, the
-  term "Microkernel" is more precise here because of the explicit "Kernel + Plugin"
-  loading mechanism and the SPI (Service Provider Interface) pattern used to swap
-  core behaviors at runtime.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.71
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.7
-  alternatives_dismissed: 0.65
-  exploration_completeness: 0.72
-  flags: three co-primary styles listed reduces clarity; Space-Based feels forced
-    as a structural classification — it describes deployment topology rather than
-    code organization, weakening overall precision
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:30:01Z'
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
+  \ Style: Microkernel (Plugin)\n\nApache Ignite exhibits a definitive **Microkernel\
+  \ (Plugin) architecture** with a well-designed plugin/extension system at its core.\
+  \ The evidence is substantial:\n\n**Plugin System Infrastructure:**\n- **`PluginProvider<C\
+  \ extends PluginConfiguration>`** (`modules/core/src/main/java/org/apache/ignite/plugin/PluginProvider.java`):\
+  \ The main plugin contract with lifecycle methods (`start()`, `stop()`, `onIgniteStart()`,\
+  \ `onIgniteStop()`) and extension registration capabilities.\n- **`IgnitePlugin`**\
+  \ marker interface for all plugins\n- **`PluginConfiguration`** interface for plugin\
+  \ configuration\n- **`Extension`** and **`ExtensionRegistry`** providing formal\
+  \ extension point mechanism for plugins to register capabilities\n\n**Plugin Loading\
+  \ Mechanism:**\nThe documentation (`docs/_docs/plugins.adoc`) confirms: \"Ignite\
+  \ plugins can be loaded using JDK `ServiceLoader` or set up explicitly via `IgniteConfiguration#setPluginProviders(PluginProvider[])`.\"\
+  \n\n**Plugin Processor:**\n`IgnitePluginProcessor` (`modules/core/src/main/java/org/apache/ignite/internal/processors/plugin/IgnitePluginProcessor.java`)\
+  \ manages the entire plugin lifecycle:\n```java\npublic class IgnitePluginProcessor\
+  \ extends GridProcessorAdapter {\n    private final Map<String, PluginProvider>\
+  \ plugins = new LinkedHashMap<>();\n    private final Map<PluginProvider, GridPluginContext>\
+  \ pluginCtxMap = new IdentityHashMap<>();\n    private volatile Map<Class<?>, Object[]>\
+  \ extensions;\n    // ... manages plugin initialization, extension registration,\
+  \ component creation\n}\n```\n\n**Cache Plugin Extensions:**\n`CachePluginProvider`\
+  \ interface allows plugins to extend cache behavior with custom validation, component\
+  \ creation, and entry unwrapping.\n\n**Real Plugin Examples:**\n- `modules/extdata/pluggable/`\
+  \ contains example plugins extending core functionality\n- Test plugins in `modules/extdata/platform/src/test/java/org/apache/ignite/platform/plugin/`\n\
+  \n### SPI Layer (Reinforcing Microkernel Pattern)\n\nIgnite implements an extensive\
+  \ **SPI (Service Provider Interface) layer** (`modules/core/src/main/java/org/apache/ignite/spi/`)\
+  \ allowing pluggable implementations for:\n- **Discovery SPI**: `TcpDiscoverySpi`\
+  \ and others for node discovery\n- **Communication SPI**: Network communication\
+  \ between nodes\n- **Checkpoint SPI**: Multiple implementations (cache, jdbc, sharedfs)\n\
+  - **Collision SPI**: Job collision resolution (fifoqueue, jobstealing, priorityqueue)\n\
+  - **Failover SPI**, **Indexing SPI**, and more\n\nThe `IgniteSpi` interface defines\
+  \ the lifecycle contract for all SPI implementations, consistent with the microkernel\
+  \ pattern.\n\n### Secondary Style: Modular Monolith\n\nIgnite also exhibits **Modular\
+  \ Monolith** characteristics:\n\n**Single Deployment Unit:**\n- Maven assembly (`assembly/release-apache-ignite.xml`)\
+  \ produces a single distribution\n- All modules contribute to one deployable artifact\n\
+  \n**Enforced Module Boundaries:**\n- ~38 Maven modules under `modules/` directory\n\
+  - Clear module separation: `core`, `indexing`, `spring`, `rest-http`, `clients`,\
+  \ `calcite`, etc.\n- Module dependencies enforced via Maven POM structure\n- Bill\
+  \ of Materials (`modules/bom/pom.xml`) manages all module versions\n\n**Internal\
+  \ Component Architecture:**\n- `GridKernalContext` provides centralized access to\
+  \ all components\n- ~45+ processors (cache, query, service, task, security, etc.)\n\
+  - ~15 managers (discovery, communication, deployment, etc.)\n- `GridComponent` interface\
+  \ for unified lifecycle management\n\n### Rejected Styles\n\n**NOT Microservices**:\
+  \ Single deployable artifact, not multiple independently deployable services. Docker\
+  \ support exists for deployment flexibility, not service decomposition.\n\n**NOT\
+  \ Layered**: No horizontal presentation/business/data layering. Uses internal component\
+  \ architecture with processors and managers organized by functional domain, not\
+  \ layers.\n\n**NOT Event-Driven**: While Ignite provides messaging capabilities\
+  \ (`IgniteMessaging`), the core architecture is component-based with direct method\
+  \ invocation, not event-driven communication.\n\n**NOT Domain-Driven Design**: No\
+  \ bounded contexts, aggregates, or ubiquitous language patterns. Organization is\
+  \ around technical capabilities (cache, query, compute) rather than business domains.\n\
+  \n**NOT Hexagonal Architecture**: While there are SPI interfaces, the architecture\
+  \ doesn't isolate application core via ports and adapters. Internal components have\
+  \ deep interdependencies through `GridKernalContext`.\n\n### Conclusion\n\nApache\
+  \ Ignite is architected as a **Microkernel with Plugin system** as its primary architectural\
+  \ style, with the entire system designed around extensibility through formal plugin\
+  \ and SPI contracts. The modular monolith structure supports this by providing well-organized\
+  \ internal boundaries while maintaining a single deployment unit."

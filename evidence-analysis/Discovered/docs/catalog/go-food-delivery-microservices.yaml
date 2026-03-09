@@ -16,8 +16,8 @@ languages:
 architecture_styles:
 - Microservices
 - Event-Driven
-- Domain-Driven Design
 - CQRS
+- Domain-Driven Design
 classification_status: classified
 review_notes: "The repository is a textbook implementation of a **Microservices**\
   \ architecture, explicitly designed as an exemplar of modern distributed systems.\
@@ -32,52 +32,59 @@ review_notes: "The repository is a textbook implementation of a **Microservices*
   \ The system uses gRPC for synchronous real-time communication and RabbitMQ for\
   \ asynchronous messaging.\n\n2.  **Event-Driven (Secondary Style):**"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.77
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:50:52Z'
-classification_reasoning: "The repository is a textbook implementation of a **Microservices**\
-  \ architecture, explicitly designed as an exemplar of modern distributed systems.\
-  \ \n\n### Architecture Breakdown\n\n1.  **Microservices (Primary Style):**\n   \
-  \ *   **Independent Deployability:** The project contains multiple distinct services\
-  \ under `internal/services/` (`catalogwriteservice`, `catalogreadservice`, and `orderservice`).\
-  \ Each service has its own `Dockerfile`, `go.mod`, `config/`, and `Makefile`, allowing\
-  \ them to be built and deployed independently.\n    *   **Data Sovereignty:** The\
-  \ services utilize different database technologies (Postgres for writes, MongoDB/ElasticSearch\
-  \ for reads, and EventStoreDB for sourcing), aligning with the microservices principle\
-  \ of using the \"right tool for the job.\"\n    *   **Inter-Service Communication:**\
-  \ The system uses gRPC for synchronous real-time communication and RabbitMQ for\
-  \ asynchronous messaging.\n\n2.  **Event-Driven (Secondary Style):**\n    *   The\
-  \ architecture heavily relies on an asynchronous messaging bus (located in `internal/pkg/rabbitmq`\
-  \ and `internal/pkg/core/messaging`).\n    *   It implements **Event Sourcing**\
-  \ (using EventStoreDB) and the **Outbox/Inbox Patterns** for guaranteed message\
-  \ delivery, which are hallmark patterns of robust event-driven systems.\n\n3.  **Domain-Driven\
-  \ Design (Secondary Style):**\n    *   The README and directory structure (e.g.,\
-  \ `internal/pkg/core/domain`) confirm the use of DDD.\n    *   It organizes code\
-  \ around **Bounded Contexts** (Catalogs, Orders) and uses DDD tactical patterns\
-  \ like Aggregates and Value Objects.\n\n4.  **CQRS (Secondary Style):**\n    * \
-  \  The project explicitly separates read and write concerns. The `catalogwriteservice`\
-  \ handles commands and state changes, while `catalogreadservice` handles queries.\n\
-  \    *   It uses the **Mediator pattern** (via `Go-MediatR`) to decouple the delivery\
-  \ mechanism (REST/gRPC) from the business logic handlers.\n\n### Structural Evidence\n\
-  *   **Encapsulation:** Common logic is extracted into a shared library (`internal/pkg`),\
-  \ while service-specific logic is strictly contained within each service's folder\
-  \ using a **Vertical Slice Architecture**. This minimizes horizontal coupling between\
-  \ layers and maximizes cohesion within a feature.\n*   **Dependency Injection:**\
-  \ Uses `uber-go/fx` across all services to manage component lifecycles and dependencies,\
-  \ which facilitates the modularity required for both microservices and clean code\
-  \ within each slice.\n*   **Deployment Units:** Each service directory includes\
-  \ a `cmd` folder and a `Dockerfile`, marking the entry point and deployment container\
-  \ for that specific microservice."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.77
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.92
-  alternatives_dismissed: 0.45
-  exploration_completeness: 0.82
-  flags: alternatives_dismissed is low — no explicit consideration of whether this
-    could be classified primarily as Clean/Hexagonal or Vertical Slice at the service
-    level; the reasoning mentions Vertical Slice in passing but doesn't evaluate it
-    as a competing primary style
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:27:28Z'
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
+  \ Style: Microservices\n\n**Strong evidence for Microservices architecture:**\n\n\
+  1. **Three independently deployable services** with separate go.mod files:\n   -\
+  \ `internal/services/catalogwriteservice/go.mod` —独立的go模块\n   - `internal/services/catalogreadservice/go.mod`\
+  \ —独立的go模块  \n   - `internal/services/orderservice/go.mod` —独立的go模块\n\n2. **Separate\
+  \ databases per service** (database-per-service pattern):\n   - `catalogwriteservice`:\
+  \ PostgreSQL (`gormOptions` in config)\n   - `catalogreadservice`: MongoDB + Elasticsearch\
+  \ + Redis (`mongoDbOptions`, `elasticOptions`, `redisOptions`)\n   - `orderservice`:\
+  \ EventStoreDB + MongoDB + Elasticsearch (`eventStoreDbOptions`, `mongoDbOptions`)\n\
+  \n3. **Individual Dockerfiles** for each service (`internal/services/*/Dockerfile`)\n\
+  \n4. **Separate ports** for each service:\n   - catalogwriteservice: HTTP 7000,\
+  \ gRPC 6003\n   - catalogreadservice: HTTP 7001, gRPC 6004\n   - orderservice: HTTP\
+  \ 8000, gRPC 6005\n\n5. **Service-specific configurations** with distinct service\
+  \ names and infrastructure dependencies\n\n### Secondary Style: Event-Driven Architecture\n\
+  \n**Evidence:**\n\n1. **RabbitMQ message broker** configured in `docker-compose.infrastructure.yaml`\n\
+  \n2. **Integration events** published between services:\n   ```go\n   // internal/services/catalogwriteservice/internal/products/features/creatingproduct/v1/create_product_handler.go\n\
+  \   productCreated := integrationevents.NewProductCreatedV1(productDto)\n   err\
+  \ = c.RabbitmqProducer.PublishMessage(ctx, productCreated, nil)\n   ```\n\n3. **Event\
+  \ bus abstraction** in `internal/pkg/core/messaging/bus/bus.go`:\n   ```go\n   type\
+  \ Bus interface {\n       producer.Producer\n       consumer.BusControl\n      \
+  \ consumer.ConsumerConnector\n   }\n   ```\n\n4. **Projections** for handling events\
+  \ (`orderservice/internal/orders/projections/`)\n\n### Secondary Style: CQRS\n\n\
+  **Evidence:**\n\n1. **Separate read/write services**: `catalogreadservice` and `catalogwriteservice`\
+  \ are physically separated services\n\n2. **Command/Query interfaces** in `internal/pkg/core/cqrs/`:\n\
+  \   ```go\n   type Command interface { isCommand(); Request; TypeInfo }\n   type\
+  \ Query interface { isQuery(); Request; TypeInfo }\n   ```\n\n3. **Different database\
+  \ technologies** for read vs write sides:\n   - Write side: PostgreSQL (relational,\
+  \ ACID transactions)\n   - Read side: MongoDB + Elasticsearch (document stores,\
+  \ optimized for queries)\n\n4. **MediatR pattern** used for dispatching commands\
+  \ and queries (`github.com/mehdihadeli/go-mediatr`)\n\n### Secondary Style: Domain-Driven\
+  \ Design\n\n**Evidence:**\n\n1. **Aggregate roots** with domain behavior:\n   ```go\n\
+  \   // internal/services/orderservice/internal/orders/models/orders/aggregate/order.go\n\
+  \   type Order struct {\n       *models.EventSourcedAggregateRoot\n       shopItems\
+  \       []*value_objects.ShopItem\n       accountEmail    string\n       // ...\n\
+  \   }\n   ```\n\n2. **Domain events** (`createOrderDomainEventsV1`, `integrationevents`)\n\
+  \n3. **Value objects** (`internal/services/orderservice/internal/orders/models/orders/value_objects/shop_item.go`)\n\
+  \n4. **Domain exceptions** (`internal/services/orderservice/internal/orders/exceptions/domain_exceptions/`)\n\
+  \n5. **Event Sourcing** implementation for Order aggregate with `EventSourcedAggregateRoot`\
+  \ base type\n\n### What This Is NOT\n\n- **NOT a Modular Monolith**: Services are\
+  \ separate deployment units with their own Dockerfiles, not modules within a single\
+  \ application\n- **NOT Layered Architecture**: While there's some layering within\
+  \ features, the primary organization is vertical slices per feature (`features/creatingproduct/`,\
+  \ `features/gettingproducts/`)\n- **NOT Serverless**: No function-as-a-service deployments;\
+  \ services are containerized applications\n- **NOT Hexagonal Architecture**: While\
+  \ there are ports/adapters patterns, this is secondary to the microservices organization\n\
+  \n### Vertical Slice Organization\n\nWithin each microservice, the code is organized\
+  \ using **Vertical Slice Architecture**:\n```\ninternal/services/catalogwriteservice/internal/products/features/\n\
+  ├── creatingproduct/v1/\n│   ├── create_product.go\n│   ├── create_product_endpoint.go\n\
+  │   ├── create_product_handler.go\n│   ├── dtos/\n│   └── events/integrationevents/\n\
+  ├── gettingproducts/v1/\n├── updatingproduct/\n└── deletingproduct/\n```\n\nEach\
+  \ feature folder contains all the code it needs (handler, endpoint, DTOs, events),\
+  \ rather than organizing by technical layer."

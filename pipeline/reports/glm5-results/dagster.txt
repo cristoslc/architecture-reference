@@ -1,0 +1,87 @@
+Let me explore the module structure more deeply, especially the libraries and core dagster module.Let me explore the core architecture further and examine the plugin/integration system.Let me explore the plugin/integration mechanism further and look at how libraries registerthemselves.Let me look deeper into the component architecture and plugin mechanisms.Let me check one more aspect - the storage and instance layers to understand the deployment patternsbetter.Now I have a comprehensive picture of Dagster's architecture. Let me provide my final classification:
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.90
+---
+
+## Architecture Analysis: Dagster Repository
+
+### Primary Style: Microkernel (Plugin)
+
+The Dagster repository exhibits a **clear Microkernel/Plugin architecture** with strong evidence:
+
+**1. Core Extension Points (Abstract Base Classes):**
+- **`Component`** (`python_modules/dagster/dagster/components/component/component.py`): Abstract base class with `build_defs()` method that plugins implement to contribute definitions to the system
+- **`Executor`** (`python_modules/dagster/dagster/_core/executor/base.py`): Abstract executor interface with `execute()` method - implementations include in-process, multiprocess, k8s, Celery, Dask
+- **`ResourceDefinition`** (`python_modules/dagster/dagster/_core/definitions/resource_definition.py`): Plugin mechanism for injecting external resources (databases, APIs, etc.)
+- **`IOManager`**, **`RunLauncher`**, **`RunCoordinator`**, **`ComputeLogManager`**: Additional extension points
+
+**2. Library Registration Pattern:**
+Every integration library calls the central registry in its `__init__.py`:
+```python
+# dagster_aws/__init__.py
+from dagster_shared.libraries import DagsterLibraryRegistry
+DagsterLibraryRegistry.register("dagster-aws", __version__)
+```
+This pattern appears in all 67+ libraries in `python_modules/libraries/`.
+
+**3. Separation of Core and Extensions:**
+- **Core kernel**: `python_modules/dagster/` - Defines the framework, abstractions, and extension points
+- **Plugin libraries**: `python_modules/libraries/dagster-*` - 67 independently versioned packages for integrations (dbt, AWS, k8s, Airflow, Databricks, etc.)
+- **Shared infrastructure**: `python_modules/libraries/dagster-shared/` - Contains `DagsterLibraryRegistry` and shared utilities
+
+**4. Dynamic Loading:**
+The gRPC server system (`python_modules/dagster/dagster/_grpc/server.py`) dynamically loads user code repositories, enabling runtime extension without kernel modification.
+
+### Secondary Style: Modular Monolith
+
+Dagster also exhibits **Modular Monolith** characteristics:
+
+**1. Enforced Module Boundaries:**
+- Clear separation between core modules: `_core`, `_cli`, `_daemon`, `_grpc`, `_config`, `_utils`
+- Each library is a separate Python package with its own `pyproject.toml`
+- Internal APIs use underscore-prefixed modules (`_core`, `_cli`) to indicate private interfaces
+
+**2. Single Deployment Unit Options:**
+While deployable as multiple services, Dagster can run as a single coordinated system:
+- The webserver, daemon, and user code servers share the same database
+- Docker Compose example (`examples/deploy_docker/docker-compose.yml`) shows coordinated services sharing PostgreSQL
+- Kubernetes Helm chart (`helm/dagster/`) defines a cohesive deployment with shared infrastructure
+
+**3. Workspace-Based Composition:**
+The `workspace.yaml` pattern allows composing multiple code locations into a unified system while maintaining module isolation.
+
+### What Was Rejected:
+
+**Not Microservices:**
+- Services (webserver, daemon, user-code-server) share a single database schema - not independently deployable with data ownership
+- They are coordinated deployment units of a monolithic application, not autonomous services
+- The gRPC servers are extension points for user code, not separate business services
+
+**Not Serverless:**
+- Dagster is an orchestrator that can *launch* serverless workloads, but the core system is not structured as functions
+- Daemons run continuously for scheduling, sensors, and backfills
+
+**Not Event-Driven:**
+- While Dagster *orchestrates* event-driven workflows, its internal architecture is not primarily event-based
+- Components communicate via synchronous API calls and database state, not message brokers
+
+**Not Layered (as primary):**
+- While there are layers (UI → GraphQL → Core → Storage), the dominant organizational principle is the plugin/extension architecture
+- The layering supports but doesn't define the system's primary structure
+
+### Key Architectural Evidence:
+
+| Evidence | Location |
+|----------|----------|
+| Plugin registry | `dagster_shared.libraries.DagsterLibraryRegistry` |
+| Component extension point | `dagster/components/component/component.py` |
+| 67 integration libraries | `python_modules/libraries/dagster-*/` |
+| Executor abstraction | `dagster/_core/executor/base.py` |
+| Resource plugin system | `dagster/_core/definitions/resource_definition.py` |
+| gRPC user code loading | `dagster/_grpc/server.py` |
+| Workspace composition | `dagster/_core/workspace/` |

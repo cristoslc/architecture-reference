@@ -14,7 +14,6 @@ languages:
 - Python
 architecture_styles:
 - Microkernel (Plugin)
-- Microservices
 classification_status: classified
 review_notes: 'The `tutor` codebase is a CLI application that functions as a manager
   and orchestrator for the Open edX ecosystem. Its internal architecture is primarily
@@ -45,78 +44,55 @@ review_notes: 'The `tutor` codebase is a CLI application that functions as a man
   - **Tests for Extensions:** High-level tests like `tests/test_plugins.py` and `tests/test_plugin_indexes.py`
   confirm that the plugin lifecycle is a first-class concern of the codebase.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.82
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:13:56Z'
-classification_reasoning: 'The `tutor` codebase is a CLI application that functions
-  as a manager and orchestrator for the Open edX ecosystem. Its internal architecture
-  is primarily structured as a **Microkernel (Plugin)** system, designed to deploy
-  an external **Microservices** architecture.
-
-
-  ### Reasoning:
-
-
-  **1. Microkernel (Plugin) Architecture (The internal structure):**
-
-  The repository''s internal code organization revolves around a core "engine" that
-  is heavily extended through a custom plugin system.
-
-  - **Plugin Infrastructure:** There is a dedicated directory `tutor/plugins/` containing
-  `v1.py`, `v0.py`, `base.py`, and `indexes.py`. This indicates a formal versioned
-  API for external extensions.
-
-  - **Hook System:** The presence of `tutor/core/hooks/` (actions.py, filters.py,
-  contexts.py) strongly suggests a life-cycle management system where plugins can
-  tap into the core execution flow—a hallmark of microkernel systems.
-
-  - **Extensible Configuration:** The `tutor/templates/` directory shows that the
-  core provides base templates (like `config/defaults.yml`) which are then augmented
-  by plugins to generate the final deployment manifests.
-
-  - **Tests for Extensions:** High-level tests like `tests/test_plugins.py` and `tests/test_plugin_indexes.py`
-  confirm that the plugin lifecycle is a first-class concern of the codebase.
-
-
-  **2. Microservices (The deployment target):**
-
-  While `tutor` itself is a CLI tool (a single Python package), its primary purpose
-  is to define and manage a Microservices architecture.
-
-  - **Service definitions:** In `tutor/templates/apps/`, we see boundaries for separate
-  services like `redis`, `openedx`, and `caddy`.
-
-  - **Orchestration:** The codebase manages `docker-compose.yml` (in `tutor/templates/local/`
-  and `tutor/templates/dev/`) and Kubernetes manifests (`tutor/templates/k8s/services.yml`,
-  `deployments.yml`).
-
-  - **Commands:** The `tutor/commands/` directory contains logic to manage these distributed
-  components (`k8s.py`, `local.py`, `images.py`), treating the resulting system as
-  a collection of independently scalable units.
-
-
-  **3. Why other styles were rejected:**
-
-  - **Layered:** While it has some horizontal separation (commands vs core logic),
-  the dominant organizational principle is the hook/plugin system rather than a strict
-  Controller-Service-Repository flow.
-
-  - **Modular Monolith:** Since the resulting deployment is intended to be distributed
-  (multi-container via Docker/K8s), it doesn''t fit the "single deployment unit" requirement
-  of a Monolith, even if the CLI itself is one.
-
-  - **Domain-Driven Design:** The code is organized around operational verbs (launch,
-  upgrade, images) and deployment targets (k8s, local) rather than domain aggregates.'
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.82
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.85
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.8
-  flags: dual classification (Microkernel + Microservices) is somewhat unusual — the
-    'Microservices' label refers to deployment target rather than internal architecture,
-    which is a conceptual conflation; primary internal style (Microkernel/Plugin)
-    is well-supported
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:45:07Z'
+classification_reasoning: "## Analysis\n\nTutor is a **Microkernel (Plugin)** architecture.\
+  \ The repository is built around a minimal core system that is explicitly designed\
+  \ to be extended through a sophisticated plugin system.\n\n### Strong Evidence for\
+  \ Microkernel/Plugin:\n\n**1. Plugin Discovery and Loading System**\n- Multiple\
+  \ plugin discovery mechanisms (`tutor/plugins/v1.py`):\n  - Python packages declaring\
+  \ `tutor.plugin.v1` entrypoints\n  - Standalone `.py` files in `~/.local/share/tutor-plugins`\n\
+  \  - Entrypoint-based plugin discovery via `importlib_metadata`\n- Plugins are dynamically\
+  \ loaded at runtime when `CORE_READY` action fires\n- Plugin lifecycle management:\
+  \ `PLUGIN_LOADED`, `PLUGIN_UNLOADED` actions\n\n**2. Comprehensive Hook System**\n\
+  The core defines an extensive hook catalog (`tutor/hooks/catalog.py`) with:\n- **Actions**:\
+  \ Lifecycle event triggers (e.g., `CORE_READY`, `CONFIG_LOADED`, `COMPOSE_PROJECT_STARTED`)\n\
+  - **Filters**: Data transformation chains (e.g., `CLI_COMMANDS`, `CONFIG_DEFAULTS`,\
+  \ `ENV_PATCHES`)\n- **Contexts**: Plugin isolation mechanism for tracking and cleanup\n\
+  \nThe hook system provides 40+ extension points including:\n```python\nCLI_COMMANDS:\
+  \ Filter[list[click.Command], []]  # Add new CLI commands\nENV_PATCHES: Filter[list[tuple[str,\
+  \ str]], []]  # Modify templates\nCLI_DO_INIT_TASKS: Filter[list[tuple[str, str]],\
+  \ []]  # Add initialization tasks\nCONFIG_DEFAULTS: Filter[list[tuple[str, t.Any]],\
+  \ []]  # Add configuration\n```\n\n**3. Plugin Contract Definition**\n`BasePlugin`\
+  \ class (`tutor/plugins/v0.py` lines 17-83) defines the formal plugin interface:\n\
+  - `config`: Add/override configuration\n- `patches`: Modify templates via patch\
+  \ points\n- `templates`: Add new template files\n- `hooks`: Define lifecycle hooks\n\
+  - `command`: Add CLI subcommands\n\n**4. Template Patch System**\nCore templates\
+  \ define explicit patch points (documented in `docs/reference/patches.rst`):\n-\
+  \ `caddyfile`, `cms-env`, `k8s-deployments`, etc.\n- Plugins inject content at these\
+  \ patch locations\n- Example: `{{ patch(\"caddyfile\") }}` in templates allows plugins\
+  \ to add proxy configurations\n\n**5. Dynamic CLI Extension**\n`TutorCli` class\
+  \ (`tutor/commands/cli.py` lines 35-76) dynamically loads plugin commands:\n```python\n\
+  for cmd in hooks.Filters.CLI_COMMANDS.iterate():\n    self.add_command(cmd)\n```\n\
+  \n**6. Context-Based Plugin Isolation**\n`tutor/core/hooks/contexts.py` provides\
+  \ context tracking to enable clean plugin unloading - all hooks registered within\
+  \ a plugin context can be cleared when the plugin is disabled.\n\n### What This\
+  \ Architecture is NOT:\n\n- **Not Layered**: While there's a `commands/` directory,\
+  \ this isn't horizontal layering (presentation/business/data). The plugin system\
+  \ cuts across all functional areas.\n\n- **Not Microservices**: Tutor is a single\
+  \ Python package (`pyproject.toml`). The Docker/Kubernetes support is for deploying\
+  \ Open edX, not Tutor itself.\n\n- **Not Modular Monolith**: There are no enforced\
+  \ module boundaries with restricted imports. The core is intentionally minimal,\
+  \ with functionality added via plugins.\n\n- **Not Event-Driven**: The Actions/Filters\
+  \ are synchronous callback hooks within a single process, not asynchronous message\
+  \ passing between services.\n\n- **Not Hexagonal Architecture**: There's no ports/adapters\
+  \ pattern isolating the core. The plugin system is about extensibility, not dependency\
+  \ inversion.\n\n### Conclusion\n\nTutor exemplifies the Microkernel pattern: a minimal\
+  \ core system with a well-defined plugin API that allows third-party extensions\
+  \ to add functionality at every level - CLI commands, configuration, templates,\
+  \ deployments, and Kubernetes resources. The sophisticated hook system with actions,\
+  \ filters, and contexts provides a clean separation between core and plugins, enabling\
+  \ the \"users should not have to fork Tutor to customise their deployments\" vision\
+  \ stated in the documentation."

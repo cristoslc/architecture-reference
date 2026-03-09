@@ -1,0 +1,143 @@
+Let me explore the module structure and plugin architecture in more detail.Let me verify the deployment model and understand how plugins are loaded:Based on my thorough exploration of the codebase, I have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.95
+---
+
+## Architecture Classification: Microkernel (Plugin)
+
+### Primary Evidence for Microkernel/Plugin Architecture
+
+**1. PF4J Plugin Framework Integration**
+
+The codebase uses `org.pf4j` (Plugin Framework for Java) as its plugin infrastructure:
+
+```groovy
+// modules/nf-commons/src/main/nextflow/plugin/BasePlugin.groovy
+abstract class BasePlugin extends Plugin {
+    BasePlugin(PluginWrapper wrapper) {
+        super(wrapper)
+    }
+    // ...
+}
+```
+
+```groovy
+// modules/nf-commons/src/main/nextflow/plugin/PluginsFacade.groovy
+class PluginsFacade implements PluginStateListener {
+    private CustomPluginManager manager
+    // Uses DefaultPluginManager from pf4j
+}
+```
+
+**2. Well-Defined Extension Point Contract**
+
+Over 55 `ExtensionPoint` interfaces and implementations discovered throughout the codebase:
+
+- `PluginExtensionPoint` - Channel factories, operators, functions
+- `Executor` - Execution backends (AWS Batch, Google, Azure, Kubernetes, Slurm, etc.)
+- `FileSystemPathFactory` - Pluggable filesystems (S3, GCS, Azure Blob)
+- `TraceObserverFactory` - Observability/telemetry extensions
+- `ContainerResolver` - Container resolution strategies
+- `MailProvider` - Email notification backends
+- `SecretsProvider` - Secrets management
+- `CacheFactory` - Caching backends
+- `DaemonLauncher` - Daemon mode extensions
+- CLI command extensions: `KubeCommand`, `AuthCommand`, `LaunchCommand`, `LinCommand`
+
+**3. Built-in Plugins as Extensions**
+
+The `plugins/` directory contains 9 built-in plugins that extend the core:
+
+| Plugin | Purpose | Key Extension Points |
+|--------|---------|---------------------|
+| `nf-amazon` | AWS integration | `AwsBatchExecutor`, `S3PathFactory`, `AwsFusionEnv` |
+| `nf-google` | GCP integration | Google Batch executor, GCS filesystem |
+| `nf-azure` | Azure integration | Azure Batch executor, Blob storage |
+| `nf-k8s` | Kubernetes | Kubernetes executor |
+| `nf-tower`/`nf-seqera` | Tower platform | Trace observers, secrets providers |
+| `nf-wave` | Container management | Container resolvers |
+| `nf-cloudcache` | Cloud caching | Cache factory |
+| `nf-console` | Console UI | Console extensions |
+
+Each plugin declares extension points in its build configuration:
+
+```groovy
+// plugins/nf-amazon/build.gradle
+nextflowPlugin {
+    extensionPoints = [
+        'nextflow.cloud.aws.batch.AwsBatchExecutor',
+        'nextflow.cloud.aws.config.AwsConfig',
+        // ...
+    ]
+}
+```
+
+**4. Dynamic Plugin Discovery and Loading**
+
+```groovy
+// modules/nf-commons/src/main/nextflow/plugin/Plugins.groovy
+static <T> List<T> getExtensions(Class<T> type) {
+    INSTANCE.getExtensions(type)
+}
+
+static <T> List<T> getPriorityExtensions(Class<T> type, String group=null) {
+    INSTANCE.getPriorityExtensions(type, group)
+}
+```
+
+Plugins are loaded from a registry (`https://registry.nextflow.io/api`) and discovered at runtime via pf4j's `DefaultPluginManager`.
+
+**5. Core System with Minimal Essential Functionality**
+
+The core (`modules/nextflow/`) contains:
+- Session management (`Session.groovy`)
+- Workflow orchestration (`processor/`, `executor/`)
+- Script execution (`script/`)
+- Channel/dataflow operations (`extension/`, `Channel.groovy`)
+
+Executors are discovered via plugin system:
+
+```groovy
+// modules/nextflow/src/main/groovy/nextflow/executor/ExecutorFactory.groovy
+ExecutorFactory(PluginManager manager) {
+    if( manager!=null ) {
+        final executors = manager.getExtensionClasses(Executor)
+        // Extension executors from plugins...
+    }
+}
+```
+
+### Secondary Style: Layered
+
+The internal code organization within the core module shows horizontal layering:
+- `cli/` - Command-line interface layer
+- `config/` - Configuration layer  
+- `script/` - Script processing layer
+- `processor/` - Task processing layer
+- `executor/` - Execution layer
+- `file/` - File operations layer
+
+However, this is a secondary characteristic - the **primary architectural driver** is the plugin system.
+
+### What This Is NOT
+
+- **NOT Microservices**: Single deployable shadow JAR (`shadowJar` task creates `nextflow-one.jar`)
+- **NOT Modular Monolith**: Plugins are dynamically loaded, not compile-time modules
+- **NOT Service-Based**: Single application, not coarse-grained services
+- **NOT Event-Driven**: While GPars dataflow is used internally, plugins don't communicate via events
+
+### Conclusion
+
+Nextflow implements a textbook **Microkernel (Plugin)** architecture:
+1. **Core system** provides essential workflow execution engine
+2. **Plugin framework** (pf4j) manages lifecycle, discovery, and isolation
+3. **Extension points** define contracts for plugins
+4. **Plugins** extend functionality (executors, filesystems, observability, etc.)
+5. **Dynamic loading** at runtime based on configuration
+
+The architecture enables Nextflow to support dozens of execution platforms, cloud providers, and integrations through a clean plugin contract while maintaining a stable core.

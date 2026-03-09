@@ -1,0 +1,89 @@
+Based on my comprehensive investigation, I have sufficient evidence to classify this repository's architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.92
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Microkernel (Plugin)
+
+Apache Ignite exhibits a definitive **Microkernel (Plugin) architecture** with a well-designed plugin/extension system at its core. The evidence is substantial:
+
+**Plugin System Infrastructure:**
+- **`PluginProvider<C extends PluginConfiguration>`** (`modules/core/src/main/java/org/apache/ignite/plugin/PluginProvider.java`): The main plugin contract with lifecycle methods (`start()`, `stop()`, `onIgniteStart()`, `onIgniteStop()`) and extension registration capabilities.
+- **`IgnitePlugin`** marker interface for all plugins
+- **`PluginConfiguration`** interface for plugin configuration
+- **`Extension`** and **`ExtensionRegistry`** providing formal extension point mechanism for plugins to register capabilities
+
+**Plugin Loading Mechanism:**
+The documentation (`docs/_docs/plugins.adoc`) confirms: "Ignite plugins can be loaded using JDK `ServiceLoader` or set up explicitly via `IgniteConfiguration#setPluginProviders(PluginProvider[])`."
+
+**Plugin Processor:**
+`IgnitePluginProcessor` (`modules/core/src/main/java/org/apache/ignite/internal/processors/plugin/IgnitePluginProcessor.java`) manages the entire plugin lifecycle:
+```java
+public class IgnitePluginProcessor extends GridProcessorAdapter {
+    private final Map<String, PluginProvider> plugins = new LinkedHashMap<>();
+    private final Map<PluginProvider, GridPluginContext> pluginCtxMap = new IdentityHashMap<>();
+    private volatile Map<Class<?>, Object[]> extensions;
+    // ... manages plugin initialization, extension registration, component creation
+}
+```
+
+**Cache Plugin Extensions:**
+`CachePluginProvider` interface allows plugins to extend cache behavior with custom validation, component creation, and entry unwrapping.
+
+**Real Plugin Examples:**
+- `modules/extdata/pluggable/` contains example plugins extending core functionality
+- Test plugins in `modules/extdata/platform/src/test/java/org/apache/ignite/platform/plugin/`
+
+### SPI Layer (Reinforcing Microkernel Pattern)
+
+Ignite implements an extensive **SPI (Service Provider Interface) layer** (`modules/core/src/main/java/org/apache/ignite/spi/`) allowing pluggable implementations for:
+- **Discovery SPI**: `TcpDiscoverySpi` and others for node discovery
+- **Communication SPI**: Network communication between nodes
+- **Checkpoint SPI**: Multiple implementations (cache, jdbc, sharedfs)
+- **Collision SPI**: Job collision resolution (fifoqueue, jobstealing, priorityqueue)
+- **Failover SPI**, **Indexing SPI**, and more
+
+The `IgniteSpi` interface defines the lifecycle contract for all SPI implementations, consistent with the microkernel pattern.
+
+### Secondary Style: Modular Monolith
+
+Ignite also exhibits **Modular Monolith** characteristics:
+
+**Single Deployment Unit:**
+- Maven assembly (`assembly/release-apache-ignite.xml`) produces a single distribution
+- All modules contribute to one deployable artifact
+
+**Enforced Module Boundaries:**
+- ~38 Maven modules under `modules/` directory
+- Clear module separation: `core`, `indexing`, `spring`, `rest-http`, `clients`, `calcite`, etc.
+- Module dependencies enforced via Maven POM structure
+- Bill of Materials (`modules/bom/pom.xml`) manages all module versions
+
+**Internal Component Architecture:**
+- `GridKernalContext` provides centralized access to all components
+- ~45+ processors (cache, query, service, task, security, etc.)
+- ~15 managers (discovery, communication, deployment, etc.)
+- `GridComponent` interface for unified lifecycle management
+
+### Rejected Styles
+
+**NOT Microservices**: Single deployable artifact, not multiple independently deployable services. Docker support exists for deployment flexibility, not service decomposition.
+
+**NOT Layered**: No horizontal presentation/business/data layering. Uses internal component architecture with processors and managers organized by functional domain, not layers.
+
+**NOT Event-Driven**: While Ignite provides messaging capabilities (`IgniteMessaging`), the core architecture is component-based with direct method invocation, not event-driven communication.
+
+**NOT Domain-Driven Design**: No bounded contexts, aggregates, or ubiquitous language patterns. Organization is around technical capabilities (cache, query, compute) rather than business domains.
+
+**NOT Hexagonal Architecture**: While there are SPI interfaces, the architecture doesn't isolate application core via ports and adapters. Internal components have deep interdependencies through `GridKernalContext`.
+
+### Conclusion
+
+Apache Ignite is architected as a **Microkernel with Plugin system** as its primary architectural style, with the entire system designed around extensibility through formal plugin and SPI contracts. The modular monolith structure supports this by providing well-organized internal boundaries while maintaining a single deployment unit.

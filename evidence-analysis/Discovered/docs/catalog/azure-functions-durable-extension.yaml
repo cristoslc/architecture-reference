@@ -18,7 +18,6 @@ languages:
 - Java/Kotlin
 architecture_styles:
 - Microkernel (Plugin)
-- Event-Driven
 - Hexagonal Architecture
 classification_status: classified
 review_notes: "This repository implements the **Durable Functions** extension for\
@@ -40,58 +39,66 @@ review_notes: "This repository implements the **Durable Functions** extension fo
   \ is a library, the system it builds is internally structured around **Event Sourcing**\
   \ and asynchronous messaging."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.59
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:41:02Z'
-classification_reasoning: "This repository implements the **Durable Functions** extension\
-  \ for Azure Functions. Its architecture is fundamentally a **Microkernel (Plugin)**\
-  \ system, designed to extend the Azure Functions (WebJobs) host with stateful orchestration\
-  \ capabilities.\n\n### 1. Primary Style: Microkernel (Plugin)\nThe repository is\
-  \ structured as a set of extensions that \"plug into\" the Azure Functions runtime.\
-  \ \n- **Core Kernel Interface:** The code utilizes the `IExtensionConfigProvider`\
-  \ and `ITriggerBindingProvider` interfaces from the Azure WebJobs SDK to register\
-  \ new behaviors.\n- **Plugin Implementation:** `src/WebJobs.Extensions.DurableTask/DurableTaskExtension.cs`\
-  \ (referenced in the directory as the main logic hub) acts as the entry point that\
-  \ registers `OrchestrationTriggerAttribute`, `ActivityTriggerAttribute`, and `EntityTriggerAttribute`.\
-  \ \n- **Extensibility Points:** The architecture allows for different \"Storage\
-  \ Providers\" (the persistence layer) via the `IDurabilityProviderFactory` interface.\
-  \ The repository includes implementations like `AzureStorageDurabilityProvider`\
-  \ and supports others like `Netherite` or `MSSQL` (seen in `test/SmokeTests/BackendSmokeTests`),\
-  \ effectively allowing the \"Durable\" logic to remain agnostic of the underlying\
-  \ storage technology.\n\n### 2. Secondary Style: Event-Driven\nWhile the repository\
-  \ is a library, the system it builds is internally structured around **Event Sourcing**\
-  \ and asynchronous messaging.\n- **Source of Truth:** The state is managed through\
-  \ a sequence of history events (`HistoryEventJsonConverter.cs`).\n- **Communication:**\
-  \ Components communicate via task hubs and queues. The orchestrator functions are\
-  \ \"replayed\" based on event history, a classic event-driven pattern where the\
-  \ state is reconstructed from a log of events rather than a snapshot.\n- **Triggers:**\
-  \ The use of `OrchestrationTrigger` and `EntityTrigger` represents a pub/sub-like\
-  \ model where the Functions host dispatches events to the extension, which then\
-  \ executes the user's code.\n\n### 3. Secondary Style: Hexagonal Architecture (Ports\
-  \ and Adapters)\nThe repository shows a strong separation between the core durable\
-  \ logic and external \"adapters\":\n- **Internal Core:** The \"Durable Task\" logic\
-  \ remains decoupled from the specific transport or hosting environment.\n- **Adapters:**\
-  \ \n    - **Host Adapters:** `src/WebJobs.Extensions.DurableTask` (In-process host)\
-  \ vs. `src/Worker.Extensions.DurableTask` (Isolated/Out-of-process worker).\n  \
-  \  - **Communication Adapters:** `TaskHubGrpcServer.cs` and `LocalHttpListener.cs`\
-  \ provide different \"ports\" for interacting with the durable engine.\n    - **Persistence\
-  \ Adapters:** `DurabilityProvider.cs` serves as the abstract port for storage, with\
-  \ `AzureStorageDurabilityProvider.cs` as a specific adapter.\n\n### Module Boundaries\n\
-  - **Project Separation:** The repository maintains clear boundaries between the\
-  \ **In-Process extension** (`WebJobs.Extensions.DurableTask`), the **Out-of-Process\
-  \ worker support** (`Worker.Extensions.DurableTask`), and **Tooling/Analyzers**\
-  \ (`WebJobs.Extensions.DurableTask.Analyzers`). This separation ensures that the\
-  \ core engine can be consumed in different execution environments (static vs. isolated)\
-  \ without circular dependencies."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.59
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.65
-  alternatives_dismissed: 0.3
-  exploration_completeness: 0.68
-  flags: multiple co-equal primary styles listed (Microkernel, Event-Driven, Hexagonal)
-    with comparable evidence weight — true primary style unclear; alternatives like
-    Layered or pure Library architecture not considered
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:51:14Z'
+classification_reasoning: "## Analysis\n\nThis repository is the **Azure Functions\
+  \ Durable Extension** - a plugin that extends the Azure Functions runtime with stateful\
+  \ orchestration capabilities. The architecture is fundamentally a **Microkernel\
+  \ (Plugin)** pattern, with secondary Hexagonal Architecture characteristics for\
+  \ its storage abstraction.\n\n### Primary Evidence: Microkernel (Plugin) Architecture\n\
+  \n**1. Azure Functions Extension Contract Implementation**\n\nThe core `DurableTaskExtension`\
+  \ class implements `IExtensionConfigProvider` - the Azure Functions plugin contract:\n\
+  \n```csharp\n[Extension(\"DurableTask\", \"DurableTask\")]\npublic class DurableTaskExtension\
+  \ :\n    IExtensionConfigProvider,\n    IDisposable,\n    IAsyncConverter<HttpRequestMessage,\
+  \ HttpResponseMessage>,\n    INameVersionObjectManager<TaskOrchestration>,\n   \
+  \ INameVersionObjectManager<TaskActivity>\n```\n(`src/WebJobs.Extensions.DurableTask/DurableTaskExtension.cs:37-43`)\n\
+  \n**2. Auto-Registration via Startup Classes**\n\nThe extension uses assembly-level\
+  \ attributes for auto-registration with the host:\n\n```csharp\n[assembly: WebJobsStartup(typeof(DurableTaskWebJobsStartup))]\n\
+  \ninternal class DurableTaskWebJobsStartup : IWebJobsStartup\n{\n    public void\
+  \ Configure(IWebJobsBuilder builder)\n    {\n        builder.AddDurableTask();\n\
+  \    }\n}\n```\n(`src/WebJobs.Extensions.DurableTask/DurableTaskWebJobsStartup.cs`)\n\
+  \nA separate startup for the isolated worker model:\n```csharp\n[assembly: WorkerExtensionStartup(typeof(DurableTaskExtensionStartup))]\n\
+  ```\n(`src/Worker.Extensions.DurableTask/DurableTaskExtensionStartup.cs`)\n\n**3.\
+  \ Dynamic Function Registration**\n\nThe extension registers user functions dynamically\
+  \ at runtime through binding rules:\n\n```csharp\nvoid IExtensionConfigProvider.Initialize(ExtensionConfigContext\
+  \ context)\n{\n    // ...\n    var rule = context.AddBindingRule<DurableClientAttribute>()\n\
+  \        .BindToInput<DurableClient>(...\");\n    // ...\n    context.AddBindingRule<OrchestrationTriggerAttribute>()\n\
+  \        .BindToTrigger(...);\n    context.AddBindingRule<ActivityTriggerAttribute>()\n\
+  \        .BindToTrigger(...);\n    context.AddBindingRule<EntityTriggerAttribute>()\n\
+  \        .BindToTrigger(...);\n}\n```\n(`src/WebJobs.Extensions.DurableTask/DurableTaskExtension.cs:372-451`)\n\
+  \nFunctions are registered via:\n- `RegisterOrchestrator(FunctionName, RegisteredFunctionInfo)`\
+  \ (line 1194)\n- `RegisterActivity(FunctionName, ITriggeredFunctionExecutor)` (line\
+  \ 1232)\n- `RegisterEntity(FunctionName, RegisteredFunctionInfo)` (line 1268)\n\n\
+  **4. Shim Pattern for Multi-Language Support**\n\nThe extension adapts user functions\
+  \ (in any language) to the Durable Task Framework core:\n\n```csharp\ninternal class\
+  \ TaskOrchestrationShim : TaskCommonShim\n{\n    private readonly DurableOrchestrationContext\
+  \ context;\n    // Delegates execution to registered function\n}\n```\n(`src/WebJobs.Extensions.DurableTask/Listener/TaskOrchestrationShim.cs`)\n\
+  \n### Secondary Evidence: Hexagonal Architecture (Storage Ports)\n\n**Pluggable\
+  \ Storage Backend Pattern**\n\nThe extension defines a clear port interface for\
+  \ storage backends:\n\n```csharp\npublic interface IDurabilityProviderFactory\n\
+  {\n    string Name { get; }\n    DurabilityProvider GetDurabilityProvider();\n \
+  \   DurabilityProvider GetDurabilityProvider(DurableClientAttribute attribute);\n\
+  }\n```\n(`src/WebJobs.Extensions.DurableTask/IDurabilityProviderFactory.cs:11-53`)\n\
+  \nMultiple storage adapters:\n- **Azure Storage** (`AzureStorageDurabilityProviderFactory`)\
+  \ - default\n- **MSSQL** (`Microsoft.DurableTask.SqlServer.AzureFunctions` package)\n\
+  - **Netherite** (`Microsoft.Azure.DurableTask.Netherite.AzureFunctions` package)\n\
+  - **Emulator** (`EmulatorDurabilityProviderFactory`) - for testing\n\n```csharp\n\
+  public DurableTaskExtension(\n    IEnumerable<IDurabilityProviderFactory> orchestrationServiceFactories,\
+  \ // Injected plugins\n    ...)\n```\n\nTest projects demonstrate multiple backends:\n\
+  ```xml\n<PackageReference Include=\"Microsoft.DurableTask.SqlServer.AzureFunctions\"\
+  \ Version=\"1.5.1\" />\n<PackageReference Include=\"Microsoft.Azure.DurableTask.Netherite.AzureFunctions\"\
+  \ Version=\"3.1.0\" />\n```\n(`test/SmokeTests/BackendSmokeTests/MSSQL/MSSQL.csproj`,\
+  \ `Netherite.csproj`)\n\n**Additional Plugin Points (Adapters):**\n- `ILifeCycleNotificationHelper`\
+  \ - lifecycle event notifications\n- `IDurableHttpMessageHandlerFactory` - HTTP\
+  \ handler customization\n- `ITelemetryActivator` - distributed tracing integration\n\
+  - `IMessageSerializerSettingsFactory` / `IErrorSerializerSettingsFactory` - serialization\
+  \ customization\n- `IDurableClientFactory` - client creation customization\n\n###\
+  \ What This Is NOT\n\n- **NOT Layered Architecture**: There's no horizontal layering\
+  \ (presentation/business/data). This is a plugin library with vertical extension\
+  \ points.\n\n- **NOT Microservices**: This is a single extension library deployed\
+  \ as a NuGet package, not multiple independently deployable services.\n\n- **NOT\
+  \ Event-Driven Architecture**: While Durable Functions orchestrates via internal\
+  \ events, the extension itself is structured as a plugin system with direct invo\n\
+  \n[truncated]"

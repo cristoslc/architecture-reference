@@ -1,0 +1,92 @@
+I'll explore the bigcapital repository to understand its architecture. Let me start with an overview of the structure and README.Let me explore the monorepo structure in more detail, examining the server and webapp packages.Let me examine the module structure in more detail to understand the organization pattern.Let me check a few more things to understand the event/queue usage and module boundaries:Let me check one more thing - the model structure to understand the data layer organization:Let me verify one more aspect - how modules communicate and whether there are repositories:I now have a comprehensive understanding of the architecture. Let me provide my classification:
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.92
+---
+
+## Analysis
+
+### Architecture Classification: Modular Monolith
+
+**Primary Evidence:**
+
+1. **Single Deployable Unit**: The repository builds a single NestJS server application (`packages/server`) that is deployed as one container. The production Dockerfile (`packages/server/Dockerfile`) produces a single artifact: `node packages/server/dist/main.js`.
+
+2. **Enforced Module Boundaries**: The server contains **79 feature modules** under `packages/server/src/modules/`, each organized around business domains:
+   - Accounts, Bills, Customers, Expenses, Invoices, Banking, Inventory
+   - Each module is a NestJS `@Module` with explicit imports/exports
+   - Modules contain controllers, services, repositories, models, and DTOs
+
+3. **Module Structure Pattern**: Each module follows a consistent structure:
+   - Controllers (`Accounts.controller.ts`) - HTTP layer
+   - Application services (`AccountsApplication.service.ts`) - orchestrates use cases
+   - Granular services (`CreateAccount.service.ts`, `GetAccount.service.ts`) - single responsibility
+   - Repositories (`Account.repository.ts`) - data access layer
+   - Models (`Account.model.ts`) - Objection.js ORM entities
+
+4. **Multi-Tenant Database Architecture**: 
+   - System database for tenant management
+   - Per-tenant databases (`bigcapital_tenant_{organizationId}`)
+   - Dynamic connection routing via `TenancyDatabaseProxyProvider` (`src/modules/Tenancy/TenancyDB/TenancyDB.module.ts`)
+   - Request-scoped tenancy context with guards (`TenancyGlobalGuard`, `EnsureTenantIsInitializedGuard`)
+
+5. **Monorepo Structure**: Uses pnpm workspaces + Lerna with shared packages:
+   - `packages/server` - Backend monolith
+   - `packages/webapp` - React frontend
+   - `shared/` - SDK, utilities, templates
+
+### Secondary Style: Layered
+
+The architecture exhibits clear horizontal layering within each module:
+- **Presentation Layer**: Controllers handle HTTP requests/responses (`@Controller` classes)
+- **Application/Business Logic Layer**: Services implement business rules (`@Injectable` services)
+- **Data Access Layer**: Repositories abstract database operations (`TenantRepository` base class)
+- **Models**: Objection.js ORM models extending `BaseModel`
+
+Example from `Accounts.module.ts`:
+```typescript
+@Module({
+  imports: [TenancyDatabaseModule, DynamicListModule, ...models],
+  controllers: [AccountsController],
+  providers: [
+    AccountsApplication,
+    CreateAccountService,
+    AccountRepository,
+    ...
+  ],
+})
+```
+
+### Not Microservices
+
+The architecture is explicitly **not microservices**:
+- Single server process, not multiple independently deployable services
+- No service discovery, API gateway, or inter-service communication
+- Database-per-tenant pattern is about multi-tenancy, not service ownership
+- All modules share the same NestJS runtime and dependency injection container
+
+### Not Event-Driven Architecture
+
+While the application uses `@nestjs/event-emitter` for internal events (defined in `src/common/events/events.ts`) and BullMQ queues for background jobs, these are implementation details within a monolith—not the primary architectural style. Events are used for side effects (e.g., `onAccountCreated`, `onSaleInvoiceDelivered`) within a single application boundary.
+
+### Not Domain-Driven Design
+
+Despite having domain-oriented modules, the architecture lacks:
+- Aggregates with enforced consistency boundaries
+- Domain events as first-class citizens
+- Bounded context isolation (all modules share the same database schema)
+- Ubiquitous language artifacts
+
+The modules are organized by business capability but don't implement DDD tactical patterns.
+
+### Key Files Supporting Classification:
+
+- `packages/server/src/modules/App/App.module.ts` - Root module importing 50+ feature modules
+- `packages/server/src/modules/Tenancy/Tenancy.module.ts` - Tenant isolation guards
+- `packages/server/src/modules/Accounts/Accounts.module.ts` - Typical module structure
+- `packages/server/Dockerfile` - Single container deployment
+- `docker-compose.prod.yml` - 3 services: proxy, server, webapp (not microservices)

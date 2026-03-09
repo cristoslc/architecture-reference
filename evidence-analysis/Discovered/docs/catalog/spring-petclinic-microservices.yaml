@@ -15,7 +15,6 @@ languages:
 - JavaScript
 architecture_styles:
 - Microservices
-- Layered
 classification_status: classified
 review_notes: "This repository is a definitive implementation of a **Microservices**\
   \ architecture, specifically designed to demonstrate the decomposition of a monolithic\
@@ -27,51 +26,43 @@ review_notes: "This repository is a definitive implementation of a **Microservic
   2.  **Infrastructure Services**: It includes dedicated services for cross-cutting\
   \ microservices concerns:"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.86
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:11:49Z'
-classification_reasoning: "This repository is a definitive implementation of a **Microservices**\
-  \ architecture, specifically designed to demonstrate the decomposition of a monolithic\
-  \ application (the original Spring PetClinic).\n\n### Evidence of Microservices\
-  \ Architecture\n\n1.  **Independent Deployment Units**: The repository Map shows\
-  \ multiple independent Spring Boot applications, each with its own `pom.xml`, source\
-  \ tree, and lifecycle:\n    *   `spring-petclinic-customers-service`\n    *   `spring-petclinic-vets-service`\n\
-  \    *   `spring-petclinic-visits-service`\n    *   `spring-petclinic-genai-service`\n\
-  2.  **Infrastructure Services**: It includes dedicated services for cross-cutting\
-  \ microservices concerns:\n    *   **Discovery**: `spring-petclinic-discovery-server`\
-  \ (Eureka).\n    *   **Configuration**: `spring-petclinic-config-server` (Spring\
-  \ Cloud Config).\n    *   **Routing**: `spring-petclinic-api-gateway` (Spring Cloud\
-  \ Gateway), which acts as the entry point.\n    *   **Observability**: Integrated\
-  \ Zipkin for tracing, Prometheus for metrics, and Grafana for visualization.\n3.\
-  \  **Data Sovereignty**: The README explicitly mentions that each service manages\
-  \ its own domain (Customers, Vets, Visits) and can be configured with its own database\
-  \ profile (HSQLDB or MySQL).\n4.  **Resilience Patterns**: The documentation and\
-  \ code use `Resilience4j` and `Spring Cloud Circuit Breaker` for handling inter-service\
-  \ communication failures, a hallmark of distributed microservices.\n5.  **Orchestration**:\
-  \ A root `docker-compose.yml` file integrates all services, including infrastructure\
-  \ (Prometheus, Grafana, MySQL), into a single environment.\n\n### Secondary Style:\
-  \ Layered\n\nWithin each individual microservice, the project follows a traditional\
-  \ **Layered** architecture. While the directory tree is high-level, the README and\
-  \ context of typical Spring Boot PetClinic implementations point toward standard\
-  \ horizontal layers:\n*   **Web/Presentation**: Controllers (e.g., `OwnerResource`,\
-  \ `PetResource` cited in README) handling REST requests.\n*   **Business/Service**:\
-  \ Logic for processing domain rules.\n*   **Persistence**: Repository interfaces\
-  \ for database interaction (using Spring Data JPA).\n\n### Styles Rejected\n\n*\
-  \   **Modular Monolith**: Although managed in a single Git repository (monorepo),\
-  \ the services are independently executable, have their own ports, and communicate\
-  \ over the network (REST/Eureka), which disqualifies it as a monolith.\n*   **Event-Driven**:\
-  \ While microservices often use events, this specific implementation primarily focuses\
-  \ on synchronous RESTful communication facilitated by an API Gateway and Service\
-  \ Discovery. There is no evidence of a message broker like Kafka or RabbitMQ being\
-  \ central to the architecture.\n*   **Hexagonal**: While it uses some abstractions,\
-  \ it does not explicitly follow the Ports and Adapters pattern for isolating the\
-  \ core domain from the framework; it is heavily coupled to the Spring ecosystem."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.86
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.82
-  style_clarity: 0.95
-  alternatives_dismissed: 0.85
-  exploration_completeness: 0.78
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T21:02:09Z'
+classification_reasoning: "## Analysis\n\nThis repository demonstrates a **textbook\
+  \ Microservices architecture** with clear separation of concerns, independent deployability,\
+  \ and database-per-service pattern.\n\n### Key Evidence for Microservices:\n\n**1.\
+  \ Multiple Independently Deployable Services**\n\nThe root `pom.xml` defines 8 Maven\
+  \ modules as independently deployable units:\n- **Business services:** customers-service,\
+  \ vets-service, visits-service, genai-service\n- **Infrastructure services:** api-gateway,\
+  \ config-server, discovery-server, admin-server\n\nThe `docker-compose.yml` confirms\
+  \ this deployment topology with 10+ containers, each service having its own Docker\
+  \ image and exposed port.\n\n**2. Database-Per-Service Pattern**\n\nEach business\
+  \ service owns its own database schema, stored within the service itself:\n\n- `spring-petclinic-customers-service/src/main/resources/db/hsqldb/schema.sql`:\
+  \ `owners`, `pets`, `types` tables\n- `spring-petclinic-vets-service/src/main/resources/db/hsqldb/schema.sql`:\
+  \ `vets`, `specialties`, `vet_specialties` tables  \n- `spring-petclinic-visits-service/src/main/resources/db/hsqldb/schema.sql`:\
+  \ `visits` table\n\nNo shared database exists between services - this is a defining\
+  \ characteristic of microservices (vs service-based where databases are shared).\n\
+  \n**3. Service Discovery & API Gateway**\n\n- **Eureka Discovery Server** (`spring-petclinic-discovery-server`)\
+  \ provides service registry\n- **API Gateway** (`spring-petclinic-api-gateway`)\
+  \ routes external requests with Spring Cloud Gateway:\n```yaml\nroutes:\n  - id:\
+  \ customers-service\n    uri: lb://customers-service\n    predicates: Path=/api/customer/**\n\
+  ```\n- Uses `lb://` protocol for load-balanced service discovery\n\n**4. Synchronous\
+  \ REST Communication**\n\nServices communicate via REST APIs, not events:\n```java\n\
+  // CustomersServiceClient.java\nreturn webClientBuilder.build().get()\n    .uri(\"\
+  http://customers-service/owners/{ownerId}\", ownerId)\n    .retrieve()\n    .bodyToMono(OwnerDetails.class);\n\
+  ```\n\n**5. Infrastructure Support**\n\n- Config Server for centralized configuration\n\
+  - Zipkin for distributed tracing\n- Prometheus/Grafana for monitoring\n- Circuit\
+  \ breaker pattern (Resilience4j)\n\n### What This Is NOT:\n\n- **Not Event-Driven:**\
+  \ No message brokers (Kafka, RabbitMQ), no `@EventListener` or `@KafkaListener`\
+  \ annotations found\n- **Not Service-Based:** Services don't share a database -\
+  \ each has its own embedded schema\n- **Not Modular Monolith:** 8 separate deployable\
+  \ containers, not a single application\n- **Not Layered:** No technical layer organization\
+  \ across services; each service has its own stack\n- **Not DDD:** Simple CRUD entities\
+  \ with JPA repositories; no aggregates, value objects, or bounded context patterns\n\
+  \n### Conclusion\n\nThis is the canonical Spring PetClinic Microservices reference\
+  \ implementation, explicitly designed to demonstrate microservices architecture\
+  \ using Spring Cloud. The architecture follows all key microservices tenets: independently\
+  \ deployable services, database-per-service, service discovery, API gateway, and\
+  \ fault tolerance patterns."

@@ -14,7 +14,6 @@ languages:
 - C#
 architecture_styles:
 - Modular Monolith
-- Event-Driven
 - Domain-Driven Design
 classification_status: classified
 review_notes: 'The repository is explicitly designed as a **Modular Monolith**, as
@@ -47,68 +46,56 @@ review_notes: 'The repository is explicitly designed as a **Modular Monolith**, 
   between modules. This is supported by infrastructure in `src/Shared/Confab.Shared.Infrastructure/Messaging`
   and `Events`.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.87
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:44:21Z'
-classification_reasoning: 'The repository is explicitly designed as a **Modular Monolith**,
-  as stated in the README and evidenced by the project structure. The core architecture
-  centers on a single deployable unit (the `Bootstrapper`) that aggregates multiple
-  independent modules located under `src/Modules/`.
-
-
-  ### Primary Style: Modular Monolith
-
-  - **Single Deployment Unit:** The `src/Bootstrapper/Confab.Bootstrapper` project
-  serves as the entry point. Its responsibility is to load and initialize all modules
-  into a single process.
-
-  - **Module Isolation:** Modules (e.g., `Attendances`, `Agendas`, `Tickets`) are
-  organized into separate folders with their own internal layering (Domain, Application,
-  Infrastructure, Api).
-
-  - **Module Loading:** The presence of `src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs`
-  indicates a formal mechanism for discovering and starting these modules within the
-  monolith''s lifecycle.
-
-  - **Strict Boundaries:** The README mentions the use of "local contracts" instead
-  of shared projects to prevent tight coupling between independent modules.
-
-
-  ### Secondary Style: Event-Driven
-
-  - **Inter-Module Communication:** The system uses asynchronous messaging for integration
-  between modules. This is supported by infrastructure in `src/Shared/Confab.Shared.Infrastructure/Messaging`
-  and `Events`.
-
-  - **Infrastructure:** The codebase includes a `Saga` module (`src/Modules/Saga`),
-  which is a common pattern in event-driven systems to manage long-running distributed
-  transactions across boundaries.
-
-
-  ### Secondary Style: Domain-Driven Design (DDD)
-
-  - **Aggregates and Bounded Contexts:** Each module acts as a Bounded Context. Modules
-  like `Agendas` and `Attendances` explicitly follow DDD folder structures (Domain,
-  Application, Infrastructure).
-
-  - **Abstractions:** `src/Shared/Confab.Shared.Abstractions/Kernel` likely contains
-  DDD "Building Blocks" like `AggregateRoot` or `DomainEvent` base classes.
-
-
-  ### Note on Microservices
-
-  While the repository contains a `src/Services` folder and an `APIGateway`, the README
-  clarifies that these are part of a demonstrated transition *to* microservices. The
-  execution instructions specifically point to the `Bootstrapper` (the monolith),
-  and the `docker-compose.yaml` is primarily used for infrastructure (PostgreSQL)
-  rather than a fleet of business services. The core architectural intent remains
-  a Modular Monolith.'
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.87
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.9
-  alternatives_dismissed: 0.85
-  exploration_completeness: 0.88
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:16:34Z'
+classification_reasoning: "## Architecture Classification: Modular Monolith\n\n###\
+  \ Evidence for Modular Monolith\n\n**Single Deployable with Module Boundaries:**\n\
+  - The `Bootstrapper` project (`src/Bootstrapper/Confab.Bootstrapper/Confab.Bootstrapper.csproj`)\
+  \ references all modules and serves as the single entry point\n- All modules are\
+  \ compiled into one application and run via `dotnet run` from the Bootstrapper\n\
+  \n**Explicit Module Contract (`IModule` interface):**\n```csharp\n// src/Shared/Confab.Shared.Abstractions/Modules/IModule.cs\n\
+  public interface IModule\n{\n    string Name { get; }\n    string Path { get; }\n\
+  \    IEnumerable<string> Policies => null;\n    void Register(IServiceCollection\
+  \ services);\n    void Use(IApplicationBuilder app);\n}\n```\n\n**Dynamic Module\
+  \ Loading with Enable/Disable Support:**\n```csharp\n// src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs\n\
+  var enabled = configuration.GetValue<bool>($\"{moduleName}:module:enabled\");\n\
+  if (!enabled) { disabledModules.Add(file); }\n```\n\n**Inter-Module Communication\
+  \ via Local Contracts:**\n- `IModuleClient` provides `SendAsync()` for request/response\
+  \ and `PublishAsync()` for broadcast\n- Type translation via serialization prevents\
+  \ direct type dependencies between modules:\n```csharp\n// src/Shared/Confab.Shared.Infrastructure/Modules/ModuleClient.cs\n\
+  private T TranslateType<T>(object value)\n    => _moduleSerializer.Deserialize<T>(_moduleSerializer.Serialize(value));\n\
+  ```\n\n**Separate Database Schemas Per Module:**\n```csharp\n// src/Modules/Agendas/Confab.Modules.Agendas.Infrastructure/EF/AgendasDbContext.cs\n\
+  protected override void OnModelCreating(ModelBuilder modelBuilder)\n{\n    modelBuilder.HasDefaultSchema(\"\
+  agendas\");\n}\n```\n\n**7 Well-Defined Modules:**\n- Agendas, Attendances, Conferences,\
+  \ Saga, Speakers, Tickets, Users\n- Each has its own namespace: `Confab.Modules.*`\n\
+  - Each has internal layering (Api/Application/Domain/Infrastructure or Core)\n\n\
+  ### Evidence for Domain-Driven Design (Secondary)\n\n**Aggregate Root Pattern:**\n\
+  ```csharp\n// src/Shared/Confab.Shared.Abstractions/Kernel/Types/AggregateRoot.cs\n\
+  public abstract class AggregateRoot<T>\n{\n    public IEnumerable<IDomainEvent>\
+  \ Events => _events;\n    protected void AddEvent(IDomainEvent @event) { ... }\n\
+  }\n```\n\n**Domain Entities with Business Logic:**\n```csharp\n// src/Modules/Agendas/Confab.Modules.Agendas.Domain/Submissions/Entities/Submission.cs\n\
+  public sealed class Submission : AggregateRoot\n{\n    public void Approve() =>\
+  \ ChangeStatus(SubmissionStatus.Approved, SubmissionStatus.Rejected);\n    // Business\
+  \ logic encapsulated in entity methods\n}\n```\n\n**Domain Events and Handlers:**\n\
+  ```csharp\n// src/Modules/Agendas/Confab.Modules.Agendas.Domain/Agendas/Events/Handlers/SubmissionApprovedHandler.cs\n\
+  internal sealed class SubmissionApprovedHandler : IDomainEventHandler<SubmissionStatusChanged>\n\
+  ```\n\n**Domain Services, Repositories, and Value Objects present in module Domain\
+  \ layers**\n\n### What This Architecture Is NOT\n\n- **NOT Microservices**: The\
+  \ README explicitly states this is a modular monolith. All modules deploy together\
+  \ through the Bootstrapper. The `APIGateway` and `Services/Tickets` projects exist\
+  \ for future microservices transition demonstration, not current deployment.\n\n\
+  - **NOT Just Layered**: While modules have internal horizontal layers (Api/Application/Domain/Infrastructure),\
+  \ the **primary architectural driver is vertical module boundaries** with enforced\
+  \ isolation. Horizontal layering is secondary.\n\n- **NOT Service-Based**: Service-Based\
+  \ architecture has 2-5 coarse-grained services often sharing a database. This has\
+  \ 7 fine-grained modules with separate schemas and stronger isolation through local\
+  \ contracts.\n\n### Conclusion\n\nConfab is a textbook example of **Modular Monolith**\
+  \ architecture with strong module boundary enforcement through:\n1. Explicit `IModule`\
+  \ contracts\n2. Dynamic loading with enable/disable capability\n3. Separate database\
+  \ schemas per module\n4. Local contracts approach for inter-module communication\
+  \ (no shared types)\n5. Serialization-based type translation preventing direct dependencies\n\
+  \nThe DDD patterns (aggregates, domain events, entities with business logic) are\
+  \ applied **within modules**, making DDD a complementary secondary style supporting\
+  \ the modular monolith primary architecture."

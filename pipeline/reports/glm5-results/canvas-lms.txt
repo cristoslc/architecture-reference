@@ -1,0 +1,77 @@
+I'll explore the canvas-lms repository to classify its architecture. Let me start with an overview of the structure.Based on my comprehensive investigation, I'm ready to classify the architecture.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.90
+---
+
+## Analysis
+
+**Primary Style: Layered (MVC)**
+
+Canvas LMS is a classic Ruby on Rails monolithic application with a traditional layered MVC architecture:
+
+- **Controllers Layer** (`app/controllers/`): 220+ controller files handling HTTP routing and request processing. The `ApplicationController` serves as the base, with controllers like `accounts_controller.rb` (109,918 lines), `assignments_controller.rb`, etc.
+  
+- **Models Layer** (`app/models/`): 330+ ActiveRecord model files (~82,614 total lines of model code) representing domain entities like `Account`, `Course`, `Assignment`, `User`, `Enrollment`. Models use ActiveRecord ORM with direct database relationships (e.g., `Account` has_many `:courses`, `:enrollments`, `:sub_accounts`).
+
+- **Views Layer** (`app/views/`): Traditional Rails view templates with ERB files for rendering HTML.
+
+- **Helpers** (`app/helpers/`): 75+ helper modules for view logic extraction.
+
+- **Services** (`app/services/`): Service objects for complex business operations (e.g., `GradeService`, `VideoCaptionService`).
+
+- **Serializers/Presenters**: Additional layers for JSON API responses and presentation logic.
+
+**Secondary Style: Microkernel (Plugin)**
+
+Canvas implements a plugin architecture through Rails Engines:
+
+1. **Plugin Discovery**: `Gemfile.d/plugins.rb` loads plugins from `gems/plugins/*`
+
+2. **Plugin Registration**: Each plugin registers via `Canvas::Plugin.register`:
+   ```ruby
+   # gems/plugins/qti_exporter/lib/qti_exporter/engine.rb
+   Canvas::Plugin.register :qti_converter, :export_system, {
+     name: "QTI Converter",
+     settings: { worker: "QtiWorker", provides: { qti: Qti::Converter } }
+   }
+   ```
+
+3. **Six Bundled Plugins**:
+   - `academic_benchmark` - Academic standards importer
+   - `account_reports` - Account-level reporting functionality
+   - `moodle_importer` - Moodle course migration
+   - `qti_exporter` - QTI quiz format conversion
+   - `respondus_soap_endpoint` - Respondus integration
+   - `simply_versioned` - Versioning support
+
+4. **Plugin Contract**: Each plugin is a Rails Engine that:
+   - Defines a `config.to_prepare` block
+   - Registers with the `Canvas::Plugin` system with metadata, settings, and capabilities
+   - Can provide views (`app/views/`), configuration, and domain logic
+   - Integrates into specific extension points (e.g., `:export_system` tag)
+
+5. **Core Plugin System** (`lib/base/canvas/plugin.rb`): Manages plugin lifecycle, settings, validation, and discovery via `Canvas::Plugin.find`, `Canvas::Plugin.all_for_tag(tag)`.
+
+**What I Rejected:**
+
+- **Microservices**: Single deployable Rails app, single PostgreSQL database, no service boundaries. Docker Compose shows one `web` service and background `jobs` worker.
+
+- **Modular Monolith**: No enforced module boundaries or internal domain separation. While internal gems exist (~50 in `gems/`), they're organizational utilities, not bounded contexts. The plugin system is for external extensions, not internal modularization.
+
+- **Event-Driven**: `LiveEventsObserver` exists for analytics/integration event emission, but events don't drive application flow. The observer pattern is a supplementary feature.
+
+- **Domain-Driven Design**: No aggregates, value objects, or bounded contexts. Models are ActiveRecord with anemic domain logic focused on database persistence.
+
+- **Hexagonal Architecture**: No ports/adapters isolation. ActiveRecord models directly couple to the database; controllers directly instantiate models.
+
+**Evidence Summary:**
+- Single `Dockerfile` building one application image
+- 85,000+ lines of controller code, 82,000+ lines of model code in classic MVC layers
+- Plugin system with 6 extensions using `Rails::Engine` + `Canvas::Plugin.register`
+- Single database with migrations in `db/migrate/`
+- `config.ru` runs `CanvasRails::Application` as the sole entry point

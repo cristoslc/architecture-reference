@@ -15,9 +15,8 @@ languages:
 - TypeScript
 - Rust
 architecture_styles:
-- Event-Driven
+- Modular Monolith
 - Layered
-- Microkernel (Plugin)
 classification_status: classified
 review_notes: '### Architecture Analysis
 
@@ -45,60 +44,59 @@ review_notes: '### Architecture Analysis
   or a client are processed by "Extensions" (e.g., `postgres_cdc_rls`) and fanned
   out to authorized subscribers.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.59
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:08:19Z'
-classification_reasoning: "### Architecture Analysis\n\nThe Supabase Realtime repository\
-  \ is structured as a high-performance, distributed messaging system built on the\
-  \ Elixir/Phoenix ecosystem. Its primary architectural identity is **Event-Driven**,\
-  \ specifically designed to handle the ingestion, transformation, and distribution\
-  \ of asynchronous data streams (Postgres changes, broadcast messages, and presence\
-  \ state).\n\n#### 1. Event-Driven (Primary Style)\nThe core purpose and internal\
-  \ organization of the code revolve around event propagation.\n- **Data Ingestion**:\
-  \ It implements a Change Data Capture (CDC) mechanism that listens to Postgres logical\
-  \ replication slots (`lib/realtime/adapters/postgres`).\n- **Pub/Sub Mechanism**:\
-  \ It leverages Phoenix Channels and Elixir’s distributed `PubSub` for message routing.\
-  \ The implementation of `gen_rpc_pub_sub` (found in `lib/realtime/gen_rpc_pub_sub.ex`)\
-  \ indicates a custom, cluster-aware event distribution layer that allows nodes to\
-  \ communicate events efficiently across a cluster.\n- **Asynchronous Flow**: The\
-  \ system is reactive. Events originating in a database or a client are processed\
-  \ by \"Extensions\" (e.g., `postgres_cdc_rls`) and fanned out to authorized subscribers.\n\
-  \n#### 2. Layered (Secondary Style)\nFollowing the standard Phoenix Framework conventions,\
-  \ the repository maintains a clear horizontal separation:\n- **Web/Presentation\
-  \ Layer (`lib/realtime_web/`)**: Handles WebSockets, HTTP controllers for tenant\
-  \ management, and Phoenix Channels (`realtime_channel.ex`).\n- **Business/Domain\
-  \ Layer (`lib/realtime/`)**: Contains the core logic for tenant management, replication\
-  \ handling, and rate-limiting.\n- **Data Access Layer**: Uses Ecto (evident from\
-  \ `priv/repo/migrations` and `lib/realtime/repo.ex`) to manage its own internal\
-  \ state (tenants, extensions) and interfaces with external Postgres databases for\
-  \ CDC.\n\n#### 3. Microkernel (Plugin) (Secondary Style)\nThe system uses an \"\
-  Extension\" architecture to handle different types of realtime functionality.\n\
-  - **Internal Plugins**: The system defines \"Extensions\" (found in `test/extensions`\
-  \ and referenced in the README) like `postgres_cdc_rls`. \n- **Modular Functionality**:\
-  \ The README specifically mentions adding \"extensions\" to a tenant via API. This\
-  \ allows the core server to remain generic while specific processing logic (like\
-  \ Row Level Security for Postgres changes) is encapsulated in specific extension\
-  \ modules.\n\n#### 4. Evidence of Distributed Organization\n- **Cluster Awareness**:\
-  \ The use of `gen_rpc` and variables like `DNS_NODES` and `REBALANCE_CHECK_INTERVAL_IN_MS`\
-  \ shows the system is designed as a distributed cluster of nodes where state (Presence)\
-  \ and events are synchronized across the network.\n- **Native Components**: The\
-  \ inclusion of a Rust-based `native/prometheus_remote_write` indicates a performance-critical\
-  \ sidecar or NIF for handling telemetry data exports, common in high-throughput\
-  \ event systems.\n\n#### Rejection of Other Styles\n- **Microservices**: While part\
-  \ of the larger Supabase suite, this specific repository is a single deployment\
-  \ unit (\"Realtime Server\"). It handles its own database migrations and internal\
-  \ logic as a cohesive system rather than a collection of independent services.\n\
-  - **Modular Monolith**: While it has modules, the separation isn't strictly enforced\
-  \ for the sake of decoupling business domains but rather for technical specializations\
-  \ (Web vs. Replication)."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.59
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.65
-  style_clarity: 0.7
-  alternatives_dismissed: 0.3
-  exploration_completeness: 0.65
-  flags: microservices alternative dismissed mid-sentence; plugin evidence is shallow
-    (test dir references and README mentions only); three co-equal styles reduce clarity
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.85
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-09T00:03:16Z'
+classification_reasoning: "## Classification Analysis\n\n### Primary: Modular Monolith\n\
+  \n**Strong Evidence:**\n\n1. **Single Deployable Unit:** The repository builds a\
+  \ single Elixir/OTP application (`app: :realtime` in `mix.exs`), compiled into one\
+  \ release artifact via `mix release`, deployed as a single Docker container (`Dockerfile`\
+  \ line 92: `/app/_build/${MIX_ENV}/rel/realtime`).\n\n2. **Enforced Internal Module\
+  \ Boundaries:** Clear namespace separation between bounded contexts:\n   - `lib/realtime/`\
+  \ — Core business logic, tenant management, distributed coordination\n   - `lib/realtime_web/`\
+  \ — Phoenix web layer (channels, controllers, plugs, views)\n   - `lib/extensions/`\
+  \ — Extension point for CDC drivers with defined behaviours\n   - `beacon/` — Internal\
+  \ library for distributed process group membership (separate mix project at `beacon/mix.exs`,\
+  \ included as path dependency)\n\n3. **Module Isolation:** Each context has internal\
+  \ structure and supervision:\n   - `realtime/tenants/` has its own supervisor tree\
+  \ (`Connect`, `Migrations`, `Rebalancer`, `ReplicationConnection`, `Janitor`)\n\
+  \   - `extensions/postgres_cdc_rls/` is a self-contained module with supervisor,\
+  \ message dispatcher, replication poller\n   - `realtime_web/channels/` encapsulates\
+  \ WebSocket channel logic with handlers for broadcast, presence, and message dispatch\n\
+  \n### Secondary: Layered\n\n**Supporting Evidence:**\n\nThe codebase follows Phoenix's\
+  \ conventional layered architecture:\n\n1. **Presentation Layer:** `lib/realtime_web/`\
+  \ — Phoenix Endpoint (`endpoint.ex`), Router (`router.ex`), Controllers, Channels,\
+  \ Views, LiveView components\n2. **Application/Business Layer:** `lib/realtime/api/`,\
+  \ `lib/realtime/tenants/` — Domain logic, tenant management, authorization policies\n\
+  3. **Data Access Layer:** `lib/realtime/repo.ex`, `lib/realtime/database.ex`, Ecto\
+  \ schemas in `lib/realtime/api/tenant.ex`\n\nThis is standard Phoenix organization\
+  \ — not a primary architectural driver but clearly present.\n\n### What Was Rejected\n\
+  \n**Rejected: Event-Driven as Primary Style**\n\nWhile the system heavily uses PubSub\
+  \ and event-like patterns (PostgreSQL logical replication, WebSocket channels, `TenantBroadcaster`),\
+  \ this is **communication infrastructure within a monolith**, not an architectural\
+  \ pattern defining module boundaries. The events flow through internal modules of\
+  \ the same deployable unit — not between independent services. The distributed PubSub\
+  \ (via `gen_rpc`) is for scaling the monolith across nodes, not decoupling services.\n\
+  \n**Rejected: Microkernel/Plugin**\n\nThe extension system (`Realtime.PostgresCdc`\
+  \ behaviour with callbacks at `lib/realtime/postgres_cdc.ex:82-86`) appears plugin-like,\
+  \ but:\n- Only one implementation exists (`Extensions.PostgresCdcRls`)\n- Extensions\
+  \ are configured at compile time (`Application.compile_env(:realtime, :extensions)`\
+  \ at line 9)\n- No runtime plugin loading mechanism\n- This is a **build-time extension\
+  \ point** for code organization, not a microkernel architecture\n\n**Rejected: Microservices**\n\
+  \nSingle OTP application, single Docker image, single release artifact. No service\
+  \ decomposition. The clustering (`libcluster`, `syn`, `gen_rpc`) is for **horizontal\
+  \ scaling of the same monolithic application** across regions/nodes, not for inter-service\
+  \ communication.\n\n**Rejected: Service-Based**\n\nOnly one service exists. There's\
+  \ no decomposition into 2-5 coarse-grained services sharing a database.\n\n### Key\
+  \ Architectural Discriminators\n\n| Aspect | Evidence |\n|--------|----------|\n\
+  | Deployment units | Single (`mix release` → one artifact) |\n| Module boundaries\
+  \ | Namespaced contexts with clear responsibility |\n| Boundary enforcement | Elixir\
+  \ module system, behaviours, supervision trees |\n| Communication | Internal function\
+  \ calls + distributed PubSub for scaling |\n| Data ownership | Shared Postgres,\
+  \ tenant-isolated connections |\n\n### Confidence Rationale\n\n0.85 confidence —\
+  \ The modular monolith classification is clear from the single deployment unit with\
+  \ well-organized internal module boundaries. The layered aspect is secondary (standard\
+  \ Phoenix convention). The only ambiguity is the rich distributed systems infrastructure\
+  \ (`gen_rpc`, `syn`, `Beacon`) which might suggest event-driven to some, but this\
+  \ is horizontal scaling machinery, not architectural decomposition."

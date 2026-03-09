@@ -15,7 +15,7 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Microservices
+- Modular Monolith
 - Event-Driven
 classification_status: classified
 review_notes: 'Appwrite is structured as a **Microservices** architecture, heavily
@@ -46,82 +46,56 @@ review_notes: 'Appwrite is structured as a **Microservices** architecture, heavi
   The internal communication between the API layer and the heavy-lifting logic is
   strictly decoupled using a Message Broker (Redis/Utopia Queue).'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.76
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:39:23Z'
-classification_reasoning: 'Appwrite is structured as a **Microservices** architecture,
-  heavily reliant on an **Event-Driven** backbone for asynchronous processing.
-
-
-  ### 1. Primary Style: Microservices
-
-  The system is explicitly designed to be deployed as multiple independent units via
-  Docker.
-
-  - **Service Separation**: The codebase provides individual entry points for different
-  operational roles. `app/http.php` serves as the primary API gateway/server, while
-  `app/worker.php` acts as the entry point for various background services.
-
-  - **Independent Scalability**: In `app/http.php`, there is logic to categorize requests
-  as "safe" or "risky" (e.g., synchronous executions) and route them to specific subsets
-  of workers (`_APP_RISKY_WORKERS_PERCENT`).
-
-  - **Infrastructure**: The README and `app/views/install/compose.phtml` indicate
-  that the system is "packaged as a set of Docker microservices," typically including
-  separate containers for the API, database (MariaDB), cache (Redis), and specific
-  background workers (e.g., mail, functions, audits).
-
-
-  ### 2. Secondary Style: Event-Driven
-
-  The internal communication between the API layer and the heavy-lifting logic is
-  strictly decoupled using a Message Broker (Redis/Utopia Queue).
-
-  - **Producer-Consumer Pattern**: `app/http.php` delegates tasks to `app/worker.php`.
-  For example, a request to the API might trigger an event that is pushed to a queue.
-
-  - **Worker Specialization**: `app/worker.php` identifies its role based on a command-line
-  argument (`$workerName`). It then connects to a specific queue (e.g., `v1-mails`,
-  `v1-functions`, `v1-audits`).
-
-  - **Event Classes**: The `src/Appwrite/Event/` directory contains specific classes
-  for various system events (e.g., `Audit.php`, `Mail.php`, `Usage.php`, `Database.php`),
-  which encapsulate the logic for publishing messages to the broker.
-
-
-  ### 3. Internal Code Organization
-
-  While the deployment is microservices-based, the internal code structure follows
-  a directory-per-concern approach:
-
-  - **`app/controllers/`**: Handles the routing and request/response lifecycle using
-  the Utopia PHP framework.
-
-  - **`src/Appwrite/`**: Contains the "Domain" logic and "Adapters". Instead of a
-  strict Hexagonal or DDD approach, it uses a functional "Service/Resource" registration
-  pattern (seen in `app/worker.php` and `app/http.php` via `Server::setResource` and
-  `App::setResource`).
-
-  - **Persistence**: It uses a unified Database abstraction (`Utopia\Database`) that
-  handles multi-tenancy and data isolation across different underlying database adapters
-  (MySQL, MariaDB).
-
-
-  ### Rejected Styles
-
-  - **Modular Monolith**: While the code lives in a single repository (Monorepo),
-  the runtime architecture is explicitly designed for independent deployment of containers,
-  which satisfies the Microservices definition over a single-unit Monolith.
-
-  - **Serverless**: Although Appwrite *provides* a Cloud Functions environment for
-  users, its own internal architecture is composed of long-running Swoole-based servers
-  and workers.'
-confidence_calibration:
-  original_confidence: 0.83
-  calibrated_confidence: 0.76
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.85
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.72
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:49:26Z'
+classification_reasoning: "## Architecture Classification: Modular Monolith with Event-Driven\
+  \ Communication\n\n### Evidence for Modular Monolith (Primary)\n\n**Single Deployable\
+  \ Unit with Internal Modules:**\n- The entire backend is built as a **single PHP\
+  \ codebase** (`appwrite-dev` image) that runs in different modes based on entrypoint\n\
+  - All services share the same `composer.json` and are deployed from one image\n\
+  - From `docker-compose.yml`, multiple containers run the same image with different\
+  \ entrypoints:\n  - `appwrite` → `app/http.php` (HTTP API)\n  - `appwrite-realtime`\
+  \ → `realtime` entrypoint (WebSocket server)\n  - `appwrite-worker-*` → Various\
+  \ queue workers (8+ workers)\n  - `appwrite-task-*` → Scheduled tasks\n\n**Enforced\
+  \ Module Boundaries:**\n- Clear module structure in `src/Appwrite/Platform/Modules/`:\n\
+  \  - `Account/` - Authentication, MFA, OAuth\n  - `Databases/` - Database operations\
+  \  \n  - `Functions/` - Serverless function execution\n  - `Projects/` - Project\
+  \ management\n  - `Console/` - Admin console\n  - `Sites/` - Static site hosting\n\
+  \  - `Proxy/` - Proxy/domain management\n  - `Tokens/` - Token management\n- Each\
+  \ module follows consistent structure: `Module.php`, `Http/`, `Services/`\n- The\
+  \ `Appwrite.php` platform class orchestrates module registration:\n  ```php\n  $this->addModule(new\
+  \ Account\\Module());\n  $this->addModule(new Databases\\Module());\n  $this->addModule(new\
+  \ Functions\\Module());\n  // etc.\n  ```\n\n**Shared Infrastructure:**\n- Single\
+  \ shared MariaDB database instance (`mariadb` container)\n- Single shared Redis\
+  \ instance for caching and queuing\n- All modules use common database pools and\
+  \ connections\n\n### Evidence for Event-Driven (Secondary)\n\n**Queue-Based Architecture:**\n\
+  - Redis serves as the message broker for all async operations\n- `Event.php` defines\
+  \ 12+ distinct queue names for different event types:\n  - `DATABASE_QUEUE_NAME\
+  \ = 'v1-database'`\n  - `FUNCTIONS_QUEUE_NAME = 'v1-functions'`\n  - `MAILS_QUEUE_NAME\
+  \ = 'v1-mails'`\n  - `WEBHOOK_QUEUE_NAME = 'v1-webhooks'`\n  - `AUDITS_QUEUE_NAME\
+  \ = 'v1-audits'`\n  - etc.\n\n**Dedicated Worker Processes:**\n- Separate container\
+  \ deployments for each worker type:\n  - `appwrite-worker-audits` - Processes audit\
+  \ events\n  - `appwrite-worker-functions` - Executes serverless functions\n  - `appwrite-worker-mails`\
+  \ - Sends emails\n  - `appwrite-worker-databases` - Handles database events\n  -\
+  \ `appwrite-worker-webhooks` - Dispatches webhooks\n- Workers pull from specific\
+  \ queues and process asynchronously\n- Real-time WebSocket server (`appwrite-realtime`)\
+  \ pushes events to clients\n\n### What This Is NOT\n\n**Not Microservices:**\n-\
+  \ Single deployable artifact (one image)\n- Shared database (not database-per-service)\n\
+  - All modules are in the same codebase with tight integration\n- Workers are scaling\
+  \ replicas of the same monolith, not independent services\n\n**Not Layered Architecture:**\n\
+  - No traditional controller/service/repository layering\n- Modules are organized\
+  \ by **domain/bounded context** (Account, Databases, Functions) not by technical\
+  \ layer\n- Each module contains its own HTTP actions and business logic\n\n**Not\
+  \ Service-Based:**\n- More than 2-5 coarse-grained services (has 8+ module domains)\n\
+  - Workers are lightweight processes, not full services\n\n**Not Hexagonal:**\n-\
+  \ No explicit ports/adapters pattern\n- Infrastructure concerns (database, Redis)\
+  \ are injected directly\n\n### Deployment Characteristics\n\nThe architecture enables\
+  \ **independent scaling** of different processing modes:\n- HTTP API servers can\
+  \ scale independently of workers\n- Real-time WebSocket connections can scale separately\n\
+  - Heavy background processing (functions, builds) uses dedicated workers\n- All\
+  \ share the same codebase and can be deployed from a single image\n\nThis is a **well-executed\
+  \ modular monolith** that achieves many benefits of microservices (independent scaling,\
+  \ clear boundaries, async processing) without the operational complexity of distributed\
+  \ services."

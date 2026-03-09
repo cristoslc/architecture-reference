@@ -1,0 +1,90 @@
+Based on my thorough investigation of the Shopware repository, I now have sufficient evidence to provide a classification.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+## Analysis
+
+Shopware is a **Microkernel (Plugin)** architecture with a **Layered** secondary style. Here's the evidence:
+
+### Primary: Microkernel (Plugin) Architecture
+
+**Core System with Plugin Extension Points:**
+
+1. **Plugin Base Class** (`src/Core/Framework/Plugin.php`):
+   - Plugins extend a `Plugin` class which inherits from `Bundle`
+   - Lifecycle hooks: `install()`, `activate()`, `deactivate()`, `uninstall()`, `update()`
+   - Plugins are discovered and loaded by `KernelPluginLoader` at runtime
+
+2. **Kernel Plugin Loading** (`src/Core/Kernel.php` lines 80-118):
+   ```php
+   public function registerBundles(): iterable {
+       // ... loads core bundles
+       yield from $this->pluginLoader->getBundles($kernelParameters, $instantiatedBundleNames);
+   }
+   ```
+   The kernel explicitly loads plugins dynamically, enabling extension without modifying core.
+
+3. **Decoration Pattern** (ADR from 2020-11-25):
+   - Abstract classes with `getDecorated()` method allow plugins to wrap/extend core services
+   - Examples: `AbstractCartLoadRoute`, `AbstractAppLifecycle`, `AbstractTranslator`
+   - Static analysis rules enforce decoration pattern (`DecorationPatternRule.php`)
+
+4. **App System** (`src/Core/Framework/App/`):
+   - ADR document explicitly states: "We need a different extension mechanism besides the well known plugins"
+   - Apps register via manifest files, webhooks, custom modules
+   - External apps communicate via API without PHP code execution (cloud-compatible)
+
+5. **Extension Directories**:
+   - `custom/plugins/` - local plugins
+   - `custom/apps/` - app extensions
+   - `custom/static-plugins/` - static plugin bundles
+
+### Secondary: Layered Architecture
+
+**Horizontal Layering with Symfony MVC:**
+
+1. **Controller Layer**: 
+   - `src/Administration/Controller/` - Admin API endpoints
+   - `src/Storefront/Controller/` - Storefront endpoints
+   - `src/Core/Checkout/Cart/` - Cart controllers
+
+2. **Service/Business Logic Layer**:
+   - Services in each domain (e.g., `CartService`, `OrderPersister`)
+   - Route handlers (`AbstractCartLoadRoute`, `CartLoadRoute`)
+
+3. **Data Access Layer**:
+   - **Data Abstraction Layer (DAL)** - consistent ORM-like pattern
+   - Entity definitions (`ProductDefinition`, `CustomerDefinition`, `OrderDefinition`)
+   - Repository pattern (`EntityRepository`, `SalesChannelRepository`)
+
+4. **Domain Organization** within Core:
+   - `Core/Checkout/` - cart, orders, payments, shipping
+   - `Core/Content/` - products, categories, CMS, media
+   - `Core/System/` - users, languages, configuration
+
+### What This is NOT:
+
+- **Not Microservices**: Single monolithic Symfony application with one database. All modules deploy together as `shopware/platform`.
+
+- **Not Service-Based**: More than 5 modules; deployed as single unit; not coarse-grained services sharing a database.
+
+- **Not Event-Driven (primary)**: While Flow system exists for business automation (email, state changes), it's secondary to the request-response pattern. Events are processed within the same process, not via external message brokers.
+
+- **Not Hexagonal**: Uses Symfony's standard MVC pattern, not ports-and-adapters with application core isolated from infrastructure.
+
+- **Not DDD (primary)**: While domain modules exist (Checkout, Content, System), there's no explicit aggregate/entity/value object pattern enforcement. Entity definitions are data models, not domain models with behavior.
+
+### Key Architectural Evidence:
+
+- **Single Deployable**: `composer.json` packages everything as `shopware/platform`
+- **Symfony Framework**: Built on Symfony 7 with bundles (Core, Administration, Storefront, Elasticsearch)
+- **Plugin API**: Comprehensive extension points via plugins and apps
+- **Runtime Extension**: Plugins loaded dynamically; decoration chain allows wrapping services
+
+The architecture prioritizes extensibility through a well-defined plugin system while maintaining a traditional layered structure for the core application.

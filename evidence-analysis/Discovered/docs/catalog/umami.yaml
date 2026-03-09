@@ -15,7 +15,6 @@ languages:
 - JavaScript
 architecture_styles:
 - Layered
-- Event-Driven
 classification_status: classified
 review_notes: 'The Umami repository follows a traditional **Layered** architecture,
   specifically optimized for the Next.js ecosystem. It functions as a single deployable
@@ -48,63 +47,51 @@ review_notes: 'The Umami repository follows a traditional **Layered** architectu
   the system to handle ingestion bursts asynchronously, separate from the primary
   application flow.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.81
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:14:24Z'
-classification_reasoning: 'The Umami repository follows a traditional **Layered**
-  architecture, specifically optimized for the Next.js ecosystem. It functions as
-  a single deployable application where concerns are separated horizontally into distinct
-  tiers:
-
-
-  1.  **Presentation/Routing (App Router):** The `src/app` directory utilizes Next.js
-  App Router for both the frontend UI and the API endpoints (`src/app/api`).
-
-  2.  **Business logic/Services:** The `src/lib` directory contains the core logic,
-  including authentication (`auth.ts`), data processing (`detect.ts`, `filters.ts`),
-  and coordination.
-
-  3.  **Data Access Layer (DAL):** The repository abstracts database interactions
-  into `src/queries`, with specific implementations for both **Prisma** (Relational)
-  and raw **SQL** (Clickhouse/PostgreSQL). This separation allows the application
-  to support multiple storage engines (PostgreSQL and Clickhouse) via a consistent
-  internal API.
-
-  4.  **State Management:** The frontend utilizes `src/store` (Zustand) for client-side
-  state, maintaining a clear boundary between UI components and data orchestration.
-
-
-  **Secondary Style: Event-Driven**
-
-  While Umami is a web monolith, it incorporates **Event-Driven** patterns as a scaling
-  strategy for high-volume data ingestion. The inclusion of `kafkajs` in `package.json`
-  and `src/lib/kafka.ts` indicates that the "collect" functionality (tracking events)
-  can be decoupled from the main database writes via a message broker. This allows
-  the system to handle ingestion bursts asynchronously, separate from the primary
-  application flow.
-
-
-  **Architecture Nuances:**
-
-  - **Monolithic Deployment:** Despite the complex data strategies (PostgreSQL + Clickhouse
-  + Kafka), the system is designed to be deployed as a single unit (as evidenced by
-  the unified `Dockerfile` and `docker-compose.yml`).
-
-  - **Persistence Polyglot:** It is technically "Service-Based" in terms of data (using
-  different databases for specialized tasks like analytics vs. relational metadata),
-  but since these are governed by a single codebase and deployment unit, it remains
-  a Monolith.
-
-  - **Microkernel Signal (Rejected):** While it has an external `tracker/index.js`,
-  this is a client-side delivery asset rather than a plugin-based core architecture.
-  It does not provide a plugin contract for extending the server-side functionality
-  at runtime.'
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.81
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.8
-  style_clarity: 0.85
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.82
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:45:23Z'
+classification_reasoning: "## Analysis\n\n**Umami is a classic Layered Architecture**\
+  \ — a single deployable Next.js application organized into horizontal layers with\
+  \ clear separation of concerns.\n\n### Evidence for Layered Architecture\n\n**1.\
+  \ Horizontal Layer Organization:**\n- **API/Controller Layer:** `src/app/api/` contains\
+  \ Next.js API route handlers (e.g., `api/websites/[websiteId]/route.ts`) that handle\
+  \ HTTP requests, validate input via Zod schemas, check permissions, and delegate\
+  \ to queries\n- **Business Logic/Query Layer:** `src/queries/` contains data access\
+  \ functions organized by entity (`prisma/website.ts`, `prisma/user.ts`, etc.) and\
+  \ SQL queries (`sql/events/`, `sql/sessions/`)\n- **Data Access Layer:** `src/lib/prisma.ts`,\
+  \ `src/lib/clickhouse.ts`, `src/lib/db.ts` provide database client abstractions\n\
+  - **Presentation Layer:** `src/components/` contains React UI components (charts,\
+  \ metrics, input controls), and `src/app/(main)/` contains page components\n- **Security\
+  \ Layer:** `src/permissions/` contains authorization functions like `canViewWebsite()`,\
+  \ `canUpdateWebsite()`\n\n**2. Typical Layered Request Flow:**\n```typescript\n\
+  // API route: src/app/api/websites/[websiteId]/route.ts\nexport async function GET(request:\
+  \ Request, { params }) {\n  const { auth, error } = await parseRequest(request);\
+  \      // Auth\n  if (!(await canViewWebsite(auth, websiteId))) ...         // Permissions\n\
+  \  const website = await getWebsite(websiteId);              // Query layer\n  return\
+  \ json(website);                                      // Response\n}\n```\n\n**3.\
+  \ Single Deployable Unit:**\n- One `package.json` at repository root\n- Single `Dockerfile`\
+  \ producing one container image\n- `docker-compose.yml` defines exactly one application\
+  \ service (`umami`) plus one database (`db`)\n- No microservices, no separate deployable\
+  \ units\n\n**4. Single Shared Database:**\n- PostgreSQL via Prisma ORM with a unified\
+  \ schema (`prisma/schema.prisma`)\n- Optional ClickHouse for high-volume analytics\
+  \ data\n- Single database connection string (`DATABASE_URL`)\n- No per-service database\
+  \ ownership\n\n### What This Is NOT\n\n**Not Modular Monolith:** There are no enforced\
+  \ internal module boundaries. The `src/` directory is organized by technical role\
+  \ (components, lib, queries, permissions) rather than business domains with encapsulated\
+  \ internals. Code imports freely across the codebase without module-scoped interfaces.\n\
+  \n**Not Microservices:** A single container, single database, single deployment\
+  \ unit. The optional Kafka integration is for analytics event ingestion at scale,\
+  \ not for inter-service communication.\n\n**Not Event-Driven:** While the system\
+  \ ingests analytics events, internal component communication is synchronous request-response.\
+  \ There's no event broker mediating between internal modules.\n\n**Not Serverless:**\
+  \ Standard Node.js server deployment via Docker, not function-as-a-service. No serverless.yml,\
+  \ SAM templates, or function-based deployment patterns.\n\n**Not Domain-Driven Design:**\
+  \ No aggregates, entities, value objects, or bounded context patterns. The `src/queries/prisma/`\
+  \ directory has entity-named files, but these are simple data access objects, not\
+  \ DDD domain models with business logic encapsulation.\n\n### Technology Stack Supporting\
+  \ Layered Architecture\n\n- **Framework:** Next.js 15 with App Router\n- **ORM:**\
+  \ Prisma for PostgreSQL\n- **Analytics DB:** Optional ClickHouse for time-series\
+  \ data\n- **Message Queue:** Optional Kafka for high-throughput event ingestion\n\
+  - **Caching:** Optional Redis for session/auth caching\n- **UI:** React components\
+  \ with TanStack Query for data fetching"

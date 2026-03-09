@@ -12,7 +12,7 @@ import subprocess
 import glob as glob_mod
 
 REPO_ROOT = os.environ.get("REPO_ROOT", ".")
-MAX_OUTPUT = 8000  # chars
+MAX_OUTPUT = 4000  # chars — kept small to control multi-turn context growth
 
 
 def _resolve(path: str) -> str:

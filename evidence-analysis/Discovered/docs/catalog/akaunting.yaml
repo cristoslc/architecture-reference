@@ -14,8 +14,8 @@ languages:
 - PHP
 - JavaScript
 architecture_styles:
-- Modular Monolith
-- Event-Driven
+- Microkernel (Plugin)
+- Layered
 classification_status: classified
 review_notes: 'The Akaunting repository is a classic example of a **Modular Monolith**.
   While it is a single deployable Laravel application, it is strictly organized into
@@ -48,77 +48,59 @@ review_notes: 'The Akaunting repository is a classic example of a **Modular Mono
   Akaunting leans heavily on an **Event-Driven** architecture for internal component
   communication and side-effect management:'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.82
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:38:26Z'
-classification_reasoning: 'The Akaunting repository is a classic example of a **Modular
-  Monolith**. While it is a single deployable Laravel application, it is strictly
-  organized into functional modules with a clear infrastructure for extensibility.
-
-
-  ### 1. Primary Style: Modular Monolith
-
-  The codebase is structured to support a high degree of modularity while remaining
-  a single system:
-
-  - **Module Infrastructure:** The system uses the `akaunting/laravel-module` package
-  to manage internal boundaries. The `composer.json` file explicitly defines a PSR-4
-  namespace `Modules\` mapped to the `modules/` directory, allowing modular code to
-  live alongside the core.
-
-  - **App Store/Plugin-Ready:** The `extra.installer-paths` in `composer.json` shows
-  that external modules (like `akaunting/module-paypal-standard`) are installed directly
-  into the `modules/` directory. This indicates a system where the "Monolith" core
-  provides the foundation, and features are partitioned into discrete, swappable components.
-
-  - **Shared Database/Common Core:** Despite the modularity, the `database/migrations`
-  and `app/Models/Common` directories show a unified schema and shared data access
-  patterns, which is a hallmark of the modular monolith (distinct from Microservices
-  where data is private to each service).
-
-
-  ### 2. Secondary Style: Event-Driven
-
-  Akaunting leans heavily on an **Event-Driven** architecture for internal component
-  communication and side-effect management:
-
-  - **Extensive Event Mapping:** The `app/Providers/Event.php` file contains a massive
-  mapping of application events (e.g., `DocumentCreated`, `PaymentReceived`, `Module\Installed`)
-  to multiple listeners. This decouples the core business logic from secondary actions
-  like updating history, sending notifications, or clearing caches.
-
-  - **Asynchronous Processing:** The presence of a vast `app/Jobs` directory (e.g.,
-  `app/Jobs/Document/SendDocument.php`) indicates that the system frequently offloads
-  work to queues (Job-based event handling), a common pattern in mature Event-Driven
-  systems to ensure responsiveness.
-
-
-  ### 3. Structural Observations
-
-  - **Traditional Layering (Internal):** Within the core and modules, the system follows
-  a traditional **Layered** approach (Controllers -> Jobs/Services -> Models), which
-  is the standard implementation detail for most Laravel-based monoliths.
-
-  - **Command Pattern:** The heavy use of the "Jobs" directory (one per business action,
-  e.g., `CreateInvoice`, `DeleteUser`) suggests an implementation of the Command pattern,
-  often paired with CQRS or simple service layers to encapsulate business logic.
-
-
-  ### Rejection of Other Styles
-
-  - **Microservices:** While it has "modules," they are not independently deployable
-  processes with private databases. They live in the same repo, share the same database,
-  and run in the same execution context.
-
-  - **Hexagonal Architecture:** While some separation exists, the models are deeply
-  coupled to Eloquent (Active Record), and the "Abstracts" are framework-centric rather
-  than pure domain ports.'
-confidence_calibration:
-  original_confidence: 0.85
-  calibrated_confidence: 0.82
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.82
-  style_clarity: 0.85
-  alternatives_dismissed: 0.78
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:43:43Z'
+classification_reasoning: "## Architecture Classification: Akaunting\n\n### Primary\
+  \ Style: Microkernel (Plugin)\n\n**Evidence:**\n\n1. **Module/App System with Lifecycle\
+  \ Management:**\n   - The system uses `akaunting/laravel-module` package for plugin\
+  \ management\n   - `app/Utilities/ModuleActivator.php` implements `ActivatorInterface`\
+  \ to dynamically enable/disable modules per company\n   - Module lifecycle events:\
+  \ `Installed`, `Uninstalled`, `Disabling`, `Enabled` (`app/Events/Module/`)\n  \
+  \ - Module history tracking via `app/Models/Module/ModuleHistory.php`\n\n2. **Module\
+  \ Directory Structure:**\n   - PSR-4 autoloading: `\"Modules\\\\\": \"modules/\"\
+  ` in `composer.json`\n   - Configured in `config/module.php` with stubs for generating\
+  \ new modules\n   - Module path: `base_path('modules')` with generated Controllers,\
+  \ Models, Views, Routes, etc.\n\n3. **Extension Points via Events:**\n   - `App\\\
+  Events\\Module\\PaymentMethodShowing` - allows modules to register payment methods\
+  \ dynamically\n   - `App\\Events\\Menu\\AdminCreated`, `PortalCreated`, `SettingsCreated`\
+  \ - menus can be extended by modules\n   - Report filters: `FilterShowing`, `GroupShowing`,\
+  \ `RowsShowing` - extensible reporting\n\n4. **Route Macros for Module Integration:**\n\
+  \   - `Route::module()`, `Route::admin()`, `Route::portal()`, `Route::api()` in\
+  \ `app/Providers/Route.php`\n   - Modules can register their own routes with proper\
+  \ namespacing and middleware\n\n5. **Abstract Base Classes for Extension:**\n  \
+  \ - `app/Abstracts/` directory contains: `Model`, `Job`, `Event`, `Widget`, `Report`,\
+  \ `BulkAction`, `Export`, `Import`, `Notification`, `Observer`\n   - These serve\
+  \ as contracts for core and module implementations\n\n6. **App Store Integration:**\n\
+  \   - README states: \"App Store for users and developers\"\n   - `app/Traits/Modules.php`\
+  \ - fetches modules from remote API\n   - Modules are installed at runtime, not\
+  \ build-time\n\n### Secondary Style: Layered\n\n**Evidence:**\n\n1. **Laravel MVC\
+  \ Foundation:**\n   - Controllers: `app/Http/Controllers/` with subdirectories for\
+  \ Auth, Banking, Common, Sales, Purchases, Settings\n   - Models: `app/Models/`\
+  \ organized by domain (Auth, Banking, Common, Document, Module, Setting)\n   - Views:\
+  \ `resources/views/` with Blade templates\n   - Routes: `routes/` with admin.php,\
+  \ portal.php, api.php, web.php\n\n2. **HTTP Layer Components:**\n   - Middleware:\
+  \ `app/Http/Middleware/` (Authenticate, IdentifyCompany, etc.)\n   - Requests (Form\
+  \ Validation): `app/Http/Requests/`\n   - Resources (API Transformers): `app/Http/Resources/`\n\
+  \n3. **Service/Job Layer:**\n   - `app/Jobs/` for background tasks\n   - `app/Abstracts/Job.php`\
+  \ as base for command pattern\n   - `app/Utilities/` for helper services\n\n4. **Data\
+  \ Access Layer:**\n   - `app/Scopes/Company.php` - Global query scope for multi-tenancy\n\
+  \   - `app/Traits/Tenants.php` - Company isolation trait\n   - Eloquent models with\
+  \ global scopes\n\n### What Was Rejected:\n\n1. **Not Microservices:**\n   - Single\
+  \ deployable Laravel application\n   - Single `composer.json` and database\n   -\
+  \ No inter-service communication patterns\n\n2. **Not Domain-Driven Design (DDD):**\n\
+  \   - No bounded contexts with explicit boundaries\n   - No aggregates, entities,\
+  \ value objects pattern\n   - Models follow Active Record pattern, not DDD patterns\n\
+  \n3. **Not Event-Driven (as primary):**\n   - Events are synchronous Laravel events,\
+  \ not message broker events\n   - No message queues for inter-component communication\n\
+  \   - Events serve as plugin extension hooks, not architectural communication\n\n\
+  4. **Not Hexagonal:**\n   - No ports/adapters pattern\n   - Controllers directly\
+  \ use Eloquent models\n   - Limited use of repository pattern or domain services\n\
+  \n### Conclusion:\n\nAkaunting is a **Modular Monolith** implementing the **Microkernel\
+  \ (Plugin)** pattern. The core system provides accounting functionality, while a\
+  \ sophisticated module/app system allows third-party extensions to be installed,\
+  \ enabled per-tenant, and integrated through events, abstract classes, and route\
+  \ macros. The foundation is a standard **Layered** Laravel MVC architecture, but\
+  \ the defining architectural characteristic is the plugin system that enables the\
+  \ App Store marketplace."

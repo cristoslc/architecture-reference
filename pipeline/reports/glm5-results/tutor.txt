@@ -1,0 +1,76 @@
+Let me explore the plugin system architecture more deeply:Let me examine a few more details about the plugin commands and template patching to complete the analysis:Based on my thorough exploration of the repository, I now have sufficient evidence to provide the classification.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles: []
+confidence: 0.95
+---
+
+## Analysis
+
+Tutor is a **Microkernel (Plugin)** architecture. The repository is built around a minimal core system that is explicitly designed to be extended through a sophisticated plugin system.
+
+### Strong Evidence for Microkernel/Plugin:
+
+**1. Plugin Discovery and Loading System**
+- Multiple plugin discovery mechanisms (`tutor/plugins/v1.py`):
+  - Python packages declaring `tutor.plugin.v1` entrypoints
+  - Standalone `.py` files in `~/.local/share/tutor-plugins`
+  - Entrypoint-based plugin discovery via `importlib_metadata`
+- Plugins are dynamically loaded at runtime when `CORE_READY` action fires
+- Plugin lifecycle management: `PLUGIN_LOADED`, `PLUGIN_UNLOADED` actions
+
+**2. Comprehensive Hook System**
+The core defines an extensive hook catalog (`tutor/hooks/catalog.py`) with:
+- **Actions**: Lifecycle event triggers (e.g., `CORE_READY`, `CONFIG_LOADED`, `COMPOSE_PROJECT_STARTED`)
+- **Filters**: Data transformation chains (e.g., `CLI_COMMANDS`, `CONFIG_DEFAULTS`, `ENV_PATCHES`)
+- **Contexts**: Plugin isolation mechanism for tracking and cleanup
+
+The hook system provides 40+ extension points including:
+```python
+CLI_COMMANDS: Filter[list[click.Command], []]  # Add new CLI commands
+ENV_PATCHES: Filter[list[tuple[str, str]], []]  # Modify templates
+CLI_DO_INIT_TASKS: Filter[list[tuple[str, str]], []]  # Add initialization tasks
+CONFIG_DEFAULTS: Filter[list[tuple[str, t.Any]], []]  # Add configuration
+```
+
+**3. Plugin Contract Definition**
+`BasePlugin` class (`tutor/plugins/v0.py` lines 17-83) defines the formal plugin interface:
+- `config`: Add/override configuration
+- `patches`: Modify templates via patch points
+- `templates`: Add new template files
+- `hooks`: Define lifecycle hooks
+- `command`: Add CLI subcommands
+
+**4. Template Patch System**
+Core templates define explicit patch points (documented in `docs/reference/patches.rst`):
+- `caddyfile`, `cms-env`, `k8s-deployments`, etc.
+- Plugins inject content at these patch locations
+- Example: `{{ patch("caddyfile") }}` in templates allows plugins to add proxy configurations
+
+**5. Dynamic CLI Extension**
+`TutorCli` class (`tutor/commands/cli.py` lines 35-76) dynamically loads plugin commands:
+```python
+for cmd in hooks.Filters.CLI_COMMANDS.iterate():
+    self.add_command(cmd)
+```
+
+**6. Context-Based Plugin Isolation**
+`tutor/core/hooks/contexts.py` provides context tracking to enable clean plugin unloading - all hooks registered within a plugin context can be cleared when the plugin is disabled.
+
+### What This Architecture is NOT:
+
+- **Not Layered**: While there's a `commands/` directory, this isn't horizontal layering (presentation/business/data). The plugin system cuts across all functional areas.
+
+- **Not Microservices**: Tutor is a single Python package (`pyproject.toml`). The Docker/Kubernetes support is for deploying Open edX, not Tutor itself.
+
+- **Not Modular Monolith**: There are no enforced module boundaries with restricted imports. The core is intentionally minimal, with functionality added via plugins.
+
+- **Not Event-Driven**: The Actions/Filters are synchronous callback hooks within a single process, not asynchronous message passing between services.
+
+- **Not Hexagonal Architecture**: There's no ports/adapters pattern isolating the core. The plugin system is about extensibility, not dependency inversion.
+
+### Conclusion
+
+Tutor exemplifies the Microkernel pattern: a minimal core system with a well-defined plugin API that allows third-party extensions to add functionality at every level - CLI commands, configuration, templates, deployments, and Kubernetes resources. The sophisticated hook system with actions, filters, and contexts provides a clean separation between core and plugins, enabling the "users should not have to fork Tutor to customise their deployments" vision stated in the documentation.

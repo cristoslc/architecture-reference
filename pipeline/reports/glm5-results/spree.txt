@@ -1,0 +1,104 @@
+Let me check a bit more about the plugin/extension mechanism and the internal eventsystem:Let me check for any hexagonal or plugin architecture elements more closely:Based on my comprehensive analysis, I have sufficient evidence to classify this repository.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Layered
+confidence: 0.95
+---
+
+## Analysis
+
+The Spree Commerce repository is a **Modular Monolith** architecture with a secondary **Layered** structure within modules.
+
+### Primary: Modular Monolith
+
+The evidence for Modular Monolith is strong and unambiguous:
+
+**Explicit module boundaries via Rails Engines:**
+- `spree_core/` - Core business logic, models, services (`spree_core.gemspec`)
+- `spree_api/` - REST API layer with controllers and serializers (`spree_api.gemspec`)
+- `spree_admin/` - Admin dashboard with controllers, views, and JavaScript (`spree_admin.gemspec`)
+- `spree_emails/` - Transactional email functionality (`spree_emails.gemspec`)
+
+**Gem dependency structure enforces module boundaries:**
+```ruby
+# spree/spree.gemspec
+s.add_dependency 'spree_core', s.version
+s.add_dependency 'spree_api', s.version
+
+# spree/admin/spree_admin.gemspec
+s.add_dependency 'spree', ">= #{s.version}"
+
+# spree/api/spree_api.gemspec
+s.add_dependency 'spree_core', s.version
+```
+
+Each module is packaged as a separate Ruby gem with explicit dependency declarations, creating enforced architectural boundaries.
+
+**Single deployable unit:**
+```yaml
+# docker-compose.yml
+services:
+  web:
+    <<: *app
+    ports:
+      - "3000:3000"
+  worker:
+    <<: *app
+    command: bundle exec sidekiq
+```
+
+One application (`server/`) mounts all engines and deploys as a single unit with one web process and one background worker.
+
+**Rails Engine isolation:**
+```ruby
+# spree/core/lib/spree/core/engine.rb
+module Spree
+  module Core
+    class Engine < ::Rails::Engine
+      isolate_namespace Spree  # Namespaced isolation
+      engine_name 'spree'
+      # ...
+    end
+  end
+end
+```
+
+### Secondary: Layered
+
+Within each module, there's standard Rails MVC layering:
+
+- **Controllers layer:** `app/controllers/spree/admin/*`, `app/controllers/spree/api/v3/*`
+- **Models layer:** `app/models/spree/*` (160+ model files)
+- **Services layer:** `app/services/spree/cart/*`, `app/services/spree/checkout/*`
+- **Views layer:** `app/views/spree/admin/*`, `app/views/spree/api/*`
+- **Serializers layer:** `app/serializers/spree/api/v3/*`
+
+This follows conventional Rails MVC patterns with services added for business logic.
+
+### What This Is NOT
+
+**NOT Microservices:** Single database, single deployment, single codebase. Events use `ActiveSupport::Notifications` for in-process extensibility, not inter-service communication.
+
+**NOT Event-Driven Architecture:** While the codebase has an event system (`Spree::Event`, `Spree::Subscriber`), it's used for internal extensibility and webhook delivery within the monolith, not for primary inter-component communication.
+
+**NOT Domain-Driven Design:** No aggregates, bounded contexts, or value object patterns. Standard ActiveRecord models dominate.
+
+**NOT Hexagonal:** No ports/adapters pattern. Direct coupling to Rails/ActiveRecord throughout.
+
+### Additional Architectural Features
+
+**Plugin/Extension mechanism:** The `Spree::Core::Dependencies` class provides dependency injection points for swapping service implementations:
+
+```ruby
+# spree/core/lib/spree/core/dependencies.rb
+INJECTION_POINTS_WITH_DEFAULTS = {
+  cart_create_service: 'Spree::Cart::Create',
+  checkout_complete_service: 'Spree::Checkout::Complete',
+  # ... 40+ injectable services
+}
+```
+
+**Event-driven extensibility:** Internal pub/sub system allows extensions to subscribe to business events (`order.complete`, `shipment.shipped`, etc.) via `Spree::Subscriber` subclasses.

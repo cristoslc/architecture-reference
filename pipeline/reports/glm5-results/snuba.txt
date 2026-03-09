@@ -1,0 +1,74 @@
+Let me check a few more details about the query pipeline structure to confirm my analysis:Based on my thorough investigation, I have gathered sufficient evidence to classify this repository's architecture.
+
+---
+verdict: classified
+primary_style: Event-Driven
+secondary_styles:
+  - Pipeline (Pipe-and-Filter)
+confidence: 0.92
+---
+
+## Analysis
+
+Snuba is a data platform service that provides a rich data model on top of ClickHouse with fast ingestion and query optimization for Sentry. The architecture is clearly **Event-Driven** with a secondary **Pipeline (Pipe-and-Filter)** pattern.
+
+### Event-Driven Architecture (Primary)
+
+The repository exhibits strong Event-Driven characteristics:
+
+1. **Kafka-centric data ingestion**: The system's primary data flow is through Kafka consumers. Dependencies include `confluent-kafka>=2.7.0` and `sentry-arroyo>=2.35.0` (a streaming library).
+
+2. **Multiple consumer entrypoints** (`snuba/cli/`):
+   - `consumer.py` - Main Kafka consumer for raw events
+   - `dlq_consumer.py` - Dead letter queue consumer
+   - `accepted_outcomes_consumer.py` - Outcomes processing
+   - `lw_deletions_consumer.py` - Lightweight deletions
+   - `replacer.py` - Replacement message processing
+   - `subscriptions_scheduler.py` / `subscriptions_executor.py` - Subscription scheduling
+
+3. **Message-driven architecture**: The core `MessageProcessor` abstract class (`snuba/processor.py:59-69`) processes Kafka messages:
+   ```python
+   class MessageProcessor(ABC):
+       def process_message(self, message: Any, metadata: KafkaMessageMetadata) -> Optional[ProcessedMessage]:
+   ```
+
+4. **Streaming query support**: Per README.rst: "Supports both point in time queries and streaming queries."
+
+5. **Rust consumer architecture** (`rust_snuba/ARCHITECTURE.md`): Documents a streaming pipeline with explicit stages processing messages from Kafka to ClickHouse.
+
+### Pipeline (Pipe-and-Filter) Architecture (Secondary)
+
+The codebase has a well-defined query processing pipeline:
+
+1. **Explicit pipeline framework** (`snuba/pipeline/query_pipeline.py`):
+   ```python
+   class QueryPipelineStage(Generic[Tin, Tout]):
+       """This class represents a single stage in the snuba query execution pipeline."""
+       def execute(self, pipe_input: QueryPipelineResult[Tin]) -> QueryPipelineResult[Tout]:
+   ```
+
+2. **Sequential query processing stages** (`snuba/pipeline/stages/query_processing.py`):
+   - `EntityProcessingStage` - Processes logical queries at entity level
+   - `StorageProcessingStage` - Transforms to ClickHouse queries
+   - `ExecutionStage` - Executes against ClickHouse
+
+3. **Query flow** (`snuba/web/query.py:44-59`):
+   ```python
+   clickhouse_query = EntityProcessingStage().execute(...)
+   clickhouse_query = StorageProcessingStage().execute(clickhouse_query)
+   res = ExecutionStage(...).execute(clickhouse_query)
+   ```
+
+4. **Rust consumer pipeline** (`rust_snuba/ARCHITECTURE.md`): Documents explicit stages: HealthCheck → SetJoinTimeout → MessageTransformers → Reduce → ClickhouseWriterStep
+
+### What This Is NOT
+
+- **NOT Microservices**: Single deployable (one `Dockerfile`), single entrypoint (`snuba/cli:main`), multiple commands within one process.
+- **NOT Domain-Driven Design**: No aggregates, value objects, or bounded contexts. Dataset/Entity/Storage are data modeling constructs, not domain patterns.
+- **NOT Layered** (in traditional sense): While there's logical/physical separation, it's not the classic presentation/business/data layering. The layers are query-processing stages, not horizontal tiers.
+- **NOT Modular Monolith**: No enforced module boundaries or internal API contracts between modules.
+- **NOT Hexagonal**: No ports-and-adapters pattern; external systems (Kafka, ClickHouse, Redis) are integrated directly.
+
+### Conclusion
+
+Snuba is an Event-Driven system that consumes messages from Kafka and processes them through well-defined pipelines. The query side uses a Pipe-and-Filter pattern for transforming logical queries to physical ClickHouse execution. The ingestion side uses streaming consumers with sequential processing strategies. This dual Event-Driven + Pipeline architecture is typical of modern data processing systems.

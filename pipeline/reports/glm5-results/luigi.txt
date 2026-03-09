@@ -1,0 +1,66 @@
+Let me check a few more details about the execution flow and extension patterns:Now I have sufficient evidence to classify this repository's architecture.
+
+---
+verdict: classified
+primary_style: Pipeline (Pipe-and-Filter)
+secondary_styles: []
+confidence: 0.90
+---
+
+## Analysis
+
+Luigi is a **Pipeline (Pipe-and-Filter)** architecture for building batch job workflows. This classification is strongly supported by the codebase structure and design.
+
+### Primary Evidence for Pipeline (Pipe-and-Filter)
+
+**1. Core Abstractions Follow Pipe-and-Filter Pattern:**
+- **Task** (`luigi/task.py`): The fundamental unit of work, equivalent to a "filter" in pipe-and-filter terminology
+- **Target** (`luigi/target.py`): Represents data outputs that flow between tasks (the "pipes")
+- The canonical Task interface requires three methods that define the pipeline contract:
+  - `requires()` - declares upstream dependencies (what "pipes" feed into this task)
+  - `output()` - declares the output Target (what this filter produces)
+  - `run()` - performs the computation
+
+**2. Explicit Dependency Chains:**
+From `doc/design_and_limitations.rst`:
+> "Each task just specifies which inputs it needs and cross-module dependencies are trivial."
+
+From `README.rst`:
+> "Luigi is a Python package that helps you build complex **pipelines** of batch jobs."
+
+**3. Example Workflows Show Clear Pipeline Structure:**
+In `examples/wordcount.py` and `examples/top_artists.py`, tasks chain together explicitly:
+```
+InputText → WordCount (data flows through requires() → input() → run() → output())
+Streams → AggregateArtists → Top10Artists
+```
+
+**4. Data Flow Through Targets:**
+The `target.py` defines `Target` as an abstract base class with a single method `exists()`. Tasks produce Targets that become inputs to downstream tasks via `self.input()`. This is the classic pipe-and-filter pattern where filters process data and pass it through pipes.
+
+**5. Scheduler Coordinates Pipeline Execution:**
+The `scheduler.py` and `worker.py` manage task execution order based on dependency graphs. The scheduler ensures that a task only runs when all its required upstream tasks (pipes) have completed.
+
+### Why NOT Other Styles
+
+- **NOT Microservices**: Luigi is a single Python library/package, not distributed independently deployable services. The scheduler/worker model is for task orchestration within a single workflow, not service decomposition.
+
+- **NOT Event-Driven**: Tasks don't communicate via event publishing/subscription. Dependencies are declared explicitly through `requires()` and resolved by the scheduler. The pattern is pull-based dependency resolution, not event-driven notification.
+
+- **NOT Layered**: There's no horizontal layering (presentation/business/data access). Task/Target/Scheduler are core abstractions, not vertical layers.
+
+- **NOT Modular Monolith**: While there's a `luigi/contrib/` directory with 49 extension modules, these aren't enforced module boundaries within a monolith. They're optional extensions to the core pipeline framework.
+
+- **NOT Microkernel/Plugin**: Although Luigi is extensible (contrib modules for Hadoop, Spark, Postgres, etc.), the primary design intent and user interaction model is pipeline definition, not plugin composition. The contrib modules are more akin to a standard library of implementations rather than a true plugin system where users inject custom extensions at runtime.
+
+- **NOT DDD**: No bounded contexts, aggregates, or domain-driven design patterns present.
+
+### Conclusion
+
+Luigi's architecture is fundamentally about **chaining tasks into pipelines** where:
+- Each Task is a processing stage (filter)
+- Targets are the data that flows between stages (pipes)
+- The `requires()` method explicitly declares the pipeline topology
+- The scheduler resolves dependencies and orchestrates execution
+
+This is the canonical Pipe-and-Filter pattern applied to batch data processing workflows.

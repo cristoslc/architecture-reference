@@ -14,9 +14,7 @@ languages:
 - Python
 - JavaScript
 architecture_styles:
-- Modular Monolith
-- Microkernel (Plugin)
-- Domain-Driven Design
+- Layered
 classification_status: classified
 review_notes: "### Architectural Analysis\n\nERPNext is the flagship application built\
   \ on the **Frappe Framework**. Its architecture is a textbook example of a **Modular\
@@ -33,54 +31,56 @@ review_notes: "### Architectural Analysis\n\nERPNext is the flagship application
   \ are separate in the file tree, they share the same database instance and execution\
   \ context, characteristic of a monolith."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.61
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:47:20Z'
-classification_reasoning: "### Architectural Analysis\n\nERPNext is the flagship application\
-  \ built on the **Frappe Framework**. Its architecture is a textbook example of a\
-  \ **Modular Monolith** designed with a high degree of extensibility, often resembling\
-  \ a **Microkernel** (Plugin) system where ERPNext itself is a \"plugin\" or \"app\"\
-  \ installed onto the Frappe \"kernel\".\n\n#### 1. Modular Monolith (Primary Style)\n\
-  The repository is organized into distinct functional modules (e.g., `erpnext/buying`,\
-  \ `erpnext/selling`, `erpnext/quality_management`). \n- **Encapsulation**: Each\
-  \ directory acts as a self-contained module containing its own business logic, UI\
-  \ definitions (`page/`, `workspace/`), and data schemas (`doctype/`).\n- **Unified\
-  \ Deployment**: Despite the modular structure, the system is deployed as a single\
-  \ unit. The `hooks.py` file in the root of the `erpnext` directory serves as the\
-  \ manifest that integrates these modules into the Frappe Framework.\n- **Service\
-  \ Boundaries**: While modules are separate in the file tree, they share the same\
-  \ database instance and execution context, characteristic of a monolith.\n\n####\
-  \ 2. Microkernel (Plugin) (Secondary Style)\nERPNext follows the \"App\" architecture\
-  \ of the Frappe Framework.\n- **Pluggability**: The architecture allows for \"apps\"\
-  \ to be installed or removed via the `bench` CLI tool (e.g., `bench install-app\
-  \ erpnext`). \n- **Extension Points**: The `hooks.py` file allows the module to\
-  \ \"plug into\" the core system's events (CRUD events, API endpoints, background\
-  \ jobs). This creates a strictly defined contract between the \"kernel\" (Frappe)\
-  \ and the \"plugin\" (ERPNext).\n\n#### 3. Domain-Driven Design (Secondary Style)\n\
-  The code organization heavily mirrors DDD principles:\n- **Bounded Contexts**: Directories\
-  \ like `buying`, `selling`, and `manufacturing` represent clear bounded contexts\
-  \ within the ERP domain.\n- **Aggregates (DocTypes)**: The core unit of logic in\
-  \ Frappe/ERPNext is the `DocType`. Each `doctype` folder (e.g., `erpnext/buying/doctype/purchase_order`)\
-  \ contains the schema (JSON), the Controller (Python), and the View/Client logic\
-  \ (JS), essentially acting as a DDD Aggregate that maintains data consistency and\
-  \ encapsulates domain logic.\n\n### Evidence Cites\n- **Module Separation**: `erpnext/buying/`,\
-  \ `erpnext/selling/`, `erpnext/manufacturing/`.\n- **Manifest/Entry Point**: `erpnext/hooks.py`\
-  \ defines how the app registers itself, its cron jobs, and its event handlers.\n\
-  - **Data/Logic Encapsulation**: `erpnext/buying/doctype/purchase_order/purchase_order.py`\
-  \ (Controller/Logic) and `erpnext/buying/doctype/purchase_order/purchase_order.json`\
-  \ (Schema/Metadata).\n- **UI Modularization**: `erpnext/workspace_sidebar/` contains\
-  \ JSON files for different functional areas, showing how the UI is composed from\
-  \ modular configurations."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.61
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.72
-  style_clarity: 0.78
-  alternatives_dismissed: 0.3
-  exploration_completeness: 0.6
-  flags: alternatives not meaningfully dismissed — no consideration of Event-Driven
-    or Service-Oriented patterns; exploration limited to directory structure and hooks.py
-    without examining inter-module dependencies, shared DB schema coupling, or actual
-    plugin registration mechanisms
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:17:07Z'
+classification_reasoning: "## Analysis\n\nERPNext exhibits a classic **Layered Architecture**\
+  \ built on top of the Frappe Framework.\n\n### Key Evidence\n\n**1. Horizontal Layer\
+  \ Separation:**\n\nThe codebase shows clear horizontal layering with a well-defined\
+  \ controller inheritance chain:\n\n```\nTransactionBase (utilities/transaction_base.py)\n\
+  \    ↓\nAccountsController (controllers/accounts_controller.py)\n    ↓\nStockController\
+  \ (controllers/stock_controller.py)\n    ↓\nSellingController / BuyingController\
+  \ / SubcontractingController\n    ↓\nConcrete doctypes (SalesOrder, PurchaseOrder,\
+  \ etc.)\n```\n\nEach layer builds upon the previous:\n- `TransactionBase` handles\
+  \ basic validation and status updates\n- `AccountsController` adds accounting/ledger\
+  \ logic\n- `StockController` adds inventory/warehouse management\n- `SellingController`/`BuyingController`\
+  \ add domain-specific validations\n\n**2. Presentation Layer:**\n\nEach domain entity\
+  \ has the trio of files:\n- `doctype/*.json` - Schema/UI definitions\n- `doctype/*.js`\
+  \ - Frontend behavior\n- `doctype/*.py` - Business logic\n\nFor example, `erpnext/selling/doctype/sales_order/`\
+  \ contains:\n- `sales_order.json` (DocType schema)\n- `sales_order.js` (UI behavior)\n\
+  - `sales_order.py` (server logic)\n\n**3. Business Logic Layer:**\n\nControllers\
+  \ contain the core business rules:\n- `erpnext/controllers/accounts_controller.py`\
+  \ - 1000+ lines of accounting logic\n- `erpnext/controllers/taxes_and_totals.py`\
+  \ - tax calculations\n- Domain services like `erpnext/accounts/party.py`, `erpnext/stock/utils.py`\n\
+  \n**4. Data Access Layer:**\n\nAll database operations go through the Frappe ORM\
+  \ abstraction:\n- `frappe.get_doc()` - document retrieval\n- `frappe.db.get_value()`\
+  \ / `frappe.db.get_all()` - queries\n- `frappe.db.exists()` - existence checks\n\
+  \n**5. Module Organization (Not Enforced Boundaries):**\n\nWhile code is organized\
+  \ into modules (accounts, selling, buying, stock, manufacturing), these are **package-organizational,\
+  \ not architectural boundaries**. Cross-module imports are pervasive:\n\n```python\n\
+  # selling/doctype/sales_order/sales_order.py\nfrom erpnext.accounts.doctype.sales_invoice.sales_invoice\
+  \ import ...\nfrom erpnext.accounts.party import get_party_account\nfrom erpnext.controllers.selling_controller\
+  \ import SellingController\nfrom erpnext.manufacturing.doctype.blanket_order.blanket_order\
+  \ import ...\nfrom erpnext.stock.doctype.item.item import get_item_defaults\nfrom\
+  \ erpnext.stock.stock_balance import get_reserved_qty\n```\n\nThis is a key distinction\
+  \ from **Modular Monolith** - there are no enforced boundaries between modules.\n\
+  \n### What This Is NOT\n\n- **Not Microservices**: Single deployable unit (`pyproject.toml`\
+  \ defines one package). No separate services, no inter-service communication patterns.\n\
+  \n- **Not Modular Monolith**: While modules exist, they lack enforced boundaries.\
+  \ Cross-module imports are unrestricted and pervasive. No module-specific schemas\
+  \ or internal APIs.\n\n- **Not Event-Driven**: No message broker configurations,\
+  \ no event handlers pattern. Uses direct method calls and Frappe's hook system for\
+  \ extensibility.\n\n- **Not DDD**: No bounded contexts, aggregates, or domain isolation.\
+  \ Modules freely import from each other.\n\n- **Not Hexagonal/Clean Architecture**:\
+  \ No ports/adapters pattern. Business logic directly depends on Frappe's ORM and\
+  \ framework APIs.\n\n### Secondary Characteristics\n\nThe **Frappe Framework** itself\
+  \ provides infrastructure-as-code via:\n- `hooks.py` - extension points and lifecycle\
+  \ callbacks\n- DocType system - schema-first entity definitions\n- `@frappe.whitelist()`\
+  \ - API endpoint declarations\n\nThis creates a framework-integrated layered architecture\
+  \ where the framework handles much of the infrastructure layer (persistence, API\
+  \ routing, authentication).\n\n### Conclusion\n\nERPNext is a textbook **Layered\
+  \ Architecture** - a monolithic application organized into horizontal layers (presentation\
+  \ → business logic → data access) with clear separation of concerns. The module\
+  \ structure reflects functional organization (accounts, selling, stock) rather than\
+  \ architectural boundaries."

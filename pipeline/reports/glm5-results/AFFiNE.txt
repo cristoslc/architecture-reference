@@ -1,0 +1,82 @@
+I'll explore the AFFiNE repository to understand its architecture. Let me start with the directory structure and README.Let me examine the extension system in more detail to understand the plugin architecture:Now I have sufficient evidence to classify this architecture. Let me verify one more thing about the module boundaries:Based on my comprehensive exploration, I have sufficient evidence to classify this architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.88
+---
+
+## Analysis
+
+AFFiNE exhibits a **Microkernel (Plugin)** architecture as its primary style, with **Modular Monolith** as a secondary characteristic.
+
+### Microkernel/Plugin Evidence
+
+**1. Extension System Architecture** (`blocksuite/framework/store/src/extension/extension.ts`)
+The codebase implements a sophisticated plugin system:
+- `ExtensionType` interface with `setup(di: Container)` method for dependency injection-based registration
+- Extensions can register services, implementations, and factories dynamically
+- Documentation explicitly states: "Extensions provide a way to extend the functionality of a system using dependency injection... creating pluggable architecture where components can be added or removed"
+
+**2. Extension Provider/Manager Pattern** (`blocksuite/affine/ext-loader/`)
+A complete extension loading infrastructure:
+- `BaseExtensionProvider<Scope, Options>` - Abstract base for all extension providers
+- `ViewExtensionProvider` with 6 scope variants (page, edgeless, preview-page, preview-edgeless, mobile-page, mobile-edgeless)
+- `StoreExtensionProvider` for data layer extensions
+- `ExtensionManager<Scope>` handles registration, configuration, and lifecycle
+- Configuration API: `manager.configure(Provider, options)` with Zod schema validation
+- One-time initialization via `effect()` method
+
+**3. Block-Based Plugin Architecture** (`blocksuite/affine/blocks/`)
+25+ independent block plugins (paragraph, list, image, database, surface, embed-doc, etc.), each implementing:
+- Block definition (`*-block.ts`)
+- Store/state management (`store.ts`)
+- View rendering (`view.ts`)
+- Effects and initialization (`effects.ts`)
+- Styles (`styles.ts`)
+
+Each block is a self-contained plugin that registers itself through the extension system.
+
+### Modular Monolith Evidence
+
+**1. Enforced Module Boundaries via Framework** (`packages/common/infra/src/framework/`)
+A custom dependency injection framework with:
+- `Framework` class managing component registration and resolution
+- Explicit component types: Service, Entity, Store, Scope
+- Hierarchical scope system (Root → Workspace → Doc)
+- Framework configuration functions: `configureDocModule(framework)`, `configureWorkspaceModule(framework)`, etc.
+- ~50 modules in `packages/frontend/core/src/modules/` (ai-button, app-sidebar, cloud, doc, editor, journal, notification, etc.)
+
+**2. Workspace Organization**
+Clear package separation in monorepo:
+- `blocksuite/` - Framework core and block plugins
+- `packages/frontend/` - Frontend apps and shared core
+- `packages/backend/` - Server (NestJS-based)
+- `packages/common/` - Shared infrastructure
+- Single deployable per platform (web, electron, iOS, Android)
+
+**3. Technology Stack Unity**
+- TypeScript throughout frontend/core
+- React for UI
+- Yjs for CRDT-based collaboration
+- Shared dependency injection framework
+
+### What This Is NOT
+
+- **NOT Microservices**: Single backend server (`@affine/server`) using NestJS modules, not separate deployable services. The server shares a database (Prisma schema).
+
+- **NOT Layered**: While there are horizontal concerns, the primary organization is around vertical feature modules and plugins, not horizontal layers. The DI framework enables cross-cutting concerns without strict layering.
+
+- **NOT Event-Driven Architecture**: While Yjs provides real-time sync and there's event infrastructure (`EventBus`), components communicate primarily through the DI container, not message brokers.
+
+- **NOT Domain-Driven Design**: Although there are entities and services, there's no evidence of aggregates, bounded contexts with separate models, or ubiquitous language. The modules are organized by feature capability, not business domains.
+
+### Architecture Summary
+
+AFFiNE implements a **microkernel architecture** where:
+1. The **core framework** (`@blocksuite/framework`, `@toeverything/infra`) provides minimal runtime: dependency injection, extension loading, and block lifecycle management
+2. **Plugins/Extensions** (blocks, features) are loaded at build-time and registered via DI
+3. The system is **extensible** through the provider/manager pattern with configuration support
+4. All modules share a single deployment unit per platform (modular monolith deployment model)

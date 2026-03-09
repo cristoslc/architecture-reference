@@ -15,8 +15,8 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Layered
 - Modular Monolith
+- Microkernel (Plugin)
 classification_status: classified
 review_notes: 'Radarr is structured as a **Layered** architecture, which is the standard
   pattern for the NzbDrone/Servarr family of applications. The codebase is organized
@@ -46,78 +46,67 @@ review_notes: 'Radarr is structured as a **Layered** architecture, which is the 
   dependency injection (DI) setup, internal service orchestration (using a Custom
   `ServiceFactory` or `ServiceProvider`), and starting the web server.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.69
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:08:04Z'
-classification_reasoning: 'Radarr is structured as a **Layered** architecture, which
-  is the standard pattern for the NzbDrone/Servarr family of applications. The codebase
-  is organized into distinct horizontal responsibility layers across multiple .NET
-  projects within a single solution (`Radarr.sln`).
-
-
-  ### Primary Style: Layered
-
-  The system follows a clear separation of concerns typical of tiered applications:
-
-  1.  **Presentation Layer (Frontend):** A large React/TypeScript application located
-  in the `/frontend` directory. It communicates with the backend via a REST API.
-
-  2.  **API Layer (`Radarr.Api.V3`):** Defines the external contract and handles HTTP
-  requests.
-
-  3.  **Business Logic Layer (`Radarr.Core` / `NzbDrone.Core`):** This is the heart
-  of the application, containing the "Entities" (Movies, Indexers, Download Clients)
-  and the services that coordinate them (e.g., searching, importing, renaming).
-
-  4.  **Infrastructure/Common Layer (`Radarr.Common`, `Radarr.Http`, `Radarr.SignalR`):**
-  Provides cross-cutting concerns like logging, HTTP clients, disk I/O abstractions,
-  and real-time notifications via SignalR.
-
-  5.  **Host/Bootstrapper Layer (`Radarr.Host`, `Radarr.Console`):** Responsible for
-  dependency injection (DI) setup, internal service orchestration (using a Custom
-  `ServiceFactory` or `ServiceProvider`), and starting the web server.
-
-
-  ### Secondary Style: Modular Monolith
-
-  While it is a single deployable unit (Monolith), it exhibits characteristics of
-  a **Modular Monolith**:
-
-  - **Strict Boundary Enforcement:** Using separate `.csproj` files (e.g., `Radarr.Core`,
-  `Radarr.Common`, `Radarr.Api`) ensures that the Infrastructure layer cannot accidentally
-  depend on the API layer, enforcing a unidirectional dependency flow.
-
-  - **Platform Abstraction:** The code uses a "Ports and Adapters" approach for platform-specific
-  logic. Projects like `Radarr.Mono` and `Radarr.Windows` provide implementations
-  for disk and OS operations defined by interfaces in `Radarr.Common`.
-
-  - **Internal Messaging:** The presence of `NzbDrone.SignalR` and internal command
-  execution logic suggests an event-like system for internal decoupling, although
-  it remains within a single process.
-
-
-  ### Evidence of Classification:
-
-  - **Solution Structure:** The `Radarr.sln` includes distinct logical segments (Host,
-  Platform, API, Core).
-
-  - **Dependency Flow:** The backend projects are structured such that `Host` depends
-  on `Api` and `Core`, while `Core` depends on `Common`, following classic layering
-  rules.
-
-  - **Single Unit of Deployment:** Despite multiple projects, they are compiled into
-  a single executable (Radarr.exe or binary), as evidenced by the lack of `docker-compose.yml`
-  or microservice orchestration tools in the root.
-
-  - **Testing Archetype:** The repository contains a mirrored test structure (`Radarr.Api.Test`,
-  `Radarr.Core.Test`), which is indicative of a modular maintenance strategy within
-  a monolith.'
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.69
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.7
-  style_clarity: 0.8
-  alternatives_dismissed: 0.5
-  exploration_completeness: 0.7
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:35:59Z'
+classification_reasoning: "## Architecture Classification: Modular Monolith with Microkernel/Plugin\
+  \ Architecture\n\n### Evidence for Modular Monolith\n\n**Single Deployable Unit**:\
+  \ Radarr is built as a single monolithic application with multiple entry points\
+  \ (console, Windows service, tray application) but ultimately one deployment unit:\n\
+  - `src/NzbDrone/Radarr.csproj` - Windows executable entry point\n- `src/NzbDrone.Console/Radarr.Console.csproj`\
+  \ - Console entry point  \n- `src/NzbDrone.Host/Radarr.Host.csproj` - Core hosting\
+  \ layer that all entry points reference\n\n**Enforced Module Boundaries**: The solution\
+  \ demonstrates clear module separation through distinct projects with explicit dependencies:\n\
+  - `Radarr.Core` - Core business logic (referenced by other modules)\n- `Radarr.Http`\
+  \ - HTTP infrastructure layer\n- `Radarr.Api.V3` - API controllers layer\n- `Radarr.SignalR`\
+  \ - Real-time communication\n- `NzbDrone.Common` - Shared utilities\n- Platform-specific\
+  \ modules: `NzbDrone.Windows`, `NzbDrone.Mono`\n\n**Domain-Organized Core**: The\
+  \ `NzbDrone.Core` project is organized by domain modules, not technical layers:\n\
+  - `Movies/`, `Download/`, `Indexers/`, `Notifications/`, `ImportLists/`, `Backup/`,\
+  \ `CustomFormats/`, `Queue/`, `History/`, etc.\n\nEach module contains its own models,\
+  \ services, repositories, and events.\n\n### Evidence for Microkernel/Plugin Architecture\n\
+  \n**Provider Framework**: The `ThingiProvider` system (`src/NzbDrone.Core/ThingiProvider/`)\
+  \ establishes a robust plugin infrastructure:\n\n```csharp\n// Core plugin contract\n\
+  public interface IProvider\n{\n    string Name { get; }\n    Type ConfigContract\
+  \ { get; }\n    ProviderMessage Message { get; }\n    IEnumerable<ProviderDefinition>\
+  \ DefaultDefinitions { get; }\n    ProviderDefinition Definition { get; set; }\n\
+  \    ValidationResult Test();\n    object RequestAction(string stage, IDictionary<string,\
+  \ string> query);\n}\n```\n\n**Provider Factory Pattern**: All plugins are managed\
+  \ through a generic factory that handles registration, configuration, testing, and\
+  \ instantiation:\n\n```csharp\n// src/NzbDrone.Core/ThingiProvider/ProviderFactory.cs\n\
+  public abstract class ProviderFactory<TProvider, TProviderDefinition> : IProviderFactory<TProvider,\
+  \ TProviderDefinition>\n```\n\n**Concrete Plugin Implementations**: Multiple plugin\
+  \ types with numerous implementations:\n\n1. **Download Clients** (20+ implementations):\
+  \ QBittorrent, Transmission, Deluge, Sabnzbd, uTorrent, rTorrent, Flood, etc.\n\
+  2. **Indexers** (10+ implementations): Newznab, Torznab, Nyaa, IPTorrents, PassThePopcorn,\
+  \ etc.\n3. **Notifications** (30+ implementations): Discord, Email, Plex, Slack,\
+  \ Telegram, Twitter, Webhook, etc.\n4. **Import Lists** (15+ implementations): Plex,\
+  \ TMDb, Trakt, IMDb, RSS, etc.\n\nEach plugin:\n- Extends a base class (e.g., `DownloadClientBase<TSettings>`,\
+  \ `IndexerBase`, `NotificationBase`)\n- Has its own settings class\n- Can be configured\
+  \ at runtime through the UI\n- Is discovered via dependency injection\n\n**Runtime\
+  \ Discovery**: The factory uses DI container to discover and instantiate providers\
+  \ dynamically:\n\n```csharp\n// ProviderFactory.cs line 159\nvar instance = (TProvider)_container.GetRequiredService(type);\n\
+  ```\n\n### Layered Architecture Elements\n\nThe codebase also exhibits traditional\
+  \ layering:\n\n**Presentation Layer**: React/TypeScript frontend (`frontend/src/`)\
+  \ calling REST API endpoints\n\n**API Layer**: ASP.NET Core controllers in `Radarr.Api.V3/`:\n\
+  - MovieController, DownloadClientController, IndexerController, etc.\n- Uses Swagger/OpenAPI\
+  \ documentation\n- SignalR for real-time updates\n\n**Business Logic Layer**: Services\
+  \ in `NzbDrone.Core/`:\n- MovieService, DownloadService, IndexerService, etc.\n\
+  - Decision engine for download choices\n- Command/Query handling via `IExecute<TCommand>`\
+  \ and `IHandle<TEvent>`\n\n**Data Access Layer**: Repository pattern using Dapper:\n\
+  - `BasicRepository<TModel>` base class\n- Database-agnostic (SQLite and PostgreSQL\
+  \ support)\n\n### Event-Driven Communication\n\nInternal communication uses a lightweight\
+  \ event aggregator pattern:\n- `EventAggregator` publishes events to `IHandle<TEvent>`\
+  \ handlers\n- Events: `MovieGrabbedEvent`, `DownloadCompletedEvent`, `MovieFileAddedEvent`,\
+  \ etc.\n- `CommandExecutor` processes background commands asynchronously\n\n###\
+  \ Why Not Other Architectures?\n\n**Not Microservices**: Single deployable unit,\
+  \ no service boundaries, shared database, no inter-service communication.\n\n**Not\
+  \ Serverless**: No function-based deployment, no cloud function triggers, traditional\
+  \ hosting model.\n\n**Not Pure Layered**: While layers exist, the dominant organizing\
+  \ principle is domain modules with plugin extensibility, not horizontal technical\
+  \ layers.\n\n**Not CQRS**: No separate read/write models; uses standard repository\
+  \ pattern with services.\n\n**Not Domain-Driven Design**: Lacks aggregates, value\
+  \ objects, bounded contexts as primary organizing principle; uses service-repository\
+  \ pattern instead.\n\n### Conclusion\n\nRadarr is a well-structured **Modular Monolith**\
+  \ with a **Microkernel/Plugin** architecture at its core. The `Thin\n\n[truncated]"

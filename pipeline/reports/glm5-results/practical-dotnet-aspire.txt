@@ -1,0 +1,95 @@
+I'll explore the repository to understand its architecture. Let me start with a high-level overview.Let me examine the AppHost and the integration events to understand the service orchestration and communication patterns.Let me examine the event handlers and service implementations to understand the event-driven patterns and CQRS/DDD elements.Let me examine the domain models and understand the DDD patterns and data ownership.Let me check the deployment configuration and examine the Program.cs files for key services.Let me check the YARP API gateway configuration and the shared domain base classes.Let me check the InternalsVisibleTo pattern and the service defaults to complete the picture.Now I have sufficient evidence to classify the architecture. Let me provide my analysis.Based on my thorough analysis, I now have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Microservices
+secondary_styles:
+  - Event-Driven
+  - Domain-Driven Design
+confidence: 0.92
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Microservices
+
+The repository implements a **true microservices architecture** with clear evidence:
+
+**Deployment Topology:**
+- **5 independently deployable services** + API Gateway:
+  - `product-api` - Product catalog service
+  - `counter-api` - Order taking service  
+  - `barista-api` - Beverage preparation service
+  - `kitchen-api` - Food preparation service
+  - `order-summary` - Read projection/audit service
+  - `yarp` - API Gateway (reverse proxy)
+
+- **Container orchestration** via `docker-compose.yaml` and Kubernetes manifests (`deployment-product-api.yaml`)
+- **.NET Aspire orchestration** in `app-host/Program.cs` coordinating services, databases, message broker, and AI models
+
+**Data Ownership:**
+- Each service owns its data store:
+  - `product-api` uses PostgreSQL with Entity Framework (`ProductDbContext`)
+  - `order-summary` uses Marten event store with PostgreSQL
+  - Services do not share databases
+
+**Service Discovery & Communication:**
+- YARP API Gateway (`yarp/appsettings.json`) routes `/p/*` → product-api, `/c/*` → counter-api
+- HTTP-based service-to-service calls via `ItemHttpGateway` using service discovery
+- Async communication via RabbitMQ message broker
+
+### Secondary Style: Event-Driven (Confidence: High)
+
+Strong evidence throughout the codebase:
+
+**MassTransit/RabbitMQ Integration:**
+- `counter-api/Program.cs` (lines 47-64): Configures MassTransit consumers for `BaristaOrderUpdatedConsumer`, `KitchenOrderUpdatedConsumer`
+- `barista-api/IntegrationEvents/EventHandlers/BaristaOrderedConsumer.cs`: Consumes `BaristaOrderPlaced` events and publishes `BaristaOrderUpdated`
+- `order-summary/Consumers/OrderConsumer.cs`: Consumes both `BaristaOrderPlaced` and `KitchenOrderPlaced` for event sourcing
+
+**Domain Events Pattern:**
+- `shared/CoffeeShop.Shared/Domain/Event.cs`: `IDomainEvent`, `EventBase`, `EventWrapper` for domain event abstraction
+- `shared/CoffeeShop.Shared/Domain/Entity.cs`: `IAggregateRoot` with `DomainEvents` collection and `RelayAndPublishEvents` extension method
+- Domain events like `BaristaOrderIn`, `KitchenOrderIn` in `counter-api/Domain/DomainEvents/OrderIn.cs`
+
+### Secondary Style: Domain-Driven Design (Confidence: Moderate-High)
+
+DD D building blocks are well-implemented:
+
+**Aggregate Roots & Entities:**
+- `EntityRootBase : IAggregateRoot` in `shared/CoffeeShop.Shared/Domain/Entity.cs` (line 19)
+- `Order` entity in `counter-api/Domain/Order.cs` extending `EntityRootBase`
+
+**Value Objects:**
+- `ValueObject` abstract class with equality components (lines 47-88 in Entity.cs)
+
+**Bounded Contexts:**
+- Each service has its own domain model:
+  - `counter-api/Domain/` - Order, ItemLine, OrderStatus
+  - `barista-api/Domain/` - BaristaItem with ItemType enum (beverages)
+  - `kitchen-api/Domain/` - KitchenOrder with ItemType enum (food)
+  - `product-api/Domain/` - Item entity
+
+**Domain Events:**
+- Services use domain events for in-boundary logic, then publish integration events via MassTransit
+
+### What This Is NOT
+
+- **NOT Layered Architecture**: No horizontal presentation/business/data layers across the system
+- **NOT Modular Monolith**: Multiple deployable containers, not a single unit
+- **NOT Serverless**: No function-as-a-service; uses containers and message queues
+- **NOT CQRS**: Uses MediatR commands/queries but lacks separate read/write models (order-summary has event projections, but this is supplementary)
+- **NOT Hexagonal Architecture**: No explicit ports/adapters pattern despite having gateways
+
+### Key Files Referenced
+
+| Evidence | File Path |
+|----------|-----------|
+| Service orchestration | `app-host/Program.cs` |
+| API Gateway routes | `yarp/CoffeeShop.Yarp/appsettings.json` |
+| Domain events pattern | `shared/CoffeeShop.Shared/Domain/Entity.cs`, `Event.cs` |
+| Message consumers | `counter-api/IntegrationEvents/EventHandlers/`, `barista-api/IntegrationEvents/EventHandlers/` |
+| Aggregate root | `counter-api/Domain/Order.cs` |
+| Event sourcing | `order-summary/Program.cs` (Marten), `order-summary/Consumers/OrderConsumer.cs` |
+| Container deployment | `app-host/aspirate-output/docker-compose.yaml` |
+| DDD bounded contexts | Each service's `Domain/` folder |

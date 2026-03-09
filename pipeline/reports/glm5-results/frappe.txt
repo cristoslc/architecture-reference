@@ -1,0 +1,91 @@
+Based on my comprehensive exploration of the Frappe Framework repository, I now have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.88
+---
+
+## Analysis
+
+### Primary Style: Microkernel (Plugin)
+
+Frappe Framework is architected as a **core system extended via plugins** (called "apps" in Frappe terminology):
+
+**Plugin Discovery and Loading:**
+- `frappe/__init__.py:976` — The `get_hooks()` function dynamically loads hooks from all installed apps' `hooks.py` files
+- `frappe/model/base_document.py:116-128` — The `get_controller()` function dynamically loads DocType controller classes, allowing apps to override or extend base behavior
+
+**Hook-Based Extension Points:**
+`frappe/hooks.py` defines the canonical extension mechanism:
+```python
+# Lifecycle hooks
+before_install = "frappe.utils.install.before_install"
+after_install = "frappe.utils.install.after_install"
+
+# Asset injection hooks
+app_include_js = ["desk.bundle.js", "form.bundle.js", ...]
+
+# Permission hooks
+permission_query_conditions = {...}
+has_permission = {...}
+
+# Document event hooks
+doc_events = {"*": {"on_update": [...], "after_rename": ...}}
+```
+
+**Runtime Extensibility:**
+- `frappe/core/doctype/server_script/server_script.json` — Server Scripts allow users to inject Python code at runtime for DocType events (Before Insert, After Save, etc.), API endpoints, and scheduled jobs
+- `frappe/utils/safe_exec.py` — Provides a sandboxed execution environment for runtime scripts
+
+**App Installation/Uninstallation:**
+- `frappe/installer.py:103-112` — Apps are installed on a per-site basis with `install_app()`, demonstrating the plugin lifecycle management
+- `frappe/apps.py` — Manages the list of installed apps and their routes
+
+### Secondary Style: Layered
+
+The framework exhibits clear horizontal layering:
+
+```
+frappe/
+├── database/          # Data Access Layer
+├── model/             # Domain Model Layer (Document, Meta, etc.)
+├── api/               # API Layer (v1.py, v2.py)
+├── desk/              # Desktop/UI Layer (forms, lists, reports)
+├── website/           # Website/Frontend Layer
+└── core/              # Core Business Entities
+```
+
+**Request Flow Through Layers** (`frappe/app.py:98-137`):
+1. `application()` receives WSGI request
+2. `init_request()` initializes context
+3. `frappe.handler.handle()` or `frappe.api.handle()` processes business logic
+4. Response built through layers
+
+**Data Layer Abstraction:**
+- `frappe/database/database.py` — Abstract `Database` class with MariaDB, PostgreSQL, SQLite implementations
+- `frappe/model/document.py` — `Document` class provides ORM-style abstraction over raw database operations
+
+### What Was Rejected
+
+**Not Microservices:** Single deployable unit (one `pyproject.toml`), single database per site, no inter-service communication patterns.
+
+**Not Event-Driven:** While background jobs use Redis/RQ (`frappe/utils/background_jobs.py`), the primary communication pattern is synchronous request-response, not event-based messaging.
+
+**Not Domain-Driven Design:** Modules are organized by feature areas (Core, Email, Desk, etc.) but lack DDD constructs like aggregates, value objects, or bounded context boundaries. The `modules.txt` lists feature modules, not domains.
+
+**Not Hexagonal Architecture:** No explicit ports/adapters pattern. The framework directly couples to database implementations rather than through repository interfaces.
+
+**Not Modular Monolith:** While there are modules, the key distinction is that Frappe is designed as a **framework that hosts plugins**, not a single application with internal modules. The ability for external apps (like ERPNext) to be installed, define DocTypes, and extend behavior through hooks is the defining microkernel characteristic.
+
+### Summary
+
+Frappe Framework is a **low-code web framework** built on a **Microkernel architecture** where:
+- The core provides infrastructure (ORM, auth, API, UI framework)
+- Apps are plugins that register functionality via hooks
+- DocTypes are metadata-defined entities that can have custom controller classes
+- Server Scripts enable runtime code injection
+
+The layered structure provides clear separation between database, model, API, and UI concerns, but the defining architectural characteristic is the plugin/app extensibility mechanism.

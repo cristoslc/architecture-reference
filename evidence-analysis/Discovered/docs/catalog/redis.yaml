@@ -16,8 +16,7 @@ languages:
 - Ruby
 architecture_styles:
 - Microkernel (Plugin)
-- Event-Driven
-- Service-Based
+- Layered
 classification_status: classified
 review_notes: 'The Redis codebase is a highly specialized architecture that functions
   as a high-performance "Data Structure Server." Based on the provided evidence, its
@@ -48,81 +47,65 @@ review_notes: 'The Redis codebase is a highly specialized architecture that func
 
   Internally, Redis is structured around a non-blocking, asynchronous event loop (`src/ae.c`).'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.67
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:08:32Z'
-classification_reasoning: 'The Redis codebase is a highly specialized architecture
-  that functions as a high-performance "Data Structure Server." Based on the provided
-  evidence, its structural organization is best classified as a **Microkernel (Plugin)**
-  architecture, with strong elements of **Event-Driven** and **Service-Based** design.
-
-
-  ### Core Architecture: Microkernel (Plugin)
-
-  The defining characteristic of Redis''s modern architecture is its extensibility
-  via the **Modules API**.
-
-  - **The Kernel:** The core system (found in `src/server.c`, `src/server.h`, and
-  `src/ae.c`) provides an "operating system" for data: an event loop, memory management
-  (`zmalloc.h`), networking (`networking.c`), and a key-value keyspace.
-
-  - **The Plugins:** As seen in `redis-full.conf`, major features like `RediSearch`,
-  `RedisJSON`, `RedisBloom`, and `RedisTimeSeries` are not compiled into the core;
-  they are loaded at runtime as shared libraries (`.so` files) using `loadmodule`.
-
-  - **Contract Enforcement:** `src/module.c` defines the interface (`RedisModuleCtx`,
-  `RedisModule_OnLoad`) that plugins must implement. The core provides "Ports" (APIs
-  for keyspace access, blocking clients, and logging) that "Adapters" (Modules) use
-  to extend the system without modifying the core source.
-
-
-  ### Secondary Style: Event-Driven
-
-  Internally, Redis is structured around a non-blocking, asynchronous event loop (`src/ae.c`).
-
-  - **Control Flow:** The system does not use a thread-per-request model; instead,
-  it reacts to file events (network I/O) and time events (cron jobs).
-
-  - **Pub/Sub and Streams:** Beyond its internal mechanics, Redis provides first-class
-  primitives for event-driven coordination between external services (`src/pubsub.c`,
-  `src/t_stream.c`).
-
-
-  ### Secondary Style: Service-Based (Cluster Mode)
-
-  While often deployed as a single instance, the "Redis Cluster" (`src/cluster.c`,
-  `src/cluster.h`) transforms the architecture into a distributed **Service-Based**
-  system.
-
-  - **Coarse-Grained Services:** In Cluster mode, 2-1000+ nodes coordinate to form
-  a single logical database. Unlike Microservices, these nodes are homogeneous and
-  share a common protocol and database schema (the 16,384 slots).
-
-  - **Gossip Protocol:** Nodes communicate state via a gossip protocol (defined in
-  `cluster.h`) to handle failover and sharding, representing a distributed systems
-  architecture integrated directly into the binary.
-
-
-  ### Rejected Styles:
-
-  - **Layered:** While there is a loose separation between networking (`anet.c`),
-  protocol parsing (`resp_parser.h`), and data types (`t_string.c`), the architecture
-  is highly integrated for performance. The "Server" state object in `server.h` is
-  globally accessible, violating strict horizontal layering.
-
-  - **Microservices:** Each Redis node is a single deployable unit. While 8.0/Valkey
-  introduces more modularity, it does not consist of small, independently deployable
-  functional units (e.g., a "Search Service" vs a "JSON Service") in the DevOps sense;
-  they are binary plugins.'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.67
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.55
-  alternatives_dismissed: 0.72
-  exploration_completeness: 0.78
-  flags: primary style may be overstated — Redis core is fundamentally Event-Driven/Layered;
-    Microkernel classification leans heavily on optional module loading from config
-    rather than core architectural patterns
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T23:39:59Z'
+classification_reasoning: "## Analysis\n\nRedis is architected as a **Microkernel\
+  \ (Plugin)** system with a single core server extended by dynamically loaded modules.\n\
+  \n### Primary Evidence: Microkernel (Plugin)\n\n**1. Dynamic Plugin Loading via\
+  \ dlopen/dlsym**\n\nThe core server loads external modules at runtime using POSIX\
+  \ dynamic loading:\n\n```c\n// src/module.c:13156-13180\nint moduleLoad(const char\
+  \ *path, void **module_argv, int module_argc, int is_loadex) {\n    int (*onload)(void\
+  \ *, void **, int);\n    void *handle;\n    \n    handle = dlopen(path,RTLD_NOW|RTLD_LOCAL);\n\
+  \    if (handle == NULL) {\n        serverLog(LL_WARNING, \"Module %s failed to\
+  \ load: %s\", path, dlerror());\n        return C_ERR;\n    }\n    onload = (int\
+  \ (*)(void *, void **, int))(unsigned long) dlsym(handle,\"RedisModule_OnLoad\"\
+  );\n    if (onload == NULL) {\n        dlclose(handle);\n        serverLog(LL_WARNING,\n\
+  \            \"Module %s does not export RedisModule_OnLoad() \"\n            \"\
+  symbol. Module not loaded.\",path);\n        return C_ERR;\n    }\n    return moduleOnLoad(onload,\
+  \ path, handle, module_argv, module_argc, is_loadex);\n}\n```\n\n**2. Stable Plugin\
+  \ API Contract**\n\nThe module API is defined in a 1885-line header file (`src/redismodule.h`)\
+  \ exposing hundreds of functions for:\n- Command creation: `RedisModule_CreateCommand`,\
+  \ `RedisModule_CreateSubcommand`\n- Custom data types: `RedisModule_CreateDataType`\n\
+  - Memory management: `RedisModule_Alloc`, `RedisModule_Free`\n- Key operations:\
+  \ `RedisModule_OpenKey`, `RedisModule_Call`\n- Event hooks: `RedisModule_SubscribeToServerEvent`\n\
+  \n**3. Plugin Registration Contract**\n\nAll modules must implement the entry point:\n\
+  \n```c\n// src/modules/helloworld.c:525\nint RedisModule_OnLoad(RedisModuleCtx *ctx,\
+  \ RedisModuleString **argv, int argc) {\n    if (RedisModule_Init(ctx,\"helloworld\"\
+  ,1,REDISMODULE_APIVER_1)\n        == REDISMODULE_ERR) return REDISMODULE_ERR;\n\
+  \    \n    if (RedisModule_CreateCommand(ctx,\"hello.simple\",\n        HelloSimple_RedisCommand,\"\
+  readonly\",0,0,0) == REDISMODULE_ERR)\n        return REDISMODULE_ERR;\n    ...\n\
+  }\n```\n\n**4. Production Modules Directory**\n\nThe `modules/` directory contains\
+  \ independently buildable extension modules:\n- `vector-sets/` - Vector similarity\
+  \ search with HNSW algorithm\n- `redisbloom/` - Bloom filter data structure\n- `redisearch/`\
+  \ - Full-text search\n- `redisjson/` - JSON document storage\n- `redistimeseries/`\
+  \ - Time series data\n\n**5. Runtime Configuration**\n\nModules are loaded via `redis.conf`:\n\
+  ```\nloadmodule /path/to/module.so [args...]\n```\n\nOr dynamically via the `MODULE\
+  \ LOAD` command.\n\n### Secondary Evidence: Layered (Weak)\n\nThe codebase shows\
+  \ horizontal organization typical of C projects:\n\n- **Event Loop Layer**: `ae.c`,\
+  \ `ae_epoll.c`, `ae_kqueue.c`, `ae_select.c` - platform-specific event polling\n\
+  - **Networking Layer**: `anet.c`, `connection.c`, `networking.c` - socket handling,\
+  \ client connections\n- **Command Processing**: `commands.c`, `db.c`, various `*.c`\
+  \ command implementations\n- **Data Structures**: `adlist.c`, `dict.c`, `quicklist.c`,\
+  \ `ziplist.c`, `rax.c` - core data types\n\nHowever, this is **not a formally enforced\
+  \ layered architecture**. The `server.h` header includes all internal components,\
+  \ creating cross-layer dependencies. Files like `server.c` directly call into data\
+  \ structures, networking, and event loop. This is standard C code organization,\
+  \ not a Layered architecture pattern.\n\n### Rejected Styles\n\n- **Modular Monolith**:\
+  \ No enforced internal module boundaries within `src/`. Single compilation unit\
+  \ producing `redis-server` binary with shared access to all internals via `server.h`.\n\
+  \n- **Event-Driven**: While Redis uses an event loop internally for I/O multiplexing,\
+  \ components don't communicate through asynchronous events. The event loop is an\
+  \ implementation detail for handling client connections, not an architectural communication\
+  \ pattern.\n\n- **Service-Based/Microservices**: Single deployable binary (`redis-server`).\
+  \ No independent deployment units.\n\n- **Hexagonal Architecture**: No ports-and-adapters\
+  \ isolation. The module API is for **extension**, not for isolating the application\
+  \ core from external concerns.\n\n- **Domain-Driven Design**: No bounded contexts,\
+  \ aggregates, value objects, or ubiquitous language patterns. The code is organized\
+  \ around data structures and commands.\n\n- **Pipeline**: No sequential data transformation\
+  \ stages.\n\n### Conclusion\n\nRedis embodies the **Microkernel (Plugin)** pattern:\
+  \ a minimal core server providing essential services (event loop, networking, persistence,\
+  \ basic data types) that can be extended at runtime through dynamically loaded modules\
+  \ implementing a well-defined API contract. This allows functionality like search,\
+  \ JSON, time series, and vector operations to be added without modifying the core."

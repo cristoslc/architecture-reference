@@ -14,9 +14,8 @@ languages:
 - Go
 - JavaScript
 architecture_styles:
+- Layered
 - Modular Monolith
-- Event-Driven
-- Hexagonal Architecture
 classification_status: classified
 review_notes: 'Consul is structured as a **Modular Monolith**. While it is a distributed
   system that facilitates microservices, the repository itself is organized into a
@@ -46,54 +45,61 @@ review_notes: 'Consul is structured as a **Modular Monolith**. While it is a dis
   Internal communication and state synchronization within the cluster rely heavily
   on event-driven and gossip-based patterns.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.74
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:44:32Z'
-classification_reasoning: "Consul is structured as a **Modular Monolith**. While it\
-  \ is a distributed system that facilitates microservices, the repository itself\
-  \ is organized into a single, cohesive codebase that yields a primary unified binary\
-  \ (`consul`).\n\n### 1. Primary Style: Modular Monolith\nThe codebase is organized\
-  \ into highly decoupled modules (Go packages) that reside in the same repository\
-  \ but maintain clear internal boundaries.\n- **Single Entry Point**: The `Makefile`\
-  \ confirms that `go install` and `go build` target a primary command. The `command/`\
-  \ directory contains various sub-commands (e.g., `command/agent`, `command/kv`),\
-  \ but they are all compiled into the same executable.\n- **Internal Module Boundaries**:\
-  \ The structure separates the `agent/` (client logic), `agent/consul` (server/Raft\
-  \ logic), and `api/` (client SDK). The logic for the UI, DNS, and various service\
-  \ discovery protocols is encapsulated in dedicated sub-directories.\n- **Shared\
-  \ Memory/State**: Within a single Consul process (especially in server mode), multiple\
-  \ \"sub-systems\" like the Raft consensus engine, the RPC server, and the HTTP API\
-  \ share memory space and lifecycle managed by the `agent.go` and `server.go`.\n\n\
-  ### 2. Secondary Style: Event-Driven\nInternal communication and state synchronization\
-  \ within the cluster rely heavily on event-driven and gossip-based patterns.\n-\
-  \ **Gossip and Events**: The `agent/user_event.go` and the inclusion of `agent/ae`\
-  \ (Anti-Entropy) indicate a system designed around eventual consistency and event\
-  \ propagation.\n- **Blocking Queries**: The `agent/blockingquery/` package implements\
-  \ a pattern where components wait for state changes, a characteristic of reactive/event-driven\
-  \ internal coordination.\n\n### 3. Secondary Style: Hexagonal Architecture (Ports\
-  \ and Adapters)\nConsul demonstrates strong isolation of the core domain logic from\
-  \ external interfaces.\n- **Multi-Interface Support**: The system exposes its core\
-  \ logic through multiple \"adapters\": `agent/dns.go` (DNS), `agent/http.go` (HTTP/REST),\
-  \ and `agent/grpc-external/` (gRPC). \n- **Protobuf-defined Boundaries**: The extensive\
-  \ use of Protobuf (`proto/private/` and `proto/public/`) acts as the contract (Ports)\
-  \ between the core state machine and the external-facing services or other cluster\
-  \ nodes.\n\n### Why not Microservices?\nAlthough Consul is often deployed alongside\
-  \ microservices, it is not a microservices architecture *internally*. It does not\
-  \ consist of multiple independently deployable services that form the application.\
-  \ Instead, it is a distributed monolith where the same binary is deployed across\
-  \ all nodes, assuming different roles (client vs. server) based on configuration.\n\
-  \n### Why not Microkernel?\nWhile Consul supports \"Connect\" proxies and \"Envoy\
-  \ extensions\" (`envoyextensions/`), these are primarily integrations with external\
-  \ binaries rather than a plugin-based architecture for the core logic itself. Most\
-  \ features are compiled-in rather than loaded at runtime via a plugin contract."
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.74
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.72
-  alternatives_dismissed: 0.8
-  exploration_completeness: 0.7
-  flags: three co-equal styles listed which dilutes primary classification clarity;
-    'Modular Monolith' is reasonable but the compound classification reduces precision
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:00:57Z'
+classification_reasoning: "## Architecture Analysis: HashiCorp Consul\n\n### Primary\
+  \ Classification: Layered Architecture\n\nConsul implements a classic **Layered\
+  \ Architecture** with clear horizontal separation of concerns:\n\n**1. API/Presentation\
+  \ Layer** (`agent/*_endpoint.go`, `agent/grpc-external/`, `agent/dns/`, `command/`)\n\
+  - HTTP REST endpoints for catalog, ACL, health, coordinate, config operations\n\
+  - gRPC external services (`agent/grpc-external/services/`)\n- DNS interface for\
+  \ service discovery\n- CLI commands in `command/` directory (40+ subdirectories\
+  \ for different command groups)\n\n**2. Business Logic/Service Layer** (`agent/consul/server.go`,\
+  \ `agent/consul/client.go`)\n- Core `Server` struct (~2025 lines) handling Raft-based\
+  \ consensus\n- `Client` struct for agent-to-server communication\n- Domain-specific\
+  \ handlers: `Catalog`, `ACL`, `Health`, `Connect`, `PreparedQuery`\n- Controller\
+  \ pattern in `internal/controller/` for Kubernetes-style reconciliation\n\n**3.\
+  \ State/Data Layer** (`agent/consul/fsm/`, `agent/consul/state/`)\n- FSM (Finite\
+  \ State Machine) for Raft log application\n- MemDB-based state store with tables\
+  \ for nodes, services, ACLs, sessions, etc.\n- Snapshot/restore capabilities\n-\
+  \ Event publishing for state change notifications\n\n**Evidence from code:**\n```\n\
+  agent/consul/catalog_endpoint.go:76-80\ntype Catalog struct {\n    srv    *Server\n\
+  \    logger hclog.Logger\n}\n```\n\nEndpoints depend on the Server, which depends\
+  \ on the State Store - classic layered dependency.\n\n### Secondary Style: Modular\
+  \ Monolith\n\nConsul exhibits **Modular Monolith** characteristics with enforced\
+  \ internal boundaries:\n\n**Single Deployable:**\n- One `main.go` entry point\n\
+  - Single binary built via Dockerfile\n- Go module with replace directives for internal\
+  \ packages (`api/`, `sdk/`, `proto-public/`)\n\n**Organized Module Structure (~708\
+  \ Go files in agent/ alone):**\n- `acl/` - Access control logic\n- `agent/` - Core\
+  \ agent with endpoints\n- `agent/cache/` - Caching layer\n- `agent/consul/` - Server/client\
+  \ logic, Raft integration\n- `agent/structs/` - Domain objects\n- `internal/controller/`\
+  \ - Reconciliation controllers\n- `internal/storage/` - Storage backends\n- `command/`\
+  \ - CLI interface\n\n**Module Boundary Evidence:**\n- `agent/consul/state/store.go`\
+  \ encapsulates all state operations\n- `internal/controller/controller.go` implements\
+  \ independent controller pattern\n- Clear separation between packages with explicit\
+  \ interfaces\n\n**Enterprise/OSS Boundary:**\n- `*_ce.go` files define Community\
+  \ Edition stubs (e.g., `agent/setup_ce.go`, `agent/consul/server_ce.go`)\n- Build\
+  \ tags separate enterprise features\n\n### What This is NOT:\n\n- **NOT Microservices**:\
+  \ Single binary deployed across all nodes (servers and clients run the same binary\
+  \ with different configurations)\n  \n- **NOT Event-Driven Architecture**: While\
+  \ Consul has event mechanisms (Serf gossip, event publishers in `agent/consul/stream/`),\
+  \ the core architecture is **synchronous request-response with Raft consensus**,\
+  \ not event-sourced. Writes go through Raft log replication.\n\n- **NOT CQRS**:\
+  \ Single MemDB state store; no separate read/write models\n\n- **NOT Hexagonal/Ports-Adapters**:\
+  \ Direct package coupling without ports/adapters abstraction. Internal packages\
+  \ import each other directly.\n\n- **NOT Microkernel/Plugin**: No runtime plugin\
+  \ loading. Extension is via build-time enterprise integration.\n\n### Key Architectural\
+  \ Elements:\n\n1. **Raft Consensus**: Distributed state management via `github.com/hashicorp/raft`\
+  \ with FSM implementation\n   ```\n   fsm/fsm.go:48-68 - FSM struct with state store\
+  \ and event publisher\n   ```\n\n2. **Serf Gossip**: Member discovery and health\
+  \ checking via `github.com/hashicorp/serf`\n\n3. **Controller Pattern**: Kubernetes-inspired\
+  \ reconciliation loops in `internal/controller/manager.go`\n\n4. **State Management**:\
+  \ MemDB (in-memory database) with ~30+ table schemas for different entity types\n\
+  \n### Confidence Rationale: 0.90\n\n- **Clear layered structure** evident from directory\
+  \ organization and dependency flow\n- **Single deployable** confirmed via `main.go`,\
+  \ Dockerfile, and go.mod\n- **Module boundaries** enforced through Go package structure\n\
+  - **Not ambiguous**: Clear separation between API, business logic, and state layers\n\
+  - Minor complexity from distributed consensus mechanisms doesn't change the fundamental\
+  \ layered organization"

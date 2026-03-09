@@ -16,8 +16,7 @@ languages:
 - Swift
 architecture_styles:
 - Microkernel (Plugin)
-- Hexagonal Architecture
-- Event-Driven
+- Modular Monolith
 classification_status: classified
 review_notes: 'The AppFlowy repository architecture is primarily a **Microkernel (Plugin)**
   system, specifically designed to bridge a Flutter frontend with a highly modular
@@ -47,53 +46,66 @@ review_notes: 'The AppFlowy repository architecture is primarily a **Microkernel
   The backend is structured to isolate the core business logic from external drivers
   and driven actors.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.79
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:38:52Z'
-classification_reasoning: "The AppFlowy repository architecture is primarily a **Microkernel\
-  \ (Plugin)** system, specifically designed to bridge a Flutter frontend with a highly\
-  \ modular Rust backend via a centralized event dispatcher.\n\n### 1. Primary Style:\
-  \ Microkernel (Plugin)\nThe core of the system is the `AFPluginDispatcher` (found\
-  \ in `lib-dispatch` and initialized in `flowy-core`).\n- **Plugin Registry**: In\
-  \ `flowy-core/src/lib.rs`, the `make_plugins` function aggregates various high-level\
-  \ modules (Folder, Database, User, Document, Search, AI) and registers them as plugins.\n\
-  - **Contract-Based Extension**: Each major feature is a separate crate (`flowy-database2`,\
-  \ `flowy-document`, etc.). These are not linked via direct function calls from the\
-  \ frontend but are accessed through the dispatcher.\n- **Manifests**: The `Flowy.toml`\
-  \ files found in module roots (e.g., `flowy-database2/Flowy.toml`) serve as plugin\
-  \ manifests, defining code generation targets for events and protocol buffers.\n\
-  \n### 2. Secondary Style: Hexagonal Architecture (Ports and Adapters)\nThe backend\
-  \ is structured to isolate the core business logic from external drivers and driven\
-  \ actors.\n- **Adapters**: The `dart-ffi` crate acts as a primary **Inbound Adapter**,\
-  \ converting FFI calls into internal `AFPluginRequest` objects. The `flowy-server`\
-  \ crate serves as an **Outbound Adapter** for cloud synchronization.\n- **Dependency\
-  \ Inversion**: `flowy-core` manages complex dependency resolution (`deps_resolve/`)\
-  \ where managers (e.g., `DocumentManager`, `FolderManager`) are injected with trait\
-  \ implementations or weak pointers to other services, keeping the domain logic separated\
-  \ from infrastructure concerns like SQLite persistence or Network I/O.\n\n### 3.\
-  \ Secondary Style: Event-Driven\nCommunication between the Flutter UI and the Rust\
-  \ core, as well as inter-module communication, is handled via a request/response\
-  \ event bus. \n- **Dispatcher Pattern**: `lib-dispatch` defines a systematic way\
-  \ to route events. UI actions in Flutter are dispatched as asynchronous events (see\
-  \ `async_event` in `dart-ffi/src/lib.rs`) that the Rust kernel routes to the appropriate\
-  \ plugin/module.\n- **Decoupling**: This allows the frontend to interact with the\
-  \ backend without knowing specific Rust types, relying instead on serialized Protobuf\
-  \ messages and event IDs.\n\n### 4. Rejected Styles\n- **Microservices**: Although\
-  \ there are \"services\" and \"managers,\" they are compiled into a single binary\
-  \ for desktop/mobile deployment.\n- **Layered**: While horizontal layers exist (UI,\
-  \ Business Logic, Data), the strict enforcement of boundaries through a plugin-dispatch\
-  \ mechanism and the heavy use of dependency injection makes it more advanced than\
-  \ a standard MVC/Layered architecture.\n- **Modular Monolith**: While it is a single\
-  \ deployable unit, the architecture is specifically built around a \"Core + Plugins\"\
-  \ model rather than just logically separated packages. The presence of a central\
-  \ orchestrator (`AFPluginDispatcher`) is the deciding factor for Microkernel over\
-  \ generic Modular Monolith."
-confidence_calibration:
-  original_confidence: 0.81
-  calibrated_confidence: 0.79
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.82
-  style_clarity: 0.78
-  alternatives_dismissed: 0.72
-  exploration_completeness: 0.8
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:16:40Z'
+classification_reasoning: "## Architecture Analysis\n\n### Primary: Microkernel (Plugin)\
+  \ Architecture\n\nAppFlowy implements a **dual plugin system** across both its Rust\
+  \ backend and Flutter frontend, making the Microkernel architecture the defining\
+  \ characteristic.\n\n**Rust Backend Plugin System:**\n\nThe `lib-dispatch` crate\
+  \ provides the core plugin infrastructure (`frontend/rust-lib/lib-dispatch/src/module/module.rs`):\n\
+  - `AFPlugin` - plugins register events with handlers and state\n- `AFPluginDispatcher`\
+  \ - routes events to appropriate plugins\n- Event-based dispatch pattern: requests\
+  \ flow through a central dispatcher to registered handlers\n\nEach domain module\
+  \ exports an `init()` function that creates its plugin:\n\n```rust\n// frontend/rust-lib/flowy-user/src/event_map.rs\n\
+  pub fn init(user_manager: Weak<UserManager>) -> AFPlugin {\n  AFPlugin::new()\n\
+  \    .name(\"Flowy-User\")\n    .state(user_manager)\n    .event(UserEvent::SignInWithEmailPassword,\
+  \ sign_in_with_email_password_handler)\n    .event(UserEvent::SignUp, sign_up)\n\
+  \    // ... more events\n}\n```\n\nAll plugins are assembled in `frontend/rust-lib/flowy-core/src/module.rs`:\n\
+  ```rust\npub fn make_plugins(...) -> Vec<AFPlugin> {\n  vec![\n    flowy_user::event_map::init(user_session),\n\
+  \    flowy_folder::event_map::init(folder_manager),\n    flowy_database2::event_map::init(database_manager),\n\
+  \    flowy_document::event_map::init(document_manager2),\n    flowy_ai::event_map::init(ai_manager),\n\
+  \    // ... more plugins\n  ]\n}\n```\n\n**Flutter Frontend Plugin System:**\n\n\
+  The `PluginSandbox` (`frontend/appflowy_flutter/lib/startup/plugin/src/sandbox.dart`)\
+  \ manages UI plugins:\n- `Plugin` abstract class with lifecycle methods\n- `PluginBuilder`\
+  \ pattern for creating plugins\n- `PluginWidgetBuilder` for rendering UI\n\nPlugin\
+  \ registration in `frontend/appflowy_flutter/lib/startup/tasks/load_plugin.dart`:\n\
+  ```dart\n@override\nFuture<void> initialize(LaunchContext context) async {\n  registerPlugin(builder:\
+  \ BlankPluginBuilder(), config: BlankPluginConfig());\n  registerPlugin(builder:\
+  \ TrashPluginBuilder(), config: TrashPluginConfig());\n  registerPlugin(builder:\
+  \ DocumentPluginBuilder());\n  registerPlugin(builder: GridPluginBuilder(), config:\
+  \ GridPluginConfig());\n  registerPlugin(builder: BoardPluginBuilder(), config:\
+  \ BoardPluginConfig());\n  registerPlugin(builder: CalendarPluginBuilder(), config:\
+  \ CalendarPluginConfig());\n  registerPlugin(builder: AIChatPluginBuilder(), config:\
+  \ AIChatPluginConfig());\n}\n```\n\n**Communication Bridge:**\nThe `dart-ffi` crate\
+  \ (`frontend/rust-lib/dart-ffi/src/lib.rs`) provides the FFI bridge, allowing Flutter\
+  \ to dispatch events to Rust plugins via `async_event()` calls.\n\n### Secondary:\
+  \ Modular Monolith\n\nThe Rust backend enforces **strong module boundaries** through\
+  \ its workspace structure:\n\n**Cargo.toml workspace** (`frontend/rust-lib/Cargo.toml`)\
+  \ defines clear module separation:\n- Domain modules: `flowy-user`, `flowy-folder`,\
+  \ `flowy-document`, `flowy-database2`, `flowy-ai`, `flowy-storage`, `flowy-search`\n\
+  - Each module has a `-pub` crate for public interfaces: `flowy-user-pub`, `flowy-folder-pub`,\
+  \ `flowy-document-pub`, etc.\n- Infrastructure: `lib-dispatch`, `lib-log`, `lib-infra`\n\
+  \nThis creates enforced internal boundaries while remaining a **single deployable\
+  \ unit** (desktop application).\n\n### What This Is NOT\n\n- **NOT Microservices**:\
+  \ Single desktop application binary (`AppFlowy`), no separate services, no API gateway.\
+  \ The docker-compose.yml runs a single desktop app container for distribution, not\
+  \ service orchestration.\n\n- **NOT Event-Driven (message broker)**: \"Events\"\
+  \ here are internal dispatch mechanism for request/response routing, not asynchronous\
+  \ messaging via Kafka/RabbitMQ. The `Flowy_Event` annotation creates typed request\
+  \ handlers, not message subscribers.\n\n- **NOT Layered**: No horizontal layering\
+  \ (presentation → business → data). Structure is vertical by domain—each plugin\
+  \ (`flowy-document`, `flowy-database2`) contains its own full stack from event handlers\
+  \ to persistence.\n\n- **NOT Hexagonal**: While there are `-pub` crates defining\
+  \ interfaces, the pattern is module-scoped dependency enforcement, not ports-and-adapters\
+  \ with application core isolation.\n\n### Key Evidence Paths\n\n| Component | Path\
+  \ | Pattern |\n|-----------|------|---------|\n| Plugin definition | `frontend/rust-lib/lib-dispatch/src/module/module.rs`\
+  \ | `AFPlugin` struct |\n| Plugin assembly | `frontend/rust-lib/flowy-core/src/module.rs`\
+  \ | `make_plugins()` |\n| User plugin | `frontend/rust-lib/flowy-user/src/event_map.rs`\
+  \ | `init()` → `AFPlugin` |\n| Document plugin | `frontend/rust-lib/flowy-document/src/event_map.rs`\
+  \ | `init()` → `AFPlugin` |\n| Flutter sandbox | `frontend/appflowy_flutter/lib/startup/plugin/src/sandbox.dart`\
+  \ | `PluginSandbox` |\n| Plugin registration | `frontend/appflowy_flutter/lib/startup/tasks/load_plugin.dart`\
+  \ | `registerPlugin()` calls |\n| FFI bridge | `frontend/rust-lib/dart-ffi/src/lib.rs`\
+  \ | `async_event()` |\n| Workspace modules | `frontend/rust-lib/Cargo.toml` | Workspace\
+  \ members |"

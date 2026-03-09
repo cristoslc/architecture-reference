@@ -1,0 +1,72 @@
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.90
+---
+
+## Architecture Classification: Saleor
+
+### Primary: Microkernel (Plugin)
+
+Saleor implements a sophisticated plugin architecture that serves as its primary extension mechanism:
+
+**Core Evidence:**
+
+1. **BasePlugin Abstract Class** (`saleor/plugins/base_plugin.py:100`):
+   - Defines 50+ extension points as callable hooks
+   - Each method follows the `previous_value` pattern where plugins receive and can modify values from preceding plugins in the chain
+   - Example hooks: `order_created`, `calculate_checkout_total`, `authorize_payment`, `account_confirmed`, `webhook_notify`
+
+2. **PluginsManager** (`saleor/plugins/manager.py:89`):
+   - Central orchestrator that discovers, loads, and chains plugin invocations
+   - Manages plugin lifecycle and configuration per channel
+
+3. **Dynamic Plugin Discovery** (`saleor/plugins/__init__.py:6-16`):
+   - `discover_plugins_modules()` function loads plugins via `importlib.metadata.entry_points(group="saleor.plugins")`
+   - External plugins can be registered via Python entry points
+
+4. **Built-in Plugins** (`saleor/settings.py:889-906`):
+   - `WebhookPlugin`, `StripeGatewayPlugin`, `BraintreeGatewayPlugin`, `AdyenGatewayPlugin`
+   - `AdminEmailPlugin`, `UserEmailPlugin`, `OpenIDConnectPlugin`, `AvataxPlugin`
+   - Each extends `BasePlugin` and implements specific hooks
+
+5. **Plugin Configuration Model** (`saleor/plugins/models.py`):
+   - `PluginConfiguration` stores per-channel plugin settings in database
+   - Supports `CONFIGURATION_PER_CHANNEL` for multi-tenant scenarios
+
+### Secondary: Modular Monolith
+
+Saleor is deployed as a single application with well-organized internal module boundaries:
+
+**Evidence:**
+
+1. **Single Deployable Unit**:
+   - One `Dockerfile` producing a single container image
+   - Single entry point via `saleor.asgi:application`
+
+2. **Django Apps as Modules** (`saleor/settings.py:296-339`):
+   - ~25 Django apps: `product`, `order`, `checkout`, `account`, `payment`, `discount`, `giftcard`, `warehouse`, `webhook`, `app`, etc.
+   - Each app has: `models.py`, `migrations/`, `tests/`, `tasks.py`, `apps.py`
+
+3. **Module Structure**:
+   - Each module owns its database tables (via Django migrations)
+   - Each contributes GraphQL schema components (`saleor/graphql/*/schema.py`)
+   - Independent test suites per module
+
+4. **Shared Database**:
+   - All modules use the same PostgreSQL database
+   - No database-per-module isolation
+
+### Rejected Classifications
+
+**Not Microservices**: Single deployment unit, shared database, synchronous in-process function calls between modules.
+
+**Not Event-Driven**: Webhooks are external notifications, not internal communication. Celery tasks are background jobs, not event-sourced domain events. Modules call each other directly.
+
+**Not Layered**: No strict presentation/business/data layer separation. GraphQL resolvers interact directly with Django models.
+
+**Not Hexagonal**: No explicit ports/adapters pattern. Django ORM models used directly throughout without repository abstractions.
+
+**Not Domain-Driven Design**: No aggregate roots, bounded context isolation, or ubiquitous language documentation. Modules share database and can import each other freely.

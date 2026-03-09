@@ -1,0 +1,117 @@
+Now I have sufficient evidence to classify the architecture. Let me check one more thing about the module dependency enforcement.Based on my thorough exploration of the Apache Ignite 3 repository, I now have sufficient evidence to classify the architecture.
+
+---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Microkernel (Plugin)
+confidence: 0.90
+---
+
+## Architecture Classification: Modular Monolith with Plugin Extension Points
+
+### Primary Evidence for **Modular Monolith**
+
+**1. Single Deployable Unit**
+The repository builds a single distributable package (`ignite3-db`). The docker-compose.yml shows multiple homogeneous node instances, not different microservices:
+```yaml
+# All nodes use the same image with different names
+services:
+  node1, node2, node3: # All use apacheignite/ignite:${IGNITE3_VERSION}
+```
+
+**2. Enforced Internal Module Boundaries**
+The `modules/README.md` explicitly documents strict modularity rules:
+> "We prohibit cyclic dependencies between modules in order to simplify JIGSAW migration in the future."
+> "Each module provides an exposed API which should be used by external modules. Not exposed APIs must not be used by external modules."
+
+**3. Gradle Multi-Module Structure**
+`settings.gradle` defines 70+ internal modules with clear separation of concerns:
+- `ignite-api` - Public API interfaces
+- `ignite-network` - Cluster communication
+- `ignite-raft` - Consensus protocol
+- `ignite-storage-api` / `ignite-storage-rocksdb` - Storage abstraction
+- `ignite-sql-engine` - Query processing
+- `ignite-transactions` - ACID transactions
+
+**4. Runner as Composition Root**
+The `ignite-runner` module (100+ dependency lines) acts as the single composition root that wires all components:
+```gradle
+// ignite-runner/build.gradle
+implementation project(':ignite-configuration')
+implementation project(':ignite-network')
+implementation project(':ignite-raft')
+implementation project(':ignite-metastorage')
+// ... 40+ module dependencies
+```
+
+**5. Acyclic Component Dependency Graph**
+From `modules/runner/README.md`:
+> "Components form an acyclic directed graph that is constructed in topological sort order wrt root."
+> "Since metastorage watches can only be added during the component startup, the watch notification order is consistent with the component initialization order."
+
+### Secondary Evidence for **Microkernel (Plugin)**
+
+**1. ServiceLoader-Based Extension Points**
+The architecture explicitly uses `java.util.ServiceLoader` for runtime pluggability:
+
+**Storage Engine Plugin** (`DataStorageModule.java`):
+```java
+public interface DataStorageModule {
+    String name();
+    StorageEngine createEngine(...);
+}
+```
+
+**Configuration Module Plugin** (`ConfigurationModule.java`):
+```java
+// Designed for ServiceLoader mechanism
+public interface ConfigurationModule {
+    ConfigurationType type();
+    Collection<RootKey<?, ?, ?>> rootKeys();
+    Collection<Class<?>> schemaExtensions();
+}
+```
+
+**2. Polymorphic Configuration Extensions**
+From `modules/storage-api/README.md`:
+> "To add a new data storage you need:
+> - Add a new module
+> - Implement interfaces: DataStorageModule, StorageEngine, MvTableStorage...
+> - Add services (loaded via ServiceLoader):
+>   - Implementation of DataStorageModule
+>   - Implementation of ConfigurationModule"
+
+**3. Auto-Service Registration**
+Implementation modules use `@AutoService` annotation:
+```java
+@AutoService(ConfigurationModule.class)
+public class RocksDbStorageEngineLocalConfigurationModule implements ConfigurationModule {
+    @Override
+    public Collection<Class<?>> polymorphicSchemaExtensions() {
+        return List.of(RocksDbProfileConfigurationSchema.class);
+    }
+}
+```
+
+**4. Runtime Component Discovery**
+In `IgniteImpl.java`:
+```java
+ServiceLoader.load(DataStorageModule.class, serviceProviderClassLoader)
+ServiceLoader.load(ConfigurationModule.class, classLoader)
+ChannelTypeRegistryProvider.loadByServiceLoader(serviceProviderClassLoader)
+```
+
+### What This Architecture Is NOT
+
+**Not Microservices**: Single deployment artifact, homogeneous nodes, shared database via Raft consensus. Nodes are replicas, not independent services.
+
+**Not Domain-Driven Design**: Modules are organized by technical capability (network, storage, sql-engine, transactions) rather than domain bounded contexts. No aggregates, entities, or value object patterns.
+
+**Not Layered Architecture**: While there are API modules, the structure is not horizontal layering (presentation/business/data). Instead, modules are vertical capabilities with their own implementation stacks.
+
+**Not Event-Driven (primary)**: While Raft uses messages for consensus and components use metastorage watches, the primary interaction is synchronous RPC via Netty, not asynchronous event streams through brokers.
+
+### Summary
+
+Apache Ignite 3 is a **Modular Monolith** with **Microkernel-style plugin extensions**. It enforces strict internal module boundaries (acyclic dependencies, exposed APIs only) while building a single deployable artifact. The `runner` module serves as the composition root, and extension points like storage engines use ServiceLoader for runtime pluggability, making it a well-structured hybrid of modular monolith organization with microkernel extensibility patterns.

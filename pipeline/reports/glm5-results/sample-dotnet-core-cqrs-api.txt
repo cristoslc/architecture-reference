@@ -1,0 +1,81 @@
+I'll explore this repository systematically to classify its architecture. Let me start with the directory structure and README.The README clearly indicates this is a CQRS and DDD implementation with Clean Architecture. Let me explore the project structure in more detail.Now let me examine the domain model and CQRS implementation more closely:Let me check the application startup and a few more details to confirm my analysis:Let me check one more aspect - the domain model boundaries and the overall project structure:Based on my thorough exploration of this repository, I have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: CQRS
+secondary_styles:
+  - Domain-Driven Design
+confidence: 0.92
+---
+
+## Analysis
+
+This repository implements a **CQRS (Command Query Responsibility Segregation)** architecture with **Domain-Driven Design** as a strong secondary style, built on Clean Architecture principles.
+
+### Primary Style: CQRS
+
+The defining architectural characteristic is the clear separation between read and write models:
+
+**Write Model (Commands):**
+- Commands implement `ICommand`/`ICommandHandler<T>` interfaces using MediatR (`src/SampleProject.Application/Configuration/Commands/ICommand.cs`)
+- Uses Entity Framework Core with domain aggregates (`RegisterCustomerCommandHandler` at `src/SampleProject.Application/Customers/RegisterCustomer/RegisterCustomerCommandHandler.cs`)
+- Domain-driven write side with business rule validation
+
+**Read Model (Queries):**
+- Queries implement `IQuery<TResult>`/`IQueryHandler<T>` interfaces (`src/SampleProject.Application/Configuration/Queries/IQuery.cs`)
+- Uses raw SQL with Dapper against database views (`GetCustomerDetailsQueryHandler` at `src/SampleProject.Application/Customers/GetCustomerDetails/GetCustomerDetailsQueryHandler.cs`):
+  ```csharp
+  const string sql = "SELECT [Customer].[Id], [Customer].[Name]..."
+  var connection = _sqlConnectionFactory.GetOpenConnection();
+  return connection.QuerySingleAsync<CustomerDetailsDto>(sql, ...);
+  ```
+- Separate DTOs for read projections (`CustomerDto`, `OrderDetailsDto`)
+
+The README explicitly confirms: *"Read Model - executing raw SQL scripts on database views objects (using Dapper). Write Model - Domain Driven Design approach (using Entity Framework Core)."*
+
+### Secondary Style: Domain-Driven Design
+
+Strong DDD tactical patterns throughout the domain layer (`src/SampleProject.Domain/`):
+
+**Aggregate Roots with encapsulated business logic:**
+- `Customer` aggregate (`src/SampleProject.Domain/Customers/Customer.cs`) implements `IAggregateRoot`
+- Factory methods: `Customer.CreateRegistered()`, internal constructors
+- Business rules enforced via `CheckRule()` method:
+  ```csharp
+  CheckRule(new CustomerCannotOrderMoreThan2OrdersOnTheSameDayRule(_orders));
+  ```
+
+**DDD Building Blocks in SeedWork:**
+- `Entity` base class with domain events (`src/SampleProject.Domain/SeedWork/Entity.cs`)
+- `ValueObject` base class (`src/SampleProject.Domain/SeedWork/ValueObject.cs`)
+- `IAggregateRoot` marker interface
+- `IBusinessRule` interface with concrete implementations
+
+**Domain Events:**
+- Events like `OrderPlacedEvent`, `CustomerRegisteredEvent` raised within aggregates
+- Domain event handlers for cross-aggregate coordination (`OrderPlacedDomainEventHandler` creates `Payment` entity)
+
+### Hexagonal Architecture Foundation
+
+Clean Architecture implementation with dependency inversion:
+- **Domain** → No external dependencies (only MediatR for events)
+- **Application** → Depends only on Domain
+- **Infrastructure** → Implements interfaces (Repositories, EmailSender, etc.)
+- **API** → Presentation layer, wires everything via Composition Root
+
+Project references confirm dependency flow:
+```
+API → Infrastructure → Application → Domain
+```
+
+### What This Is NOT
+
+- **NOT Microservices**: Single deployable unit (one API project, one database)
+- **NOT Event-Driven Architecture**: Domain events are internal implementation details processed synchronously within the monolith. No message broker, no async cross-service event communication.
+- **NOT Modular Monolith**: No explicit bounded context module boundaries—just layer separation
+- **NOT traditional Layered**: The primary architectural driver is CQRS/DDD, not horizontal layering
+
+### Additional Patterns Observed
+
+- **Outbox Pattern**: `OutboxMessage` storage with Quartz.NET processing for reliable event delivery (`src/SampleProject.Infrastructure/Processing/Outbox/`)
+- **Cache-Aside**: In-memory caching implementation (`src/SampleProject.Infrastructure/Caching/`)

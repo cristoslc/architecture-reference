@@ -1,0 +1,114 @@
+Let me check the streaming server's relationship to Redis to understand the event-driven aspectbetter:Now I have sufficient evidence to classify this architecture. Let me finalize my analysis:
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.90
+---
+
+## Architecture Classification: Mastodon
+
+### Primary Style: Layered (Rails MVC)
+
+Mastodon follows a classic **Ruby on Rails layered architecture** with clear horizontal separation:
+
+**Presentation Layer (Controllers & Views):**
+- `app/controllers/` contains 31+ controller files (e.g., `accounts_controller.rb`, `statuses_controller.rb`)
+- `app/controllers/api/v1/` provides REST API endpoints
+- `app/controllers/activitypub/` handles ActivityPub federation protocol
+- `app/views/` contains view templates (HAML)
+- `app/policies/` implements authorization with Pundit
+
+**Business Logic Layer (Services):**
+- `app/services/` contains 75+ service objects (e.g., `FanOutOnWriteService`, `DeleteAccountService`, `ProcessAccountService`)
+- BaseService as abstract parent class pattern
+- Services encapsulate complex business operations
+
+**Data Access Layer (Models):**
+- `app/models/` contains 144+ ActiveRecord models
+- Models inherit from `ApplicationRecord` (standard Rails pattern)
+- Domain entities: Account, Status, Follow, Block, etc.
+- Concerns for shared behaviors (`app/models/concerns/`)
+
+**Supporting Layers:**
+- `app/workers/` - 54 Sidekiq workers for background processing
+- `app/serializers/` - JSON serialization for API responses
+- `app/lib/` - Utility modules and domain logic helpers
+- `app/helpers/` - View helpers
+
+### Secondary Style: Event-Driven
+
+Mastodon incorporates significant **event-driven patterns**:
+
+**Redis Pub/Sub for Real-time Streaming:**
+- Separate Node.js streaming server (`streaming/index.js`)
+- Subscribes to Redis channels (`timeline:*`, `public`, `hashtag:*`, etc.)
+- WebSocket connections push real-time updates to clients
+- The Rails app publishes events via `redis.publish()` in `FanOutOnWriteService`
+
+**Background Job Processing (Sidekiq):**
+```yaml
+# config/sidekiq.yml
+:queues:
+  - [default, 8]
+  - [push, 6]
+  - [ingress, 4]
+  - [mailers, 2]
+  - [pull]
+  - [scheduler]
+```
+
+Workers handle async operations:
+- `DistributionWorker` - fans out status updates to followers
+- `ActivityPub::DeliveryWorker` - delivers ActivityPub payloads to remote servers
+- `FeedInsertWorker` - inserts statuses into user timelines
+
+### Deployment Topology (Single Monolith)
+
+The `docker-compose.yml` reveals the deployment:
+```yaml
+services:
+  web:        # Rails app (puma)
+  streaming:  # Node.js WebSocket server
+  sidekiq:    # Background job processor
+  db:         # PostgreSQL (shared)
+  redis:      # Redis (shared)
+```
+
+**All processes share the same database and Redis instance** - this is a single monolithic application with multiple runtime processes, not microservices.
+
+### Why Not Other Styles
+
+**Not Microservices:**
+- Single shared PostgreSQL database
+- Single shared Redis instance  
+- All components must be deployed together
+- No independent service boundaries
+
+**Not Modular Monolith:**
+- No enforced internal module boundaries
+- Services and models exist in global namespace
+- No module-scoped schemas or isolation
+- Standard Rails application structure
+
+**Not Hexagonal Architecture:**
+- Models directly inherit from ActiveRecord (not abstracted)
+- No ports/adapters pattern
+- Controllers access models directly without repository interfaces
+
+**Not Domain-Driven Design:**
+- No bounded contexts explicitly defined
+- No aggregates, value objects, or domain events pattern
+- Anemic ActiveRecord models with service objects for logic
+
+### Key Evidence Files
+
+- `app/controllers/application_controller.rb` - Base controller with concerns
+- `app/services/base_service.rb` - Service object pattern
+- `app/workers/distribution_worker.rb` - Sidekiq worker for fan-out
+- `streaming/index.js` - WebSocket server with Redis pub/sub
+- `config/sidekiq.yml` - Background job queues
+- `docker-compose.yml` - Single-app deployment topology
+- `app/models/status.rb` - ActiveRecord model with concerns

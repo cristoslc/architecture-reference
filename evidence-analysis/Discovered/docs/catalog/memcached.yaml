@@ -14,7 +14,6 @@ languages:
 - C/C++
 architecture_styles:
 - Layered
-- Microkernel (Plugin)
 classification_status: classified
 review_notes: 'Memcached is a classic high-performance C-based system. While it is
   often discussed in the context of distributed systems, the internal architecture
@@ -46,90 +45,48 @@ review_notes: 'Memcached is a classic high-performance C-based system. While it 
 
   ### 2. Secondary Style: Microkernel (Plugin)'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.74
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:01:09Z'
-classification_reasoning: 'Memcached is a classic high-performance C-based system.
-  While it is often discussed in the context of distributed systems, the internal
-  architecture of the repository itself follows a **Layered** pattern with emerging
-  **Microkernel (Plugin)** characteristics due to the recent addition of the Lua-based
-  proxy system.
-
-
-  ### 1. Primary Style: Layered (Horizontal)
-
-  The codebase is organized into functional layers typical of high-performance systems
-  programming, though they coexist in a flat directory structure. The layers are characterized
-  by:
-
-  *   **Networking/Interface Layer**: Handled primarily by `memcached.c` (the main
-  entry point), `proto_text.h`, `proto_bin.h`, and `proto_parser.c`. This layer manages
-  the event loop (via `libevent`) and translates wire protocols into internal commands.
-
-  *   **Logical Command/Orchestration Layer**: Found in `items.c`, `assoc.c`, and
-  `storage.c`, which bridge the gap between network requests and the physical memory
-  management.
-
-  *   **Data/Memory Management Layer**: This is the core of Memcached. Files like
-  `slabs.c`, `slab_automove.c`, and `extstore.c` manage the physical allocation of
-  RAM and disk (extstore), handling the low-level details of the Slab Allocator.
-
-  *   **Utility/Infrastructure**: `util.c`, `hash.c`, `bipbuffer.c`, and `logger.c`
-  provide cross-cutting concerns used by all layers.
-
-
-  ### 2. Secondary Style: Microkernel (Plugin)
-
-  The repository has introduced a sophisticated "Proxy" architecture (enabled via
-  `--enable-proxy`). This moves Memcached from a rigid monolith toward a **Microkernel**
-  style:
-
-  *   **Core**: The basic K/V storage and slab management.
-
-  *   **Plugins/Extensions**: The proxy system (seen in `proxy_lua.c`, `proxy_network.c`,
-  and various `t/*.lua` files) allows the core''s behavior to be extended and scripted
-  using Lua without modifying the underlying storage engine. The `vendor/` directory
-  logic and `proxy_*.c` files indicate a pluggable routing and filtering layer that
-  is conceptually separate from the primary data path.
-
-
-  ### 3. Architecture Signifiers
-
-  *   **Separation of Concerns**: Files like `slabs.c` (memory management) are strictly
-  isolated from `proto_text.c` (protocol parsing), communicating through defined headers
-  (`slabs.h`, `items.h`).
-
-  *   **Event-Driven (Internal)**: While the README mentions "event-based," this refers
-  to the IO model (libevent) rather than an Event-Driven Architecture (EDA) style
-  of decoupled service communication.
-
-  *   **Threaded Design**: `thread.c` demonstrates a "Worker" pattern where the system
-  splits the Layered architecture across multiple threads (Dispatch vs. Worker threads),
-  but the code structure remains horizontally layered.
-
-
-  ### 4. Rejected Styles
-
-  *   **Microservices**: Although used *in* distributed systems, the repo produces
-  a single binary (`memcached`).
-
-  *   **Hexagonal**: While it separates protocol logic from storage, it does not use
-  the formal "Ports and Adapters" abstractions (interfaces/dependency injection) typical
-  of modern Hexagonal implementations; it uses direct C function calls and shared
-  headers.
-
-  *   **Modular Monolith**: While modular, C projects of this era lack the formal
-  encapsulation (private visibilities) required to strictly "enforce" module boundaries
-  beyond convention.'
-confidence_calibration:
-  original_confidence: 0.85
-  calibrated_confidence: 0.74
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.8
-  style_clarity: 0.7
-  alternatives_dismissed: 0.7
-  exploration_completeness: 0.75
-  flags: dual classification (Layered + Microkernel) may dilute confidence; proxy
-    system is a compile-time feature flag rather than a true plugin architecture,
-    which could argue against Microkernel as secondary style
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:43:13Z'
+classification_reasoning: "## Architecture Classification: Layered\n\nMemcached implements\
+  \ a classic **Layered Architecture** organized as a single deployable binary with\
+  \ horizontal separation of concerns.\n\n### Evidence for Layered Architecture\n\n\
+  **1. Single Deployable Unit**\n- The `Makefile.am` defines a single `memcached`\
+  \ binary (`bin_PROGRAMS = memcached`)\n- All source files compile into one executable\
+  \ (~40,000 lines of C code across 56 `.c` files)\n- No module boundaries, package\
+  \ structure, or independent deployment units\n\n**2. Clear Horizontal Layering**\n\
+  \n**Protocol/Presentation Layer:**\n- `proto_text.c` (53,764 lines) - Text protocol\
+  \ handler\n- `proto_bin.c` (44,152 lines) - Binary protocol handler  \n- `proto_parser.c`\
+  \ (60,970 lines) - Protocol parsing\n- `proto_proxy.c` (61,293 lines) - Proxy protocol\
+  \ (optional)\n\n**Business Logic Layer:**\n- `items.c` (62,307 lines) - Core caching\
+  \ logic: item allocation, LRU management, storage/retrieval\n- `assoc.c` - Hash\
+  \ table implementation for key lookups\n- `crawler.c` (30,589 lines) - Background\
+  \ expiration/crawling\n\n**Data Access/Storage Layer:**\n- `slabs.c` (829 lines)\
+  \ - Slab allocator for memory management\n- `extstore.c` (31,784 lines) - External\
+  \ storage tier (flash/SSD)\n- `storage.c` (1,601 lines) - Storage abstraction\n\n\
+  **3. State Machine Request Processing**\nThe `memcached.c` main file (225,788 lines)\
+  \ orchestrates:\n- Event-driven I/O via libevent (`event_handler`, `event_base`)\n\
+  - Connection state machine (`drive_machine`)\n- Request routing to appropriate protocol\
+  \ handlers\n\n**4. Shared Global State**\n`globals.c` exports shared state across\
+  \ layers:\n```c\nvolatile rel_time_t current_time;\nstruct stats stats;\nstruct\
+  \ stats_state stats_state;\nstruct settings settings;\n```\n\n### What This Is NOT\n\
+  \n**Not Modular Monolith:** No enforced module boundaries. All source files directly\
+  \ access shared global state (hash tables, LRU lists, slab classes). The codebase\
+  \ uses direct function calls and shared memory rather than module-scoped APIs.\n\
+  \n**Not Event-Driven Architecture:** While memcached uses libevent for I/O multiplexing,\
+  \ internal components communicate via direct function calls, not event publication/subscription.\
+  \ The event loop handles network I/O, but the architecture doesn't use events for\
+  \ inter-component communication.\n\n**Not Microservices:** Single binary, single\
+  \ process, shared memory space. No service decomposition.\n\n**Not Hexagonal Architecture:**\
+  \ No ports/adapters pattern. Protocol handlers directly call business logic functions\
+  \ (`item_get`, `store_item`) which directly access data structures. No dependency\
+  \ inversion or interface abstraction layers.\n\n**Not CQRS:** Read and write operations\
+  \ share the same item data structures and code paths.\n\n### Threading Model\n\n\
+  The threading model (documented in `doc/threads.txt`) supports the layered design:\n\
+  - Listener thread accepts connections\n- N worker threads run libevent loops, handle\
+  \ protocol parsing and data transfer\n- Background threads for LRU maintenance,\
+  \ storage compaction, crawling\n- Fine-grained locks (`item_locks`, `lru_locks`,\
+  \ `slabs_lock`) protect shared resources across threads\n\nThis is a performance-optimized\
+  \ layered architecture designed for high-throughput key-value caching, with clear\
+  \ separation between protocol handling, caching logic, and memory/storage management."

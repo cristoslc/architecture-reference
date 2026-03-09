@@ -16,7 +16,6 @@ languages:
 architecture_styles:
 - Layered
 - Microkernel (Plugin)
-- Modular Monolith
 classification_status: classified
 review_notes: 'The NocoDB repository is a monorepo (managed via `pnpm` and `lerna`)
   that primarily follows a **Layered** architecture within its core backend service,
@@ -46,51 +45,48 @@ review_notes: 'The NocoDB repository is a monorepo (managed via `pnpm` and `lern
   NocoDB implements a robust plugin system to support its "App Store" for workflow
   automations (Slack, Discord, S3, SES). '
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.81
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:03:23Z'
-classification_reasoning: "The NocoDB repository is a monorepo (managed via `pnpm`\
-  \ and `lerna`) that primarily follows a **Layered** architecture within its core\
-  \ backend service, while utilizing a **Microkernel (Plugin)** pattern to handle\
-  \ its extensive integration ecosystem.\n\n### 1. Primary Style: Layered (Horizontal)\n\
-  The main backend (`packages/nocodb`) is built on the NestJS framework and follows\
-  \ a traditional horizontal layering approach. Evidence from the `packages/nocodb/src`\
-  \ directory confirms this:\n- **Presentation/API Layer**: Found in `src/modules`\
-  \ and `src/gateways` (Socket.io), providing the interface for the frontend and SDK.\n\
-  - **Business Logic Layer**: Services such as `meta.service.ts`, `audit.service.ts`,\
-  \ and `mcp.service.ts` handle the application's core logic.\n- **Data Access Layer**:\
-  \ The `src/models` directory contains entity definitions (e.g., `Column.ts`, `Table.ts`,\
-  \ `User.ts`), while `src/db` and `src/dbQueryClient` (handling MySQL, Postgres,\
-  \ SQLite) manage the interaction with the underlying databases.\n\n### 2. Secondary\
-  \ Style: Microkernel (Plugin)\nNocoDB implements a robust plugin system to support\
-  \ its \"App Store\" for workflow automations (Slack, Discord, S3, SES). \n- **Core\
-  \ (Microkernel)**: The system provides standard interfaces (e.g., `src/interface/IStorageAdapter.ts`,\
-  \ `src/interface/IEmailAdapter.ts`) that the core engine uses without knowing specific\
-  \ implementation details.\n- **Plugins**: Located in `packages/nocodb/src/plugins/`,\
-  \ each integration (e.g., `discord/DiscordPlugin.ts`, `s3/S3Plugin.ts`) implements\
-  \ these interfaces. This allows the system to be extended with new integrations\
-  \ without modifying the core database reflection engine.\n\n### 3. Secondary Style:\
-  \ Modular Monolith\nWhile the repository is a monorepo, it functions as a **Modular\
-  \ Monolith** because it is typically deployed as a single unit (as seen in the `docker-compose.yml`\
-  \ and `Dockerfile` logic) but maintains clear boundaries between components:\n-\
-  \ `packages/nocodb`: The backend engine.\n- `packages/nc-gui`: The Nuxt-based frontend.\n\
-  - `packages/nocodb-sdk`: Programmatic access layer.\nThe internal structure of the\
-  \ backend is also partially modularized into \"modules\" (NestJS modules in `src/modules`),\
-  \ though they share a common database schema and lifecycle.\n\n### Domain-Driven\
-  \ Design (DDD) Signals\nThere are strong signals of DDD in the `src/models` directory\
-  \ where the system defines complex Aggregates and Entities (like `Base`, `Source`,\
-  \ `Model`, `View`) that represent the spreadsheet-to-database domain. However, the\
-  \ implementation leans more toward a Service/Repository pattern than a pure DDD\
-  \ tactical implementation.\n\n### Why not Microservices?\nDespite being a monorepo,\
-  \ the deployment unit described in the README (Docker/Binary) is a single process.\
-  \ All \"services\" (Auth, Meta, Query) run within the same NestJS runtime, disqualifying\
-  \ it as a true Microservices architecture."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.81
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.85
-  style_clarity: 0.8
-  alternatives_dismissed: 0.75
-  exploration_completeness: 0.85
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.88
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:47:12Z'
+classification_reasoning: "## Analysis\n\n### Primary Style: Layered Architecture\n\
+  \nNocoDB exhibits a classic **Layered Architecture** pattern with clear horizontal\
+  \ separation:\n\n1. **Presentation Layer** (`packages/nc-gui`) - Nuxt.js/Vue 3 frontend\
+  \ with components, composables, and views\n2. **API Layer** (`packages/nocodb/src/controllers/`)\
+  \ - NestJS controllers handling HTTP requests (e.g., `bases.controller.ts`, `tables.controller.ts`)\n\
+  3. **Business Logic Layer** (`packages/nocodb/src/services/`) - Injectable NestJS\
+  \ services (e.g., `BasesService`, `TablesService`)\n4. **Data Access Layer** (`packages/nocodb/src/models/`)\
+  \ - Active Record-style models (e.g., `Base.ts`, `Column.ts`, `Table.ts`)\n5. **Database\
+  \ Layer** (`packages/nocodb/src/db/`) - SQL generation, query builders, and database\
+  \ abstractions\n\nEvidence from `packages/nocodb/src/modules/noco.module.ts`:\n\
+  - Controllers import: `BasesController`, `TablesController`, `ColumnsController`,\
+  \ etc.\n- Services import: `BasesService`, `TablesService`, `ColumnsService`, etc.\n\
+  - Clear dependency injection through NestJS's `@Injectable()` and `@Controller()`\
+  \ decorators\n\nThe NestJS framework enforces this layering through its module system\
+  \ with guards, interceptors, and middleware providing cross-cutting concerns.\n\n\
+  ### Secondary Style: Microkernel (Plugin)\n\nNocoDB has a well-defined **plugin/integration\
+  \ system** extending core functionality:\n\n1. **Plugin Registry** (`packages/noco-integrations/core/src/registry.ts`):\n\
+  \   - `IntegrationRegistry` singleton managing plugin registration\n   - `IntegrationEntry`\
+  \ interface defining the plugin contract\n\n2. **Built-in Plugins** (`packages/nocodb/src/plugins/`):\n\
+  \   - **Storage adapters**: S3, GCS, Minio, Backblaze, Vultr, Spaces, R2, Linode,\
+  \ Scaleway, OVH Cloud\n   - **Notification adapters**: Slack, Discord, Teams, Mattermost,\
+  \ Twilio, Twilio WhatsApp\n   - **Email adapters**: SMTP, SES, MailerSend\n\n3.\
+  \ **Plugin Loading** (`packages/nocodb/build-utils/registerIntegrations.js`):\n\
+  \   - Auto-discovers `@noco-integrations/*` packages\n   - Generates integration\
+  \ index at build time\n   - Supports local integrations from `packages/noco-integrations/packages/`\n\
+  \n4. **Plugin Interface** (`packages/nocodb/src/interface/IStorageAdapter.ts`, `packages/noco-integrations/core/src/integration.ts`):\n\
+  \   - `IntegrationWrapper` base class for plugin implementations\n   - Standardized\
+  \ `init()`, `fileCreate()`, `fileDelete()`, `test()` methods\n\n### What Was Rejected\n\
+  \n- **Not Microservices**: Single Dockerfile, single deployable container. Docker\
+  \ Compose shows only nocodb + database, not multiple services.\n- **Not Modular\
+  \ Monolith**: No enforced internal module boundaries with separate schemas or databases\
+  \ per module. Models and services share the same database schema.\n- **Not Event-Driven**:\
+  \ While Bull queues and NestJS EventEmitter exist for background jobs, they're internal\
+  \ implementation details—not the primary inter-component communication pattern.\n\
+  - **Not Hexagonal Architecture**: No ports/adapters abstraction. Controllers directly\
+  \ use services, which directly use models.\n- **Not Domain-Driven Design**: No bounded\
+  \ contexts, aggregates, value objects, or ubiquitous language patterns evident in\
+  \ the codebase.\n\n### Deployment Topology\n\nSingle monolithic deployment:\n- One\
+  \ `Dockerfile` producing a single container image\n- Docker Compose configurations\
+  \ show nocodb + supporting database (PostgreSQL/MySQL/SQLite)\n- Optional Redis\
+  \ for job queues and caching\n- No k8s microservices or serverless functions"

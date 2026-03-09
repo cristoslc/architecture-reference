@@ -1,0 +1,86 @@
+Based on my comprehensive exploration of the Vendure repository, I now have sufficient evidence to classify its architecture.
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Layered
+confidence: 0.90
+---
+
+## Analysis
+
+### Primary Style: Microkernel (Plugin)
+
+Vendure is architected as a **plugin-based system** where a core framework is extended through a well-defined plugin contract. The evidence is substantial:
+
+**Plugin Infrastructure:**
+- The `@VendurePlugin` decorator (`packages/core/src/plugin/vendure-plugin.ts`) is the central extension mechanism, built on top of NestJS modules but with Vendure-specific metadata
+- Plugins can extend the GraphQL API (`shopApiExtensions`, `adminApiExtensions`), add database entities, modify configuration, and provide controllers/services
+- The `PluginModule.forRoot()` dynamically loads all configured plugins at bootstrap time
+
+**Plugin Metadata Contract** (from `vendure-plugin.ts`):
+```typescript
+export interface VendurePluginMetadata extends ModuleMetadata {
+    configuration?: PluginConfigurationFn;
+    shopApiExtensions?: APIExtensionDefinition;
+    adminApiExtensions?: APIExtensionDefinition;
+    entities?: Array<Type<any>> | (() => Array<Type<any>>);
+    compatibility?: string;  // semver version checking
+}
+```
+
+**Official Plugins Demonstrating the Pattern:**
+- `AssetServerPlugin` - serves and transforms assets
+- `EmailPlugin` - handles transactional emails via EventBus
+- `AdminUiPlugin` - serves the admin UI with metrics extensions
+- `PaymentsPlugin` - Stripe, Mollie, Braintree, PayPal integrations
+- `ElasticsearchPlugin` - search indexing
+- `SentryPlugin`, `HardenPlugin`, `StellatePlugin` - cross-cutting concerns
+
+Each plugin follows the same pattern: `@VendurePlugin({...})` decorator, `init()` static method for configuration, and integration with the core via well-defined extension points.
+
+### Secondary Style: Layered
+
+Within the core package, there's clear horizontal layering:
+
+1. **API Layer** (`packages/core/src/api/`): GraphQL resolvers (admin/shop), middleware, schema definitions
+2. **Service Layer** (`packages/core/src/service/`): Business logic services like `OrderService`, `ProductService`, `CustomerService`
+3. **Data Layer** (`packages/core/src/entity/`, `packages/core/src/connection/`): TypeORM entities, transaction management
+
+The `ApiModule` imports (`packages/core/src/api/api.module.ts`):
+```typescript
+imports: [
+    ServiceModule,        // Business logic
+    ConnectionModule,     // Data access
+    AdminApiModule,       // Admin resolvers
+    ShopApiModule,        // Shop resolvers
+    // ...
+]
+```
+
+### What This Is NOT
+
+- **Not Microservices**: Vendure is a single deployable unit (a Node.js/NestJS application). The worker mode for job processing is an optimization, not a service boundary.
+- **Not Modular Monolith**: While it's a monolith, the extension mechanism is external plugins, not enforced internal module boundaries. The `ServiceModule` is a single cohesive layer.
+- **Not Hexagonal Architecture**: There's no ports-and-adapters pattern. Strategies are configuration-based, not port interfaces.
+- **Not DDD**: No bounded contexts, aggregates, or ubiquitous language organization. Services are organized by entity type (OrderService, ProductService), not domain boundaries.
+
+### Additional Architectural Elements
+
+**Strategy Pattern for Extensibility**: Vendure uses numerous strategy interfaces for customization points:
+- `JobQueueStrategy` (Redis, in-memory, database-backed)
+- `PaymentMethodHandler` (with `createPayment`, `settlePayment`, etc.)
+- `AssetStorageStrategy` (local, S3)
+- `AuthenticationStrategy`, `TaxZoneStrategy`, `OrderProcess`, etc.
+
+**Event-Driven Elements**: 
+- `EventBus` with RxJS observables for domain events
+- `JobQueue` for background processing
+- Worker process for async job execution
+
+However, these are implementation mechanisms within the plugin architecture, not defining architectural characteristics. The EventBus is primarily used by plugins to react to domain events, reinforcing the microkernel pattern.
+
+### Conclusion
+
+Vendure is a textbook example of a **Microkernel (Plugin) architecture** - a core system designed to be extended through plugins loaded at runtime. The layered structure within the core is a subordinate organizing principle. The extensive use of strategies and events are mechanisms that support the plugin extensibility model.

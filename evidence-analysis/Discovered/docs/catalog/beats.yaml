@@ -15,7 +15,7 @@ languages:
 - Python
 architecture_styles:
 - Microkernel (Plugin)
-- Modular Monolith
+- Layered
 classification_status: classified
 review_notes: 'The Elastic Beats repository is a classic example of a **Microkernel
   (Plugin)** architecture, often referred to in the Go community as a "framework and
@@ -46,80 +46,68 @@ review_notes: 'The Elastic Beats repository is a classic example of a **Microker
   their own Beats using the `libbeat` framework, which is the hallmark of a Microkernel
   design where the core is extensible by third parties.'
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.69
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:41:52Z'
-classification_reasoning: 'The Elastic Beats repository is a classic example of a
-  **Microkernel (Plugin)** architecture, often referred to in the Go community as
-  a "framework and implementation" pattern.
-
-
-  ### 1. Primary Style: Microkernel (Plugin)
-
-  The system is built around a core framework called `libbeat` (mentioned in the README
-  and visible in the project structure), which serves as the "microkernel." This kernel
-  provides common services required by all data shippers: configuration handling,
-  output pipelines (Elasticsearch, Logstash), logging, and the publisher interface.
-
-
-  Individual "Beats" (Filebeat, Metricbeat, etc.) act as **plugins** or extensions
-  of this core. They implement a specific interface (typically the `Beater` interface)
-  and are registered with the central framework.
-
-  - **Plugin Separation:** Each Beat (e.g., `./metricbeat`, `./filebeat`) resides
-  in its own top-level directory.
-
-  - **Sub-Plugins:** Within a specific Beat, like `Metricbeat`, there is a second
-  level of the plugin pattern. `metricbeat/module/` (e.g., `./metricbeat/module/docker`,
-  `./metricbeat/module/redis`) contains individual modules that can be enabled/disabled
-  at runtime via `.yml` files in `modules.d/`.
-
-  - **Extension Points:** The README explicitly mentions that the community can create
-  their own Beats using the `libbeat` framework, which is the hallmark of a Microkernel
-  design where the core is extensible by third parties.
-
-
-  ### 2. Secondary Style: Modular Monolith (Source Organization)
-
-  While the Beats can be compiled into separate binaries (e.g., a `filebeat` binary
-  and a `metricbeat` binary), the repository itself is managed as a **Modular Monolith**
-  in terms of shared code and build logic.
-
-  - They share a single `go.mod` file at the root, indicating a unified dependency
-  graph.
-
-  - All Beats are versioned together and share the same `libbeat` core within the
-  same repository.
-
-  - There is strong internal modularity (e.g., `metricbeat/beater`, `metricbeat/cmd`),
-  but they are not "Microservices" because they do not communicate with each other
-  over the network to function; they are independent units that share a common foundation.
-
-
-  ### Evidence:
-
-  - **`libbeat/`**: The common core/framework (Kernel).
-
-  - **`metricbeat/module/`**: Illustrates a secondary plugin layer where different
-  data sources (Postgres, Redis, Docker) are plugged into the Metricbeat agent.
-
-  - **`metricbeat/modules.d/`**: Configuration-driven activation of these plugins
-  (e.g., `postgresql.yml.disabled`).
-
-  - **`metricbeat/beater/metricbeat.go`**: The entry point that implements the framework''s
-  requirements to be run by the kernel.
-
-  - **README**: Specifically identifies `libbeat` as the "framework for creating Beats."'
-confidence_calibration:
-  original_confidence: 0.92
-  calibrated_confidence: 0.69
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.75
-  style_clarity: 0.85
-  alternatives_dismissed: 0.4
-  exploration_completeness: 0.7
-  flags: alternatives_dismissed is low — no explicit consideration of event-driven
-    or pipeline architectures, which are plausible given output pipelines; evidence
-    is reasonably specific but leans on directory structure and README rather than
-    actual code inspection
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.92
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T19:53:18Z'
+classification_reasoning: "## Analysis\n\nThe Beats repository exhibits a clear **Microkernel\
+  \ (Plugin)** architecture, with libbeat serving as the core framework and individual\
+  \ Beats, modules, inputs, and processors functioning as plugins.\n\n### Key Evidence\
+  \ for Microkernel (Plugin)\n\n**1. libbeat as the Core System**\n\n`libbeat/README.md`\
+  \ explicitly states:\n> \"libbeat is a Go library containing the common packages\
+  \ for all the Beats... If you want to create a new project that reads some sort\
+  \ of operational data and ships it to Elasticsearch, we suggest you make use of\
+  \ this library.\"\n\nThis is the defining characteristic of a microkernel — a core\
+  \ framework that provides infrastructure for building specialized applications.\n\
+  \n**2. Plugin Registration Infrastructure**\n\n`libbeat/plugin/plugin.go` provides\
+  \ the plugin loading mechanism:\n- `PluginLoader` type for registering plugin handlers\n\
+  - `MustRegisterLoader()` for registering plugin types\n- `LoadPlugins()` for dynamically\
+  \ loading plugins from `.so` files (via Go's plugin package on Linux/Darwin)\n\n\
+  **3. Registry Pattern with Factory Functions**\n\nMultiple independent plugin registries\
+  \ exist:\n\n- **Metricbeat modules** (`metricbeat/mb/registry.go`): `var Registry\
+  \ = NewRegister()` with `ModuleFactory` and `MetricSetFactory` types\n- **Filebeat\
+  \ inputs** (`filebeat/input/registry.go`): `var registry = make(map[string]Factory)`\
+  \ with `Register()` and `GetFactory()`\n- **Processors** (`libbeat/processors/registry.go`):\
+  \ `var registry = NewNamespace()` with `Constructor` type\n\nEach module registers\
+  \ itself via `init()` functions. For example, in `metricbeat/module/apache/status/status.go`:\n\
+  ```go\nfunc init() {\n    mb.Registry.MustAddMetricSet(\"apache\", \"status\", New,\n\
+  \        mb.WithHostParser(hostParser),\n        mb.DefaultMetricSet(),\n    )\n\
+  }\n```\n\n**4. Beater Interface Contract**\n\n`libbeat/beat/beat.go` defines the\
+  \ core contract:\n```go\ntype Beater interface {\n    Run(b *Beat) error\n    Stop()\n\
+  }\ntype Creator func(*Beat, *config.C) (Beater, error)\n```\n\nEach Beat (Filebeat,\
+  \ Metricbeat, etc.) implements this interface, providing a uniform extension point.\n\
+  \n**5. Multiple Independently Deployable Beats**\n\nThe repository contains 7+ standalone\
+  \ Beats, each with its own:\n- `main.go` entrypoint\n- `Dockerfile` for containerized\
+  \ deployment\n- Configuration files (`.yml`)\n\nThis demonstrates the plugin ecosystem\
+  \ built on top of libbeat.\n\n**6. Community Beats Ecosystem**\n\n`docs/extend/community-beats.md`\
+  \ lists dozens of community-created Beats (amazonbeat, apachebeat, browserbeat,\
+  \ cloudflarebeat, etc.) that extend the framework — definitive proof of a plugin\
+  \ architecture.\n\n**7. Module Discovery and Dynamic Loading**\n\n`filebeat/include/list.go`\
+  \ and similar files auto-generate module imports:\n```go\n// Code generated by beats/dev-tools/cmd/module_include_list/module_include_list.go\n\
+  import (\n    _ \"github.com/elastic/beats/v7/filebeat/module/apache\"\n    _ \"\
+  github.com/elastic/beats/v7/filebeat/module/auditd\"\n    // ... many more modules\n\
+  )\n```\n\nThis build-time plugin discovery pattern allows modules to be independently\
+  \ developed and integrated.\n\n### Secondary: Layered Architecture\n\nWithin each\
+  \ Beat, there's a layered processing pipeline. As documented in `filebeat/main.go`:\n\
+  ```\ninput -> harvester -> spooler -> publisher -> registrar\n```\n\nEach stage\
+  \ has distinct responsibilities:\n- **Input layer**: Discovers and configures data\
+  \ sources\n- **Harvester layer**: Reads individual files/sources\n- **Spooler layer**:\
+  \ Buffers events\n- **Publisher layer**: Sends to outputs (Elasticsearch, Logstash,\
+  \ etc.)\n- **Registrar layer**: Persists state\n\nHowever, this layering is subordinate\
+  \ to the plugin architecture — it's how each Beat is internally organized, not the\
+  \ primary architectural pattern of the repository.\n\n### What Was Rejected\n\n\
+  - **Microservices**: The Beats are independently deployable, but they don't communicate\
+  \ with each other or share data. Each Beat ships data to external destinations (Elasticsearch/Logstash),\
+  \ not to other Beats. No service mesh, API gateway, or inter-service communication.\n\
+  \n- **Modular Monolith**: While there are module boundaries, each Beat is a separate\
+  \ executable with its own main entrypoint — not a single deployable with internal\
+  \ modules.\n\n- **Domain-Driven Design**: No evidence of aggregates, bounded contexts,\
+  \ or ubiquitous language. The modules are organized by data source technology (Apache,\
+  \ MySQL, Redis), not business domains.\n\n- **Hexagonal Architecture**: While there\
+  \ are interfaces (Beater, Input, Processor), there's no explicit ports-and-adapters\
+  \ structure with application core isolation.\n\n### Conclusion\n\nThe Beats repository\
+  \ is a textbook example of **Microkernel (Plugin)** architecture. libbeat provides\
+  \ the core framework, and individual Beats, modules, inputs, processors, and outputs\
+  \ are all plugins that register themselves via well-defined extension points. The\
+  \ registry pattern, factory functions, Beater interface contract, and community\
+  \ ecosystem all strongly support this classification."

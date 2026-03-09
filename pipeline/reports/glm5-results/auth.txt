@@ -1,0 +1,91 @@
+Based on my thorough exploration of the codebase, I can now provide a comprehensive architecture classification.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Modular Monolith
+confidence: 0.88
+---
+
+## Architecture Analysis: Supabase Auth (GoTrue)
+
+### Primary Style: Layered
+
+The codebase exhibits a classic **Layered Architecture** with well-defined horizontal separation of concerns:
+
+**1. API/Presentation Layer** (`internal/api/`)
+- HTTP handlers organized by functionality: `signup.go`, `token.go`, `user.go`, `auth.go`, `admin.go`, etc.
+- Chi router for request routing (`router.go`)
+- Middleware for cross-cutting concerns: authentication, rate limiting, logging, request tracing
+- Request/response handling with parameter validation
+
+**2. Business/Domain Layer** (`internal/models/`)
+- Domain entities: `User`, `Session`, `Identity`, `Factor`, `RefreshToken`, `AuditLogEntry`, etc.
+- Business logic methods on models (e.g., `NewUser()`, `NewUserWithPasswordHash()`)
+- Entity relationships defined via pop ORM tags (`has_many` associations)
+
+**3. Data Access Layer** (`internal/storage/`)
+- Database connection management (`dial.go`)
+- Transaction handling via `Connection` struct
+- Built on gobuffalo/pop ORM for PostgreSQL
+
+**4. Infrastructure/Configuration Layer** (`internal/conf/`, `internal/observability/`)
+- Configuration loading from environment variables and files
+- JWT key management (`jwk.go`)
+- Logging, metrics, and tracing setup
+
+### Secondary Style: Modular Monolith
+
+The codebase demonstrates **Modular Monolith** characteristics with enforced internal module boundaries:
+
+```
+internal/
+├── api/           # HTTP layer (113+ files)
+├── models/        # Domain models (38+ files)
+├── storage/       # Data access
+├── conf/          # Configuration
+├── crypto/        # Cryptography utilities
+├── mailer/        # Email abstractions
+├── tokens/        # JWT token service
+├── ratelimit/     # Rate limiting
+├── hooks/         # Extension hooks system
+└── observability/ # Metrics & tracing
+```
+
+Each package has clear responsibilities:
+- **Enforced boundaries**: Go's `internal/` directory prevents external imports
+- **Single deployable**: One binary (`main.go` → single `Dockerfile`)
+- **Single database**: PostgreSQL with managed migrations (`migrations/`)
+- **Cohesive modules**: Each package focuses on one concern (crypto, tokens, mailer, etc.)
+
+### Evidence Summary
+
+| Aspect | Finding |
+|--------|---------|
+| **Entry point** | Single `main.go` calling `cmd.RootCommand()` |
+| **Deployment** | Single Docker image, single `auth` binary |
+| **Database** | Single PostgreSQL instance, migrations embedded |
+| **Layers** | Clear API → Models → Storage separation |
+| **Module organization** | `internal/` packages with distinct responsibilities |
+
+### What This Is NOT
+
+- **Not Microservices**: Single deployable unit, no service boundary definitions, no inter-service communication
+- **Not Hexagonal**: No ports/adapters pattern, domain models directly use ORM persistence
+- **Not DDD**: No bounded contexts, aggregates, or ubiquitous language organization—straightforward entity models
+- **Not Event-Driven**: No message broker, no async event handlers—synchronous request handling
+- **Not Microkernel/Plugin**: Hooks are extensibility points for external calls (HTTP/Postgres functions), not runtime plugins loaded into the core
+
+### Extensibility Mechanism
+
+The `internal/hooks/` package provides a **hook-based extensibility system**:
+- **Hook types**: `SendSMS`, `SendEmail`, `CustomizeAccessToken`, `MFAVerification`, `PasswordVerification`, etc.
+- **Dispatchers**: HTTP-based (`hookshttp`) and Postgres function-based (`hookspgfunc`)
+- **Purpose**: Allow external systems to intercept/authenticate events, not plugin architecture
+
+This is more of an **extension point pattern** than a full microkernel—hooks are synchronous invocations during request processing, not independently deployed plugins.
+
+### Conclusion
+
+Supabase Auth is a well-organized **Layered Modular Monolith**—a focused authentication service built as a single deployable with clean separation between HTTP handling, domain logic, and data access layers. The Go `internal/` directory enforces module boundaries, while the layered approach keeps responsibilities clear. This is a pragmatic architecture for an authentication service that needs to be reliable, maintainable, and performant.

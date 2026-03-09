@@ -1,0 +1,81 @@
+I'll explore the Grafana repository to classify its architecture. Let me start with an overview of the codebase structure.Let me explore the architecture documentation and the apps structure more deeply:Let me check a few more key aspects to solidify my understanding:Based on my exploration of the Grafana repository, I have sufficient evidence to provide a classification. Let me summarize my findings:
+
+---
+verdict: classified
+primary_style: Microkernel (Plugin)
+secondary_styles:
+  - Modular Monolith
+confidence: 0.90
+---
+
+## Analysis
+
+### Primary: Microkernel (Plugin) Architecture
+
+Grafana's architecture is fundamentally defined by its **extensive plugin system**, which is the core extensibility mechanism:
+
+**Evidence from `pkg/plugins/manager/pipeline/`:**
+- Clear plugin lifecycle pipeline with distinct stages: **discovery → bootstrap → validation → initialization → termination**
+- Each stage has well-defined interfaces (`Discoverer`, `Bootstrapper`, `Validator`, `Initializer`, `Terminator`)
+
+**Evidence from `pkg/plugins/backendplugin/`:**
+- Backend plugins run as separate processes communicating via **gRPC** (`client_v2.go`, `grpc_plugin.go`)
+- Plugin interface (`ifaces.go`) defines contracts: `QueryDataHandler`, `CheckHealthHandler`, `StreamHandler`, `CallResourceHandler`, `AdmissionHandler`, `ConversionHandler`
+- Plugins implement `Start()`, `Stop()`, `Decommission()` lifecycle methods
+
+**Evidence from `pkg/plugins/plugins.go`:**
+- Plugin types include: datasource, panel, app, renderer
+- Plugins have signatures, external services, routes, dependencies
+- Frontend plugins loaded dynamically via SystemJS
+
+**Evidence from `apps/plugins/`:**
+- Dedicated app for plugin management with its own API (`plugins.grafana.app`)
+
+### Secondary: Modular Monolith
+
+Grafana exhibits strong **internal module boundaries** within a single deployable:
+
+**Evidence from `apps/` directory structure:**
+- 20+ self-contained apps: `dashboard`, `alerting`, `annotation`, `playlist`, `plugins`, `secrets`, etc.
+- Each app has its own `go.mod` (Go module) and `Makefile`
+- Apps define resources via **CUE schemas** in `kinds/*.cue` files
+
+**Evidence from architecture documentation (`contribute/architecture/k8s-inspired-backend-arch.md`):**
+- "Grafana is adopting a Kubernetes-inspired, resource-oriented model"
+- Apps define APIs via CUE schemas, generating code through `grafana-app-sdk`
+- Resource APIs follow Kubernetes conventions: `/apis/<group>/<version>/namespaces/<namespace>/<resource>/<name>`
+
+**Evidence from `pkg/registry/apps/apps.go`:**
+- App installers are registered and managed centrally
+- Feature toggles control which apps are enabled
+- Apps are installed via `AppInstaller` interface
+
+**Evidence from `pkg/services/` organization:**
+- Services organized by domain: `accesscontrol`, `annotations`, `dashboards`, `datasources`, `alerting`, etc.
+- Wire dependency injection composes services together
+- Clear package-by-feature hierarchy documented in `contribute/backend/package-hierarchy.md`
+
+**Evidence from single deployable:**
+- Single `Dockerfile` produces one binary
+- Single `go.mod` at root for the main application
+- `pkg/server/wire.go` shows all services wired together
+
+### Rejected Styles:
+
+- **Not Microservices**: Single binary, single container deployment. No service mesh or inter-service communication. Docker compose files are for development/testing dependencies (databases), not microservices.
+
+- **Not pure Layered**: While there are horizontal layers (API, services, storage), the package organization is **by feature** not by layer. Documentation explicitly states "Grafana has long used a package-by-layer layout" as **legacy**, moving to **package-by-feature**.
+
+- **Not Event-Driven**: The `pkg/bus/bus.go` is a simple in-process event dispatcher for internal notifications, not a message broker architecture. Events are published/subscribed within the same process.
+
+- **Not Hexagonal**: No ports-and-adapters pattern. Dependencies flow inward to services, but there's no explicit application core isolated via interfaces from infrastructure adapters.
+
+### Why Not Primary Modular Monolith:
+
+While the modular monolith characteristics are strong, the **plugin system is the defining architectural feature** of Grafana. Plugins are:
+1. Loaded at runtime (not compile-time)
+2. Run as separate processes (backend plugins)
+3. Define the extension contract through interfaces
+4. The primary mechanism for Grafana's extensibility
+
+The modular app structure (`apps/`) is a secondary organizational pattern that works alongside the plugin system, but plugins are what make Grafana a platform rather than just a well-organized monolith.

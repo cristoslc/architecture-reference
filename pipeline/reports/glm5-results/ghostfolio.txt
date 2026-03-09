@@ -1,0 +1,101 @@
+Let me look at a few more files to understand the depth of the layered structure and confirm my analysis:Based on my comprehensive exploration of the Ghostfolio repository, I now have sufficient evidence to provide my classification.
+
+---
+verdict: classified
+primary_style: Layered
+secondary_styles:
+  - Event-Driven
+confidence: 0.90
+---
+
+## Architecture Classification Analysis
+
+### Primary Style: Layered
+
+Ghostfolio exhibits a classic **Layered Architecture** with clear horizontal separation of concerns:
+
+**1. Presentation Layer (Frontend)**
+- Angular application in `apps/client/src/app/`
+- Components organized by feature: `components/`, `pages/`
+- Services for state management and HTTP communication: `services/user/`, `services/cache.service.ts`
+- Routes defined in `app.routes.ts` with lazy-loaded feature modules
+
+**2. API Layer (Controllers)**
+- NestJS controllers handling HTTP endpoints:
+  - `apps/api/src/app/order/order.controller.ts`
+  - `apps/api/src/app/account/account.controller.ts`
+  - `apps/api/src/app/portfolio/portfolio.controller.ts`
+  - `apps/api/src/app/endpoints/` (additional API endpoints)
+
+**3. Business Logic Layer (Services)**
+- Domain services containing business logic:
+  - `PortfolioService` - portfolio calculations and analysis
+  - `AccountService` - account management
+  - `OrderService` - transaction/order management
+  - `DataProviderService` - market data aggregation
+
+**4. Data Access Layer**
+- Prisma ORM (`prisma.service.ts`) providing database abstraction
+- Schema-driven data model in `prisma/schema.prisma`
+- Models: Account, Order, User, AssetProfile, etc.
+
+**5. Shared Libraries**
+- `libs/common/` - shared types, interfaces, helpers, config
+- `libs/ui/` - shared UI components
+
+### Secondary Style: Event-Driven
+
+Ghostfolio incorporates event-driven patterns for internal async processing:
+
+**Event Infrastructure**:
+- `apps/api/src/events/portfolio-changed.event.ts` - domain events
+- `apps/api/src/events/portfolio-changed.listener.ts` - event listeners
+- NestJS `EventEmitterModule` for pub/sub within the application
+
+**Background Job Queues** (using Bull/Redis):
+- `apps/api/src/services/queues/data-gathering/` - async market data gathering
+- `apps/api/src/services/queues/portfolio-snapshot/` - portfolio calculations
+
+**Event-Driven Use Cases**:
+- Cache invalidation on portfolio changes
+- Background data gathering from external providers
+- Portfolio snapshot recalculation
+
+**Not pure Event-Driven because**: Events are used within a single monolithic application for async processing and cache invalidation, not for service-to-service communication or choreography across deployment boundaries.
+
+### What This Is NOT
+
+**NOT Microservices**:
+- Single deployable container (one `Dockerfile`)
+- Single database (PostgreSQL) shared by all modules
+- No network boundaries between services
+- Docker compose shows: 1 app container + postgres + redis (a simple 3-container setup)
+
+**NOT Modular Monolith**:
+- While NestJS modules exist (`account.module.ts`, `portfolio.module.ts`, etc.), they don't represent strictly enforced bounded contexts
+- All modules share the same Prisma database connection
+- No explicit module boundaries or anti-corruption layers between contexts
+- Cross-module imports are common (e.g., `PortfolioService` imports `AccountService`, `OrderService`, `UserService`)
+
+**NOT Microkernel/Plugin**:
+- The `DataProviderInterface` with multiple implementations (AlphaVantageService, CoinGeckoService, YahooFinanceService) uses standard NestJS dependency injection, not runtime plugin loading
+- All providers are compiled into the monolith, not dynamically discovered/loaded
+- This is a strategy/provider pattern, not a true plugin architecture
+
+### Deployment Evidence
+
+From `docker/docker-compose.yml`:
+```yaml
+services:
+  ghostfolio:      # Single application container
+  postgres:       # Single database
+  redis:          # Single cache
+```
+
+From `Dockerfile`:
+- Builds both `apps/api` and `apps/client` into a single deployment artifact
+- Serves static client files via NestJS `ServeStaticModule`
+
+### Conclusion
+
+Ghostfolio is a well-structured **Layered Architecture** monolithic web application with event-driven patterns for internal async processing. The Nx workspace provides good code organization, and NestJS modules offer logical separation, but the application is ultimately a single deployable unit with shared data access—making it a layered monolith rather than a modular monolith or microservices architecture.

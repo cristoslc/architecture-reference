@@ -1,0 +1,56 @@
+I'll explore the m-r repository to classify its architecture. Let me start with the directory structure and README.Let me examine the solution file and the core CQRS files:Let me examine the remaining key files:Let me check how the GUI project wires everything together:I now have sufficient evidence to classify this repository. Let me provide my analysis:
+
+---
+verdict: classified
+primary_style: CQRS
+secondary_styles: []
+confidence: 0.95
+---
+
+## Architecture Classification: CQRS (Command Query Responsibility Segregation)
+
+This is a **canonical CQRS implementation with Event Sourcing** - in fact, this appears to be Greg Young's reference example ("SimplestPossibleThing" solution with "SimpleCQRS" project).
+
+### Key Evidence for CQRS
+
+**1. Separate Write and Read Models:**
+
+- **Write Model** (`Domain.cs`): The `InventoryItem` aggregate encapsulates all state mutations through domain methods (`CheckIn()`, `Remove()`, `ChangeName()`, `Deactivate()`, `ChangeMaxQty()`) that produce events via `ApplyChange()`
+  
+- **Read Model** (`ReadModel.cs`): Completely separate DTOs (`InventoryItemListDto`, `InventoryItemDetailsDto`) populated by event handlers (`InventoryListView`, `InventoryItemDetailView`), accessed via `ReadModelFacade`
+
+**2. Command/Event Separation:**
+
+- **Commands** (`Commands.cs`): `CreateInventoryItem`, `RenameInventoryItem`, `DeactivateInventoryItem`, etc. - intent-based messages for writes
+- **Events** (`Events.cs`): `InventoryItemCreated`, `InventoryItemRenamed`, `InventoryItemDeactivated` - state-change notifications
+- **Command Handlers** (`CommandHandlers.cs`): Mediate between commands and aggregates
+
+**3. Event Sourcing:**
+
+- `AggregateRoot` base class with `LoadsFromHistory()` method (line 106-109 in `Domain.cs`)
+- `EventStore` persists and retrieves events by aggregate ID
+- `Repository<T>` rebuilds aggregate state from event history
+
+**4. Separate Communication Paths:**
+
+- **Commands**: Sent to exactly one handler (`FakeBus.Send()` throws if handlers ≠ 1, line 30 in `FakeBus.cs`)
+- **Events**: Published to multiple subscribers (`FakeBus.Publish()` dispatches to all registered handlers, line 39-50 in `FakeBus.cs`)
+
+**5. Wiring in `Program.cs` (lines 32-54):**
+
+```
+Write side:  Commands → CommandHandlers → Repository → EventStore
+Read side:   Events → InventoryItemDetailView, InventoryListView → ReadModelFacade
+```
+
+### Why NOT Other Architectures
+
+- **Not Microservices**: Single deployable unit - two .NET projects in one solution, no service boundaries
+- **Not Event-Driven Architecture** (inter-service): The bus is internal (`FakeBus`), not a message broker for service coordination
+- **Not Layered**: The organizing principle is CQRS separation (command/query), not horizontal layers (presentation/business/data). While MVC exists in `CQRSGui`, it's a thin shell over the CQRS structure
+- **Not Domain-Driven Design**: Has one aggregate (`InventoryItem`) but lacks bounded contexts, domain services, value objects, and ubiquitous language - it's a focused CQRS example, not full DDD
+- **Not Hexagonal**: No ports-and-adapters isolation; the `FakeBus` and `FakeDatabase` are inline implementations, not adapters to external systems
+
+### Confidence
+
+**0.95** - This is a textbook reference implementation of CQRS with Event Sourcing. Greg Young is the co-author of the original CQRS pattern, and this repository serves as the canonical minimal example. The separation is explicit, complete, and the sole architectural focus of the codebase.

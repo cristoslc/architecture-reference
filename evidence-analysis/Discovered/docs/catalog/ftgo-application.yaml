@@ -16,9 +16,8 @@ languages:
 - TypeScript
 architecture_styles:
 - Microservices
-- Event-Driven
 - Domain-Driven Design
-- CQRS
+- Event-Driven
 classification_status: classified
 review_notes: "The repository is a canonical implementation of a **Microservices**\
   \ architecture, specifically designed to demonstrate the patterns described in Chris\
@@ -28,48 +27,61 @@ review_notes: "The repository is a canonical implementation of a **Microservices
   \ includes:\n- `ftgo-order-service`\n- `ftgo-kitchen-service`\n- `ftgo-restaurant-service`\n\
   - `ftgo-accounting-service`\n- `ftgo-consumer-service`\n- `ftgo-api-gateway`"
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.84
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T06:49:33Z'
-classification_reasoning: "The repository is a canonical implementation of a **Microservices**\
-  \ architecture, specifically designed to demonstrate the patterns described in Chris\
-  \ Richardson's \"Microservices Patterns.\" \n\n### Evidence for Microservices\n\
-  The system is decomposed into multiple independently deployable services, each with\
-  \ its own codebase and lifecycle. Citing `docker-compose.yml`, the architecture\
-  \ includes:\n- `ftgo-order-service`\n- `ftgo-kitchen-service`\n- `ftgo-restaurant-service`\n\
-  - `ftgo-accounting-service`\n- `ftgo-consumer-service`\n- `ftgo-api-gateway`\n\n\
-  The architecture enforces a **Database-per-Service** pattern. The `docker-compose.yml`\
-  \ environment variables show distinct database schemas for each service (e.g., `SPRING_DATASOURCE_URL:\
-  \ jdbc:mysql://mysql/ftgo_order_service` vs `ftgo_kitchen_service`), even though\
-  \ they share a MySQL instance in the development environment.\n\n### Evidence for\
-  \ Event-Driven & Sagas\nThe codebase heavily utilizes the **Eventuate Tram** framework\
-  \ to implement the **Saga Pattern** for distributed transactions. \n- In `OrderService.java`,\
-  \ the `createOrder` method initiates a `CreateOrderSaga` via a `SagaInstanceFactory`.\n\
-  - Services use **Domain Events** to communicate state changes asynchronously. `OrderService.java`\
-  \ refers to `OrderDomainEventPublisher` and `ResultWithDomainEvents`.\n- The `cdc-service`\
-  \ (Change Data Capture) defined in `docker-compose.yml` implements the **Transactional\
-  \ Outbox** pattern, reading binlogs from MySQL and publishing events to **Kafka**.\n\
-  \n### Evidence for Domain-Driven Design (DDD)\nThe internal structure of the services\
-  \ follows DDD principles. Citing `OrderService.java`, we see:\n- **Aggregates**:\
-  \ The `Order` class acts as an aggregate root that returns domain events.\n- **Bounded\
-  \ Contexts**: Each microservice represents a distinct bounded context (Kitchen,\
-  \ Order, Accounting).\n\n### Evidence for CQRS\nThe `ftgo-order-history-service`\
-  \ is a dedicated read-side service that subscribes to events from other services\
-  \ (Order, Delivery, etc.) to maintain a denormalized view in **DynamoDB**. This\
-  \ is a classic implementation of **CQRS**, separating the command side (state changes\
-  \ in MySQL) from the query side (complex history lookups in DynamoDB).\n\n### Gateway\
-  \ Pattern\nThe project includes both a Spring Cloud-based `ftgo-api-gateway` and\
-  \ a Node.js `ftgo-api-gateway-graphql`, demonstrating the **API Gateway** and **Backend\
-  \ for Frontends (BFF)** patterns."
-confidence_calibration:
-  original_confidence: 0.95
-  calibrated_confidence: 0.84
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.92
-  style_clarity: 0.97
-  alternatives_dismissed: 0.55
-  exploration_completeness: 0.88
-  flags: alternatives_dismissed is weak — no explicit consideration of whether this
-    could be classified differently (e.g., pure SOA or Layered-within-services); however
-    primary classification is unambiguous and well-evidenced
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.95
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:21:29Z'
+classification_reasoning: "## Architecture Classification: Microservices (with DDD\
+  \ and Event-Driven patterns)\n\nThe **ftgo-application** repository implements a\
+  \ **Microservices Architecture** as its primary architecture style, with strong\
+  \ **Domain-Driven Design** and **Event-Driven** patterns.\n\n### Primary Evidence\
+  \ for Microservices\n\n**Multiple Independently Deployable Services:**\n- 7+ distinct\
+  \ services: `ftgo-order-service`, `ftgo-kitchen-service`, `ftgo-accounting-service`,\
+  \ `ftgo-consumer-service`, `ftgo-restaurant-service`, `ftgo-delivery-service`, `ftgo-order-history-service`\n\
+  - Each service has its own `Dockerfile` and can be deployed independently\n- Services\
+  \ are orchestrated via `docker-compose.yml` and Kubernetes manifests in `deployment/kubernetes/`\n\
+  \n**Database-per-Service Pattern:**\n```\nSPRING_DATASOURCE_URL: jdbc:mysql://mysql/ftgo_order_service\n\
+  SPRING_DATASOURCE_URL: jdbc:mysql://mysql/ftgo_kitchen_service\nSPRING_DATASOURCE_URL:\
+  \ jdbc:mysql://mysql/ftgo_consumer_service\n...\n```\nEach service has its own MySQL\
+  \ schema, enforcing data ownership boundaries.\n\n**API Gateway Pattern:**\n- Dedicated\
+  \ `ftgo-api-gateway` service using Spring Cloud Gateway\n- Proxies requests to underlying\
+  \ services via `OrderServiceProxy`, `ConsumerServiceProxy`, etc.\n- External clients\
+  \ interact only through the gateway\n\n**Service Decomposition by Domain:**\nEach\
+  \ service owns a distinct business capability (Order, Kitchen, Accounting, Consumer,\
+  \ Restaurant, Delivery, Order History).\n\n### Secondary Evidence for Domain-Driven\
+  \ Design\n\n**Aggregates as Primary Modeling Pattern:**\nEvery service uses DDD\
+  \ aggregates:\n- `Order` aggregate (`ftgo-order-service/src/main/java/.../domain/Order.java`)\
+  \ - JPA entity with domain events\n- `Ticket` aggregate (`ftgo-kitchen-service/src/main/java/.../domain/Ticket.java`)\n\
+  - `Consumer` aggregate (`ftgo-consumer-service/src/main/java/.../domain/Consumer.java`)\n\
+  - `Account` aggregate (using event sourcing in `ftgo-accounting-service`)\n\n**Domain\
+  \ Events:**\nServices emit domain events like `OrderCreatedEvent`, `OrderAuthorized`,\
+  \ `OrderCancelled`, `TicketCreatedEvent`, propagating state changes across bounded\
+  \ contexts.\n\n**Bounded Context Alignment:**\nService boundaries align with DDD\
+  \ bounded contexts - each service has its own domain model, repositories, and invariants.\n\
+  \n**Package Structure:**\nConsistent DDD-inspired package structure per service:\n\
+  - `domain` - aggregates, entities, value objects\n- `messaging` - event handlers/adapters\n\
+  - `web` - REST controllers (adapters)\n- `main` - application entry point\n\n###\
+  \ Secondary Evidence for Event-Driven Architecture\n\n**Apache Kafka as Message\
+  \ Broker:**\n```yaml\nkafka:\n  image: \"eventuateio/eventuate-kafka...\"\n  ports:\n\
+  \    - 9092:9092\n```\nAll services communicate via Kafka through the Eventuate\
+  \ Tram framework.\n\n**Event Handlers for Cross-Service Communication:**\n- `OrderEventConsumer`\
+  \ subscribes to `RestaurantCreated` events from Restaurant Service\n- `OrderHistoryEventHandlers`\
+  \ subscribes to `OrderCreatedEvent`, `OrderAuthorized` events to update the CQRS\
+  \ read model\n\n**Saga Pattern for Distributed Transactions:**\n```java\n// CreateOrderSaga.java\
+  \ - orchestrates across 4 services\nstep()\n  .withCompensation(orderService.reject,\
+  \ ...)\n  .step()\n    .invokeParticipant(consumerService.validateOrder, ...)\n\
+  \  .step()\n    .invokeParticipant(kitchenService.create, ...)\n  .step()\n    .invokeParticipant(accountingService.authorize,\
+  \ ...)\n```\nSagas coordinate transactions across Order, Consumer, Kitchen, and\
+  \ Accounting services.\n\n### Why Not Other Styles\n\n- **Not Modular Monolith**:\
+  \ Services are independently deployable with separate databases, not modules within\
+  \ a single deployment unit\n- **Not Layered**: Services are decomposed vertically\
+  \ by business capability, not horizontally by technical layer\n- **Not Service-Based**:\
+  \ 7+ fine-grained services with independent databases, not 2-5 coarse-grained services\
+  \ sharing a database\n- **Not Hexagonal**: While services use ports/adapters pattern,\
+  \ the primary architectural characteristic is service decomposition\n- **CQRS applies\
+  \ only to Order History Service**: Not the dominant pattern across the entire system\n\
+  \n### Conclusion\n\nThis is a textbook microservices implementation from the \"\
+  Microservices Patterns\" book, demonstrating:\n- Independent service deployment\
+  \ with database-per-service\n- Inter-service communication via events and sagas\n\
+  - API Gateway for external access\n- DDD tactical patterns (aggregates, domain events)\
+  \ within each bounded context"

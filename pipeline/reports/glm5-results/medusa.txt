@@ -1,0 +1,183 @@
+Now I have sufficient evidence to classify this architecture. Let me examine one more aspect to confirm the workflow orchestration pattern:---
+verdict: classified
+primary_style: Modular Monolith
+secondary_styles:
+  - Pipeline (Pipe-and-Filter)
+confidence: 0.92
+---
+
+## Architecture Classification: Modular Monolith with Workflow Orchestration
+
+### Primary Style: Modular Monolith
+
+Medusa is architected as a **modular monolith** with strongly enforced module boundaries. The evidence is compelling:
+
+**Monorepo with Independent Module Packages:**
+- 34 separate module packages under `packages/modules/` (product, order, cart, payment, customer, inventory, etc.)
+- 15+ provider packages under `packages/modules/providers/` (payment-stripe, auth-github, file-s3, notification-sendgrid, etc.)
+- Each module is independently versioned and published to npm (`"name": "@medusajs/product"`)
+- Peer dependency enforcement: modules depend on `@medusajs/framework` rather than each other directly
+
+**Module Definition Pattern:**
+Every module follows a consistent structure (`packages/modules/product/src/index.ts`):
+```typescript
+export default Module(Modules.PRODUCT, {
+  service: ProductModuleService,
+})
+```
+
+Each module includes:
+- Service layer (`services/product-module-service.ts`)
+- Data models (`models/`)
+- Database migrations (`migrations/`)
+- Joiner configuration (`joiner-config.ts`) for cross-module relationships
+- Integration tests
+
+**Module SDK with Discovery and Loading:**
+The `packages/core/modules-sdk` provides module registration, discovery, and lifecycle management:
+```typescript
+// packages/core/modules-sdk/src/definitions.ts
+export const ModulesDefinition: {
+  [key: string]: ModuleDefinition
+} = {
+  [Modules.PRODUCT]: {
+    key: Modules.PRODUCT,
+    defaultPackage: false,
+    label: upperCaseFirst(Modules.PRODUCT),
+    isRequired: false,
+    isQueryable: true,
+    dependencies: [Modules.EVENT_BUS, ContainerRegistrationKeys.LOGGER],
+    defaultModuleDeclaration: {
+      scope: MODULE_SCOPE.INTERNAL,
+    },
+  },
+  // ... 30+ module definitions
+}
+```
+
+**Provider Plugin System:**
+Modules accept pluggable providers loaded dynamically (`packages/core/modules-sdk/src/loaders/module-provider-loader.ts`):
+```typescript
+export async function loadModuleProvider(
+  container: MedusaContainer,
+  provider: ModuleProvider,
+  registerServiceFn?: (klass, container, moduleDetails) => Promise<void>
+) {
+  loadedProvider = await dynamicImport(normalizedPath)
+  // ...registers provider services into container
+}
+```
+
+Example: Payment module with Stripe provider (`packages/modules/providers/payment-stripe/src/services/stripe-provider.ts`):
+```typescript
+class StripeProviderService extends StripeBase {
+  static identifier = PaymentProviderKeys.STRIPE
+}
+```
+
+### Secondary Style: Pipeline (Pipe-and-Filter)
+
+Medusa implements a sophisticated **workflow orchestration engine** that embodies the Pipeline pattern:
+
+**Workflow SDK (`packages/core/workflows-sdk`):**
+- `createStep()` - Define atomic steps with compensation (rollback) handlers
+- `createWorkflow()` - Compose steps into pipelines
+- `WorkflowManager` - Register and execute workflows
+- Transaction orchestrator for distributed transactions
+
+**Core Flows (`packages/core/core-flows`):**
+Pre-built workflow compositions for commerce operations:
+```
+src/
+├── api-key/steps/ + workflows/
+├── cart/steps/ + workflows/      # 20+ steps, 15+ workflows
+├── customer/steps/ + workflows/
+├── fulfillment/steps/ + workflows/
+├── order/steps/ + workflows/
+└── payment/steps/ + workflows/
+```
+
+**Step Composition Pattern (`packages/core/workflows-sdk/src/utils/composer/create-step.ts`):**
+```typescript
+export type InvokeFn<TInput, TOutput, TCompensateInput> = (
+  input: TInput,
+  context: StepExecutionContext
+) => StepResponse<TOutput, TCompensateInput>
+
+export type CompensateFn<T> = (
+  input: T | undefined,
+  context: StepExecutionContext
+) => unknown | Promise<unknown>
+```
+
+**Workflow Definition Example:**
+```typescript
+const myWorkflow = createWorkflow(
+  "my-workflow",
+  (input: WorkflowInput) => {
+    const product = createProductStep(input)
+    return new WorkflowResponse(getProductStep(product.id))
+  }
+)
+```
+
+### What This Is NOT
+
+**Not Microservices:**
+- Single deployable application (`packages/medusa/`)
+- Modules share a framework container, not distributed communication
+- No API gateways, service mesh, or inter-service HTTP/gRPC
+- Event bus is optional (local or Redis), not required for module communication
+
+**Not Service-Based (2-5 coarse services):**
+- 34 fine-grained modules, not 2-5 coarse services
+- Each module is a separate npm package with clear boundaries
+- Modules define cross-module links via joiner configs, not shared databases
+
+**Not Domain-Driven Design:**
+- No bounded contexts with aggregates/entities/value objects pattern
+- No ubiquitous language or domain events (events are infrastructure-level)
+- Modules are organized by commerce feature, not strategic domains
+
+**Not Layered Architecture:**
+- No horizontal separation of presentation/business/data layers
+- Each module contains its own full stack (models, services, migrations)
+- Workflow engine cuts across layers vertically
+
+### Supporting Evidence
+
+**Workspace Configuration (`package.json`):**
+```json
+"workspaces": {
+  "packages": [
+    "packages/medusa",
+    "packages/modules/*",
+    "packages/modules/providers/*",
+    "packages/core/*",
+    "packages/framework/*"
+  ]
+}
+```
+
+**Module Service Pattern (`packages/modules/product/src/services/product-module-service.ts`):**
+```typescript
+export default class ProductModuleService
+  extends MedusaService<{
+    Product: { dto: ProductTypes.ProductDTO }
+    ProductCategory: { dto: ProductTypes.ProductCategoryDTO }
+    // ... 8 entities
+  }>
+  implements IProductModuleService
+```
+
+**Link Modules for Cross-Module Relationships (`packages/modules/link-modules/`):**
+Enables modules to reference entities across boundaries without tight coupling.
+
+**Event Bus Abstraction (`packages/modules/event-bus-local`, `packages/modules/event-bus-redis`):**
+- Swappable implementation for event publishing
+- Domain events emitted via `@EmitEvents()` decorator
+- Subscribers loaded dynamically from user code
+
+### Conclusion
+
+Medusa is a textbook example of a **modular monolith**: a single deployable unit with enforced internal module boundaries. Each module is independently developed, versioned, and pluggable. The workflow orchestration engine provides pipeline-style composition of operations across modules, enabling complex business processes while maintaining transactional integrity through compensation handlers.

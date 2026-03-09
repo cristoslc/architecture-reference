@@ -13,9 +13,8 @@ language: Java/Kotlin
 languages:
 - Java/Kotlin
 architecture_styles:
-- Service-Based
+- Pipeline (Pipe-and-Filter)
 - Microkernel (Plugin)
-- Space-Based
 classification_status: classified
 review_notes: "The Orbit repository implements a distributed virtual actor framework.\
   \ Its internal architecture is structured as a **Service-Based** system that facilitates\
@@ -32,51 +31,53 @@ review_notes: "The Orbit repository implements a distributed virtual actor frame
   \ Orbit provides a unified \"Server\" and \"Client\" infrastructure aimed at distributed\
   \ computing."
 review_required: false
-classification_method: deep-analysis
-classification_confidence: 0.54
-classification_model: openrouter/google/gemini-3-flash-preview
-classification_date: '2026-03-08T07:05:12Z'
-classification_reasoning: "The Orbit repository implements a distributed virtual actor\
-  \ framework. Its internal architecture is structured as a **Service-Based** system\
-  \ that facilitates a **Space-Based** runtime environment, utilizing a **Microkernel**\
-  \ approach for extensibility.\n\n### 1. Service-Based (Primary)\nThe system is organized\
-  \ into a small number of coarse-grained component types that work together. As evidenced\
-  \ by `docker/docker-compose.yml` and the Helm charts (`charts/orbit/templates/`),\
-  \ the architecture consists of:\n- **Orbit Server Nodes**: Multiple instances of\
-  \ the core processing unit (defined in `src/orbit-server` and packaged via `src/orbit-application`).\n\
-  - **Directory Services**: External state providers (etcd) used for `node-directory`\
-  \ and `addressable-directory` to track the location of virtual actors. \n- **Mesh\
-  \ Proxy**: An HAProxy instance for load balancing traffic across the server nodes.\n\
-  \nUnlike a pure microservices architecture where every domain is a separate service,\
-  \ Orbit provides a unified \"Server\" and \"Client\" infrastructure aimed at distributed\
-  \ computing.\n\n### 2. Microkernel (Plugin) (Secondary)\nThe codebase uses a plugin-based\
-  \ architecture to extend core functionality without modifying the \"kernel.\" This\
-  \ is explicitly signaled by the directory structure:\n- `src/orbit-server-etcd`:\
-  \ Provides the etcd implementation for directory services.\n- `src/orbit-server-prometheus`:\
-  \ Provides metrics integration.\n- `src/orbit-client-spring-plugin`: Provides integration\
-  \ with the Spring framework.\nThe core server (`src/orbit-server`) acts as the kernel,\
-  \ while external concerns like storage, observability, and framework integration\
-  \ are handled via separate modules.\n\n### 3. Space-Based (Secondary)\nThe system\
-  \ is designed to handle \"Addressables\" (Actors) across a distributed cluster.\
-  \ The use of directory services (`node.proto`, `addressable_management.proto`) to\
-  \ manage state and location of objects across a shared \"space\" of nodes is a hallmark\
-  \ of Space-Based architectures. It aims to eliminate centralized database bottlenecks\
-  \ by distributing the \"Addressable\" state across the cluster.\n\n### Structural\
-  \ Evidence\n- **Defined Interfaces**: `src/orbit-proto` contains the gRPC/Protobuf\
-  \ definitions (`node.proto`, `addressable.proto`) that define the contract between\
-  \ the Client and Server, and between Server nodes.\n- **Separation of Concerns**:\
-  \ The repo differentiates between `orbit-client` (the SDK for users), `orbit-server`\
-  \ (the coordination logic), and `orbit-application` (the deployable wrapper).\n\
-  - **Deployment Topology**: The Helm charts (`node-directory-deployment.yaml`, `server-deployment.yaml`)\
-  \ confirm that the system is intended to be deployed as a set of interacting services."
-confidence_calibration:
-  original_confidence: 0.9
-  calibrated_confidence: 0.54
-  calibration_model: openrouter/anthropic/claude-sonnet-4.6
-  evidence_strength: 0.7
-  style_clarity: 0.5
-  alternatives_dismissed: 0.2
-  exploration_completeness: 0.7
-  flags: Space-Based classification is weakly justified — virtual actor framework
-    with distributed state is more naturally Microkernel+Service-Based; Space-Based
-    reasoning conflates distributed state with tuple-space/data-grid patterns
+classification_method: deep-analysis-tooluse
+classification_confidence: 0.9
+classification_model: openrouter/z-ai/glm-5
+classification_date: '2026-03-08T20:51:42Z'
+classification_reasoning: "## Analysis\n\nThe Orbit repository implements a **distributed\
+  \ actor mesh system** (developed by Electronic Arts) with a clear Pipeline architecture\
+  \ at its core, complemented by a Microkernel-style plugin system.\n\n### Primary\
+  \ Style: Pipeline (Pipe-and-Filter)\n\nThe server's message processing is organized\
+  \ around a classic pipeline pattern:\n\n**Evidence:**\n1. **`src/orbit-server/src/main/kotlin/orbit/server/pipeline/Pipeline.kt`**\
+  \ - Central orchestrator that pushes messages through a channel-based processing\
+  \ system using `RailWorker` for parallel rails.\n\n2. **`src/orbit-server/src/main/kotlin/orbit/server/pipeline/step/PipelineStep.kt`**\
+  \ - Defines the filter interface:\n   ```kotlin\n   interface PipelineStep {\n \
+  \      suspend fun onOutbound(context: PipelineContext, msg: Message): Unit = context.next(msg)\n\
+  \       suspend fun onInbound(context: PipelineContext, msg: Message): Unit = context.next(msg)\n\
+  \   }\n   ```\n\n3. **`src/orbit-server/src/main/kotlin/orbit/server/pipeline/PipelineSteps.kt`**\
+  \ - Explicitly wires the sequence:\n   ```kotlin\n   val steps: Array<PipelineStep>\
+  \ = arrayOf(\n       identityStep,\n       routingStep,\n       placementStep,\n\
+  \       verifyStep,\n       authStep,\n       transportStep\n   )\n   // inbound\
+  \ is up, outbound is down\n   ```\n\n4. Each step independently processes messages\
+  \ and calls `context.next(msg)` to pass data to the next filter — the canonical\
+  \ pipe-and-filter pattern.\n\n5. Concrete steps like `RoutingStep`, `TransportStep`,\
+  \ `PlacementStep` each handle a single responsibility in the message flow.\n\n###\
+  \ Secondary Style: Microkernel (Plugin)\n\nThe system provides extensibility through\
+  \ a plugin/dependency-injection mechanism:\n\n**Evidence:**\n1. **`src/orbit-util/src/main/kotlin/orbit/util/di/ComponentContainer.kt`**\
+  \ - Custom DI container with `ExternallyConfigured<T>` interface enabling runtime\
+  \ configuration of implementations.\n\n2. **Pluggable Directory Implementations:**\n\
+  \   - `NodeDirectory` and `AddressableDirectory` interfaces (`src/orbit-server/src/main/kotlin/orbit/server/mesh/`)\n\
+  \   - `LocalNodeDirectory`, `LocalAddressableDirectory` (core)\n   - `EtcdNodeDirectory`,\
+  \ `EtcdAddressableDirectory` (separate module: `src/orbit-server-etcd/`)\n\n3. **Pluggable\
+  \ Addressable Construction:**\n   - `AddressableConstructor` interface (`src/orbit-client/src/main/kotlin/orbit/client/addressable/AddressableConstructor.kt`)\n\
+  \   - `DefaultAddressableConstructor` (core)\n   - `SpringAddressableConstructor`\
+  \ (separate module: `src/orbit-client-spring-plugin/`) for Spring integration\n\n\
+  4. **Pluggable Metrics:**\n   - `PrometheusMetrics` as a separate module (`src/orbit-server-prometheus/`)\n\
+  \n5. **Container Overrides Hook** - Both `OrbitClientConfig` and `OrbitServerConfig`\
+  \ expose `containerOverrides` allowing external configuration of implementations.\n\
+  \n### What Was Rejected\n\n- **Not Microservices**: Single deployable artifact (`orbit-application`),\
+  \ one Dockerfile, one Helm chart. Multiple runtime instances form a cluster, but\
+  \ this is horizontal scaling, not service decomposition.\n\n- **Not Layered**: No\
+  \ horizontal layering (presentation/business/data). The modules are organized by\
+  \ technical capability (proto, client, server, util) not by layers.\n\n- **Not Event-Driven**:\
+  \ No message broker (Kafka, RabbitMQ, etc.). Messages flow synchronously through\
+  \ the processing pipeline. The system is request-response based via gRPC.\n\n- **Not\
+  \ Modular Monolith**: The modules are technical components (util, proto, shared)\
+  \ rather than business domain boundaries. There's no domain-driven decomposition.\n\
+  \n- **Not Hexagonal**: While there's dependency injection, there's no explicit ports/adapters\
+  \ separation pattern. The plugin system serves a different purpose.\n\n### Deployment\
+  \ Topology\n\nThe system deploys as a single application with cluster capabilities:\n\
+  - Docker Compose runs multiple `orbit-server` instances with etcd for distributed\
+  \ state\n- Kubernetes deployment via Helm chart (`charts/orbit/`)\n- gRPC-based\
+  \ communication between mesh nodes"
