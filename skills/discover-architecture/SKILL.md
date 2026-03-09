@@ -157,6 +157,8 @@ Produce a markdown report:
 
 If the user wants YAML catalog output (for the evidence base), also produce a YAML entry per the schema in `references/catalog-schema.yaml`.
 
+The report structure follows the template at `references/report.template.j2`. When saving reports, use `docs/architecture-reports/<project-name>-<YYYY-MM-DD>.md`.
+
 ## Edge Cases
 
 **Monorepo with multiple projects**: Note the monorepo structure. Classify the overall architecture, noting sub-projects if they have distinct styles.

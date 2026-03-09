@@ -125,6 +125,19 @@ Don't just report data — help the user make a decision:
 - Suggest concrete next steps (ADRs to write, patterns to prototype, quality attributes to prioritize)
 - If examining their codebase, identify gaps between current architecture and evidence-backed patterns
 
+### Step 6: Save report (optional)
+
+When the user asks to save the report ("save this", "write a report", "save to docs"), or when the analysis was a full architecture review (not just a quick question), offer to persist the output:
+
+1. Create the output directory if needed: `mkdir -p docs/architecture-reports/`
+2. Generate the report following the template in `references/report.template.j2` — the template defines the frontmatter fields, section order, and required content. You don't need a Jinja2 renderer; just fill in the structure by hand using the template as a guide.
+3. Save as `docs/architecture-reports/<project-name>-<YYYY-MM-DD>.md`
+4. If a report for the same project and date already exists, append a sequence suffix: `-2`, `-3`, etc.
+
+The report template includes YAML frontmatter (project, date, scope, styles) so reports are machine-parseable for future cross-project analysis.
+
+Don't save reports for casual Q&A ("what's the most common style?"). Save when there's a concrete analysis tied to a specific project or codebase.
+
 ## Glossary
 
 For definitions of all 12 architecture styles, 13 quality attributes, evidence sources, and key terms, read `references/reference-library/glossary.md` (or the offline reference below).
