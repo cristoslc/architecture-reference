@@ -10,6 +10,7 @@ depends-on:
   - SPEC-022
 linked-adrs:
   - ADR-001
+  - ADR-004
 execution-tracking: required
 ---
 

@@ -11,6 +11,8 @@
 | SPIKE-006 | LLM CLI Reliability Improvements | Can we improve YAML adherence and use llm's native tool-calling for more robust multi-turn? | Pre-execution gate for SPEC-024 | 2026-03-08 | 02bffc03 |
 | SPIKE-007 | Final Model Validation | After SPIKE-005/006 improvements, do revised prompts maintain accuracy and which model is the final recommendation? | Final gate for SPEC-024 | 2026-03-08 | 150c9c6 |
 | SPIKE-008 | Native Multi-Turn Classification with GLM-5 | Can an LLM with native tool-calling produce higher-quality architecture classifications than script-driven batch? | Pre-execution gate for SPEC-024 reclassification — GO | 2026-03-08 | — |
+| SPIKE-009 | Discover Architecture v2.0 Validation | Does discover-architecture v2.0.0 produce accurate, evidence-cited classifications using pure deep-analysis? | Post-rebuild validation — GO (6/6 pass) | 2026-03-09 | — |
+| SPIKE-010 | Architecture Advisor v3.0 Validation | Does architecture-advisor v3.0.0 provide Discovered-first guidance with ADR-004 hierarchy compliance? | Post-rebuild validation — GO (7/7 pass) | 2026-03-09 | — |
 
 ## Active
 

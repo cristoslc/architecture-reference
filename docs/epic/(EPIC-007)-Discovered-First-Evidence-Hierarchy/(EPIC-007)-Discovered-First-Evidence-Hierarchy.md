@@ -6,6 +6,8 @@ author: cristos
 created: 2026-03-05
 last-updated: 2026-03-05
 parent-vision: VISION-001
+linked-adrs:
+  - ADR-004
 success-criteria:
   - All 6 reference library documents lead with statistical analysis derived from the 122-entry Discovered corpus as the primary evidence layer
   - KataLog evidence is repositioned as supplementary qualitative evidence valued for judge commentary, team reasoning, and ADR documentation -- not as the primary ranking system

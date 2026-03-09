@@ -1,227 +1,204 @@
 ---
 name: architecture-advisor
-description: Research how real architecture teams solved problems using evidence from 276 projects across five sources — 34 placing O'Reilly Architecture Kata teams, 12 AOSA production systems, 5 production .NET apps, 8 reference implementations, and 173 auto-discovered open-source repos. Use when the user asks about architecture style selection, pattern trade-offs, quality attributes, ADR examples, kata preparation, or feasibility analysis. Triggers on "architecture patterns", "which architecture style", "how did teams handle", "kata preparation", "architecture evidence", "ADR examples", "feasibility analysis", "fitness functions".
+description: Evidence-based architecture guidance grounded in 142 production codebases and 17 production system case studies. Reviews project goals, examines the user's codebase, and provides data-driven recommendations for architecture style selection, quality attribute trade-offs, and pattern validation. Use when the user asks "which architecture should I use", "is my architecture right for this", "architecture review", "help me choose between X and Y", "what patterns work for my domain", "architecture trade-offs", "validate my architecture", or any question about choosing, evaluating, or improving software architecture. Also triggers on "architecture patterns", "quality attributes", "ADR examples", "feasibility analysis", "fitness functions", or "kata preparation".
 license: MIT
 allowed-tools: Bash, Read, Grep, Glob, Agent
 metadata:
-  short-description: Evidence-based architecture research from 276 real-world projects
-  version: 2.0.0
+  short-description: Production-evidence-based architecture guidance from 142 codebases
+  version: 3.0.0
   author: cristos
   source-repo: https://github.com/cristoslc/architecture-reference-repo
 ---
 
 # Architecture Advisor
 
-Evidence-based architecture research from 276 real-world projects: 34 O'Reilly Architecture Kata placing teams, 12 AOSA production systems, 5 production .NET apps, 8 reference implementations, and 173 auto-discovered open-source repos classified from structural signals. Each project has a structured YAML catalog entry. Kata scoring uses placement-weighted points: 1st = 4 pts, 2nd = 3 pts, 3rd = 2 pts.
+Evidence-based architecture guidance grounded in production reality. Every recommendation cites real systems, not opinion or convention.
 
-## Setup: Syncing Reference Data
+The evidence hierarchy (ADR-004):
 
-This skill fetches its reference data from the source repository via sparse clone. The reference data lives in `references/` alongside this file.
+1. **Discovered production repos (142 entries)** — primary statistical baseline. What production codebases actually use.
+2. **AOSA/RealWorld production systems (17 entries)** — deep case studies from system creators. Highest per-system authority.
+3. **KataLog competition (78 teams)** — qualitative annotation. Never-built designs valued for ADR reasoning, judge commentary, and cost projections. Not primary evidence.
+4. **Reference implementations (50 entries)** — teaching examples. Not counted in frequency rankings.
 
-### First-time setup
+## Setup: Reference Data
 
-Before answering any question, check whether `references/` exists relative to this SKILL.md. If it does not exist, run the sync script:
+This skill can work at three levels of data access:
+
+### Level 1: Offline reference (always available)
+
+The key findings at the bottom of this file provide enough data for most questions. No setup needed.
+
+### Level 2: Synced references (recommended)
+
+Run the sync script to fetch the full reference library, YAML catalogs, and analyses (<1 MB):
 
 ```bash
 bash scripts/sync-references.sh
 ```
 
-This does a sparse clone of `https://github.com/cristoslc/architecture-reference-repo` and extracts the reference library, YAML catalogs, analyses, and templates (<1 MB) into `references/`.
+This populates `references/` with the complete reference library. The script is idempotent.
 
-### Evidence pool
+### Level 3: Full evidence pool
 
-For deep dives into individual team submissions (reading ADRs, C4 diagrams, video transcripts), if `references/evidence-pool/` does not exist, offer to run:
+For deep dives into individual competition team submissions (ADRs, C4 diagrams, video transcripts):
 
 ```bash
 bash scripts/sync-references.sh --evidence-pool
 ```
 
-This adds the full evidence pool (~2.2 GB). Only suggest this when the user explicitly needs to read individual team submissions.
+Adds ~2.2 GB. Only suggest when the user explicitly needs team submission details.
 
-### Updating
+### Data Resolution
 
-To pull the latest data from the source repository, re-run the sync script:
+Check these locations in order, stop at first match:
 
-```bash
-bash scripts/sync-references.sh --status    # Check current state
-bash scripts/sync-references.sh             # Update references
-```
+1. `references/` relative to this SKILL.md (synced data)
+2. `../../evidence-analysis/` and `../../docs/` (source repo checkout)
+3. Current working directory (user inside source repo)
+4. Offline reference below (always available)
 
-The script is idempotent — it overwrites existing references with fresh data and updates `references/.sync-state.yml`.
+## What This Skill Does
 
-## Locating the Data
+The user brings an architecture problem. You research the evidence base and provide data-driven guidance with citations.
 
-Use this resolution order to find evidence data. Stop at the first match.
+### Step 1: Understand the problem
 
-1. **Local references**: Check `references/` relative to this SKILL.md. This is the primary data source for remote installations. The directory structure is:
-   - `references/reference-library/` — Core reference documents
-   - `references/catalogs/<source>/` — YAML catalogs per source
-   - `references/analysis/<source>/` — Per-source analyses
-   - `references/templates/` — Practitioner guides and templates
-   - `references/evidence-pool/` — Full team submissions (only after `--evidence-pool` sync)
+Ask enough to classify the situation:
 
-2. **Source repo (local development)**: Check `../../evidence-analysis/` and `../../docs/` relative to this SKILL.md (works when skill is at `skills/architecture-advisor/` within the source repo itself).
+- **Style selection**: "Which architecture fits my project?" → consult production frequency data and domain-style correlations
+- **Architecture review**: "Is my current architecture sound?" → examine their codebase and compare to evidence
+- **Pattern trade-offs**: "Microservices vs Service-Based?" → compare production evidence for both
+- **Quality attributes**: "How do I get scalability AND simplicity?" → consult QA evidence and trade-off data
+- **Domain mapping**: "What works for e-commerce/healthcare/etc?" → consult domain-style correlations
+- **Kata preparation**: "Help me prepare for an architecture kata" → use templates and competition insights
 
-3. **Current working directory**: Check if `evidence-analysis/TheKataLog/docs/catalog/_index.yaml` exists in the working directory (user is working inside the source repo).
+### Step 2: Examine the codebase (if available)
 
-4. **Common checkout locations**: Check `~/src/architecture-reference-repo/`, `~/architecture-reference-repo/`.
+If the user has a codebase to evaluate, examine it before giving advice. Read actual code — understand their current architecture before recommending changes. Use the discover-architecture skill's approach: read entrypoints, module boundaries, communication patterns, dependency direction.
 
-5. **Ask the user**: If no data is found at any location, ask the user for the path to their local clone.
+### Step 3: Research the evidence
 
-6. **Fall back to offline reference**: If no local data is available at all, use the key findings embedded in this file (see "Offline Reference" below).
+**For style selection or trade-off questions**, consult in this order:
 
-### Path mapping
+| Priority | Source | Path (references/) | What it answers |
+|----------|--------|-------------------|----------------|
+| 1 | Discovered frequency rankings | `reference-library/solution-spaces.md` | "How common is this style in production?" |
+| 2 | Domain-style correlations | `reference-library/problem-solution-matrix.md` | "What styles work for my domain?" |
+| 3 | Decision navigator | `reference-library/decision-navigator.md` | "Given my constraints, what's recommended?" |
+| 4 | Production system narratives | `catalogs/AOSA/`, `catalogs/RealWorldASPNET/` | "How did real systems implement this?" |
+| 5 | Style evidence details | `reference-library/evidence/by-architecture-style.md` | "What's the full evidence picture for this style?" |
+| 6 | Competition team reasoning | `catalogs/TheKataLog/` | "Why did teams choose this? What trade-offs did they document?" |
 
-When data is found via `references/` (resolution path 1), use these path mappings:
+**For quality attribute questions:**
 
-| Source repo path | references/ path |
-|-----------------|-----------------|
-| `docs/reference-library/` | `references/reference-library/` |
-| `docs/templates/` | `references/templates/` |
-| `evidence-analysis/TheKataLog/docs/catalog/` | `references/catalogs/TheKataLog/` |
-| `evidence-analysis/AOSA/docs/catalog/` | `references/catalogs/AOSA/` |
-| `evidence-analysis/RealWorldASPNET/docs/catalog/` | `references/catalogs/RealWorldASPNET/` |
-| `evidence-analysis/ReferenceArchitectures/docs/catalog/` | `references/catalogs/ReferenceArchitectures/` |
-| `evidence-analysis/TheKataLog/docs/analysis/` | `references/analysis/TheKataLog/` |
-| `evidence-analysis/AOSA/docs/analysis/` | `references/analysis/AOSA/` |
-| `evidence-analysis/RealWorldASPNET/docs/analysis/` | `references/analysis/RealWorldASPNET/` |
-| `evidence-analysis/ReferenceArchitectures/docs/analysis/` | `references/analysis/ReferenceArchitectures/` |
-| `evidence-pool/TheKataLog/` | `references/evidence-pool/` |
+| Priority | Source | Path |
+|----------|--------|------|
+| 1 | QA detection data | `reference-library/evidence/by-quality-attribute.md` |
+| 2 | Cross-source QA analysis | `reference-library/evidence/cross-source-analysis.md` |
 
-## What To Do
+**For meta-practice questions** (ADRs, feasibility, fitness functions):
 
-The user gives you an architecture problem or question. Research the evidence base and return data-driven recommendations with citations.
+| Priority | Source | Path |
+|----------|--------|------|
+| 1 | Templates | `templates/adr-guide.md`, `templates/feasibility-guide.md`, `templates/fitness-functions-guide.md` |
+| 2 | Competition evidence | KataLog team submissions (these are KataLog's genuine strength — meta-practices documented in team ADRs) |
 
-### Step 1: Ensure data is available
-
-Check the data resolution order above. If `references/` does not exist and no other data source is available, run `bash scripts/sync-references.sh` before proceeding.
-
-### Step 2: Classify the question
-
-Map the user's problem to one or more of these categories:
-
-| Category | What to search | Key files (references/ path) |
-|----------|---------------|------------------------------|
-| **Style selection** | Which architecture style fits? | `references/reference-library/solution-spaces.md`, `references/reference-library/problem-solution-matrix.md` |
-| **Pattern research** | How did teams implement a specific pattern? | `references/catalogs/*/*.yaml` (filter by style), then `references/evidence-pool/` |
-| **Quality attributes** | Trade-offs between quality attributes | `references/reference-library/evidence/by-quality-attribute.md` |
-| **ADR examples** | Real ADR examples for a decision type | `references/catalogs/TheKataLog/*.yaml` (filter by `adr_topics`), then team submissions |
-| **Kata preparation** | Starting a new architecture kata | `references/templates/kata-checklist.md`, `references/reference-library/decision-navigator.md` |
-| **Feasibility analysis** | What a feasibility analysis looks like | `references/templates/feasibility-guide.md`, teams with `has_feasibility_analysis: true` |
-| **Fitness functions** | Defining quantitative architecture tests | `references/templates/fitness-functions-guide.md` |
-| **Challenge comparison** | How teams approached a specific kata | `references/analysis/TheKataLog/challenges/<challenge-name>.md` |
-| **Cross-source validation** | Does a pattern hold across competition and production? | `references/reference-library/evidence/cross-source-reference.md`, `references/reference-library/evidence/cross-source-analysis.md` |
-
-If `references/` does not exist, run `bash scripts/sync-references.sh` before continuing.
-
-### Step 3: Search structured data first
-
-Start with the YAML catalogs — they are small, structured, and fast to scan.
-
-**Key files to search:**
-
-- `references/catalogs/TheKataLog/_index.yaml` — Master index of all 11 seasons, 34 placing teams, and style frequencies
-- `references/catalogs/TheKataLog/<team-name>.yaml` — Per-team metadata including:
-  - `architecture_styles` — List of styles used
-  - `placement` / `placement_numeric` — Competition result (1st/2nd/3rd)
-  - `quality_attributes_prioritized` — Quality attributes the team emphasized
-  - `adr_count` / `adr_topics` — Number and topics of ADRs
-  - `has_feasibility_analysis`, `has_c4_diagrams`, `has_deployment_view`, `has_sequence_diagrams` — Documentation artifacts present
-  - `key_technologies` — Technology stack
-  - `notable_strengths` / `notable_gaps` — Analyst assessments
-  - `one_line_summary` — Quick team profile
-- `references/catalogs/AOSA/_index.yaml` — 12 production open-source systems
-- `references/catalogs/RealWorldASPNET/_index.yaml` — 5 production .NET apps
-- `references/catalogs/ReferenceArchitectures/_index.yaml` — 8 reference implementations
-
-### Step 4: Consult the reference library
-
-| Document | Use When |
-|----------|----------|
-| `references/reference-library/solution-spaces.md` | Comparing architecture styles by placement-weighted scores |
-| `references/reference-library/problem-spaces.md` | Classifying a problem across 10 dimensions |
-| `references/reference-library/problem-solution-matrix.md` | Mapping problem dimensions to proven solutions |
-| `references/reference-library/decision-navigator.md` | Walking through a step-by-step architecture decision |
-| `references/reference-library/evidence/by-architecture-style.md` | Deep evidence for 7 ranked styles with per-team tables |
-| `references/reference-library/evidence/by-quality-attribute.md` | 10 quality attributes ranked by correlation with placement |
-| `references/reference-library/evidence/cross-source-reference.md` | Weighted scoreboard across all 4 sources |
-| `references/reference-library/evidence/cross-source-analysis.md` | Triangulation framework and cross-source findings |
-| `references/analysis/TheKataLog/cross-cutting.md` | Statistical patterns across all placing teams |
-
-### Step 5: Dive into evidence
-
-For deep research, read team submissions in `references/evidence-pool/` (requires `--evidence-pool` sync). Submissions are organized as `<year>-<kata-challenge>/<team>/` and may contain:
-
-- `README.md` or `submission.md` — Main architecture document
-- `ADRs/` or `adr/` — Architecture Decision Records
-- `diagrams/` — C4, deployment, sequence diagrams (converted to markdown descriptions)
-- `video-transcript.md` — LLM-readable transcript of the team's presentation
-
-For per-source analysis, read:
-
-- `references/analysis/AOSA/source-analysis.md` — Patterns across 12 AOSA projects
-- `references/analysis/RealWorldASPNET/source-analysis.md` — Patterns across 5 .NET apps
-- `references/analysis/ReferenceArchitectures/source-analysis.md` — Patterns across 8 reference implementations
-
-Spin up parallel agents to search across multiple team submissions simultaneously for broad research queries.
-
-### Step 6: Synthesize with citations
+### Step 4: Synthesize with citations
 
 Every recommendation MUST cite specific evidence:
 
-- **Team name and placement** (e.g., "ArchColider, 1st place Fall 2020")
-- **Production system** (e.g., "NGINX (AOSA) uses event-driven architecture for...")
-- **Data points** (e.g., "teams with feasibility analysis are 4.5x more likely to place top-2")
-- **Sample sizes** (e.g., "Modular Monolith: n=6, avg placement score 3.00")
-- **Cross-source confirmation** (e.g., "Event-driven dominance confirmed by both kata results (9/11 winners) and AOSA production systems (7/12)")
+- **Production frequency**: "Microkernel appears in 83 of 142 production repos (58.5%)" — cite Discovered data
+- **Production depth**: "NGINX uses event-driven architecture for non-blocking I/O (AOSA)" — cite specific systems
+- **Domain correlation**: "In Developer Tools repos, Microkernel (61%) and Layered (47%) dominate" — cite domain data
+- **Platform vs application**: "Microservices skews heavily toward platforms (13%) vs applications (2%)" — cite split data
+- **Qualitative reasoning**: "KataLog teams explain that cost/feasibility analysis is the #1 predictor of placement (4.5x likelihood)" — cite as annotation, not primary evidence
 
-Do not make unsupported claims. If the evidence is inconclusive or the sample size is too small, say so.
+**Do not make unsupported claims.** If evidence is thin (small sample, single source), say so.
+
+### Step 5: Give actionable guidance
+
+Don't just report data — help the user make a decision:
+
+- Recommend specific styles with evidence-backed reasoning
+- Flag risks and trade-offs with production evidence
+- Suggest concrete next steps (ADRs to write, patterns to prototype, quality attributes to prioritize)
+- If examining their codebase, identify gaps between current architecture and evidence-backed patterns
+
+## Glossary
+
+For definitions of all 12 architecture styles, 13 quality attributes, evidence sources, and key terms, read `references/reference-library/glossary.md` (or the offline reference below).
 
 ## Offline Reference
 
-When no local data is available at all (references/ not synced, no repo checkout), use these key findings to inform recommendations. All data points are derived from the evidence base.
+When no synced data is available, use these findings. All data from SPEC-022 production-only frequency recomputation (142 entries, deep-analysis per ADR-002).
 
-### Architecture style rankings (by placement-weighted score, kata data)
+### Production frequency rankings (Discovered, 142 production repos)
 
-| Rank | Style | Teams | Avg Score | Key Insight |
-|------|-------|-------|-----------|-------------|
-| 1 | Modular Monolith | 6 | 3.00 | Highest per-team success rate; 100% placed top-3 |
-| 2 | Event-Driven | 47 | 2.02 | Most popular; 9 of 11 first-place wins use it |
-| 3 | Microservices | 42 | 1.90 | Second most popular; works best when paired with Event-Driven |
-| 4 | Service-Based | 17 | 1.76 | Solid middle ground between monolith and microservices |
-| 5 | Domain-Driven Design | 16 | 2.13 | Strong when combined with other styles |
-| 6 | CQRS | 11 | 2.09 | Effective for complex read/write separation |
-| 7 | Space-Based | 5 | 1.80 | Niche but effective for high-throughput scenarios |
+| Rank | Style | Count | % | Platform | Application | Production Systems |
+|------|-------|-------|---|----------|-------------|-------------------|
+| 1 | Microkernel | 83 | 58.5% | 61% | 55% | LLVM, SQLAlchemy, GStreamer, Jellyfin, Orchard Core, nopCommerce |
+| 2 | Layered | 78 | 54.9% | 47% | 67% | nopCommerce |
+| 3 | Modular Monolith | 57 | 40.1% | 41% | 38% | Orchard Core |
+| 4 | Event-Driven | 17 | 12.0% | 8% | 18% | NGINX, Twisted, ZeroMQ, Squidex, Bitwarden |
+| 5 | Pipeline | 13 | 9.2% | 13% | 4% | NGINX, LLVM, ZeroMQ, Graphite, GStreamer, Jellyfin |
+| 6 | Microservices | 12 | 8.5% | 13% | 2% | (none in evidence base) |
+| 7 | Service-Based | 7 | 4.9% | 5% | 5% | Selenium, Graphite, Bitwarden |
+| 8 | Hexagonal | 5 | 3.5% | 3% | 4% | (none) |
+| 9 | DDD | 3 | 2.1% | 2% | 2% | (none) |
+| 10 | Multi-Agent | 1 | 0.7% | 0% | 2% | (none) |
+| 11 | Space-Based | 1 | 0.7% | 1% | 0% | Riak |
+| 12 | CQRS | 1 | 0.7% | 0% | 2% | Squidex |
 
-### Cross-source validation
+Dataset: 184 repos total (142 production + 42 reference). 87 platforms, 55 applications, 1.58:1 ratio. Zero Indeterminate (ADR-002 deep-analysis). 74% of repos exhibit exactly 2 styles.
 
-Key kata findings confirmed by production systems:
+### Key findings from production evidence
 
-- **Event-Driven dominance**: Kata winners (9/11) + AOSA production systems (7/12) + reference implementations (5/8) all confirm event-driven as the most successful pattern
-- **Modular Monolith effectiveness**: Highest kata placement score (3.00) + AOSA production validation (Audacity, Eclipse) + working reference implementation (kgrzybek/modular-monolith-with-ddd)
-- **Multi-style composition**: 73% of kata winners use 2+ styles; production systems average 2.3 styles; reference implementations average 2.5 styles
+1. **Microkernel and Layered dominate.** The top 3 styles (Microkernel, Layered, Modular Monolith) appear in 40-59% of production repos. Everything else is below 12%.
 
-### Winning formula
+2. **The proposal-production gap.** What competition teams propose diverges from what exists in production. Microservices: 50% of teams, 8.5% of repos. Pipeline: 0% of teams, 9.2% of repos. Layered: 0% of teams, 54.9% of repos.
 
-Teams that place first typically exhibit:
-- **2+ architecture styles** (73% of winners vs. 52% of runners-up)
-- **15+ ADRs** (winner avg: 15.0 vs. runner-up avg: 8.5)
-- **Feasibility analysis** (4.5x more likely to place top-2)
-- **Fitness functions** (55% of winners vs. ~17% overall)
-- **Phased evolution** (MVP → target state roadmap)
+3. **Tutorial bias inflated DDD, CQRS, Hexagonal.** Prior methodology counted reference implementations alongside production: DDD was 17.8% (now 2.1%), CQRS was 10.4% (now 0.7%). These patterns are well-documented in teaching materials but rare in production.
 
-### Top quality attributes by placement correlation
+4. **Platform vs application architecture differs.** Microservices is almost exclusively a platform pattern (13% vs 2%). Layered skews toward applications (67% vs 47%). Event-Driven skews toward applications (18% vs 8%).
 
-1. **Workflow / Orchestration** — Highest avg placement score
-2. **Cost Efficiency** — Strong positive signal (often paired with feasibility analysis)
-3. **Data Integrity / Consistency** — Winners prioritize correctness
-4. **Evolvability / Extensibility** — Judges reward evolutionary thinking
-5. **Interoperability / Integration** — Important in complex ecosystems
+5. **Multi-style composition is normal.** 74% of repos exhibit 2 styles. The most common combinations: Microkernel + Layered, Microkernel + Modular Monolith, Layered + Modular Monolith.
 
-### Common pitfall: The Scalability Trap
+### Quality attribute detection (142 production repos)
 
-Scalability is the most commonly cited quality attribute (48 of 78 teams), but first-place winners cite it *less* often (55%) than runners-up (68%). Over-indexing on scalability at the expense of cost, data integrity, and simplicity is a negative signal.
+| QA | Detected | % | Reliability |
+|----|----------|---|------------|
+| Deployability | 126 | 88.7% | Inflated — Docker is universal |
+| Modularity | 38 | 26.8% | Moderate |
+| Scalability | 33 | 23.2% | Moderate |
+| Fault Tolerance | 20 | 14.1% | Moderate |
+| Observability | 5 | 3.5% | Underdetected |
+| Evolvability | 3 | 2.1% | Severely underdetected |
+| Performance, Security, Testability, etc. | 0 | 0% | Invisible in code |
 
-## Version Note
+> **Detection bias:** Code analysis reliably detects QAs with filesystem signals (Docker, CI configs, module boundaries) but cannot detect Performance, Security, Testability, or Cost concerns. Competition evidence (KataLog) fills this gap — teams documented these invisible concerns in ADRs and presentations.
 
-Evidence spans 11 kata seasons (Fall 2020 through Winter 2025), 12 AOSA projects, 5 production .NET apps, and 8 reference implementations. Run `bash scripts/sync-references.sh --status` to check the current sync state and data freshness.
+### Competition insights (KataLog — qualitative annotation, not primary evidence)
+
+Meta-architectural practices that predict competition success:
+- **Feasibility analysis**: 4.5x more likely to place top-2 (75.6% of teams skip it)
+- **ADR discipline**: Winners average 15.0 ADRs vs 8.5 for runners-up
+- **Fitness functions**: 55% of winners include them vs ~17% overall
+- **Multi-style composition**: 73% of winners use 2+ styles
+- **The Scalability Trap**: Winners cite scalability LESS often (55%) than runners-up (68%)
+
+These practices are KataLog's genuine contribution — meta-architectural reasoning unavailable in production code analysis.
+
+### Domain coverage (47 unique domains in Discovered)
+
+Top domains: Developer Tools (36), E-Commerce (15), Observability (11), Data Processing (11), Infrastructure (9), Data Grid (8), Messaging (6), Productivity (5), Media Automation (5), Workflow Orchestration (5).
+
+### Evidence source summary
+
+| Source | Entries | Role | Value |
+|--------|---------|------|-------|
+| Discovered (production) | 142 | Primary statistical baseline | Largest, most diverse corpus of real production code |
+| AOSA | 12 | Production depth | Case studies written by system creators (NGINX, HDFS, Git, etc.) |
+| RealWorldASPNET | 5 | Production depth | Modern .NET apps with real users |
+| KataLog | 78 | Qualitative annotation | ADR reasoning, judge commentary, cost projections |
+| RefArch + Discovered ref | 50 | Teaching examples | Concrete code examples; zero weight in rankings |

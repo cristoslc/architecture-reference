@@ -6,10 +6,29 @@ Agent skills published by this repository, installable into other projects via [
 
 | Skill | Description |
 |-------|-------------|
-| [architecture-advisor](architecture-advisor/) | Evidence-based architecture research from 276 real-world projects |
+| [discover-architecture](discover-architecture/) | Discover architecture styles through deep source code analysis |
+| [architecture-advisor](architecture-advisor/) | Production-evidence-based architecture guidance from 142 codebases |
 | [remote-skill-manager](remote-skill-manager/) | Fetch, track, and update skills from remote Git repositories |
 
-## Quick start
+## Quick start (npx)
+
+Install any skill via `npx skills`:
+
+```bash
+# Install both architecture skills
+npx skills add cristoslc/architecture-reference-repo --skill discover-architecture architecture-advisor
+
+# Install a single skill
+npx skills add cristoslc/architecture-reference-repo --skill architecture-advisor
+
+# Install globally (available in all projects)
+npx skills add cristoslc/architecture-reference-repo --skill architecture-advisor -g
+
+# List available skills
+npx skills add cristoslc/architecture-reference-repo --list
+```
+
+## Alternative: remote-skill-manager
 
 ### 1. Bootstrap remote-skill-manager
 
