@@ -75,7 +75,7 @@ Ask enough to classify the situation:
 
 ### Step 2: Examine the codebase (if available)
 
-If the user has a codebase to evaluate, examine it before giving advice. Read actual code — understand their current architecture before recommending changes. Use the discover-architecture skill's approach: read entrypoints, module boundaries, communication patterns, dependency direction.
+If the user has a codebase to evaluate, examine it before giving advice. Read actual code — understand their current architecture before recommending changes. Use the discover-architecture skill's approach: read entrypoints, module boundaries, communication patterns, dependency direction, and deployment configs (compose files, proxy configs, k8s manifests) that may introduce components, boundaries, or contracts invisible in application code.
 
 ### Step 3: Research the evidence
 

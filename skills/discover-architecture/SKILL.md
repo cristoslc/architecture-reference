@@ -44,6 +44,7 @@ Get oriented quickly. Run these in parallel:
 - Read any `ARCHITECTURE.md`, `docs/architecture/`, or `CONTRIBUTING.md`
 - Check package metadata (`package.json` description, `pyproject.toml`, `pom.xml`, `Cargo.toml`, `go.mod`)
 - Note the primary language(s) and framework(s)
+- Check for deployment configs: `docker-compose.yaml`/`compose.yaml`, `Dockerfile`(s), `k8s/`/`helm/`, `nginx.conf`/reverse proxy configs, `serverless.yml`, `fly.toml`, `Procfile`, `terraform/` — these define runtime components, boundaries, and contracts that are architectural evidence on equal footing with application code
 
 ### Step 2: Inspect code structure
 
@@ -56,13 +57,16 @@ This is where classification happens. Read actual source files — not just dire
 - **Communication patterns**: How do components talk to each other? Direct function calls? Message passing? HTTP? Events?
 - **Extension mechanisms**: Are there plugin registries, middleware chains, hook systems?
 - **Data flow**: Does data flow through transformation stages, or is it request/response through layers?
-- **Deployment topology**: Is this one deployable unit or many? How do you tell?
+- **Deployment topology**: Is this one deployable unit or many? How do you tell? Do deployment configs introduce runtime components, boundaries, or contracts not visible in application code?
 
 **Read at least:**
 - 2-3 "entrypoint" files (main.go, app.py, Program.cs, index.ts, etc.)
 - The dependency injection / wiring configuration (if any)
 - 2-3 representative domain files showing the core architecture
 - Any inter-module or inter-service communication code
+- Deployment configs found in Step 1 (compose files, proxy configs, k8s manifests) — read these as architecture, not ops. A compose file can define components (a reverse proxy container), boundaries (which container is network-facing), and contracts (a shared volume between producer and consumer). When a deployment config introduces any of these, it is architectural evidence for the style classification.
+
+**When is deployment topology architecturally significant?** Not every Dockerfile matters. The test: does the deployment config introduce a component, boundary, or contract that is invisible in application source code? A single Dockerfile that packages the app is ops. A compose stack where nginx is the sole network-facing surface and a named volume is the inter-component contract — that's architecture. Report deployment-level findings inline with the style they inform (e.g., a two-container split within a Modular Monolith), not as a separate dimension.
 
 ### Step 3: Classify with evidence
 
@@ -78,6 +82,7 @@ Based on what you read, determine:
 - **Multi-style composition is normal.** Don't force single-style classification. A system can be both Layered and Microkernel (layered internal structure with plugin extension).
 - **Code trumps documentation.** If the README says "microservices" but the code is a monolith with a single database, classify based on code.
 - **Distinguish style from technology.** Having Docker doesn't make it Microservices. Having Kafka doesn't make it Event-Driven. Look at how the architecture is actually structured.
+- **Deployment configs are source files.** A compose file that introduces runtime components (a reverse proxy, a worker, a sidecar) or defines inter-component contracts (shared volumes, network boundaries) is architectural evidence. Fold deployment-level findings into the style they inform — don't create a separate "deployment architecture" section. If the deployment topology contradicts the code-level architecture (code looks like a monolith but deploys as independent services, or vice versa), note the tension.
 - **If truly indeterminate**, say so and explain why. Don't guess.
 
 ### Step 4: Determine scope and use-type
