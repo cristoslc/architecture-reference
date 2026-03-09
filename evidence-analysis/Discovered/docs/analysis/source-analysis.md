@@ -30,11 +30,11 @@ Each project may exhibit multiple architecture styles. Production entries only (
 
 | Rank | Style | Count | % |
 |------|-------|-------|---|
-| 1 | Microkernel (Plugin) | 83 | 58.5% |
+| 1 | Microkernel | 83 | 58.5% |
 | 2 | Layered | 78 | 54.9% |
 | 3 | Modular Monolith | 57 | 40.1% |
 | 4 | Event-Driven | 17 | 12.0% |
-| 5 | Pipeline (Pipe-and-Filter) | 13 | 9.2% |
+| 5 | Pipeline | 13 | 9.2% |
 | 6 | Microservices | 12 | 8.5% |
 | 7 | Service-Based | 7 | 4.9% |
 | 8 | Hexagonal Architecture | 5 | 3.5% |
@@ -47,11 +47,11 @@ Each project may exhibit multiple architecture styles. Production entries only (
 
 | Style | Platforms (87) | % | Applications (55) | % |
 |-------|----------|---|-------------|---|
-| Microkernel (Plugin) | 53 | 61% | 30 | 55% |
+| Microkernel | 53 | 61% | 30 | 55% |
 | Layered | 41 | 47% | 37 | 67% |
 | Modular Monolith | 36 | 41% | 21 | 38% |
 | Event-Driven | 7 | 8% | 10 | 18% |
-| Pipeline (Pipe-and-Filter) | 11 | 13% | 2 | 4% |
+| Pipeline | 11 | 13% | 2 | 4% |
 | Microservices | 11 | 13% | 1 | 2% |
 | Service-Based | 4 | 5% | 3 | 5% |
 | Hexagonal Architecture | 3 | 3% | 2 | 4% |
@@ -62,7 +62,7 @@ Each project may exhibit multiple architecture styles. Production entries only (
 
 ### Key Findings
 
-1. **Microkernel (Plugin)** leads at 83 of 142 (58%)
+1. **Microkernel** leads at 83 of 142 (58%)
 2. **Layered** leads at 78 of 142 (55%)
 3. **Modular Monolith** leads at 57 of 142 (40%)
 
@@ -147,7 +147,7 @@ Each project may exhibit multiple architecture styles. Production entries only (
 | Metric | KataLog | AOSA | RealWorld | RefArch | Discovered |
 |--------|---------|------|-----------|---------|------------|
 | Count | 78 | 12 | 5 | 8 | 142 (prod) |
-| Primary style | Event-Driven (56%) | Pipeline (42%) | Plugin Arch (60%) | Microservices (63%) | Microkernel (Plugin) (58%) |
+| Primary style | Event-Driven (56%) | Pipeline (42%) | Plugin Arch (60%) | Microservices (63%) | Microkernel (58%) |
 | Multi-style | 73% | 67% | 80% | 75% | 87% |
 | Top QA | Scalability (62%) | Performance (42%) | Extensibility (60%) | Testability (50%) | Deployability (90%) |
 | Detection method | Competition | Case study | Case study | Teaching code | Deep analysis |
