@@ -1,0 +1,141 @@
+# Discovered Evidence Catalog Schema
+# ====================================
+# Schema for all entries in the Discovered evidence source — the primary
+# catalog of open-source projects classified by architecture style.
+#
+# Supports three scope types:
+#   - platform:  Infrastructure/tooling project (single repo)
+#   - application: End-user application (single repo)
+#   - ecosystem: Multi-repo composition with emergent architecture
+#
+# Architecture styles must be topology-defining styles from
+# style-taxonomy.yaml (per ADR-006). Design patterns (CQRS, DDD,
+# Hexagonal) belong in architecture_qualifiers, not architecture_styles.
+
+# ---------------------------------------------------------------
+# REQUIRED FIELDS (all entry types)
+# ---------------------------------------------------------------
+
+# project_name: string
+#   Repository or ecosystem name (unique within catalog)
+
+# scope: enum [platform, application, ecosystem]
+#   Per ADR-001 two-axis taxonomy. "ecosystem" added by SPEC-025.
+
+# use_type: enum [production, reference]
+#   Per ADR-001. Production entries carry weight in frequency rankings;
+#   reference entries are annotation-only.
+
+# source: string
+#   Evidence source identifier (e.g., "Discovered")
+
+# architecture_styles: list[string]
+#   Topology-defining styles from style-taxonomy.yaml.
+#   First entry is the primary style.
+
+# classification_status: enum [classified, indeterminate]
+
+# one_line_summary: string
+
+# ---------------------------------------------------------------
+# REQUIRED FIELDS (single-repo entries only)
+# ---------------------------------------------------------------
+
+# source_url: string (URL)
+# project_url: string (URL)
+# evidence_type: string (e.g., "automated-discovery", "deep-analysis")
+# domain: string
+# language: string (primary language)
+
+# ---------------------------------------------------------------
+# REQUIRED FIELDS (ecosystem entries only)
+# ---------------------------------------------------------------
+
+# member_repos: list[string]
+#   List of project_name values for member repos in this ecosystem.
+#   Each must resolve to an existing single-repo catalog entry, or
+#   be flagged as missing by validation.
+
+# emergent_architecture: string
+#   The composition pattern that emerges from the member repos
+#   interacting (e.g., "Pipe-and-Filter data pipeline").
+
+# composition_pattern: string
+#   How the member repos relate to each other (e.g., "stage pipeline",
+#   "control-plane/data-plane", "hub-and-spoke", "peer federation").
+
+# ---------------------------------------------------------------
+# OPTIONAL FIELDS (all entry types)
+# ---------------------------------------------------------------
+
+# languages: list[string]
+#   All languages used in the project
+
+# classification_method: string
+#   How the entry was classified (e.g., "deep-analysis-tooluse",
+#   "deep-analysis-subagent", "deep-validation", "heuristic")
+
+# classification_confidence: float (0.0–1.0)
+
+# classification_model: string
+#   LLM model used for classification
+
+# classification_date: string (ISO 8601)
+
+# classification_reasoning: string
+#   Detailed analysis with evidence citations
+
+# review_notes: string
+#   Human-readable summary of the classification
+
+# review_required: boolean
+
+# discovered_at: string (ISO 8601)
+# discovered_by: string
+# discovery_version: string
+
+# domain: string
+# github_stars_approx: integer
+# key_technologies: list[string]
+# quality_attributes: list[string]
+# notable_strengths: list[string]
+# notable_gaps: list[string]
+# has_running_code: boolean
+# has_tests: boolean
+# has_ci_cd: boolean
+# has_documentation: boolean
+# has_adr: boolean
+
+# architecture_qualifiers: list[object]
+#   Optional typed annotations for cross-cutting architectural concerns.
+#   Each qualifier has:
+#     type: string    (REQUIRED) — qualifier category from style-taxonomy.yaml
+#     value: string   (REQUIRED) — qualifier value from style-taxonomy.yaml
+#     protocol: string (optional) — specific protocol or implementation
+#     note: string     (optional) — brief explanation
+#
+#   Example:
+#     architecture_qualifiers:
+#       - type: distribution-model
+#         value: federated
+#         protocol: ActivityPub
+#       - type: design-approach
+#         value: ddd
+
+# --- Ecosystem entry example ---
+# project_name: "elk-stack"
+# scope: ecosystem
+# use_type: production
+# source: Discovered
+# architecture_styles:
+#   - Pipeline
+# classification_status: classified
+# one_line_summary: "Elastic Stack (ELK) — ingest, store, visualize pipeline"
+# member_repos:
+#   - elasticsearch
+#   - kibana
+#   - logstash
+#   - beats
+# emergent_architecture: "Pipe-and-Filter data pipeline — Beats collects, Logstash transforms, Elasticsearch stores, Kibana visualizes"
+# composition_pattern: "stage pipeline"
+# domain: Observability

@@ -23,6 +23,8 @@ STYLE_ALIASES = {
     "Plugin/Microkernel": "Microkernel",
     "Plugin Architecture": "Microkernel",
     "Plug-in": "Microkernel",
+    # Layered Architecture (Ch. 10) — variant spelling
+    "Layered Architecture": "Layered",
     # Pipeline Architecture (Ch. 11) — also known as pipe-and-filter
     "Pipeline (Pipe-and-Filter)": "Pipeline",
     "Pipe-and-Filter": "Pipeline",
