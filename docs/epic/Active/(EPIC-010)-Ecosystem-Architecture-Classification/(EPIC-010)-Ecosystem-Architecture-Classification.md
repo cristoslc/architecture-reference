@@ -135,7 +135,7 @@ Of our 163 repos, **77 belong to identifiable ecosystems** with 99 missing compa
 | ID | Title | Status | Focus |
 |----|-------|--------|-------|
 | [SPEC-025](../../../spec/Implemented/(SPEC-025)-Ecosystem-Catalog-Schema/(SPEC-025)-Ecosystem-Catalog-Schema.md) | Ecosystem Catalog Schema | Implemented | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml |
-| [SPEC-026](../../../spec/Draft/(SPEC-026)-Ecosystem-Curation/(SPEC-026)-Ecosystem-Curation.md) | Ecosystem Curation | Draft | Curate 10+ ecosystems, add missing member repos, deep-validate |
+| [SPEC-026](../../../spec/Approved/(SPEC-026)-Ecosystem-Curation/(SPEC-026)-Ecosystem-Curation.md) | Ecosystem Curation | Approved | Curate 10+ ecosystems, add missing member repos, deep-validate |
 | [SPEC-027](../../../spec/Draft/(SPEC-027)-Pipeline-Ecosystem-Support/(SPEC-027)-Pipeline-Ecosystem-Support.md) | Ecosystem Validation and Reporting | Draft | Validation, quality report, frequency analysis, index updates (pipeline mechanics deferred to ADR-005) |
 | [SPEC-028](../../../spec/Draft/(SPEC-028)-Reference-Library-Ecosystem-Integration/(SPEC-028)-Reference-Library-Ecosystem-Integration.md) | Reference Library Ecosystem Integration | Draft | Update reference docs with ecosystem evidence |
 

@@ -1,7 +1,7 @@
 ---
 title: "Ecosystem Curation"
 artifact: SPEC-026
-status: Draft
+status: Approved
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -10,6 +10,7 @@ linked-research:
   - SPIKE-001
 linked-adrs:
   - ADR-001
+  - ADR-006
 depends-on:
   - SPEC-025
 addresses: []
