@@ -1,7 +1,7 @@
 ---
 title: "Ecosystem Curation"
 artifact: SPEC-026
-status: Approved
+status: Implemented
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -60,6 +60,11 @@ EPIC-010's catalog audit identified 35 runtime ecosystems across the catalog, wi
 
 | Criterion | Evidence | Result |
 |-----------|----------|--------|
+| AC1: ≥10 ecosystem entries | `grep -l "scope: ecosystem" *.yaml` = 11 entries (elk-stack + 10 new) | Pass |
+| AC2: All member_repos resolve | Member resolution check: 39/39 members across 11 ecosystems resolve to existing catalog entries | Pass |
+| AC3: Inter-repo evidence in classification | All entries reference specific protocols and APIs: xDS (Istio/Envoy), ActivityPub (Fediverse), Kafka binary protocol (Apache Data), REST/gRPC APIs (HashiCorp, *arr, Grafana), PostgreSQL WAL (Supabase) | Pass |
+| AC4: ≥3 distinct emergent styles | Pipeline, Event-Driven, Space-Based, Service-Based, Microservices = 5 distinct styles | Pass |
+| AC5: ≥4 domain categories | Data Processing, Observability, Infrastructure, Media Automation, Social Media, Workflow Orchestration, Backend-as-a-Service, Data Grid = 8 domains | Pass |
 
 ## Scope & Constraints
 
