@@ -1,0 +1,46 @@
+# Catalog entry template (Jinja2 syntax).
+# Machine-consumable YAML for pipeline ingestion.
+# Shares variable namespace with report.template.j2 — one classification
+# pass populates both templates.
+#
+# Required variables: project_name, scope, use_type, source_url, domain,
+#   primary_language, languages, confidence, styles, classification_reasoning
+# Optional variables: project_url, quality_attributes, one_line_summary,
+#   production_context
+#
+# Pipeline scripts may also inject at write time:
+#   classification_model, classification_method, classification_date,
+#   discovered_at, discovered_by, discovery_version
+
+project_name: {{ project_name }}
+scope: {{ scope }}
+use_type: {{ use_type }}
+source: Discovered
+source_url: {{ source_url }}
+{% if project_url -%}
+project_url: {{ project_url }}
+{% endif -%}
+evidence_type: automated-discovery
+domain: {{ domain }}
+language: {{ primary_language }}
+languages:
+{%- for lang in languages | default([primary_language]) %}
+  - {{ lang }}
+{%- endfor %}
+architecture_styles:
+{%- for style in styles %}
+  - {{ style.name }}
+{%- endfor %}
+classification_status: classified
+classification_confidence: {{ confidence }}
+classification_method: {{ classification_method | default("deep-analysis") }}
+classification_model: {{ classification_model | default("unknown") }}
+classification_date: {{ classification_date | default(date) }}
+{%- if quality_attributes %}
+quality_attributes:
+{%- for qa in quality_attributes %}
+  - {{ qa.name }}
+{%- endfor %}
+{%- endif %}
+one_line_summary: {{ one_line_summary | default("") | tojson }}
+classification_reasoning: {{ classification_reasoning | tojson }}
