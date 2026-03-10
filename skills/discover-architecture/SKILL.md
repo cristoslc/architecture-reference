@@ -111,7 +111,16 @@ From README, package metadata, directory naming, and code content. Use specific 
 
 ## Output Format
 
-Follow the template at `references/report.template.j2`. The report should fit on roughly one printed page — if you're writing paragraphs, you're writing too much. Specific length targets:
+Every classification produces **two outputs** from the same analysis pass:
+
+1. **Report** (`references/report.template.j2`): human-readable markdown with style rationales, evidence citations, quality attributes. Saved to `docs/architecture-reports/<project-name>-<YYYY-MM-DD>.md`.
+2. **Catalog entry** (`references/catalog-entry.template.j2`): machine-consumable YAML for pipeline ingestion and the evidence base. Saved alongside the report or returned inline when used in batch mode.
+
+Both templates share the same variable namespace — populate one set of variables and render both. The report is the authoritative analysis; the catalog entry is a structured projection of it.
+
+### Report guidelines
+
+The report should fit on roughly one printed page — if you're writing paragraphs, you're writing too much. Specific length targets:
 
 - **Style rationale**: 2-3 sentences. Lead with the structural pattern, cite 1-2 key files, stop. No function-level walkthroughs.
 - **Evidence table**: Comma-separated file paths or short phrases in the Key Evidence column. Not prose.
@@ -138,9 +147,16 @@ drives five sequential stages: (1) Fetch — independent per-source scripts
 (`sources/linear/fetch.py`, `sources/quickbase/fetch.py` ...) [300 more words]
 ```
 
-If the user wants YAML catalog output (for the evidence base), also produce a YAML entry per the schema in `references/catalog-schema.yaml`.
+### Catalog entry guidelines
 
-The report structure follows the template at `references/report.template.j2`. When saving reports, use `docs/architecture-reports/<project-name>-<YYYY-MM-DD>.md`.
+The catalog entry captures the classification result in a flat YAML structure consumable by pipeline tooling. Key fields:
+
+- `architecture_styles`: flat list of style names (primary first, then secondary)
+- `classification_confidence`: the overall confidence score (0.0–1.0)
+- `classification_reasoning`: the full analysis text — what was found, what was ruled out, and why
+- `one_line_summary`: a single sentence capturing the project's architecture in plain language
+
+Pipeline scripts inject mechanical metadata at write time (`classification_model`, `classification_method`, `classification_date`, `discovered_at`, etc.) — the classifying agent does not need to fabricate these.
 
 ## Edge Cases
 

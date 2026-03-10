@@ -34,7 +34,7 @@ The problem is that mechanisms 3 and 4 implement the same intellectual process t
 
 This creates drift. When the skill's methodology evolves (new styles, refined evidence criteria, updated output format), both the tool-calling system prompt and the Claude subagent invocation must be updated separately. The discover skill is already the authoritative source — the pipeline scripts just don't use it yet.
 
-There is also an **output format gap**. The discover skill produces a markdown report (`report.template.j2`) with lightweight YAML frontmatter (project, date, styles, confidence). The pipeline expects structured YAML catalog entries with fields like `classification_status`, `classification_method`, `classification_model`, `classification_reasoning`, `classification_date`, and `classification_confidence`. The skill's `SKILL.md` references `references/catalog-schema.yaml` for YAML catalog output — but this file does not exist. The two output worlds (human-readable report vs. machine-consumable catalog entry) are disconnected, with parsing scripts (`apply-review.py`, `apply-tooluse-result.py`) each implementing their own extraction logic to bridge the gap.
+There is also an **output format gap**. The discover skill produces a markdown report (`report.template.j2`) with lightweight YAML frontmatter (project, date, styles, confidence). The pipeline expects structured YAML catalog entries with fields like `classification_status`, `classification_method`, `classification_model`, `classification_reasoning`, `classification_date`, and `classification_confidence`. The skill's `SKILL.md` references `references/catalog-entry.template.j2` for YAML catalog output — but this file does not exist. The two output worlds (human-readable report vs. machine-consumable catalog entry) are disconnected, with parsing scripts (`apply-review.py`, `apply-tooluse-result.py`) each implementing their own extraction logic to bridge the gap.
 
 ## Decision
 
@@ -46,15 +46,15 @@ Concretely:
 
 2. **The discover skill produces dual output: a markdown report AND a structured YAML catalog entry.** Every classification — interactive or batch — yields both artifacts:
    - **Report** (`report.template.j2`): human-readable markdown with style rationales, evidence citations, quality attributes. Saved to `docs/architecture-reports/`.
-   - **Catalog entry** (new `references/catalog-schema.yaml`): machine-consumable YAML with the fields the pipeline requires — `project_name`, `architecture_styles`, `classification_status`, `classification_confidence`, `classification_model`, `classification_method`, `classification_date`, `classification_reasoning`, `domain`, `scope`, `use_type`, `quality_attributes`. This schema is defined once in the skill and becomes the contract between classification and catalog ingestion.
+   - **Catalog entry** (`references/catalog-entry.template.j2`): machine-consumable YAML with the fields the pipeline requires — `project_name`, `architecture_styles`, `classification_status`, `classification_confidence`, `classification_model`, `classification_method`, `classification_date`, `classification_reasoning`, `domain`, `scope`, `use_type`, `quality_attributes`. Both templates share the same variable namespace — one classification pass populates both. The catalog template is defined once in the skill and becomes the contract between classification and catalog ingestion.
 
    The report is the authoritative analysis; the catalog entry is a structured projection of it. Both are produced from the same classification pass — no separate extraction or parsing step.
 
 3. **For Claude Code subagents** (Sonnet, Opus): invoke the discover skill directly. The skill instructions tell the agent to produce both outputs. This already works for reports; the catalog entry output is new but follows the same pattern.
 
-4. **For non-Anthropic models via `llm` CLI** (GLM-5, Gemini, Kimi, etc.): generate the system prompt from the discover skill's content at invocation time. The pipeline script reads `SKILL.md` + `references/styles.md` + `references/catalog-schema.yaml` and assembles them into the system prompt passed to `llm -s`. The model is instructed to return the catalog YAML as frontmatter and the report as body — one response, both outputs. Tool definitions (`repo_tools.py`) remain as the mechanical interface, but the classification instructions and output schema come from the skill, not from separate prompt files.
+4. **For non-Anthropic models via `llm` CLI** (GLM-5, Gemini, Kimi, etc.): generate the system prompt from the discover skill's content at invocation time. The pipeline script reads `SKILL.md` + `references/styles.md` + `references/catalog-entry.template.j2` and assembles them into the system prompt passed to `llm -s`. The model is instructed to return the catalog YAML as frontmatter and the report as body — one response, both outputs. Tool definitions (`repo_tools.py`) remain as the mechanical interface, but the classification instructions and output schema come from the skill, not from separate prompt files.
 
-5. **Retire `prompts/system-prompt-tooluse.md`, `prompts/system-prompt.md`, and `prompts/response-schema.json`** as independent documents. The skill's catalog schema replaces the response schema. If model-specific adaptations are needed (e.g., explicit JSON-mode forcing for models that struggle with YAML), these are thin wrappers around the skill content, not standalone specifications.
+5. **Retire `prompts/system-prompt-tooluse.md`, `prompts/system-prompt.md`, and `prompts/response-schema.json`** as independent documents. The skill's catalog entry template replaces the response schema. If model-specific adaptations are needed (e.g., explicit JSON-mode forcing for models that struggle with YAML), these are thin wrappers around the skill content, not standalone specifications.
 
 6. **Retire `apply-review.py` and `apply-tooluse-result.py`** as bespoke parsing scripts. Since the model outputs catalog YAML directly (per the skill's schema), the pipeline only needs a generic YAML loader to ingest results — no per-mechanism parsing logic.
 
@@ -76,7 +76,7 @@ The key insight: the discover skill is not Claude-specific. Its methodology — 
 
 **Positive:**
 - Single source of truth for classification methodology — edit the skill, all pipeline paths update
-- Single output schema (`catalog-schema.yaml`) replaces three bespoke parsing paths (`response-schema.json` → `apply-review.py`, freeform text → `apply-tooluse-result.py`, native agent → manual extraction)
+- Single output template (`catalog-entry.template.j2`) replaces three bespoke parsing paths (`response-schema.json` → `apply-review.py`, freeform text → `apply-tooluse-result.py`, native agent → manual extraction)
 - Non-Anthropic models benefit from skill improvements (new evidence criteria, refined style definitions, schema changes) without separate prompt or parser maintenance
 - Pipeline scripts become thinner — they handle invocation mechanics (cloning, tool definitions, YAML loading) while the skill handles classification logic and output format
 - Validates that the discover skill is genuinely model-agnostic, which strengthens its value as a distributable skill
@@ -85,9 +85,9 @@ The key insight: the discover skill is not Claude-specific. Its methodology — 
 **Negative:**
 - The discover skill's `SKILL.md` is written for interactive Claude Code use — some framing ("Run these in parallel", "Read at least 2-3 entrypoint files") may need light adaptation for batch contexts without creating a fork
 - Non-Anthropic models with weaker instruction-following may need thin model-specific wrappers (e.g., explicit JSON-mode forcing for models that can't reliably produce YAML frontmatter) on top of the skill content
-- The catalog schema must be created and maintained in the skill — this is new work, though the fields are well-established from the existing catalog entries
+- The catalog entry template must be maintained in the skill alongside the report template — though the fields are well-established from the existing catalog entries
 - Runtime assembly of the system prompt from skill files adds a file-read step to pipeline invocation (negligible cost, but a new dependency)
-- The skill becomes load-bearing infrastructure for the pipeline — changes to `SKILL.md` or `catalog-schema.yaml` affect batch classification, not just interactive use
+- The skill becomes load-bearing infrastructure for the pipeline — changes to `SKILL.md` or either template affect batch classification, not just interactive use
 
 ## Lifecycle
 
