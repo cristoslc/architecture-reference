@@ -8,7 +8,6 @@ last-updated: 2026-03-04
 parent-epic: EPIC-006
 depends-on:
   - SPEC-013
-  - SPEC-014
 ---
 
 # Expanded Gold Standard & Three-Way Report
