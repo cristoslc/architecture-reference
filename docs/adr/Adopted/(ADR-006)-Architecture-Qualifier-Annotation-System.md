@@ -1,7 +1,7 @@
 ---
 title: "Architecture Qualifier Annotation System"
 artifact: ADR-006
-status: Proposed
+status: Adopted
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10

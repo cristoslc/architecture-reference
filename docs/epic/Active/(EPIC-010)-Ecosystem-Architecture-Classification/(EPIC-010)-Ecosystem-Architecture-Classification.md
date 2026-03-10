@@ -134,7 +134,7 @@ Of our 163 repos, **77 belong to identifiable ecosystems** with 99 missing compa
 
 | ID | Title | Status | Focus |
 |----|-------|--------|-------|
-| [SPEC-025](../../../spec/Draft/(SPEC-025)-Ecosystem-Catalog-Schema/(SPEC-025)-Ecosystem-Catalog-Schema.md) | Ecosystem Catalog Schema | Draft | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml |
+| [SPEC-025](../../../spec/Approved/(SPEC-025)-Ecosystem-Catalog-Schema/(SPEC-025)-Ecosystem-Catalog-Schema.md) | Ecosystem Catalog Schema | Approved | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml |
 | [SPEC-026](../../../spec/Draft/(SPEC-026)-Ecosystem-Curation/(SPEC-026)-Ecosystem-Curation.md) | Ecosystem Curation | Draft | Curate 10+ ecosystems, add missing member repos, deep-validate |
 | [SPEC-027](../../../spec/Draft/(SPEC-027)-Pipeline-Ecosystem-Support/(SPEC-027)-Pipeline-Ecosystem-Support.md) | Pipeline Ecosystem Support | Draft | Manifest format, validation, quality report updates |
 | [SPEC-028](../../../spec/Draft/(SPEC-028)-Reference-Library-Ecosystem-Integration/(SPEC-028)-Reference-Library-Ecosystem-Integration.md) | Reference Library Ecosystem Integration | Draft | Update reference docs with ecosystem evidence |
@@ -143,7 +143,7 @@ Of our 163 repos, **77 belong to identifiable ecosystems** with 99 missing compa
 
 | ID | Title | Status |
 |----|-------|--------|
-| [ADR-006](../../../adr/Proposed/(ADR-006)-Architecture-Qualifier-Annotation-System.md) | Architecture Qualifier Annotation System | Proposed |
+| [ADR-006](../../../adr/Adopted/(ADR-006)-Architecture-Qualifier-Annotation-System.md) | Architecture Qualifier Annotation System | Adopted |
 
 ## Key Dependencies
 
@@ -155,3 +155,4 @@ Of our 163 repos, **77 belong to identifiable ecosystems** with 99 missing compa
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-06 | 78f8e36 | Initial creation; identified ecosystem gap in SPEC-019 analysis |
+| Active | 2026-03-10 | 46ab06b | Decomposed into SPEC-025/026/027/028 + ADR-006; both pre-implementation gates pass (SPIKE-001 GO, SPIKE-002 PIVOT) |

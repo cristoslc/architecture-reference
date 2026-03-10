@@ -1,7 +1,7 @@
 ---
 title: "Ecosystem Catalog Schema"
 artifact: SPEC-025
-status: Draft
+status: Approved
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -34,7 +34,7 @@ The catalog classifies repos in isolation. Ecosystem-level architectural pattern
 
 **Outputs:**
 1. Updated SCHEMA.yaml with ecosystem entry fields and `architecture_qualifiers` field
-2. `style-taxonomy.yaml` reference file classifying each style as topology or pattern
+2. `style-taxonomy.yaml` reference file defining the canonical topology-only style vocabulary (10 styles; CQRS/DDD/Hexagonal excluded per ADR-006)
 3. A `normalize-qualifiers.py` validation script (parallel to existing `normalize-styles.py`)
 4. One exemplar ecosystem entry (ELK stack) demonstrating the schema
 
@@ -54,7 +54,7 @@ The catalog classifies repos in isolation. Ecosystem-level architectural pattern
 
 3. **Given** a catalog entry with `architecture_qualifiers`, **when** `normalize-qualifiers.py` runs, **then** it validates that every qualifier's `type` and `value` are in the controlled vocabulary and reports violations.
 
-4. **Given** `style-taxonomy.yaml`, **when** joined with any entry's `architecture_styles`, **then** each style resolves to `kind: topology` or `kind: pattern`.
+4. **Given** `style-taxonomy.yaml`, **when** validating any entry's `architecture_styles`, **then** every style value is present in the taxonomy file (CQRS, DDD, Hexagonal are rejected as style values; they belong in qualifiers per ADR-006).
 
 5. **Given** the ELK ecosystem exemplar entry, **when** its `member_repos` field lists elasticsearch, kibana, logstash, beats, **then** each member resolves to an existing single-repo catalog entry (or is flagged as missing).
 
@@ -74,7 +74,7 @@ The catalog classifies repos in isolation. Ecosystem-level architectural pattern
 ## Implementation Approach
 
 1. **Schema design** — extend SCHEMA.yaml with ecosystem fields (`member_repos`, `emergent_architecture`, `composition_pattern`) and the `architecture_qualifiers` field
-2. **style-taxonomy.yaml** — create the reference file classifying 13 styles as topology or pattern
+2. **style-taxonomy.yaml** — create the reference file with 10 topology-only styles (CQRS/DDD/Hexagonal excluded per ADR-006)
 3. **normalize-qualifiers.py** — validation script that checks qualifier types/values against the controlled vocabulary
 4. **ELK exemplar** — create one ecosystem entry demonstrating the full schema
 5. **Schema validation** — run existing validation tooling against all entries to confirm backward compatibility
