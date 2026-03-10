@@ -135,3 +135,4 @@ Retain CQRS, DDD, and Hexagonal in `architecture_styles` and flag them via `styl
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-10 | 46ab06b | From SPIKE-002 findings; taxonomy expansion gate evaluation |
+| Adopted | 2026-03-10 | 2ad0ca5 | Adopted with pattern reclassification (former Alt C) |

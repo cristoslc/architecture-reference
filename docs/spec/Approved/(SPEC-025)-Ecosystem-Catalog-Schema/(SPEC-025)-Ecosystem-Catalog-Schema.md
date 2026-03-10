@@ -84,3 +84,4 @@ The catalog classifies repos in isolation. Ecosystem-level architectural pattern
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-10 | 46ab06b | Initial creation from EPIC-010 decomposition |
+| Approved | 2026-03-10 | 2ad0ca5 | ADR-006 adopted; ready for implementation |
