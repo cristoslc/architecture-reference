@@ -1,10 +1,10 @@
 ---
 title: "Catalog Rebalancing and Application Expansion"
 artifact: EPIC-012
-status: Active
+status: Complete
 author: cristos
 created: 2026-03-06
-last-updated: 2026-03-06
+last-updated: 2026-03-10
 parent-vision: VISION-001
 success-criteria:
   - 43 library/framework and non-software entries removed from catalog
@@ -64,7 +64,7 @@ Until the catalog has a balanced mix of platforms and applications, style freque
 | [SPEC-020](../../../spec/Implemented/(SPEC-020)-Catalog-Cleanup-and-Taxonomy-Tagging/(SPEC-020)-Catalog-Cleanup-and-Taxonomy-Tagging.md) | Catalog Cleanup and Taxonomy Tagging | Implemented | Remove 43 entries, add scope/use_type fields to remaining |
 | [SPEC-021](../../../spec/Implemented/(SPEC-021)-Application-Discovery-and-Curation/(SPEC-021)-Application-Discovery-and-Curation.md) | Catalog Expansion and Ecosystem Completion | Implemented | 30 apps + 19 ecosystem entries, ratio 1.58:1 |
 | [SPEC-022](../../../spec/Implemented/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation/(SPEC-022)-Pipeline-Run-and-Frequency-Recomputation.md) | Pipeline Run and Frequency Recomputation | Implemented | Production-only frequencies with normalized style names |
-| [SPEC-023](../../../spec/Draft/(SPEC-023)-Reference-Library-Rebalancing-Update/(SPEC-023)-Reference-Library-Rebalancing-Update.md) | Reference Library Rebalancing Update | Draft | Update all reference docs with corrected rankings (depends on SPEC-022) |
+| [SPEC-023](../../../spec/Implemented/(SPEC-023)-Reference-Library-Rebalancing-Update/(SPEC-023)-Reference-Library-Rebalancing-Update.md) | Reference Library Rebalancing Update | Implemented | Update all reference docs with corrected rankings (depends on SPEC-022) |
 | [SPEC-024](../../../spec/Implemented/(SPEC-024)-Deep-Analysis-Classification-Campaign/(SPEC-024)-Deep-Analysis-Classification-Campaign.md) | Deep-Analysis Classification Campaign | Implemented | All 184 entries classified via deep-analysis |
 
 ## Key Dependencies
@@ -79,3 +79,4 @@ Until the catalog has a balanced mix of platforms and applications, style freque
 |-------|------|--------|-------|
 | Proposed | 2026-03-06 | 054dab0 | Catalog skew identified in SPIKE-001; 65 platforms vs 19 applications |
 | Active | 2026-03-06 | 23bed6f | SPIKE-001 dependency satisfied; child specs SPEC-020 through SPEC-023 created |
+| Complete | 2026-03-10 | 13ed381c | All 6 success criteria met. All 5 child specs Implemented: SPEC-020 (cleanup), SPEC-021 (expansion), SPEC-022 (recomputation), SPEC-023 (reference library update), SPEC-024 (deep-analysis). Catalog: 142 production (87 platform, 55 application, ratio 1.58:1). |

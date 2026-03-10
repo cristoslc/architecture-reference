@@ -1,10 +1,10 @@
 ---
 title: "Reference Library Rebalancing Update"
 artifact: SPEC-023
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-06
-last-updated: 2026-03-06
+last-updated: 2026-03-10
 parent-epic: EPIC-012
 depends-on:
   - SPEC-022
@@ -57,3 +57,4 @@ SPEC-022 produces corrected production-only frequency rankings with platform/app
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-06 | 23bed6f | Initial creation |
+| Implemented | 2026-03-10 | 13ed381c | All 5 ACs verified met: production-only rankings in all 8 docs, reference implementations as annotations, platform/application splits present (87/55), cross-document consistency verified, tutorial bias corrections documented (DDD 17.8%→2.1%, CQRS 10.4%→0.7%). Work completed as part of SPEC-018/SPEC-022 pipeline. |
