@@ -1,0 +1,45 @@
+project_name: grafana-lgtm-stack
+scope: ecosystem
+use_type: production
+source: Discovered
+evidence_type: ecosystem-curation
+domain: Observability
+architecture_styles:
+  - Service-Based
+classification_status: classified
+classification_method: ecosystem-analysis
+classification_confidence: 0.92
+classification_date: '2026-03-10'
+one_line_summary: >-
+  Grafana LGTM Stack — a Service-Based observability platform where Loki
+  handles logs, Grafana visualizes, Tempo traces, and Mimir stores metrics.
+member_repos:
+  - grafana
+  - loki
+  - tempo
+  - mimir
+emergent_architecture: >-
+  Service-Based observability platform. Four coarse-grained services share
+  a common operational model but are independently deployed: Grafana
+  (visualization and dashboarding), Loki (log aggregation with
+  LogQL query language), Tempo (distributed tracing with TraceQL), and
+  Mimir (long-term metrics storage, Prometheus-compatible). Each service
+  exposes HTTP/gRPC APIs that Grafana queries as data sources via its
+  plugin system. Loki, Tempo, and Mimir share architectural DNA — all
+  three use a horizontally-scalable microservices-mode deployment with
+  read/write/backend separation, object storage backends (S3/GCS), and
+  consistent hashing for distribution. Grafana connects to all three via
+  its data source plugin interfaces (LogQL, TraceQL, PromQL). The services
+  communicate via well-defined query APIs rather than shared databases,
+  making this Service-Based rather than a monolith.
+composition_pattern: service composition with unified query frontend
+review_notes: >-
+  The LGTM stack (Loki, Grafana, Tempo, Mimir) is a Service-Based
+  architecture where each component handles one observability signal (logs,
+  dashboards, traces, metrics). Individual repo architectures vary:
+  Grafana is Microkernel + Modular Monolith, while Loki/Tempo/Mimir share
+  similar internal architectures (horizontally-scalable read/write
+  separation). The emergent Service-Based pattern appears in how they
+  compose — independent deployment, separate databases, unified through
+  Grafana's data source abstraction. This surfaces underrepresented
+  Service-Based evidence per SPIKE-001 findings.

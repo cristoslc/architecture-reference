@@ -1,0 +1,46 @@
+project_name: sentry-platform
+scope: ecosystem
+use_type: production
+source: Discovered
+evidence_type: ecosystem-curation
+domain: Observability
+architecture_styles:
+  - Microservices
+classification_status: classified
+classification_method: ecosystem-analysis
+classification_confidence: 0.90
+classification_date: '2026-03-10'
+one_line_summary: >-
+  Sentry Platform — a Microservices error tracking system where Relay
+  ingests, Sentry processes, Snuba queries, and self-hosted orchestrates
+  deployment.
+member_repos:
+  - sentry
+  - snuba
+  - relay
+  - self-hosted
+emergent_architecture: >-
+  Microservices error tracking platform. Four independently deployed
+  services form the error tracking pipeline: Relay (Rust-based ingestion
+  proxy that receives, validates, filters, and rate-limits events before
+  forwarding), Sentry (Python/Django core application handling event
+  processing, alerting, user management, and the web UI), Snuba
+  (Python-based query engine that translates Sentry's query language into
+  ClickHouse SQL for fast event analytics), and self-hosted (Docker
+  Compose orchestration defining the deployment topology of all services
+  plus dependencies like Kafka, ClickHouse, Redis, and PostgreSQL).
+  Services communicate via Kafka topics (Relay publishes events, Sentry
+  consumers process them, Snuba indexes them into ClickHouse) and HTTP
+  APIs (Sentry queries Snuba for analytics). Each service has its own
+  repository, build pipeline, and release cycle. The self-hosted repo
+  defines the canonical service topology with 20+ containers.
+composition_pattern: event pipeline with service specialization
+review_notes: >-
+  Sentry's ecosystem demonstrates genuine Microservices — independently
+  deployed services with different tech stacks (Rust for Relay, Python
+  for Sentry and Snuba), communicating via Kafka and HTTP. The self-hosted
+  repo's docker-compose.yml is the architectural blueprint, showing how
+  services connect through Kafka topics, shared Redis, and ClickHouse.
+  Individual repo architectures: Sentry is Modular Monolith + Layered,
+  Snuba is Layered, Relay is Layered. The Microservices pattern emerges
+  from their composition.

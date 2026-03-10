@@ -1,0 +1,51 @@
+project_name: supabase-platform
+scope: ecosystem
+use_type: production
+source: Discovered
+evidence_type: ecosystem-curation
+domain: Backend-as-a-Service
+architecture_styles:
+  - Microservices
+classification_status: classified
+classification_method: ecosystem-analysis
+classification_confidence: 0.91
+classification_date: '2026-03-10'
+one_line_summary: >-
+  Supabase Platform — a Microservices BaaS where PostgREST serves APIs,
+  Auth handles identity, Realtime streams changes, and Storage manages
+  files, all unified by a PostgreSQL backbone.
+member_repos:
+  - supabase
+  - postgrest
+  - auth
+  - realtime
+  - storage
+emergent_architecture: >-
+  Microservices Backend-as-a-Service platform built around PostgreSQL.
+  Five independently deployed services each own a BaaS capability:
+  PostgREST (Haskell-based auto-generated REST API from PostgreSQL
+  schema), Auth (Go-based authentication and authorization, formerly
+  GoTrue), Realtime (Elixir-based change data capture via PostgreSQL
+  logical replication, broadcasting row changes over WebSockets),
+  Storage (TypeScript-based S3-compatible file storage with PostgreSQL
+  metadata), and the Supabase meta-repo (TypeScript dashboard, client
+  libraries, and deployment orchestration). Each service runs as a
+  separate container with its own runtime and dependencies, communicating
+  through PostgreSQL (shared database for state) and HTTP/WebSocket APIs.
+  The supabase repo's docker-compose defines the canonical deployment:
+  Kong API gateway routes requests to PostgREST, Auth, Realtime, and
+  Storage. Services are developed in different languages (Haskell, Go,
+  Elixir, TypeScript) with independent release cycles.
+composition_pattern: polyglot services unified by PostgreSQL and API gateway
+review_notes: >-
+  Supabase is a Microservices architecture with genuinely independent
+  services — different languages, separate repos, distinct deployment
+  containers. PostgreSQL serves as the shared data layer (PostgREST
+  reads the schema, Auth stores users, Realtime tails the WAL, Storage
+  stores metadata), which makes this closer to Service-Based by
+  Richards & Ford's definition (shared database). However, the service
+  granularity, polyglot implementation, and independent deployability
+  push it toward Microservices. The Kong API gateway provides the
+  unified entry point. Individual repo architectures vary: PostgREST
+  is Layered, Auth is Layered, Realtime is Event-Driven, Storage is
+  Layered.

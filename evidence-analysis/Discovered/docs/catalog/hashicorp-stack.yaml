@@ -1,0 +1,46 @@
+project_name: hashicorp-stack
+scope: ecosystem
+use_type: production
+source: Discovered
+evidence_type: ecosystem-curation
+domain: Infrastructure
+architecture_styles:
+  - Service-Based
+classification_status: classified
+classification_method: ecosystem-analysis
+classification_confidence: 0.91
+classification_date: '2026-03-10'
+one_line_summary: >-
+  HashiCorp Stack — a Service-Based infrastructure platform where Consul
+  discovers, Vault secures, Nomad schedules, and Terraform provisions.
+member_repos:
+  - consul
+  - vault
+  - nomad
+  - terraform
+emergent_architecture: >-
+  Service-Based infrastructure platform. Four coarse-grained services
+  each own a distinct infrastructure domain: Consul (service discovery,
+  health checking, KV store), Vault (secrets management, encryption,
+  identity), Nomad (workload orchestration, job scheduling), and Terraform
+  (infrastructure provisioning, state management). Each service is
+  independently deployed with its own storage backend and clustering
+  mechanism (Raft consensus for Consul/Vault/Nomad, state files for
+  Terraform). Integration happens through well-defined APIs: Consul
+  provides service discovery that Nomad and Vault consume, Vault provides
+  secrets that Nomad jobs and Terraform providers reference, and Terraform
+  provisions the infrastructure that all services run on. The services
+  share no database — each maintains its own state. Communication is via
+  HTTP/gRPC APIs with optional mTLS secured by Vault's PKI engine.
+composition_pattern: service composition with cross-service API integration
+review_notes: >-
+  The HashiCorp stack demonstrates Service-Based architecture at the
+  infrastructure layer. Each tool is a self-contained system (Consul is
+  Layered + Modular Monolith, Vault is Layered + Modular Monolith, Nomad
+  is Modular Monolith, Terraform is Modular Monolith + Microkernel). The
+  emergent Service-Based pattern appears in their designed-for integration:
+  Consul's service catalog feeds Nomad's job placement, Vault's secrets
+  engine provides credentials to all services, and Terraform codifies the
+  infrastructure topology. This is a 4-service system with clear domain
+  boundaries — fitting Richards & Ford's Service-Based definition
+  (4-12 coarse-grained services).
