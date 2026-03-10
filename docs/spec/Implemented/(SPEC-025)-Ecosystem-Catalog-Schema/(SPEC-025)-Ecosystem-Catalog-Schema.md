@@ -1,7 +1,7 @@
 ---
 title: "Ecosystem Catalog Schema"
 artifact: SPEC-025
-status: Approved
+status: Implemented
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -62,6 +62,11 @@ The catalog classifies repos in isolation. Ecosystem-level architectural pattern
 
 | Criterion | Evidence | Result |
 |-----------|----------|--------|
+| AC1: Ecosystem entry passes schema validation | `elk-stack.yaml` created with `scope: ecosystem`, member refs, emergent architecture; `normalize-qualifiers.py` reports 0 findings for it | Pass |
+| AC2: Existing entries without qualifiers still validate | `normalize-qualifiers.py` run on 184 existing entries; 0 UNKNOWN-STYLE or ECOSYSTEM errors | Pass |
+| AC3: Qualifier validation against controlled vocabulary | `normalize-qualifiers.py` validates type/value against `style-taxonomy.yaml` qualifier_types; tested with elk-stack (no qualifiers, clean) and pattern-as-style detection (40 flagged correctly) | Pass |
+| AC4: Style values validated against taxonomy | `normalize-qualifiers.py` checks all `architecture_styles` values against `style-taxonomy.yaml`; CQRS/DDD/Hexagonal flagged as PATTERN-AS-STYLE, unknown "Layered Architecture" flagged as ALIAS | Pass |
+| AC5: ELK member repos resolve to catalog entries | `elk-stack.yaml` lists elasticsearch, kibana, logstash, beats; all 4 exist as `evidence-analysis/Discovered/docs/catalog/*.yaml` | Pass |
 
 ## Scope & Constraints
 

@@ -19,16 +19,11 @@
 | SPEC-021 | Catalog Expansion and Ecosystem Completion | Expand catalog with 30 applications across 10 domains, 19 ecosystem entries, triage 20 uncataloged repos. Production ratio 1.58:1. | 2026-03-07 | f64b466a |
 | SPEC-022 | Pipeline Run and Frequency Recomputation | Recompute production-only frequency rankings with deep-analysis data, platform/application splits, normalized style names. | 2026-03-09 | dba13449 |
 | SPEC-024 | Deep-Analysis Classification Campaign | All 184 catalog entries classified via clean-slate deep-analysis: 173 GLM-5 native tool-calling + 11 Sonnet subagent fallback. | 2026-03-08 | cdfd4ea7 |
+| SPEC-025 | Ecosystem Catalog Schema | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml. Foundation for EPIC-010. | 2026-03-10 | — |
 
 ## Active
 
 (No active specs.)
-
-## Approved
-
-| ID | Title | Summary | Last Updated | Commit |
-|----|-------|---------|--------------|--------|
-| SPEC-025 | Ecosystem Catalog Schema | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml. Foundation for EPIC-010. | 2026-03-10 | — |
 
 ## Draft
 
