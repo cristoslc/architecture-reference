@@ -83,4 +83,4 @@ The pipeline tooling (manifest format, validation scripts, quality reports, inde
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Draft | 2026-03-10 | — | Initial creation from EPIC-010 decomposition |
+| Draft | 2026-03-10 | 46ab06b | Initial creation from EPIC-010 decomposition |

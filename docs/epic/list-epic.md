@@ -11,7 +11,7 @@
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | EPIC-003 | Architecture Discovery and Scaling | Build automated discovery tooling to classify architecture patterns from repos, then scale the evidence base from 62 to 200+ projects with comparative analysis. | 2026-03-03 | b63f031 |
-| EPIC-010 | Ecosystem-Level Architecture Classification | Extend the catalog to capture cross-repo architectural patterns (ELK stack, *arr media stack, Grafana LGTM, etc.) that are invisible at the single-repo level. Curate 10+ ecosystems, add missing member repos, define ecosystem entry format. | 2026-03-10 | — |
+| EPIC-010 | Ecosystem-Level Architecture Classification | Extend the catalog to capture cross-repo architectural patterns (ELK stack, *arr media stack, Grafana LGTM, etc.) that are invisible at the single-repo level. Curate 10+ ecosystems, add missing member repos, define ecosystem entry format. | 2026-03-10 | 46ab06b |
 | EPIC-012 | Catalog Rebalancing and Application Expansion | Remove 43 library/non-software entries, tag all entries with scope/use-type taxonomy (ADR-001), add 30+ production applications to fix 3.4:1 platform-to-application skew, recompute production-only rankings. | 2026-03-06 | 23bed6f |
 
 ## Complete

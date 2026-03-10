@@ -14,4 +14,4 @@
 | ID | Title | Linked Epics | Last Updated | Commit |
 |----|-------|-------------|--------------|--------|
 | ADR-005 | Discover Skill As Sole Pipeline Classification Mechanism | EPIC-012 | 2026-03-09 | — |
-| ADR-006 | Architecture Qualifier Annotation System | EPIC-010 | 2026-03-10 | — |
+| ADR-006 | Architecture Qualifier Annotation System | EPIC-010 | 2026-03-10 | 46ab06b |

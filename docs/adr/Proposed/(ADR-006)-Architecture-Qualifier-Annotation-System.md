@@ -122,4 +122,4 @@ Remove CQRS, DDD, and Hexagonal from `architecture_styles` entirely and represen
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Proposed | 2026-03-10 | — | From SPIKE-002 findings; taxonomy expansion gate evaluation |
+| Proposed | 2026-03-10 | 46ab06b | From SPIKE-002 findings; taxonomy expansion gate evaluation |
