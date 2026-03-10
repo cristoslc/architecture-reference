@@ -39,7 +39,7 @@
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
-| SPEC-026 | Ecosystem Curation | Curate 10+ ecosystems, add missing member repos, deep-validate emergent architecture. Depends on SPEC-025. | 2026-03-10 | — |
+| SPEC-026 | Ecosystem Curation | Curate 10+ ecosystems, add missing member repos, deep-validate emergent architecture. Depends on SPEC-025. | 2026-03-10 | 66334340 |
 
 ## Abandoned
 
