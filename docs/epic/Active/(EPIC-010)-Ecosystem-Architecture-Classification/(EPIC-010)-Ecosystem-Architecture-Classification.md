@@ -1,10 +1,10 @@
 ---
 title: "Ecosystem-Level Architecture Classification"
 artifact: EPIC-010
-status: Proposed
+status: Active
 author: cristos
 created: 2026-03-06
-last-updated: 2026-03-06
+last-updated: 2026-03-10
 parent-vision: VISION-001
 success-criteria:
   - Catalog includes ecosystem-level entries that capture cross-repo architectural patterns invisible at the single-repo level
@@ -134,10 +134,16 @@ Of our 163 repos, **77 belong to identifiable ecosystems** with 99 missing compa
 
 | ID | Title | Status | Focus |
 |----|-------|--------|-------|
-| — | TBD: Ecosystem Catalog Format | — | ADR + schema for ecosystem entries linking member repos to emergent architecture |
-| — | TBD: Ecosystem Curation | — | Curate 10+ ecosystems, add missing member repos, deep-validate |
-| — | TBD: Pipeline Ecosystem Support | — | Manifest format, validation, quality report updates |
-| — | TBD: Reference Library Ecosystem Integration | — | Update reference docs with ecosystem evidence |
+| [SPEC-025](../../../spec/Draft/(SPEC-025)-Ecosystem-Catalog-Schema/(SPEC-025)-Ecosystem-Catalog-Schema.md) | Ecosystem Catalog Schema | Draft | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml |
+| [SPEC-026](../../../spec/Draft/(SPEC-026)-Ecosystem-Curation/(SPEC-026)-Ecosystem-Curation.md) | Ecosystem Curation | Draft | Curate 10+ ecosystems, add missing member repos, deep-validate |
+| [SPEC-027](../../../spec/Draft/(SPEC-027)-Pipeline-Ecosystem-Support/(SPEC-027)-Pipeline-Ecosystem-Support.md) | Pipeline Ecosystem Support | Draft | Manifest format, validation, quality report updates |
+| [SPEC-028](../../../spec/Draft/(SPEC-028)-Reference-Library-Ecosystem-Integration/(SPEC-028)-Reference-Library-Ecosystem-Integration.md) | Reference Library Ecosystem Integration | Draft | Update reference docs with ecosystem evidence |
+
+## Related ADRs
+
+| ID | Title | Status |
+|----|-------|--------|
+| [ADR-006](../../../adr/Proposed/(ADR-006)-Architecture-Qualifier-Annotation-System.md) | Architecture Qualifier Annotation System | Proposed |
 
 ## Key Dependencies
 

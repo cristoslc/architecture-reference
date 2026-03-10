@@ -39,7 +39,7 @@ graph LR
 | [EPIC-007](../../epic/(EPIC-007)-Discovered-First-Evidence-Hierarchy/(EPIC-007)-Discovered-First-Evidence-Hierarchy.md) | **Complete** | Restructure reference library docs to lead with Discovered evidence | Builds on EPIC-003 |
 | [EPIC-008](../../epic/Complete/(EPIC-008)-Service-Based-Architecture-Detection/(EPIC-008)-Service-Based-Architecture-Detection.md) | **Complete** | Fix Service-Based and Plugin/Microkernel detection blind spots | Builds on EPIC-003 |
 | ~~EPIC-009~~ | **Abandoned** | ~~Heuristic pipeline improvements~~ — obsolete per ADR-002 | — |
-| [EPIC-010](../../epic/Proposed/(EPIC-010)-Ecosystem-Architecture-Classification/(EPIC-010)-Ecosystem-Architecture-Classification.md) | Proposed | Capture cross-repo ecosystem architecture patterns | Builds on SPEC-019 |
+| [EPIC-010](../../epic/Active/(EPIC-010)-Ecosystem-Architecture-Classification/(EPIC-010)-Ecosystem-Architecture-Classification.md) | **Active** | Capture cross-repo ecosystem architecture patterns | Builds on SPEC-019 |
 | [EPIC-011](../../epic/Proposed/(EPIC-011)-Platform-Aware-Architecture-Advising/(EPIC-011)-Platform-Aware-Architecture-Advising.md) | Proposed | Enhance advisor skill to distinguish platform vs application contexts | Builds on EPIC-002, EPIC-010 |
 | [EPIC-012](../../epic/Complete/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion.md) | **Complete** | Remove 43 non-architecture entries, add 30+ applications, recompute rankings | Builds on SPIKE-001, ADR-001 |
 
