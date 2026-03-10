@@ -242,3 +242,4 @@ EPIC-010 can proceed with the **existing taxonomy unchanged**. The annotation sy
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Planned | 2026-03-06 | c526f34 | Initial creation; pre-implementation gate for EPIC-010 taxonomy decisions |
+| Complete | 2026-03-10 | 5568369 | PIVOT: no new styles (none met >=5 repo threshold); recommend annotation system |
