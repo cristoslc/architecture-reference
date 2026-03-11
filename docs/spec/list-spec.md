@@ -18,6 +18,7 @@
 | SPEC-020 | Catalog Cleanup and Taxonomy Tagging | Remove 43 library/framework/non-software entries, add scope and use_type taxonomy fields to all remaining 120 entries per ADR-001. | 2026-03-06 | ff77e90 |
 | SPEC-021 | Catalog Expansion and Ecosystem Completion | Expand catalog with 30 applications across 10 domains, 19 ecosystem entries, triage 20 uncataloged repos. Production ratio 1.58:1. | 2026-03-07 | f64b466a |
 | SPEC-022 | Pipeline Run and Frequency Recomputation | Recompute production-only frequency rankings with deep-analysis data, platform/application splits, normalized style names. | 2026-03-09 | dba13449 |
+| SPEC-023 | Reference Library Rebalancing Update | Update all 8 reference library documents with production-only rankings and platform/application splits. Depends on SPEC-022. | 2026-03-10 | 13ed381c |
 | SPEC-024 | Deep-Analysis Classification Campaign | All 184 catalog entries classified via clean-slate deep-analysis: 173 GLM-5 native tool-calling + 11 Sonnet subagent fallback. | 2026-03-08 | cdfd4ea7 |
 | SPEC-025 | Ecosystem Catalog Schema | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml. Foundation for EPIC-010. | 2026-03-10 | 7b733d0b |
 | SPEC-026 | Ecosystem Curation | Curate 10+ ecosystems, add missing member repos, deep-validate emergent architecture. Depends on SPEC-025. | 2026-03-10 | 50b19d24 |
@@ -32,9 +33,7 @@
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
-| SPEC-003 | Comparative Analysis Engine | Compare a user's repo architecture against the expanded catalog, generating evidence-grounded comparison reports. Depends on SPEC-002. | 2026-03-03 | b63f031 |
-
-| SPEC-023 | Reference Library Rebalancing Update | Update all 8 reference library documents with production-only rankings and platform/application splits. Depends on SPEC-022. | 2026-03-06 | 23bed6f |
+| SPEC-003 | Comparative Analysis Engine | Compare a user's repo architecture against the expanded catalog, generating evidence-grounded comparison reports. Depends on SPEC-002, ADR-005. | 2026-03-10 | — |
 
 ## Abandoned
 

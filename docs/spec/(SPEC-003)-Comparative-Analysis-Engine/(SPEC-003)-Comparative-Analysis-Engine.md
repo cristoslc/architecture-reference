@@ -4,12 +4,14 @@ artifact: SPEC-003
 status: Draft
 author: cristos
 created: 2026-03-03
-last-updated: 2026-03-03
+last-updated: 2026-03-10
 parent-epic: EPIC-003
 linked-research: []
-linked-adrs: []
+linked-adrs:
+  - ADR-005
 depends-on:
   - SPEC-002
+  - ADR-005
 ---
 
 # Comparative Analysis Engine
@@ -37,7 +39,7 @@ A markdown comparison report including:
 
 - SPEC-001 (Discovery Skill) is implemented
 - SPEC-002 (Scaling Pipeline) has populated the catalog to n >= 200
-- Catalog entries include sufficient metadata for meaningful comparison
+- ADR-005 is adopted — catalog entries follow the discover skill's `catalog-entry.template.j2` schema, providing a uniform set of fields (`architecture_styles`, `domain`, `scope`, `use_type`, `quality_attributes`, `classification_confidence`) for matching
 
 ### Postconditions
 
@@ -66,10 +68,20 @@ A markdown comparison report including:
 
 ## Implementation Approach
 
-_To be refined after SPEC-002 delivers the expanded catalog. Key questions:_
-- Similarity metric (weighted combination of style overlap, domain match, technology overlap)
-- How to handle the heterogeneous catalog (competition vs. production vs. discovered entries)
-- Whether this is a standalone skill or an extension of the architecture-advisor skill
+With ADR-005 adopted, the catalog entry schema is standardized via the discover skill's `catalog-entry.template.j2`. This resolves the heterogeneity question — all entries share the same fields regardless of classification mechanism.
+
+**Similarity matching.** Build a multi-axis similarity scorer against the catalog schema:
+- **Style overlap** — Jaccard similarity on `architecture_styles` (primary + secondary). Weight primary styles higher.
+- **Domain match** — exact or categorical match on `domain`. Group related domains (e.g., e-commerce/retail).
+- **Scope/use-type alignment** — filter by `scope` (platform vs. application) and `use_type` to compare like-with-like per ADR-001.
+- **Quality attribute overlap** — intersection on `quality_attributes` for projects that share the same operational priorities.
+- **Confidence weighting** — down-weight comparisons against entries with low `classification_confidence`.
+
+**Invocation.** Extend the discover skill (or compose with it): classify the user's repo via SPEC-001, then run the comparison against the catalog. Output is a single markdown report combining the user's classification with the comparison analysis.
+
+**Open questions:**
+- Whether to expose this as a standalone skill or integrate into the architecture-advisor skill (EPIC-011 may influence this)
+- Minimum catalog size threshold — SPEC-002 targets 200+, but comparison may be useful at current scale (184 entries)
 
 ## Lifecycle
 

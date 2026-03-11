@@ -94,3 +94,4 @@ The key insight: the discover skill is not Claude-specific. Its methodology — 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-09 | — | Unify pipeline classification around discover skill |
+| Adopted | 2026-03-10 | 97bb2c00 | Decision adopted — all pipeline classification via discover skill |
