@@ -73,14 +73,22 @@ def generate_index(catalog_dir, output_path):
         review = entry.get("review_required", False)
         status = "review-required" if review else "discovered"
 
+        scope = entry.get("scope", "platform")
+
         project = {
             "project_name": entry.get("project_name", fname.replace(".yaml", "")),
+            "scope": scope,
             "domain": entry.get("domain", "Unknown"),
             "language": lang,
             "architecture_styles": styles,
             "confidence": confidence,
             "status": status,
         }
+
+        if scope == "ecosystem":
+            project["member_repos"] = entry.get("member_repos", [])
+            project["composition_pattern"] = entry.get("composition_pattern", "")
+
         entries.append(project)
 
         for s in styles:
@@ -90,6 +98,9 @@ def generate_index(catalog_dir, output_path):
     # Sort style frequency descending
     style_freq = dict(style_counter.most_common())
     lang_cov = dict(lang_counter.most_common())
+
+    single_repo = [e for e in entries if e.get("scope") != "ecosystem"]
+    ecosystems = [e for e in entries if e.get("scope") == "ecosystem"]
 
     index = {
         "generated": str(date.today()),
@@ -103,6 +114,8 @@ def generate_index(catalog_dir, output_path):
             "from signal-rules.md."
         ),
         "total_projects": len(entries),
+        "single_repo_count": len(single_repo),
+        "ecosystem_count": len(ecosystems),
         "projects": entries,
         "architecture_style_frequency": style_freq,
         "language_coverage": lang_cov,

@@ -1,7 +1,7 @@
 ---
 title: "Ecosystem Validation and Reporting"
 artifact: SPEC-027
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -61,6 +61,10 @@ The catalog validation, quality reporting, and frequency analysis tools were bui
 
 | Criterion | Evidence | Result |
 |-----------|----------|--------|
+| AC1: member_repos resolution | normalize-qualifiers.py checks each member resolves to a catalog YAML file; 0 ECOSYSTEM-MEMBER findings on 11 ecosystems | Pass |
+| AC2: Ecosystem Coverage in quality report | quality-report.py generates "Ecosystem Coverage" section with domain and emergent style distribution tables | Pass |
+| AC3: --scope and --kind filters | recompute_frequencies.py --scope ecosystem shows 11 entries; --kind topology excludes CQRS/DDD/Hexagonal correctly | Pass |
+| AC4: _index.yaml ecosystem distinction | generate-index.py adds scope field, member_repos, composition_pattern for ecosystems; separate single_repo_count and ecosystem_count | Pass |
 
 ## Scope & Constraints
 

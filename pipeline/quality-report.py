@@ -226,6 +226,38 @@ def generate_report(catalog_dir, output_path):
 
     lines.append("")
 
+    # --- Ecosystem Coverage ---
+    ecosystem_entries = [e for e in entries if e.get("scope") == "ecosystem"]
+    if ecosystem_entries:
+        eco_domains = Counter(e.get("domain", "Unknown") for e in ecosystem_entries)
+        eco_styles = Counter()
+        for e in ecosystem_entries:
+            for s in e.get("architecture_styles", []):
+                eco_styles[s] += 1
+
+        lines.extend([
+            "## Ecosystem Coverage",
+            "",
+            f"Ecosystem entries: {len(ecosystem_entries)}",
+            "",
+            "### Domain Distribution",
+            "",
+            "| Domain | Count |",
+            "|--------|-------|",
+        ])
+        for domain, count in eco_domains.most_common():
+            lines.append(f"| {domain} | {count} |")
+        lines.extend([
+            "",
+            "### Emergent Style Distribution",
+            "",
+            "| Style | Count |",
+            "|-------|-------|",
+        ])
+        for style, count in eco_styles.most_common():
+            lines.append(f"| {style} | {count} |")
+        lines.append("")
+
     # --- Coverage gaps ---
     lines.extend([
         "## Coverage Gaps",

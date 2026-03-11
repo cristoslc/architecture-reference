@@ -47,7 +47,7 @@ RECLASSIFIED_PATTERNS = {
 }
 
 
-def validate_entry(path, canonical_styles, aliases, qualifier_types):
+def validate_entry(path, canonical_styles, aliases, qualifier_types, catalog_dir=None):
     """Validate a single catalog YAML file. Returns list of findings."""
     with open(path) as f:
         data = yaml.safe_load(f)
@@ -113,6 +113,14 @@ def validate_entry(path, canonical_styles, aliases, qualifier_types):
     if scope == "ecosystem":
         if not data.get("member_repos"):
             findings.append("  ECOSYSTEM: missing 'member_repos' field")
+        elif catalog_dir:
+            for member in data["member_repos"]:
+                member_path = os.path.join(catalog_dir, f"{member}.yaml")
+                if not os.path.exists(member_path):
+                    findings.append(
+                        f"  ECOSYSTEM-MEMBER: '{member}' has no catalog entry "
+                        f"({member}.yaml not found)"
+                    )
         if not data.get("emergent_architecture"):
             findings.append("  ECOSYSTEM: missing 'emergent_architecture' field")
         if not data.get("composition_pattern"):
@@ -153,7 +161,7 @@ def main():
         if not fname.endswith(".yaml") or fname.startswith("_") or fname == "SCHEMA.yaml":
             continue
         path = os.path.join(args.catalog_dir, fname)
-        findings = validate_entry(path, canonical_styles, aliases, qualifier_types)
+        findings = validate_entry(path, canonical_styles, aliases, qualifier_types, args.catalog_dir)
         files_checked += 1
         if findings:
             files_with_findings += 1

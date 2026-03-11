@@ -21,6 +21,7 @@
 | SPEC-024 | Deep-Analysis Classification Campaign | All 184 catalog entries classified via clean-slate deep-analysis: 173 GLM-5 native tool-calling + 11 Sonnet subagent fallback. | 2026-03-08 | cdfd4ea7 |
 | SPEC-025 | Ecosystem Catalog Schema | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml. Foundation for EPIC-010. | 2026-03-10 | 7b733d0b |
 | SPEC-026 | Ecosystem Curation | Curate 10+ ecosystems, add missing member repos, deep-validate emergent architecture. Depends on SPEC-025. | 2026-03-10 | 50b19d24 |
+| SPEC-027 | Ecosystem Validation and Reporting | Validation, quality report, frequency analysis, and index updates for ecosystem entries. Pipeline classification mechanics deferred to ADR-005. Depends on SPEC-025. | 2026-03-10 | — |
 
 ## Active
 
@@ -33,7 +34,6 @@
 | SPEC-003 | Comparative Analysis Engine | Compare a user's repo architecture against the expanded catalog, generating evidence-grounded comparison reports. Depends on SPEC-002. | 2026-03-03 | b63f031 |
 
 | SPEC-023 | Reference Library Rebalancing Update | Update all 8 reference library documents with production-only rankings and platform/application splits. Depends on SPEC-022. | 2026-03-06 | 23bed6f |
-| SPEC-027 | Ecosystem Validation and Reporting | Validation, quality report, frequency analysis, and index updates for ecosystem entries. Pipeline classification mechanics deferred to ADR-005. Depends on SPEC-025. | 2026-03-10 | 46ab06b |
 | SPEC-028 | Reference Library Ecosystem Integration | Update reference docs with ecosystem evidence alongside single-repo evidence. Depends on SPEC-026, SPEC-027. | 2026-03-10 | 46ab06b |
 
 ## Abandoned

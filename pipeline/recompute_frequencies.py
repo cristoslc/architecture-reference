@@ -60,6 +60,31 @@ def split_by_scope(entries):
     return platforms, applications
 
 
+def filter_by_scope(entries, scope):
+    """Filter entries by scope value. 'all' returns everything."""
+    if scope == "all":
+        return entries
+    return [e for e in entries if e.get("scope") == scope]
+
+
+def load_taxonomy_kinds(taxonomy_path):
+    """Load style-taxonomy.yaml and return set of topology style names."""
+    try:
+        import yaml
+        with open(taxonomy_path) as f:
+            data = yaml.safe_load(f)
+        return set(data.get("styles", {}).keys())
+    except Exception:
+        return None
+
+
+def filter_styles_by_kind(freq, topology_styles):
+    """Filter frequency dict to only topology-defining styles."""
+    if topology_styles is None:
+        return freq
+    return {s: c for s, c in freq.items() if s in topology_styles}
+
+
 def compute_frequencies(entries):
     """Count architecture style occurrences across entries. Returns dict sorted by count descending."""
     counter = Counter()
@@ -387,6 +412,9 @@ def run_recomputation(catalog_dir, output_dir, dry_run=False):
 
     if dry_run:
         print(f"Production entries: {n_prod} ({n_plat} platforms, {n_app} applications)")
+        n_eco = len([e for e in prod if e.get("scope") == "ecosystem"])
+        if n_eco:
+            print(f"Ecosystem entries: {n_eco}")
         print(f"Reference entries: {n_ref}")
         print(f"Total: {n_total}")
         print()
@@ -396,6 +424,11 @@ def run_recomputation(catalog_dir, output_dir, dry_run=False):
         print(format_frequency_table(plat_freq, n_plat))
         print("## Application Frequencies")
         print(format_frequency_table(app_freq, n_app))
+        if n_eco:
+            eco_entries = [e for e in prod if e.get("scope") == "ecosystem"]
+            eco_freq = compute_frequencies(eco_entries)
+            print("## Ecosystem Frequencies")
+            print(format_frequency_table(eco_freq, n_eco))
         return
 
     os.makedirs(output_dir, exist_ok=True)
@@ -449,9 +482,34 @@ def main():
                         help="Output directory for analysis files")
     parser.add_argument("--dry-run", action="store_true",
                         help="Print tables to stdout without writing files")
+    parser.add_argument("--scope", default="all",
+                        choices=["all", "platform", "application", "ecosystem"],
+                        help="Filter by scope (default: all)")
+    parser.add_argument("--kind", default="all",
+                        choices=["all", "topology"],
+                        help="Filter styles: 'topology' includes only style-taxonomy.yaml styles (default: all)")
     args = parser.parse_args()
 
-    run_recomputation(args.catalog_dir, args.output_dir, args.dry_run)
+    if args.scope != "all" or args.kind != "all":
+        # Scope/kind filtering: quick dry-run output
+        taxonomy_path = os.path.join(
+            os.path.dirname(os.path.abspath(__file__)),
+            "..", "evidence-analysis", "style-taxonomy.yaml",
+        )
+        entries = load_catalog(args.catalog_dir)
+        prod = filter_production(entries)
+        scoped = filter_by_scope(prod, args.scope)
+        freq = compute_frequencies(scoped)
+        if args.kind == "topology":
+            topology_styles = load_taxonomy_kinds(taxonomy_path)
+            freq = filter_styles_by_kind(freq, topology_styles)
+            # Re-sort after filtering
+            freq = dict(sorted(freq.items(), key=lambda x: -x[1]))
+        print(f"Scope: {args.scope} | Kind: {args.kind} | Entries: {len(scoped)}")
+        print()
+        print(format_frequency_table(freq, len(scoped)))
+    else:
+        run_recomputation(args.catalog_dir, args.output_dir, args.dry_run)
 
 
 if __name__ == "__main__":
