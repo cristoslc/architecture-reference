@@ -3,88 +3,30 @@ scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/livekit/livekit
-project_url: https://github.com/livekit/livekit
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:45:49Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Real-Time Communications
 language: Go
 languages:
-- Go
+  - Go
 architecture_styles:
-- Modular Monolith
-- Layered
+  - Modular Monolith
+  - Event-Driven
 classification_status: classified
-review_notes: "LiveKit is organized as a high-performance **Service-Based** architecture,\
-  \ specifically designed as a distributed media server (SFU). While it can be deployed\
-  \ as a \"single binary,\" its internal structure is explicitly designed for multi-node\
-  \ coordination and distributed scaling.\n\n### Primary Style: Service-Based\nThe\
-  \ codebase is structured into coarse-grained functional domains that cooperate within\
-  \ the same process or across a cluster. It avoids the complexity of true granular\
-  \ microservices while maintaining clear service boundaries:\n- **`pkg/service`**:\
-  \ Contains the primary entry points and lifecycle management for various services\
-  \ like `roomservice.go`, `rtcservice.go`, and `ingress.go`. \n- **`pkg/routing`**:\
-  \ Implements global service discovery and request routing. The presence of `redisrouter.go`\
-  \ and `node.go` indicates a system designed to run as multiple nodes coordinated\
-  \ via a shared state store (Redis), where requests are routed to specific nodes\
-  \ owning a \"Room\" (the primary aggregate).\n- **`cmd/server`**: The single entry\
-  \ point that orchestrates these services into a deployable unit.\n\n### Secondary\
-  \ Style: Event-Driven\nThe system relies heavily on asynchronous communication for\
-  \ state synchronization and external integrations:"
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:38:09Z'
-classification_reasoning: "## Analysis\n\n### Primary Classification: Modular Monolith\n\
-  \nLiveKit is a **single deployable binary** WebRTC SFU (Selective Forwarding Unit)\
-  \ server with well-organized internal module boundaries. Key evidence:\n\n**Single\
-  \ Deployable Unit:**\n- `Dockerfile` produces a single binary: `livekit-server`\n\
-  - Single entry point in `cmd/server/main.go`\n- All code in one Go module (`go.mod`)\
-  \ with no submodules\n\n**Enforced Module Boundaries:**\nThe `pkg/` directory shows\
-  \ distinct packages with clear responsibilities:\n\n| Package | Responsibility |\n\
-  |---------|---------------|\n| `pkg/config/` | Configuration management |\n| `pkg/service/`\
-  \ | API/Service layer (RoomService, RTCService, AgentService, etc.) |\n| `pkg/routing/`\
-  \ | Message routing (LocalRouter, RedisRouter for distributed mode) |\n| `pkg/rtc/`\
-  \ | WebRTC room and participant management |\n| `pkg/sfu/` | Selective Forwarding\
-  \ Unit (media packet handling) |\n| `pkg/telemetry/` | Metrics and observability\
-  \ |\n| `pkg/agent/` | AI agent integration |\n| `pkg/clientconfiguration/` | Client\
-  \ capability management |\n\n**Interface-based Abstractions:**\nThe codebase uses\
-  \ Go interfaces extensively with generated mocks (`counterfeiter`) to enforce boundaries:\n\
-  - `pkg/service/interfaces.go`: `ObjectStore`, `ServiceStore`, `RoomAllocator`, `AgentStore`\n\
-  - `pkg/routing/interfaces.go`: `Router`, `MessageSink`, `MessageSource`\n- `pkg/routing/selector/interfaces.go`:\
-  \ `NodeSelector`\n\n**Distributed Capability via Router Abstraction:**\n```go\n\
-  // routing/interfaces.go\nfunc CreateRouter(rc redis.UniversalClient, node LocalNode,\
-  \ ...) Router {\n    lr := NewLocalRouter(...)\n    if rc != nil {\n        return\
-  \ NewRedisRouter(lr, rc, kps)  // Distributed mode\n    }\n    // Single-node mode\n\
-  \    return lr\n}\n```\n\nThe same binary operates in single-node or distributed\
-  \ mode via Redis pub/sub coordination — this is **horizontal scaling of a monolith**,\
-  \ not microservices.\n\n### Secondary Classification: Layered\n\nThe architecture\
-  \ exhibits horizontal layering:\n\n1. **Presentation/API Layer** — `pkg/service/rtcservice.go`,\
-  \ HTTP/Twirp handlers\n2. **Business Logic Layer** — `pkg/service/roomservice.go`,\
-  \ `pkg/service/roommanager.go`\n3. **Communication/Routing Layer** — `pkg/routing/`\
-  \ (LocalRouter, RedisRouter)\n4. **Core Processing Layer** — `pkg/rtc/` (rooms,\
-  \ participants), `pkg/sfu/` (media forwarding)\n5. **Data/State Layer** — `pkg/service/localstore.go`,\
-  \ `pkg/service/redisstore.go`\n\n### What This Is NOT\n\n**Not Microservices:**\n\
-  - Single deployable binary, not multiple independently deployable services\n- Services\
-  \ in `pkg/service/` are internal packages, not separate deployments\n- Redis is\
-  \ used for coordination, not as message broker between microservices\n\n**Not Service-Based\
-  \ (distinct from Modular Monolith):**\n- Service-based architecture typically means\
-  \ 2-5 coarse-grained services, each owning its database\n- LiveKit has many more\
-  \ internal packages and uses Redis for coordination, not as primary data store per\
-  \ service\n- No separate database per service pattern\n\n**Not Event-Driven:**\n\
-  - Redis pub/sub is used for node coordination in distributed mode, not as primary\
-  \ application architecture\n- Main flow is synchronous request/response via HTTP/Twirp\
-  \ and WebSocket\n- No event sourcing, CQRS, or event-driven orchestration\n\n**Not\
-  \ Domain-Driven Design:**\n- Packages organized by technical capability (`sfu`,\
-  \ `routing`, `rtc`), not bounded contexts\n- No aggregates, entities, value objects\
-  \ pattern\n- Business domain (real-time video) is implicit in technical components\n\
-  \n**Not Hexagonal:**\n- Core domain not isolated via ports/adapters pattern\n- Dependencies\
-  \ like Pion WebRTC (`pkg/rtc/`, `pkg/sfu/`) are deeply integrated, not abstracted\
-  \ behind ports\n\n### Conclusion\n\nLiveKit is a well-structured **Modular Monolith**\
-  \ with **Layered** organization. It achieves scalability through stateless horizontal\
-  \ scaling (Redis-based coordination for distributed deployments) rather than decomposing\
-  \ into microservices. The clear package boundaries and interface abstractions make\
-  \ it maintainable as a single codebase while supporting distributed deployment when\
-  \ needed."
+classification_confidence: 0.88
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Scalability
+  - Performance
+  - Reliability
+  - Availability
+  - Observability
+  - Security
+  - Extensibility
+  - Operability
+one_line_summary: "Single-binary WebRTC SFU server organized as a disciplined modular monolith with event-driven signaling via PSRPC/Redis pub-sub enabling optional horizontal multi-node distribution."
+classification_reasoning: "LiveKit is a Modular Monolith: all domain concerns (SFU media forwarding, WebRTC session management, room lifecycle, signaling, agent dispatch, ingress/egress integration, telemetry) compile into a single Go binary (one go.mod, one Dockerfile, one cmd/server entrypoint). Internal structure is decomposed into well-bounded packages (pkg/sfu, pkg/rtc, pkg/service, pkg/routing, pkg/agent, pkg/telemetry) with typed interfaces, generated counterfeiter fakes, and Google Wire compile-time dependency injection — classic markers of deliberate modular monolith design. Event-Driven is a strong secondary style: the PSRPC message bus (backed by either a local in-process bus or Redis pub/sub) is load-bearing for multi-node operation, routing signaling messages between signal-accepting and RTC-processing nodes via MessageSink/MessageSource channel interfaces. The telemetry subsystem enqueues domain events (RoomStarted, ParticipantJoined, TrackPublished) for async fan-out to analytics pipelines and webhook URLs. The agent worker protocol is an event-driven job dispatch sequence over WebSocket. Microservices is ruled out because all concerns live in one process; Egress, Ingress, and SIP are separate external repos integrated via RPC clients, not internal decomposition. Layered is ruled out because pkg boundaries follow domain functions, not horizontal technical layers. Service-Based is ruled out because there is no coarse-grained database-sharing topology."
+discovered_at: '2026-03-11'
+discovered_by: discover-architecture
+discovery_version: 1.0.0

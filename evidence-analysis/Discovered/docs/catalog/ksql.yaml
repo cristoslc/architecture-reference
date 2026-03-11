@@ -5,13 +5,13 @@ source: Discovered
 source_url: https://github.com/confluentinc/ksql
 project_url: https://github.com/confluentinc/ksql
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T04:59:57Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Processing
-language: Java/Kotlin
+language: Java
 languages:
-- Java/Kotlin
+- Java
 - JavaScript
 - Python
 architecture_styles:
@@ -19,75 +19,44 @@ architecture_styles:
 - Layered
 - Microkernel
 classification_status: classified
-review_notes: "The ksqlDB repository is structured as a **Layered** system (specifically\
-  \ following the architectural pattern of a database engine) but is fundamentally\
-  \ built to support and operate within **Event-Driven** ecosystems. \n\n### 1. Primary\
-  \ Style: Layered (Database Architecture)\nThe repository is a Java-based monorepo\
-  \ where the core logic is partitioned into horizontal functional layers typical\
-  \ of a database engine:\n- **Parser Layer (`ksqldb-parser`):** Contains the ANTLR4\
-  \ grammar and logic to transform SQL strings into Abstract Syntax Trees (AST).\n\
-  - **Service/Execution Layer (`ksqldb-streams`):** This is the core \"Business Logic\"\
-  \ of the system, where SQL queries are translated into Kafka Streams topologies.\n\
-  - **Transport/Interface Layer (`ksqldb-rest-app`, `ksqldb-rest-model`):** Handles\
-  \ the external API surfacing the engine via REST.\n- **Client Layer (`ksqldb-cli`,\
-  \ `ksqldb-api-client`):** Independent modules for user interaction.\n\nWhile the\
-  \ deployment unit (the ksqlDB Server) is a single process, the internal code organization\
-  \ strictly separates the SQL frontend from the streaming backend."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:35:42Z'
-classification_reasoning: "## Analysis\n\n**Primary Classification: Modular Monolith**\n\
-  \nksqlDB is a single deployable application with strongly enforced internal module\
-  \ boundaries. The evidence:\n\n1. **Single deployable unit**: The `ksqldb-rest-app`\
-  \ module produces the main server application (`KsqlRestApplication`), while `ksqldb-cli`\
-  \ provides a command-line client. The `docker-compose.yml` shows horizontal scaling\
-  \ of the same server image, not multiple different services.\n\n2. **29 Maven modules\
-  \ with enforced boundaries**: The root `pom.xml` defines a multi-module Maven project\
-  \ with clear module separation:\n   - `ksqldb-parser` - SQL parsing (ANTLR-based)\n\
-  \   - `ksqldb-metastore` - metadata management\n   - `ksqldb-execution` - query\
-  \ execution planning\n   - `ksqldb-engine` - core business logic\n   - `ksqldb-rest-app`\
-  \ - REST API layer\n   - `ksqldb-rest-client` - HTTP client\n   - `ksqldb-serde`\
-  \ - serialization\n   - `ksqldb-udf` - user-defined function support\n   - Plus\
-  \ utility, testing, and tooling modules\n\n3. **Controlled dependency hierarchy**:\
-  \ Maven POMs enforce unidirectional dependencies. For example:\n   - `ksqldb-rest-app`\
-  \ depends on `ksqldb-engine`\n   - `ksqldb-engine` depends on `ksqldb-parser`, `ksqldb-metastore`,\
-  \ `ksqldb-execution`\n   - `ksqldb-metastore` depends on `ksqldb-common`\n   \n\
-  \   This prevents circular dependencies and maintains architectural integrity.\n\
-  \n4. **No service boundary separation**: Despite using Kafka for stream processing,\
-  \ all code deploys as one application. There are no separate microservices, no inter-service\
-  \ communication protocols, no API gateways between internal components.\n\n**Secondary\
-  \ Style: Layered**\n\nHorizontal layering is evident in the module organization:\n\
-  \n- **Presentation Layer**: `ksqldb-rest-app` (REST resources: `KsqlResource`, `ClusterStatusResource`,\
-  \ etc.), `ksqldb-cli`\n- **Business Logic Layer**: `ksqldb-engine` (`KsqlEngine`,\
-  \ `KsqlExecutionContext`)\n- **Query Processing Layer**: `ksqldb-parser`, `ksqldb-execution`,\
-  \ `ksqldb-streams`\n- **Data/Metadata Layer**: `ksqldb-metastore`, `ksqldb-serde`\n\
-  \nThe `KsqlExecutionContext` interface (in `ksqldb-engine/src/main/java/io/confluent/ksql/KsqlExecutionContext.java`)\
-  \ defines the core execution contract, with methods for parsing, preparing, and\
-  \ executing statements—classic layer abstraction.\n\n**Secondary Style: Microkernel\
-  \ (Plugin)**\n\nksqlDB has a sophisticated plugin architecture for user-defined\
-  \ functions:\n\n1. **Extension API via annotations**: \n   - `@UdfDescription` -\
-  \ marks a class as a UDF provider\n   - `@Udf` - marks methods as scalar functions\n\
-  \   - `@UdafDescription` - marks aggregate functions\n   - `@UdtfDescription` -\
-  \ marks table functions\n\n2. **Plugin loading infrastructure**:\n   - `UserFunctionLoader`\
-  \ (line 45-169) scans JAR files in the extension directory\n   - `UdfClassLoader`\
-  \ provides isolated class loading for plugins\n   - `UdfLoader` dynamically registers\
-  \ functions with the `MutableFunctionRegistry`\n   - Security sandboxing via `ExtensionSecurityManager`\n\
-  \n3. **Runtime discovery**: Uses ClassGraph to scan for annotated classes at runtime:\n\
-  \   ```java\n   try (ScanResult scan = classGraph.enableAnnotationInfo().scan())\
-  \ {\n     for (ClassInfo udf : scan.getClassesWithAnnotation(UdfDescription.class.getName()))\
-  \ {\n       udfLoader.loadUdfFromClass(udf.loadClass(), pathLoadedFrom);\n     }\n\
-  \   }\n   ```\n\n**Rejected Classifications:**\n\n- **Not Microservices**: All functionality\
-  \ is packaged as a single server. The `docker-compose.yml` scales the same `ksqldb-server`\
-  \ image, not different services with distinct codebases.\n\n- **Not Event-Driven**:\
-  \ While ksqlDB processes Kafka streams (business domain), internal module communication\
-  \ is synchronous via direct method calls, not event-based. The REST API follows\
-  \ request-response patterns.\n\n- **Not Domain-Driven Design**: Modules are organized\
-  \ by technical capability (parser, execution, metastore), not business bounded contexts.\
-  \ No aggregates, entities, or value objects patterns.\n\n- **Not Hexagonal Architecture**:\
-  \ No ports-and-adapters pattern. The `KsqlResource` directly references `KsqlEngine`\
-  \ without intermediate port interfaces. Service context is injected but not through\
-  \ adapter pattern.\n\n- **Not CQRS**: While push queries and pull queries exist\
-  \ as concepts, there's no separate read/write model architecture in the codebase\
-  \ organization."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Scalability
+- Availability
+- Fault Tolerance
+- Extensibility
+- Maintainability
+- Consistency
+- Observability
+- Performance
+one_line_summary: ksqlDB is a single-process, horizontally scalable stream processing database engine built on Kafka Streams, organized as a tightly layered modular monolith with a Microkernel-style plugin system for user-defined functions.
+classification_reasoning: >-
+  ksqlDB is architecturally a Modular Monolith first. The defining characteristic is deployment: one
+  Docker image, one Java process, 29+ Maven modules all compiled into a single server artifact. The
+  docker-compose.yml scales identical ksqldb-server instances horizontally; the Kafka command topic
+  (CommandStore/CommandRunner) is the coordination mechanism for cluster-wide state consistency, not
+  an inter-service message bus. There is no service mesh, no API gateway between internal components,
+  and no independent deployability of subsystems.
+
+  Within that monolith, the internal organization is strongly Layered. The dependency chain runs from
+  the Vert.x-based REST layer (ksqldb-rest-app) through the engine (KsqlEngine/KsqlExecutionContext)
+  into an analysis and planning pipeline (QueryAnalyzer -> LogicalPlanner -> physicalplanner) and
+  then into an abstract execution plan DAG (ksqldb-execution) which is finally translated into a
+  concrete Kafka Streams topology by KSPlanBuilder (ksqldb-streams). This hierarchy is acyclic and
+  enforced at the Maven build level. KLIP-6 documents the intentional separation of the abstract
+  execution plan from the Kafka Streams runtime to enable backend portability.
+
+  The Microkernel classification is warranted by the UDF/UDAF/UDTF plugin subsystem. UserFunctionLoader
+  scans a configurable pluginDir for annotated JARs at startup using ClassGraph, with UdfClassLoader
+  providing isolated classloading per JAR and ExtensionSecurityManager sandboxing plugin code. The
+  MutableFunctionRegistry acts as the stable microkernel core. The Endpoints SPI and
+  KsqlSecurityExtension provide additional plugin points for API behavior and security.
+
+  Rejected: Event-Driven (internal communication is synchronous method calls; the command topic is a
+  coordination log, not a general event bus), CQRS (no separate read/write data models in the codebase
+  architecture sense), Microservices (single JVM process), Hexagonal Architecture (no ports-and-adapters
+  pattern; KsqlResource directly references KsqlEngine), Pipeline (the SQL compilation workflow is
+  pipeline-like but does not define the overall system architecture).

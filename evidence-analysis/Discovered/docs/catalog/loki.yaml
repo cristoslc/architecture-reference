@@ -3,90 +3,64 @@ scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/grafana/loki
-project_url: https://github.com/grafana/loki
-evidence_type: automated-discovery
-discovered_at: '2026-03-07T04:49:19Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Observability
+domain: observability
 language: Go
 languages:
-- Go
-- JavaScript
+  - Go
+  - Shell
+  - Jsonnet
+  - Python
+
 architecture_styles:
-- Microservices
-- Modular Monolith
+  - Microservices
+  - Modular Monolith
+  - Pipeline
+
 classification_status: classified
-review_notes: "Grafana Loki uses a \"Microservices-as-a-Monolith\" architecture (specifically\
-  \ a **Modular Monolith** that is physically deployable as **Microservices**). While\
-  \ it can run as a single process, its internal code organization and deployment\
-  \ flexibility are designed around independent service boundaries.\n\n### Architectural\
-  \ Analysis\n\n1.  **Microservices (Deployment Units):**\n    Loki is designed to\
-  \ be decomposed into several functional components (Distributor, Ingester, Querier,\
-  \ Query-Frontend, Compactor, Index-Gateway, etc.). This is evidenced in `pkg/loki/loki.go`,\
-  \ where a `Target` configuration flag determines which subset of modules to initialize.\n\
-  \    - Citing `pkg/loki/loki.go`: The `Config` struct includes a `Target` field\
-  \ (defaulting to `all`) which allows users to specify `compactor`, `distributor`,\
-  \ `ingester`, `querier`, etc.\n    - Each of these targets behaves as an independent\
-  \ microservice when deployed in \"distributed mode,\" typically scaling horizontally\
-  \ and communicating via gRPC.\n\n2.  **Modular Monolith (Internal Structure):**"
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:30:30Z'
-classification_reasoning: "## Architecture Classification: Loki\n\n**Primary Style:\
-  \ Microservices** with **Modular Monolith** as a secondary deployment option.\n\n\
-  ### Evidence for Microservices\n\n**1. Multiple Deployment Modes with Explicit Microservices\
-  \ Mode**\n\nThe Helm chart (`production/helm/loki/Chart.yaml`) explicitly supports\
-  \ three deployment modes:\n- `SingleBinary` - monolithic deployment\n- `SimpleScalable`\
-  \ - read/write/backend separation  \n- `Distributed` - full microservices decomposition\n\
-  \nThe `distributed-values.yaml` shows independently deployable services:\n```yaml\n\
-  deploymentMode: Distributed\ningester:\n  replicas: 3\nquerier:\n  replicas: 3\n\
-  queryFrontend:\n  replicas: 2\nqueryScheduler:\n  replicas: 2\ndistributor:\n  replicas:\
-  \ 3\ncompactor:\n  replicas: 1\nindexGateway:\n  replicas: 2\n```\n\n**2. Independent\
-  \ Service Deployments**\n\nEach microservice has its own Kubernetes resource templates:\n\
-  - `deployment-distributor.yaml` - Distributor as Deployment\n- `statefulset-ingester.yaml`\
-  \ - Ingester as StatefulSet\n- `statefulset-compactor.yaml` - Compactor as StatefulSet\n\
-  - Separate HPAs for independent autoscaling\n\n**3. Integration Tests Demonstrate\
-  \ Microservices**\n\nThe integration test `loki_micro_services_test.go` explicitly\
-  \ starts each component as a separate process:\n```go\ntCompactor = clu.AddComponent(\"\
-  compactor\", \"-target=compactor\", ...)\ntIndexGateway = clu.AddComponent(\"index-gateway\"\
-  , \"-target=index-gateway\", ...)\ntDistributor = clu.AddComponent(\"distributor\"\
-  , \"-target=distributor\", ...)\ntIngester = clu.AddComponent(\"ingester\", \"-target=ingester\"\
-  , ...)\ntQueryScheduler = clu.AddComponent(\"query-scheduler\", \"-target=query-scheduler\"\
-  , ...)\ntQuerier = clu.AddComponent(\"querier\", \"-target=querier\", ...)\ntQueryFrontend\
-  \ = clu.AddComponent(\"query-frontend\", \"-target=query-frontend\", ...)\n```\n\
-  \n**4. gRPC-Based Inter-Service Communication**\n\nServices communicate via gRPC\
-  \ with protobuf definitions (`pkg/logproto/logproto.proto`):\n```protobuf\nservice\
-  \ Querier {\n  rpc Query(QueryRequest) returns (stream QueryResponse) {}\n  rpc\
-  \ QuerySample(SampleQueryRequest) returns (stream SampleQueryResponse) {}\n  rpc\
-  \ Label(LabelRequest) returns (LabelResponse) {}\n  ...\n}\n```\n\nClient pools\
-  \ manage connections between services (`pkg/ingester/client/client.go`).\n\n**5.\
-  \ Ring-Based Service Discovery and Coordination**\n\nEach service type participates\
-  \ in a ring for discovery and sharding:\n- `ringKey = \"distributor\"` in distributor\n\
-  - `RingKey = \"ring\"` in ingester  \n- `ringKey = \"compactor\"` in compactor\n\
-  \nUses `github.com/grafana/dskit/ring` for memberlist-based coordination.\n\n**6.\
-  \ Shared Object Storage, Not Shared Database**\n\nServices share object storage\
-  \ (S3, GCS, Azure Blob, filesystem) but don't share a database. Each service owns\
-  \ its in-memory state and coordinates through the ring.\n\n### Evidence for Secondary\
-  \ Style: Modular Monolith\n\n**Single Binary Deployment Mode**\n\nThe same codebase\
-  \ supports running all components in a single process:\n```yaml\ndeploymentMode:\
-  \ SingleBinary\nsingleBinary:\n  replicas: 1\n```\n\nFrom README.md: \"Loki differs\
-  \ from Prometheus by...want a single-binary, easy to operate system with no dependencies.\"\
-  \n\nThe `cmd/loki/main.go` entrypoint can run all targets in one process, making\
-  \ it a modular monolith when deployed in single-binary mode.\n\n### What This Is\
-  \ NOT\n\n- **Not Service-Based** - There are 8+ independently deployable services,\
-  \ exceeding the 2-5 coarse-grained services characteristic. Services don't share\
-  \ a database.\n\n- **Not Event-Driven** - Primary communication is synchronous gRPC,\
-  \ not message brokers. While Kafka is optionally supported for the write path (`pkg/kafka/`),\
-  \ it's an optional ingestion mechanism, not the core architectural pattern.\n\n\
-  - **Not Layered** - Services are organized by functional role (ingestion, querying,\
-  \ compaction), not horizontal layers (presentation, business, data).\n\n- **Not\
-  \ Hexagonal** - No explicit ports/adapters pattern. Services expose gRPC/HTTP interfaces\
-  \ but aren't organized around hexagonal principles.\n\n### Summary\n\nLoki is fundamentally\
-  \ a **Microservices** architecture designed for horizontal scalability, with each\
-  \ service (distributor, ingester, querier, query-frontend, compactor, index-gateway,\
-  \ etc.) independently deployable and scalable. The same codebase supports a **Modular\
-  \ Monolith** deployment mode for simpler use cases, demonstrating architectural\
-  \ flexibility common in cloud-native systems."
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+
+quality_attributes:
+  - horizontal-scalability
+  - high-availability
+  - multi-tenancy
+  - cost-efficiency
+  - operational-flexibility
+  - observability
+  - composability
+  - consistency
+  - durability
+  - extensibility
+
+one_line_summary: >
+  Horizontally-scalable, multi-tenant log aggregation platform built as a single binary
+  that deploys as a full microservices cluster, grouped read/write/backend targets, or a
+  monolith — all sharing the same codebase and module dependency graph.
+
+classification_reasoning: >
+  Loki simultaneously embodies Microservices and Modular Monolith — both are intentional,
+  first-class deployment modes supported by a single binary. Each functional component
+  (Distributor, Ingester, QueryFrontend, QueryScheduler, Querier, Compactor, IndexGateway,
+  Ruler, BloomPlanner, BloomBuilder, BloomGateway, PatternIngester) is independently
+  deployable, independently scalable, and communicates over gRPC/HTTP interfaces when
+  deployed as separate processes (microservices mode). Simultaneously, all components compile
+  into one binary and are wired together via dskit/modules.Manager with an explicit dependency
+  graph; -target=all runs everything in-process (modular monolith mode). The Pipeline style
+  is a strong secondary pattern: pkg/logql/log/pipeline.go defines composable Stage/Pipeline
+  interfaces for log-line processing, and pkg/querier/queryrange/queryrangebase/ implements
+  a tripperware Middleware chain that applies query splitting, sharding, caching, and retries
+  in sequential stages. An optional Kafka-backed ingest path (pkg/kafka/, pkg/ingester/kafka_consumer.go)
+  introduces event-driven decoupling between write acknowledgment and ingestion, but it is
+  not the default mode. Consistent hash rings (dskit/ring, Memberlist gossip) provide
+  peer discovery and data sharding across all stateful components. Object storage (S3, GCS,
+  Azure Blob) is the unified backend for both index (TSDB via index shipper) and chunks.
+  The architecture's most distinctive characteristic is the "single binary, multiple personas"
+  model — components are differentiated by -target flags, not by separate binaries — sitting
+  at the intersection of Microservices and Modular Monolith.
+
+evidence_type: automated-discovery
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0

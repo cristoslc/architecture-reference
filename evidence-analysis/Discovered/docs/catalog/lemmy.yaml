@@ -1,5 +1,5 @@
 project_name: lemmy
-scope: application
+scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/LemmyNet/lemmy
@@ -8,191 +8,69 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-07T05:10:14Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Social
+domain: Social Media / Federated Link Aggregator
 language: Rust
 languages:
 - Rust
 - TypeScript
-- JavaScript
+- SQL
 architecture_styles:
 - Modular Monolith
 - Layered
 - Microkernel
 classification_status: classified
-review_notes: '### Analysis
-
-  Lemmy is structured as a **Modular Monolith** organized within a Rust Cargo workspace.
-  While the system serves a decentralized domain (the Fediverse), the codebase itself
-  is a single logical application partitioned into dozens of internal crates to enforce
-  boundary separation.
-
-
-  #### 1. Internal Boundaries (Modular Monolith)
-
-  The `Cargo.toml` workspace configuration reveals a highly granular modular structure.
-  Instead of a flat `src` directory, the project is split into specialized crates
-  under `crates/`:
-
-  - **Data Access Layer:** `crates/db_schema`, `crates/db_views/*`, and `crates/diesel_utils`.
-
-  - **API and Routing:** `crates/api/*` (subdivided into `api_crud`, `api_utils`,
-  etc.) and `crates/routes`.
-
-  - **Protocol/Domain Logic:** `crates/apub` (ActivityPub implementation) and `crates/email`.
-
-  - **Core Server:** `crates/server`.'
+one_line_summary: Rust-based fediverse link aggregator structured as a single-binary
+  modular monolith with strict horizontal layering, an intra-process ActivityPub federation
+  send pipeline, and a WASM plugin extension system.
 review_required: false
-classification_method: deep-analysis-tooluse
+classification_method: deep-analysis
 classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:35:08Z'
-classification_reasoning: '## Analysis
-
-
-  ### Primary Style: Modular Monolith
-
-
-  The Lemmy repository is a textbook example of a **Modular Monolith** architecture:
-
-
-  **Evidence from Cargo.toml workspace structure:**
-
-  - The root `Cargo.toml` defines a workspace with ~40+ internal crates (`crates/*`)
-
-  - Each crate is a separate compilation unit with its own `Cargo.toml`, enforcing
-  module boundaries at compile time
-
-  - All crates are published together with identical version numbers (workspace inheritance)
-
-
-  **Single deployable artifact:**
-
-  - `docker/Dockerfile` builds a single binary: `lemmy_server`
-
-  - `crates/server/Cargo.toml` shows it depends on all other crates and produces the
-  final executable
-
-  - The deployment is a single container in `docker-compose.yml` (`lemmy` service)
-
-
-  **Enforced internal module boundaries:**
-
-  ```
-
-  crates/
-
-  ├── api/           # API layer (api, api_crud, api_common, api_utils, routes)
-
-  ├── apub/          # ActivityPub federation (apub, activities, objects, send)
-
-  ├── db_schema/     # Database schema and types
-
-  ├── db_schema_file/# Generated Diesel schema
-
-  ├── db_views/      # 20+ view modules (post, comment, community, etc.)
-
-  ├── diesel_utils/  # Database utilities
-
-  ├── email/         # Email functionality
-
-  ├── routes/        # HTTP routing
-
-  ├── utils/         # Shared utilities
-
-  └── server/        # Main entry point
-
-  ```
-
-
-  **Dependency enforcement:** Rust''s module system and Cargo workspace naturally
-  prevent circular dependencies and enforce unidirectional dependencies between crates.
-
-
-  ### Secondary Style: Layered
-
-
-  The codebase exhibits clear horizontal layering:
-
-
-  1. **Data Layer**: `db_schema`, `db_schema_file`, `diesel_utils`, and `db_views/*`
-  - Schema definitions, ORM mappings, and read-optimized views
-
-
-  2. **Business Logic Layer**: `api/api`, `api/api_crud`, `api/api_utils` - Request
-  handlers and business rules
-
-
-  3. **API/HTTP Layer**: `api/routes`, `api/routes_v3`, `routes` - HTTP routing and
-  middleware
-
-
-  4. **Protocol/Federation Layer**: `apub/*` - ActivityPub protocol implementation
-
-
-  Evidence from `crates/api/api_crud/src/post/create.rs`:
-
-  - Handler receives JSON request → validates input → calls database layer → returns
-  response
-
-  - Clear separation between API handling, business logic, and data access
-
-
-  ### Secondary Style: Microkernel (Plugin)
-
-
-  **Plugin infrastructure via Extism (WebAssembly):**
-
-
-  From `crates/api/api_utils/src/plugins.rs`:
-
-  ```rust
-
-  pub fn plugin_hook_before<T>(name: &''static str, data: T) -> LemmyResult<T>
-
-  pub fn plugin_hook_after<T>(name: &''static str, data: T)
-
-  ```
-
-
-  - Plugins loaded from `/plugins` directory at runtime (see docker-compose.yml volume
-  mount)
-
-  - WebAssembly-based plugin system using Extism
-
-  - Plugin hooks for captcha, notifications, and extensibility
-
-  - Core system operates independently; plugins are optional extensions
-
-
-  ### What This Is NOT
-
-
-  - **NOT Microservices**: Single binary deployment, single database, no inter-service
-  communication
-
-  - **NOT Serverless**: Standard Actix-web HTTP server, no FaaS configuration
-
-  - **NOT Domain-Driven Design**: Modules organized by technical layers, not bounded
-  contexts; no aggregates, entities, or value objects in the DDD sense
-
-  - **NOT Hexagonal Architecture**: Database access is direct via Diesel ORM without
-  repository interfaces/ports abstraction
-
-  - **NOT Event-Driven Primary**: While `ActivityChannel` uses async channels for
-  ActivityPub federation, this is an implementation detail for async processing, not
-  the primary architectural pattern
-
-
-  ### Confidence Rationale
-
-
-  **0.88 confidence** reflects:
-
-  - Strong, clear signals for Modular Monolith (Cargo workspace, single deployable)
-
-  - Unambiguous layered organization in module structure
-
-  - Clear plugin system with hooks and runtime loading
-
-  - Some architectural overlap between "modular monolith" and "layered" which are
-  complementary rather than distinct'
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Deployability
+- Scalability
+- Extensibility
+- Federatability
+- Observability
+- Modifiability
+- Security
+- Performance
+classification_reasoning: "Lemmy is a Modular Monolith at its core. The Cargo workspace\
+  \ organizes ~30 tightly-coupled crates into a single lemmy_server binary backed\
+  \ by a single PostgreSQL database. Key crate groups: crates/api/{api,api_crud,api_utils,routes}\
+  \ for HTTP handling and business logic; crates/db_schema for write models and ORM\
+  \ mappings; crates/db_views/{post,comment,community,person,...} (20+ crates) for\
+  \ read aggregations; crates/apub/{apub,activities,objects,send} for ActivityPub\
+  \ protocol; crates/routes for middleware, feeds, webfinger, nodeinfo. All modules\
+  \ share a single LemmyContext (pool, HTTP client, secrets, rate-limit) passed as\
+  \ Actix-web app data. 328 Diesel migrations in one schema confirm a unified data\
+  \ layer.\n\nThe architecture is unmistakably Layered within that monolith. Request\
+  \ flow: (1) HTTP route/middleware layer (rate limiting via RateLimit, session, CORS,\
+  \ idempotency middleware in lemmy_routes), (2) API application layer (business logic,\
+  \ validation, auth in api and api_crud), (3) data-access layer (db_schema impls,\
+  \ db_views read queries), (4) PostgreSQL persistence via diesel-async. Layer dependencies\
+  \ are strictly one-directional. db_views separates read aggregations from write\
+  \ models - a deliberate read/write code path split, though not formal CQRS.\n\n\
+  Federation adds an intra-process async pipeline quality: API write handlers post\
+  \ SendActivityData enum variants to a tokio unbounded_channel (ActivityChannel in\
+  \ api_utils/send_activity.rs). A dedicated Tokio task (handle_outgoing_activities)\
+  \ consumes the channel, dispatches to match_outgoing_activities in lemmy_apub_activities,\
+  \ which serializes the activity and writes it to the sent_activity DB queue. A separate\
+  \ SendManager (lemmy_apub_send) reads that queue and delivers per-instance. This\
+  \ pipeline runs entirely within the single process.\n\nThe WASM plugin system in\
+  \ api_utils/plugins.rs gives Lemmy a Microkernel quality. LemmyPlugins uses the\
+  \ extism WASM runtime to load plugins from configurable file paths or HTTP URLs\
+  \ with SHA-256 hash verification. Hook points include: plugin_hook_before (data\
+  \ mutation before processing), plugin_hook_after (fire-and-forget side effects),\
+  \ notification_after_create, get_captcha/validate_captcha (pluggable captcha provider).\
+  \ WASM sandboxing enforces allowed_hosts and allowed_paths. Core behavior is complete\
+  \ without plugins; plugins extend at defined extension points.\n\nRejected: Not\
+  \ Microservices - all domain logic is one binary with one database; lemmy-ui, pictrs,\
+  \ and postgres are external dependencies, not decomposed services. Not Event-Driven\
+  \ - the ActivityChannel is an in-process tokio channel, not an external event broker;\
+  \ ActivityPub is a federation wire protocol, not an internal event bus. Not CQRS\
+  \ - no command/event bus, no separate read store derived from events, no event sourcing.\
+  \ Not DDD - no aggregate roots, domain events, or bounded contexts following DDD\
+  \ conventions. Confidence 0.88: Modular Monolith and Layered are unambiguous from\
+  \ code structure; Microkernel reflects a real but additive pattern in plugins.rs."

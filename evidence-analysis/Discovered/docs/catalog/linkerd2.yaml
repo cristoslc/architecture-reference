@@ -8,85 +8,86 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:23:51Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Infrastructure
+domain: Service Mesh / Kubernetes Networking
 language: Go
 languages:
 - Go
 - Rust
-- JavaScript
+- TypeScript
 architecture_styles:
 - Microservices
 - Microkernel
 classification_status: classified
-review_notes: "The Linkerd2 repository is structured as a **Microservices** architecture.\
-  \ While it serves as a \"Service Mesh\" product, its internal organization follows\
-  \ a classic microservice pattern where the control plane is decomposed into multiple\
-  \ independent, specialized functional units.\n\n### Evidence for Microservices\n\
-  1.  **Multiple Entry Points (Binaries):** The codebase contains numerous `main.go`\
-  \ files and `Cargo.toml` targets that correspond to distinct deployable services.\
-  \ Key services identified in `controller/cmd/` include `identity`, `destination`,\
-  \ `heartbeat`, `proxy-injector`, and `sp-validator`. \n2.  **Explicit Service Boundaries:**\
-  \ The `BUILD.md` and repository layout clearly define these components as \"Go microservices.\"\
-  \ For instance, the `destination` service handles service discovery, while the `identity`\
-  \ service acts as a CA. These are containerized independently (indicated by `Dockerfile.proxy`,\
-  \ `web/Dockerfile`, and `policy-controller/.dockerignore`).\n3.  **Cross-Service\
-  \ Communication:** The components communicate over gRPC and HTTP, as evidenced by\
-  \ the extensive `proto/` directory and the `controller/gen/client` directory, which\
-  \ contains generated clients for inter-service communication.\n4.  **Extension Modules:**\
-  \ The architecture supports \"extensions\" (e.g., `viz`, `multicluster`) which are\
-  \ housed in their own subdirectories, have their own `main` entry points, and are\
-  \ deployed as separate sets of services within the Kubernetes cluster.\n\n### Evidence\
-  \ for Domain-Driven Design (Secondary)\nThe repository uses **Domain-Driven Design\
-  \ (DDD)** principles to organize its internal logic:"
+one_line_summary: Kubernetes-native service mesh with independently deployed control-plane
+  microservices (destination, identity, proxy-injector, policy-controller) communicating
+  over gRPC, and a formal microkernel extension protocol for optional capability bundles
+  (viz, multicluster, CNI).
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.85
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:36:47Z'
-classification_reasoning: "## Analysis\n\n### Primary Classification: Microservices\n\
-  \nThe linkerd2 repository exhibits clear microservices architecture characteristics:\n\
-  \n**Multiple Independently Deployable Services:**\n1. **Controller** (`Dockerfile.controller`)\
-  \ - A multi-purpose binary that dispatches to several internal services:\n   - `destination`\
-  \ - gRPC service discovery (port 8086)\n   - `identity` - gRPC certificate authority\
-  \ (port 8080)\n   - `proxy-injector` - Kubernetes admission webhook\n   - `sp-validator`\
-  \ - Service profile validator webhook\n   - `heartbeat` - Telemetry collection\n\
-  \   - `service-mirror` - Multicluster support\n\n2. **Policy Controller** (`policy-controller/`)\
-  \ - Separate Rust binary providing gRPC policy API (port 8090), built with its own\
-  \ Cargo workspace\n\n3. **Viz Extension** - Multiple independent services:\n   -\
-  \ `metrics-api` (separate Dockerfile)\n   - `tap` (separate Dockerfile)  \n   -\
-  \ `web` dashboard (separate Dockerfile)\n\n4. **CLI** - Standalone binary with its\
-  \ own Dockerfile\n\n5. **Proxy** (`Dockerfile.proxy`) - Data plane sidecar proxy\n\
-  \n**Evidence from `charts/linkerd-control-plane/templates/`:**\n- Separate Kubernetes\
-  \ Deployments and Services for each component (destination.yaml, identity.yaml,\
-  \ proxy-injector.yaml, heartbeat.yaml)\n- Each service exposes distinct gRPC endpoints\n\
-  - Services communicate via gRPC (evident in `controller/api/destination/server.go:19`\
-  \ importing `google.golang.org/grpc`)\n\n**State Isolation:**\n- No shared database\
-  \ - each service uses Kubernetes API as its data store\n- Services are stateless,\
-  \ storing state in Kubernetes CRDs\n\n### Secondary Classification: Microkernel\
-  \ (Plugin)\n\nThe extension system documented in `EXTENSIONS.md` provides a clear\
-  \ plugin architecture:\n\n**Plugin Contract:**\n- Extensions are external executables\
-  \ named `linkerd-<name>`\n- Must implement: `install`, `uninstall`, `check` commands\n\
-  - Discovered via PATH at runtime\n\n**Built-in Extensions:**\n- `viz` - Observability\
-  \ extension (`viz/` directory with its own charts and commands)\n- `multicluster`\
-  \ - Cross-cluster communication (`multicluster/` directory)\n\n**Evidence from `EXTENSIONS.md:42-48`:**\n\
-  ```\nThe extension must implement these commands:\n### `linkerd-name install`\n\
-  This command must print the Kubernetes manifests for the extension as yaml\nwhich\
-  \ is suitable to be passed to `kubectl apply -f`.\n```\n\n### What Was Rejected\n\
-  \n- **Service-Based**: Rejected because services have much finer granularity (5+\
-  \ control plane services, 3+ viz services) with independent deployment capabilities,\
-  \ each owning its own Kubernetes resources\n\n- **Layered**: Rejected because there's\
-  \ no horizontal layering (presentation/business/data layers). The architecture is\
-  \ organized around vertical service boundaries with each service having its own\
-  \ full stack\n\n- **Modular Monolith**: Rejected because while the controller binary\
-  \ contains multiple services, they are logically and operationally distinct services\
-  \ with separate Kubernetes Deployments, not internal modules in a single deployable\n\
-  \n- **Event-Driven**: Rejected because inter-service communication is synchronous\
-  \ gRPC, not message broker based. Kubernetes watch streams are used for state synchronization\
-  \ but this is infrastructure-level, not application architecture\n\n- **Hexagonal\
-  \ Architecture**: While there's some use of interfaces (e.g., `viz/metrics-api/grpc_server.go:24`\
-  \ defines a `Server` interface), ports-and-adapters is not the dominant organizational\
-  \ pattern\n\n### Summary\n\nLinkerd2 is fundamentally a microservices architecture\
-  \ for the control plane, with independent services communicating via gRPC and storing\
-  \ state in Kubernetes. The extension system adds a microkernel dimension, allowing\
-  \ third-party functionality to extend the core CLI through a well-defined plugin\
-  \ contract."
+classification_method: deep-analysis
+classification_confidence: 0.93
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Security
+- Observability
+- Scalability
+- Reliability
+- Deployability
+- Extensibility
+- Interoperability
+- Evolvability
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Style:\
+  \ Microservices (0.93)\n\nThe control plane is decomposed into independently deployed,\
+  \ network-communicating services. Each capability runs in a separate Kubernetes\
+  \ Deployment with its own service account and RBAC: **destination** (endpoint\
+  \ resolution and traffic policy streaming to proxies via gRPC on port 8086),\
+  \ **identity** (mTLS certificate issuance via Kubernetes token review over gRPC),\
+  \ **proxy-injector** (MutatingAdmissionWebhook for transparent sidecar injection),\
+  \ **policy-controller** (Rust binary with its own gRPC API for network authorization\
+  \ policy), **sp-validator** (ServiceProfile CRD admission webhook), and **heartbeat**\
+  \ (periodic telemetry). There is no shared database, no shared in-process memory,\
+  \ and no shared library coupling at runtime. `controller/cmd/main.go` dispatches\
+  \ to separate `Main()` functions compiled into one binary for build convenience,\
+  \ but each is deployed as a separate Kubernetes Deployment. The policy controller\
+  \ is a wholly separate Rust workspace (`Cargo.toml`), making the multi-language,\
+  \ independently releasable service boundary concrete.\n\n### Secondary Style: Microkernel\
+  \ (0.88)\n\n`EXTENSIONS.md` defines a formal binary extension protocol: extensions\
+  \ are executables named `linkerd-<name>` on PATH and must implement `install`,\
+  \ `uninstall`, and `check` subcommands with specified flags. First-party extensions\
+  \ (viz, multicluster, CNI) each ship as independent Helm charts and add capabilities\
+  \ without modifying the core. The viz extension adds a Prometheus metrics API\
+  \ (`viz/metrics-api/`) and a tap service (`viz/tap/`) as additional Deployments.\
+  \ The multicluster extension adds the service-mirror controller (`multicluster/service-mirror/`).\
+  \ The core control plane is functional without any extension.\n\n### Rejected Styles\n\
+  \n**Not Modular Monolith:** Components are deployed in separate containers and\
+  \ communicate over the network at runtime. The single Go binary's subcommand\
+  \ dispatcher is a build artifact, not a runtime coupling. The policy controller\
+  \ is a separate language (Rust) and binary entirely.\n\n**Not Event-Driven (primary):**\
+  \ Kubernetes SharedInformers and internal workqueues are reconciliation mechanisms,\
+  \ not a first-class event architecture. There is no message broker or event bus.\
+  \ Inter-component communication is synchronous gRPC.\n\n**Not Layered:** The\
+  \ architecture is vertically decomposed by bounded capability, not organized as\
+  \ horizontal presentation/business/data layers.\n\n**Not Pipeline:** The sidecar\
+  \ proxy chain is a data-plane concern, not a control-plane architectural pattern.\n\
+  \n### Quality Attribute Evidence\n\n**Security:** mTLS for all mesh traffic via\
+  \ the identity controller; policy controller enforces network authorization CRDs\
+  \ (Server, ServerAuthorization); non-root proxy runtime (`proxy-runtime.yml` runs\
+  \ as uid 65532); separate RBAC per control plane component.\n\n**Observability:**\
+  \ Prometheus metrics on every component; Grafana dashboards in `grafana/`; tap\
+  \ (live request inspection) via viz extension; structured logging with logrus;\
+  \ PodMonitor Helm template for scraping.\n\n**Scalability:** Each control plane\
+  \ Deployment scales independently; destination controller uses streaming gRPC so\
+  \ proxies hold long-lived update streams rather than polling; workqueue rate-limiting\
+  \ in service mirror for burst handling.\n\n**Reliability:** Streaming endpoint\
+  \ updates keep proxies current; gRPC keepalive; proxy-side load balancing and\
+  \ retry logic in the data plane.\n\n**Deployability:** Full Helm chart suite\
+  \ (`linkerd-crds`, `linkerd-control-plane`, `linkerd2-cni`); CLI-driven install;\
+  \ extension-based optional components avoid mandatory complexity.\n\n**Extensibility:**\
+  \ Documented binary extension protocol; CRD-based configuration surface (ServiceProfile\
+  \ v1alpha2, Server, ServerAuthorization, ExternalWorkload, Link v1alpha3, policy\
+  \ v1alpha1/v1beta3); optional Helm chart bundles for first-party extensions.\n\n\
+  **Interoperability:** Gateway API (`sigs.k8s.io/gateway-api`) support; gRPC proxy\
+  \ API decouples data plane from control plane allowing independent proxy releases;\
+  \ multicluster federation via service mirror pattern.\n\n**Evolvability:** Separate\
+  \ Go and Rust codebases with independent release cycles; versioned CRD APIs;\
+  \ proxy fetched from external release rather than compiled in-tree."
