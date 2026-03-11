@@ -4,79 +4,58 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/Kotlin/kotlin-fullstack-sample
 project_url: https://github.com/Kotlin/kotlin-fullstack-sample
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:29:23Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
-language: Java/Kotlin
+language: Kotlin
 languages:
-- Java/Kotlin
-- JavaScript
+  - Kotlin
+  - JavaScript
 architecture_styles:
-- Layered
-- Service-Based
+  - Layered
+  - Service-Based
 classification_status: classified
-review_notes: "The repository follows a traditional **Layered** architecture, specifically\
-  \ tailored for a full-stack Kotlin application. The codebase is strictly split into\
-  \ two deployment units (`backend` and `frontend`), which is standard for a classic\
-  \ Client-Server model.\n\n### Key Evidence for Layered Architecture:\n1.  **Backend\
-  \ Structure**: The backend is organized into distinct horizontal layers within the\
-  \ `backend/src/org/jetbrains/demo/thinkter` package:\n    *   **Data Access Layer**:\
-  \ Found in the `dao/` directory (e.g., `ThinkterDatabase.kt`, `ThinkterStorage.kt`).\
-  \ These components handle direct interaction with the H2 database and schema definitions\
-  \ (`Users.kt`, `Thoughts.kt`).\n    *   **Domain/Model Layer**: Found in the `model/`\
-  \ directory. These files (`atoms.kt`, `responses.kt`) define the Data Transfer Objects\
-  \ (DTOs) and core entities used across the application.\n    *   **Presentation/API\
-  \ Layer**: The top-level files in the package (e.g., `Login.kt`, `Register.kt`,\
-  \ `PostThought.kt`) function as Ktor route handlers and \"controllers,\" managing\
-  \ the HTTP interface and orchestrating calls to the DAO.\n\n2.  **Frontend/Backend\
-  \ Separation**: The project uses a multi-module Gradle setup where the frontend\
-  \ and backend are siblings. Despite being written in the same language (Kotlin),\
-  \ they represent distinct layers of the system—the user interface and the remote\
-  \ service."
+classification_confidence: 0.87
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: "Official JetBrains reference app (\"Thinkter\") demonstrating a full-stack Kotlin microblogging application with a Ktor/JVM backend layered over H2 and a Kotlin/JS React frontend, deployed as two Gradle subprojects communicating over synchronous HTTP."
+key_technologies:
+  - Kotlin
+  - Ktor
+  - Jetty
+  - H2
+  - Squash ORM
+  - Kotlin/JS
+  - React
+  - Webpack
+  - Gradle
+  - Kotlin Coroutines
+quality_attributes:
+  - Simplicity
+  - Educational Value
+  - Maintainability
+  - Portability
+  - Testability
+  - Security
+notable_strengths:
+  - Entire stack in a single language (Kotlin) — backend JVM and frontend JS
+  - Backend DAO abstraction (ThinkterStorage interface) cleanly separates persistence from route handlers
+  - Embedded H2 database requires no external infrastructure
+  - Demonstrates Kotlin coroutines on both sides of the stack
+notable_gaps:
+  - Model classes duplicated between backend and frontend — no shared Kotlin common module
+  - Uses deprecated Kotlin frontend plugin (kotlin-frontend-plugin 0.0.23)
+  - Kotlin 1.1.51 — extremely outdated toolchain; not buildable with current Gradle/Kotlin
+  - Minimal to no visible test coverage in the cloned snapshot
+  - No CI/CD configuration
+has_running_code: true
+has_tests: false
+has_ci_cd: false
+has_documentation: true
+has_adr: false
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.82
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:33:31Z'
-classification_reasoning: "## Analysis\n\n### Repository Structure\n\nThis is a Kotlin\
-  \ full-stack sample application called \"Thinkter\" - a simple microblogging app.\
-  \ The repository uses a **Gradle multi-project structure** with exactly two subprojects:\n\
-  \n```\nsettings.gradle:\n  include \"backend\", \"frontend\"\n```\n\n### Deployment\
-  \ Units\n\n**Two separate deployables:**\n1. **Backend** (Kotlin/JVM): Runs on Ktor\
-  \ framework with Jetty server on port 9090\n2. **Frontend** (Kotlin/JS): Compiles\
-  \ to JavaScript, runs via webpack dev server on port 8080, proxies API calls to\
-  \ backend\n\n### Layered Architecture Evidence (Primary Style)\n\nThe **backend**\
-  \ exhibits clear horizontal layering:\n\n1. **Presentation/API Layer**: Ktor routing\
-  \ handlers (`Application.kt`, `Index.kt`, `Login.kt`, `Register.kt`, `PostThought.kt`,\
-  \ etc.) define HTTP endpoints using Ktor's location-based routing\n\n2. **Business\
-  \ Logic/Service Layer**: The `ThinkterStorage` interface (`backend/src/org/jetbrains/demo/thinkter/dao/ThinkterStorage.kt`)\
-  \ defines domain operations like `createThought`, `deleteThought`, `userThoughts`,\
-  \ `top`, `latest`\n\n3. **Data Access Layer**: `ThinkterDatabase` implements `ThinkterStorage`\
-  \ using the Squash ORM to interact with H2 database (lines 14-134 in `ThinkterDatabase.kt`)\n\
-  \n4. **Model Layer**: Data classes in `model/atoms.kt` and `model/responses.kt`\
-  \ define domain entities (`Thought`, `User`) and response DTOs\n\n### Service-Based\
-  \ Evidence (Secondary Style)\n\nThis qualifies as a **coarse-grained service-based\
-  \ architecture**:\n- Exactly 2 services (frontend, backend)\n- Backend owns the\
-  \ database exclusively (H2 via Squash ORM)\n- Frontend communicates with backend\
-  \ via REST API (`frontend/src/org/jetbrains/demo/thinkter/Rpc.kt`)\n- Frontend has\
-  \ no direct database access\n\n### What This Is NOT\n\n- **NOT Microservices**:\
-  \ Only 2 services, and more importantly, this is a frontend/backend split rather\
-  \ than domain-bounded contexts. Both services work with the same domain (thoughts/users),\
-  \ not different domains.\n\n- **NOT Modular Monolith**: No shared module boundaries\
-  \ - in fact, model classes (`Thought`, `User`, response DTOs) are **duplicated**\
-  \ between `backend/src/.../model/` and `frontend/src/.../model/` rather than shared\
-  \ via a common Kotlin module.\n\n- **NOT DDD**: No bounded contexts, aggregates,\
-  \ value objects, or ubiquitous language structure. Simple CRUD-style data access.\n\
-  \n- **NOT Event-Driven**: No message broker, event handlers, or async event communication.\
-  \ Synchronous HTTP request/response only.\n\n- **NOT Hexagonal/Ports & Adapters**:\
-  \ No explicit ports (interfaces) and adapters pattern. The `ThinkterStorage` interface\
-  \ is a DAO pattern, not a port in the hexagonal sense.\n\n### Confidence Assessment\n\
-  \n**0.82** - The layered structure is clear in the backend, and the service-based\
-  \ separation between frontend/backend is unambiguous. Slightly less than 0.85 confidence\
-  \ because the backend's layers are not strictly enforced (service layer logic is\
-  \ minimal), and this could also be viewed simply as \"client-server architecture\"\
-  \ rather than explicitly layered. However, the horizontal separation (API handlers\
-  \ → storage interface → database implementation) follows the layered pattern sufficiently\
-  \ to classify with confidence."
+classification_reasoning: "The dominant topology is Layered: the backend exhibits three clear horizontal layers — presentation (Ktor route handlers: Index.kt, Login.kt, Register.kt, PostThought.kt, Delete.kt, ViewThought.kt), data access (dao/ThinkterStorage interface + ThinkterDatabase implementation using Squash ORM), and model (model/atoms.kt, model/responses.kt). Dependencies flow strictly downward with no upward coupling. The ThinkterStorage interface as a clean seam between presentation and persistence is the strongest structural signal. Service-Based applies at the deployment level: exactly two coarse-grained subprojects (backend on port 9090, frontend proxying to 9090 on port 8080) share a single H2 database owned exclusively by the backend; the frontend communicates via synchronous REST calls in Rpc.kt. This matches the Richards & Ford Service-Based pattern — coarse-grained services, shared data store, synchronous HTTP. Not Microservices (only 2 services, same domain, no independent data ownership). Not Hexagonal (ThinkterStorage is a DAO abstraction within Layered, not a hexagonal port). Not Event-Driven (client polling in Polling.kt is request/response pull, not async messaging). Not Modular Monolith (no enforced module boundaries). The prior classification (Layered + Service-Based, confidence 0.82) is confirmed; confidence raised to 0.87 based on full source analysis."
+review_notes: "Deep re-analysis confirms the prior classification. Layered is the correct primary style — the backend has three clean horizontal layers (route handlers → ThinkterStorage interface → ThinkterDatabase/Squash/H2). Service-Based is the correct secondary style — two coarse-grained services sharing one embedded database, communicating over synchronous HTTP. The frontend is a Kotlin/JS React SPA with a hand-written React wrapper layer and all backend calls encapsulated in Rpc.kt suspend functions. Model classes are duplicated (not shared) between backend and frontend, which is an acknowledged simplification in the sample. The project uses deprecated tooling (kotlin-frontend-plugin, Kotlin 1.1.51) and a superseded repo exists at https://github.com/Kotlin/kotlin-full-stack-application-demo."

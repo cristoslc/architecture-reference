@@ -4,74 +4,162 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/confluentinc/kafka-streams-examples
 project_url: https://github.com/confluentinc/kafka-streams-examples
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-07T04:56:36Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Processing
-language: Java/Kotlin
+language: Java
 languages:
-- Java/Kotlin
-- Python
+- Java
+- Scala
 architecture_styles:
 - Event-Driven
+- Pipeline
 classification_status: classified
-review_notes: "The repository is a reference implementation for Kafka Streams, and\
-  \ its architecture is fundamentally **Event-Driven**. While it contains multiple\
-  \ standalone examples, the \"Microservices\" directory and the \"Kafka Music\" demo\
-  \ illustrate a cohesive architectural pattern where state is derived from continuous\
-  \ streams of events rather than traditional request-response cycles.\n\n### 1. Primary\
-  \ Style: Event-Driven\nThe core of every application in this repository is the **Kafka\
-  \ Streams DSL/Processor API**, which treats data as a continuous flow. \n- **Internal\
-  \ Communication:** Components interact via topics (e.g., `play-events`, `song-feed`).\n\
-  - **State Management:** The architecture relies on \"State Stores\" and \"KTables\"\
-  \ (e.g., `songPlayCounts` in `KafkaMusicExample.java`), which are essentially materialized\
-  \ views of the event log.\n- **Topology-Based Processing:** Applications are structured\
-  \ as directed acyclic graphs (topologies) of filters, maps, and joins, where every\
-  \ transformation is triggered by the arrival of a new event.\n\n### 2. Secondary\
-  \ Style: Microservices\nThe repository includes a dedicated `microservices` package\
-  \ (`src/main/java/io/confluent/examples/streams/microservices`) that demonstrates\
-  \ a choreographed ecosystem."
+one_line_summary: "Official Confluent reference repository demonstrating Kafka Streams patterns including event-driven microservices choreography, stateful stream topologies, and interactive state store queries."
+review_notes: |
+  The repository demonstrates two intertwined topology-defining styles.
+
+  **Primary: Event-Driven (0.92)**
+  The microservices package is the clearest evidence: six services (OrdersService, FraudService,
+  InventoryService, OrderDetailsService, ValidationsAggregatorService, EmailService) interact
+  exclusively through Kafka topics declared in domain/Schemas.java. No service calls another
+  service directly. The choreographed order workflow — three validators consuming from `orders`
+  in parallel, each emitting to `order-validations`, then ValidationsAggregatorService joining
+  and writing the final state back to `orders` — is canonical event-driven choreography.
+  OrderDetailsService deliberately uses raw Kafka Producer/Consumer (not the Streams DSL) to
+  demonstrate event-driven interaction without the higher-level API.
+
+  **Secondary: Pipeline (0.85)**
+  Every KafkaStreams application constructs an explicit directed dataflow topology via StreamsBuilder.
+  Operators (filter, map, flatMap, groupBy, windowedBy, aggregate, count, split/branch, join) are
+  chained into a Pipe-and-Filter graph. KafkaMusicExample.buildTopology() is the most complex
+  instance: play-events → filter → rekeyed → join song KTable → groupBy → count → aggregate
+  top-five by genre and overall. The Pipeline style describes the *within-application* structure
+  that all examples share; Event-Driven describes the *between-service* structure of the
+  microservices package.
+
+  **Architecture Qualifiers**
+  - CQRS: OrdersService explicitly labels its REST interface as CQRS (Javadoc line 74);
+    writes go via KafkaProducer to the `orders` topic, reads come from a materialized
+    ReadOnlyKeyValueStore queried via Interactive Queries.
+  - Change-Data-Capture: state stores are backed by Kafka changelog topics (implicit CDC).
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.8
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:30:36Z'
-classification_reasoning: "## Analysis\n\n### Repository Purpose\nThis is an **examples\
-  \ repository** demonstrating Kafka Streams patterns. It contains multiple standalone\
-  \ example applications alongside a significant microservices ecosystem example.\n\
-  \n### Key Evidence for Event-Driven Architecture\n\n**1. Service Communication via\
-  \ Kafka Topics**\nThe microservices example (`src/main/java/io/confluent/examples/streams/microservices/`)\
-  \ shows services that communicate exclusively through Kafka topics:\n\n- `OrdersService`\
-  \ → produces to `orders` topic\n- `FraudService`, `InventoryService`, `OrderDetailsService`\
-  \ → consume from `orders`, produce to `order-validations`\n- `ValidationsAggregatorService`\
-  \ → consumes from `order-validations` and `orders`, produces validated orders\n\n\
-  From `domain/Schemas.java`:\n```java\npublic static Topic<String, Order> ORDERS;\n\
-  public static Topic<String, OrderValidation> ORDER_VALIDATIONS;\npublic static Topic<String,\
-  \ Payment> PAYMENTS;\n```\n\n**2. Event-Based Processing Pattern**\nEach service\
-  \ implements `Service` interface and uses Kafka Streams to process events:\n\nFrom\
-  \ `FraudService.java`:\n```java\nfinal KStream<String, Order> orders = builder\n\
-  \    .stream(ORDERS.name(), Consumed.with(ORDERS.keySerde(), ORDERS.valueSerde()))\n\
-  \    .filter((id, order) -> OrderState.CREATED.equals(order.getState()));\n// ...\
-  \ process and emit to ORDER_VALIDATIONS topic\n```\n\n**3. Explicit Documentation**\n\
-  From `microservices/README.md`:\n> \"This small microservices ecosystem showcases\
-  \ an order management workflow... It is built using Kafka Streams, whereby **business\
-  \ events that describe the order management workflow propagate through this ecosystem**.\"\
-  \n\n**4. All Examples Use Kafka Streams**\nEvery example in the repository (WordCount,\
-  \ SessionWindows, GlobalKTables, etc.) follows the same pattern: consume from Kafka\
-  \ topics → process stream → produce to Kafka topics.\n\n### What This Is NOT\n\n\
-  - **NOT Layered**: No horizontal layering (presentation/business/data). Services\
-  \ are organized by business capability.\n- **NOT Modular Monolith**: Single JAR\
-  \ with `<packaging>jar</packaging>`, no enforced module boundaries, no Maven submodules.\n\
-  - **NOT true Microservices deployment**: While the microservices example shows independent\
-  \ services, they're packaged in a single deployable JAR. Services run as separate\
-  \ `main()` methods, not independently deployed units.\n- **NOT Pipeline**: Data\
-  \ flows branch and merge (fan-out to multiple validators, aggregate results), not\
-  \ sequential stages.\n- **NOT CQRS primary**: OrdersService mentions CQRS for reads/writes,\
-  \ but this is a local pattern within one service, not the defining architecture.\n\
-  \n### Confidence Rationale\n0.80 confidence reflects that this is fundamentally\
-  \ an **examples repository** rather than a production codebase with a singular architecture.\
-  \ However, the dominant pattern demonstrated throughout—Kafka Streams applications\
-  \ consuming and producing events—is clearly Event-Driven. The microservices example\
-  \ in particular showcases how to build an event-driven microservices ecosystem using\
-  \ Kafka as the event backbone."
+classification_method: deep-analysis
+classification_confidence: 0.90
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+classification_reasoning: |
+  ## Analysis
+
+  ### Repository Purpose
+  This is the official Confluent reference implementation repository for Kafka Streams patterns.
+  It contains two categories of content: (1) standalone stream processing examples demonstrating
+  individual Kafka Streams DSL features (WordCount, AnomalyDetection, SessionWindows, GlobalKTables,
+  PageViewRegion, etc.) and (2) a complete event-driven microservices ecosystem (the `microservices/`
+  package) demonstrating an order management workflow.
+
+  ### Primary Style: Event-Driven
+
+  **Evidence 1: Topic-only inter-service coupling in microservices package**
+  domain/Schemas.java defines all 6 Kafka topics as the sole inter-service contract:
+  `ORDERS`, `ORDER_VALIDATIONS`, `PAYMENTS`, `CUSTOMERS`, `WAREHOUSE_INVENTORY`, `ORDERS_ENRICHED`.
+  No service holds a reference to any other service object.
+
+  **Evidence 2: Choreographed order workflow**
+  - OrdersService → produces Order to `orders` topic
+  - FraudService, InventoryService, OrderDetailsService → each consumes from `orders`, emits
+    PASS/FAIL to `order-validations` (parallel, no coordination)
+  - ValidationsAggregatorService → joins `order-validations` stream with `orders` stream,
+    counts pass results per session window (numberOfRules=3), writes validated/failed Order
+    back to `orders`
+  - EmailService → reacts to order state changes, sends email
+  No orchestrator. Each service reacts to events independently. This is canonical choreography.
+
+  **Evidence 3: Explicit documentation**
+  microservices/README.md line 6: "business events that describe the order management workflow
+  propagate through this ecosystem."
+
+  **Evidence 4: Even the non-Streams service uses events**
+  OrderDetailsService is intentionally implemented with raw KafkaConsumer/KafkaProducer
+  (instead of Streams DSL) to show event-driven integration without higher-level APIs.
+  It uses Kafka transactions for exactly-once semantics.
+
+  **Evidence 5: Interactive Queries as CQRS read side**
+  OrdersService.java Javadoc line 72-74: "This class provides a REST interface to write and
+  read orders using a CQRS pattern." Writes go to Kafka; reads query the local ReadOnlyKeyValueStore
+  materialized from the `orders` topic via KafkaStreams. MetadataService routes GET requests to
+  the correct instance using KafkaStreams.queryMetadataForKey().
+
+  ### Secondary Style: Pipeline
+
+  Every Kafka Streams application in the repository builds a directed dataflow topology:
+
+  - WordCountLambdaExample: stream → flatMapValues → groupBy → count → toStream → to
+  - FraudService: stream(ORDERS) → filter → groupBy(customerId) → windowedBy(SessionWindows)
+    → aggregate(OrderValue) → toStream → split/branch(above/below limit) → mapValues → to
+  - ValidationsAggregatorService: stream(ORDER_VALIDATIONS) + stream(ORDERS) → groupByKey
+    → windowedBy(SessionWindows) → aggregate(pass count) → filter(>= 3) → join(orders)
+    → to(ORDERS)
+  - KafkaMusicExample: stream(play-events) → filter(duration >= 30s) → map(rekeyed by songId)
+    → leftJoin(song KTable) → groupBy(song) → count(song-play-count store)
+    → groupBy(genre) → aggregate(top-five-by-genre store) | aggregate(top-five store)
+  - AnomalyDetectionLambdaExample: stream(UserClicks) → groupByKey → windowedBy(TimeWindows(1min))
+    → count → filter(> 2) → to(AnomalousUsers)
+
+  The Pipe-and-Filter structure is the universal within-application execution model. It describes
+  how data moves *inside* each application. Event-Driven describes how *applications* (services)
+  communicate with each other.
+
+  ### Confidence Rationale
+  0.90 confidence reflects that both styles are clearly and intentionally demonstrated with
+  production-quality code and accompanying documentation. The slight reduction from 1.0 is
+  because this is a reference/examples repo (not a production deployment) and the two styles
+  operate at different scopes (inter-service vs intra-application), making the classification
+  dual rather than singular.
+key_technologies:
+- Kafka Streams DSL
+- KafkaStreams
+- KStream / KTable / GlobalKTable
+- StreamsBuilder / Topology
+- Kafka Producer/Consumer API
+- Confluent Schema Registry
+- Apache Avro (SpecificAvroSerde)
+- Interactive Queries (ReadOnlyKeyValueStore, MetadataService)
+- Jetty / JAX-RS (Jersey)
+- Session Windows / Time Windows
+- Exactly-Once Semantics (Kafka Transactions)
+- TopologyTestDriver (testing)
+quality_attributes:
+- Fault Tolerance
+- Scalability
+- Consistency
+- Observability
+- Evolvability
+- Testability
+architecture_qualifiers:
+  - type: data-pattern
+    value: cqrs
+    note: "OrdersService explicitly documents CQRS pattern: POST writes via KafkaProducer to 'orders' topic; GET reads from ReadOnlyKeyValueStore via Interactive Queries"
+  - type: data-pattern
+    value: event-sourcing
+    note: "State stores are materialized views rebuilt from Kafka topic changelog; state can be reset and rebuilt from the event log"
+notable_strengths:
+- "All inter-service communication is decoupled via Kafka topics — no synchronous service-to-service calls"
+- "Choreographed validation pattern (parallel validators + aggregator) is a reusable event-driven microservices pattern"
+- "Interactive Queries with REST proxy demonstrates how to expose distributed state store reads across partitioned instances"
+- "OrderDetailsService demonstrates exactly-once semantics via Kafka transactions as an alternative to Streams DSL"
+- "Comprehensive test coverage: TopologyTestDriver unit tests + EmbeddedSingleNodeKafkaCluster integration tests, 57 test files"
+- "Avro schemas with Schema Registry enforce typed event contracts at topic boundaries"
+notable_gaps:
+- "Repository is officially deprecated (README note: replaced by confluentinc/tutorials); no new examples added"
+- "Single-JAR packaging means services cannot be independently deployed or versioned despite being logically independent"
+- "No structured logging or metrics instrumentation (only SLF4J at lifecycle events)"
+- "OrderDetailsService comment notes multi-node transactional consumer not supported in current release"
+- "No service discovery or health check endpoints beyond Kafka's native consumer group rebalancing"
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false

@@ -4,95 +4,135 @@ use_type: production
 source: Discovered
 source_url: https://github.com/apache/kafka
 project_url: https://github.com/apache/kafka
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:25:32Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Messaging
-language: Java/Kotlin
+domain: Event Streaming
+language: Java
 languages:
-- Java/Kotlin
+- Java
+- Scala
+- Kotlin
 - Python
 architecture_styles:
 - Modular Monolith
 - Microkernel
+- Pipeline
 classification_status: classified
-review_notes: "The Apache Kafka repository is structured as a **Modular Monolith**.\
-  \ While it is a distributed system when deployed, the codebase itself is organized\
-  \ into a single build system (Gradle) with strictly defined internal modules that\
-  \ are compiled and versioned together.\n\n### Evidence of Modular Monolith\n1. \
-  \ **Gradle Multi-Project Structure**: The repository uses a single root Gradle build\
-  \ to manage multiple sub-projects (`core`, `clients`, `streams`, `group-coordinator`,\
-  \ `storage`, etc.).\n2.  **Enforced Module Boundaries**: The directory `checkstyle/`\
-  \ contains numerous `import-control-*.xml` files (e.g., `import-control-core.xml`,\
-  \ `import-control-server.xml`). These files are used by the build system to strictly\
-  \ enforce dependency boundaries between modules, preventing \"Big Ball of Mud\"\
-  \ dependency cycles.\n3.  **Core separation**: The functionality is split into logical\
-  \ units:\n    *   `clients`: The Java/c++ client logic.\n    *   `core`: The primary\
-  \ broker logic (traditionally Scala).\n    *   `storage` / `server-common`: Extracted\
-  \ modules to reduce the complexity of the core.\n4.  **Single Versioning**: Though\
-  \ there are many modules, they are released and versioned as a single coherent unit\
-  \ (Apache Kafka)."
+one_line_summary: Distributed commit log and event streaming platform built as a
+  Modular Monolith with 17 checkstyle import-control files enforcing module boundaries,
+  a Microkernel plugin system in Kafka Connect and Streams, and a Pipeline execution
+  model in the Streams subsystem.
+review_notes: "Single deployable unit (kafka.tgz / KafkaRaftServer entry point)\
+  \ with 40+ Gradle subprojects. Module boundary enforcement via 17 Checkstyle\
+  \ import-control XML files — root file globally disallows any Java module from\
+  \ depending on the Scala kafka.* core. Kafka Connect implements a formal Microkernel:\
+  \ SPI interfaces (Connector, Task, Transformation, Converter) in connect/api/,\
+  \ isolated DelegatingClassLoader + PluginClassLoader per plugin, dual ServiceLoader\
+  \ and reflection discovery. Kafka Streams implements a Pipeline (Pipe-and-Filter)\
+  \ execution model: StreamsBuilder compiles DSL operations to a ProcessorTopology\
+  \ directed graph driven by StreamThread. KRaft (raft/ module) provides Raft consensus\
+  \ for metadata, eliminating ZooKeeper. Scala core/ is being progressively migrated\
+  \ to Java server/; import-control rules enforce the one-way migration direction."
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:12:26Z'
+classification_method: deep-analysis
+classification_confidence: 0.94
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Durability
+- Scalability
+- Fault Tolerance
+- Extensibility
+- Throughput
+- Observability
+- Evolvability
+key_technologies:
+- Gradle multi-project
+- Checkstyle import-control
+- KRaft (Raft consensus)
+- Kafka Connect plugin isolation
+- Kafka Streams ProcessorTopology
+- Tiered Storage
+- JMX/Yammer Metrics
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+architecture_qualifiers:
+  - type: distribution-model
+    value: primary-secondary
+    note: ISR-based leader-follower replication per partition; KRaft leader election for metadata quorum
+  - type: data-pattern
+    value: event-sourcing
+    note: Kafka itself IS the event log; topics are append-only ordered event streams
 classification_reasoning: "## Architecture Classification for Apache Kafka\n\n###\
-  \ Primary Style: **Modular Monolith**\n\nThe Apache Kafka repository exhibits a\
-  \ classic **Modular Monolith** architecture with carefully enforced module boundaries.\
-  \ Key evidence:\n\n**1. Single Deployable Artifact**\n- The Dockerfile (`docker/jvm/Dockerfile`)\
-  \ builds a single release tarball (`kafka.tgz`) containing all components\n- One\
-  \ main entry point (`core/src/main/scala/kafka/Kafka.scala`) starts the unified\
-  \ server\n\n**2. Explicit Module Structure via Gradle**\nThe `settings.gradle` defines\
-  \ 40+ subprojects organized into a deliberate module hierarchy:\n```\nclients, core,\
-  \ server, server-common, metadata, storage, raft,\ncoordinator-common, group-coordinator,\
-  \ transaction-coordinator,\nshare-coordinator, connect:api, connect:runtime, streams,\
-  \ tools...\n```\n\n**3. Enforced Dependency Direction (Layering)**\nThe repository\
-  \ has **16 separate import-control XML files** in `checkstyle/` that enforce module\
-  \ boundaries through static analysis. The comment at the top of each file states:\n\
-  ```xml\n<!-- THINK HARD ABOUT THE LAYERING OF THE PROJECT BEFORE CHANGING THIS FILE\
-  \ -->\n```\n\nKey enforcement rules include:\n- `<disallow pkg=\"kafka\" />` in\
-  \ most files prevents any module from depending on the Scala core server\n- `import-control.xml`\
-  \ (25,600+ bytes, the main file) defines what `org.apache.kafka.common` and `org.apache.kafka.clients`\
-  \ can import\n- Separate control files for `metadata`, `server`, `server-common`,\
-  \ `storage`, `group-coordinator`, `transaction-coordinator`, `coordinator-common`\
-  \ enforce their specific allowed dependencies\n\n**4. Module Dependency Hierarchy**\n\
-  The import controls reveal a clear layered dependency graph:\n- `common` (base utilities)\
-  \ → `clients` (client libraries) → `server-common`/`metadata`/`storage` (server\
-  \ infrastructure) → `core` (Scala server) and `server` (Java server)\n- Cross-cutting\
-  \ modules like `raft`, `coordinator-common` have their own controlled imports\n\n\
-  ---\n\n### Secondary Style: **Microkernel (Plugin)**\n\nKafka Connect implements\
-  \ a **plugin architecture** within the monolith:\n\n**Plugin API (`connect/api/`)**:\
-  \ Defines extension interfaces:\n- `Connector` and `Task` - base abstractions for\
-  \ connectors\n- `SourceConnector`/`SinkConnector` - direction-specific interfaces\
-  \  \n- `Transformation` and `Predicate` - message transformation SPIs\n- `Converter`,\
-  \ `HeaderConverter` - serialization SPIs\n\n**Plugin Runtime (`connect/runtime/`)**:\
-  \ Core system that loads plugins:\n- `Plugins.java` - discovers and instantiates\
-  \ plugins\n- `DelegatingClassLoader.java` - custom classloader with comment: *\"\
-  A custom classloader dedicated to loading Connect plugin classes in classloading\
-  \ isolation\"*\n- `PluginClassLoader.java` - isolated classloader per plugin\n-\
-  \ `PluginScanner.java` / `ServiceLoaderScanner.java` - plugin discovery\n\n**Built-in\
-  \ Plugins (`connect/file/`, `connect/json/`, `connect/transforms/`)**: Reference\
-  \ implementations showing the plugin contract in action:\n```java\n// FileStreamSourceConnector\
-  \ extends SourceConnector\npublic class FileStreamSourceConnector extends SourceConnector\
-  \ {\n    @Override\n    public Class<? extends Task> taskClass() {\n        return\
-  \ FileStreamSourceTask.class;\n    }\n}\n```\n\n**Plugin Discovery**: Supports both\
-  \ ServiceLoader-based and reflection-based plugin discovery for runtime extension.\n\
-  \n---\n\n### Why Not Other Styles\n\n| Style | Reason for Rejection |\n|-------|---------------------|\n\
-  | **Microservices** | Single deployable artifact; no independent service deployment\
-  \ |\n| **Layered** | Layering exists within modules, but module boundaries (not\
-  \ layers) are the primary organizing principle |\n| **Hexagonal** | No ports-and-adapters\
-  \ pattern; dependencies flow package-to-package, not inside-out |\n| **DDD** | Modules\
-  \ organized by technical function (storage, metadata, server), not business bounded\
-  \ contexts |\n| **Event-Driven** | Kafka *enables* event-driven systems but its\
-  \ internal codebase uses direct method calls, not event-based internal communication\
-  \ |\n| **Service-Based** | No shared database with 2-5 coarse services; this is\
-  \ a single application |\n\n---\n\n### Summary\n\nApache Kafka demonstrates a sophisticated\
-  \ **Modular Monolith** architecture where:\n1. The build system (Gradle) defines\
-  \ explicit module boundaries\n2. Static analysis (checkstyle import-control) enforces\
-  \ dependency direction at compile time\n3. A gradual migration from Scala (`core`)\
-  \ to Java modules (`server`, `metadata`, `storage`, etc.) is in progress\n\nThe\
-  \ Kafka Connect subsystem adds a **Microkernel/Plugin** architecture for runtime\
-  \ extensibility, with isolated classloading allowing third-party connectors to be\
-  \ loaded without modifying the core system."
+  \ Primary Style: Modular Monolith (0.95)\n\nKafka is a single deployable unit\
+  \ — the Docker build at `docker/jvm/Dockerfile` packages everything into `kafka.tgz`,\
+  \ and `core/src/main/scala/kafka/Kafka.scala` is the sole entry point that\
+  \ instantiates `KafkaRaftServer`. The build system (`settings.gradle`) defines\
+  \ 40+ Gradle subprojects in a deliberate dependency hierarchy. Module boundaries\
+  \ are enforced at **compile time** by 17 Checkstyle import-control XML files:\n\
+  \n- `checkstyle/import-control.xml` (665 lines): root policy; `<disallow pkg=\"\
+  kafka\" />` — no Java module may depend on the Scala core\n- Separate files for\
+  \ `metadata`, `server`, `server-common`, `storage`, `group-coordinator`,\
+  \ `transaction-coordinator`, `coordinator-common`, `share-coordinator`,\
+  \ `test-common`, `core`, `clients-integration-tests`, `jmh-benchmarks`, `examples`\n\
+  \nEach file bears: `<!-- THINK HARD ABOUT THE LAYERING OF THE PROJECT BEFORE\
+  \ CHANGING THIS FILE -->`. The enforced dependency direction:\n\n  `common` (base)\
+  \ → `clients` → `server-common`/`metadata`/`storage` → coordinators → `raft`\
+  \ → `core` (Scala) / `server` (Java)\n\nThis is the canonical Modular Monolith\
+  \ pattern: a single release artifact with well-defined, statically enforced internal\
+  \ module boundaries.\n\n### Secondary Style: Microkernel (0.90)\n\n**Kafka\
+  \ Connect** implements a formal microkernel:\n- **Core system** (`connect/runtime/`):\
+  \ `Connect.java`, `AbstractHerder.java`, distributed mode worker\n- **SPI** (`connect/api/`):\
+  \ `Connector`, `Task`, `SourceConnector`, `SinkConnector`, `Transformation<R>`,\
+  \ `Predicate<R>`, `Converter`, `HeaderConverter`\n- **Plugin loading**\
+  \ (`connect/runtime/.../isolation/`): `DelegatingClassLoader.java` (\"dedicated\
+  \ to loading Connect plugin classes in classloading isolation\"), `PluginClassLoader.java`\
+  \ (per-plugin isolated classloader), `ServiceLoaderScanner.java` + `ReflectionScanner.java`\
+  \ (dual discovery)\n- **Reference plugins**: `connect/file/`, `connect/json/`,\
+  \ 15+ built-in transforms in `connect/transforms/`\n\n**Kafka Streams** exposes\
+  \ a `Processor<KIn,VIn,KOut,VOut>` SPI and `ProcessorSupplier` factory for\
+  \ user-defined stateful operators injected via `StreamsBuilder.addProcessor()`.\
+  \ `ProcessorTopology` composes these extensions into a directed graph executed\
+  \ by `StreamThread`.\n\n### Tertiary Style: Pipeline (0.85)\n\nKafka Streams\
+  \ implements a Pipe-and-Filter execution model. `StreamsBuilder` translates\
+  \ the high-level DSL (`KStream.map/filter/groupBy/window`) via `InternalTopologyBuilder`\
+  \ into a `ProcessorTopology` — a directed graph of `ProcessorNode`, `SourceNode`,\
+  \ and `SinkNode` objects. `StreamThread` drives the pipeline: poll records from\
+  \ source topic partitions → route through processor nodes → write to sink topics\
+  \ or state stores. This pipeline model is confined to the Streams subsystem;\
+  \ the broker core uses synchronous request handling.\n\n### Why Not Other Styles\n\
+  \n**Not Microservices:** Single deployable artifact with no independently deployed\
+  \ services. The broker, Connect worker, and Streams app are distinct runtime\
+  \ modes of the same codebase, not separate services.\n\n**Not Event-Driven\
+  \ (primary):** Kafka *provides* the event backbone for Event-Driven systems\
+  \ but its internal broker coordination is synchronous (Raft consensus, ISR\
+  \ replication, request/response protocol). The broker processes requests via\
+  \ a request handler thread pool, not an internal event bus.\n\n**Not Layered\
+  \ (primary):** The dependency hierarchy exists but the organizing principle is\
+  \ module cohesion by functional domain (coordinators, storage, metadata, raft),\
+  \ not strict horizontal layers with unidirectional dependencies across the whole.\
+  \ The `storage/` module has some upward references permitted by import-control,\
+  \ unlike a strict layered system.\n\n### Quality Attributes Evidence\n\n**DURABILITY:**\
+  \ Append-only log segments with ISR replication protocol; leader epoch tracking\
+  \ prevents log divergence; configurable retention policies.\n\n**SCALABILITY:**\
+  \ Partition-level horizontal scaling; consumer groups for parallel consumption;\
+  \ KRaft eliminates ZooKeeper metadata bottleneck; partition reassignment.\n\n\
+  **FAULT TOLERANCE:** KRaft Raft consensus for metadata leader election; ISR\
+  \ protocol for data replication; exactly-once semantics via idempotent producer\
+  \ + `transaction-coordinator/`; Streams state store checkpoint recovery.\n\n\
+  **EXTENSIBILITY:** Connect plugin SPI with isolated classloaders; Streams\
+  \ Processor SPI; authorizer and quota plugin interfaces; 16 import-control\
+  \ files preserve internal extensibility boundaries.\n\n**THROUGHPUT:** Zero-copy\
+  \ sendfile for consumer fetch; batch compression (gzip/Snappy/LZ4/Zstd);\
+  \ producer batching with linger.ms; sequential log I/O.\n\n**OBSERVABILITY:**\
+  \ JMX via Yammer Metrics; client-side telemetry push (KIP-714); configurable\
+  \ log4j2; Connect REST API for connector status.\n\n**EVOLVABILITY:**\
+  \ Scala core/ → Java server/ migration with import-control one-way direction;\
+  \ @ApiVersion protocol versioning on all RPC message types; KRaft removes\
+  \ ZooKeeper operational dependency; compile-time boundary enforcement enables\
+  \ safe internal refactoring."

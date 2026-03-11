@@ -4,7 +4,7 @@ use_type: production
 source: Discovered
 source_url: https://github.com/killbill/killbill
 project_url: https://github.com/killbill/killbill
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-07T05:03:04Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
@@ -18,42 +18,111 @@ architecture_styles:
 - Microkernel
 - Modular Monolith
 classification_status: classified
-review_notes: 'Kill Bill is a classic example of a **Modular Monolith** that leverages
-  a **Microkernel (Plugin)** architecture for extensibility and an **Event-Driven**
-  approach for internal component coordination.
+one_line_summary: Open-source subscription billing and payments platform with OSGi
+  plugin architecture for payment gateways, catalog, invoice, and currency providers.
+review_notes: 'Kill Bill is a textbook **Microkernel (Plugin)** architecture wrapped
+  in a **Modular Monolith** deployment model.
 
 
-  ### 1. Primary Style: Modular Monolith
-
-  While the README mentions that the project "does not use a monolithic repository,"
-  this refers to the broader Kill Bill ecosystem (client libraries, documentation,
-  etc.). The core platform itself, contained in this repository, is structured as
-  a Modular Monolith:
-
-  - **Unified Build and Deployment:** The root `pom.xml` defines a single multi-module
-  Maven project. The `profiles/killbill/pom.xml` shows that all functional modules
-  (`account`, `catalog`, `invoice`, `payment`, `subscription`, etc.) are bundled into
-  a single `.war` file (Web Application Archive) for deployment.
-
-  - **Enforced Boundaries via API Module:** The `api/` directory contains the Java
-  interfaces and constants that define the contracts between modules. By separating
-  interfaces into a dedicated module, the system ensures that functional modules interact
-  through defined APIs rather than reaching into each other''s implementation details.
-
-  - **Shared Infrastructure:** All modules share a common infrastructure (Guice for
-  DI, Shiro for security, and a unified `jaxrs` layer for the REST API), which is
-  typical of a monolith rather than a microservices architecture where such concerns
-  would be decentralized.
+  ### 1. Primary Style: Microkernel (Plugin)
 
 
-  ### 2. Secondary Style: Microkernel (Plugin)
+  The entire platform is organized around OSGi-backed plugin registries. Each integration
+  domain has a dedicated `OSGIServiceRegistration<T>` registry that external OSGi
+  bundles register with at runtime:
 
-  The system is designed to be highly extensible through a plugin architecture (referred
-  to in the documentation as the "platform").'
+
+  - `DefaultPaymentProviderPluginRegistry implements OSGIServiceRegistration<PaymentPluginApi>`
+  — payment gateways
+
+  - `DefaultPaymentControlProviderPluginRegistry` — payment routing/retry control
+
+  - `DefaultCatalogProviderPluginRegistry` — external catalog sources
+
+  - `DefaultCurrencyProviderPluginRegistry` — currency conversion rate providers
+
+  - `DefaultUsageProviderPluginRegistry` — usage data aggregators
+
+
+  The `api/` module defines all plugin API contracts (`PaymentPluginApi`, `InvoicePluginApi`,
+  `CatalogPluginApi`, `CurrencyPluginApi`, `UsagePluginApi`) with no implementation,
+  enabling external plugins to depend only on the stable contract layer. 45 non-test
+  source files import from `org.killbill.billing.osgi.api.*`. The payment module uses
+  a state machine DSL (`PaymentStates.xml`) to route payment operations through plugin
+  invocations at every state transition via `PluginControlPaymentAutomatonRunner`.
+
+
+  ### 2. Secondary Style: Modular Monolith
+
+
+  All 16 modules assemble into a single WAR via `profiles/killbill/pom.xml` (`<packaging>war</packaging>`).
+  `KillbillServerModule` installs all 13 domain Guice modules into a single injector.
+  Cross-module communication uses direct Guice-injected `api/` interface calls and
+  an in-process database-backed `PersistentBus` (84 non-test files reference the bus
+  infrastructure). All modules share a single JDBI connection pool, EhCache/Redis
+  cache, Apache Shiro security manager, and notification queue service.'
 review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.85
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: OSGI-based plugin framework with 135+ plugin integration
-  points, multiple plugin registries, deployed as single WAR with 15 domain modules
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+classification_reasoning: OSGi-backed plugin registry infrastructure (`OSGIServiceRegistration<T>`)
+  across 6 integration domains (payment, catalog, currency, usage, invoice, notification);
+  `api/` module as explicit plugin contract layer; per-domain plugin registries with
+  runtime register/unregister/lookup; payment state machine dispatching to control
+  plugins at every transition; single WAR assembly via profiles/killbill/pom.xml;
+  single Guice injector wiring all 13 domain modules; in-process PersistentBus for
+  cross-module events.
+key_technologies:
+- Java
+- Guice
+- Apache Shiro
+- JDBI v2
+- OSGi
+- killbill-automaton (state machine DSL)
+- EhCache
+- Redis
+- JAX-RS / Jersey
+- Swagger
+- MySQL / PostgreSQL
+quality_attributes:
+- Extensibility
+- Multi-tenancy
+- Reliability
+- Auditability
+- Modularity
+- Security
+- Observability
+- Scalability
+- Correctness
+notable_strengths:
+- OSGi plugin registry with per-domain extension points for payment gateways, catalog,
+  currency, usage, and notification; 135+ published ecosystem plugins
+- First-class multi-tenancy via InternalCallContext carrying tenant context through
+  every operation; per-tenant catalog, plugin config, and notification callbacks
+- Database-backed PersistentBus and NotificationQueue ensure event delivery survives
+  process restarts
+- Payment state machine (PaymentStates.xml, RetryStates.xml) with plugin-driven routing
+  and automatic retry logic
+- api/ module as isolated plugin contract layer enabling external plugins to depend
+  only on stable interfaces
+notable_gaps:
+- Single WAR deployment limits independent scaling of billing vs. payment subsystems
+- JDBI v2 (not v3/JOOQ); Swagger 1.6 (not OpenAPI 3)
+- OSGi plugin isolation is implemented via custom registry abstraction, not a full
+  OSGi container — plugins share the same JVM classloader context in practice
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+architecture_qualifiers:
+- type: data-pattern
+  value: event-sourcing
+  note: Internal PersistentBus emits typed BusInternalEvent for every domain state
+    change (subscription transitions, invoice creation, payment state changes); BeatrixListener
+    translates to external ExtBusEvent for plugin consumers
+- type: distribution-model
+  value: primary-secondary
+  note: Multi-node cluster support via DefaultKillbillNodesService with database-backed
+    node registry; broadcast service for cluster-wide plugin management

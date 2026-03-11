@@ -4,108 +4,126 @@ use_type: production
 source: Discovered
 source_url: https://github.com/keycloak/keycloak
 project_url: https://github.com/keycloak/keycloak
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:44:11Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Identity Management
-language: Java/Kotlin
+language: Java
 languages:
-- Java/Kotlin
+- Java
 - TypeScript
 - JavaScript
 architecture_styles:
 - Microkernel
-- Layered
+- Modular Monolith
 classification_status: classified
-review_notes: 'Keycloak is a classic example of a **Microkernel (Plugin)** architecture.
-  While it is delivered as a single deployable unit (typically via the Quarkus distribution
-  found in `./quarkus`), its entire internal design centers around a "Service Provider
-  Interface" (SPI) model.
-
-
-  ### 1. Primary Style: Microkernel (Plugin)
-
-  The core of Keycloak is a minimal "kernel" that defines how to load, configure,
-  and manage the lifecycle of various components.
-
-  - **Evidence:** The presence of `./server-spi` and `./server-spi-private` at the
-  root level indicates that the system''s contract (the SPIs) is decoupled from the
-  implementations.
-
-  - **Extension Points:** Keycloak is famous for its extensibility. Almost every internal
-  function—authentication flows, database persistence (JPA/NoSQL), user federation
-  (LDAP/Active Directory), and even protocol handling (SAML/OIDC)—is implemented as
-  a "Provider" that plugs into the defined SPIs.
-
-  - **Runtime Discovery:** It uses Java’s `ServiceLoader` mechanism or its own custom
-  provider factory to discover and load JARs at runtime, allowing users to drop custom
-  logic into the `/providers` directory without altering the core codebase.
-
-
-  ### 2. Secondary Style: Modular Monolith
-
-  Despite its extensibility, the repository is managed and deployed as a **Modular
-  Monolith**.'
+one_line_summary: Open-source IAM platform (OAuth2/OIDC/SAML) built on a Service Provider Interface kernel where all capabilities — authentication, storage, cryptography, protocols — are loaded as plugins at runtime.
+review_notes: "Keycloak is the canonical textbook example of a **Microkernel** architecture.\
+  \ The entire system is organized around a Service Provider Interface (SPI) mechanism:\
+  \ a three-interface kernel contract (`Provider`, `ProviderFactory`, `Spi`) in `server-spi/`\
+  \ anchors 92+ named extension points in `server-spi-private/`, all discovered at\
+  \ runtime via `java.util.ServiceLoader` from 200 `META-INF/services/` registrations.\
+  \ Every major capability — authentication flows, user storage, cryptography, login\
+  \ protocols, event listeners, UI themes, vault integration — is a named SPI with\
+  \ pluggable implementations. The `isInternal()` flag formally tiers extension points\
+  \ into internal-only and externally extensible (e.g., `UserStorageProviderSpi.isInternal()\
+  \ = false`). Despite this extensibility, the system is deployed as a single Quarkus\
+  \ server process (one Dockerfile, one entrypoint `kc.sh`, 31 Maven modules under\
+  \ a single version), making **Modular Monolith** the correct secondary style. The\
+  \ previous secondary classification of Layered is superseded: layering exists within\
+  \ individual modules but is not the dominant system-level organizing principle."
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:33:07Z'
-classification_reasoning: "## Analysis\n\nKeycloak exhibits a **Microkernel (Plugin)\
-  \ Architecture** as its primary architectural style, with secondary **Layered**\
-  \ characteristics.\n\n### Primary Evidence: Microkernel (Plugin) Architecture\n\n\
-  The codebase implements a sophisticated plugin system centered around the **Service\
-  \ Provider Interface (SPI)** pattern:\n\n**Core Plugin Infrastructure:**\n- `server-spi/`\
-  \ module defines the fundamental interfaces (`Provider.java`, `ProviderFactory.java`,\
-  \ `Spi.java`)\n- `server-spi-private/` contains 100+ SPI definitions (e.g., `AuthenticatorSpi.java`,\
-  \ `UserStorageProviderSpi.java`, `CredentialSpi.java`)\n- Each SPI defines a contract\
-  \ (`Provider` interface) and a factory (`ProviderFactory` interface)\n\n**Plugin\
-  \ Discovery Mechanism:**\n```java\n// DefaultProviderLoader.java - Uses Java ServiceLoader\
-  \ for discovery\nfor (Spi spi : ServiceLoader.load(Spi.class, classLoader)) {\n\
-  \    list.add(spi);\n}\n```\n\nProviders are registered via `META-INF/services/`\
-  \ files. For example:\n- `federation/ldap/src/main/resources/META-INF/services/org.keycloak.storage.UserStorageProviderFactory`\
-  \ registers the LDAP storage provider\n- Over 164 service files across the codebase\
-  \ register various providers\n\n**Runtime Plugin Loading:**\nThe `ProviderManager`\
-  \ and `DefaultKeycloakSessionFactory` classes handle:\n- Discovery and registration\
-  \ of all SPIs at startup\n- Loading provider factories via ServiceLoader\n- Dependency\
-  \ ordering between providers (`dependsOn()` method)\n- Lifecycle management (`init()`,\
-  \ `postInit()`, `close()`)\n\n**Extensibility Points:**\nThe architecture provides\
-  \ numerous extension points (non-exhaustive):\n- Authentication flows (`AuthenticatorSpi`)\n\
-  - User storage backends (`UserStorageProviderSpi` - LDAP, Kerberos, SSSD federation)\n\
-  - Credential providers (`CredentialSpi`)\n- Cryptographic providers (`SignatureSpi`,\
-  \ `HashSpi`)\n- Event listeners (`EventListenerSpi`)\n- Protocol mappers (`ProtocolMapperSpi`)\n\
-  - Theme providers (`ThemeSpi`)\n- Vault providers (`VaultSpi`)\n- Identity providers\
-  \ (`IdentityProviderSpi`)\n\n**Example: User Storage Plugin Contract**\n```java\n\
-  // UserStorageProviderSpi.java\npublic class UserStorageProviderSpi implements Spi\
-  \ {\n    @Override\n    public boolean isInternal() {\n        return false;  //\
-  \ External implementations allowed\n    }\n    @Override\n    public Class<? extends\
-  \ Provider> getProviderClass() {\n        return UserStorageProvider.class;\n  \
-  \  }\n}\n```\n\nThe `isInternal()` flag on each SPI distinguishes between internal\
-  \ (built-in only) and external (extensible) extension points.\n\n### Secondary Evidence:\
-  \ Layered Architecture\n\nThe codebase also exhibits layering:\n- **SPI Layer**:\
-  \ `server-spi/` and `server-spi-private/` define stable contracts\n- **Model Layer**:\
-  \ `model/` contains data access abstractions (JPA, Infinispan, storage)\n- **Services\
-  \ Layer**: `services/` implements business logic and default providers\n- **REST\
-  \ Layer**: `rest/` provides HTTP endpoints\n\nHowever, the module structure reveals\
-  \ that plugin extensibility is the primary organizational principle:\n```\nkeycloak/\n\
-  ├── server-spi/          # Public plugin contracts\n├── server-spi-private/  # Internal\
-  \ plugin contracts\n├── services/            # Default implementations\n├── federation/\
-  \          # User federation plugins (ldap, kerberos, sssd)\n├── crypto/       \
-  \       # Crypto provider plugins\n└── model/               # Storage backend plugins\
-  \ (jpa, infinispan)\n```\n\n### What This Is NOT\n\n- **Not Microservices**: Single\
-  \ deployable application (Quarkus server), one Dockerfile, one distribution. No\
-  \ independent services.\n- **Not Event-Driven**: No message broker configurations\
-  \ or event-sourced architecture. Events exist but are not the primary communication\
-  \ pattern.\n- **Not Domain-Driven Design**: No bounded context organization, no\
-  \ aggregates/entities/value objects pattern.\n- **Not Hexagonal**: Ports and adapters\
-  \ pattern is not used; the SPI pattern is different (plugin-based rather than adapter-based).\n\
-  \n### Deployment Characteristics\n\nThe `quarkus/container/Dockerfile` confirms\
-  \ a single-server deployment model:\n```dockerfile\nENTRYPOINT [ \"/opt/keycloak/bin/kc.sh\"\
-  \ ]\n```\n\n### Conclusion\n\nKeycloak's architecture is a textbook example of a\
-  \ **Microkernel (Plugin) system**: a minimal core server that discovers and loads\
-  \ functionality through a well-defined SPI mechanism. The entire system is designed\
-  \ around extensibility - virtually every major feature can be replaced or extended\
-  \ by implementing provider interfaces and registering them via Java's ServiceLoader\
-  \ mechanism. The public vs. private SPI distinction demonstrates intentional API\
-  \ stability management for third-party extensions."
+classification_method: deep-analysis
+classification_confidence: 0.97
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+classification_reasoning: "## Analysis\n\nKeycloak exhibits a **Microkernel** architecture\
+  \ as its primary style and **Modular Monolith** as its secondary style.\n\n### Primary\
+  \ Evidence: Microkernel Architecture\n\n**Three-interface kernel contract (`server-spi/`):**\n\
+  - `Provider.java` — minimal interface (only `close()`) that every plugin must implement\n\
+  - `Spi.java` — defines a named extension point: `isInternal()`, `getName()`, `getProviderClass()`,\
+  \ `getProviderFactoryClass()`\n- `ProviderFactory.java` — manages plugin lifecycle:\
+  \ `init()`, `postInit()`, `close()`, `create(KeycloakSession)`, and `dependsOn()`\
+  \ for topological initialization ordering\n\n**92 named extension points in `server-spi-private/`:**\n\
+  AuthenticatorSpi, ClientAuthenticatorSpi, FormAuthenticatorSpi, RequiredActionSpi,\
+  \ UserStorageProviderSpi, LoginProtocolSpi, IdentityProviderSpi, EventListenerSpi,\
+  \ ThemeSpi, SignatureSpi, HashSpi, CekManagementSpi, ClusterSpi, VaultSpi, TracingSpi,\
+  \ ClientModelMapperSpi, and 76 more.\n\n**Plugin discovery via `java.util.ServiceLoader`:**\n\
+  `ProviderManager.java` uses `ServiceLoader.load(ProviderLoaderFactory.class, ...)` to\
+  \ discover all provider loaders. Providers register themselves via 200 `META-INF/services/`\
+  \ files (non-test). `DefaultKeycloakSessionFactory.init()` iterates all discovered\
+  \ SPIs and their registered factories at startup.\n\n**`isInternal()` stability tiering:**\n\
+  `UserStorageProviderSpi.isInternal() = false` marks the primary third-party extension\
+  \ point. Internal SPIs (`AuthenticatorSpi.isInternal() = true`, `LoginProtocolSpi.isInternal()\
+  \ = true`) are reserved for built-in implementations. This is formal API stability\
+  \ management for a third-party plugin ecosystem.\n\n**`dependsOn()` topological ordering:**\n\
+  `ProviderFactory.dependsOn()` returns a set of `Provider` classes that must be initialized\
+  \ before this factory's `postInit()` is called. The kernel manages this ordering —\
+  \ a feature that only exists in mature plugin systems with cross-plugin dependencies.\n\
+  \n**Built-in plugin implementations (reference implementations):**\n- `federation/ldap/`\
+  \ — LDAP/AD user storage provider\n- `federation/kerberos/` — Kerberos federation\
+  \ provider\n- `federation/sssd/` — SSSD federation provider\n- `crypto/` — BouncyCastle\
+  \ and FIPS 140-2 cryptographic providers\n- `model/jpa/` — JPA-based storage provider\n\
+  - `model/infinispan/` — Infinispan session cache provider\n- `services/` — default\
+  \ implementations of ~149 provider interfaces\n\n### Secondary Evidence: Modular\
+  \ Monolith\n\nDespite the extensibility architecture, Keycloak is a single deployable\
+  \ unit:\n- Single Dockerfile: `quarkus/container/Dockerfile` with `ENTRYPOINT [\"\
+  /opt/keycloak/bin/kc.sh\"]`\n- Single Maven build: 31 modules all under one parent\
+  \ POM with a unified version\n- Single Quarkus process: `KeycloakApplication` (JAX-RS)\
+  \ hosts all endpoints (Admin REST, OIDC, SAML, Account Console, Admin Console) in\
+  \ one JVM\n- In-process provider dispatch: `DefaultKeycloakSession` holds a `Map<List<String>,\
+  \ Provider>` and resolves all providers by SPI type + ID — no network hop between\
+  \ components\n- Build-time wiring: `quarkus/deployment/KeycloakProcessor` performs\
+  \ Quarkus augmentation, statically wiring discovered providers into the final application\
+  \ artifact\n\n### What This Is NOT\n\n- **Not Microservices**: Single binary, single\
+  \ Dockerfile, single process. The Kubernetes Operator is a separate process but it\
+  \ manages Keycloak — it is not a Keycloak subsystem.\n- **Not Layered (primary)**:\
+  \ Layering exists within modules (SPI layer, service layer, REST layer) but the primary\
+  \ organizing principle across the system is the plugin extension point, not unidirectional\
+  \ layer dependencies.\n- **Not Event-Driven**: EventListenerSpi exists for audit\
+  \ events but is a plugin capability, not the primary inter-component communication\
+  \ mechanism.\n- **Not Hexagonal**: SPI is plugin-based (providers plug into a named\
+  \ registry), not adapter-based (infrastructure adapts to a domain port).\n- **Not\
+  \ Pipeline**: Authentication flows are stateful directed graphs, not linear pipelines\
+  \ with typed stage contracts.\n\n### Conclusion\n\nKeycloak demonstrates a textbook\
+  \ Microkernel architecture: a minimal three-interface kernel that discovers and dispatches\
+  \ all functionality through 92+ named extension points, loaded at runtime via Java\
+  \ ServiceLoader from 200 provider registrations. The entire system is deployed as\
+  \ a single Quarkus server (Modular Monolith), distinguishing it from microservices\
+  \ while preserving deep runtime extensibility."
+key_technologies:
+- Java
+- Quarkus
+- Infinispan
+- JPA/Hibernate
+- JAX-RS
+- OAuth 2.0
+- OpenID Connect
+- SAML 2.0
+- React (Admin UI / Account UI)
+- Kubernetes Operator SDK
+quality_attributes:
+- Extensibility
+- Security
+- Scalability
+- Availability
+- Maintainability
+- Portability
+- Observability
+- Operability
+notable_strengths:
+- "92+ named SPIs covering every major capability — the most complete plugin kernel in the IAM space"
+- "`isInternal()` API stability tiering formally distinguishes public extension points from internal ones"
+- "`dependsOn()` topological initialization ordering manages inter-plugin dependencies"
+- "FIPS 140-2 compliance achieved entirely through the crypto provider plugin, not a forked codebase"
+- "Kubernetes Operator for automated lifecycle management"
+notable_gaps:
+- "Single-process deployment limits horizontal scalability to session replication (Infinispan), not independent service scaling"
+- "Plugin classloading isolation is limited compared to OSGi-based systems — providers share the JVM classpath"
+- "No formal plugin versioning or compatibility matrix for third-party providers across Keycloak major versions"
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false

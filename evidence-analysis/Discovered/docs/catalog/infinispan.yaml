@@ -4,7 +4,7 @@ use_type: production
 source: Discovered
 source_url: https://github.com/infinispan/infinispan
 project_url: https://github.com/infinispan/infinispan
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T06:02:51Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
@@ -16,45 +16,91 @@ languages:
 - Python
 architecture_styles:
 - Modular Monolith
-- Layered
+- Space-Based
+- Microkernel
 classification_status: classified
-review_notes: 'Infinispan is primarily structured as a **Microkernel (Plugin)** architecture.
-  The core of the system provides the fundamental distributed key/value engine, while
-  a vast array of functionalities are implemented through a pluggable module system.
-  This is evidenced by:
-
-
-  1.  **SPI and Archetypes:** The presence of `commons/spi` and an `archetypes/` directory
-  (containing `archetypes/custom-module`, `archetypes/store`, and `archetypes/server-task`)
-  indicates a formal contract for external and internal extensions. Developers can
-  implement "stores" or "tasks" that plug into the core engine.
-
-  2.  **Extensible Server Core:** The `server/` directory shows a core runtime (`server/core`,
-  `server/runtime`) that is extended by multiple protocol modules such as `server/hotrod`,
-  `server/rest`, `server/memcached`, and `server/resp`. These act as protocol-specific
-  "plugins" to the same underlying data grid.
-
-  3.  **Core/Commons Separation:** The repository strictly separates the absolute
-  `core` from `commons`, `tasks`, and various integration modules (like `hibernate/`,
-  `quarkus/`), allowing the system to boot as a minimal kernel and load only necessary
-  components.
-
-
-  As an "In-Memory Distributed Database," it also natively embodies a **Space-Based**
-  architecture. The code focuses on partitioning data across nodes (sharding), handling
-  high availability through replication, and providing a "tuple space" (the Key/Value
-  store) where processing moves to the data.
-
-
-  While the project is a huge repository, it is essentially a **Modular Monolith**
-  in terms of its development units; although it can be deployed as an independent
-  server, many of these modules (`core`, `lock`, `anchored-keys`) are compiled into
-  JARs intended to be used together or embedded into a single JVM process, with clearly
-  defined dependency boundaries enforced by Maven `pom.xml` files.'
+one_line_summary: Red Hat's distributed in-memory data grid — Modular Monolith of 55+ @InfinispanModule-annotated Maven modules, with Space-Based cluster topology (consistent-hash segments, elastic rebalancing, XSite replication) and Microkernel extensibility (NonBlockingStore SPI, AsyncInterceptorChain, pluggable protocol servers).
 review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.85
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: 60+ modules with API/Commons/Core separation, interceptor
-  chain pattern, plugin-style persistence backends
+classification_method: deep-analysis
+classification_confidence: 0.93
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+classification_reasoning: >
+  Infinispan is a Modular Monolith as its primary style: 55+ Maven modules wired by a
+  compile-time @InfinispanModule annotation processor and a ModuleLifecycle SPI, all
+  building into a single distribution artifact. Module boundaries are enforced at
+  compile time — each module declares its requiredModules/optionalModules, and the
+  component-processor validates the graph. The API / Commons / Core three-tier
+  abstraction stack (api/ → commons/ → core/) enforces upward-only dependencies.
+  Space-Based is the secondary style: at runtime each cluster node owns a consistent-hash-
+  assigned slice of a segmented keyspace (DefaultConsistentHash routing table),
+  executes operations locally against its segments (DistributionManager), and
+  participates in elastic rebalancing via StateConsumerImpl/StateProviderImpl. JGroups
+  provides cluster membership; jgroups-raft provides Raft consensus for counters and
+  locks. Partition handling (PartitionHandling.java) exposes the CP/AP trade-off dial.
+  Cross-site replication (XSite / IRAC) spans geographically separate clusters.
+  Microkernel is the tertiary style: the NonBlockingStore SPI defines a formal plugin
+  contract for swappable persistence backends (JDBC, RocksDB, Remote, SQL); the
+  AsyncInterceptorChain is the command-pipeline extension point used by query, transaction,
+  and state-transfer modules; and the server tier loads five protocol modules (HotRod,
+  REST, Memcached, RESP, Router) as named @InfinispanModule plugins behind a single-port
+  ALPN/SNI router. Three Maven archetypes (custom-module, store, server-task) formalize
+  the third-party extension contract.
+review_notes: >
+  Infinispan is primarily structured as a Modular Monolith: 55+ Maven modules each
+  annotated with @InfinispanModule and validated by a compile-time annotation processor,
+  all building into a single deployable distribution. The API/Commons/Core three-tier
+  abstraction enforces upward-only module dependencies. At runtime the system is a
+  Space-Based data grid: each node owns consistent-hash-assigned segments, executes
+  operations locally, and participates in elastic rebalancing and optional XSite
+  cross-datacenter replication. A Microkernel layer governs extensibility via the
+  NonBlockingStore SPI (four production backends), AsyncInterceptorChain (module injection
+  of command interceptors), and five protocol-server plugins loaded by server/runtime.
+  Three Maven archetypes formalize the third-party plugin authoring contract.
+key_technologies:
+- Java 17+
+- JGroups (cluster transport and membership)
+- jgroups-raft (Raft consensus)
+- Netty (non-blocking I/O)
+- Lucene (full-text search / query)
+- RocksDB (embedded persistence)
+- Protobuf / ProtoStream (serialization)
+- RxJava 3 (reactive streams)
+- CDI / Quarkus integration
+- Maven multi-module build
+quality_attributes:
+- High Availability (configurable backup owners, partition handling)
+- Horizontal Scalability (elastic rebalancing, consistent-hash partitioning)
+- Fault Tolerance (replica copies, split-brain protection, IRAC cross-site)
+- Low Latency (in-memory, local execution against owned segments)
+- Extensibility (NonBlockingStore SPI, AsyncInterceptorChain, @InfinispanModule)
+- Multi-Protocol Support (HotRod, REST, Memcached, RESP in one server process)
+- Geographic Distribution (XSite / IRAC active-active and active-passive replication)
+- Embeddability (all modules can run in-process without the server tier)
+notable_strengths:
+- Compile-time module graph validation via @InfinispanModule annotation processor
+- NonBlockingStore SPI enforces fully async persistence with Characteristic declarations
+- Single-port ALPN/SNI router allows all protocols on one listener
+- Topology-aware consistent hashing ensures replicas span racks and datacenters
+- IRAC provides conflict-tolerant async cross-site replication
+- Three Maven archetypes lower the barrier for third-party extensions
+notable_gaps:
+- No ArchUnit or equivalent automated enforcement of upward-only layer dependencies (unlike Hazelcast)
+- AsyncInterceptorChain modification at runtime is marked @Experimental
+- NonBlockingStore SPI is also @Experimental despite being the only persistence contract
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+architecture_qualifiers:
+- type: distribution-model
+  value: peer-to-peer
+  protocol: JGroups
+  note: All cluster nodes are peers; no dedicated master/coordinator beyond topology manager election
+- type: consistency-model
+  value: configurable
+  note: AP by default (ALLOW_READ_WRITES); CP mode available via PartitionHandling.DENY_READ_WRITES and jgroups-raft for counters/locks
+- type: deployment-model
+  value: embedded-or-server
+  note: Can run embedded in a JVM (no server tier required) or as a standalone server with all protocol modules
