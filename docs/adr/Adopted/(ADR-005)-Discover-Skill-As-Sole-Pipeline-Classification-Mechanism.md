@@ -7,6 +7,7 @@ created: 2026-03-09
 last-updated: 2026-03-10
 linked-epics:
   - EPIC-012
+  - EPIC-013
 linked-specs:
   - SPEC-024
 depends-on:
