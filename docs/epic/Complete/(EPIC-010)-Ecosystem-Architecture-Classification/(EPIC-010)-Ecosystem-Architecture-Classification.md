@@ -1,7 +1,7 @@
 ---
 title: "Ecosystem-Level Architecture Classification"
 artifact: EPIC-010
-status: Active
+status: Complete
 author: cristos
 created: 2026-03-06
 last-updated: 2026-03-10
