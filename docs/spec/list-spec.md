@@ -21,7 +21,7 @@
 | SPEC-024 | Deep-Analysis Classification Campaign | All 184 catalog entries classified via clean-slate deep-analysis: 173 GLM-5 native tool-calling + 11 Sonnet subagent fallback. | 2026-03-08 | cdfd4ea7 |
 | SPEC-025 | Ecosystem Catalog Schema | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml. Foundation for EPIC-010. | 2026-03-10 | 7b733d0b |
 | SPEC-026 | Ecosystem Curation | Curate 10+ ecosystems, add missing member repos, deep-validate emergent architecture. Depends on SPEC-025. | 2026-03-10 | 50b19d24 |
-| SPEC-027 | Ecosystem Validation and Reporting | Validation, quality report, frequency analysis, and index updates for ecosystem entries. Pipeline classification mechanics deferred to ADR-005. Depends on SPEC-025. | 2026-03-10 | — |
+| SPEC-027 | Ecosystem Validation and Reporting | Validation, quality report, frequency analysis, and index updates for ecosystem entries. Pipeline classification mechanics deferred to ADR-005. Depends on SPEC-025. | 2026-03-10 | ddab6b42 |
 
 ## Active
 

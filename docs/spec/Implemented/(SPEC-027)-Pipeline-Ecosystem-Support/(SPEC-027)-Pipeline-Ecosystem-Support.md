@@ -86,3 +86,4 @@ The catalog validation, quality reporting, and frequency analysis tools were bui
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-10 | 46ab06b | Initial creation from EPIC-010 decomposition |
+| Implemented | 2026-03-10 | ddab6b42 | Validation, reporting, frequency, and index updates for ecosystem entries |
