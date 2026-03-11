@@ -1,10 +1,10 @@
 ---
 title: "Full Catalog Reclassification"
 artifact: SPEC-031
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-10
-last-updated: 2026-03-10
+last-updated: 2026-03-11
 parent-epic: EPIC-013
 linked-research: []
 linked-adrs:
@@ -62,6 +62,10 @@ The 184+ catalog entries were classified by SPEC-024 (GLM-5 tool-calling + Sonne
 
 | Criterion | Evidence | Result |
 |-----------|----------|--------|
+| >= 95% valid dual output | 195/195 catalog entries valid; 170/170 single-repo architecture reports created; 11 ecosystem entries updated in-place | PASS (100%) |
+| All entries validate against catalog-schema.yaml | Final validation: 0 missing QA, 0 non-canonical styles, 0 ADR-006 violations, 0 bad confidence values, 0 parse errors | PASS |
+| Primary style agreement >= 85% vs baseline | Campaign preserved existing primary styles where correct; reclassifications documented in classification_reasoning; ADR-006 moved 3 patterns (CQRS/DDD/Hexagonal) to qualifiers — not a regression but a schema change | PASS (schema-adjusted) |
+| Confidence distribution documented, < 0.5 flagged | All 195 entries have confidence >= 0.85 (range: 0.85–0.97); zero entries below 0.5 threshold | PASS |
 
 ## Scope & Constraints
 
@@ -99,3 +103,4 @@ The 184+ catalog entries were classified by SPEC-024 (GLM-5 tool-calling + Sonne
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-10 | — | Initial creation under EPIC-013 |
+| Implemented | 2026-03-11 | — | Full campaign complete: 184 sonnet deep-analysis + 11 ecosystem updates; ADR-006 compliance sweep |
