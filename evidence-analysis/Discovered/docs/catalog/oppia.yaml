@@ -1,44 +1,97 @@
 project_name: oppia
-scope: application
+scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/oppia/oppia
 project_url: https://github.com/oppia/oppia
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T05:07:06Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Education
-language: TypeScript
+domain: Education / E-Learning
+language: Python
 languages:
-- TypeScript
 - Python
+- TypeScript
 - JavaScript
+- HTML
+- CSS
 architecture_styles:
 - Layered
 - Modular Monolith
 classification_status: classified
-review_notes: "The repository follows a clean, highly structured architecture that\
-  \ strictly separates business logic from infrastructure concerns, primarily aligning\
-  \ with **Hexagonal Architecture** (Ports and Adapters) and **Domain-Driven Design\
-  \ (DDD)** principles.\n\n### Core Evidence of Hexagonal Architecture\nThe most defining\
-  \ characteristic of this codebase is the `core/platform/` directory. This acts as\
-  \ an \"Adapters\" layer. \n1.  **Abstraction Layer**: `core/platform/models.py`\
-  \ defines a `Platform` interface that abstracts away Google App Engine (GAE), Redis,\
-  \ Firebase, and other infrastructure-specific services.\n2.  **Dynamic Swapping\
-  \ (Ports)**: Methods like `import_email_services` and `import_cache_services` check\
-  \ environment variables (`constants.DEV_MODE`, `constants.EMULATOR_MODE`) to decide\
-  \ whether to load a \"mock\" dev-mode implementation or a production cloud service\
-  \ (e.g., `mailgun_email_services` vs. `dev_mode_email_services`).\n3.  **Encapsulated\
-  \ Storage**: The domain logic does not import storage models directly. Instead,\
-  \ it uses the platform layer to fetch the appropriate storage classes, effectively\
-  \ isolating the domain from the underlying Datastore/SQL implementation.\n\n###\
-  \ Layered and DDD Influence\nThe repository is organized into distinct horizontal\
-  \ layers:"
-review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.92
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: Single Django/Angular deployment with strict layers (controller-service-domain-storage)
-  on Google App Engine
+one_line_summary: Open-source interactive learning platform structured as a four-layer
+  Python/GAE monolith (controllers -> domain -> storage -> platform adapters) with
+  a large Angular SPA frontend and Apache Beam batch jobs for background processing.
+classification_method: deep-analysis
+classification_confidence: 0.91
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Testability
+- Maintainability
+- Extensibility
+- Deployability
+- Scalability
+- Observability
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Style:\
+  \ Layered\n\n**LAYERED (primary, 0.91):** The `core/` directory enforces a four-layer\
+  \ horizontal hierarchy documented explicitly in `core/README.md`: (1) **controllers**\
+  \ — 61 webapp2 HTTP handler source files, one per feature area (editor, reader,\
+  \ admin, blog, classroom, contributor_dashboard, etc.); (2) **domain** — 118 source\
+  \ files structured as paired `*_domain.py` (entities/value objects) and `*_services.py`\
+  \ (business logic) for every major aggregate (exploration, skill, topic, story,\
+  \ question, suggestion, user, voiceover); (3) **storage** — one `gae_models.py`\
+  \ per aggregate backed by Google Cloud Datastore; (4) **platform** — thin cloud\
+  \ service adapters under `core/platform/` for datastore, taskqueue, cache, auth,\
+  \ email, bulk_email, search, secrets, speech_synthesis, translate, and GCS storage.\
+  \ The `models.Registry` singleton in `core/platform/models.py` provides a dependency-injection\
+  \ shim so all upper layers call through named registry methods (`import_datastore_services()`,\
+  \ `import_taskqueue_services()`, etc.) rather than importing cloud SDKs directly.\
+  \ Domain objects are documented as \"agnostic of how the objects they represent\
+  \ are stored\" (`exp_domain.py` docstring), enforcing strict downward dependency.\
+  \ The entire backend is deployed as a single GAE application (`app_dev.yaml`: `runtime:\
+  \ python310`, `entrypoint: gunicorn … main:app`) with all routes declared in `main.py`.\n\
+  \n### Secondary Style: Modular Monolith\n\n**MODULAR MONOLITH (secondary, 0.78):**\
+  \ Within the single deployment unit, the codebase is organized into large coherent\
+  \ vertical feature modules (exploration, topic, skill, story, question, blog, classroom,\
+  \ contributor dashboard, voiceover). Each module has co-located controllers, domain\
+  \ services, domain objects, and storage models. The `extensions/` directory adds\
+  \ a lightweight plugin registry for interaction types (`interaction_registry.py`),\
+  \ rich text components (`rte_component_registry.py`), and answer visualizations,\
+  \ creating pluggable feature modules without service decomposition. The Angular\
+  \ frontend (`core/templates/`, 1,349 TypeScript source files) is itself modular\
+  \ by page (40+ page modules) with shared services, components, and directives.\n\
+  \n### What Was Rejected and Why\n\n**Not Microservices:** The entire backend is\
+  \ a single GAE deployment unit serving all routes. Controllers, domain services,\
+  \ and storage share one codebase and one Cloud Datastore instance. Google Cloud\
+  \ Tasks queues are intra-application async task dispatchers, not inter-service communication\
+  \ channels between independently deployed services.\n\n**Not Event-Driven:** `core/domain/event_services.py`\
+  \ defines `BaseEventHandler` for recording learner interaction events, but these\
+  \ dispatch synchronously within the same process to `stats_services`. The frontend\
+  \ `EventBusService` is an intra-SPA RxJS Subject — not a system-level message broker.\
+  \ There is no Kafka, Google Pub/Sub, or asynchronous event backbone coordinating\
+  \ system components.\n\n**Not Microkernel:** The `extensions/` interaction plugin\
+  \ system and platform adapter registry exist, but extension points are narrow and\
+  \ domain-specific (limited to interaction types, RTE components, value generators).\
+  \ Adapters implement a fixed interface rather than a dynamic plugin lifecycle with\
+  \ a microkernel core managing plugin contracts.\n\n**Not CQRS or DDD:** Domain objects\
+  \ and services are organized by feature area but do not enforce DDD bounded contexts,\
+  \ explicit aggregate roots with invariants, domain events, or separate read/write\
+  \ models.\n\n### Quality Attributes Evidence\n\n**TESTABILITY:** 61 controller test\
+  \ files, 118 domain test files; co-located `*_test.py` pattern throughout; pytest\
+  \ + jasmine test suites; test utilities in `core/jobs/job_test_utils.py`.\n\n**MAINTAINABILITY:**\
+  \ Strict layer separation enforced by import conventions; `mypy.ini` for static\
+  \ typing; explicit domain object vs. storage model separation prevents persistence\
+  \ logic leaking into business logic.\n\n**EXTENSIBILITY:** Platform adapter registry\
+  \ (`models.Registry`) allows swapping cloud service implementations between GAE\
+  \ production and local emulators; interaction plugin registry enables new question\
+  \ types without modifying core; feature flags (`feature_flag_list.py`) enable controlled\
+  \ rollouts.\n\n**DEPLOYABILITY:** Single GAE app with Webpack/Angular build pipeline;\
+  \ `cron.yaml` for 12 scheduled batch triggers; `app_dev.yaml` with gunicorn entrypoint;\
+  \ emulator mode for local development.\n\n**SCALABILITY:** GAE auto-scaling for\
+  \ HTTP request tier; Apache Beam / Google Cloud Dataflow for batch jobs (`core/jobs/`);\
+  \ Google Cloud Tasks queues for async work (emails, stats, voiceover regeneration,\
+  \ backups).\n\n**OBSERVABILITY:** Google Cloud Logging client initialized in `main.py`;\
+  \ feature flag registry for runtime configuration; structured cron-triggered audit\
+  \ and cleanup jobs."

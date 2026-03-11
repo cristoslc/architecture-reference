@@ -3,111 +3,65 @@ scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/hashicorp/nomad
-project_url: https://github.com/hashicorp/nomad
+domain: workload-orchestration
+language: go
+languages:
+  - go
+  - hcl
+  - typescript
+architecture_styles:
+  - Modular Monolith
+  - Microkernel
+classification_status: classified
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - high-availability
+  - scalability
+  - extensibility
+  - consistency
+  - observability
+  - security
+  - operability
+  - portability
+one_line_summary: >
+  A distributed workload orchestrator deployed as a single Go binary whose
+  strongly partitioned internal packages (Modular Monolith) expose a stable
+  gRPC plugin framework for out-of-process task drivers and device plugins
+  (Microkernel).
+classification_reasoning: >
+  Nomad is a single deployable binary (~2,100 Go source files) whose internal
+  structure is partitioned into clearly bounded, independently testable packages:
+  nomad/ (server control plane with Raft FSM, evaluation broker, RPC endpoints),
+  client/ (data-plane agent with alloc runners and plugin managers), scheduler/
+  (service/batch/system/sysbatch algorithms), plugins/ (gRPC interfaces), drivers/
+  (built-in task driver implementations), acl/, api/, and helper/. All packages
+  share one compilation unit and one Raft-backed state store — the textbook
+  Modular Monolith pattern.
+
+  The plugins/ and drivers/ subsystem constitutes a genuine Microkernel extension
+  architecture: the core binary defines stable gRPC interfaces (via hashicorp/go-plugin
+  v1.7.0) for task drivers, device plugins, and CSI plugins; out-of-process
+  extensions implement those interfaces and are loaded, supervised, and versioned
+  by the kernel's plugin managers at runtime. Built-in drivers (Docker, exec, Java,
+  QEMU, rawexec) live in the same binary but expose themselves through the same
+  plugin interface as external community drivers.
+
+  Secondary patterns present but not primary styles: an evaluation broker ->
+  scheduler worker -> plan applier -> client dispatch Pipeline drives scheduling
+  internally; an EventBroker layer provides streaming event pub/sub over Raft
+  state changes; Raft + Serf provide strong consistency and gossip-based cluster
+  membership. None of these secondary patterns override the Modular Monolith +
+  Microkernel primary classification.
+
+  Evidence against alternative styles: not Microservices (single binary, single
+  process, shared state store); not Service-Based (no independently deployable
+  coarse services); not Event-Driven (Raft-based synchronous mutation is primary,
+  event streaming is supplementary); not CQRS (single read/write state store via
+  go-memdb).
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T04:48:16Z'
+discovered_at: '2026-03-11'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Infrastructure
-language: Go
-languages:
-- Go
-- JavaScript
-architecture_styles:
-- Microkernel
-- Layered
-classification_status: classified
-review_notes: 'Nomad''s architecture is a sophisticated example of the **Microkernel
-  (Plugin)** style, designed to be a self-contained workload orchestrator that delegates
-  specific execution and infrastructure concerns to pluggable components. While it
-  is distributed across nodes, the codebase itself is structured to allow the core
-  scheduling logic to remain agnostic of the underlying technology (Docker, Java,
-  QEMU, etc.).
-
-
-  ### Primary Style: Microkernel (Plugin)
-
-  The system is built around a robust plugin architecture that is central to its functionality:
-
-  - **Task Drivers**: Located in `drivers/`, these modules (e.g., `drivers/docker`,
-  `drivers/exec`, `drivers/qemu`) implement a standard interface to manage the lifecycle
-  of tasks. The core Nomad agent does not have hard-coded knowledge of how to run
-  a container; it relies on these plugins.
-
-  - **Device Plugins**: Nomad detects hardware (GPUs, FPGAs) using a plugin system,
-  as noted in the README and evidenced by `client/devicemanager`.
-
-  - **CSI (Container Storage Interface)**: The presence of `nomad/csi_endpoint.go`
-  and `demo/csi/` demonstrates that storage is handled via the CSI plugin standard.
-
-  - **Plugin Infrastructure**: The use of `github.com/hashicorp/go-plugin` in `go.mod`
-  confirms that many of these extensions run as independent processes communicating
-  over RPC with the "kernel" (the Nomad agent).
-
-
-  ### Secondary Style: Event-Driven'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:49:26Z'
-classification_reasoning: "## Architecture Classification: Microkernel (Plugin) with\
-  \ Layered Components\n\n### Primary Style: Microkernel (Plugin)\n\nNomad is architected\
-  \ as a **microkernel with a plugin system** - this is HashiCorp's signature architecture\
-  \ pattern. The evidence is extensive:\n\n**Plugin Infrastructure:**\n\n1. **Plugin\
-  \ Interface Definitions** (`plugins/`):\n   - `plugins/base/base.go`: Defines `BasePlugin`\
-  \ interface that ALL plugins must implement (`PluginInfo()`, `ConfigSchema()`, `SetConfig()`)\n\
-  \   - `plugins/drivers/driver.go`: `DriverPlugin` interface for task execution (Docker,\
-  \ QEMU, Java, Exec)\n   - `plugins/device/plugin.go`: `DevicePlugin` interface for\
-  \ hardware device management (GPU, FPGA)\n   - `plugins/csi/plugin.go`: CSI plugin\
-  \ interface for storage\n\n2. **Plugin Registry & Types** (`plugins/base/plugin.go`):\n\
-  \   ```go\n   const (\n       PluginTypeBase   = \"base\"\n       PluginTypeDriver\
-  \  = \"driver\"\n       PluginTypeDevice  = \"device\"\n   )\n   ```\n\n3. **Plugin\
-  \ Loading System** (`helper/pluginutils/loader/loader.go`):\n   - `PluginLoader`\
-  \ scans plugin directories for binaries\n   - Supports both **internal plugins**\
-  \ (compiled into binary) and **external plugins** (separate binaries)\n   - Version\
-  \ negotiation via API versioning\n   - Plugin fingerprinting and configuration schema\
-  \ validation\n\n4. **Plugin Managers** (runtime orchestration):\n   - `client/pluginmanager/drivermanager/manager.go`:\
-  \ Manages driver plugin lifecycle\n   - `client/devicemanager/manager.go`: Manages\
-  \ device plugins\n   - `client/pluginmanager/csimanager/manager.go`: Manages CSI\
-  \ storage plugins\n\n5. **Built-in Driver Plugins** (`drivers/`):\n   - `drivers/docker/`\
-  \ - Docker container driver (2063 lines)\n   - `drivers/qemu/` - QEMU virtual machine\
-  \ driver\n   - `drivers/java/` - Java execution driver\n   - `drivers/exec/` - Executable\
-  \ driver\n   - `drivers/rawexec/` - Raw execution driver\n\nEach driver can be built\
-  \ as a standalone plugin binary (`drivers/docker/cmd/main.go`):\n```go\nfunc main()\
-  \ {\n    // Serve the plugin\n    plugins.ServeCtx(factory)\n}\n```\n\n6. **gRPC\
-  \ Plugin Communication** (`plugins/drivers/plugin.go`):\n   - Uses `github.com/hashicorp/go-plugin`\
-  \ for process isolation\n   - Plugins communicate over gRPC with handshake authentication\n\
-  \   - Plugin binaries are launched as separate processes\n\n### Secondary Style:\
-  \ Layered\n\nWithin the microkernel, Nomad exhibits clear horizontal layering:\n\
-  \n**Layer Structure:**\n1. **API Layer** (`api/`): Go client library for external\
-  \ integration\n2. **Command/Agent Layer** (`command/agent/`): HTTP server, CLI commands,\
-  \ configuration\n3. **Server Business Logic** (`nomad/`): Scheduling, Raft consensus,\
-  \ state management\n4. **Client Business Logic** (`client/`): Allocation management,\
-  \ fingerprinting, task execution\n5. **Scheduler Layer** (`scheduler/`): Job scheduling\
-  \ algorithms\n6. **Plugin Layer** (`plugins/`, `drivers/`): Extensible task execution\n\
-  \n**Raft Consensus Layer** (`nomad/server.go`):\n- Uses HashiCorp's Raft library\
-  \ for distributed state\n- State stored in BoltDB/WAL\n- In-memory state via go-memdb\
-  \ (`nomad/state/`)\n\n### Why NOT Other Styles:\n\n- **Not Microservices**: Single\
-  \ binary deployment (`main.go`), single process per agent. No service boundaries\
-  \ with independent deployment.\n- **Not Service-Based**: No 2-5 coarse-grained services\
-  \ sharing a database.\n- **Not Event-Driven**: Uses synchronous RPC for communication.\
-  \ Raft for consensus, not message brokers.\n- **Not Modular Monolith**: While it's\
-  \ a single binary, the defining characteristic is the plugin extension mechanism,\
-  \ not just internal module boundaries.\n- **Not CQRS**: Single state store, no separate\
-  \ read/write models.\n- **Not DDD**: Code organized by technical function (client,\
-  \ server, scheduler, plugins), not bounded contexts/aggregates.\n\n### Key Architecture\
-  \ Diagram:\n\n```\n┌─────────────────────────────────────────────────────────────┐\n\
-  │                      Nomad Agent (main.go)                   │\n│  ┌───────────────────────────────────────────────────────┐\
-  \  │\n│  │              Core System (Microkernel)                 │  │\n│  │  ┌─────────────┐\
-  \  ┌─────────────┐  ┌──────────────┐  │  │\n│  │  │   Server    │  │   Client  \
-  \  │  │  Scheduler   │  │  │\n│  │  │  (Raft/FSM) │  │  (Allocs)    │  │  (Planner)\
-  \   │  │  │\n│  │  └─────────────┘  └─────────────┘  └──────────────┘  │  │\n│ \
-  \ │                                                       │  │\n│  │  ┌──────────────────────────────────────────────────┐\
-  \ │  │\n│  │  │           Plugin Managers                        │ │  │\n│  │  │\
-  \  ┌──────────┐ ┌───────────┐ ┌────────────────┐ │ │  │\n│  │  │  │ Driver   │ │\
-  \  Device   │ │ CSI Manager    │ │ │  │\n│  │  │  │ Manager  │ │  Manager  │ │ \
-  \               │ │ │  │\n│  │  │  └──────────┘ └───────────┘ └────────────────┘\
-  \ │ │  │\n│  │  └──────────────────────────────────────────────────┘ │  │\n│  └───────────────────────────────────────────────────────┘\
-  \  │\n│                                                             │\n│  ┌───────────────────────────────────────────────────────┐\
-  \  │\n│  │  \n\n[truncated]"

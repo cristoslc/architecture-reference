@@ -3,79 +3,29 @@ scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/nats-io/nats-server
-project_url: https://github.com/nats-io/nats-server
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:25:45Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Messaging
+domain: Messaging & Event Streaming
 language: Go
 languages:
-- Go
+  - Go
 architecture_styles:
-- Modular Monolith
-- Layered
+  - Event-Driven
+  - Modular Monolith
 classification_status: classified
-review_notes: "The NATS Server codebase is structured as a **Layered** architecture,\
-  \ though it is often mistaken for other styles because of the *service* it provides\
-  \ (messaging). \n\n### Analysis of Structure:\n1.  **Layered Partitioning**: The\
-  \ project follows a standard horizontal separation typical of Go-based systems.\
-  \ \n    *   **Core Logic (`/server`)**: The vast majority of the system resides\
-  \ in the `server/` directory. This is a large, cohesive package that manages the\
-  \ lifecycle of the server, client connections (`client.go`), and protocol parsing\
-  \ (`parser_test.go`).\n    *   **Cross-Cutting Concerns**: Directories like `logger/`,\
-  \ `util/`, and `internal/` provide infrastructure support (logging, LDAP, fastrand)\
-  \ used by the core server.\n    *   **Deployment**: The `docker/` and `util/nats-server.service`\
-  \ files indicate that despite its complex internal capabilities (clustering, gateways),\
-  \ it is typically deployed as a single binary/process.\n\n2.  **Event-Driven (Internal\
-  \ Patterns)**: While NATS is an event-driven *platform*, its internal code also\
-  \ utilizes event-driven patterns to handle high-concurrency messaging. Files like\
-  \ `server/events.go`, `server/jetstream_events.go`, and `server/sendq.go` indicate\
-  \ internal asynchronous communication and event loops used to process message delivery\
-  \ and system notifications without blocking the main execution threads."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.72
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:48:43Z'
-classification_reasoning: "## Analysis\n\n**Repository Structure:**\nThe nats-server\
-  \ repository is a Go application that produces a single deployable binary (the NATS\
-  \ messaging server). The codebase has:\n- Single `go.mod` file (not a workspace)\n\
-  - Single `main.go` entry point\n- Core code concentrated in the `server/` package\
-  \ (136 Go files)\n- Supporting packages: `conf/`, `logger/`, `internal/` utilities\n\
-  \n**Evidence for Modular Monolith (primary):**\n\nThe codebase exhibits modular\
-  \ organization at the file level, with files organized by functional domain:\n-\
-  \ `accounts.go` (137K lines) - Account management\n- `client.go` (196K lines) -\
-  \ Client connection handling  \n- `gateway.go` (103K lines) - Gateway connections\n\
-  - `leafnode.go` - Leaf node connections\n- `route.go` - Inter-server routing\n-\
-  \ `jetstream*.go` - JetStream functionality (multiple files totaling ~500K+ lines)\n\
-  - `filestore.go`, `memstore.go` - Storage implementations\n- `stream.go`, `consumer.go`\
-  \ - Stream/consumer management\n- `auth.go`, `jwt.go`, `nkey.go` - Authentication\n\
-  \nHowever, the **module boundaries are NOT architecturally enforced** - all files\
-  \ belong to the same `server` package with unrestricted access between components.\
-  \ The \"modules\" exist as organizational conventions (file naming/grouping) rather\
-  \ than compile-time boundaries.\n\n**Evidence for Layered (secondary):**\n\nThere's\
-  \ weak layering visible in:\n- Protocol/parsing layer: `parser.go`, `proto.go`\n\
-  - Core business layer: `server.go`, `client.go` \n- Data access layer: `filestore.go`,\
-  \ `memstore.go`, `dirstore.go`\n\nBut layers aren't cleanly separated - `client.go`\
-  \ directly calls storage, protocol handlers directly invoke business logic. The\
-  \ layering is implicit, not enforced.\n\n**What this is NOT:**\n- **Microkernel/Plugin**:\
-  \ No plugin loading mechanism, no extension points\n- **Microservices**: Single\
-  \ deployable binary, not distributed services  \n- **Domain-Driven Design**: No\
-  \ bounded contexts, aggregates, or DDD tactical patterns\n- **Hexagonal**: No ports/adapters\
-  \ pattern, direct implementation coupling\n- **CQRS**: No separate read/write models\n\
-  - **Event-Driven**: While NATS IS an event broker, the internal code organization\
-  \ doesn't use event-driven patterns\n- **Space-Based**: No in-memory data grid architecture\n\
-  - **Pipeline**: No pipe-and-filter processing\n\n**Architecture Character:**\nThis\
-  \ is a classic Go server application - monolithic by design (intentionally so).\
-  \ The NATS server is built as a high-performance messaging broker where direct function\
-  \ calls and shared memory provide the performance characteristics required. The\
-  \ file organization shows domain awareness but prioritizes runtime performance over\
-  \ architectural boundary enforcement.\n\nThe single `Server` struct (server.go:169)\
-  \ serves as the central orchestrator, holding references to all subsystems (accounts,\
-  \ clients, routes, gateways, leaf nodes, JetStream, etc.) with direct method calls\
-  \ between components.\n\n**Confidence Rationale:**\nConfidence is 0.72 because while\
-  \ the modular organization is evident, the lack of enforced boundaries makes this\
-  \ a weaker example of Modular Monolith. An argument could be made for \"Indeterminate\"\
-  \ or \"Layered with very weak layering,\" but Modular Monolith best captures the\
-  \ intentional organization-by-feature within a single deployable unit."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Performance
+  - Scalability
+  - Reliability
+  - Security
+  - Extensibility
+  - Observability
+  - Interoperability
+one_line_summary: "High-performance CNCF messaging broker built on a subject-based publish-subscribe engine, deployed as a single binary with cleanly separated subsystems (JetStream, clustering, MQTT, monitoring) that communicate internally through the same pub-sub bus."
+classification_reasoning: "NATS Server's organizing principle is asynchronous, decoupled message exchange through a subject-based pub-sub engine — the definition of Event-Driven architecture. The subject trie (sublist.go) is the routing core; every PUB results in fan-out to matched subscribers via processMsgResults. Crucially, internal subsystems also communicate this way: JetStream management is exposed as $JS.API.* subjects, system advisories are $SYS.* messages, and auth callouts use request-reply over NATS subjects rather than direct function calls. Modular Monolith is the secondary style: all subsystems (JetStream persistence, Raft clustering, gateway federation, MQTT adapter, monitoring) live in a single Go package and binary with clean functional boundaries maintained by the message bus rather than process isolation. The built-in Raft consensus (raft.go, ~5000 lines) is an implementation mechanism for JetStream distributed replication, not a separate architectural style. MQTT and WebSocket are protocol adapters that translate foreign wire formats into NATS pub-sub semantics, not independent services. The prior classification of Layered is incorrect: there is no strict layer discipline and subsystems do not communicate through layer boundaries — they communicate through the internal pub-sub bus."
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0

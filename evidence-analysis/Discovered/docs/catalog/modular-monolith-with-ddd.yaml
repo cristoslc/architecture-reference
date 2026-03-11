@@ -3,96 +3,57 @@ scope: application
 use_type: reference
 source: Discovered
 source_url: https://github.com/kgrzybek/modular-monolith-with-ddd
-project_url: https://github.com/kgrzybek/modular-monolith-with-ddd
+domain: meeting-management
+language: csharp
+languages:
+  - csharp
+  - sql
+architecture_styles:
+  - Modular Monolith
+  - Domain-Driven Design
+  - CQRS
+  - Event-Driven
+  - Hexagonal Architecture
+  - Layered
+classification_status: classified
+classification_confidence: 0.99
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - modularity
+  - maintainability
+  - testability
+  - eventual-consistency
+  - deployability
+  - observability
+one_line_summary: >
+  A production-quality .NET reference application that runs five DDD Bounded
+  Contexts as autonomous modules in a single process, integrating them
+  asynchronously via an in-memory event bus with Outbox/Inbox guarantees and
+  applying CQRS within each module.
+classification_reasoning: >
+  The repository is the canonical reference implementation of the Modular
+  Monolith pattern in .NET. ADR-0002 explicitly mandates a single-process
+  deployment with maximum module autonomy (Modular Monolith). Five modules
+  (Meetings, Administration, Payments, Registrations, UserAccess) each expose
+  a Facade interface as their sole public API; direct cross-module type
+  references are prohibited by architecture tests. Domain-Driven Design
+  tactical patterns (Aggregates, Value Objects, Domain Events, Repositories,
+  Business Rules, Bounded Contexts) are applied throughout, backed by shared
+  BuildingBlocks. CQRS is implemented per ADR-0007: every module separates
+  Commands (4-layer Clean Architecture write path) from Queries (2-layer SQL
+  read path). Event-Driven integration between modules is implemented via an
+  InMemoryEventBus with Outbox/Inbox polling (Quartz.NET), achieving loose
+  coupling and eventual consistency (ADR-0014). The write path within each
+  module follows a Hexagonal / Clean Architecture ports-and-adapters model
+  enforced by NetArchTest architecture tests, with Domain layer dependencies
+  pointing inward only. The Payments module additionally applies Event Sourcing
+  via SqlStreamStore, making it the most advanced bounded context in the
+  codebase. Single-container Docker deployment (docker-compose.yml) and a
+  shared SQL Server (schema-per-module) confirm the monolith deployment
+  topology.
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:31:13Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Conference Management
-language: C#
-languages:
-- C#
-architecture_styles:
-- Modular Monolith
-- Domain-Driven Design
-- CQRS
-classification_status: classified
-review_notes: "The repository is an explicit reference implementation of a **Modular\
-  \ Monolith** using **Domain-Driven Design (DDD)**. The architecture is intentionally\
-  \ designed to demonstrate how to maintain strict boundaries within a single deployment\
-  \ unit (the .NET API).\n\n### Architecture Breakdown\n\n**1. Modular Monolith (Primary\
-  \ Style)**\nThe system is divided into high-level vertical slices (Modules) located\
-  \ in `src/Modules/`. Each module (e.g., `Payments`, `Meetings`, `Administration`)\
-  \ contains its own logic, data access, and domain models. \n*   **Encapsulation:**\
-  \ As per Architecture Decision Record (ADR) `0016`, each module has its own Inversion\
-  \ of Control (IoC) container, preventing accidental leakage of dependencies between\
-  \ modules.\n*   **Public Interface:** ADR `0006` specifies the use of a Facade between\
-  \ the API and each Business Module, ensuring that the API only interacts with a\
-  \ well-defined contract.\n\n**2. Domain-Driven Design (DDD)**"
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:43:13Z'
-classification_reasoning: "## Analysis\n\nThis repository is a textbook implementation\
-  \ of **Modular Monolith** architecture with **Domain-Driven Design** and **CQRS**\
-  \ as secondary architectural patterns.\n\n### Primary Style: Modular Monolith\n\n\
-  **Evidence for Modular Monolith:**\n\n1. **Explicit Architecture Decision (ADR #2)**:\
-  \ The decision log explicitly states: \"All modules must run in one single process\
-  \ as single application (Monolith)\" with \"All modules should have maximum autonomy\
-  \ (Modular)\"\n\n2. **Single Deployable Unit**:\n   - `docker-compose.yml` defines\
-  \ a single `backend` container\n   - One solution file (`CompanyName.MyMeetings.sln`)\n\
-  \   - Single API host project (`src/API/CompanyName.MyMeetings.API`)\n\n3. **Enforced\
-  \ Module Boundaries**:\n   - **5 distinct modules**: Administration, Meetings, Payments,\
-  \ UserAccess, Registrations (discovered via test assemblies)\n   - Each module follows\
-  \ consistent internal structure: `Domain/`, `Application/`, `Infrastructure/`, `IntegrationEvents/`\n\
-  \   - **Separate DbContext per module**: `AdministrationContext`, `MeetingsContext`,\
-  \ `UserAccessContext`, `RegistrationsContext`\n   - **Separate database schemas**:\
-  \ `administration`, `meetings`, `payments`, `users` (verified in `InitializeDatabase.sql`)\n\
-  \n4. **Architecture Unit Tests Enforcing Boundaries**:\n   - `src/Tests/ArchTests/Modules/ModuleTests.cs`\
-  \ contains tests like `MeetingsModule_DoesNotHave_Dependency_On_Other_Modules()`\n\
-  \   - Each module has its own `LayersTests.cs` enforcing layer dependencies (Domain\
-  \ → Application → Infrastructure)\n   - Uses `NetArchTest.Rules` library for compile-time\
-  \ boundary enforcement\n\n5. **Independent IoC Container per Module (ADR #16)**:\n\
-  \   - Each module has its own composition root (`MeetingsCompositionRoot`, `AdministrationCompositionRoot`,\
-  \ etc.)\n   - Module-specific Autofac modules registered in API startup\n\n6. **Module\
-  \ API Contracts**:\n   - Each module exposes a contract interface: `IMeetingsModule`,\
-  \ `IAdministrationModule`, `IPaymentsModule`, `IUserAccessModule`\n   - Public API\
-  \ limited to `ExecuteCommandAsync` and `ExecuteQueryAsync` methods\n\n### Secondary\
-  \ Style: Domain-Driven Design\n\n**Evidence:**\n\n1. **Bounded Contexts mapped to\
-  \ Modules (ADR #4)**: \"We created 4 modules: Meetings, Administration, Payments,\
-  \ User Access\" based on \"DDD Bounded Contexts which in this scenario maps 1:1\
-  \ to domains\"\n\n2. **Tactical DDD Patterns (ADR #12)**:\n   - **Aggregates**:\
-  \ `MeetingGroup`, `Meeting`, `Subscription` - all implement `IAggregateRoot` or\
-  \ extend `AggregateRoot`\n   - **Entities**: Domain objects with identity (e.g.,\
-  \ `MeetingAttendee`, `Member`)\n   - **Value Objects**: `MeetingGroupId`, `MoneyValue`,\
-  \ `MeetingTerm`, `MeetingLocation`\n   - **Domain Events**: `MeetingGroupCreatedDomainEvent`,\
-  \ `SubscriptionRenewedDomainEvent`\n   - **Repositories**: `IMeetingGroupRepository`,\
-  \ `IMemberRepository`, `IPayerRepository`\n   - **Business Rules**: `CheckRule()`\
-  \ method enforcing invariants (e.g., `MeetingGroupMemberCannotBeAddedTwiceRule`)\n\
-  \n3. **Rich Domain Models**: Domain logic encapsulated in aggregates with behavior\
-  \ methods, not anemic models\n\n4. **Event Sourcing in Payments Module**: `SqlStreamAggregateStore`\
-  \ implements event sourcing pattern with `Apply()` method for event replay\n\n###\
-  \ Secondary Style: CQRS\n\n**Evidence:**\n\n1. **Explicit ADR #7**: \"Use CQRS architectural\
-  \ style\" - \"Each module will have a separate model for reading and writing\"\n\
-  \n2. **Command/Query Separation**:\n   - `ICommand` and `IQuery` interfaces in each\
-  \ module's contracts\n   - `CommandBase` and `QueryBase` abstract classes\n   -\
-  \ Separate handlers: `ICommandHandler<T>` and `IQueryHandler<T>`\n\n3. **Optimized\
-  \ Read/Write Paths**:\n   - Write model: Rich domain aggregates with business logic\n\
-  \   - Read model: DTOs like `MeetingDto`, `UserDto`, `CountryDto` for tabular/flattened\
-  \ data\n\n### Rejected Alternatives\n\n**Not Microservices** because:\n- Single\
-  \ deployment unit (one container, one process)\n- Shared database server with schema\
-  \ separation, not separate databases\n- No independent scalability or deployment\
-  \ of modules\n- In-memory event bus, not distributed messaging\n\n**Not Event-Driven\
-  \ (as primary style)** because:\n- Event-driven communication is an **internal implementation\
-  \ detail** for module integration\n- Uses `InMemoryEventBus` - not a message broker\n\
-  - Events enable module autonomy within the monolith, not distributed system coordination\n\
-  \n**Not Layered Architecture (as primary style)** because:\n- While each module\
-  \ has layers (Domain/Application/Infrastructure), the **primary architectural boundary\
-  \ is between modules, not layers**\n- Module autonomy is the dominant concern, not\
-  \ horizontal layering\n\n**Not Hexagonal Architecture** because:\n- No explicit\
-  \ ports-and-adapters pattern\n- Infrastructure depends on abstractions but not through\
-  \ defined \"ports\"\n- The pattern used is Clean Architecture/DDD layered approach\
-  \ within modules\n\n### Summary\n\nThis repository is an exemplary reference implementation\
-  \ of **Modular Monolith** architecture. It demonstrates how to achieve module a\n\
-  \n[truncated]"

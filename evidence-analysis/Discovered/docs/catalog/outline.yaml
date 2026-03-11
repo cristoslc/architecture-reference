@@ -5,7 +5,7 @@ source: Discovered
 source_url: https://github.com/outline/outline
 project_url: https://github.com/outline/outline
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:43:37Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Knowledge Management
@@ -17,86 +17,58 @@ architecture_styles:
 - Layered
 - Microkernel
 classification_status: classified
-review_notes: 'Outline is structured as a classic **Layered** architecture (specifically
-  a specialized Monolith) with a strong **Event-Driven** secondary pattern for asynchronous
-  processing. While it is housed in a monorepo, the `app` (frontend) and `server`
-  (backend) represent a standard client-server split rather than independent microservices.
-
-
-  ### Primary Style: Layered
-
-  The backend (`server/`) follows a strict horizontal layering common in Node.js/Koa
-  applications:
-
-  1.  **Routing Layer** (`server/routes/`): Entry points for HTTP requests, divided
-  into `api` and `auth`.
-
-  2.  **Business Logic / Command Layer** (`server/commands/`): The `ARCHITECTURE.md`
-  highlights this as the home for "complex commands that perform actions across multiple
-  models," separating orchestration logic from HTTP concerns.
-
-  3.  **Domain/Persistence Layer** (`server/models/`): Uses Sequelize (ORM) to define
-  the data schema and domesticate the database. The logic here includes lifecycle
-  hooks (e.g., `AfterCreate` in `Reaction.ts`).
-
-  4.  **Authorization Layer** (`server/policies/`): Decoupled authorization logic
-  using the `cancan` pattern, separating "who can do what" from the business logic.
-
-  5.  **Presentation Layer** (`server/presenters/`): Handles the transformation of
-  internal database models into the JSON formats consumed by the frontend.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:53:34Z'
-classification_reasoning: "## Analysis\n\nOutline is a **Layered architecture with\
-  \ a Microkernel-style plugin system**. The repository is structured as a single\
-  \ deployable monolith with clear horizontal layering on both frontend and backend,\
-  \ extended by a robust plugin infrastructure.\n\n### Primary: Layered Architecture\n\
-  \nThe codebase exhibits classic horizontal layering:\n\n**Backend (Koa/Node.js)**\
-  \ in `server/`:\n- **Routes layer** (`server/routes/`) - API endpoints organized\
-  \ by domain (documents, collections, users, etc.)\n- **Commands layer** (`server/commands/`)\
-  \ - Business logic operations spanning multiple models\n- **Models layer** (`server/models/`)\
-  \ - Sequelize ORM data access with 30+ domain models\n- **Policies layer** (`server/policies/`)\
-  \ - Authorization logic using cancan\n- **Presenters layer** (`server/presenters/`)\
-  \ - JSON serialization transforming models to API responses\n- **Middlewares layer**\
-  \ (`server/middlewares/`) - Request processing (authentication, validation, rate\
-  \ limiting)\n\n**Frontend (React/Vite)** in `app/`:\n- **Scenes** (`app/scenes/`)\
-  \ - Full-page views (route-level components)\n- **Components** (`app/components/`)\
-  \ - Reusable UI components\n- **Stores** (`app/stores/`) - MobX state containers\
-  \ (CollectionsStore, DocumentsStore, etc.)\n- **Models** (`app/models/`) - Client-side\
-  \ domain models with MobX observables\n- **Routes** (`app/routes/`) - Route definitions\
-  \ with lazy loading\n\nThe `docs/ARCHITECTURE.md` explicitly documents this layered\
-  \ organization.\n\n### Secondary: Microkernel (Plugin) Architecture\n\nA sophisticated\
-  \ plugin system extends the core:\n\n**Server PluginManager** (`server/utils/PluginManager.ts`):\n\
-  ```typescript\nexport enum Hook {\n  API = \"api\",\n  AuthProvider = \"authProvider\"\
-  ,\n  Processor = \"processor\",\n  Task = \"task\",\n  UnfurlProvider = \"unfurl\"\
-  ,\n  // ...\n}\n```\n\nPlugins register via hooks for API routes, authentication\
-  \ providers, async processors, tasks, and more. The system dynamically loads plugins\
-  \ at runtime:\n```typescript\nglob.sync(path.join(rootDir, \"plugins/*/server/!(*.test|schema).[jt]s\"\
-  ))\n```\n\n**Client PluginManager** (`app/utils/PluginManager.ts`):\n```typescript\n\
-  export enum Hook {\n  Settings = \"settings\",\n  Imports = \"imports\",\n  Icon\
-  \ = \"icon\",\n}\n```\n\n**20+ plugins** provide integrations:\n- `plugins/slack/`\
-  \ - Slack auth and slash commands\n- `plugins/github/` - GitHub issue unfurling\n\
-  - `plugins/google/` - Google authentication\n- `plugins/linear/`, `plugins/figma/`,\
-  \ `plugins/notion/` - Various integrations\n\nEach plugin has `plugin.json` metadata\
-  \ and optional `client/`, `server/`, and `shared/` directories. Example from `plugins/github/server/index.ts`:\n\
-  ```typescript\nif (enabled) {\n  PluginManager.add([\n    { type: Hook.API, value:\
-  \ router },\n    { type: Hook.Task, value: GitHubWebhookTask },\n    { type: Hook.UnfurlProvider,\
-  \ value: { unfurl: GitHub.unfurl } },\n  ]);\n}\n```\n\n### Why Not Other Styles\n\
-  \n- **Not Microservices**: Single `package.json`, single `Dockerfile`, single build\
-  \ artifact (`build/server/index.js`). The \"services\" (web, worker, collaboration)\
-  \ are runtime modes of the same application sharing one PostgreSQL database.\n\n\
-  - **Not Modular Monolith**: While organized by domain, there's no enforced module\
-  \ boundary system (no package workspaces, module-scoped dependencies, or internal\
-  \ API contracts). The plugin system provides extension, not internal module isolation.\n\
-  \n- **Not Hexagonal**: No ports/adapters pattern. The presenters layer transforms\
-  \ data but isn't an adapter abstraction. Database and external services are accessed\
-  \ directly from models and commands.\n\n- **Event-Driven is internal only**: Bull\
-  \ queues with Redis handle async tasks (emails, notifications, websockets) but this\
-  \ is background job processing within the monolith, not inter-service event communication.\n\
-  \n### Deployment Topology\n\nSingle container deployed with multiple runtime service\
-  \ modes:\n```javascript\n// server/services/index.ts\nexport default {\n  websockets,\
-  \ collaboration, admin, web, worker, cron\n}\n```\n\nServices are selected via CLI\
-  \ flags (`--services=web,worker,collaboration`), allowing horizontal scaling of\
-  \ specific capabilities while remaining a single codebase."
+classification_confidence: 0.91
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Real-time Collaboration
+- Observability
+- Horizontal Scalability
+- Testability
+- Authorization Consistency
+one_line_summary: Collaborative knowledge-base built as a Layered monolith with a
+  formal Microkernel plugin system for auth providers, integrations, and async processors.
+classification_reasoning: "Outline is a production TypeScript knowledge-management
+  application (think Notion/Confluence) structured as a **Layered** architecture
+  with a **Microkernel** extension system.\n\n### Primary: Layered Architecture\n\
+  \nThe backend (`server/`) follows strict horizontal layering documented explicitly
+  in `docs/ARCHITECTURE.md`:\n\n1. **Routes layer** (`server/routes/api/`) — HTTP
+  ingress, request parsing, validation via Zod schemas\n2. **Middleware layer** (`server/middlewares/`)
+  — authentication, CSRF, rate-limiting, request tracing\n3. **Commands layer** (`server/commands/`)
+  — cross-model business orchestration (`documentCreator`, `documentMover`, `documentImporter`,
+  etc.)\n4. **Models layer** (`server/models/`) — 30+ Sequelize ORM entities with
+  lifecycle hooks that emit domain events to the queue\n5. **Policies layer** (`server/policies/`)
+  — cancan authorization rules decoupled from HTTP and business logic\n6. **Presenters
+  layer** (`server/presenters/`) — JSON serializers transforming models into API
+  response shapes\n7. **Storage layer** (`server/storage/`) — PostgreSQL via Sequelize,
+  Redis via ioredis, S3-compatible file storage\n\nThe React frontend in `app/` mirrors
+  the same layered discipline: Routes → Scenes → Components → Stores (MobX) → Models.\n\
+  \n### Secondary: Microkernel (Plugin System)\n\n`server/utils/PluginManager.ts`
+  defines a typed hook registry:\n\n```typescript\nexport enum Hook {\n  API = \"api\",\n
+  \ AuthProvider = \"authProvider\",\n  EmailTemplate = \"emailTemplate\",\n  IssueProvider
+  = \"issueProvider\",\n  Processor = \"processor\",\n  Task = \"task\",\n  UnfurlProvider
+  = \"unfurl\",\n  Uninstall = \"uninstall\",\n}\n```\n\n21 first-party plugins (slack,
+  github, google, gitlab, linear, notion, figma, azure, oidc, webhooks, passkeys,
+  etc.) register via `PluginManager.add()`, contributing routers, auth strategies,
+  event processors, and scheduled tasks. Plugins are glob-discovered at startup from
+  `plugins/*/server/index.[jt]s` and conditionally activated via environment variables.
+  A parallel `app/utils/PluginManager.ts` handles client-side extension hooks. This
+  is a textbook microkernel: stable core with typed extension points.\n\n### Internal
+  Event-Driven Pattern (not a primary style)\n\nA Redis/Bull queue system provides
+  async processing within the monolith: model `AfterSave` hooks emit domain events
+  to a `globalEventQueue`; the worker fans them out to registered `BaseProcessor`
+  subclasses (`BacklinksProcessor`, `NotificationsProcessor`, `WebsocketsProcessor`,
+  `RevisionsProcessor`, etc.). This is intra-process background job orchestration,
+  not inter-service event communication.\n\n### Deployment Model\n\nOne `package.json`,
+  one `Dockerfile`, one PostgreSQL database. Multiple runtime service modes (web,
+  worker, collaboration, websockets, cron, admin) are selected via `--services=`
+  CLI flag. Services share the same codebase and database. This is not microservices.\n\
+  \n### Why Not Other Styles\n\n- **Not Microservices**: Single deployable, shared
+  database, no inter-service APIs\n- **Not Modular Monolith**: No enforced module
+  boundaries, no workspace isolation, no internal API contracts\n- **Not Hexagonal**:
+  No explicit port/adapter interfaces; storage accessed directly from models and commands\n\
+  - **Not CQRS**: No read/write model split; Sequelize models serve both\n- **Not
+  Event-Driven (primary)**: Bull queues are internal background processing, not the
+  primary integration mechanism"

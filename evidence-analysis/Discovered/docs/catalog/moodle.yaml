@@ -1,113 +1,36 @@
 project_name: moodle
-scope: application
+scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/moodle/moodle
 project_url: https://github.com/moodle/moodle
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T05:06:36Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Education
+domain: Education / Learning Management System
 language: PHP
 languages:
-- PHP
-- JavaScript
-- TypeScript
+  - PHP
+  - JavaScript
+  - TypeScript
+  - SCSS
 architecture_styles:
-- Microkernel
+  - Microkernel
+  - Modular Monolith
+  - Layered
 classification_status: classified
-review_notes: 'Moodle is a classic example of a **Microkernel (Plugin)** architecture.
-  The system is built around a minimal core ("the kernel") that provides essential
-  services (user management, permissions, database abstraction), while nearly all
-  functional features are implemented as plugins (known in Moodle as "components"
-  or "plugintypes").
-
-
-  ### Evidence for Microkernel (Plugin)
-
-  The repository structure is strictly organized by plugin types, where each subdirectory
-  under `public/` (or the root in older versions) represents a specific category of
-  plugin with a standardized internal contract:
-
-  - **Consistent Plugin Structure:** Every plugin folder (e.g., `public/blocks/rss_client/`,
-  `public/blocks/recent_activity/`) contains a standardized set of files: `version.php`
-  for metadata/dependency management, `db/` for schema definitions, and `lang/` for
-  internationalization.
-
-  - **Plugin Categories:** The directory tree shows a deep hierarchy of plugin types.
-  For instance, `public/blocks/` contains various UI widgets. Other standard Moodle
-  directories (though only partially visible in the depth-4 tree) include `mod/` (activity
-  modules), `auth/` (authentication methods), and `enrol/` (enrolment plugins).
-
-  - **Extension Points:** The core system discovers these plugins at runtime, scans
-  their `version.php` and `db/` directories to handle installations/upgrades, and
-  calls specific hooks or extends base classes (like `moodleblock.class.php`) to integrate
-  the plugin''s functionality into the UI.
-
-
-  ### Evidence for Layered Architecture
-
-  Within each plugin and the core, Moodle follows a **Layered** approach:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:43:57Z'
-classification_reasoning: "## Architecture Classification: Microkernel (Plugin)\n\n\
-  **Moodle is a definitive example of a Microkernel (Plugin) architecture.** The codebase\
-  \ is structured as a core system with an extensive plugin infrastructure that provides\
-  \ nearly all functionality through modular, hot-pluggable extensions.\n\n### Key\
-  \ Evidence\n\n**1. Plugin Types System (48+ plugin types)**\nThe `lib/components.json`\
-  \ file defines 48 plugin types including:\n- `mod` (activity modules like assign,\
-  \ forum, quiz)\n- `auth` (authentication plugins like ldap, oauth2, shibboleth)\n\
-  - `enrol` (enrollment methods)\n- `block` (sidebar blocks)\n- `theme` (visual themes)\n\
-  - `filter` (content filters)\n- `local` (site-specific customizations)\n- And 40+\
-  \ more types for search, cache, editors, payment gateways, etc.\n\n**2. Plugin Manager\
-  \ and Lifecycle**\n`lib/classes/plugin_manager.php` provides:\n- Plugin discovery\
-  \ and registration\n- Version management (`PLUGIN_STATUS_NEW`, `PLUGIN_STATUS_UPGRADE`,\
-  \ etc.)\n- Dependency tracking between plugins\n- Enable/disable/uninstall capabilities\n\
-  - Source distinction (`PLUGIN_SOURCE_STANDARD` vs `PLUGIN_SOURCE_EXTENSION`)\n\n\
-  **3. Plugin Base Class Infrastructure**\n`lib/classes/plugininfo/base.php` defines\
-  \ the abstract contract all plugins must follow:\n```php\nabstract class base {\n\
-  \    public $type;      // Plugin type (mod, auth, etc.)\n    public $name;    \
-  \  // Plugin name\n    public $rootdir;   // Location on disk\n    public $versiondisk;\n\
-  \    public $versiondb;\n    // ... lifecycle methods\n}\n```\n\n**4. Subplugin\
-  \ Architecture**\nPlugins can define their own subplugins. For example, `mod/assign/db/subplugins.json`:\n\
-  ```json\n{\n    \"subplugintypes\": {\n        \"assignsubmission\": \"submission\"\
-  ,\n        \"assignfeedback\": \"feedback\"\n    }\n}\n```\nThis allows the assignment\
-  \ module to have pluggable submission types (file, onlinetext) and feedback types\
-  \ (comments, editpdf).\n\n**5. Hook System (PSR-14 Event Dispatcher)**\n`lib/classes/hook/manager.php`\
-  \ implements a modern hook system:\n- Implements PSR-14 `EventDispatcherInterface`\
-  \ and `ListenerProviderInterface`\n- Plugins register callbacks in `db/hooks.php`\
-  \ files\n- Decoupled communication between core and plugins\n\n**6. Standard Plugin\
-  \ Structure**\nEvery plugin follows a consistent pattern:\n- `version.php` - Plugin\
-  \ metadata and version\n- `db/install.xml` - Database schema\n- `db/upgrade.php`\
-  \ - Migration scripts\n- `db/access.php` - Capability definitions\n- `db/services.php`\
-  \ - External API definitions\n- `lang/en/` - Localization strings\n- `settings.php`\
-  \ - Admin configuration\n\n**7. Core vs Plugin Separation**\n- `public/lib/` - Core\
-  \ libraries (accesslib.php, adminlib.php, etc.)\n- `public/mod/` - Activity module\
-  \ plugins\n- `public/auth/` - Authentication plugins\n- `public/blocks/` - Block\
-  \ plugins\n- `public/local/` - Reserved for site-specific customizations\n\n**8.\
-  \ Single Deployable Unit**\n- One `config.php` connecting to a single database\n\
-  - One `index.php` entry point\n- Monolithic deployment via standard PHP web hosting\n\
-  \n### Why Not Other Architectures\n\n**Not Microservices**: Moodle is a single PHP\
-  \ application deployed as one unit with one database. No service boundaries, no\
-  \ inter-service communication, no independent deployability.\n\n**Not Layered**:\
-  \ While there's presentation code, Moodle isn't organized horizontally into presentation/business/data\
-  \ layers. Instead, it's organized vertically by plugin type, with each plugin containing\
-  \ its own view, logic, and data handling.\n\n**Not Modular Monolith**: Modular monoliths\
-  \ have internal modules with enforced boundaries. Moodle goes further—plugins are\
-  \ truly externalizable extensions that can be added/removed after deployment, discovered\
-  \ at runtime, and maintained independently.\n\n**Not Event-Driven**: While Moodle\
-  \ has events and hooks, they're implementation details within the plugin system,\
-  \ not the primary architectural pattern. The hook system facilitates plugin communication\
-  \ but isn't the core organizing principle.\n\n**Not Hexagonal**: While Moodle has\
-  \ external APIs, there's no explicit ports-and-adapters isolation. Plugins directly\
-  \ access core APIs, and the core doesn't have a clean domain layer separated from\
-  \ infrastructure.\n\n### Conclusion\n\nMoodle's architecture centers on a minimal\
-  \ core that provides essential services (database access, user authentication, session\
-  \ management, plugin loading) while delegating virtually all features to plugins.\
-  \ The sophisticated plugin infrastructure with typed plugin categories, lifecycle\
-  \ management, subplugins, and hook-based communication makes this a textbook **Microkernel\
-  \ (Plugin)** architecture with very high confidence (0.95)."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Extensibility
+  - Maintainability
+  - Portability
+  - Security
+  - Scalability
+  - Observability
+  - Interoperability
+one_line_summary: "A PHP-based Learning Management System built as a Microkernel with 49 formally typed plugin extension points, a PSR-14 hook system, 261 core event classes, and a plugin lifecycle manager — all deployed as a single process (Modular Monolith) with clear horizontal layers including a modern Slim 4 HTTP routing tier."
+classification_reasoning: "Moodle exhibits a three-style composition: Microkernel as primary, Modular Monolith and Layered as secondary.\n\nMICROKERNEL (primary, 0.93): The dominant architectural characteristic is a formally typed plugin system codified in 49 plugin type descriptors under public/lib/classes/plugininfo/. Plugin types include mod, auth, enrol, theme, block, format, report, gradereport, filter, editor, repository, portfolio, qtype, qbehaviour, qformat, qbank, local, tool, availability, calendartype, dataformat, search, message, mlbackend, aiprovider, aiplacement, communication, smsgateway, paygw, contenttype, and more. Each type has a PHP base class defining the extension contract. Four plugin types (mod, editor, tool, local) support their own subplugin tiers (e.g., mod/forum declares forumreport subplugins via db/subplugins.json), giving the kernel three levels of extensibility. The PSR-14 hook system (core\\hook\\manager implementing EventDispatcherInterface and ListenerProviderInterface) allows plugins to register typed callback listeners via db/hooks.php; the core registers 54 hook bindings. The older event system provides 261 typed event classes in public/lib/classes/event/ (all extending core\\event\\base) with plugin observers registered via db/events.php. Every plugin registers against the kernel via standardised db/ declaration files: access.php (capabilities), events.php (event observers), hooks.php (PSR-14 callbacks), services.php (web service functions), caches.php (cache store definitions), tasks.php (scheduled/adhoc tasks), messages.php (message providers). core\\plugin_manager tracks plugin status (NODB/UPTODATE/NEW/UPGRADE/DELETE) and source (std/ext) for all installed plugins. The kernel provides shared services consumed by all plugins: DML database abstraction (public/lib/dml/ with MySQL/MariaDB/Aurora/PostgreSQL/MSSQL drivers), MUC caching framework (APCu/Redis/file/session/static backends), hierarchical context/capability system (accesslib.php, 5,193 lines), task scheduler (67 task classes), session management (DB/file/Redis/Memcached backends), PHP-DI 7 dependency injection container, and a Slim 4 HTTP routing layer (public/lib/classes/router/) introduced in the 5.x series.\n\nMODULAR MONOLITH (secondary, 0.88): All plugins and core ship as a single PHP process against a single relational database. One composer.json manifests all dependencies; one config.php configures the deployment. The DDL layer (database_manager, sql_generator) manages a unified schema across all plugin installs. Plugins occupy distinct filesystem subtrees (mod/forum/, auth/ldap/, enrol/cohort/) with their own classes/, db/, lang/, templates/, and tests/, providing physical module isolation without independent deployability. Frankenstyle namespacing (core_*, mod_*, auth_*) provides logical module boundaries enforced by PSR-4 autoloading.\n\nLAYERED (secondary, 0.82): The core and each plugin are internally organised in three horizontal layers. Presentation: Mustache templates, AMD/RequireJS JavaScript modules, Boost/Classic themes, output renderers, REST/SOAP web service endpoints. Application: thin entry scripts (index.php, view.php) delegating to classes/ services, lib.php/locallib.php business logic, backup/restore engine, external API framework, task scheduler. Data: DML abstraction (moodle_database to DBMS drivers), core\\persistent model base, procedural data functions in datalib.php. The new Slim 4 HTTP router with PSR-7/15/18 middleware stack introduces a formal HTTP layer atop the legacy bootstrap.\n\nRULED OUT - Microservices: Single deployable PHP process. All plugins share one database, one process, one Composer manifest. No independent deployability, no inter-service network communication.\n\nRULED OUT - Event-Driven (primary): 261 event classes and a PSR-14 hook system are present but both are synchronous in-process mechanisms. Events are persisted to a log store for audit/reporting; hooks are synchronous callbacks. Neither decouples independent services via a message broker. The architecture primary organising principle is the plugin type contract, not event-driven choreography.\n\nRULED OUT - Hexagonal/Ports-and-Adapters: No ports-and-adapters boundary isolating a domain layer from infrastructure. The $DB global (DML driver) is injected at bootstrap and consumed directly by business logic throughout. No formal domain model isolated behind interfaces in the Hexagonal sense.\n\nRULED OUT - Domain-Driven Design: No bounded contexts, aggregate roots, value objects, or ubiquitous language segmentation. The data model is a single unified relational schema shared by all plugins.\n\nRULED OUT - CQRS: Read and write operations use the same DML abstraction. No command/query bus or separate read/write data stores.\n\nQUALITY ATTRIBUTES evidence: Extensibility — 49 plugin types; subplugin tiers; PSR-14 hook system; 261 event classes; AMD JS extension points; Moodle Plugin Directory hosts 1,700+ third-party plugins. Maintainability — Frankenstyle namespacing enforced by autoloader; PSR-4 per-plugin class isolation; behat/phpunit infrastructure per plugin; phpcs.xml.dist enforcing coding standards. Portability — DML abstraction supports 5 DBMS; MUC supports 5 cache backends; session backends are pluggable; SCORM/IMS/LTI standards for content portability. Security — hierarchical capability/context system with 600+ capability strings; CSRF tokens; antivirus subsystem; Privacy API (GDPR); libsodium encryption; WebAuthn (lbuchs/webauthn). Scalability — MUC caching (APCu, Redis, Memcached); DB read-replica trait (moodle_read_replica_trait); CDN asset delivery; task scheduler for async work. Observability — Monolog structured logging; log readers and report plugins (eventlist, log, performance, security reports); analytics subsystem with ML backends. Interoperability — REST/SOAP/XML-RPC web services (300+ external functions); LTI 1.x/2.0; SCORM; IMS Common Cartridge; xAPI; OAuth2; MNet; WebAuthn."

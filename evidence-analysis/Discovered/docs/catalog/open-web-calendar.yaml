@@ -5,105 +5,77 @@ source: Discovered
 source_url: https://github.com/niccokunzmann/open-web-calendar
 project_url: https://github.com/niccokunzmann/open-web-calendar
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T05:02:54Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Healthcare
+domain: Calendar Aggregation / Web Embedding
 language: Python
 languages:
 - Python
 - JavaScript
+- HTML
 architecture_styles:
 - Layered
+- Pipeline
 classification_status: classified
-review_notes: 'The repository follows a traditional **Layered** architecture common
-  in Python web applications (likely Flask, given the `app.py`, `static`, and `templates`
-  structure). It is a monolithic application designed for a single deployment unit
-  (as evidenced by the root `Dockerfile`, `Procfile`, and `app.py`).
-
-
-  ### Evidence for Layered Architecture:
-
-  1.  **Presentation Layer**: The system uses a standard web frontend directory structure
-  with `open_web_calendar/templates/` for HTML Jinja-style templates and `open_web_calendar/static/`
-  for CSS/JS assets. There is a clear separation between the server-side rendering
-  logic and the client-side behaviors (found in `open_web_calendar/static/js/`).
-
-  2.  **Logic/Service Layer**: Files like `open_web_calendar/calendars/` contain the
-  core business logic for processing different calendar formats. The presence of `base.py`,
-  `ics.py`, and `caldav.py` suggests an abstraction layer for handling data sources.
-
-  3.  **Data/Utility Layer**: Modules such as `encryption.py`, `url.py`, and `util.py`
-  provide cross-cutting concerns and low-level data handling.
-
-
-  ### Why not other styles:
-
-  - **Microservices**: There is no evidence of service boundaries, independent scaling
-  units, or inter-service communication. The `docker-compose.yml` in docs is for self-hosting
-  the single app, not a fleet of services.
-
-  - **Modular Monolith**: While there are sub-directories, they appear to be functional
-  layers (calendars, features, templates) rather than autonomous business modules
-  with strict interface enforcement.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:51:11Z'
-classification_reasoning: "## Architecture Analysis: Open Web Calendar\n\n### Primary\
-  \ Classification: **Layered Architecture**\n\nThe open-web-calendar repository exhibits\
-  \ a classic **Layered Architecture** with clear horizontal separation of concerns:\n\
-  \n#### Evidence of Layered Structure\n\n**1. Presentation/Handler Layer** (`open_web_calendar/app.py`):\n\
-  - Flask application with route handlers (`@app.route`)\n- HTTP request/response\
-  \ handling\n- Template rendering and static file serving\n- Configuration endpoints\
-  \ for JavaScript frontend\n- ~520 lines of controller code\n\n```python\n@app.route(\"\
-  /calendar.<ext>\", methods=[\"GET\", \"OPTIONS\"])\ndef get_calendar(ext):\n   \
-  \ \"\"\"Return a calendar.\"\"\"\n    specification = get_specification()\n    if\
-  \ ext == \"events.json\":\n        return get_conversion(ConvertToEvents, specification)\n\
-  \    if ext == \"ics\":\n        return get_conversion(ConvertToICS, specification)\n\
-  ```\n\n**2. Business Logic/Conversion Layer** (`open_web_calendar/convert/`):\n\
-  - `ConversionStrategy` abstract base class defines the contract\n- Concrete strategies:\
-  \ `ConvertToEvents`, `ConvertToICS`, `ConvertToCalendars`\n- Encapsulates calendar\
-  \ transformation logic\n- Independent of HTTP layer\n\n```python\nclass ConversionStrategy:\n\
-  \    \"\"\"Base class for conversions.\"\"\"\n    def retrieve_calendars(self):\
-  \ ...\n    def merge(self): ...\n    def collect_components_from(self, index, calendars):\
-  \ ...\n```\n\n**3. Data Access/Calendar Source Layer** (`open_web_calendar/calendars/`):\n\
-  - Abstract `Calendars` base class with unified interface\n- Concrete implementations\
-  \ for different sources:\n  - `ICSCalendars` - handles ICS file sources\n  - `CalDAVCalendars`\
-  \ - handles CalDAV protocol sources\n- `get_events_between()`, `get_icalendars()`\
-  \ as common operations\n\n```python\nclass Calendars(ABC):\n    \"\"\"Base class\
-  \ for calendars.\"\"\"\n    @abstractmethod\n    def get_events_between(self, start,\
-  \ end) -> list[Event]: ...\n    @abstractmethod\n    def get_icalendars(self) ->\
-  \ list[Calendar]: ...\n```\n\n**4. Configuration Layer** (`open_web_calendar/config.py`):\n\
-  - Environment-based configuration management\n- Separation of configuration concerns\
-  \ from application logic\n\n**5. Template/Static Resources** (`open_web_calendar/templates/`,\
-  \ `open_web_calendar/static/`):\n- HTML templates for different views (index.html,\
-  \ about.html, calendar templates)\n- JavaScript, CSS, and image assets\n\n#### Single\
-  \ Deployable Unit\n\nEvidence from deployment configuration:\n- Single `Dockerfile`\
-  \ building one container\n- Single `Procfile` with one web process: `web: gunicorn\
-  \ open_web_calendar.app:app`\n- Single `pyproject.toml` packaging one Python package\n\
-  - Single Flask application instance (`app = Flask(__name__)`)\n\n#### Dependency\
-  \ Flow\n\nThe dependencies flow downward through layers:\n- Presentation → Business\
-  \ Logic → Data Access\n- Flask routes use conversion strategies\n- Conversion strategies\
-  \ use calendar abstractions\n- No circular dependencies or violations of layer boundaries\n\
-  \n### Styles Considered and Rejected\n\n**Not Microservices**: Single deployable\
-  \ unit, no service boundaries, no inter-service communication, shared process memory.\n\
-  \n**Not Modular Monolith**: While there are well-organized packages (`calendars/`,\
-  \ `convert/`), there's no explicit module boundary enforcement. The code is organized\
-  \ by layer rather than by vertical feature modules.\n\n**Not Event-Driven**: No\
-  \ message brokers, event buses, or async event handling. All operations are synchronous\
-  \ HTTP request/response.\n\n**Not Hexagonal/Ports & Adapters**: While abstract interfaces\
-  \ exist (`Calendars`, `ConversionStrategy`), there's no explicit separation of ports\
-  \ (application interfaces) from adapters (infrastructure implementations). The Flask\
-  \ app directly instantiates and uses strategies.\n\n**Not DDD**: No bounded contexts,\
-  \ aggregates, entities, or value objects organized around domain concepts. The organization\
-  \ is technical (by layer) not domain-driven.\n\n**Not Microkernel/Plugin**: No plugin\
-  \ loading mechanism, no runtime extension points. The conversion strategies are\
-  \ selected by file extension but are all built-in and statically defined.\n\n###\
-  \ Conclusion\n\nThe architecture is a well-structured **Layered Architecture** typical\
-  \ of Flask web applications. The code demonstrates clean separation between presentation\
-  \ (Flask routes/templates), business logic (conversion strategies), and data access\
-  \ (calendar sources). The Strategy pattern is used within the business logic layer\
-  \ for extensibility, but this is an implementation pattern rather than a defining\
-  \ architectural style."
+one_line_summary: Single-process Flask application that proxies and merges ICS/CalDAV
+  calendar feeds into rendered HTML, merged ICS, or JSON events via a strict four-stage
+  retrieve-convert-merge pipeline organized in clean horizontal layers.
+classification_method: deep-analysis
+classification_confidence: 0.91
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Privacy
+- Security
+- Deployability
+- Customisability
+- Internationalisation
+- Extensibility
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary
+  Style: Layered (0.91)\n\nThe codebase is organized in four explicit horizontal layers
+  with strict downward-only dependencies:\n\n**Presentation layer** — `app.py` Flask
+  routes delegate immediately to the conversion layer after spec assembly; Jinja2
+  templates in `templates/` render the UI; `static/` holds the dhtmlx Scheduler JS
+  widget and supporting scripts. Routes contain no business logic.\n\n**Conversion
+  (application) layer** — `convert/base.py` defines `ConversionStrategy`, an abstract
+  base class owning the retrieve-collect-merge lifecycle. Three concrete strategies
+  implement the three output formats: `ConvertToEvents` (JSON for dhtmlx), `ConvertToICS`
+  (merged ICS feed), `ConvertToCalendars` (calendar metadata JSON). Strategy selection
+  is driven by the `.<ext>` in the `/calendar.<ext>` route.\n\n**Calendar source
+  layer** — `calendars/base.py` defines `Calendars` (ABC) with `get_events_between()`
+  and `get_icalendars()`. `ICSCalendars` handles HTTP/webcal/ICS sources via `recurring-ical-events`;
+  `CalDAVCalendars` handles CalDAV via the `caldav` library. The conversion layer
+  depends only on this interface.\n\n**Infrastructure layer** — `config.py` (environment
+  config), `encryption.py` (Fernet credential encryption), `clean_html.py` (lxml/BeautifulSoup
+  sanitisation), `translate.py` (i18n), `error.py` (HTTP error helpers). No upward
+  dependencies.\n\nLayer boundaries are strictly respected: `app.py` never imports
+  from `calendars/`; conversion strategies never import from `app.py`; utilities have
+  no application imports.\n\n### Secondary Style: Pipeline (0.82)\n\nWithin each
+  calendar-producing request, processing follows a fixed four-stage linear pipeline:
+  (1) specification assembly — merges YAML default spec, optional remote `specification_url`
+  YAML, and query-string parameter overrides; (2) parallel retrieval — `ThreadPoolExecutor`
+  (up to 100 workers) fetches all source URLs concurrently, producing `Calendars`
+  objects; (3) component collection — each `Calendars` result is passed to `collect_components_from()`,
+  appending transformed components to a shared list under an `RLock`; (4) merge/serialise
+  — `merge()` assembles the final `Response`. Data flows strictly left-to-right; there
+  is no feedback or branching.\n\n### What Was Rejected\n\n**Not Microservices /
+  Service-Based:** Exactly one deployable process — `gunicorn -w \"$WORKERS\" open_web_calendar.app:app`.
+  No inter-service communication, no API gateway, no service registry.\n\n**Not Event-Driven:**
+  No message queues, event buses, or pub/sub. All processing is synchronous and request-scoped.\n\n**Not
+  Microkernel:** No plugin discovery mechanism. Calendar source types and output strategies
+  are selected via hard-coded conditionals in `app.py`. New types require code changes.\n\n**Not
+  Hexagonal:** The `Calendars` ABC provides an interface boundary but the codebase
+  lacks bidirectional ports, adapter naming conventions, and domain isolation that
+  define Hexagonal.\n\n**Not Serverless:** `vercel.json` routes all paths to a single
+  WSGI entrypoint, not decomposed per-function.\n\n### Quality Attribute Evidence\n\n**PRIVACY:**
+  Server-side proxying of calendar feeds so visitor browsers never contact calendar
+  sources directly.\n\n**SECURITY:** Fernet encryption for CalDAV credentials; aggressive
+  lxml/BeautifulSoup HTML sanitisation with 15+ `clean_html_*` spec flags; `flask-allowed-hosts`
+  allowlisting.\n\n**DEPLOYABILITY:** Single PyPI package, Docker image (Alpine +
+  Gunicorn), and Vercel deployment. Zero external data store dependencies.\n\n**CUSTOMISABILITY:**
+  Three-tier YAML/JSON specification override system controls 50+ settings without
+  code changes.\n\n**INTERNATIONALISATION:** 25+ language translations; `prefer_browser_language`
+  flag for automatic `Accept-Language` negotiation.\n\n**EXTENSIBILITY (limited):**
+  New output formats and source protocols require code changes; no plugin registration
+  exists."

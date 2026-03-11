@@ -1,83 +1,64 @@
 project_name: orbit
-scope: application
+scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/orbit/orbit
-project_url: https://github.com/orbit/orbit
-evidence_type: automated-discovery
-discovered_at: '2026-03-06T06:04:23Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Developer Tools
-language: Java/Kotlin
+domain: Distributed Actor Framework
+language: Kotlin
 languages:
-- Java/Kotlin
+- Kotlin
 architecture_styles:
 - Pipeline
 - Microkernel
 classification_status: classified
-review_notes: "The Orbit repository implements a distributed virtual actor framework.\
-  \ Its internal architecture is structured as a **Service-Based** system that facilitates\
-  \ a **Space-Based** runtime environment, utilizing a **Microkernel** approach for\
-  \ extensibility.\n\n### 1. Service-Based (Primary)\nThe system is organized into\
-  \ a small number of coarse-grained component types that work together. As evidenced\
-  \ by `docker/docker-compose.yml` and the Helm charts (`charts/orbit/templates/`),\
-  \ the architecture consists of:\n- **Orbit Server Nodes**: Multiple instances of\
-  \ the core processing unit (defined in `src/orbit-server` and packaged via `src/orbit-application`).\n\
-  - **Directory Services**: External state providers (etcd) used for `node-directory`\
-  \ and `addressable-directory` to track the location of virtual actors. \n- **Mesh\
-  \ Proxy**: An HAProxy instance for load balancing traffic across the server nodes.\n\
-  \nUnlike a pure microservices architecture where every domain is a separate service,\
-  \ Orbit provides a unified \"Server\" and \"Client\" infrastructure aimed at distributed\
-  \ computing."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:51:42Z'
-classification_reasoning: "## Analysis\n\nThe Orbit repository implements a **distributed\
-  \ actor mesh system** (developed by Electronic Arts) with a clear Pipeline architecture\
-  \ at its core, complemented by a Microkernel-style plugin system.\n\n### Primary\
-  \ Style: Pipeline (Pipe-and-Filter)\n\nThe server's message processing is organized\
-  \ around a classic pipeline pattern:\n\n**Evidence:**\n1. **`src/orbit-server/src/main/kotlin/orbit/server/pipeline/Pipeline.kt`**\
-  \ - Central orchestrator that pushes messages through a channel-based processing\
-  \ system using `RailWorker` for parallel rails.\n\n2. **`src/orbit-server/src/main/kotlin/orbit/server/pipeline/step/PipelineStep.kt`**\
-  \ - Defines the filter interface:\n   ```kotlin\n   interface PipelineStep {\n \
-  \      suspend fun onOutbound(context: PipelineContext, msg: Message): Unit = context.next(msg)\n\
-  \       suspend fun onInbound(context: PipelineContext, msg: Message): Unit = context.next(msg)\n\
-  \   }\n   ```\n\n3. **`src/orbit-server/src/main/kotlin/orbit/server/pipeline/PipelineSteps.kt`**\
-  \ - Explicitly wires the sequence:\n   ```kotlin\n   val steps: Array<PipelineStep>\
-  \ = arrayOf(\n       identityStep,\n       routingStep,\n       placementStep,\n\
-  \       verifyStep,\n       authStep,\n       transportStep\n   )\n   // inbound\
-  \ is up, outbound is down\n   ```\n\n4. Each step independently processes messages\
-  \ and calls `context.next(msg)` to pass data to the next filter — the canonical\
-  \ pipe-and-filter pattern.\n\n5. Concrete steps like `RoutingStep`, `TransportStep`,\
-  \ `PlacementStep` each handle a single responsibility in the message flow.\n\n###\
-  \ Secondary Style: Microkernel (Plugin)\n\nThe system provides extensibility through\
-  \ a plugin/dependency-injection mechanism:\n\n**Evidence:**\n1. **`src/orbit-util/src/main/kotlin/orbit/util/di/ComponentContainer.kt`**\
-  \ - Custom DI container with `ExternallyConfigured<T>` interface enabling runtime\
-  \ configuration of implementations.\n\n2. **Pluggable Directory Implementations:**\n\
-  \   - `NodeDirectory` and `AddressableDirectory` interfaces (`src/orbit-server/src/main/kotlin/orbit/server/mesh/`)\n\
-  \   - `LocalNodeDirectory`, `LocalAddressableDirectory` (core)\n   - `EtcdNodeDirectory`,\
-  \ `EtcdAddressableDirectory` (separate module: `src/orbit-server-etcd/`)\n\n3. **Pluggable\
-  \ Addressable Construction:**\n   - `AddressableConstructor` interface (`src/orbit-client/src/main/kotlin/orbit/client/addressable/AddressableConstructor.kt`)\n\
-  \   - `DefaultAddressableConstructor` (core)\n   - `SpringAddressableConstructor`\
-  \ (separate module: `src/orbit-client-spring-plugin/`) for Spring integration\n\n\
-  4. **Pluggable Metrics:**\n   - `PrometheusMetrics` as a separate module (`src/orbit-server-prometheus/`)\n\
-  \n5. **Container Overrides Hook** - Both `OrbitClientConfig` and `OrbitServerConfig`\
-  \ expose `containerOverrides` allowing external configuration of implementations.\n\
-  \n### What Was Rejected\n\n- **Not Microservices**: Single deployable artifact (`orbit-application`),\
-  \ one Dockerfile, one Helm chart. Multiple runtime instances form a cluster, but\
-  \ this is horizontal scaling, not service decomposition.\n\n- **Not Layered**: No\
-  \ horizontal layering (presentation/business/data). The modules are organized by\
-  \ technical capability (proto, client, server, util) not by layers.\n\n- **Not Event-Driven**:\
-  \ No message broker (Kafka, RabbitMQ, etc.). Messages flow synchronously through\
-  \ the processing pipeline. The system is request-response based via gRPC.\n\n- **Not\
-  \ Modular Monolith**: The modules are technical components (util, proto, shared)\
-  \ rather than business domain boundaries. There's no domain-driven decomposition.\n\
-  \n- **Not Hexagonal**: While there's dependency injection, there's no explicit ports/adapters\
-  \ separation pattern. The plugin system serves a different purpose.\n\n### Deployment\
-  \ Topology\n\nThe system deploys as a single application with cluster capabilities:\n\
-  - Docker Compose runs multiple `orbit-server` instances with etcd for distributed\
-  \ state\n- Kubernetes deployment via Helm chart (`charts/orbit/`)\n- gRPC-based\
-  \ communication between mesh nodes"
+classification_confidence: 0.88
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+evidence_type: automated-discovery
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+quality_attributes:
+- Scalability
+- Extensibility
+- Availability
+- Performance
+- Observability
+- Deployability
+one_line_summary: Distributed virtual actor framework with a fixed six-step server
+  message pipeline and a microkernel plugin surface for node/addressable directories
+  and metrics backends.
+classification_reasoning: "## Architecture Classification: Pipeline + Microkernel\n\
+  \n### Primary Style: Pipeline (0.90)\n\nThe server's processing core is an explicit,\
+  \ ordered, bidirectional message pipeline defined in `PipelineSteps.kt` as an immutable\
+  \ `Array<PipelineStep>`: IdentityStep \u2192 RoutingStep \u2192 PlacementStep \u2192\
+  \ VerifyStep \u2192 AuthStep \u2192 TransportStep. Every inbound and outbound message\
+  \ flows through this chain via `PipelineContext.next(msg)`. `Pipeline.kt` feeds\
+  \ a `RailWorker` (buffered Kotlin channel with 32 parallel worker coroutines and\
+  \ a 10 000-message buffer). The comment in `PipelineSteps.kt` states explicitly:\
+  \ 'inbound is up, outbound is down'. Stages are non-dynamic (no runtime composition\
+  \ or reordering) and each stage has a single concern: identity resolution, shortest-path\
+  \ routing (Dijkstra via jgrapht), actor placement (locateOrPlace against AddressableDirectory),\
+  \ verification, auth, and final gRPC delivery. This is the architectural spine of\
+  \ the entire server.\n\n### Secondary Style: Microkernel (0.82)\n\n`OrbitServerConfig`\
+  \ exposes three `ExternallyConfigured<T>` plugin slots: `NodeDirectory` (local\
+  \ in-memory or EtcdNodeDirectory), `AddressableDirectory` (local or EtcdAddressableDirectory),\
+  \ and `MeterRegistry` (local or PrometheusMetrics). A fourth hook, `containerOverrides:\
+  \ ComponentContainerRoot.() -> Unit`, allows arbitrary DI overrides. On the client\
+  \ side, `OrbitClientConfig` exposes `AddressableConstructor` (default reflection\
+  \ or SpringAddressableConstructor) and `NodeLeaseRenewalFailedHandler`. The etcd\
+  \ and Prometheus modules (`orbit-server-etcd`, `orbit-server-prometheus`) are separate\
+  \ Gradle subprojects consumed as optional plugins. This plugin surface is the primary\
+  \ operational configuration axis: swapping from local to etcd directories is what\
+  \ enables multi-node cluster deployments (evidenced in docker-compose.yml and Helm\
+  \ chart).\n\n### Application Model: Virtual Actor Pattern\n\nBuilt on top of the\
+  \ pipeline, the client SDK implements a virtual actor model. `ExecutionSystem` manages\
+  \ a `ConcurrentHashMap<AddressableReference, ExecutionHandle>` of live actors with\
+  \ TTL-based deactivation and lease renewal. `AddressableManager` on the server performs\
+  \ placement via `locateOrPlace` with retry and reroute logic. gRPC uses a single\
+  \ persistent bidirectional stream per client (`Connection.OpenStream`). Multiple\
+  \ server nodes form a mesh; `ClusterManager` builds a directed visibility graph\
+  \ for Dijkstra routing; `RemoteMeshNodeManager` maintains peer-to-peer connections\
+  \ between mesh nodes. This actor runtime is the application model, not a separate\
+  \ architecture style.\n"

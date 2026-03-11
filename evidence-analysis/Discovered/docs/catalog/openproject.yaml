@@ -11,99 +11,27 @@ discovery_version: 1.0.0
 domain: Project Management
 language: Ruby
 languages:
-- Ruby
-- TypeScript
-- JavaScript
+  - Ruby
+  - TypeScript
+  - JavaScript
+  - SCSS
 architecture_styles:
-- Modular Monolith
-- Layered
+  - Modular Monolith
+  - Microkernel
+  - Layered
 classification_status: classified
-review_notes: 'OpenProject is a classic example of a **Modular Monolith** built on
-  the Ruby on Rails framework. While it utilizes a plugin-like system, the architectural
-  intent and deployment model firmly place it in the Modular Monolith category.
-
-
-  ### 1. Modular Monolith (Primary)
-
-  The codebase is structured into a large "core" application and a significant number
-  of internal engines located in the `/modules` directory.
-
-  - **Internal Modules:** There are over 30 modules (e.g., `modules/backlogs`, `modules/costs`,
-  `modules/calendar`) that represent specific business domains. These are organized
-  as Rails Engines, each containing its own `app/`, `lib/`, `config/`, and `db/` (migrations)
-  directories.
-
-  - **Dependency Management:** The main `Gemfile` explicitly loads these modules using
-  `eval_gemfile "./Gemfile.modules"`. This indicates that while the code is decoupled
-  into logical units, it is compiled and executed as a single deployable unit.
-
-  - **Shared Infrastructure:** The `docker-compose.yml` confirms that the production/dev
-  environment consists of a single `backend` service (Rails), a `worker` (GoodJob),
-  and a `frontend` (Angular). All modules share the same PostgreSQL database and Memcached
-  instance.
-
-
-  ### 2. Layered (Secondary)
-
-  Within both the core and the modules, OpenProject follows a strict horizontal layering
-  pattern that extends the standard Rails MVC:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:52:39Z'
-classification_reasoning: "## Architecture Classification: Modular Monolith\n\nOpenProject\
-  \ is a **Modular Monolith** - a single deployable Rails application with enforced\
-  \ internal module boundaries through Rails Engines. The architecture provides a\
-  \ plugin infrastructure that allows features to be developed and packaged as discrete\
-  \ modules while running as a single application.\n\n### Key Evidence\n\n**1. Rails\
-  \ Engines as Module Boundaries**\n\nThe `modules/` directory contains 27+ feature\
-  \ modules, each implemented as a proper Rails Engine:\n\n- `modules/costs/`, `modules/webhooks/`,\
-  \ `modules/storages/`, `modules/github_integration/`, etc.\n- Each module has its\
-  \ own: `app/` (models, controllers, views), `config/routes.rb`, `db/migrate/`, `spec/`\n\
-  - All extend `Rails::Engine` and include `OpenProject::Plugins::ActsAsOpEngine`\n\
-  \n```ruby\n# modules/costs/lib/costs/engine.rb\nmodule Costs\n  class Engine < ::Rails::Engine\n\
-  \    include OpenProject::Plugins::ActsAsOpEngine\n    register \"costs\", author_url:\
-  \ \"...\", bundled: true do\n      project_module :costs do\n        permission\
-  \ :view_time_entries, ...\n      end\n    end\n  end\nend\n```\n\n**2. Plugin Registration\
-  \ and Integration Contract**\n\nThe `ActsAsOpEngine` module (`lib/open_project/plugins/acts_as_op_engine.rb`)\
-  \ provides a structured integration contract:\n- `register` block for permissions,\
-  \ menus, and module registration\n- `patches` method for extending core classes\
-  \ from modules\n- `assets` for asset precompilation registration\n- `override_core_views!`\
-  \ for view customization\n\n**3. Controlled Core Extension via Patches**\n\nModules\
-  \ extend core functionality through a controlled patching mechanism:\n\n```ruby\n\
-  # modules/costs/lib/costs/engine.rb\npatches %i[Project User PermittedParams WorkPackage]\n\
-  \n# modules/costs/lib/costs/patches/project_patch.rb\nmodule Costs::Patches::ProjectPatch\n\
-  \  def self.included(base)\n    base.class_eval do\n      has_many :rates, class_name:\
-  \ \"HourlyRate\"\n    end\n  end\nend\n```\n\n**4. Hook System for Event-Based Extension**\n\
-  \nThe `OpenProject::Hook` system (`lib/open_project/hook.rb`) provides a listener\
-  \ pattern for plugins to extend core behavior without direct coupling:\n- `ViewListener`\
-  \ base class for view extensions\n- `render_on` macro for injecting partials at\
-  \ hook points\n- Plugins register listeners that respond to named hooks\n\n**5.\
-  \ Module Discovery and Loading**\n\nModules are explicitly defined in `Gemfile.modules`\
-  \ as path-based gems:\n```ruby\ngroup :opf_plugins do\n  gem 'openproject-auth_plugins',\
-  \ path: 'modules/auth_plugins'\n  gem 'costs', path: 'modules/costs'\n  gem 'openproject-webhooks',\
-  \ path: 'modules/webhooks'\n  # ... 24 more modules\nend\n```\n\n**6. Single Deployment\
-  \ Unit**\n\nThe architecture produces a single deployable artifact:\n- One `Dockerfile`\
-  \ (docker/prod/Dockerfile) builds a monolithic Rails application\n- All modules\
-  \ are bundled into the same container\n- Single PostgreSQL database shared across\
-  \ all modules\n- docker-compose.yml shows backend + worker processes for the same\
-  \ codebase\n\n**7. Shared Database, Independent Migrations**\n\nEach module owns\
-  \ its database schema via migrations in `modules/*/db/migrate/`, but all share the\
-  \ same database:\n- Migrations are aggregated during initialization\n- Modules can\
-  \ extend core models (e.g., `Project`, `User`) through patches\n- No service boundaries\
-  \ or inter-service communication\n\n### Architecture Within Modules\n\nEach module\
-  \ follows a **Layered** pattern internally:\n- Controllers (presentation)\n- Models\
-  \ (data access)\n- Services (business logic)\n- Contracts (validation/policies)\n\
-  - Views (templates)\n\nThis is standard Rails MVC layered architecture, but it's\
-  \ subordinate to the modular monolith structure.\n\n### What This Is NOT\n\n- **NOT\
-  \ Microservices**: Single deployment unit, shared database, no inter-service communication\n\
-  - **NOT Service-Based**: No coarse-grained services with separate databases\n- **NOT\
-  \ Hexagonal**: No ports/adapters isolation pattern; plugins extend core directly\n\
-  - **NOT Just Layered**: The module boundary enforcement via Engines is the primary\
-  \ architectural feature\n\n### Confidence Assessment\n\nConfidence: 0.95 (Very High)\n\
-  \nThe evidence is unambiguous:\n- 27+ Rails Engines with standardized integration\
-  \ via `ActsAsOpEngine`\n- Explicit plugin registration, patching, and hook systems\n\
-  - Single deployment artifact\n- Shared database across all modules\n- Module discovery\
-  \ via Bundler groups\n\nThis is a textbook example of the Modular Monolith pattern\
-  \ in Rails, with mature plugin infrastructure evolved from its Redmine heritage."
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Extensibility
+  - Maintainability
+  - Modularity
+  - Observability
+  - Security
+  - Scalability
+  - Auditability
+  - Internationalisation
+one_line_summary: "A Rails 8 project management platform structured as a Modular Monolith of 27 Rails engine modules sharing one PostgreSQL database, augmented by a Microkernel plugin system (Hook, PatchRegistry, Notifications pub/sub) and a strict contract-service layering inside each module."
+classification_reasoning: "OpenProject exhibits a three-style composition: Modular Monolith as primary, Microkernel and Layered as secondary.\n\nMODULAR MONOLITH (primary, 0.93): The repo contains 27 domain-specific Rails engines under modules/ — storages, meeting, backlogs, boards, bim, gantt, calendar, webhooks, github_integration, gitlab_integration, etc. Each module ships with its own app/ MVC tree, db/migrate/ migrations, config/routes.rb, and a *.gemspec making it a proper Ruby gem. All 27 are loaded in a single Ruby process via Gemfile.modules under group :opf_plugins and Bundler.require(*Rails.groups(:opf_plugins)) in application.rb. Migrations are merged at boot via ActsAsOpEngine#append_migrations so all modules share one PostgreSQL schema. Modules communicate through shared ActiveRecord models, direct Ruby calls, and the in-process notifications bus — no network boundaries separate them. The worker (GoodJob) process also shares the same codebase and database.\n\nMICROKERNEL (secondary, 0.88): The core exposes three structured extension mechanisms. First, OpenProject::Hook provides a Listener singleton pattern where modules register named hook implementations (e.g., view_account_login_auth_provider); Hook.call dispatches to all registered listeners for a given hook. Second, OpenProject::Plugins::PatchRegistry.register enables modules to inject concerns into core classes via ActiveSupport.on_load, fired by the 10-load_patches.rb initializer. Third, OpenProject::Notifications wraps ActiveSupport::Notifications with a named subscribe/send API; subscribe_listeners.rb wires 30+ named domain events (JOURNAL_CREATED, MEMBER_CREATED, WATCHER_ADDED, PROJECT_CREATED, STORAGE_TURNED_UNHEALTHY, etc.) to background job dispatch. The OpenProject::Events module defines these event constants as the canonical plugin vocabulary. Additionally, each module calls OpenProject::AccessControl.map to register permissions declaratively into a centralized capability registry. These structured extension points mean modules do not need to modify core source to extend behavior.\n\nLAYERED (secondary, 0.82): Both core and all 27 modules adhere to a consistent five-layer pipeline within Rails MVC. HTTP layer: thin controllers and Grape-based REST API v3 under lib/api/v3/. Contract layer: app/contracts/BaseContract with validation and permission checks per resource. Service layer: BaseContracted services enforce a fixed pipeline — validate_params > before_perform > validate_contract > after_validate > persist > after_persist > after_perform — returning ServiceResult value objects. Background layer: GoodJob-backed ApplicationJob subclasses for async work (notifications, webhooks, mail, cron). Data layer: ActiveRecord models with paper_trail audit journaling and Statesman state machines. The BaseContracted pipeline is enforced across 80+ services and all modules, ensuring authorization gates every mutation.\n\nRULED OUT - Microservices: All modules share one database, one Ruby process, and one Gemfile. The worker process shares the same codebase. No independently deployable units communicating over the network.\n\nRULED OUT - Event-Driven (primary): The OpenProject::Notifications bus is in-process (ActiveSupport instrumentation), not a broker-backed async event stream. Events trigger GoodJob job dispatch, not replacing request-response communication. The system is event-aware but request-driven at its core.\n\nRULED OUT - Hexagonal Architecture: No ports/adapters separation. Controllers and API endpoints are not formalized as adapters to domain ports. ActiveRecord models are used directly in service layer calls.\n\nRULED OUT - CQRS: The journals table is an append-only audit log (paper_trail) but there is no separate read/write model split or explicit event store. Reads and writes use the same ActiveRecord models.\n\nQUALITY ATTRIBUTES evidence: Extensibility — Hook listeners, PatchRegistry, Notifications pub/sub, and AccessControl.map provide four orthogonal extension points; 27 modules extend core without forking it. Maintainability — BaseContracted enforces consistent service pipeline; Primer ViewComponents for UI; contract-per-resource validation isolation. Modularity — each of 27 modules is a self-contained Rails engine gem with own migrations, routes, and MVC. Observability — AppSignal APM, OpenTelemetry initializer, GoodJob dashboard, Lograge structured logging, health_checks endpoint. Security — Doorkeeper OAuth2, Warden authentication, OmniAuth SSO providers, rack-attack rate limiting, rack-cors, BCrypt passwords, SSRF protection. Scalability — Puma multi-process web; GoodJob worker processes scale independently against the shared PostgreSQL queue; Redis-backed ActionCable for real-time channels. Auditability — paper_trail on all state changes; journal aggregation pipeline with AGGREGATED_*_JOURNAL_READY events; JournalChanges/JournalFormatter concerns on all major models. Internationalisation — i18n-js, Crowdin integration, per-module locale files merged at boot via i18n_load_paths initializer."

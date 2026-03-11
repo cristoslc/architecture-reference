@@ -5,81 +5,31 @@ source: Discovered
 source_url: https://github.com/nhost/nhost
 project_url: https://github.com/nhost/nhost
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:46:21Z'
+domain: Backend-as-a-Service (BaaS) / Developer Platform
+language: Go
+languages:
+  - Go
+  - TypeScript
+  - JavaScript
+  - Nix
+architecture_styles:
+  - Microservices
+  - Layered
+  - Serverless
+classification_status: classified
+classification_confidence: 0.88
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Deployability
+  - Scalability
+  - Observability
+  - Extensibility
+  - Security
+  - Developer Experience
+one_line_summary: "An open-source Firebase alternative built as a suite of independently containerised microservices (auth, storage, GraphQL/Hasura, functions, AI/Graphite) each organised internally as a strict three-layer Go stack, plus file-per-endpoint serverless functions for custom logic."
+classification_reasoning: "Nhost exhibits a three-style composition: Microservices as primary, Layered as secondary (per-service internal structure), and Serverless as secondary (Functions product).\n\nMICROSERVICES (primary, 0.87): The platform is composed of independently deployed, separately containerised services communicating exclusively over HTTP. Core services are: auth (nhost/auth, port 4000, Go), storage (nhost/storage, port 5000, Go), graphql (Hasura fork, port 8080), functions (Node.js Express, port 3000), ai/Graphite (nhost/graphite), dashboard (Next.js), postgres, minio, mailhog, and traefik as edge proxy. Each core service has its own directory (services/auth/, services/storage/), its own Go module entry point (main.go), its own migrations, its own Docker image, its own versioned CHANGELOG, and its own OpenAPI/GraphQL schema. The CLI's getServices() function in cli/dockercompose/compose.go assembles the full set as independent named containers with health-condition depends_on chains. The storage service uses Hasura GraphQL via HTTP as its metadata store (services/storage/metadata/hasura.go). The auth service reads and writes user data through HASURA_GRAPHQL_GRAPHQL_URL. Traefik routes subdomain-based requests to each service.\n\nLAYERED (secondary, 0.82): Each individual service is internally organised as a strict three-layer stack. Auth service: api/ (OpenAPI-generated transport + request parsing) -> controller/ (business logic with typed interfaces: DBClient, Emailer, SMSer, Encrypter, OAuthProvider) -> sql/ (sqlc-generated PostgreSQL queries). Storage service: api/ (OpenAPI) -> controller/ (MetadataStorage interface + ContentStorage interface) -> metadata/ (Hasura GraphQL adapter) + storage/ (S3 adapter). Dependency injection is manual, wired at startup in cmd/serve.go via getController(), which passes concrete implementations into the controller through interfaces, achieving inversion of control without a DI framework.\n\nSERVERLESS (secondary, 0.75): The Functions product deploys user-defined TypeScript/JavaScript files from a ./functions/ directory as individual HTTP endpoints, auto-routed by file path. Each function file exports a single default Express handler; the runtime assembles these into an HTTP server at container start. Documentation explicitly calls them 'serverless functions' and positions them alongside Lambda/Vercel use cases (event triggers, webhook handlers, custom API logic). The Nhost Run product extends this by allowing arbitrary Docker containers to run alongside the core stack.\n\nRULED OUT - Modular Monolith: Services are separate processes with separate databases/data stores and communicate only over HTTP. This is genuine distributed deployment, not a modular single-process application.\n\nRULED OUT - Event-Driven: There is no message broker, event bus, or async queue in the core nhost platform codebase. Services communicate synchronously over HTTP.\n\nRULED OUT - Microkernel: There is no plugin host or extension loading mechanism in the nhost platform itself. Extensibility is achieved by composing additional containers (Run) or adding files to functions/, not by registering plugins into a core runtime.\n\nRULED OUT - Service-Based (as primary): Services are at microservice granularity - each has its own schema, own migrations, own versioned image, and communicates over HTTP. Auth owns the 'auth' schema; storage owns the 'storage' schema. The Hasura GraphQL engine does provide a unified API surface but it is itself one of the independent services, not a monolithic application tier."
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Developer Tools
-language: TypeScript
-languages:
-- TypeScript
-- Go
-- JavaScript
-architecture_styles:
-- Microservices
-- Service-Based
-classification_status: classified
-review_notes: "The Nhost repository is structured as a **Microservices** architecture.\
-  \ It functions as a monorepo containing multiple independently deployable services\
-  \ that together form the Nhost cloud platform.\n\n### Evidence of Microservices\n\
-  1.  **Independent Service Directories**: The `services/` directory contains distinct,\
-  \ autonomous applications:\n    *   `services/auth`: A Go/TypeScript-based authentication\
-  \ service.\n    *   `services/storage`: A Go-based storage management service.\n\
-  \    *   `services/functions`: A serverless execution environment.\n2.  **Polyglot\
-  \ Implementation**: Different services use different technology stacks (e.g., Go\
-  \ for Storage and Auth core, Node.js/Bun for others), a hallmark of microservice\
-  \ independence.\n3.  **Deployment Orchestration**: The `examples/docker-compose/docker-compose.yaml`\
-  \ confirms that these services operate as distinct containers:\n    *   They communicate\
-  \ over the network (e.g., `auth` connects to `graphql` at `http://graphql:8080/v1/graphql`)."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:46:39Z'
-classification_reasoning: "## Architecture Analysis: Nhost Repository\n\n### Primary\
-  \ Classification: Microservices\n\nThe Nhost repository implements a **Microservices\
-  \ architecture** with multiple independently deployable services that own their\
-  \ data schemas.\n\n### Key Evidence\n\n**1. Multiple Independently Deployable Services:**\n\
-  \nThe repository contains distinct services deployed as separate containers (from\
-  \ `examples/docker-compose/docker-compose.yaml`):\n\n- **Auth Service** (`services/auth/`)\
-  \ - Go-based authentication service (image: `nhost/auth:0.40.2`)\n- **Storage Service**\
-  \ (`services/storage/`) - Go-based file storage service (image: `nhost/storage:0.7.2`)\n\
-  - **Hasura GraphQL Engine** - External GraphQL API layer\n- **PostgreSQL** - Shared\
-  \ database with schema isolation\n- **Functions** - Node.js serverless functions\
-  \ runtime\n- **MinIO** - S3-compatible object storage\n- **Traefik** - API Gateway/Ingress\
-  \ controller\n\n**2. Database Schema Isolation Per Service:**\n\nEach service owns\
-  \ its own database schema, following the database-per-service pattern at the schema\
-  \ level:\n\n- Auth service creates and manages `auth` schema (`services/auth/docker/initdb.d/0001-create-schema.sql`)\n\
-  - Storage service creates and manages `storage` schema (`services/storage/migrations/postgres/000001_create-initial-tables.up.sql`)\n\
-  \nEach service runs its own migrations independently:\n```go\n// services/auth/go/migrations/postgres.go\n\
-  const schemaName = \"auth\"\n\n// services/storage/migrations/postgres.go  \nconst\
-  \ schemaName = \"storage\"\n```\n\n**3. Independent Service Entry Points:**\n\n\
-  Each service is a standalone Go application:\n- `services/auth/main.go` - Auth API\
-  \ server on port 4000\n- `services/storage/main.go` - Storage API server\n\nBoth\
-  \ services expose REST APIs (via OpenAPI specifications) and operate independently.\n\
-  \n**4. Service Communication Pattern:**\n\nServices communicate synchronously via\
-  \ HTTP/GraphQL:\n- Auth service connects to Hasura GraphQL for metadata operations\n\
-  - Storage service uses Hasura GraphQL for file metadata (`services/storage/metadata/hasura.go`)\n\
-  \n```go\n// Storage service queries Hasura for metadata\nfunc (md *FileMetadataSummaryFragment)\
-  \ ToControllerType() controller.FileSummary {...}\n```\n\n**5. Independent Versioning:**\n\
-  \nServices have independent release cycles:\n- Auth: version 0.40.2\n- Storage:\
-  \ version 0.7.2\n\n**6. Monorepo Structure:**\n\nThe repository uses workspace-based\
-  \ organization:\n- `pnpm-workspace.yaml` for JavaScript/TypeScript packages\n- Go\
-  \ modules for Go services\n- Clear separation between services, CLI tools, SDKs,\
-  \ and dashboard\n\n### What Was Rejected\n\n**Not Event-Driven:** No message brokers\
-  \ (Kafka, RabbitMQ, NATS) or event-sourcing patterns were found. Services communicate\
-  \ synchronously via HTTP/GraphQL APIs.\n\n**Not Modular Monolith:** Services are\
-  \ deployed as separate Docker containers, not as modules within a single deployable.\
-  \ Each service has its own database schema and can be deployed independently.\n\n\
-  **Not Serverless:** While the platform supports serverless functions, the core services\
-  \ (auth, storage) are long-running Go services, not function-based.\n\n**Not Service-Based\
-  \ (as primary):** While there's some database sharing (PostgreSQL), the services\
-  \ have clear schema isolation and independent deployability, pushing this beyond\
-  \ coarse-grained service-based into microservices territory.\n\n### Secondary Style:\
-  \ Service-Based\n\nThe architecture has Service-Based characteristics as a secondary\
-  \ classification because:\n- Only 2 coarse-grained backend services (auth, storage)\
-  \ owned by Nhost\n- Services share a PostgreSQL instance (with schema isolation)\n\
-  - Hasura acts as a unified GraphQL gateway layer\n\n### Additional Components\n\n\
-  - **CLI** (`cli/`): Development tooling that orchestrates Docker Compose for local\
-  \ development\n- **Dashboard** (`dashboard/`): Next.js web application for platform\
-  \ management\n- **nhost-js** (`packages/nhost-js/`): JavaScript SDK client library\n\
-  - **Docs** (`docs/`): Documentation site (Astro-based)"

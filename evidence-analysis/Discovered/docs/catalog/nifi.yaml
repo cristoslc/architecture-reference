@@ -5,53 +5,101 @@ source: Discovered
 source_url: https://github.com/apache/nifi
 project_url: https://github.com/apache/nifi
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:58:01Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Data Integration
-language: Java/Kotlin
+domain: Data Flow Automation
+language: Java
 languages:
-- Java/Kotlin
+- Java
 - TypeScript
-- JavaScript
 - Python
 architecture_styles:
-- Microkernel
 - Pipeline
+- Microkernel
+- Modular Monolith
 classification_status: classified
-review_notes: 'Apache NiFi is a canonical example of a **Microkernel (Plugin)** architecture.
-  While it serves a **Pipeline** domain, the codebase is structurally organized around
-  a rigid core-and-extension separation.
-
-
-  ### Primary Style: Microkernel (Plugin)
-
-  The system is built on a custom plugin mechanism known as NARs (NiFi Archive files).
-  These are specialized artifacts that provide classloader isolation for extensions.
-
-  - **Core (Microkernel):** The `nifi-framework-bundle` contains the orchestration
-  engine, web server (`nifi-web`), and runtime management (`nifi-runtime`). This core
-  provides the lifecycle management for all plugins but remains agnostic of specific
-  data formats or protocols.
-
-  - **Plugin Contract:** The system defines a rigorous API (indicated by `nifi-api`
-  and `nifi-framework-core-api`) that extensions must implement. Key interfaces include
-  `Processor`, `ControllerService`, and `ReportingTask`.
-
-  - **Extensions:** The repository is dominated by `nifi-extension-bundles` (e.g.,
-  `nifi-aws-bundle`, `nifi-kafka-bundle`, `nifi-mongodb-bundle`). Each bundle is a
-  self-contained plugin that can be added or removed without altering the core framework.
-
-  - **Dynamic Loading:** The `nifi-nar-utils` and `nifi-framework-nar-loading-utils`
-  handle the discovery and isolation of these plugins at runtime, a hallmark of the
-  Microkernel style.
-
-
-  ### Secondary Style: Pipeline (Pipe-and-Filter)'
-review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.92
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: NAR-based plugin system with 60+ isolated extension bundles
-  dynamically loaded via ExtensionManager; processors connected via queue-based pipelines
+one_line_summary: Continuous streaming pipeline platform with a NAR-based microkernel
+  extension system and a durable FlowFile routing engine, deployed as a single clusterable
+  JVM monolith.
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Reliability
+- Scalability
+- Observability
+- Security
+- Deployability
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Styles:\
+  \ Pipeline + Microkernel\n\n**PIPELINE (primary, 0.95):** The fundamental abstraction\
+  \ is a directed graph of `Connectable` nodes (`ProcessorNode`, `Port`, `Funnel`)\
+  \ joined by `Connection` objects that act as bounded, back-pressure-enforced queues.\
+  \ Data units are `FlowFile` records (attributes + content pointer) routed between\
+  \ processors via typed `Relationship` outputs. `FlowEngine` (`nifi-framework-core-api/src/main/java/org/apache/nifi/engine/FlowEngine.java`)\
+  \ is a `ScheduledThreadPoolExecutor` that polls each processor. `FlowController.java`\
+  \ (`nifi-framework-core`) orchestrates the full graph lifecycle. The entire pipeline\
+  \ graph is persisted as `flow.json.gz` and versioned in NiFi Registry — the pipeline\
+  \ topology is the primary deployable artifact. `nifi-stateless/` executes a sub-graph\
+  \ as a bounded exactly-once pipeline, confirming the pipeline model is the core\
+  \ architectural unit. This is a continuous streaming pipeline, not a batch DAG:\
+  \ processors run in tight loops, consuming from upstream queues and producing to\
+  \ downstream queues, with guaranteed delivery via a WAL-backed FlowFile repository.\n\
+  \n**MICROKERNEL (primary, 0.92):** The runtime is a thin, stable kernel (`FlowController`\
+  \ + `FlowEngine` + NAR classloader) that discovers and loads plugins at runtime\
+  \ through the NAR (NiFi Archive) system. Each NAR is a ZIP bundle loaded in an\
+  \ isolated `NarClassLoader` (`nifi-nar-utils/`). `NarAutoLoader.java` watches an\
+  \ autoload directory and loads new NARs without restart. `ExtensionBuilder.java`\
+  \ instantiates plugin instances by resolving the correct NAR classloader context.\
+  \ The formal plugin contract is `nifi-framework-api/` — interfaces `Processor`,\
+  \ `ControllerService`, `ReportingTask`, `FlowAnalysisRule`, `ParameterProvider`.\
+  \ 73 extension bundles in `nifi-extension-bundles/` (AWS, Azure, GCP, Kafka, Hadoop,\
+  \ Elasticsearch, Snowflake, Slack, Salesforce, SNMP, etc.) are all loaded as NARs;\
+  \ none are compiled into the kernel. `StandardNarManager.java` supports runtime\
+  \ NAR install/deactivate via REST API. `nifi-framework-extensions/nifi-py4j-framework-bundle/`\
+  \ enables Python extensions via Py4J bridge in isolated subprocesses, further demonstrating\
+  \ the extension-point model.\n\n### Secondary Style: Modular Monolith\n\n**MODULAR\
+  \ MONOLITH (secondary, 0.87):** Despite the microkernel extension system, NiFi deploys\
+  \ as a single JVM process assembling all components via `nifi-assembly/`. Cluster\
+  \ nodes are identical instances of the same binary. A single `FlowController` object\
+  \ holds all processors, connections, repositories, and cluster state. Maven module\
+  \ boundaries (`nifi-framework-core` depends on `nifi-framework-core-api` but never\
+  \ on extension bundles; extensions only reference `nifi-framework-api`) enforce\
+  \ strong architectural isolation within the monolith. `nifi-registry/` is the only\
+  \ genuinely separate service (flow versioning). `nifi-stateless/` is an embedded\
+  \ library mode, not a separate deployment.\n\n### What Was Rejected and Why\n\n\
+  **Not Microservices:** The entire system is one process. Cluster nodes are identical\
+  \ replicas sharing the same flow configuration. There is no service mesh, no per-capability\
+  \ deployment boundary, no separate data stores per service. The registry is the\
+  \ sole genuinely separate service.\n\n**Not Event-Driven (primary):** FlowFiles\
+  \ move through queues, but coordination is synchronous and pull-based — `FlowEngine`\
+  \ polls each processor. There is no event broker mediating internal component interactions.\
+  \ The data content may be event streams; the runtime architecture is a continuous\
+  \ streaming pipeline.\n\n**Not Layered:** Organization is vertical by component\
+  \ type (processor, connection, group) and by NAR isolation concern, not a strict\
+  \ presentation/business/data horizontal stack.\n\n**Not Service-Based:** Processors,\
+  \ groups, and connections are not deployed as separate services; they are all graph\
+  \ nodes within one runtime process.\n\n### Quality Attributes Evidence\n\n**EXTENSIBILITY:**\
+  \ 73 NAR extension bundles; NAR hot-loading via `NarAutoLoader` without restart;\
+  \ formal `nifi-framework-api` plugin contract with 5 extension point types; Python\
+  \ extensions via Py4J; custom NAR Maven archetype for third-party bundles.\n\n**RELIABILITY:**\
+  \ FlowFile repository (WAL-backed via `WriteAheadFlowFileRepository`) + `FileSystemRepository`\
+  \ (content) + `PersistentProvenanceRepository` form a three-layered durability stack;\
+  \ back-pressure via connection queue limits prevents data loss; configurable retry/backoff\
+  \ per processor; no data dropped on processor crash or node failure.\n\n**SCALABILITY:**\
+  \ ZooKeeper-based horizontal clustering (`nifi-framework-cluster/`); load-balanced\
+  \ connection queues distribute FlowFiles across cluster nodes; stateless mode for\
+  \ high-throughput embedded/Kubernetes use; Python process pool capped per extension\
+  \ type.\n\n**OBSERVABILITY:** Provenance repository records every FlowFile routing\
+  \ decision with full content metadata and searchable lineage graph; `ReportingTask`\
+  \ extension point for metrics/alerting; Prometheus endpoint; QuestDB-backed time-series\
+  \ status history (`nifi-questdb-bundle`).\n\n**SECURITY:** TLS by default; RBAC\
+  \ with component-level access policies (`nifi-framework-authorization/`); OpenID\
+  \ Connect and SAML 2.0 SSO; Kerberos delegation (`nifi-kerberos-iaa-providers-bundle`);\
+  \ HashiCorp Vault integration for secrets (`nifi-hashicorp-vault`); encrypted sensitive\
+  \ properties.\n\n**DEPLOYABILITY:** Docker images (`nifi-docker/`); MiNiFi edge\
+  \ agent (`minifi/`) for resource-constrained nodes; NiFi Registry for versioned\
+  \ flow promotion across environments; stateless mode for embedded/Kubernetes use;\
+  \ NiFi Toolkit CLI for admin operations."

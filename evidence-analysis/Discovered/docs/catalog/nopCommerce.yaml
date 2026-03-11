@@ -1,5 +1,5 @@
 project_name: nopCommerce
-scope: platform
+scope: application
 use_type: production
 source: Discovered
 source_url: https://github.com/nopSolutions/nopCommerce
@@ -8,104 +8,27 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:52:21Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: E-Commerce
+domain: E-Commerce / Retail
 language: C#
 languages:
-- C#
-- JavaScript
+  - C#
+  - JavaScript
+  - HTML/Razor
 architecture_styles:
-- Microkernel
-- Layered
+  - Microkernel
+  - Layered
+  - Modular Monolith
 classification_status: classified
-review_notes: 'The nopCommerce repository is a classic example of a **Layered Architecture**
-  (Horizontal Layering) with a highly developed **Microkernel (Plugin)** system. While
-  it contains modern elements like Docker support and a REST API, its internal code
-  organization follows the strict separation of concerns typical of ASP.NET "Onion"
-  or "N-Tier" architectures.
-
-
-  ### 1. Primary Style: Layered Architecture
-
-  The core of the system is divided into clearly defined horizontal layers located
-  in `src/Libraries`:
-
-  - **Nop.Core (Domain Layer):** Contains base entities (`BaseEntity.cs`), domain
-  models (under `Nop.Core/Domain`), and core infrastructure interfaces. It has no
-  dependencies on other layers.
-
-  - **Nop.Data (Data Access Layer):** Implements the Repository pattern (`IRepository.cs`,
-  `EntityRepository.cs`) and handles database-specific logic using FluentMigrator
-  and LinqToDB/Entity Framework concepts.
-
-  - **Nop.Services (Business Logic Layer):** Contains the "heavy lifting" of the application,
-  organized by functional domain (e.g., `Customers`, `Orders`, `Catalog`).
-
-  - **Nop.Web (Presentation Layer):** A single monolithic ASP.NET Core MVC application
-  that serves as the entry point for both the public store and the administration
-  area.
-
-
-  ### 2. Secondary Style: Microkernel (Plugin)'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:49:41Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: Microkernel (Plugin)\n\nnopCommerce implements a **textbook Microkernel/Plugin\
-  \ architecture** where the core system provides a stable platform that can be extended\
-  \ through dynamically loaded plugins.\n\n**Key Evidence:**\n\n1. **Plugin Infrastructure**\
-  \ (`src/Libraries/Nop.Services/Plugins/`):\n   - `BasePlugin` abstract class and\
-  \ `IPlugin` interface define the plugin contract\n   - `PluginManager<TPlugin>`\
-  \ provides generic plugin loading and lifecycle management\n   - `PluginService`\
-  \ handles plugin discovery, installation, and filtering\n   - `PluginDescriptor`\
-  \ carries metadata (system name, version, friendly name, group, dependencies)\n\n\
-  2. **Plugin Discovery and Loading** (`src/Libraries/Nop.Core/Infrastructure/WebAppTypeFinder.cs`):\n\
-  \   - Dynamic assembly scanning at runtime\n   - Plugins loaded from dedicated `Plugins/`\
-  \ directory\n   - Type finder discovers `INopStartup` implementations in plugins\
-  \ for service registration\n\n3. **Extension Points via Interfaces** (`src/Libraries/Nop.Services/`):\n\
-  \   - `IPaymentMethod : IPlugin` - Payment gateway extensions\n   - `IWidgetPlugin\
-  \ : IPlugin` - UI widget extensions\n   - `IShippingPlugin` / `ITaxProvider` / `IExchangeRateProvider`\
-  \ / `ISearchProvider` - Domain-specific extensions\n   - `IMiscPlugin : IPlugin`\
-  \ - General-purpose extensions\n\n4. **Plugin Lifecycle** (`src/Libraries/Nop.Services/Plugins/BasePlugin.cs`):\n\
-  \   ```csharp\n   Task InstallAsync();\n   Task UninstallAsync();\n   Task UpdateAsync(string\
-  \ currentVersion, string targetVersion);\n   ```\n\n5. **Plugin Configuration**\
-  \ (`src/Plugins/*/plugin.json`):\n   Each plugin includes a JSON manifest defining\
-  \ metadata:\n   ```json\n   {\n     \"Group\": \"Payment methods\",\n     \"FriendlyName\"\
-  : \"PayPal Commerce\",\n     \"SystemName\": \"Payments.PayPalCommerce\",\n    \
-  \ \"Version\": \"5.00.4\"\n   }\n   ```\n\n6. **Runtime Service Registration** (`src/Plugins/Nop.Plugin.Misc.AzureBlob/Infrastructure/PluginNopStartup.cs`):\n\
-  \   Plugins can implement `INopStartup` to register their own services at startup,\
-  \ allowing deep integration with the core system.\n\n### Secondary Style: Layered\n\
-  \nnopCommerce also exhibits classic **Layered Architecture** within the monolithic\
-  \ deployment:\n\n**Layer Structure** (`src/Libraries/`):\n\n1. **Nop.Core** - Domain\
-  \ layer with entities (`BaseEntity`), infrastructure, caching, and configuration\n\
-  2. **Nop.Data** - Data access layer with `IRepository<TEntity>`, `EntityRepository`,\
-  \ and data providers for MS SQL, MySQL, PostgreSQL\n3. **Nop.Services** - Business\
-  \ logic layer with services (`ICustomerService`, `IProductService`, `IOrderService`,\
-  \ etc.) and domain services\n4. **Nop.Web.Framework** - Presentation infrastructure\
-  \ with base controllers, view components, validation\n5. **Nop.Web** - Presentation\
-  \ layer with MVC controllers and views\n\n**Repository Pattern** (`src/Libraries/Nop.Data/IRepository.cs`):\n\
-  ```csharp\npublic partial interface IRepository<TEntity> where TEntity : BaseEntity\n\
-  {\n    Task<TEntity> GetByIdAsync(int? id, ...);\n    Task<IList<TEntity>> GetAllAsync(...);\n\
-  \    Task InsertAsync(TEntity entity, bool publishEvent = true);\n    Task UpdateAsync(TEntity\
-  \ entity, bool publishEvent = true);\n}\n```\n\n**Dependency Flow**: Controllers\
-  \ → Services → Repositories → Data Provider\n\n### Not Event-Driven (Rejection)\n\
-  \nWhile nopCommerce has an event system (`IEventPublisher`, `IConsumer<TEvent>`),\
-  \ it is **not an Event-Driven Architecture**. Events are used for:\n- Entity change\
-  \ notifications (`EntityInsertedEvent`, `EntityUpdatedEvent`)\n- Cache invalidation\n\
-  - Model preparation notifications\n\nThese are internal cross-cutting concerns,\
-  \ not the primary communication mechanism between components. Services call each\
-  \ other directly through dependency injection, not through event brokers.\n\n###\
-  \ Not Microservices (Rejection)\n\nDespite being an eCommerce platform:\n- **Single\
-  \ deployable**: Dockerfile produces one `Nop.Web.dll`\n- **Single database**: All\
-  \ modules share one database (MS SQL/PostgreSQL/MySQL)\n- **In-process communication**:\
-  \ Services communicate via method calls, not network protocols\n- **No service boundaries**:\
-  \ No bounded contexts with separate data ownership\n\n### Deployment Model\n\nThe\
-  \ architecture is a **Modular Monolith** with plugin-based extensibility:\n- Single\
-  \ web application deployed as a container\n- 30+ plugins dynamically loaded at runtime\n\
-  - All code runs in a single process\n- Supports web farms through distributed caching\
-  \ (Redis, SQL Server)\n\n### Conclusion\n\nnopCommerce is a well-designed **Microkernel\
-  \ (Plugin) architecture** with **Layered** internal organization. The plugin system\
-  \ is the defining architectural characteristic, enabling a marketplace ecosystem\
-  \ where third-party developers can extend payment, shipping, tax, authentication,\
-  \ and other functionality through standardized extension points."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Extensibility
+  - Maintainability
+  - Scalability
+  - Portability
+  - Security
+  - Testability
+one_line_summary: "An ASP.NET Core open-source e-commerce platform organized as a Microkernel with a first-class runtime plugin system layered over a strict four-tier dependency graph (Core / Data / Services / Presentation), deploying as a single monolithic process."
+classification_reasoning: "nopCommerce exhibits a three-style composition: Microkernel as primary, Layered and Modular Monolith as secondary.\n\nMICROKERNEL (primary, 0.92): The dominant architectural force is a first-class, runtime-loadable plugin system. IPlugin defines the lifecycle contract (InstallAsync, UninstallAsync, UpdateAsync). 31 in-tree plugins across payment (IPaymentMethod), shipping (IShippingRateComputationMethod), tax (ITaxProvider), authentication (IExternalAuthenticationMethod), widgets (IWidgetPlugin), search (ISearchProvider), and miscellaneous (IMiscPlugin) categories. PluginManager<TPlugin> orchestrates assembly-level discovery — plugins compile as separate projects, output to Nop.Web/Plugins/, and are loaded at startup via WebAppTypeFinder scanning AppDomain. Each plugin has a plugin.json descriptor (SystemName, Version, SupportedVersions, Group). Widget zones (IWidgetPlugin.GetWidgetZonesAsync, GetWidgetViewComponent) provide named injection points into Razor views. Payment/shipping/tax plugins implement strategy interfaces consumed by IOrderProcessingService and IShoppingCartService — core logic never depends on specific implementations. PluginManager<TPlugin> applies per-customer-role and per-store plugin visibility for multi-store support.\n\nLAYERED (secondary, 0.90): Strict four-layer dependency chain enforced by project references. Nop.Core (domain entities, events, abstractions) has no outbound project references. Nop.Data references only Nop.Core; encapsulates all database access via IRepository<TEntity>, INopDataProvider, and FluentMigrator migrations for MSSQL/MySQL/PostgreSQL. Nop.Services references Core+Data; implements business logic across 41 service namespaces. Nop.Web.Framework and Nop.Web sit at the top. No reverse references — compile-time enforced. EntityRepository<TEntity> publishes EntityInsertedEvent/EntityUpdatedEvent/EntityDeletedEvent on every CRUD, decoupling cross-cutting concerns via the event bus without violating layer boundaries.\n\nMODULAR MONOLITH (secondary, 0.82): Deploys as a single ASP.NET Core process from Nop.Web/Program.cs. All plugins and core share a single database and single IRepository<TEntity> abstraction. NopEngine bootstraps a unified Autofac (or built-in) DI container scanning all assemblies including plugins. INopStartup implementations across core and plugins contribute services and middleware to the same pipeline in deterministic Order. Plugins are full .NET projects in NopCommerce.sln and call core service interfaces directly — no HTTP or message-broker inter-plugin communication. Docker Compose shows one web container plus one database container, not a service mesh.\n\nRULED OUT - Microservices: Single deployable unit, shared database and DI container, assembly-level plugin loading. No inter-service HTTP calls, no service registry, no independent deployment per plugin.\n\nRULED OUT - Event-Driven (primary): IEventPublisher/EventPublisher is in-process and synchronous (sequential consumer loop). No message broker present. The event bus (245 event files, 162 consumer files, IConsumer<T>) is a Microkernel extension hook, not the primary integration topology.\n\nRULED OUT - CQRS: No ICommand/IQuery split, no MediatR, no separate read/write models or data stores.\n\nRULED OUT - Hexagonal/DDD: Domain entities in Nop.Core.Domain are anemic (properties only); no aggregate roots, value objects, or bounded contexts. Services follow Transaction Script style. No formal ports/adapters boundary.\n\nQUALITY ATTRIBUTES evidence: Extensibility — 31 in-tree plugins; typed plugin interfaces; IConsumer<T> event subscriptions; named widget zones; per-store and per-customer-role plugin visibility. Maintainability — compile-time enforced four-project layer graph; interface-per-service; AutoMapper; FluentMigrator schema versioning. Scalability — Redis and SQL Server distributed cache via DistributedCacheConfig; web farm support; fully async/await throughout; configurable server GC. Portability — INopDataProvider abstraction for MSSQL/MySQL/PostgreSQL; cross-OS; official Docker support. Security — built-in MFA; ASP.NET Core Data Protection; HTTPS enforcement; customer-role ACL; entity-level audit events. Testability — Nop.Tests with SQLite-backed SqLiteNopDataProvider for in-process service tests."

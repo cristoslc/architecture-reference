@@ -8,72 +8,77 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:47:04Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Media Automation
+domain: Media Request Management
 language: TypeScript
 languages:
 - TypeScript
 - JavaScript
+- CSS
 architecture_styles:
 - Layered
-- Event-Driven
+- Modular Monolith
 classification_status: classified
-review_notes: "### Architecture Analysis\n\nOverseerr is structured as a **Layered\
-  \ Monolith**. The codebase is explicitly split into a frontend (Next.js/React, implied\
-  \ by `next.config.js` and `public/`) and a backend (Express.js, located in the `server/`\
-  \ directory). \n\nThe backend follows a classic horizontal layering pattern:\n1.\
-  \  **Routing/Presentation Layer**: Found in `server/routes/`, where API endpoints\
-  \ (e.g., `movie.ts`, `auth.ts`, `settings/`) are defined.\n2.  **Logic/Service Layer**:\
-  \ Found in `server/lib/`, containing business logic for scanners (`scanners/`),\
-  \ notification handling (`notifications/`), and external service integrations (Sonarr/Radarr/Plex).\n\
-  3.  **Data Access/Persistence Layer**: Controlled via **TypeORM**, evidenced by\
-  \ `server/entity/` (database schemas like `User.ts`, `MediaRequest.ts`), `server/migration/`\
-  \ (SQL schema changes), and `server/subscriber/` (database lifecycle hooks).\n\n\
-  #### Why Layered?"
+one_line_summary: Single-process media request manager built as a strict five-layer
+  stack (Next.js UI, Express API, TypeORM business logic, SQLite data, external integrations)
+  with vertical feature modules mapped to REST route prefixes.
+classification_method: deep-analysis
+classification_confidence: 0.91
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Operability
+- Extensibility
+- Security
+- Deployability
+- Maintainability
+- Performance
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary
+  Style: Layered (0.91)\n\nOverseerr is organized as a textbook horizontal-layer stack
+  within a single deployable Node.js process. The layers are:\n\n1. **Presentation
+  Layer** — Next.js React SPA in `src/pages/` and `src/components/`. Server-side
+  rendering runs in the same process via `next()` at `server/index.ts:43`.\n\n2.
+  **API Layer** — Express router tree under `server/routes/` (14 feature sub-routers
+  mounted at `/api/v1`). All routes are validated against `overseerr-api.yml` via
+  `express-openapi-validator`. Session authentication middleware (`checkUser`, `isAuthenticated`)
+  enforces access control at this layer.\n\n3. **Business Logic / Integration Layer**
+  — `server/lib/` (NotificationManager with 10 pluggable agents, permission system,
+  scanner infrastructure, settings singleton, download tracker, watchlist sync) and
+  `server/subscriber/` (TypeORM `@EventSubscriber` hooks that drive the request lifecycle:
+  auto-route to Radarr/Sonarr on approval, update media status, send notifications).
+  `server/job/schedule.ts` manages 10 cron jobs (Plex scans, Radarr/Sonarr scans,
+  availability sync, download sync, image cache cleanup).\n\n4. **Data Access Layer**
+  — TypeORM entities in `server/entity/` (MediaRequest, Media, User, Issue, IssueComment,
+  Season, SeasonRequest, Session, UserSettings, UserPushSubscription, DiscoverSlider)
+  backed by a single SQLite database. 33 migration files in `server/migration/` manage
+  schema evolution.\n\n5. **External Integration Layer** — `server/api/` contains
+  an `ExternalAPI` base class with built-in response caching (node-cache, 5-minute
+  TTL) and rate limiting (axios-rate-limit). Concrete clients: PlexAPI, PlexTV, RadarrAPI,
+  SonarrAPI, TheMovieDb, Pushover, GitHub, AnimeLists, Tautulli. These are called
+  synchronously by lib/ and subscriber/ code.\n\nDependency flow is strictly downward:
+  routes -> lib/subscribers -> entities + API clients. The `server/index.ts` entrypoint
+  wires all layers together in a single process.\n\n### Secondary Style: Modular Monolith
+  (0.83)\n\nWithin the shared process and database, code is partitioned into feature-cohesive
+  vertical modules: `auth`, `user`, `request`, `media`, `movie`, `tv`, `search`,
+  `discover`, `issue`, `issueComment`, `collection`, `service`, `settings`. Each module
+  owns its route file and corresponding entity or entities. All modules deploy together
+  as one Docker image and share a single TypeORM DataSource. Internal coupling within
+  modules (e.g., request -> MediaRequest entity -> MediaRequestSubscriber) is much tighter
+  than cross-module coupling, which is limited to shared entities.\n\n### What Was
+  Rejected\n\n**Not Microservices:** One process, one port (5055), one SQLite file,
+  one Docker image. The Next.js frontend and Express backend are not separately deployable.\n\n**Not
+  Event-Driven:** TypeORM @EventSubscriber is an in-process synchronous ORM hook,
+  not a message broker. NotificationManager iterates agents synchronously in the same
+  thread. No message queues or event buses are used.\n\n**Not Hexagonal Architecture:**
+  No formal ports/adapters contracts. ExternalAPI is an integration convenience class,
+  not a domain-defined port. Business logic calls API clients directly without an
+  inversion layer.\n\n**Not CQRS:** Reads and writes share the same TypeORM repositories.
+  No read model or command/query segregation exists.\n\n**Not Pipeline:** Background
+  cron scanners are a secondary maintenance feature; the primary application path is
+  synchronous HTTP -> route -> subscriber -> DB save."
+review_notes: Single Node.js process serving both Next.js SSR and Express REST API
+  on port 5055; SQLite via TypeORM with 33 migrations; 10 notification agent plugins
+  (Discord, Email, Gotify, LunaSea, Pushbullet, Pushover, Slack, Telegram, Webhook,
+  WebPush); 10 cron jobs for Plex/Radarr/Sonarr scanning; OpenAPI spec enforced at
+  runtime; Radarr and Sonarr integration dispatched asynchronously from TypeORM entity
+  subscribers after request approval.
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:29:32Z'
-classification_reasoning: "## Analysis\n\nOverseerr is a **Layered Architecture**\
-  \ monolith with **Event-Driven** patterns used internally for notifications and\
-  \ data synchronization.\n\n### Evidence for Layered Architecture\n\n**Clear horizontal\
-  \ layer separation:**\n\n1. **Presentation Layer (`src/`)**: Next.js/React frontend\
-  \ with components, pages, hooks, and context providers (`src/components/`, `src/pages/`,\
-  \ `src/hooks/`, `src/context/`)\n\n2. **API/Route Layer (`server/routes/`)**: Express\
-  \ routers handling HTTP endpoints:\n   - `auth.ts`, `request.ts`, `media.ts`, `movie.ts`,\
-  \ `tv.ts`, `user/`, `settings/`\n   - These act as controllers, validating requests\
-  \ and delegating to business logic\n\n3. **Business Logic Layer (`server/lib/`)**:\
-  \ Core domain logic including:\n   - `permissions.ts` - Permission checking logic\n\
-  \   - `settings.ts` - Application configuration management\n   - `availabilitySync.ts`,\
-  \ `downloadtracker.ts`, `watchlistsync.ts` - Synchronization logic\n   - `notifications/`\
-  \ - Notification management system\n\n4. **Data Access Layer (`server/entity/`)**:\
-  \ TypeORM entities with ORM mappings:\n   - `Media.ts`, `MediaRequest.ts`, `User.ts`,\
-  \ `Issue.ts`, `Session.ts`\n   - Repository pattern via TypeORM's `getRepository()`\n\
-  \   - Database migrations in `server/migration/`\n\n5. **External API Integration\
-  \ Layer (`server/api/`)**: Integrations with external services:\n   - `plexapi.ts`,\
-  \ `themoviedb/`, `servarr/radarr.ts`, `servarr/sonarr.ts`\n\n**Single deployment\
-  \ unit**: One `Dockerfile`, one `package.json`, producing a single containerized\
-  \ application using Express + Next.js with SQLite database.\n\n### Evidence for\
-  \ Event-Driven (Secondary)\n\n**Internal event-driven patterns:**\n\n1. **TypeORM\
-  \ Subscribers** (`server/subscriber/`):\n   - `MediaRequestSubscriber.ts` - Listens\
-  \ for MediaRequest insert/update events and triggers notifications\n   - `IssueSubscriber.ts`,\
-  \ `IssueCommentSubscriber.ts` - Similar event handling for issues\n\n2. **Notification\
-  \ Agent System** (`server/lib/notifications/`):\n   - Observer pattern with `NotificationManager`\
-  \ class registering multiple agents\n   - 11 notification agents: Discord, Email,\
-  \ Telegram, Slack, Pushover, Webhook, etc.\n   - Events like `MEDIA_PENDING`, `MEDIA_APPROVED`,\
-  \ `MEDIA_AVAILABLE` trigger notifications\n\n3. **Scheduled Jobs** (`server/job/schedule.ts`):\n\
-  \   - `node-schedule` for periodic sync operations\n   - Plex library scans, Radarr/Sonarr\
-  \ scans, Watchlist sync\n\nThese event-driven patterns are **internal implementation\
-  \ details** within the layered monolith, not inter-service communication.\n\n###\
-  \ What This Is NOT\n\n- **Not Microservices**: Single deployable, single database\
-  \ (SQLite), no service boundaries\n- **Not Modular Monolith**: No enforced module\
-  \ boundaries or module-scoped schemas; entities share the same database\n- **Not\
-  \ DDD**: No bounded contexts, aggregates, or value objects pattern visible\n- **Not\
-  \ Hexagonal**: No ports/adapters abstraction; direct dependencies without interface\
-  \ isolation\n- **Not Serverless**: Traditional server deployment via Docker, not\
-  \ function-based\n\n### Deployment Topology\n\n```\nSingle Container (Docker)\n\
-  ├── Express.js Backend (server/)\n│   ├── Routes (API endpoints)\n│   ├── Business\
-  \ Logic (lib/)\n│   ├── Entities (ORM models)\n│   └── SQLite Database\n└── Next.js\
-  \ Frontend (src/)\n    └── React Components/Pages\n```\n\nThe architecture follows\
-  \ a classic layered web application pattern with clear separation between presentation,\
-  \ business logic, and data access layers."

@@ -5,82 +5,102 @@ source: Discovered
 source_url: https://github.com/pachyderm/pachyderm
 project_url: https://github.com/pachyderm/pachyderm
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:59:57Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Data Processing
+domain: Data Pipeline Orchestration
 language: Go
 languages:
 - Go
-- TypeScript
 - Python
+- TypeScript
 - JavaScript
 architecture_styles:
 - Pipeline
-- Microservices
+- Modular Monolith
+- Event-Driven
 classification_status: classified
-review_notes: "Pachyderm is primarily structured as a **Modular Monolith** that is\
-  \ moving towards a **Microservices** deployment model for specific high-scale components.\
-  \ \n\n### Reasoning\n\n1.  **Core Monolith (`pachd`):**\n    The central component,\
-  \ `pachd`, is compiled into a single binary (as seen in `Dockerfile.pachd` with\
-  \ `ENTRYPOINT [\"/pachd\"]`). The source structure under `src/server/` contains\
-  \ multiple distinct functional domains—`auth`, `pfs` (Pachyderm File System), `pps`\
-  \ (Pachyderm Pipeline System), `identity`, and `admin`. These are wired together\
-  \ within the same process but maintain strict separation via Go's `internal` packages\
-  \ and Protobuf-defined interfaces.\n\n2.  **Modular Boundaries:**\n    The repository\
-  \ exhibits a highly disciplined module layout. Each major system (e.g., `src/pfs`,\
-  \ `src/pps`, `src/auth`) has its own Protobuf definitions, generated gRPC clients/servers,\
-  \ and a corresponding server-side implementation in `src/server/<module>`. The use\
-  \ of `src/internal` to house common logic (database utilities, migrations, and service\
-  \ environments) ensures that cross-module dependencies are managed in a way typical\
-  \ of a Modular Monolith."
+one_line_summary: Data versioning and pipeline orchestration platform built as a Modular
+  Monolith (all services compiled into one pachd binary) with a Pipeline topology
+  as its core abstraction and commit-triggered reactive propagation as secondary coordination.
+review_notes: PFS/PPS/Auth/Transaction/etc. all in-process via ServiceEnv; single
+  Helm deployment; datum-level parallelism via Kubernetes RCs; branch trigger chains
+  fire on commit events; PostgreSQL LISTEN/NOTIFY and etcd watches drive reactive
+  coordination; pachw provides auto-scaling worker pool as a separate mode of the
+  same binary.
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.82
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:31:46Z'
-classification_reasoning: "## Architecture Analysis: Pachyderm\n\n### Primary Classification:\
-  \ Pipeline (Pipe-and-Filter)\n\nPachyderm is fundamentally a **data pipeline orchestration\
-  \ platform**. The evidence strongly supports this classification:\n\n**Pipeline-centric\
-  \ data model:**\n- `src/pps/pps.proto` defines `Pipeline`, `Job`, `PFSInput` (PFS\
-  \ = Pachyderm File System), and `Transform` messages\n- Pipelines specify input\
-  \ repositories, transformation code (user container images), and output repositories\n\
-  - Data flows from input repos through transform stages to output repos (examples/opencv/edges.py\
-  \ reads from `/pfs/images` and writes to `/pfs/out`)\n\n**Pipeline execution architecture:**\n\
-  - `src/server/pps/server/pipeline_controller.go` manages pipeline lifecycle and\
-  \ state machines\n- `src/server/worker/pipeline/transform/transform.go` implements\
-  \ the transform stage that processes data\n- `src/server/worker/datum/datum.go`\
-  \ manages \"datums\" (data units) - the fundamental processing units that flow through\
-  \ pipelines\n- Workers process datums from input file sets, transform them, and\
-  \ write to output\n\n**Key pipeline code paths:**\n```\nsrc/server/pps/server/ \
-  \     # Pipeline orchestration\nsrc/server/worker/pipeline/ # Pipeline execution\
-  \ (transform, spout, service)\nsrc/server/worker/datum/    # Datum (data unit) processing\n\
-  ```\n\n### Secondary Style: Microservices\n\nPachyderm deploys as multiple independently\
-  \ scalable services on Kubernetes:\n\n**Deployment topology** (from `etc/helm/pachyderm/templates/`):\n\
-  - `pachd/deployment.yaml` - Main server (multiple modes: full, enterprise, sidecar,\
-  \ paused)\n- `worker/` - Dynamic workers created per pipeline\n- `etcd/` - Metadata\
-  \ storage\n- PostgreSQL + pgbouncer - Database layer\n- Console (frontend/backend)\
-  \ - UI service\n\n**Service separation:**\n- PFS (Pachyderm File System) - Data\
-  \ storage layer (`src/server/pfs/`)\n- PPS (Pachyderm Pipeline System) - Pipeline\
-  \ execution layer (`src/server/pps/`)\n- Auth, Admin, Enterprise, Identity, License\
-  \ - Cross-cutting services\n\n**Worker architecture:**\n- Workers are Kubernetes\
-  \ pods spawned dynamically per pipeline (`src/server/pps/server/worker_rc.go`)\n\
-  - Each pipeline gets its own worker pods with user-specified container images\n\
-  - Workers pull data from PFS, transform it, and push results back\n\n### What was\
-  \ Rejected\n\n**Not Event-Driven (primary):** While pipelines are triggered by data\
-  \ commits and workers subscribe to jobs, the core architectural pattern is pipeline-based\
-  \ data transformation, not event choreography. Events (commits) trigger pipeline\
-  \ runs, but the data flow is fundamentally through processing stages.\n\n**Not Layered:**\
-  \ While there are layers (PFS storage, PPS processing, API), the primary organization\
-  \ is around pipeline stages and data flow, not horizontal abstraction layers.\n\n\
-  **Not Domain-Driven Design:** Though there are bounded contexts (PFS, PPS, Auth),\
-  \ the codebase is organized around pipeline execution mechanics rather than domain\
-  \ aggregates and entities.\n\n**Not Modular Monolith:** The system is explicitly\
-  \ deployed as separate services (pachd, workers, console, etc.) orchestrated by\
-  \ Kubernetes.\n\n### Key Evidence Files\n\n- `src/pps/pps.proto` - Pipeline definition\
-  \ with Transform, PFSInput, Job\n- `src/server/cmd/worker/main.go` - Worker initialization\
-  \ for pipeline execution  \n- `src/server/worker/pipeline/transform/transform.go`\
-  \ - Data transformation stage\n- `etc/helm/pachyderm/templates/pachd/deployment.yaml`\
-  \ - Kubernetes deployment configuration\n- `examples/opencv/edges.py` - Example\
-  \ showing `/pfs/images` → transform → `/pfs/out` pattern\n- `src/server/pps/server/worker_rc.go`\
-  \ - Dynamic worker pod creation for pipelines"
+classification_method: deep-analysis
+classification_confidence: 0.91
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Scalability
+- Data Lineage
+- Reproducibility
+- Reliability
+- Extensibility
+- Observability
+- Portability
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary
+  Styles: Pipeline + Modular Monolith\n\n**PIPELINE (primary, 0.93):** Pachyderm's
+  central abstraction is the data pipeline \u2014 a DAG of user-defined transform
+  stages connected through versioned PFS (Pachyderm File System) repositories. The
+  pipeline controller in `src/server/pps/server/pipeline_controller.go` manages lifecycle
+  state machines, and workers subscribe to jobs via `SubscribeJob` gRPC streaming
+  (`src/server/worker/pipeline/transform/transform.go`). Each pipeline stage consumes
+  specific input repos and commits exclusively to its own output repo. The branch
+  trigger system in `src/server/pfs/server/master_trigger.go` recursively fires downstream
+  stages when upstream commits satisfy thresholds (size/time/count). The datum model
+  in `src/server/worker/datum/` partitions input file sets into parallelizable work
+  units, driving MapReduce-style horizontal scaling at each stage. PPS and PFS enforce
+  strict one-way flow: data lands in PFS repos \u2192 triggers evaluated \u2192 PPS
+  schedules jobs \u2192 worker pods process datums \u2192 results commit to output
+  repos.\n\n**MODULAR MONOLITH (primary, 0.87):** All functional areas (PFS, PPS,
+  Auth, Identity, Transaction, Proxy, Enterprise, License, PJS, Snapshot, Storage,
+  Debug, Admin, Logs, Metadata) are compiled and deployed as a single binary through
+  `src/internal/pachd/full.go`, which registers all gRPC API servers in-process via
+  a structured builder pattern. The `ServiceEnv` interface in `src/internal/serviceenv/service_env.go`
+  is the shared dependency container binding all services inside the monolith. Internal
+  cross-service calls are direct Go interface calls, not network hops. Domain boundaries
+  are well-demarcated: each service has `src/server/<service>/iface.go` (internal
+  interface), `src/<service>/*.proto` (public contract), and `src/server/<service>/server/`
+  (implementation). The `src/internal/` tree provides shared infrastructure (pachsql,
+  collection, task, transactionenv, storage, grpcutil, middleware). A single Helm
+  chart deploys the monolith as one Kubernetes Deployment.\n\n### Secondary Style:
+  Event-Driven\n\n**EVENT-DRIVEN (secondary, 0.74):** Commit-triggered reactive propagation
+  is the primary coordination signal. The PostgreSQL-backed collection listener (`src/internal/collection/postgres_listener.go`)
+  uses LISTEN/NOTIFY for state-change propagation. Pipeline workers subscribe to job
+  state changes via `SubscribeJob` gRPC streaming and commits via `SubscribeCommit`.
+  The PPS master runs dedicated watcher goroutines (`watchPipelines`, `pollPipelines`,
+  `pollPipelinePods`) reacting to pipeline and pod state-change events via Kubernetes
+  watch streams and DB watches. Branch triggers recursively fire on commit events.
+  However, there is no external message broker (no Kafka, RabbitMQ, or NATS); the
+  event transport is Postgres LISTEN/NOTIFY and etcd watches, making this reactive
+  routing secondary to the pipeline topology.\n\n### What Was Rejected and Why\n\n**Not
+  Microservices:** PFS, PPS, Auth, Identity, Transaction, and all other services are
+  compiled into a single `pachd` binary. They share one PostgreSQL database and etcd
+  cluster. Cross-service calls go through in-process Go interfaces (ServiceEnv contract),
+  not network boundaries. Pipeline worker Kubernetes pods run the same binary in sidecar
+  mode, not as independent services.\n\n**Not Service-Based:** No independent deployable
+  units with separate data stores. The `pachw` worker pool is a horizontally scaled
+  mode of the same binary.\n\n**Not Hexagonal Architecture:** While interfaces are
+  used at service boundaries (iface.go files), the codebase is not structured around
+  inward-facing domain ports with outward-facing adapters.\n\n**Not Microkernel:**
+  No runtime plugin system. Services are statically compiled into the daemon. Pipeline
+  container images are user-supplied but the architectural core is not extended through
+  formal plugin contracts.\n\n### Quality Attributes Evidence\n\n**SCALABILITY:**
+  Datum-level parallelism distributes work across dynamically scaled Kubernetes ReplicationControllers
+  (one per pipeline). The `pachw` controller (`src/server/pachw/server/pachw.go`)
+  auto-scales a worker-pool replica set based on task queue depth. PJS provides fair-scheduled
+  task queuing with namespace/group scoping.\n\n**DATA LINEAGE:** Every PFS commit
+  records `direct_provenance` commits by branch, enabling full lineage walks via `WalkCommitProvenance`
+  and `WalkBranchProvenance` RPCs. Immutable content-addressed chunk storage with
+  deduplication ensures any past pipeline output can be reconstructed.\n\n**RELIABILITY:**
+  etcd distributed locks (dlock) ensure a single PPS master drives state transitions.
+  Worker crash monitors and standby transitions are managed by dedicated goroutines.
+  The transaction server allows atomic batching of PFS+PPS operations.\n\n**OBSERVABILITY:**
+  Jaeger tracing, Prometheus metrics, Loki log aggregation, and structured zap logging
+  are used throughout. The debug server provides cluster-wide diagnostics.\n\n**PORTABILITY:**
+  Storage is abstracted via the `obj.Bucket` interface supporting GCS, S3, Azure Blob,
+  MinIO, and local. Helm chart supports GOOGLE, AMAZON, MINIO, MICROSOFT, CUSTOM,
+  and LOCAL deploy targets."

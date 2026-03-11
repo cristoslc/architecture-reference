@@ -4,107 +4,63 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/akveo/ngx-admin
 project_url: https://github.com/akveo/ngx-admin
-evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:54:31Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Developer Tools
 language: TypeScript
 languages:
 - TypeScript
 - JavaScript
+- SCSS
 architecture_styles:
 - Layered
-- Hexagonal Architecture
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: >-
+    Abstract data classes in @core/data/ act as ports; concrete mock services
+    in @core/mock/ act as adapters; Angular DI binds them in core.module.ts.
+    Pattern is confined to the data sub-layer and does not alter the layered topology.
 classification_status: classified
-review_notes: 'The `ngx-admin` repository is an Angular-based dashboard template that
-  follows a strictly **Layered** architecture, specifically tailored for frontend
-  modularity. It utilizes a directory structure that segregates systemic concerns
-  from feature/business logic.
-
-
-  ### 1. Primary Style: Layered
-
-  The codebase is organized into three distinct top-level directories under `src/app/`,
-  which represent a vertical layering of responsibilities:
-
-  - **`@core` (The Infrastructure/Data Layer):** Found at `src/app/@core`, this layer
-  handles foundational services, data models, and business logic that is independent
-  of specific UI components. The presence of `src/app/@core/data` and `src/app/@core/mock`
-  suggests this layer abstracts data fetching and state management.
-
-  - **`@theme` (The Presentation Layer):** Found at `src/app/@theme`, this layer contains
-  common UI components, layouts, pipes, and SCSS styles. This is the horizontal "cross-cutting"
-  layer providing the visual framework.
-
-  - **`pages` (The Feature/Domain Layer):** Found at `src/app/pages/`, this contains
-  the specific implementations of the dashboard (e.g., `maps`, `tables`, `charts`).
-  These are consumers of both `@core` and `@theme`.
-
-
-  ### 2. Secondary Style: Hexagonal Architecture (Ports and Adapters)
-
-  The repository shows strong signals of **Hexagonal Architecture** (or Clean Architecture)
-  principles applied to the frontend:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.85
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:45:03Z'
-classification_reasoning: "## Analysis\n\nngx-admin is a **Layered Architecture**\
-  \ with some **Hexagonal Architecture** patterns, implemented as a single-page Angular\
-  \ application.\n\n### Evidence for Layered Architecture\n\n**Clear horizontal layering\
-  \ is present:**\n\n1. **Core Layer (`@core/`)**: Infrastructure and cross-cutting\
-  \ concerns\n   - Abstract data interfaces (`src/app/@core/data/`) define contracts\
-  \ for data access\n   - Service implementations (`src/app/@core/mock/`) provide\
-  \ concrete data\n   - Utility services (`src/app/@core/utils/`) for analytics, layout,\
-  \ SEO, state management\n   - Guard (`module-import-guard.ts`) enforces singleton\
-  \ pattern - CoreModule can only be loaded once\n\n2. **Theme/Presentation Layer\
-  \ (`@theme/`)**: UI components and styling\n   - Reusable components (Header, Footer,\
-  \ SearchInput)\n   - Layout templates (OneColumn, TwoColumns, ThreeColumns layouts)\n\
-  \   - Theme definitions (default, cosmic, corporate, dark)\n   - Shared pipes (capitalize,\
-  \ plural, round, timing)\n\n3. **Application/Pages Layer (`pages/`)**: Feature modules\
-  \ organized by functionality\n   - Dashboard, E-commerce, Charts, Forms, Tables,\
-  \ Maps, etc.\n   - Each feature has its own module with routing and components\n\
-  \   - Lazy-loaded via Angular's `loadChildren` mechanism\n\n4. **Single Deployment\
-  \ Unit**: `angular.json` defines one application project, building to a single `dist/`\
-  \ folder\n\n### Evidence for Hexagonal Patterns (Secondary Style)\n\n**Port/Adapter\
-  \ separation visible in data layer:**\n\n```typescript\n// src/app/@core/data/users.ts\
-  \ - Abstract \"port\"\nexport abstract class UserData {\n  abstract getUsers():\
-  \ Observable<User[]>;\n  abstract getContacts(): Observable<Contacts[]>;\n  abstract\
-  \ getRecentUsers(): Observable<RecentUsers[]>;\n}\n\n// src/app/@core/mock/users.service.ts\
-  \ - Concrete \"adapter\"\n@Injectable()\nexport class UserService extends UserData\
-  \ {\n  // Implementation returns mock data\n}\n```\n\n**Dependency injection binding\
-  \ interfaces to implementations:**\n```typescript\n// src/app/@core/core.module.ts\n\
-  const DATA_SERVICES = [\n  { provide: UserData, useClass: UserService },\n  { provide:\
-  \ ElectricityData, useClass: ElectricityService },\n  // ... 18 more data interfaces\
-  \ bound to implementations\n];\n```\n\nThis pattern allows swapping the mock data\
-  \ layer for a real HTTP backend without changing consumers.\n\n### What This Is\
-  \ NOT\n\n- **NOT Microservices/Service-Based**: Single deployable Angular application,\
-  \ no separate services\n- **NOT Modular Monolith**: No enforced module boundaries\
-  \ - Angular modules are organizational, not architecturally encapsulated. The `@core`\
-  \ and `@theme` folders use naming convention only, not actual boundary enforcement.\n\
-  - **NOT Microkernel/Plugin**: No runtime plugin loading or extension points beyond\
-  \ Angular's standard module system\n- **NOT Event-Driven**: No message brokers or\
-  \ event-based communication; uses direct service injection\n- **NOT CQRS/Domain-Driven\
-  \ Design**: No aggregates, value objects, bounded contexts, or separate read/write\
-  \ models\n\n### Architecture Diagram\n\n```\n┌─────────────────────────────────────────────────────────┐\n\
-  │                    Pages Layer                          │\n│  (Dashboard, E-commerce,\
-  \ Charts, Forms, Tables, etc.)   │\n│                  [Feature Modules]       \
-  \                │\n└─────────────────────┬───────────────────────────────────┘\n\
-  \                      │\n┌─────────────────────┴───────────────────────────────────┐\n\
-  │                   Theme Layer                           │\n│      (Header, Footer,\
-  \ Layouts, Pipes, Styles)          │\n│                  [UI Components]       \
-  \                 │\n└─────────────────────┬───────────────────────────────────┘\n\
-  \                      │\n┌─────────────────────┴───────────────────────────────────┐\n\
-  │                    Core Layer                           │\n│  (Services, Abstract\
-  \ Data Interfaces, State, Auth)     │\n│              [Business Logic Layer]   \
-  \                  │\n└─────────────────────┬───────────────────────────────────┘\n\
-  \                      │\n┌─────────────────────┴───────────────────────────────────┐\n\
-  │              Data Access Layer                          │\n│     (Abstract Interfaces\
-  \ ← DI ← Mock/Real Services)    │\n│                  [Ports/Adapters]         \
-  \              │\n└─────────────────────────────────────────────────────────┘\n\
-  ```\n\nThe hexagonal patterns in the data layer (abstract interfaces with DI-bound\
-  \ implementations) raise confidence for including it as a secondary style, though\
-  \ the overall structure remains fundamentally layered with top-down dependency flow\
-  \ typical of Angular applications."
+classification_confidence: 0.90
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Maintainability
+- Testability
+- Extensibility
+- Modularity
+- Developer Experience
+one_line_summary: >-
+  Angular 15 admin dashboard template organized as a three-layer SPA (@core
+  infrastructure, @theme presentation, pages features) with port/adapter
+  separation in the data sub-layer.
+classification_reasoning: >-
+  ngx-admin exhibits canonical Layered architecture with three explicit horizontal
+  layers under src/app/: @core (infrastructure/data), @theme (shared UI/presentation),
+  and pages (feature/application). Dependency flow is strictly downward. @core/data/
+  defines 19 abstract TypeScript classes ("ports"); @core/mock/ provides concrete
+  implementations ("adapters") bound via Angular DI in core.module.ts. Feature modules
+  under pages/ lazy-load via Angular router and consume @core services through abstract
+  interfaces only. A single angular.json application project compiles to a single SPA
+  bundle. There are no network service boundaries, no plugin registries, no event
+  brokers, no domain aggregates, and no bounded contexts. The port/adapter pattern in
+  the data layer qualifies as a hexagonal design approach but does not alter the
+  layered topology.
+evidence_type: automated-discovery
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+has_running_code: true
+has_tests: true
+has_ci_cd: false
+has_documentation: true
+has_adr: false
+key_technologies:
+- Angular 15
+- Nebular
+- TypeScript
+- RxJS
+- Bootstrap 4
+- SCSS
+- ngx-echarts
+- ng2-smart-table

@@ -3,102 +3,34 @@ scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/n8n-io/n8n
-project_url: https://github.com/n8n-io/n8n
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:43:03Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Workflow Automation
 language: TypeScript
 languages:
-- TypeScript
-- JavaScript
-- Python
+  - TypeScript
+  - JavaScript
+  - Python
 architecture_styles:
-- Microkernel
+  - Pipeline
+  - Modular Monolith
+  - Event-Driven
+  - Multi-Agent
 classification_status: classified
-review_notes: '### Architectural Analysis
-
-
-  n8n is structured as a **Microkernel (Plugin)** architecture. The core application
-  provides the workflow engine, orchestration logic, and lifecycle management, while
-  all functional capabilities (integrations with Slack, Discord, OpenAI, etc.) are
-  implemented as "Nodes." These nodes act as plugins that conform to a strict internal
-  contract, allowing the system to be extended without modifying the core engine.
-  Evidence for this includes the `packages/` monorepo structure where `@n8n-nodes-base`
-  co
-
-
-  #### Primary Style: Microkernel (Plugin)
-
-  The system''s USP is its extensibility. The "Workflow" is a graph of nodes, where
-  each node is a discrete plugin. The `packages/workflow` and `packages/core` (inferred
-  from common n8n patterns and `pnpm-workspace.yaml` glob `packages/*`) represent
-  the microkernel. The repo contains infrastructure specifically for generating, testing,
-  and loading these nodes. The `scripts/backend-module` folder further reinforces
-  this by providing boilerplate for "features" that plug into the existing system.
-
-
-  #### Secondary Style: Modular Monolith
-
-  While n8n can be deployed as separate workers, it is primarily developed and often
-  deployed as a single unit (as seen in the `npx n8n` and `docker run` quick-start
-  commands). The codebase is organized into highly structured modules. The presence
-  of `scripts/backend-module` with templates for `.module.ts`, `.service.ts`, and
-  `.controller.ts` indicates a NestJS-like modular organization. This enforces strict
-  boundaries between domain concerns (e.g., credentials management, workflow execution,
-  user'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:12:26Z'
-classification_reasoning: "## Analysis\n\nn8n is a **workflow automation platform**\
-  \ built on a **Microkernel (Plugin) architecture**. The core system provides the\
-  \ runtime infrastructure, while all integration capabilities are implemented as\
-  \ dynamically-loaded plugins (called \"nodes\").\n\n### Primary Evidence for Microkernel\
-  \ (Plugin)\n\n**1. Plugin Loading Infrastructure**\n\nThe codebase has a sophisticated\
-  \ plugin loading system at its core:\n\n- `packages/core/src/nodes-loader/directory-loader.ts`\
-  \ - Abstract base class defining the plugin loading contract\n- `packages/core/src/nodes-loader/package-directory-loader.ts`\
-  \ - Loads plugins from npm packages\n- `packages/core/src/nodes-loader/custom-directory-loader.ts`\
-  \ - Loads user-created plugins from custom directories\n- `packages/core/src/nodes-loader/lazy-package-directory-loader.ts`\
-  \ - Lazy loading for memory efficiency\n\n**2. Dynamic Plugin Discovery** (`packages/cli/src/load-nodes-and-credentials.ts`)\n\
-  \n```typescript\n// Loads built-in nodes\nawait this.loadNodesFromNodeModules(nodeModulesDir,\
-  \ 'n8n-nodes-base');\nawait this.loadNodesFromNodeModules(nodeModulesDir, '@n8n/n8n-nodes-langchain');\n\
-  \n// Discovers community plugins by convention (n8n-nodes-*)\nconst installedPackagePaths\
-  \ = [\n  ...(await glob('n8n-nodes-*', globOptions)),\n  ...(await glob('@*/n8n-nodes-*',\
-  \ { ...globOptions, deep: 2 })),\n];\n\n// Loads from custom directories\nawait\
-  \ this.loadNodesFromCustomDirectories();\n```\n\n**3. Plugin Contract** (`packages/workflow/src/interfaces.ts:2030`)\n\
-  \nAll plugins must extend the `Node` base class:\n\n```typescript\nexport abstract\
-  \ class Node {\n  abstract description: INodeTypeDescription;\n  execute?(context:\
-  \ IExecuteFunctions, response?: EngineResponse): Promise<INodeExecutionData[][]>;\n\
-  \  webhook?(context: IWebhookFunctions): Promise<IWebhookResponseData>;\n  poll?(context:\
-  \ IPollFunctions): Promise<INodeExecutionData[][] | null>;\n}\n```\n\n**4. Extension\
-  \ SDK** (`packages/@n8n/extension-sdk/src/schema.ts`)\n\nA formal extension manifest\
-  \ system with permissions, event subscriptions, and UI extension points:\n\n```typescript\n\
-  export const extensionManifestSchema = z.object({\n  name: z.string(),\n  entry:\
-  \ z.object({ backend: z.string(), frontend: z.string() }),\n  permissions: z.object({\
-  \ frontend: z.array(z.string()), backend: z.array(z.string()) }),\n  events: z.array(z.string()),\n\
-  \  extends: z.object({ views: z.object({ workflows: z.object({ header: z.string()\
-  \ }) }) }),\n});\n```\n\n**5. Community Node Tooling** (`packages/@n8n/create-node`)\n\
-  \nA dedicated CLI tool for scaffolding custom plugins, demonstrating first-class\
-  \ support for the plugin ecosystem.\n\n**6. Massive Plugin Library**\n\n`packages/nodes-base/package.json`\
-  \ contains 965 lines of node and credential registrations—400+ integrations, all\
-  \ loaded as plugins.\n\n### What This Is NOT\n\n**Not Microservices**: A single\
-  \ Dockerfile produces one deployable image. The `worker`, `webhook`, and `start`\
-  \ commands are different runtime modes of the same application, not separate services.\
-  \ All modes share the same database and codebase.\n\n**Not Modular Monolith**: While\
-  \ organized as a pnpm monorepo with internal packages (`packages/@n8n/*`), these\
-  \ are library modules for code organization, not bounded contexts with enforced\
-  \ boundaries. The primary architectural pattern is plugin-based, not module-based.\n\
-  \n**Not Layered**: While the implementation uses controllers/services/repositories,\
-  \ this is an internal implementation detail. The defining architectural characteristic\
-  \ is the plugin system that enables extensibility.\n\n**Not Service-Based**: Although\
-  \ n8n can scale horizontally (main + workers + webhooks + Redis queue), this is\
-  \ horizontal scaling of the same application, not decomposition into distinct services\
-  \ with different responsibilities.\n\n### Conclusion\n\nn8n exemplifies the Microkernel\
-  \ (Plugin) pattern: a minimal core system (workflow engine, API, persistence) extended\
-  \ by a rich ecosystem of plugins (nodes) that are discovered and loaded at runtime.\
-  \ The plugin contract is well-defined, the loading infrastructure is sophisticated,\
-  \ and there's dedicated tooling for plugin development. This is the architectural\
-  \ style that defines n8n's identity as an extensible workflow automation platform."
+classification_confidence: 0.88
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Extensibility
+  - Scalability
+  - Maintainability
+  - Reliability
+  - Security
+  - Observability
+  - Interoperability
+  - Deployability
+one_line_summary: "Self-hostable workflow automation platform organized as a pipeline of integration nodes executed by a modular monolith backend, with optional Redis-backed queue scaling, a durable event bus, and LangGraph-based multi-agent AI workflow building."
+classification_reasoning: "Pipeline is the primary style: n8n's core value proposition is user-composed directed graphs of 300+ integration nodes through which data flows step-by-step, implemented via the Workflow graph model in the workflow package and traversed by WorkflowExecute in n8n-core — every integration node is a stateless pipe-and-filter stage implementing INodeType. Modular Monolith is the primary runtime style: all backend packages (cli, core, db, config, di, task-runner, and feature modules) resolve into a single Express process with in-process DI (@n8n/di), shared TypeORM database connection, and no inter-service network calls; optional queue-worker scaling (BullMQ + Redis) is an operational mode, not a decomposition into independent services. Event-Driven is a genuine secondary style with two independent mechanisms: a durable file-backed MessageEventBus for execution/audit log streaming, and a typed internal EventService for cross-service coordination; in queue mode, a Redis pub/sub command bus propagates control commands across multiple mains and workers. Multi-Agent is an emerging secondary style: the @n8n/ai-workflow-builder.ee package implements a LangGraph StateGraph with SupervisorAgent, PlannerAgent, BuilderSubgraph, and DiscoverySubgraph autonomous agents, while the AI Agent nodes (v1–v3) expose tool-calling and orchestrator/subagent multi-agent workflow patterns as a first-class user primitive."
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
