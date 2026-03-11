@@ -36,11 +36,9 @@ classification_confidence: {{ confidence }}
 classification_method: {{ classification_method | default("deep-analysis") }}
 classification_model: {{ classification_model | default("unknown") }}
 classification_date: {{ classification_date | default(date) }}
-{%- if quality_attributes %}
 quality_attributes:
-{%- for qa in quality_attributes %}
+{%- for qa in quality_attributes | default([]) %}
   - {{ qa.name }}
 {%- endfor %}
-{%- endif %}
 one_line_summary: {{ one_line_summary | default("") | tojson }}
 classification_reasoning: {{ classification_reasoning | tojson }}

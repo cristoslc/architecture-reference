@@ -26,13 +26,8 @@ try:
         return yaml.dump(data, default_flow_style=False, sort_keys=False, allow_unicode=True)
 
 except ImportError:
-    # Use the fallback parser from classify.py
-    sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-    from classify import parse_yaml, dump_yaml
-
-    def load_yaml(path):
-        with open(path) as f:
-            return parse_yaml(f.read())
+    print("Error: PyYAML required. Install with: pip install pyyaml", file=sys.stderr)
+    sys.exit(1)
 
 
 def normalize_style_key(style):

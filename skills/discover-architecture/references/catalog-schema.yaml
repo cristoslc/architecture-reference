@@ -1,0 +1,62 @@
+# Catalog entry validation schema.
+# Defines required and optional fields for catalog YAML entries
+# produced by the discover skill (per ADR-005).
+#
+# Usage: validate catalog entries against this schema to ensure
+# all fields needed by downstream consumers (SPEC-003 comparative
+# analysis, _index.yaml generation, reference library statistics)
+# are present.
+
+required_fields:
+  - project_name        # string: human-readable project name
+  - scope               # enum: platform | application
+  - use_type            # enum: production | reference
+  - source              # string: evidence source (e.g., "Discovered")
+  - source_url          # string: URL to source repo or dataset
+  - domain              # string: project domain (e.g., "E-Commerce", "Developer Tools")
+  - language            # string: primary programming language
+  - languages           # list[string]: all languages detected
+  - architecture_styles # list[string]: classified styles (primary first)
+  - classification_status     # enum: classified | indeterminate | review_required
+  - classification_confidence # float: 0.0–1.0
+  - classification_method     # string: "deep-analysis"
+  - classification_model      # string: model identifier
+  - classification_date       # string: ISO date (YYYY-MM-DD)
+  - quality_attributes        # list[string]: observed QAs (may be empty)
+  - classification_reasoning  # string: full analysis text
+
+optional_fields:
+  - project_url          # string: project homepage (if different from source_url)
+  - evidence_type        # string: "automated-discovery"
+  - one_line_summary     # string: single-sentence architecture summary
+  - production_context   # string: deployment/usage context
+  - discovered_at        # string: ISO datetime of classification run
+  - discovered_by        # string: agent/pipeline identifier
+  - discovery_version    # string: skill version used
+
+enums:
+  scope:
+    - platform
+    - application
+  use_type:
+    - production
+    - reference
+  classification_status:
+    - classified
+    - indeterminate
+    - review_required
+  architecture_styles:
+    - Layered
+    - Modular Monolith
+    - Microservices
+    - Service-Based
+    - Event-Driven
+    - Space-Based
+    - Pipeline
+    - Microkernel
+    - Serverless
+    - CQRS
+    - Domain-Driven Design
+    - Hexagonal Architecture
+    - Multi-Agent
+    - Indeterminate

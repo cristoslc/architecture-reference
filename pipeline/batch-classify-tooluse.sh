@@ -28,7 +28,6 @@ DRY_RUN=false
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 CLASSIFY_SCRIPT="${SCRIPT_DIR}/classify-tooluse.sh"
-APPLY_SCRIPT="${SCRIPT_DIR}/apply-tooluse-result.py"
 RESULTS_DIR="${SCRIPT_DIR}/reports/glm5-results"
 CLONE_DIR=".clone-cache"
 
@@ -90,7 +89,7 @@ print('\n'.join(entries))
 
 # ── Process single entry (called by xargs) ───────────────────────────────────
 # Exported as a standalone function via the worker script
-export MODEL CLASSIFY_SCRIPT APPLY_SCRIPT RESULTS_DIR CLONE_DIR
+export MODEL CLASSIFY_SCRIPT RESULTS_DIR CLONE_DIR
 
 cat > "${RESULTS_DIR}/worker.sh" << 'WORKER_EOF'
 #!/usr/bin/env bash
@@ -130,8 +129,41 @@ if [[ $? -ne 0 || ! -s "$result_file" ]]; then
   exit 0
 fi
 
-# Apply result
-if python3 "$APPLY_SCRIPT" --result "$result_file" --entry "$yaml_path" --model "$MODEL" 2>/dev/null; then
+# Extract YAML frontmatter from result and write to catalog entry (ADR-005).
+# The model outputs YAML between --- delimiters followed by a markdown report.
+# We extract the YAML, inject pipeline metadata, and overwrite the catalog entry.
+if python3 -c "
+import sys, yaml
+from datetime import datetime, timezone
+
+result_file = '$result_file'
+yaml_path = '$yaml_path'
+model = '$MODEL'
+
+with open(result_file) as f:
+    text = f.read()
+
+# Extract YAML frontmatter (first --- ... --- block)
+parts = text.split('---', 2)
+if len(parts) < 3:
+    print('No YAML frontmatter found', file=sys.stderr)
+    sys.exit(1)
+
+data = yaml.safe_load(parts[1])
+if not data or not isinstance(data, dict):
+    print('Invalid YAML frontmatter', file=sys.stderr)
+    sys.exit(1)
+
+# Inject pipeline metadata
+data['classification_model'] = model
+data['classification_method'] = 'deep-analysis'
+data['classification_date'] = datetime.now(timezone.utc).strftime('%Y-%m-%d')
+
+with open(yaml_path, 'w') as f:
+    yaml.dump(data, f, default_flow_style=False, allow_unicode=True, sort_keys=False)
+
+print(f'Updated: {yaml_path}', file=sys.stderr)
+" 2>/dev/null; then
   echo "$name" >> "${RESULTS_DIR}/succeeded.txt"
   log "  OK: $name"
 else
