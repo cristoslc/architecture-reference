@@ -47,12 +47,12 @@ The end state: one specification (the discover skill), one output schema (catalo
 
 ## Child Specs
 
-_To be created as this epic is decomposed. Expected specs:_
-
-1. **Catalog entry template** — design `catalog-entry.template.j2`, define the YAML schema, ensure the discover skill can produce dual output
-2. **Runtime prompt assembly** — refactor pipeline scripts to derive instructions from the discover skill at invocation time
-3. **Catalog reclassification campaign** — batch-reclassify all 184+ entries, validate output, replace existing catalog entries
-4. **Legacy retirement** — remove deprecated prompts and parsers, update any references
+| ID | Title | Status | Summary |
+|----|-------|--------|---------|
+| SPEC-029 | Catalog Entry Schema Validation | Draft | Validate existing template against SPEC-003 requirements, create machine-readable schema, test dual output |
+| SPEC-030 | Pipeline Runtime Prompt Assembly | Draft | Refactor classify-tooluse.sh to read discover skill files at runtime. Depends on SPEC-029 |
+| SPEC-031 | Full Catalog Reclassification | Draft | Reclassify all 184+ entries via unified pipeline, produce dual output. Depends on SPEC-029, SPEC-030 |
+| SPEC-032 | Legacy Pipeline Retirement | Draft | Remove deprecated prompts, parsers, and scripts. Depends on SPEC-030 |
 
 ## Key Dependencies
 

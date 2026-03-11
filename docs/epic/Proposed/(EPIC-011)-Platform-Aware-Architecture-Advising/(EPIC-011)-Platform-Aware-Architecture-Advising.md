@@ -15,6 +15,7 @@ success-criteria:
 depends-on:
   - EPIC-002
   - EPIC-010
+  - EPIC-013
   - SPIKE-001
 ---
 

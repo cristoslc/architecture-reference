@@ -12,6 +12,7 @@ linked-adrs:
 depends-on:
   - SPEC-002
   - ADR-005
+  - EPIC-013
 ---
 
 # Comparative Analysis Engine
