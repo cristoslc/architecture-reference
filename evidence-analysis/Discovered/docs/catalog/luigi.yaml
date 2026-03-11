@@ -3,95 +3,86 @@ scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/spotify/luigi
-project_url: https://github.com/spotify/luigi
-evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:57:01Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Data Processing
+domain: Workflow Orchestration
 language: Python
 languages:
 - Python
-- JavaScript
 architecture_styles:
 - Pipeline
+- Microkernel
 classification_status: classified
-review_notes: 'Luigi is a framework for building complex pipelines, but its internal
-  architecture is a classic example of the **Microkernel (Plugin)** style.
-
-
-  ### Primary Style: Microkernel (Plugin)
-
-  The repository is structured around a stable core (the "kernel") that handles the
-  lifecycle of tasks—dependency resolution, scheduling, and state management—while
-  delegating almost all specific functionality to a massive collection of plugins.
-
-  - **The Core (Kernel):** Located in the root of the `luigi/` directory, files like
-  `worker.py`, `scheduler.py`, `task.py`, and `parameter.py` define the contract and
-  runtime for any workflow.
-
-  - **The Plugins (Contrib):** The `luigi/contrib/` directory contains over 50 isolated
-  modules that extend the core. These allow Luigi to interact with external systems
-  (e.g., `s3.py`, `kubernetes.py`, `redshift.py`, `hadoop.py`) without the core kernel
-  having any knowledge of those specific technologies.
-
-  - **Separation of Concerns:** The core provides the infrastructure (the "plumbing"),
-  while the `contrib` modules provide the adapters. This allows the system to be highly
-  extensible by third parties without modifying the internal scheduling logic.
-
-
-  ### Secondary Style: Pipeline (Pipe-and-Filter)
-
-  Luigi is architected specifically to support the **Pipeline** style for the *user''s
-  code*. '
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:39:10Z'
-classification_reasoning: "## Analysis\n\nLuigi is a **Pipeline (Pipe-and-Filter)**\
-  \ architecture for building batch job workflows. This classification is strongly\
-  \ supported by the codebase structure and design.\n\n### Primary Evidence for Pipeline\
-  \ (Pipe-and-Filter)\n\n**1. Core Abstractions Follow Pipe-and-Filter Pattern:**\n\
-  - **Task** (`luigi/task.py`): The fundamental unit of work, equivalent to a \"filter\"\
-  \ in pipe-and-filter terminology\n- **Target** (`luigi/target.py`): Represents data\
-  \ outputs that flow between tasks (the \"pipes\")\n- The canonical Task interface\
-  \ requires three methods that define the pipeline contract:\n  - `requires()` -\
-  \ declares upstream dependencies (what \"pipes\" feed into this task)\n  - `output()`\
-  \ - declares the output Target (what this filter produces)\n  - `run()` - performs\
-  \ the computation\n\n**2. Explicit Dependency Chains:**\nFrom `doc/design_and_limitations.rst`:\n\
-  > \"Each task just specifies which inputs it needs and cross-module dependencies\
-  \ are trivial.\"\n\nFrom `README.rst`:\n> \"Luigi is a Python package that helps\
-  \ you build complex **pipelines** of batch jobs.\"\n\n**3. Example Workflows Show\
-  \ Clear Pipeline Structure:**\nIn `examples/wordcount.py` and `examples/top_artists.py`,\
-  \ tasks chain together explicitly:\n```\nInputText → WordCount (data flows through\
-  \ requires() → input() → run() → output())\nStreams → AggregateArtists → Top10Artists\n\
-  ```\n\n**4. Data Flow Through Targets:**\nThe `target.py` defines `Target` as an\
-  \ abstract base class with a single method `exists()`. Tasks produce Targets that\
-  \ become inputs to downstream tasks via `self.input()`. This is the classic pipe-and-filter\
-  \ pattern where filters process data and pass it through pipes.\n\n**5. Scheduler\
-  \ Coordinates Pipeline Execution:**\nThe `scheduler.py` and `worker.py` manage task\
-  \ execution order based on dependency graphs. The scheduler ensures that a task\
-  \ only runs when all its required upstream tasks (pipes) have completed.\n\n###\
-  \ Why NOT Other Styles\n\n- **NOT Microservices**: Luigi is a single Python library/package,\
-  \ not distributed independently deployable services. The scheduler/worker model\
-  \ is for task orchestration within a single workflow, not service decomposition.\n\
-  \n- **NOT Event-Driven**: Tasks don't communicate via event publishing/subscription.\
-  \ Dependencies are declared explicitly through `requires()` and resolved by the\
-  \ scheduler. The pattern is pull-based dependency resolution, not event-driven notification.\n\
-  \n- **NOT Layered**: There's no horizontal layering (presentation/business/data\
-  \ access). Task/Target/Scheduler are core abstractions, not vertical layers.\n\n\
-  - **NOT Modular Monolith**: While there's a `luigi/contrib/` directory with 49 extension\
-  \ modules, these aren't enforced module boundaries within a monolith. They're optional\
-  \ extensions to the core pipeline framework.\n\n- **NOT Microkernel/Plugin**: Although\
-  \ Luigi is extensible (contrib modules for Hadoop, Spark, Postgres, etc.), the primary\
-  \ design intent and user interaction model is pipeline definition, not plugin composition.\
-  \ The contrib modules are more akin to a standard library of implementations rather\
-  \ than a true plugin system where users inject custom extensions at runtime.\n\n\
-  - **NOT DDD**: No bounded contexts, aggregates, or domain-driven design patterns\
-  \ present.\n\n### Conclusion\n\nLuigi's architecture is fundamentally about **chaining\
-  \ tasks into pipelines** where:\n- Each Task is a processing stage (filter)\n- Targets\
-  \ are the data that flows between stages (pipes)\n- The `requires()` method explicitly\
-  \ declares the pipeline topology\n- The scheduler resolves dependencies and orchestrates\
-  \ execution\n\nThis is the canonical Pipe-and-Filter pattern applied to batch data\
-  \ processing workflows."
+classification_confidence: 0.89
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Idempotency
+- Reliability
+- Simplicity
+- Observability
+- Portability
+one_line_summary: Batch workflow orchestrator that executes task DAGs through a Pipeline
+  runtime with a Microkernel plugin system for 50+ pluggable storage and compute backends.
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Styles:\
+  \ Pipeline + Microkernel\n\n**PIPELINE (primary, 0.91):** Luigi's entire programming\
+  \ model is the directed acyclic graph of Tasks. Each `Task` subclass declares:\
+  \ `requires()` (upstream dependencies — DAG edges), `output()` (Target artifacts\
+  \ — the data flowing through the pipe), and `run()` (the filter processing step).\
+  \ The authors explicitly compare this to GNU Make — tasks are rules, outputs are\
+  \ targets, requires declarations define the build graph. The worker traverses the\
+  \ DAG bottom-up, the scheduler sequences task execution by dependency completion,\
+  \ and Targets (files, HDFS paths, DB rows) are the artifacts flowing between pipeline\
+  \ stages. This is textbook pipe-and-filter / Pipeline architecture. `luigi/worker.py`\
+  \ drives the pipeline via a scheduler-poll loop; `luigi/scheduler.py` implements\
+  \ the PENDING→RUNNING→DONE|FAILED state machine that governs stage sequencing.\n\
+  \n**MICROKERNEL (primary, 0.88):** The `luigi/contrib/` directory contains 50+\
+  \ pluggable backend integrations (S3, GCS, Azure Blob, HDFS, Hadoop, Spark, PySpark,\
+  \ BigQuery, Dataproc, Postgres, MySQL, MSSQL, Redis, MongoDB, Elasticsearch, Kubernetes,\
+  \ Docker, AWS Batch, ECS, SGE, LSF, SSH, FTP, Dropbox, Salesforce, Presto, Hive,\
+  \ Pig, Scalding, SparKey, etc.). Each plugin satisfies a stable two-interface contract\
+  \ from the core: subclass `Task` (implement run/requires/output) or subclass `Target`\
+  \ (implement exists()) and optionally `FileSystem`. The `task_register.Register`\
+  \ metaclass in `luigi/task_register.py` is the global plugin registry, auto-capturing\
+  \ all Task subclasses at import time. `luigi/metrics.py` adds a second plugin contract\
+  \ (MetricsCollector ABC) for observability backends. The core engine (`task.py`,\
+  \ `scheduler.py`, `worker.py`, `server.py`) has zero knowledge of any specific storage\
+  \ or compute system — all of that is in contrib plugins.\n\n### What Was Rejected\
+  \ and Why\n\n**Not Microservices:** `luigid` (the central scheduler daemon) and\
+  \ worker processes are two operational roles of the same Python package, not independently\
+  \ versioned or independently deployable services. They share the same scheduler\
+  \ state through an in-memory or pickled store, not separate databases.\n\n**Not\
+  \ Event-Driven (primary):** The `luigi/event.py` Event constants (SUCCESS, FAILURE,\
+  \ PROGRESS, etc.) and `set_handler` callbacks are lightweight in-process hooks for\
+  \ observability, not a message broker or event bus. Task coordination flows through\
+  \ the scheduler's PENDING/RUNNING/DONE state machine via polling (`get_work()`),\
+  \ not through event publication/subscription to an external broker.\n\n**Not Layered\
+  \ (primary):** While there is a rough CLI → worker → scheduler → tasks → targets\
+  \ layering, the dominant organizing principle is the task DAG pipeline execution\
+  \ model. The extension axis is vertical (new backends via contrib plugins), not\
+  \ horizontal by layer.\n\n**Not CQRS:** The scheduler maintains a single unified\
+  \ in-memory state object serving both mutations (task registration, status updates)\
+  \ and queries (get_work, graph visualization) from the same store with no read/write\
+  \ separation.\n\n### Quality Attributes Evidence\n\n**EXTENSIBILITY:** Task and\
+  \ Target ABCs are the stable plugin contracts; `--module` CLI flag dynamically discovers\
+  \ tasks from any importable Python module; MetricsCollector ABC enables custom observability\
+  \ backends; 50+ contrib integrations demonstrate the breadth of the extension surface.\n\
+  \n**IDEMPOTENCY:** Task completeness is determined solely by `output().exists()` —\
+  \ already-completed tasks are always skipped on re-run. This is the framework's\
+  \ core reliability guarantee.\n\n**RELIABILITY:** Per-task retry policy (`retry_count`,\
+  \ `disable_hard_timeout`, `disable_window`) in `luigi/scheduler.py`; each task runs\
+  \ in an isolated subprocess (`TaskProcess` in `luigi/worker.py`); batch email notification\
+  \ system (`luigi/batch_notifier.py`).\n\n**SIMPLICITY:** Three-method Task contract\
+  \ (run/requires/output); single Python package install; optional local-scheduler\
+  \ mode eliminates the need for a separate daemon process; no metadata database required\
+  \ by default.\n\n**OBSERVABILITY:** Built-in execution summary (`luigi/execution_summary.py`);\
+  \ task history with DB backend (`luigi/db_task_history.py`); Tornado-served web\
+  \ UI for dependency graph visualization; pluggable Datadog and Prometheus metrics\
+  \ in contrib.\n\n**PORTABILITY:** Core has no cloud or platform dependencies; all\
+  \ platform-specific code lives in contrib plugins; tasks can orchestrate Hadoop,\
+  \ Spark, Kubernetes, cloud storage, RDBMS, or arbitrary subprocesses without touching\
+  \ the core engine."
+evidence_type: automated-discovery
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0

@@ -3,176 +3,33 @@ scope: application
 use_type: production
 source: Discovered
 source_url: https://github.com/maybe-finance/maybe
-project_url: https://github.com/maybe-finance/maybe
-evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:35:22Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Finance
+domain: Personal Finance / Fintech
 language: Ruby
 languages:
-- Ruby
-- JavaScript
+  - Ruby
+  - JavaScript
+  - HTML/ERB
+  - CSS
 architecture_styles:
-- Layered
+  - Layered
+  - Modular Monolith
 classification_status: classified
-review_notes: 'The repository follows a classic **Layered** architecture, specifically
-  the "Rails Way" (Model-View-Controller). However, it exhibits significant **Domain-Driven
-  Design (DDD)** influences in how the model layer is structured to handle high domain
-  complexity.
-
-
-  ### Evidence for Layered Architecture
-
-  The codebase is a monolithic Ruby on Rails application. It follows the standard
-  horizontal layering:
-
-  - **Presentation Layer**: Found in `app/components` (using ViewComponent), `app/javascript/controllers`
-  (Stimulus.js), and traditional Rails views (though not fully visible in the tree,
-  inferred from the presence of `UI` components).
-
-  - **Business Logic Layer**: Centered in `app/models`.
-
-  - **Data Access Layer**: Handled by `application_record.rb` and ActiveRecord models,
-  mapping directly to PostgreSQL.
-
-  - **Persistence/Infrastructure**: Found in `app/mailers` and `app/data_migrations`.
-
-
-  ### Evidence for Domain-Driven Design (DDD)'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:41:09Z'
-classification_reasoning: '## Architecture Classification: Layered (Rails MVC)
-
-
-  The Maybe repository is a **standard Rails monolith** following the classic **Layered
-  Architecture** pattern with clear horizontal separation between controllers, models,
-  views, and background jobs.
-
-
-  ### Evidence for Layered Architecture
-
-
-  **1. Classic Rails MVC Structure:**
-
-  - `app/controllers/` - 50+ controllers handling HTTP routing and request processing
-
-  - `app/models/` - 70+ ActiveRecord models with direct database access
-
-  - `app/views/` - ERB templates organized by resource
-
-  - `app/jobs/` - Sidekiq background jobs for async processing
-
-  - `app/helpers/` - View helper modules
-
-
-  **2. Single Deployable Unit:**
-
-  ```dockerfile
-
-  # Single Dockerfile producing one deployable artifact
-
-  FROM registry.docker.com/library/ruby:$RUBY_VERSION-slim
-
-  CMD ["./bin/rails", "server"]
-
-  ```
-
-
-  **3. Single Shared Database:**
-
-  ```ruby
-
-  # Gemfile
-
-  gem "pg", "~> 1.5"  # PostgreSQL as sole data store
-
-  ```
-
-
-  The schema shows a monolithic database with 40+ interconnected tables via standard
-  foreign keys (accounts, entries, transactions, families, users, etc.).
-
-
-  **4. Thin Service Layer:**
-
-  Only 2 service objects exist (`ApiRateLimiter`, `NoopApiRateLimiter`), indicating
-  business logic resides primarily in ActiveRecord models rather than a service-oriented
-  layer.
-
-
-  **5. Standard Rails Associations (No Aggregates):**
-
-  ```ruby
-
-  # app/models/family.rb
-
-  has_many :users, dependent: :destroy
-
-  has_many :accounts, dependent: :destroy
-
-  has_many :entries, through: :accounts
-
-  has_many :transactions, through: :accounts
-
-  ```
-
-
-  Direct ActiveRecord associations without bounded context boundaries.
-
-
-  ### What This Is NOT
-
-
-  **Not Modular Monolith:** No enforced internal module boundaries. Models, controllers,
-  and views exist in flat directories without namespace organization. There''s no
-  `app/modules/` or package-based isolation.
-
-
-  **Not DDD:** No aggregates, value objects, or bounded contexts. The domain concepts
-  (Family, Account, Transaction, Entry) are standard ActiveRecord models with direct
-  database persistence, not domain entities isolated from infrastructure.
-
-
-  **Not Hexagonal/Ports & Adapters:** Controllers directly access ActiveRecord models
-  without an application service layer. No separation between core domain and external
-  adapters.
-
-
-  **Not Microservices:** Single Rails app, single database, single deployment. The
-  compose file shows one `web` container and one `worker` container running the same
-  codebase.
-
-
-  **Not Event-Driven:** Sidekiq is used for background job processing (e.g., `SyncJob`,
-  `ImportJob`), not for inter-component communication. No event sourcing or message-driven
-  coordination.
-
-
-  **Not CQRS:** Single database with single model for both reads and writes. No separate
-  read/write models.
-
-
-  ### Architecture Pattern Summary
-
-
-  | Layer | Location | Responsibility |
-
-  |-------|----------|---------------|
-
-  | Presentation | `app/views/`, `app/javascript/` | ERB templates + Stimulus.js |
-
-  | Controllers | `app/controllers/` | HTTP routing, params handling |
-
-  | Business Logic | `app/models/` | ActiveRecord models with domain logic |
-
-  | Data Access | ActiveRecord (ORM) | PostgreSQL persistence |
-
-  | Background Jobs | `app/jobs/` | Sidekiq async processing |
-
-
-  This is a textbook Rails monolith with horizontal layering following framework conventions,
-  not an architecturally-driven modular design.'
+classification_confidence: 0.90
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Deployability
+  - Testability
+  - Maintainability
+  - Observability
+  - Security
+  - Extensibility
+  - Availability
+  - Interoperability
+one_line_summary: "A Rails 7 personal finance platform organized as a Layered Modular Monolith with named domain sub-namespaces, a Provider registry abstraction for all external integrations, and a Sidekiq async tier for sync and AI workloads."
+classification_reasoning: "Maybe exhibits a two-style composition: Layered as primary and Modular Monolith as secondary.\n\nLAYERED (primary, 0.88): The application follows strict horizontal layering throughout. Presentation: ERB views, ViewComponent components, and Hotwire/Stimulus JS controllers. Application: Rails controllers (HTTP) and Sidekiq jobs (async), with no business logic in controllers. Domain: plain Ruby objects organized per concept (Account::Syncer, Balance::Materializer, Balance::ForwardCalculator, Balance::ReverseCalculator, Rule::Registry, Rule::ActionExecutor, Assistant::Responder, PlaidItem::Importer, PlaidItem::WebhookProcessor). Infrastructure: Provider hierarchy (Provider::Plaid, Provider::Openai, Provider::Synth, Provider::Stripe, Provider::Github) behind Provider::Registry, all returning normalized Provider::Response value objects. Middleware: Doorkeeper OAuth2 + Rack::Attack rate limiting sit above Rails as an HTTP middleware layer. AASM state machines on Account and Sync enforce lifecycle rules at domain boundaries. The Syncable concern dispatches SyncJob to Sidekiq, decoupling sync initiation (models) from execution (workers) without crossing a service boundary.\n\nMODULAR MONOLITH (secondary, 0.80): Single-process deployment (Puma + Sidekiq from one Docker image). Single shared PostgreSQL database. Domain clusters are internally cohesive — account/, balance/, rule/, assistant/, plaid_item/, family/, holding/, trade/, transaction/ — each with named sub-objects that do not leak into adjacent clusters. The API namespace (api/v1/) is co-deployed in the same Rails process via Doorkeeper JWT. Shared concerns (Syncable, Monetizable, Enrichable, Anchorable, Reconcileable) are applied via ActiveSupport::Concern mixins rather than shared libraries, keeping domain objects decoupled from each other while sharing infrastructure behavior.\n\nRULED OUT - Microservices: One Rails process, one PostgreSQL database, one Docker image. No inter-service communication, no independent deployment per domain.\n\nRULED OUT - Event-Driven (primary): Sidekiq jobs and ActiveCable provide async processing, but these are the async tier of the layered architecture, not a message-broker-based decoupling mechanism between autonomous components. No Kafka/RabbitMQ/event store.\n\nRULED OUT - Hexagonal Architecture: The Provider abstraction creates port-like interfaces, but controllers interact directly with ActiveRecord models. No explicit inbound/outbound port interfaces; layering is Rails-conventional, not hexagonal.\n\nRULED OUT - CQRS: Reads and writes share the same ActiveRecord models and schema. Balance::Materializer is a materialized-view optimization, not CQRS separation.\n\nRULED OUT - Serverless: Packaged as long-running Puma + Sidekiq processes; Docker-deployed.\n\nQUALITY ATTRIBUTES evidence: Deployability — single-image Docker; compose.example.yml enables self-hosting with two containers; SELF_HOSTED env var toggles managed vs. self-hosted mode. Testability — vcr/webmock for provider HTTP isolation; mocha for unit; Capybara for integration; provider registry returns nil for unconfigured providers enabling feature-flagged tests. Maintainability — domain sub-namespaces prevent cross-cutting coupling; shared concerns codified as ActiveSupport::Concern mixins; AASM state machines make lifecycle explicit. Observability — Sentry (errors + Sidekiq), Skylight (performance, production), Logtail (log aggregation), Rack::MiniProfiler (dev), vernier/stackprof profiling. Security — Doorkeeper OAuth2 for API, Rack::Attack rate limiting, ROTP/RQRCODE for MFA, bcrypt passwords, JWT, ActiveRecord encryption for Plaid access tokens. Extensibility — Provider::Registry allows swapping data providers (exchange rates, securities, LLM) with zero controller changes. Availability — Sidekiq queue priority (high_priority for sync and AI); sidekiq-cron for market data, sync cleaning, and security health checks; sync state machine with 24h stale detection and hourly cleanup. Interoperability — Plaid (US + EU) for bank connectivity; Synth for market data/exchange rates; OpenAI (gpt-4.1) for AI chat and auto-categorization; Stripe for billing; Doorkeeper for third-party OAuth API."
+evidence_type: automated-discovery
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0

@@ -5,89 +5,113 @@ source: Discovered
 source_url: https://github.com/grafana/mimir
 project_url: https://github.com/grafana/mimir
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T04:49:51Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Observability
+domain: Metrics Storage and Observability
 language: Go
 languages:
 - Go
+- Jsonnet
+- Python
 architecture_styles:
 - Microservices
-- Modular Monolith
+- Event-Driven
 classification_status: classified
-review_notes: "Grafana Mimir is a classic example of a **Microservices** architecture\
-  \ that supports a **Modular Monolith** deployment mode (often referred to as \"\
-  monolithic mode\" in the documentation). The codebase is designed around a single\
-  \ shared binary (`cmd/mimir`) that can behave as any one of several distinct services\
-  \ based on a `-target` flag.\n\n### 1. Microservices (Primary Style)\nThe system\
-  \ is built as a collection of specialized services that collaborate to provide Prometheus-compatible\
-  \ storage and querying. \n- **Service Boundaries:** Clear boundaries exist in the\
-  \ `pkg/` directory, including `ingester`, `querier`, `distributor` (implied in logic),\
-  \ `alertmanager`, `scheduler`, and `frontend`. These modules encapsulate specific\
-  \ business logic and maintain their own internal state or access patterns.\n- **Independent\
-  \ Scalability:** The `docker-compose.yml` provides definitive evidence of microservices.\
-  \ It defines separate containers for `ingester-zone-a-1`, `distributor-1`, `querier`,\
-  \ `query-frontend`, `compactor`, and `store-gateway`. Each container runs the same\
-  \ `mimir` binary but passed different `-target` arguments (e.g., `-target=ingester`).\n\
-  - **Communication:** Services interact via gRPC (proxied/managed by the `pkg/mimirpb`\
-  \ definitions) and shared state in object storage (S3/Minio).\n\n### 2. Event-Driven\
-  \ (Secondary Style)\nMimir relies heavily on event-stream processing for specific\
-  \ components, particularly its long-term storage and internal coordination."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:43:16Z'
-classification_reasoning: "## Architecture Analysis: Grafana Mimir\n\n### Primary\
-  \ Classification: Microservices\n\nMimir is architected as a **microservices system**\
-  \ with the following evidence:\n\n**1. Independent Deployable Services via `-target`\
-  \ Flag:**\nFrom `development/mimir-microservices-mode/docker-compose.yml` and `docs/sources/mimir/configure/about-configurations.md`:\n\
-  - Services can be deployed independently: `-target=distributor`, `-target=ingester`,\
-  \ `-target=querier`, `-target=query-frontend`, `-target=store-gateway`, `-target=compactor`,\
-  \ `-target=alertmanager`, `-target=ruler`\n- Each service runs its own process with\
-  \ dedicated HTTP/gRPC ports\n- Multiple replicas of same service type can be deployed\
-  \ (e.g., `ingester-1`, `ingester-2`, `ingester-3`)\n\n**2. gRPC-Based Inter-Service\
-  \ Communication:**\nProto files define clear service interfaces:\n- `pkg/ingester/client/ingester.proto`:\
-  \ Ingester gRPC service\n- `pkg/distributor/distributorpb/distributor.proto`: Distributor\
-  \ gRPC service  \n- `pkg/storegateway/storegatewaypb/gateway.proto`: Store Gateway\
-  \ gRPC service\n- `pkg/frontend/v2/frontendv2pb/frontend.proto`: Query Frontend\
-  \ gRPC service\n\n**3. Service Discovery via Hash Rings:**\nFiles like `pkg/distributor/distributor_ring.go`,\
-  \ `pkg/ingester/ingester_ring.go`, `pkg/storegateway/gateway_ring.go` show each\
-  \ service type maintains its own ring for:\n- Service registration and discovery\n\
-  - Load balancing\n- Replication\n\n**4. Independent Data Ownership:**\n- Each ingester\
-  \ owns a shard of time-series data (consistent hashing via ring)\n- Store Gateway\
-  \ owns specific blocks\n- No shared database between services\n- Object storage\
-  \ (S3/GCS) used as common persistence layer\n\n**5. Distinct Module Boundaries in\
-  \ `pkg/mimir/modules.go`:**\n```go\ndeps := map[string][]string{\n    Distributor:\
-  \    {DistributorService, API, ActiveGroupsCleanupService, Vault, ...},\n    Ingester:\
-  \       {IngesterService, API, ActiveGroupsCleanupService, Vault},\n    StoreGateway:\
-  \   {API, Overrides, MemberlistKV, Vault},\n    QueryFrontend:  {QueryFrontendTripperware,\
-  \ MemberlistKV, Vault},\n    // ... etc\n    All: {QueryFrontend, QueryScheduler,\
-  \ Querier, Ingester, Distributor, StoreGateway, Ruler, Compactor},\n}\n```\n\n###\
-  \ Secondary Classification: Modular Monolith\n\nMimir also supports **monolithic\
-  \ deployment** as evidenced by:\n\n**1. Single Binary Deployment (`-target=all`):**\n\
-  From `development/mimir-monolithic-mode/docker-compose.yml`:\n```yaml\ncommand:\
-  \ [\"sh\", \"-c\", \"sleep 3 && exec ./mimir -config.file=./config/mimir.yaml -target=all\
-  \ ...\"]\n```\n\n**2. Unified Codebase Structure:**\n- Single `cmd/mimir/main.go`\
-  \ entrypoint\n- All modules in `pkg/` directory as separate packages\n- Shared configuration\
-  \ file used across all components\n- Module manager (`pkg/mimir/modules.go`) orchestrates\
-  \ initialization\n\n**3. Explicit Module Dependency Graph:**\nModules have defined\
-  \ dependencies that must be satisfied regardless of deployment mode, creating strong\
-  \ internal boundaries even in monolithic mode.\n\n### What This Is NOT:\n\n- **Not\
-  \ Event-Driven**: Services communicate via synchronous gRPC calls, not through message\
-  \ brokers. No Kafka/RabbitMQ/etc. for inter-service coordination (though Kafka is\
-  \ optional for ingest storage).\n\n- **Not Layered**: This isn't a layered presentation→business→data\
-  \ architecture. Each service is vertically sliced with its own responsibilities.\n\
-  \n- **Not Service-Based (coarse-grained)**: With 10+ distinct deployable services,\
-  \ this goes beyond the typical 2-5 service definition.\n\n- **Not CQRS**: While\
-  \ there's separation between write path (distributor→ingester) and read path (querier→store-gateway),\
-  \ this is standard microservices data flow, not CQRS pattern.\n\n### Conclusion\n\
-  \nMimir is a well-designed system that embodies **microservices architecture** while\
-  \ also supporting **modular monolith deployment**. The same codebase can be deployed\
-  \ as independent services (microservices mode) or as a single binary (monolithic\
-  \ mode), with the module boundaries and gRPC interfaces remaining consistent. This\
-  \ flexibility is a deliberate architectural choice documented in the configuration\
-  \ guide: \"Use a single configuration file, and either pass it to all replicas of\
-  \ Grafana Mimir (if you are running multiple single-process Mimir replicas) or to\
-  \ all components of Grafana Mimir (if you are running Grafana Mimir as microservices).\""
+one_line_summary: Horizontally scalable, multi-tenant Prometheus long-term storage
+  composed of independently deployable gRPC microservices coordinated via gossip-backed
+  consistent hash rings, with an optional Kafka ingest pipeline decoupling the write
+  and read paths.
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Scalability
+- High Availability
+- Multi-tenancy
+- Operability
+- Durability
+- Extensibility
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary
+  Style: Microservices (0.95)\n\nGrafana Mimir is explicitly and consistently self-described
+  as a microservices-based architecture across its documentation, Helm chart, and
+  code structure. All components compile into a single Go binary, but the `-target`
+  flag selects which service(s) to start in a given process. Production deployments
+  use the `mimir-distributed` Helm chart, which runs each component as a separate
+  Kubernetes Deployment.\n\n**Evidence from pkg/mimir/modules.go:** ~40 named modules
+  are registered via `mm.RegisterModule`. The `deps` map in the same file hard-codes
+  inter-module dependencies at a component boundary level (e.g., `QueryFrontend`
+  depends on `{QueryFrontendTripperware, MemberlistKV, Vault}` — not on Ingester
+  or Distributor). The `All` module aggregates `{QueryFrontend, QueryScheduler, Querier,
+  Ingester, Distributor, StoreGateway, Ruler, Compactor}` for monolithic mode.\n\n
+  **Explicit gRPC service contracts:** Each inter-service boundary is defined as a
+  `.proto` file with a named `service` block: `service Ingester` (ingester/client/ingester.proto),
+  `service Distributor` (distributor/distributorpb/distributor.proto), `service StoreGateway`
+  (storegateway/storegatewaypb/gateway.proto), `service SchedulerForQuerier` and
+  `service SchedulerForFrontend` (scheduler/schedulerpb/scheduler.proto), `service
+  FrontendForQuerier` (frontend/v2/frontendv2pb/frontend.proto), `service Ruler` (ruler/ruler.proto),
+  `service Alertmanager` (alertmanager/alertmanagerpb/alertmanager.proto), `service
+  BlockBuilderScheduler` (blockbuilder/schedulerpb/scheduler.proto).\n\n**Decentralized
+  service discovery via gossip hash rings:** No central registry or service mesh.
+  Components join their own memberlist-backed ring (Ingesters ring, Partitions ring,
+  Store Gateway ring, Distributor ring, Querier ring, Query Scheduler ring). Ring
+  membership propagates via gossip; consistent hashing assigns token ranges without
+  a coordinator. When instances join or leave, only a bounded token fraction moves.\n\n
+  **Independent failure domains and scaling:** Distributor, Querier, and Query Frontend
+  are stateless and scale horizontally with no data migration. Ingesters are semi-stateful
+  (in-memory TSDB + WAL) but participate in ring-managed replication (classic architecture)
+  or Kafka partition ownership (ingest storage architecture). Store Gateways replicate
+  blocks with a configurable replication factor (default 3). Each component can be
+  upgraded or scaled without affecting others.\n\n### Secondary Style: Event-Driven
+  (0.82)\n\nMimir 3.0 introduced \"ingest storage architecture\" as the preferred
+  production configuration. It interposes Apache Kafka (or a Kafka-compatible system
+  such as WarpStream) between the write and read paths.\n\n**Write path ends at Kafka:**
+  Distributors shard incoming series across Kafka partitions by `fnv32a` hash. A
+  remote-write request is acknowledged to the client only after Kafka confirms persistence
+  and replication. The write path never touches ingesters directly.\n\n**Ingesters
+  are Kafka consumers:** Each ingester owns exactly one partition and continuously
+  consumes from it. Multiple ingesters across availability zones consume the same
+  partition for HA on the read path. Replication is Kafka-native, not ingester-side
+  quorum.\n\n**Partition lifecycle as finite-state machine:** Partitions have explicit
+  `Pending -> Active -> Inactive` states managed cooperatively by ingesters and the
+  Kubernetes Rollout Operator. Distributors only write to Active partitions; queriers
+  must read from Active and Inactive partitions.\n\n**Block Builder as independent
+  Kafka consumer:** The Block Builder component consumes Kafka partitions and builds
+  TSDB blocks directly, bypassing the in-memory ingester path entirely. It is a distinct
+  event-driven consumer that can operate independently.\n\n**Decoupled read and write
+  paths:** Heavy query load on ingesters no longer disrupts live writes; the write
+  path terminates at the Kafka broker. This is the primary architectural motivation
+  documented in pkg/storage/ingest/DESIGN.md and the ingest storage architecture
+  documentation.\n\n### What Was Rejected and Why\n\n**Not Modular Monolith:** Although
+  all components share a single Go binary, they are designed, documented, and deployed
+  as separate services with independent Kubernetes Deployments, separate gRPC contracts,
+  and independent scaling. The binary is a build optimization, not an architectural
+  boundary.\n\n**Not Pipeline (primary):** The query path (Frontend -> Scheduler ->
+  Querier -> Store Gateway) has a pipeline shape, and the ingest storage write path
+  is a producer-consumer pipeline. However, the system's dominant characteristic
+  is the independently scalable, ring-coordinated service mesh, not a sequential processing
+  pipeline. The Pipeline pattern would be primary if data always flowed through a
+  fixed ordered sequence of stages; in Mimir, fanout, sharding, and parallel execution
+  are equally prominent.\n\n**Not CQRS (standalone):** Mimir has distinct write and
+  read paths, but this is a natural consequence of time-series storage semantics (append-only
+  writes, range-query reads), not an explicit application of Command Query Responsibility
+  Segregation infrastructure with separate command and query models.\n\n### Quality
+  Attributes Evidence\n\n**SCALABILITY:** Distributor, Querier, and Query Frontend
+  are stateless and scale horizontally. Ingesters scale by adding partitions in the
+  Kafka ring. The design goal is 1 billion active time series per cluster. Query sharding
+  parallelizes PromQL execution across queriers.\n\n**HIGH AVAILABILITY:** Ring-based
+  health checking and zone-aware replication across all components. Zero-downtime
+  rolling updates. Ingest storage removes quorum dependency from the write path (Kafka
+  handles replication). Store Gateway replicates blocks with configurable replication
+  factor.\n\n**MULTI-TENANCY:** Every API request carries a tenant ID header. Per-tenant
+  limits, shuffle sharding, and runtime configuration overrides are enforced at the
+  Distributor. Tenants are isolated in separate TSDB blocks on object storage.\n\n
+  **OPERABILITY:** All components expose /ready, /metrics, and ring status HTTP endpoints.
+  The mimir-mixin bundles Grafana dashboards, Prometheus alerts, and runbooks for
+  the cluster itself. Rolling updates are zero-downtime by design.\n\n**DURABILITY:**
+  Long-term storage uses S3/GCS/Azure Blob or any S3-compatible object store. The
+  Compactor deduplicates and merges blocks uploaded by multiple ingesters, ensuring
+  correctness at the storage layer.\n\n**EXTENSIBILITY:** Ingest path supports Prometheus
+  remote write v1/v2, OTLP, and InfluxDB. Object storage backends are pluggable.
+  Runtime configuration supports per-tenant limit overrides without restarts."

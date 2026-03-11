@@ -1,4 +1,4 @@
-project_name: mattermost
+project_name: Mattermost
 scope: platform
 use_type: production
 source: Discovered
@@ -8,161 +8,49 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:32:58Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Messaging
-language: TypeScript
+domain: collaboration
+language: Go
 languages:
-- TypeScript
-- Go
-- JavaScript
+  - Go
+  - TypeScript
+  - JavaScript
 architecture_styles:
-- Modular Monolith
-- Microkernel
+  - Modular Monolith
+  - Microkernel
 classification_status: classified
-review_notes: 'The Mattermost repository follows a highly structured **Layered** architecture,
-  which is the standard for large-scale Go applications. While it has characteristics
-  of a Modular Monolith, its primary organizational principle is the separation of
-  concerns through horizontal layers (Web/API, Business Logic, and Data Access).
-
-
-  ### 1. Primary Style: Layered
-
-  The codebase is strictly divided into three primary horizontal layers:
-
-  - **Presentation/Web Layer (`server/channels/web`, `server/channels/wsapi`):** Handles
-  HTTP requests, WebSockets, and session context (`context.go`, `handlers.go`). It
-  translates external requests into calls to the business layer.
-
-  - **Business Logic Layer (`server/channels/app`):** This is the core of the system.
-  The `App` struct (defined in `server/channels/app/app.go`) acts as the central orchestrator.
-  Most business logic resides here (e.g., `server/channels/app/post.go`, `server/channels/app/user.go`).
-  As seen in `limits.go`, the `App` methods coordinate between the store, license
-  checks, and server state.
-
-  - **Data Access Layer (`server/channels/store`):** This layer abstracts all database
-  interactions. The `Store` interface in `server/channels/store/store.go` defines
-  a strict contract for data operations, isolating the business logic from SQL specifics.
-  It uses a "repository-per-entity" pattern (e.g., `TeamStore`, `ChannelStore`, `PostStore`).
-
-
-  ### 2. Secondary Style: Plugin (Microkernel)
-
-  Mattermost utilizes a sophisticated **Plugin** architecture to extend its core functionality
-  without modifying the base server.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:40:42Z'
-classification_reasoning: '## Analysis
-
-
-  ### Primary Style: Modular Monolith
-
-
-  Mattermost is a **Modular Monolith** with clear evidence of enforced internal module
-  boundaries:
-
-
-  **Single Deployable Unit:**
-
-  - README states: "runs as a single Linux binary"
-
-  - Single `server/cmd/mattermost/main.go` entry point
-
-  - Uses PostgreSQL as single database
-
-  - Job server runs within the same process (not separate services)
-
-
-  **Enforced Internal Module Boundaries:**
-
-  The codebase shows strong separation into distinct modules:
-
-
-  1. **`server/channels/api4/`** - API/HTTP handler layer with 120+ route definition
-  files
-
-  2. **`server/channels/app/`** - Business logic layer with 241 Go files handling
-  domain operations
-
-  3. **`server/channels/store/`** - Data access layer with typed store interfaces
-  (`TeamStore`, `ChannelStore`, `PostStore`, etc.)
-
-  4. **`server/public/model/`** - Shared domain models (260+ files)
-
-  5. **`server/platform/services/`** - Platform services (cache, searchengine, telemetry,
-  etc.)
-
-
-  The `Store` interface in `server/channels/store/store.go` (lines 25-104) enforces
-  data access patterns with 40+ typed store interfaces, preventing direct database
-  access from upper layers.
-
-
-  ### Secondary Style: Microkernel (Plugin)
-
-
-  Mattermost has a **robust plugin system** that extends the core at runtime:
-
-
-  **Plugin Infrastructure Evidence:**
-
-  - `server/public/plugin/environment.go` - Environment struct manages plugin lifecycle
-  (lines 51-63)
-
-  - `server/public/plugin/hooks.go` - 40+ hook IDs for plugin event interception (OnActivate,
-  MessageWillBePosted, UserHasLoggedIn, etc.)
-
-  - `server/public/plugin/api.go` - API interface exposing 100+ methods to plugins
-
-  - Uses Hashicorp go-plugin for process isolation (line 18: `plugin "github.com/hashicorp/go-plugin"`)
-
-  - Plugin manifest system for metadata definition
-
-
-  **Enterprise Extensions via Interfaces:**
-
-  The `server/einterfaces/` directory defines enterprise extension interfaces:
-
-  - `LdapInterface`, `SamlInterface`, `ComplianceInterface`, `MessageExportInterface`
-
-  - `AccessControlServiceInterface` combining PolicyAdministrationPoint and PolicyDecisionPoint
-
-  - Enterprise features loaded via Go''s init() pattern (`server/enterprise/external_imports.go`)
-
-
-  This creates a two-tier extension model:
-
-  1. **Runtime plugins** via Hashicorp plugin system (external developers)
-
-  2. **Build-time enterprise extensions** via einterfaces (internal enterprise edition)
-
-
-  ### Rejected Classifications
-
-
-  **Not Microservices:** Single binary, single database, no service boundaries with
-  independent deployment. All modules share the same process and database connection
-  pool.
-
-
-  **Not Layered (pure):** While there are horizontal layers (API → App → Store), the
-  plugin architecture and enterprise extension interfaces make this more than just
-  simple layering. The `einterfaces` pattern allows enterprise features to inject
-  implementations across layers.
-
-
-  **Not Hexagonal Architecture:** No explicit ports/adapters pattern. The `einterfaces`
-  pattern is similar but not implemented as true hexagonal architecture with inbound/outbound
-  ports. The plugin system is the primary extension mechanism, not adapter injection.
-
-
-  **Not Domain-Driven Design:** While there are domain concepts (Team, Channel, Post,
-  User), there''s no evidence of bounded contexts, aggregates, or ubiquitous language
-  organization. The modules are organized by technical layer (api, app, store) rather
-  than domain boundaries.
-
-
-  **Not Event-Driven:** Background jobs exist (`server/channels/jobs/`) for scheduled
-  tasks, but primary communication is synchronous HTTP API. WebSocket support exists
-  for real-time updates but isn''t the core architectural pattern.'
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - extensibility
+  - scalability
+  - reliability
+  - observability
+  - portability
+  - maintainability
+  - security
+one_line_summary: >-
+  Open-core self-hosted team collaboration platform built as a modular Go
+  monolith with a microkernel plugin system and clustered WebSocket event
+  delivery.
+classification_reasoning: >-
+  Mattermost's server is a single deployable binary organised into four
+  enforced horizontal layers — HTTP/WS API handlers (channels/api4, channels/wsapi),
+  application business logic (channels/app), platform infrastructure services
+  (channels/app/platform, platform/services), and a decorated store chain
+  (sqlstore wrapped by localcachelayer, searchlayer, retrylayer, timerlayer) —
+  making Modular Monolith the dominant style. The App struct is explicitly
+  documented as a request-scoped pure functional component with no state of its
+  own, delegating to Channels and Server. A comprehensive microkernel pattern
+  co-exists: 49 plugin hook points (OnActivateID through TotalHooksID) dispatch
+  to isolated subprocess plugins via RPC bridge, and enterprise capabilities are
+  injected through explicit einterfaces contracts (ClusterInterface,
+  ComplianceInterface, LdapInterface, DataRetentionInterface, etc.) compiled
+  into the binary at link time. WebSocket event broadcast (Hub struct, ~50
+  WebSocketEvent types published via platform.Publish) and a persistent
+  background job framework (~25 worker types) are significant internal
+  mechanisms but subordinate to the monolith decomposition. The React webapp
+  follows a layered Redux architecture with a client-side plugin registry
+  mirroring the server microkernel. Single binary deployment confirmed by README
+  and cmd/mattermost/main.go entry point.
