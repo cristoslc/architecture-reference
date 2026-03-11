@@ -1,7 +1,7 @@
 ---
 title: "Reference Library Ecosystem Integration"
 artifact: SPEC-028
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -65,6 +65,11 @@ The reference library documents (per-style evidence pages in `evidence-analysis/
 
 | Criterion | Evidence | Result |
 |-----------|----------|--------|
+| AC1: Ecosystem Evidence sections present | Service-Based, Pipeline, Microservices, Event-Driven, Space-Based sections each have "Ecosystem Evidence (SPEC-026)" subsection with ecosystem names, member repos, and composition patterns | Pass |
+| AC2: Service-Based has 3+ ecosystems | 5 ecosystems cited: *arr Media Stack, Grafana LGTM, HashiCorp, Fediverse, Temporal | Pass |
+| AC3: Pipeline has 2+ ecosystems | 2 ecosystems cited: ELK Stack, Apache Data Ecosystem | Pass |
+| AC4: Separate frequency reporting | "Ecosystem Frequency Rankings (SPEC-026)" table reports ecosystem frequencies separately from single-repo "Discovered Frequency Rankings" table | Pass |
+| AC5: ADR-004 evidence hierarchy | Ecosystem evidence appears as subsections within each style's Discovered evidence tier, after "Why Teams Choose" and before "When to Use / Avoid" | Pass |
 
 ## Scope & Constraints
 

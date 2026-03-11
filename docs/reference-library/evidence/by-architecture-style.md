@@ -56,6 +56,20 @@ The 142 production entries split into 87 platforms and 55 applications (ratio 1.
 
 **Key observations**: Microkernel dominates both platforms (61%) and applications (55%). Layered is significantly more common in applications (67%) than platforms (47%). Pipeline and Microservices are predominantly platform patterns (13% each) with minimal application representation (4% and 2% respectively). Event-Driven skews toward applications (18%) over platforms (8%).
 
+### Ecosystem Frequency Rankings (SPEC-026)
+
+11 ecosystem entries curated in SPEC-026 capture emergent architecture patterns visible only at the multi-repo composition level. These frequencies are reported separately from single-repo rankings per SPIKE-001 (scope axis drives table structure).
+
+| Style | Ecosystems (11) | % | Example Ecosystems |
+|-------|----------------|---|-------------------|
+| Service-Based | 5 | 45% | *arr Media Stack, Grafana LGTM, HashiCorp, Fediverse, Temporal |
+| Microservices | 3 | 27% | Istio/Envoy, Sentry, Supabase |
+| Pipeline | 2 | 18% | ELK Stack, Apache Data Ecosystem |
+| Event-Driven | 1 | 9% | Apache Data Ecosystem (secondary) |
+| Space-Based | 1 | 9% | Apache Data Grid |
+
+**Key observation**: Service-Based dominates ecosystem evidence (45%) despite ranking 7th in single-repo frequency (4.9%). This confirms SPIKE-001's finding that Service-Based is underrepresented at the single-repo level — many real-world Service-Based systems are ecosystems of independent repos. Ecosystem evidence provides the strongest justification for Service-Based as a distinct and practically important style.
+
 ### Key Statistical Findings
 
 1. **Microkernel is the most prevalent style (58.5%).** 83 of 142 production repos use Microkernel, led by n8n (177k stars), elasticsearch (76k), nest (74k), redis (73k), grafana (72k). This is a dramatic rise from the old corpus (0% under heuristic detection, 20.2% under SPEC-019 deep-validation). SPEC-022 deep-analysis properly identifies plugin architectures and runtime extension points that old heuristics missed.
@@ -144,11 +158,22 @@ Top KataLog teams (47 teams total; top performers shown):
 
 **What winners did differently**: Top EDA teams (BluzBrothers, Profitero Data Alchemists, Pragmatic) showed deep event-flow design -- partitioning keys, consumer group configuration, dead-letter handling, and timing proof. Runner-up teams tended to adopt event-driven patterns without the same depth. Winners consistently paired events with additional structure: service-based decomposition (Team Seven, Pragmatic, ZAITects), hexagonal ports and adapters (MonArch), modular monolith boundaries (PegasuZ), or CQRS read/write separation (Iconites).
 
+### Ecosystem Evidence (SPEC-026)
+
+1 of 11 curated ecosystems exhibits Event-Driven as a secondary architecture style alongside Pipeline.
+
+| Ecosystem | Members | Composition Pattern | Key Integration Evidence |
+|-----------|---------|--------------------|-----------------------|
+| **Apache Data Ecosystem** | Kafka, Flink, Spark, Airflow, NiFi | Stage pipeline with event backbone | Kafka serves as the event backbone connecting pipeline stages; producers and consumers use Kafka's binary protocol for real-time streaming; Flink and Spark consume Kafka topics for stream/batch processing |
+
+> **Why this matters**: Event-Driven at the ecosystem level manifests as the *event backbone* that connects independently developed pipeline stages. Kafka's role in the Apache data ecosystem is the canonical example -- it provides the event-driven communication fabric that enables loose coupling between data processing tools that would otherwise require point-to-point integration.
+
 ### When to Use / Avoid
 
-**When to use** -- grounded in Discovered domain correlations and production validation:
+**When to use** -- grounded in Discovered domain correlations, production validation, and ecosystem evidence:
 
 - Systems with inherently asynchronous data flows -- sensor streams, email polling, notification broadcasting, analytics pipelines. In the Discovered corpus, event-driven repos cluster in Messaging, Infrastructure, and Developer Tools domains. NGINX confirms the pattern at extreme scale (C10K+); BluzBrothers proved sub-second medical monitoring.
+- Multi-repo data ecosystems needing an event backbone to decouple pipeline stages (Apache data ecosystem: Kafka as the event fabric connecting Flink, Spark, NiFi, Airflow)
 - Domains where multiple consumers need the same event (Bitwarden: vault sync across devices; Squidex: event sourcing for content changes)
 - Real-time monitoring and alerting (MonitorMe: all 7 teams used EDA; Road Warrior: 8 of 9 teams)
 - Workloads requiring loose coupling between bounded contexts (eShopOnContainers: integration events between microservices)
@@ -351,12 +376,26 @@ Top KataLog teams (39 teams total; top performers shown):
 
 The strongest KataLog performers (MonArch, PegasuZ, Rapid Response) all proposed evolutionary paths starting simpler and decomposing into microservices -- not microservices from day one.
 
+### Ecosystem Evidence (SPEC-026)
+
+3 of 11 curated ecosystems (27%) exhibit Microservices architecture -- each demonstrating a different microservices composition pattern.
+
+| Ecosystem | Members | Composition Pattern | Key Integration Evidence |
+|-----------|---------|--------------------|-----------------------|
+| **Istio/Envoy Mesh** | Istio, Envoy | Control-plane/data-plane via xDS protocol | Envoy subscribes to configuration updates from Istio via gRPC-based xDS API; Istio translates high-level routing rules into Envoy-native configuration; sidecar proxy topology |
+| **Sentry Platform** | Sentry, Snuba, Relay, self-hosted | Event pipeline with service specialization | Services communicate via Kafka topics (Relay publishes events, Sentry consumers process them, Snuba indexes into ClickHouse) and HTTP APIs (Sentry queries Snuba for analytics) |
+| **Supabase Platform** | Supabase, PostgREST, Auth, Realtime, Storage | Polyglot services unified by PostgreSQL and API gateway | Kong API gateway routes to PostgREST, Auth, Realtime, and Storage; PostgreSQL as shared state layer; HTTP/WebSocket inter-service APIs |
+
+> **Why this matters**: Single-repo microservices detection (8.5%) captures monorepo microservice deployments. Ecosystem evidence reveals three distinct microservices composition patterns: control-plane/data-plane separation (Istio/Envoy), event-pipeline specialization (Sentry), and API-gateway-unified polyglot services (Supabase). These ecosystems provide positive evidence of what real multi-service systems look like -- ecosystem members ARE independently deployed by definition.
+
 ### When to Use / Avoid
 
-**When to use** -- grounded in Discovered domain correlations and production validation:
+**When to use** -- grounded in Discovered domain correlations, production validation, and ecosystem evidence:
 
 - In the Discovered corpus, microservices repos (8.5%) cluster in Developer Tools and Infrastructure domains, predominantly as platforms (13% of platforms vs 2% of applications).
 - Systems with well-understood domain boundaries where independent deployment and scaling provide clear value (eShopOnContainers: Catalog, Basket, Ordering as independent services)
+- Control-plane/data-plane separations where the two planes have fundamentally different concerns (Istio/Envoy: policy vs proxying)
+- Polyglot service compositions unified by a shared data layer and API gateway (Supabase: PostgREST, Auth, Realtime, Storage behind Kong)
 - Organizations with mature DevOps capabilities and experience operating distributed systems (AKS Baseline: production-grade cluster configuration)
 - When paired with DDD, event storming, or explicit evolutionary paths -- every winning KataLog team justified decomposition with domain analysis
 - Large teams needing parallel development independence across service boundaries
@@ -404,11 +443,23 @@ No KataLog teams explicitly proposed pipeline architecture. The complete absence
 
 **Composability as key differentiator**: LLVM's passes can be reordered and composed arbitrarily. GStreamer's elements connect via negotiated pads. NGINX's output filters chain transparently. In every AOSA case, the pipeline's power comes from composable stages with well-defined input/output contracts -- not from the linear topology alone but from the interchangeability of stages within that topology.
 
+### Ecosystem Evidence (SPEC-026)
+
+2 of 11 curated ecosystems (18%) exhibit Pipeline architecture -- both demonstrating stage pipeline composition across independently developed repos.
+
+| Ecosystem | Members | Composition Pattern | Key Integration Evidence |
+|-----------|---------|--------------------|-----------------------|
+| **ELK Stack** | Elasticsearch, Kibana, Logstash, Beats | Stage pipeline (ingest -> store -> visualize) | Beats ships via Lumberjack/HTTP to Logstash; Logstash outputs via Elasticsearch bulk API; Kibana reads via Elasticsearch query API |
+| **Apache Data Ecosystem** | Kafka, Flink, Spark, Airflow, NiFi | Stage pipeline with event backbone | Kafka's binary protocol for streaming; REST/Thrift APIs for job submission (Flink, Spark); NiFi's FlowFile abstraction for data routing |
+
+> **Why this matters**: Pipeline architecture at single-repo level (9.2%) captures individual data processing tools. Ecosystem evidence reveals the *composition* pattern -- how these tools chain into multi-stage pipelines where each independently-developed repo is a stage. The ELK stack (ingest -> store -> visualize) and Apache data ecosystem (collect -> stream -> process -> orchestrate -> route) are canonical examples of pipeline architecture that are invisible at the single-repo level.
+
 ### When to Use / Avoid
 
-**When to use** -- grounded in Discovered domain correlations and production validation:
+**When to use** -- grounded in Discovered domain correlations, production validation, and ecosystem evidence:
 
 - In the Discovered corpus, pipeline repos (9.2%) cluster in Data Processing, AI/ML, and Infrastructure domains, predominantly as platforms (13%) vs applications (4%). Includes high-profile projects like dify (131k), langchain (128k).
+- Multi-repo data processing stacks where each component is a pipeline stage (ELK: Beats -> Logstash -> Elasticsearch -> Kibana; Apache: NiFi -> Kafka -> Flink/Spark -> Airflow)
 - Data transformation chains where each stage has a single responsibility (LLVM: parse -> optimize -> codegen; Graphite: collect -> store -> render)
 - Request processing with ordered filter chains (NGINX: accept -> parse -> process -> filter -> respond)
 - Media processing with format negotiation (GStreamer: source -> decode -> filter -> encode -> sink; Jellyfin: transcoding pipeline)
@@ -633,11 +684,21 @@ KataLog evidence is sparse (2 teams) but targeted: both teams chose space-based 
 
 **Riak's architectural lessons**: Riak demonstrates the core space-based principles at infrastructure scale: no master node (peer-to-peer), data distributed via consistent hashing across a ring, tunable N/R/W values allowing per-request consistency-availability trade-offs, and hinted handoff for partition tolerance. These same principles (replicated data, no central coordinator, tunable consistency) define the application-level space-based architecture pattern, making Riak both an implementation of and infrastructure for space-based systems.
 
+### Ecosystem Evidence (SPEC-026)
+
+1 of 11 curated ecosystems exhibits Space-Based architecture.
+
+| Ecosystem | Members | Composition Pattern | Key Integration Evidence |
+|-----------|---------|--------------------|-----------------------|
+| **Apache Data Grid** | Geode, Ignite | Alternative implementations of space-based pattern | Both implement data partitioned across nodes with processing co-located where data lives (data affinity); cluster coordination via membership protocols; parallel implementations rather than complementary services |
+
+> **Why this matters**: The Apache Data Grid ecosystem is unusual -- it documents two independent implementations of the same space-based pattern (Geode and Ignite) rather than complementary services. This provides comparative architectural evidence: both projects converged on the same fundamental design (partitioned data, co-located processing, membership coordination) despite independent development, strengthening the case for space-based as a coherent architectural pattern.
+
 ### When to Use / Avoid
 
-**When to use** -- grounded in Discovered domain correlations and production validation:
+**When to use** -- grounded in Discovered domain correlations, production validation, and ecosystem evidence:
 
-- In the Discovered production corpus, space-based is rare (0.7%, 1 repo: dragonfly 30k stars) but consistent with the pattern's focus on distributed in-memory data management.
+- In the Discovered production corpus, space-based is rare (0.7%, 1 repo: dragonfly 30k stars) but consistent with the pattern's focus on distributed in-memory data management. The Apache Data Grid ecosystem (Geode, Ignite) provides additional evidence of the pattern's implementation in production data grid infrastructure.
 - Systems with extreme concurrency requirements where traditional database-backed architectures create bottlenecks (Riak: peer-to-peer with no single point of failure)
 - Variable and unpredictable peak loads where elastic scaling of processing units is needed (Iconites: 15M user peak for Road Warrior)
 - Applications where in-memory data grids can eliminate database round-trips for hot data paths (session state, real-time pricing, leaderboards)
@@ -693,15 +754,31 @@ Top KataLog teams (25 teams total; top performers shown):
 
 **KataLog winner pattern**: Top service-based teams distinguished themselves by adding event-driven communication where async was natural (Team Seven, Pragmatic, ZAITects) while keeping the overall deployment and data model simpler than full microservices. Service-based was the dominant choice when budget constraints were explicit: Sysops Squad (6/7 teams), Certifiable Inc. (6/7 teams), and frequently as Phase 1 of an evolutionary approach with microservices as a documented future state.
 
+### Ecosystem Evidence (SPEC-026)
+
+5 of 11 curated ecosystems (45%) exhibit Service-Based architecture -- the dominant ecosystem style. This is the strongest evidence that Service-Based is underrepresented in single-repo analysis.
+
+| Ecosystem | Members | Composition Pattern | Key Integration Evidence |
+|-----------|---------|--------------------|-----------------------|
+| ***arr Media Stack** | Overseerr, Sonarr, Radarr, Prowlarr, Lidarr | Hub-and-spoke via REST APIs | Each service owns its domain (TV, movies, music, indexing, requests); separate databases; REST API integration with API key auth |
+| **Grafana LGTM Stack** | Grafana, Loki, Tempo, Mimir | Service composition with unified query frontend | Each service handles one observability signal (dashboards, logs, traces, metrics); connected via data source plugin interfaces (LogQL, TraceQL, PromQL) |
+| **HashiCorp Stack** | Consul, Vault, Nomad, Terraform | Cross-service API integration | Each service owns an infrastructure domain (discovery, secrets, scheduling, provisioning); Raft consensus per service; HTTP/gRPC APIs with mTLS |
+| **Fediverse** | Mastodon, Discourse, Forem, Lemmy | Federated protocol interoperation | W3C ActivityPub protocol defines the integration contract; each service is independently deployed with own database and auth; federated distribution model |
+| **Temporal Platform** | Temporal, sdk-go | Orchestration server with worker SDK | Server provides durable workflow orchestration; SDKs run worker runtimes that poll tasks via gRPC; server/worker separation is Service-Based |
+
+> **Why this matters**: At 4.9% of single-repo entries, Service-Based appears uncommon. But 45% of ecosystems are Service-Based -- because the pattern's defining characteristic (independently deployed coarse-grained services) is only visible when examining how multiple repos compose. Ecosystem evidence transforms Service-Based from a statistically marginal style to one with strong real-world production representation.
+
 ### When to Use / Avoid
 
-**When to use** -- grounded in Discovered domain correlations and production validation:
+**When to use** -- grounded in Discovered domain correlations, production validation, and ecosystem evidence:
 
-- Service-based repos in the Discovered production corpus (4.9%, 7 repos) are led by dify (131k), mastodon (49k), and temporal (18k). Combined with 3 AOSA/RealWorld production systems (Selenium, Graphite, Bitwarden), the evidence confirms service-based architecture is used in practice.
+- Service-based repos in the Discovered production corpus (4.9%, 7 repos) are led by dify (131k), mastodon (49k), and temporal (18k). Combined with 3 AOSA/RealWorld production systems (Selenium, Graphite, Bitwarden) and 5 ecosystem entries, the evidence strongly confirms service-based architecture in practice.
+- Multi-repo product ecosystems where each component owns a domain (*arr stack: media type per service; HashiCorp: infrastructure domain per tool; Grafana LGTM: observability signal per service)
 - Monolith migration where independent deployability is needed without full microservices complexity (Sysops Squad: near-unanimous choice; Graphite: independently scalable but coarse-grained)
 - Budget-constrained and non-profit contexts (ClearView, Certifiable Inc. winners chose service-based citing cost)
 - AI-integration scenarios where the primary goal is adding AI capabilities to existing platforms (Certifiable Inc.: 6 of 7 teams)
 - Organizations with limited DevOps maturity needing fault isolation without distributed systems overhead (Bitwarden: SOC2 with service-based)
+- Federated systems where participants interoperate via a shared protocol (Fediverse: ActivityPub-based federation)
 
 **When to avoid**:
 
