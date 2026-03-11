@@ -5,48 +5,101 @@ source: Discovered
 source_url: https://github.com/allegro/ralph
 project_url: https://github.com/allegro/ralph
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:29:27Z'
+discovered_at: ‘2026-03-11T00:00:00Z’
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Asset Management
+domain: IT Asset Management / DCIM / CMDB
 language: Python
 languages:
 - Python
 - JavaScript
+- HTML/CSS
 architecture_styles:
+- Modular Monolith
 - Layered
+- Event-Driven
 classification_status: classified
-review_notes: 'The repository follows a **Layered** architecture, specifically adhering
-  to the patterns of a large-scale **Django** application. The codebase is organized
-  into a single deployable unit (as evidenced by the `Dockerfile` and `docker-compose.yml`
-  in the root/docker directory) but is partitioned into several internal domain-specific
-  modules.
-
-
-  ### Evidence of Layered Architecture:
-
-  The system uses the standard horizontal layering associated with the Django framework
-  across its internal apps (e.g., `src/ralph/data_center`, `src/ralph/back_office`):
-
-  - **Presentation Layer**: Handled via `views.py`, `templates/`, and `forms.py` (e.g.,
-  `src/ralph/data_center/views.py`, `src/ralph/data_center/forms.py`).
-
-  - **Business Logic/Domain Layer**: Encapsulated within `models.py` and `admin.py`
-  (which in Django often contains significant orchestrating logic), as well as specialized
-  modules like `publishers.py` and `signals.py`.
-
-  - **Data Access Layer**: Abstracted by Django’s ORM within `models.py` and managed
-  through `migrations/` directories.
-
-  - **API Layer**: Expressed through `api.py` files (e.g., `src/ralph/back_office/api.py`),
-  likely using Django Rest Framework.
-
-
-  ### Evidence of Modular Monolith:'
+one_line_summary: Django-based IT asset management monolith partitioned into 25+ domain
+  apps sharing a single database, with a layered admin/API/model structure per module
+  and optional Hermes event-bus integration for cross-system synchronisation.
+classification_method: deep-analysis
+classification_confidence: 0.91
+classification_model: claude-sonnet-4-6
+classification_date: ‘2026-03-11’
+quality_attributes:
+- Modularity
+- Extensibility
+- Maintainability
+- Operability
+- Auditability
+- Integration
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Style:\
+  \ Modular Monolith\n\n**MODULAR MONOLITH (primary, 0.91):** Ralph is a single Django\
+  \ application that deploys as one process (web + background workers) sharing one\
+  \ relational database. The codebase is partitioned into 25+ domain-vertical Django\
+  \ apps declared in `INSTALLED_APPS` in `src/ralph/settings/base.py:135-187`:\
+  \ `ralph.assets`, `ralph.back_office`, `ralph.data_center`, `ralph.networks`,\
+  \ `ralph.licences`, `ralph.domains`, `ralph.deployment`, `ralph.virtual`,\
+  \ `ralph.operations`, `ralph.configuration_management`, and more. Each app owns\
+  \ its own models, migrations, admin registrations, REST API viewsets, serializers,\
+  \ and URL patterns. The shared `ralph.lib.*` packages (`transitions`, `permissions`,\
+  \ `custom_fields`, `hooks`, `external_services`, `mixins`, `polymorphic`,\
+  \ `visibility_scope`) provide infrastructure intentionally decoupled from any\
+  \ single domain. All modules share `DATABASES[\"default\"]` and are loaded\
+  \ in-process. Docker Compose confirms the deployment topology: a single `web`\
+  \ container plus `redis` and `db` sidecars.\n\n### Secondary Style: Layered\n\n\
+  **LAYERED (secondary, 0.83):** Within each domain app a consistent three-tier\
+  \ structure is enforced: (1) Models layer \u2014 fat domain models inheriting from\
+  \ `BaseObject`/`Asset`, owning business logic and validation via `django-reversion`\
+  \ and `ralph.lib.transitions`; (2) Admin/Views layer \u2014 Django admin panel and\
+  \ custom view handlers serving as the primary operator UI; (3) API layer \u2014 Django\
+  \ REST Framework viewsets and serializers providing a separate machine-readable\
+  \ interface with token, session, and basic-auth support. A global middleware stack\
+  \ (session, CSRF, auth, metrics, threadlocal) applies as horizontal infrastructure\
+  \ across all layers. This pattern is consistent across all 25+ domain modules.\n\
+  \n### Secondary Style: Event-Driven\n\n**EVENT-DRIVEN (secondary, 0.72):** Ralph\
+  \ integrates the Hermes message bus via `pyhermes`. Three publishers emit domain\
+  \ events: `ralph.data_center.publishers` publishes `DCHost` lifecycle events\
+  \ (using `@pyhermes.publisher`) for DNS/DHCP consumers; `ralph.dns.publishers`\
+  \ emits DNS TXT record updates using a `post_commit` hook; `ralph.domains.publishers`\
+  \ emits domain lifecycle events. Three subscriber modules consume external events:\
+  \ `ralph.assets.subscribers` handles `SERVICE_CREATE/UPDATE/DELETE/REFRESH` topics\
+  \ to keep the service catalog in sync; `ralph.operations.changemanagement.subscribtions`\
+  \ consumes change-management events and records them as `Operation` objects.\
+  \ Background jobs are dispatched via Redis Queue (`django-rq`) for PDF generation\
+  \ (`ralph_ext_pdf` queue) and asynchronous lifecycle transitions (`ralph_async_transitions`\
+  \ queue). However, event-driven integration is confined to specific external-system\
+  \ bridge points; the dominant internal coordination remains synchronous Django\
+  \ ORM and signals.\n\n### What Was Rejected and Why\n\n**Not Microservices:**\
+  \ All 25+ domain modules share a single codebase, a single database, and deploy\
+  \ as one container. There are no independent services with their own data stores\
+  \ or network boundaries.\n\n**Not Hexagonal Architecture:** There is no explicit\
+  \ ports-and-adapters pattern. Domain models depend directly on Django ORM, and\
+  \ there are no formal port interfaces separating domain logic from infrastructure.\n\
+  \n**Not Domain-Driven Design:** While domain vocabulary is used (Asset, Service,\
+  \ Environment, DataCenter), there are no explicit aggregate roots with enforced\
+  \ consistency boundaries, no domain events as first-class objects, and no\
+  \ application service / repository layer separating domain from persistence.\n\
+  \n**Not CQRS:** There is a single model for reads and writes. DRF viewsets use\
+  \ the same serializers for GET and POST/PATCH. No separate read/write models\
+  \ or stores.\n\n### Quality Attributes Evidence\n\n**MODULARITY:** 25+ Django\
+  \ apps each with independent migrations, admin, API, and tests; `ralph.lib.*`\
+  \ shared packages prevent cross-domain coupling.\n\n**EXTENSIBILITY:** `ralph.lib.hooks`\
+  \ uses Python `entry_points` for runtime hook replacement; `ralph.lib.transitions`\
+  \ provides a database-driven workflow engine applicable to any `BaseObject`\
+  \ subclass; `ralph.lib.custom_fields` allows runtime schema extension.\n\n\
+  **MAINTAINABILITY:** Fat models pattern co-locates logic with data; `BaseObject`\
+  \ polymorphic base centralises cross-cutting concerns; `django-reversion` provides\
+  \ full audit trail.\n\n**OPERABILITY:** Django Admin as primary operator UI;\
+  \ Redis Sentinel support for HA; health check endpoints (`/status/ping`,\
+  \ `/status/health`); Prometheus metrics at `/status/prometheus`.\n\n**AUDITABILITY:**\
+  \ `django-reversion` revision tracking per model; `TimeStampMixin` on all\
+  \ entities; `TransitionHistory` records every state machine transition with\
+  \ requester identity.\n\n**INTEGRATION:** Pyhermes for event bus integration;\
+  \ DRF REST API with XML renderer; DNSaaS integration; OpenStack SDK for\
+  \ virtual asset auto-discovery."
+review_notes: Single Django monolith with 25+ domain apps; consistent admin/API/model
+  layering per module; Hermes event bus bridges to upstream service catalog, DNS-as-a-Service,
+  and change management; Redis Queue for async PDF and lifecycle transition jobs;
+  fat BaseObject polymorphic model hierarchy as the architectural spine.
 review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.85
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: Single Django app deployed as monolith with shared database,
-  unified REST API, and multiple domain modules communicating via signals

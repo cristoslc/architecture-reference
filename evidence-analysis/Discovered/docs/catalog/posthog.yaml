@@ -3,102 +3,108 @@ scope: application
 use_type: production
 source: Discovered
 source_url: https://github.com/PostHog/posthog
-project_url: https://github.com/PostHog/posthog
-evidence_type: automated-discovery
-discovered_at: '2026-03-07T05:11:12Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Analytics
 language: Python
 languages:
-- Python
-- TypeScript
-- Rust
-- Go
-- JavaScript
+  - Python
+  - TypeScript
+  - Rust
+  - JavaScript
+  - Go
 architecture_styles:
-- Modular Monolith
-- Service-Based
+  - Modular Monolith
+  - Event-Driven
+  - Service-Based
 classification_status: classified
-review_notes: 'PostHog''s architecture is a sophisticated **Modular Monolith** transitioning
-  into a hybrid model that incorporates **Microservices** for high-scale data handling.
-  While the core business logic, API, and UI are increasingly organized into discrete,
-  isolated products, they majorly reside within a single Django-based deployment unit.
+classification_confidence: 0.91
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Scalability
+  - Modularity
+  - Observability
+  - Deployability
+  - Evolvability
+  - Fault Tolerance
+  - Performance
+one_line_summary: "PostHog is an all-in-one product analytics platform built as a deliberate Modular Monolith (single Django app with 40+ tach-enforced product boundaries and facade contracts) over an Event-Driven Kafka/Redpanda ingestion backbone, supplemented by coarse-grained Service-Based Rust and Node.js workers that share the same PostgreSQL and ClickHouse stores."
+classification_reasoning: |
+  ## Primary Style: Modular Monolith
 
+  The entire product is a single Django deployment (`posthog/` + `products/` + `ee/`) with one
+  `manage.py`, one Celery app, and unified Postgres/ClickHouse migrations. The codebase is
+  undergoing active modularization across ~40 product slices under `products/`:
 
-  ### 1. Modular Monolith (Primary Style)
+  - `tach.toml` (333 lines) declares a dependency graph for every `products.*` module. Products
+    in `layer = "products"` (isolated) expose only `facade/api.py` and `facade/contracts.py`
+    as their public surface; all other files are private. Products in `layer = "non_isolated"`
+    are in transition toward isolation.
+  - Each product follows the structure mandated in `products/architecture.md`: `backend/models.py`,
+    `backend/logic.py`, `backend/facade/api.py` (frozen dataclasses, no Django imports),
+    `backend/presentation/views.py`, and `backend/tasks/`. Each product is registered as a
+    Django `AppConfig` via `apps.py`.
+  - Turborepo (`turbo.json`) provides task-level caching so only products whose contracts
+    changed need to rerun their test suite.
+  - The `ee/` directory adds enterprise features as a peer Django module; `tach.toml` treats
+    `ee` as a sibling, not a separate deployment.
 
-  The codebase shows a deliberate transition from a legacy monolith (`posthog/`) to
-  a structured modular approach under the `products/` directory.
+  ## Strong Secondary Style: Event-Driven
 
-  - **Enforced Boundaries:** As noted in `docs/internal/monorepo-layout.md`, the architecture
-  uses "vertical slices" where each product (e.g., `experiments`, `feature_flags`)
-  owns its own Django `models.py`, logic, and frontend. The documentation explicitly
-  mentions using tools like `tach` to enforce import boundaries and prevent circular
-  dependencies between products.
+  Kafka/Redpanda is structurally central to the write path, not peripheral:
 
-  - **Unified Deployment:** Despite the logical separation, these "products" are registered
-  as Django `AppConfig` modules (seen in the `**/apps.py` glob), meaning they are
-  still served by the same primary web process/database migrations.
+  - Rust `capture` service (replacing `/e`, `/batch`, `/s` routes) writes ingested events to
+    the `events_plugin_ingestion` Kafka topic.
+  - Node.js plugin server (`nodejs/src/ingestion/`) is a Kafka consumer that processes events
+    through an ordered pipeline (preprocessing → person resolution → property enrichment) before
+    writing to ClickHouse and Postgres.
+  - `capture-logs` writes OpenTelemetry logs to `logs_ingestion` topic; `property-defs-rs`
+    consumes event topics to maintain property definitions without blocking the ingest path.
+  - Celery uses Redis as a separate async task broker (operational tasks), while Temporal
+    orchestrates long-running batch export and data import workflows with durable retry semantics.
+  - Dagster DAGs handle data engineering operations (ClickHouse backfills, materialized columns).
 
+  ## Secondary Style: Service-Based
 
-  ### 2. Microservices (Secondary Style)
+  PostHog augments the monolith with coarse-grained specialized services that share
+  infrastructure (not database-per-service):
 
-  PostHog breaks out computationally intensive or specialized concerns into independent
-  services:
+  - Rust services: `capture`, `feature-flags` (low-latency evaluation with Postgres + Redis),
+    `cymbal` (error tracking with an internal stage pipeline), `property-defs-rs`, `hook-worker`,
+    `cyclotron-janitor`, `kafka-assigner`, `personhog-*` (person identity resolution), and
+    `embedding-worker`.
+  - Node.js plugin server: Kafka-driven event pipeline, Hog function runtime, and CDP
+    transformations — shares all databases with Django.
+  - `services/llm-gateway` (FastAPI) and `services/mcp` (Cloudflare Workers) are the only
+    fully independent deployments with no shared database access.
+  - A Caddy reverse proxy acts as the API gateway dispatching `/e`, `/batch`, `/s`, `/flags`,
+    `/i/v0/ai`, and `/i/v1/logs` to the appropriate Rust service; all other paths go to Django.
 
-  - **Node.js Ingestion:** High-volume event processing is handled by a separate Node.js
-  service (`nodejs/src/ingestion/`), distinct from the Django API. This is a classic
-  microservice pattern where the "write path" is decoupled for performance and scaling.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:55:40Z'
-classification_reasoning: "## Architecture Analysis: PostHog\n\n### Primary Style:\
-  \ Modular Monolith\n\nPostHog is a **Modular Monolith** with enforced internal boundaries.\
-  \ The evidence is compelling:\n\n**1. Single Deployable Django Application**\nThe\
-  \ main deployment is a single Django application (`posthog/` + `products/`) with\
-  \ Celery workers:\n- `docker-compose.hobby.yml` shows a single `web` and `worker`\
-  \ service for the Django app\n- All products share the same database (Postgres +\
-  \ ClickHouse)\n- `manage.py` at the root confirms a single Django project\n\n**2.\
-  \ Explicit Module Boundaries with Enforcement**\nThe `tach.toml` file defines strict\
-  \ import boundaries between 40+ products:\n```toml\n[[modules]]\npath = \"products.feature_flags\"\
-  \ndepends_on = [\"ee\", \"posthog\"]\nlayer = \"non_isolated\"\n```\nProducts can\
-  \ import from `posthog` and `ee` but not from each other, enforced via the `tach`\
-  \ tool.\n\n**3. Facade Pattern for Inter-Module Communication**\nPer `products/architecture.md`,\
-  \ each product exposes a public interface:\n```\nproducts/<name>/backend/facade/\n\
-  \  api.py           # The ONLY file other products may import\n  contracts.py  \
-  \   # Frozen dataclasses (stable DTOs)\n```\nInternal implementation (models, logic)\
-  \ is private.\n\n**4. Turborepo for Selective Testing**\n`turbo.json` defines `backend:test`\
-  \ tasks per product, enabling:\n- Task-level caching\n- Only affected products need\
-  \ retesting when contracts change\n\n**5. Product Structure**\nEach of the 40+ products\
-  \ in `products/` follows the pattern:\n```\nproducts/feature_flags/\n  backend/\
-  \          # Django app (models, logic, API)\n  frontend/         # React/TypeScript\
-  \ scenes\n  manifest.tsx      # Route/scene definitions\n  package.json      # Turborepo\
-  \ package\n```\n\n### Secondary Style: Service-Based\n\nPostHog supplements the\
-  \ monolith with specialized services:\n\n**Rust Services (High-Performance Ingestion)**\n\
-  The `rust/` workspace contains 40+ crates including:\n- `capture` - Event capture\
-  \ endpoint (handles `/e`, `/batch` routes)\n- `feature-flags` - Feature flag evaluation\
-  \ service\n- `capture-logs` - Log ingestion (OpenTelemetry)\n- `hook-worker/hook-janitor`\
-  \ - Webhook processing\n- `cyclotron-*` - Job queue system\n- `kafka-*` - Kafka\
-  \ infrastructure services\n\nThese are **not microservices** — they're coarse-grained\
-  \ services sharing databases with the monolith.\n\n**Standalone Python Services**\n\
-  - `services/llm-gateway/` - LLM proxy (FastAPI, separate deployment)\n- `services/mcp/`\
-  \ - MCP server (Cloudflare Workers)\n\n**Node.js Services**\n- `services/oauth-proxy/`\
-  \ - OAuth handling (Cloudflare Workers)\n- `services/stripe-app/` - Stripe integration\n\
-  \n### What It's NOT\n\n- **NOT Microservices**: Services share databases (Postgres,\
-  \ ClickHouse, Redis, Kafka); they're coarse-grained (5-6) not fine-grained; main\
-  \ app is monolithic\n- **NOT Layered Architecture**: Products are vertical slices,\
-  \ not horizontal layers; each product has its own models/logic/API\n- **NOT Hexagonal**:\
-  \ Django ORM models are used directly; no ports/adapters abstraction\n- **NOT Serverless**:\
-  \ Uses Docker containers with long-running workers; no FaaS deployment\n\n### Communication\
-  \ Patterns\n\n- **Kafka** for event ingestion pipeline (capture services → ClickHouse)\n\
-  - **Celery** for async task processing within Django monolith\n- **HTTP/REST** between\
-  \ services and main app\n- **gRPC** for some Rust service communication\n\n### Summary\n\
-  \nPostHog represents a mature **Modular Monolith** with clear product boundaries\
-  \ enforced by tooling (`tach`), facades for inter-module communication (frozen dataclasses),\
-  \ and selective testing (Turborepo). It supplements this with specialized **Service-Based**\
-  \ deployments for high-throughput ingestion (Rust services) and domain-specific\
-  \ needs (LLM gateway, MCP server), but the core application remains a single Django\
-  \ deployable with strong internal modularity."
+  ## Notable Internal Patterns
+
+  **Pipeline**: Multiple subsystems use discrete, ordered processing stages —
+  `nodejs/src/ingestion/pipelines/` for event enrichment; `rust/cymbal/src/stages/` for error
+  processing; Temporal batch export activities; CDP Hog Function execution pipeline.
+
+  **CQRS-light read/write separation**: Write path ends at Kafka → ClickHouse; read path is
+  Django DRF → HogQL AST compiler → ClickHouse. The `hogql_queries/` directory contains 40+
+  `QueryRunner` implementations as an explicit read-path abstraction.
+
+  **AI Agent (emerging)**: `ee/hogai/` implements LangGraph-based AI agents (`chat_agent`,
+  `research_agent`) with a `MaxTool` plugin system auto-discovered from
+  `products/*/backend/max_tools.py`.
+
+  ## What This Is NOT
+
+  - **NOT Microservices**: All services share the same PostgreSQL, ClickHouse, Redis, and Kafka
+    infrastructure. No database-per-service. Service boundaries are coarse-grained (~8 named
+    services), not fine-grained per bounded context.
+  - **NOT Hexagonal**: `facade/api.py` is an inter-module boundary, not a ports-and-adapters
+    abstraction over external dependencies. Django ORM is exposed directly within modules.
+  - **NOT Layered**: Primary organization is vertical product slices, not horizontal tiers.
+  - **NOT Serverless**: Long-running Docker containers throughout; Cloudflare Workers in
+    `services/mcp` and `services/oauth-proxy` are a minor edge concern.
+evidence_type: automated-discovery
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0

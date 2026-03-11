@@ -1,162 +1,81 @@
 project_name: postgrest
-scope: platform
+scope: service
 use_type: production
 source: Discovered
 source_url: https://github.com/PostgREST/postgrest
-project_url: https://github.com/PostgREST/postgrest
-evidence_type: automated-discovery
-discovered_at: '2026-03-07T04:48:37Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Developer Tools
-language: Python
+domain: API Gateway / Database Proxy
+language: Haskell
 languages:
-- Python
+- Haskell
 architecture_styles:
 - Layered
+- Pipeline
 classification_status: classified
-review_notes: 'The PostgREST repository is structured as a **Layered** architecture,
-  specifically following a functional request-processing pipeline. While it appears
-  to be a simple utility, the internal code organization is strictly divided into
-  logical layers that handle the transformation of an HTTP request into a SQL query
-  and back into a JSON response.
-
-
-  ### 1. Primary Style: Layered
-
-  The codebase is organized into distinct functional layers as evidenced by the `src/PostgREST`
-  directory and the `postgrest.cabal` file. Each layer has a specific responsibility:
-
-  - **Presentation/Interface Layer**: `Network.hs`, `App.hs`, and `Admin.hs` manage
-  the Warp HTTP server and routing.
-
-  - **Request Parsing Layer**: `ApiRequest.hs` and `ApiRequest/*.hs` parse HTTP headers,
-  query parameters, and payloads into internal Haskell types.
-
-  - **Logical Planning Layer**: `Plan.hs` and `Plan/*.hs` (ReadPlan, MutatePlan) take
-  the parsed request and the `SchemaCache` to create an abstract execution plan.
-
-  - **Data Access/Query Layer**: `Query.hs` and `Query/*.hs` translate the execution
-  plan into parameterized SQL statements using the `Hasql` library.
-
-  - **Cross-Cutting Concerns**: `Config.hs`, `Auth.hs`, `Logger.hs`, and `Metrics.hs`
-  provide services utilized across multiple layers.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-09T00:28:29Z'
-classification_reasoning: '## Analysis
-
-
-  PostgREST exhibits a classic **Layered Architecture** with clear horizontal separation
-  of concerns:
-
-
-  ### Evidence for Layered Architecture
-
-
-  **1. Explicit Layer Separation in Documentation**
-
-
-  The architecture documentation (`docs/explanations/architecture.rst`) explicitly
-  describes a processing pipeline with distinct stages:
-
-
-  - **Main/CLI** → Entry point
-
-  - **App** → "composing the different modules" (orchestration layer)
-
-  - **Auth** → Authentication
-
-  - **ApiRequest** → "parsing the URL query string, request headers, and request body"
-  (presentation layer)
-
-  - **Plan** → "generates an internal AST" (business logic layer)
-
-  - **Query** → "generates the SQL queries" (data access layer)
-
-  - **MainTx** → "parametrizes, prepares, executes SQL queries and decodes their results"
-
-  - **Response** → HTTP response generation (presentation layer)
-
-
-  **2. Layered Import Structure**
-
-
-  In `src/PostgREST/App.hs`, the orchestration layer imports from layers below:
-
-
-  ```haskell
-
-  import qualified PostgREST.Auth       as Auth
-
-  import qualified PostgREST.ApiRequest as ApiRequest
-
-  import qualified PostgREST.Plan       as Plan
-
-  import qualified PostgREST.Query      as Query
-
-  import qualified PostgREST.MainTx     as MainTx
-
-  import qualified PostgREST.Response   as Response
-
-  ```
-
-
-  **3. Top-Down Request Flow**
-
-
-  Requests flow through layers in order:
-
-  1. HTTP (Warp) → ApiRequest (parsing)
-
-  2. Auth (authentication)
-
-  3. Plan (business logic, AST generation)
-
-  4. Query (SQL generation)
-
-  5. MainTx (database execution)
-
-  6. Response (formatting)
-
-
-  **4. Single Deployable Unit**
-
-
-  - `postgrest.cabal` defines one library with all modules
-
-  - Single executable produced (`main/Main.hs`)
-
-  - Dockerfile shows single static binary deployment
-
-
-  ### What This Is NOT
-
-
-  **Not Modular Monolith**: There are no enforced module boundaries. All code is in
-  a single package with no submodule isolation. The code is cohesive, not divided
-  into separately versioned or packaged modules.
-
-
-  **Not Event-Driven**: While `Listener.hs` uses PostgreSQL LISTEN/NOTIFY, this is
-  solely for schema cache invalidation notifications—not for core request handling
-  or inter-service communication. The primary request path is synchronous HTTP request-response.
-
-
-  **Not Hexagonal**: There are no ports-and-adapters pattern. The code directly couples
-  to PostgreSQL (Hasql library) and Warp HTTP server without abstraction layers.
-
-
-  **Not Microservices**: Single deployable binary, single connection pool, single
-  process.
-
-
-  ### Conclusion
-
-
-  PostgREST is a textbook example of a Layered Architecture: a single deployable application
-  with horizontal layers where each layer has a specific responsibility and depends
-  only on layers below it. The presentation layer handles HTTP, business logic handles
-  request planning, and data access handles SQL generation and execution.'
+classification_confidence: 0.94
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Simplicity
+- Performance
+- Correctness
+- Observability
+- Security
+- Operability
+one_line_summary: Single-binary Haskell REST server that auto-generates a RESTful API
+  from any PostgreSQL schema using a strict horizontal layering of HTTP, auth, request
+  parsing, planning, query building, transaction execution, and response rendering.
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Style:\
+  \ Layered (0.94)\n\nPostgREST is organized as a set of strict horizontal layers,\
+  \ each with a single responsibility, consuming the output of the layer below and\
+  \ exposing a clean interface upward. The layer stack is: HTTP/Transport (App.hs,\
+  \ Network.hs, Warp), Middleware chain (Auth.hs, Cors.hs, Logger.hs), Request parsing\
+  \ (ApiRequest.hs and sub-modules), Planning/IR (Plan.hs and sub-modules), Query\
+  \ building (Query.hs and sub-modules), Transaction execution (MainTx.hs), Response\
+  \ rendering (Response.hs and sub-modules), and Schema knowledge (SchemaCache.hs\
+  \ and sub-modules). Cross-cutting concerns (Config.hs, AppState.hs, Observation.hs,\
+  \ Error.hs, Metrics.hs) are shared utilities, not layers. The middleware composition\
+  \ in App.hs makes layer ordering explicit and enforced: traceHeaderMiddleware .\
+  \ Cors.middleware . Auth.middleware . Logger.middleware. Each layer has unidirectional\
+  \ dependencies downward — Plan never references Response; Query never references\
+  \ ApiRequest directly.\n\n### Secondary Style: Pipeline (0.85)\n\nEvery HTTP request\
+  \ flows through a strict five-stage processing pipeline within the layered structure:\
+  \ (1) Parse — ApiRequest.userApiRequest decodes the HTTP request into a domain ApiRequest;\
+  \ (2) Plan — Plan.actionPlan converts ApiRequest + SchemaCache into an ActionPlan\
+  \ (intermediate representation); (3) Build — Query.mainQuery translates ActionPlan\
+  \ into a MainQuery (SQL snippet bundle); (4) Execute — MainTx.mainTx runs the transaction\
+  \ against the PostgreSQL pool via hasql; (5) Render — Response.actionResponse converts\
+  \ DbResult into a PgrstResponse. This is explicit in postgrestResponse in App.hs\
+  \ where each stage is timed separately for the Server-Timing response header. An\
+  \ error at any stage short-circuits via ExceptT Error IO.\n\n### What Was Rejected\n\
+  \n**Not Hexagonal/Ports-and-Adapters:** No explicit port interfaces for the database\
+  \ adapter or HTTP driver. PostgREST uses hasql and Warp directly with no swappable\
+  \ adapter abstraction layer.\n\n**Not Microkernel:** No plugin registry, no extension\
+  \ point contracts, no dynamically loaded capabilities. Feature set is fixed at compile\
+  \ time.\n\n**Not Modular Monolith:** Modules are horizontal layers, not independently\
+  \ deployable vertical slices. There is no domain-by-domain decomposition.\n\n**Not\
+  \ Event-Driven:** LISTEN/NOTIFY is limited to schema cache invalidation — it does\
+  \ not represent a data-flow or coordination mechanism. No event broker or async message\
+  \ passing between components.\n\n**Not CQRS:** Read and write paths are routed through\
+  \ the same Plan->Query->MainTx->Response pipeline. WrappedReadPlan, MutateReadPlan,\
+  \ and CallReadPlan are type-level variants inside a single pipeline, not separate\
+  \ read/write models.\n\n### Quality Attributes Evidence\n\n**SIMPLICITY:** Single\
+  \ binary, ~55 modules, one Cabal library + one executable, no inter-service communication.\
+  \ The entire feature surface is a mapping of HTTP semantics to SQL.\n\n**PERFORMANCE:**\
+  \ Compiled Haskell via Warp; hasql-pool for PostgreSQL connection pooling; JSON\
+  \ serialisation delegated to PostgreSQL; JWT caching in Auth/JwtCache.hs using Sieve\
+  \ cache; schema cache eliminates per-request catalog queries.\n\n**CORRECTNESS:**\
+  \ Schema cache provides plan-time validation of resource embeddings, column names,\
+  \ and function signatures before SQL is sent. Errors surface with structured PGRST\
+  \ error codes.\n\n**OBSERVABILITY:** Prometheus metrics via prometheus-client; Server-Timing\
+  \ headers per pipeline stage; centralised Observation handler routing to Logger and\
+  \ Metrics; configurable query logging.\n\n**SECURITY:** JWT middleware runs before\
+  \ any request reaches application logic; PostgreSQL row-level security and role-based\
+  \ access are the primary authorization mechanism; CORS middleware is configurable.\n\
+  \n**OPERABILITY:** LISTEN/NOTIFY-driven schema cache hot reload without process restart;\
+  \ /live and /ready health endpoints via Admin server; configuration via file, environment,\
+  \ and in-database settings."
+evidence_type: automated-discovery
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0

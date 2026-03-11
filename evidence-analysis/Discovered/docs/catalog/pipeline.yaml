@@ -5,85 +5,100 @@ source: Discovered
 source_url: https://github.com/tektoncd/pipeline
 project_url: https://github.com/tektoncd/pipeline
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:58:16Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: CI/CD
+domain: CI/CD Pipeline Orchestration
 language: Go
 languages:
 - Go
+- Shell
+- Python
 architecture_styles:
-- Microkernel
 - Pipeline
+- Microkernel
+- Event-Driven
 classification_status: classified
-review_notes: "Tekton Pipelines is a Cloud Native CI/CD engine built on Kubernetes.\
-  \ Its architecture is a sophisticated implementation of the **Domain-Driven Design\
-  \ (DDD)** style, adapted for the Kubernetes Resource Model (KRM) and the Controller\
-  \ pattern.\n\n### 1. Primary Style: Domain-Driven Design (DDD)\nThe codebase is\
-  \ strictly organized around **Bounded Contexts** and the core domain of pipeline\
-  \ execution. Unlike a simple layered application, Tekton separates its \"Ubiquitous\
-  \ Language\" (Tasks, Pipelines, PipelineRuns) into distinct, self-contained modules:\n\
-  - **Core Domain Entities:** Found in `pkg/apis/pipeline/v1/pipeline_types.go`, these\
-  \ define the aggregates (Pipeline, Task) that govern the system's state. \n- **Decoupled\
-  \ Logic:** Business logic is not trapped in a linear \"Service\" layer but is distributed\
-  \ across package boundaries like `pkg/reconciler/` (behavior), `pkg/pod` (execution/translation),\
-  \ and `pkg/resolution` (resource fetching).\n- **Separation of Concerns:** The `pkg/`\
-  \ directory shows a clear breakdown of sub-domains: `credentials`, `workspace`,\
-  \ `termination`, and `trustedresources`. Each handles a specific aspect of the PipelinRun\
-  \ lifecycle without tight coupling to the core controller logic.\n\n### 2. Secondary\
-  \ Style: Event-Driven\nThe system operates as an asynchronous, event-driven state\
-  \ machine. "
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-09T00:27:03Z'
-classification_reasoning: "## Analysis\n\nThe Tekton Pipelines repository exhibits\
-  \ a **Microkernel (Plugin)** architecture as its primary style, with **Pipeline\
-  \ (Pipe-and-Filter)** as a secondary architectural pattern.\n\n### Primary: Microkernel\
-  \ (Plugin) Architecture\n\n**Strong evidence for plugin infrastructure:**\n\n1.\
-  \ **Formal Plugin Interface:** The `Resolver` interface in `pkg/resolution/resolver/framework/interface.go`\
-  \ (lines 26-55) defines a clear contract for plugins:\n   - `Initialize(ctx context.Context)\
-  \ error`\n   - `GetName(ctx context.Context) string`\n   - `GetSelector(ctx context.Context)\
-  \ map[string]string`\n   - `ValidateParams(ctx context.Context, params []pipelinev1.Param)\
-  \ error`\n   - `Resolve(ctx context.Context, params []pipelinev1.Param) (ResolvedResource,\
-  \ error)`\n\n2. **Multiple Plugin Implementations:** The codebase contains five\
-  \ built-in resolvers implementing the interface:\n   - `pkg/resolution/resolver/git/resolver.go`\n\
-  \   - `pkg/resolution/resolver/hub/resolver.go`\n   - `pkg/resolution/resolver/bundle/resolver.go`\n\
-  \   - `pkg/resolution/resolver/cluster/resolver.go`\n   - `pkg/resolution/resolver/http/resolver.go`\n\
-  \n3. **Runtime Registration:** In `cmd/resolvers/main.go` (lines 69-74), plugins\
-  \ are instantiated and registered:\n   ```go\n   sharedmain.MainWithConfig(ctx,\
-  \ \"controller\", cfg,\n       framework.NewController(ctx, &git.Resolver{}),\n\
-  \       framework.NewController(ctx, &hub.Resolver{...}),\n       framework.NewController(ctx,\
-  \ &bundle.Resolver{}),\n       framework.NewController(ctx, &cluster.Resolver{}),\n\
-  \       framework.NewController(ctx, &http.Resolver{}))\n   ```\n\n4. **Extensibility\
-  \ Documentation:** `docs/how-to-write-a-resolver.md` explicitly describes how third\
-  \ parties can create new resolvers without modifying the core system: *\"A Resolver\
-  \ is a program that runs in a Kubernetes cluster alongside Tekton Pipelines... This\
-  \ pattern extends beyond just git, allowing a developer to integrate support for\
-  \ other version control systems, cloud buckets, or storage systems without having\
-  \ to modify Tekton Pipelines itself.\"*\n\n5. **Custom Task Extension Point:** The\
-  \ `CustomRun` CRD documented in `docs/customruns.md` provides another plugin mechanism:\
-  \ *\"A CustomRun allows you to instantiate and execute a Custom Task, which can\
-  \ be implemented by a custom task controller running on-cluster.\"*\n\n### Secondary:\
-  \ Pipeline (Pipe-and-Filter) Architecture\n\n**Evidence for pipeline processing:**\n\
-  \n1. **DAG-Based Execution:** `pkg/reconciler/pipeline/dag/dag.go` implements a\
-  \ graph-based pipeline scheduler with:\n   - `Node` struct with `Prev` and `Next`\
-  \ pointers (lines 40-48)\n   - `Graph` struct representing pipeline topology\n \
-  \  - `GetCandidateTasks()` function for determining schedulable tasks based on completion\
-  \ state\n\n2. **Data Flow Hierarchy:** The CRDs define a clear pipeline structure:\n\
-  \   - `Pipeline` → `PipelineTask` → `Task` → `Step`\n   - Results and artifacts\
-  \ flow between tasks\n   - Workspaces provide shared data volumes between pipeline\
-  \ stages\n\n3. **Artifact Provenance:** `docs/artifacts.md` describes how data flows\
-  \ through the pipeline with input/output tracking and digest verification.\n\n###\
-  \ What Was Rejected\n\n- **Not Microservices:** While deployed to Kubernetes, this\
-  \ is a single Go module (`go.mod`) with multiple binaries that are components of\
-  \ one coordinated system—not independently deployable services owning their own\
-  \ data.\n\n- **Not Layered Architecture:** Although there are `pkg/apis/` and `pkg/reconciler/`\
-  \ packages, this follows Kubernetes controller patterns (informers/reconcilers),\
-  \ not traditional presentation/business/data horizontal layering.\n\n- **Not Domain-Driven\
-  \ Design:** No bounded contexts, aggregates, entities, or value objects. The code\
-  \ is organized around Kubernetes CRDs and controllers, not domain models.\n\n- **Not\
-  \ Event-Driven (primary):** While events are emitted (cloudevents, K8s events),\
-  \ the core coordination is synchronous reconciliation through Kubernetes controllers\
-  \ watching CRDs, not asynchronous event-driven choreography."
+one_line_summary: Kubernetes-native CI/CD pipeline engine that executes DAG-scheduled
+  Tasks as Kubernetes Pods, coordinated by a Kubernetes controller reconciliation loop,
+  with a pluggable resolver framework for remote resource fetching.
+classification_method: deep-analysis
+classification_confidence: 0.94
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Reliability
+- Extensibility
+- Observability
+- Security
+- Scalability
+- Evolvability
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Style:\
+  \ Pipeline\n\n**PIPELINE (primary, 0.95):** The project's name and fundamental abstraction\
+  \ is the CI/CD pipeline itself. `pkg/reconciler/pipeline/dag/dag.go` implements a\
+  \ directed acyclic graph (Node, Graph) where each PipelineTask is a node, with edges\
+  \ derived from `runAfter` (ordering) and `$(tasks.X.results.Y)` result-passing parameter\
+  \ references. The `pipelinerun` reconciler (2005 lines) traverses this DAG on every\
+  \ reconcile iteration: it identifies Tasks whose predecessors are complete, starts\
+  \ them as Kubernetes Pods, collects their results, and passes results as parameters\
+  \ to downstream Tasks via `pkg/substitution`. Inside each Pod, Tekton injects a custom\
+  \ `entrypoint` binary (`cmd/entrypoint`) into every Step container; the entrypointer\
+  \ uses filesystem-based synchronization (`/tekton/run/<N>/out` marker files) to enforce\
+  \ sequential Step execution, implementing a local pipeline within the container group.\
+  \ The `finally` block provides a structured termination phase for the main DAG. Data\
+  \ flow is explicit, typed, and uni-directional — the canonical definition of the Pipeline\
+  \ architectural style.\n\n### Secondary Style: Microkernel\n\n**MICROKERNEL (secondary,\
+  \ 0.80):** `pkg/remoteresolution/resolver/framework` defines a `Resolver` interface\
+  \ that resolver plugins implement. Five built-in resolvers (git, Tekton Hub, Artifact\
+  \ Hub, bundle/OCI, cluster, HTTP) each register as an independent controller via\
+  \ `framework.NewController` in `cmd/resolvers/main.go`. The `CustomRun` CRD provides\
+  \ a formal extensibility contract for third-party task implementations — external\
+  \ controllers can watch `CustomRun` objects and participate in the pipeline result/status\
+  \ protocol without modifying core. The webhook process manages CRD version conversion\
+  \ (v1alpha1 -> v1beta1 -> v1) through a hub-and-spoke conversion topology. The\
+  \ `VerificationPolicy` CRD and `pkg/trustedresources` implement a pluggable policy\
+  \ layer for trusted-supply-chain controls via Sigstore signatures.\n\n### Secondary\
+  \ Style: Event-Driven\n\n**EVENT-DRIVEN (secondary, 0.70):** The control plane is\
+  \ event-driven via the Kubernetes informer/watch pattern. The `pipelinerun` controller\
+  \ registers `AddEventHandler` on informers for PipelineRun, TaskRun, CustomRun, ResolutionRequest,\
+  \ and Pod objects; any status change triggers a reconcile queue entry, causing the\
+  \ controller to re-evaluate the pipeline DAG state. This is a reactive, level-triggered\
+  \ event model. Additionally, `pkg/reconciler/events/cloudevent` implements optional\
+  \ CloudEvents delivery (CloudEvents SDK v2) to external sinks on every significant\
+  \ TaskRun/PipelineRun status transition (`tekton.dev/v1/taskrun/started` etc.),\
+  \ enabling integration with Tekton Triggers and external observability systems. Standard\
+  \ Kubernetes Events are emitted via `pkg/reconciler/events/k8sevent` on all lifecycle\
+  \ transitions.\n\n### What Was Rejected and Why\n\n**Not Microservices:** The three\
+  \ Deployments (controller, webhook, resolvers) compile from the same Go module (`github.com/tektoncd/pipeline`)\
+  \ and share all type definitions, client-go clients, and business logic. They are\
+  \ deployment-split process boundaries of a single application, not independently\
+  \ deployable services with their own data stores. All persistent state lives exclusively\
+  \ in the Kubernetes API server (etcd).\n\n**Not Modular Monolith:** While the package\
+  \ structure is modular, the project defining characteristic is the DAG-scheduled\
+  \ pipeline execution model. The Pipeline style captures the essential architectural\
+  \ identity; modularity is a consequence of good Go engineering, not the dominant\
+  \ structural pattern.\n\n**Not Layered:** The organization is by domain concern (pipeline\
+  \ scheduling, task execution, resolution, events, security) rather than horizontal\
+  \ presentation/business/data tiers.\n\n**Not CQRS:** While the Kubernetes API server\
+  \ provides an implicit read/write separation (lister cache for reads, API server\
+  \ for writes), this is a platform pattern, not an intentional CQRS design decision.\n\
+  \n### Quality Attributes Evidence\n\n**RELIABILITY:** Knative reconciler framework\
+  \ provides level-triggered control loops that re-converge on state drift; leader\
+  \ election (config-leader-election-*.yaml) enables HA operation; timeout handling\
+  \ in pipelinerun/timeout.go prevents resource leaks.\n\n**EXTENSIBILITY:** Resolver\
+  \ plugin framework (five built-in, open for custom); CustomRun CRD extensibility\
+  \ contract; VerificationPolicy pluggable trust policy; feature flags\
+  \ (config-feature-flags.yaml) for controlled capability rollout.\n\n**OBSERVABILITY:**\
+  \ Prometheus metrics via OpenCensus/OpenTelemetry in pipelinerunmetrics and taskrunmetrics\
+  \ packages; distributed tracing via OpenTelemetry in reconciler tracing.go files;\
+  \ CloudEvents delivery to external sinks; Kubernetes Events for cluster-level audit.\n\
+  \n**SECURITY:** SPIRE/SPIFFE workload identity (pkg/spire, go-spiffe/v2, spire-api-sdk\
+  \ dependencies); TrustedResources verifies remote pipeline/task definitions against\
+  \ Sigstore-based signatures (sigstore/sigstore dependency); admission webhooks enforce\
+  \ validation on all CRD writes.\n\n**SCALABILITY:** Tasks execute as independent\
+  \ Kubernetes Pods, achieving native horizontal scalability through the Kubernetes\
+  \ scheduler; the DAG executor maximally parallelizes independent branches; resolver\
+  \ service scales independently of the main controller.\n\n**EVOLVABILITY:** Three-version\
+  \ API lifecycle (v1alpha1 -> v1beta1 -> v1) with webhook-managed hub-and-spoke conversion;\
+  \ api_compatibility_policy.md documents a formal stability contract; feature flags\
+  \ allow controlled rollout of new capabilities."

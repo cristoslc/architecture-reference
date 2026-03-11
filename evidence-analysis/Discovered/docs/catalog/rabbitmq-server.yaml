@@ -9,160 +9,115 @@ discovered_at: '2026-03-06T05:25:40Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Messaging
-language: JavaScript
+language: Erlang
 languages:
-- JavaScript
+- Erlang
+- Elixir
 - Python
-- Java/Kotlin
+- Shell
 architecture_styles:
 - Microkernel
+- Modular Monolith
 classification_status: classified
-review_notes: 'The RabbitMQ Server repository is a classic exemplar of the **Microkernel
-  (Plugin)** architecture style, implemented via a **Modular Monolith** build and
-  deployment pattern.
-
-
-  ### 1. Primary Style: Microkernel (Plugin)
-
-  The core system (the "Microkernel") provides the essential broker services (queueing,
-  exchange logic, and nodal distribution), while virtually all extended functionality—including
-  different messaging protocols (MQTT, STOMP, AMQP 1.0), authentication backends,
-  and management interfaces—is implemented as pluggable modules.
-
-
-  **Evidence:**
-
-  - **Plugin Infrastructure:** The `Makefile` explicitly manages a list of plugins
-  (`include plugins.mk`) and provides variables for `ADDITIONAL_PLUGINS` and `COMMUNITY_PLUGINS`.
-
-  - **Dynamic Loading:** The `enabled_plugins` file (found in several test directories)
-  demonstrates how the system''s capabilities are composed at runtime. The contents
-  show that core protocols like `rabbitmq_mqtt`, `rabbitmq_stomp`, and `rabbitmq_amqp1_0`
-  are treated as plugins rather than hard-coded features.
-
-  - **Contract-Based Extension:** The repository structure relies on Erlang applications
-  as the unit of extension. Each plugin is an independent Erlang application that
-  adheres to specific behaviors (e.g., `rabbit_auth_backend` behavior) expected by
-  the core broker.'
-review_required: false
-classification_method: deep-analysis-tooluse
 classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:38:22Z'
-classification_reasoning: '## Analysis
-
-
-  The RabbitMQ server repository exhibits a clear **Microkernel (Plugin) architecture**
-  with the following structural evidence:
-
-
-  ### Core Kernel
-
-  - `deps/rabbit/` contains the core server application - the minimal kernel
-
-  - `deps/rabbit_common/` provides shared infrastructure for kernel and plugins
-
-  - The kernel provides essential services: boot coordination, registry, plugin lifecycle
-  management
-
-
-  ### Plugin System Infrastructure
-
-
-  **1. Plugin Registry:** (`deps/rabbit_common/src/rabbit_registry.erl`)
-
-  - A gen_server that enables runtime plugin discovery
-
-  - Plugins register themselves via `rabbit_registry:register(Class, TypeName, ModuleName)`
-
-  - Registry allows lookup of implementations by class and type
-
-
-  **2. Extension Point Behaviors (Plugin Contracts):**
-
-  Multiple well-defined behaviors serve as extension points:
-
-  - `rabbit_exchange_type` - Exchange type implementations (found in `rabbit_exchange_type_direct.erl`,
-  `rabbit_exchange_type_topic.erl`, plus plugins like `rabbit_exchange_type_consistent_hash.erl`)
-
-  - `rabbit_authn_backend` / `rabbit_authz_backend` - Authentication/authorization
-  backends (multiple implementations: internal, HTTP, LDAP, OAuth2)
-
-  - `rabbit_queue_type` - Queue type implementations (classic, quorum, stream)
-
-  - `rabbit_peer_discovery_backend` - Peer discovery mechanisms (k8s, consul, etcd,
-  AWS)
-
-  - `rabbit_mgmt_extension` - Management UI extensions
-
-  - `rabbit_registry_class` - Meta-behavior for registry participants
-
-
-  **3. Boot Step Mechanism:** (`deps/rabbit/src/rabbit_boot_steps.erl`)
-
-  - Plugins declare initialization steps via `-rabbit_boot_step` module attributes
-
-  - Steps form a DAG with `requires`/`enables` dependencies
-
-  - Topological sort ensures correct initialization order across kernel and plugins
-
-
-  **4. Plugin Lifecycle Management:** (`deps/rabbit/src/rabbit_plugins.erl`)
-
-  - Dynamic loading/unloading at runtime via `ensure/1`, `active/0`
-
-  - Plugins can be enabled/disabled without restarting the broker
-
-  - Configuration stored in `enabled_plugins` file
-
-
-  ### Plugin Ecosystem
-
-  The `deps/` directory contains ~59 plugin applications:
-
-  - **Core protocols:** `rabbitmq_mqtt`, `rabbitmq_stomp`, `rabbitmq_stream`, `rabbitmq_amqp1_0`
-
-  - **Auth backends:** `rabbitmq_auth_backend_http`, `rabbitmq_auth_backend_ldap`,
-  `rabbitmq_auth_backend_oauth2`, `rabbitmq_auth_backend_cache`
-
-  - **Exchange types:** `rabbitmq_consistent_hash_exchange`, `rabbitmq_random_exchange`,
-  `rabbitmq_recent_history_exchange`, `rabbitmq_jms_topic_exchange`
-
-  - **Management:** `rabbitmq_management`, `rabbitmq_management_agent`, `rabbitmq_prometheus`
-
-  - **Federation:** `rabbitmq_federation`, `rabbitmq_queue_federation`, `rabbitmq_exchange_federation`
-
-  - **Peer discovery:** `rabbitmq_peer_discovery_k8s`, `rabbitmq_peer_discovery_consul`,
-  `rabbitmq_peer_discovery_etcd`
-
-  - **Shovel, Tracing, Trust Store, etc.**
-
-
-  ### Single Deployment Unit
-
-  - Despite being composed of many plugins, the system ships as a single Erlang/OTP
-  release
-
-  - `plugins.mk` defines Tier-1 plugins bundled with the release
-
-  - All components run in the same Erlang VM
-
-
-  ### Why Not Other Styles
-
-
-  **Not Microservices:** Single deployable unit, not distributed services. All plugins
-  run in-process within the same Erlang VM.
-
-
-  **Not Modular Monolith:** Modular monoliths have compile-time module boundaries.
-  RabbitMQ has true runtime plugin discovery where plugins can be added/removed without
-  recompiling the kernel.
-
-
-  **Not Layered:** While there are layers (core vs plugins), the defining characteristic
-  is the plugin extension mechanism, not horizontal layering.
-
-
-  **Not Event-Driven:** While RabbitMQ is a message broker, its internal architecture
-  is plugin-based, not organized around internal event choreography.'
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: Multi-protocol Erlang/OTP messaging broker with a Microkernel plugin
+  registry (57 runtime-loadable Erlang apps for protocols, auth, exchange types, and
+  queue backends) packaged as a single Modular Monolith release.
+quality_attributes:
+- Extensibility
+- Fault Tolerance
+- Scalability
+- Evolvability
+- Operability
+- Protocol Breadth
+- Multi-Tenancy
+key_technologies:
+- Erlang/OTP
+- Ra (Raft consensus)
+- Osiris (append-only log)
+- Khepri (Raft metadata store)
+- Mnesia (legacy metadata store)
+- erlang.mk
+- AMQP 0-9-1
+- AMQP 1.0
+- MQTT 3.x/5.0
+- STOMP
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+architecture_qualifiers:
+  - type: distribution-model
+    value: primary-secondary
+    note: Ra-based Raft leader election for quorum queues and Khepri metadata; stream
+      replication via Osiris
+  - type: concurrency-model
+    value: actor
+    note: Each connection, channel, queue, and vhost runs as an isolated Erlang process
+      under OTP supervision trees
+classification_reasoning: "## Architecture Classification: rabbitmq-server\n\n###
+  Primary Style: Microkernel (0.95)\n\nThe RabbitMQ broker is built around a minimal
+  kernel (`deps/rabbit/`, `deps/rabbit_common/`) that is extended at runtime by ~57
+  independent Erlang/OTP applications.\n\n**Plugin Registry** (`deps/rabbit_common/src/rabbit_registry.erl`)
+  is a `gen_server` backed by ETS. Plugins call `rabbit_registry:register(Class, TypeName,
+  ModuleName)` to make themselves discoverable; the kernel resolves implementations
+  via `rabbit_registry:lookup_module/2`. No compile-time enumeration of plugins occurs.\n\n**Boot
+  Step DAG** (`deps/rabbit/src/rabbit_boot_steps.erl`, `deps/rabbit/src/rabbit.erl`)
+  uses `-rabbit_boot_step` module attributes. Steps form a `requires`/`enables` directed
+  acyclic graph. The kernel collects steps from all loaded OTP applications, topologically
+  sorts them, and executes in order. Plugins participate simply by declaring steps.\n\n**Behaviour-Based
+  Extension Points** define every major axis of extensibility:\n- `rabbit_exchange_type`:
+  kernel provides `direct`, `fanout`, `topic`, `headers`; plugins add `consistent_hash`,
+  `random`, `recent_history`, `jms_topic`\n- `rabbit_queue_type`: `rabbit_classic_queue`,
+  `rabbit_quorum_queue`, `rabbit_stream_queue` all implement this behaviour and register
+  via boot steps\n- `rabbit_backing_queue`: storage backends (`rabbit_variable_queue`,
+  `rabbit_priority_queue`)\n- `rabbit_authn_backend` / `rabbit_authz_backend`: `internal`,
+  `http`, `ldap`, `oauth2`, `cache` implementations — each a separate OTP app\n-
+  `rabbit_peer_discovery_backend`: k8s, consul, etcd, aws, DNS backends\n- `rabbit_mgmt_extension`:
+  per-protocol management UI/API extensions\n\n**Dynamic Plugin Lifecycle** (`deps/rabbit/src/rabbit_plugins.erl`)
+  enables/disables OTP applications at runtime via `rabbit:start_apps/stop_apps` and
+  broadcasts `plugins_changed` events via `rabbit_event:sync_notify/2`. No broker
+  restart is needed to change plugin configuration.\n\n**Feature Flags Framework**
+  (`deps/rabbit/src/rabbit_feature_flags.erl`) uses `-rabbit_feature_flag()` module
+  attributes cluster-wide to gate capabilities, enabling safe rolling upgrades across
+  mixed-version clusters.\n\nThe full plugin set (57 OTP apps in `deps/`) covers:
+  protocol adapters (MQTT, STOMP, AMQP 1.0, Stream, WebSocket variants), auth backends,
+  exchange types, management HTTP API + UI, Prometheus metrics, federation, shovel,
+  peer discovery, tracing, and more.\n\n### Secondary Style: Modular Monolith (0.88)\n\nAll
+  57 plugin applications compile into and run within a single Erlang/OTP release artifact
+  built by `erlang.mk` / `plugins.mk`. There are no network boundaries between components;
+  plugin-to-kernel calls are in-process OTP message passing. The `deps/` directory
+  structure enforces structural separation (each app has `src/`, `include/`, `test/`),
+  but deployment is a single `rabbitmq-server` release. This satisfies the Modular
+  Monolith definition: a single deployment unit with well-defined internal module
+  boundaries.\n\n### Notable Internal Mechanisms (not topology-defining)\n\n**OTP
+  Actor Model:** `rabbit_reader` (connection), `rabbit_channel` (channel), `rabbit_amqqueue_process`
+  (classic queue), and `rabbit_vhost_sup` (vhost) each run as isolated Erlang processes
+  under layered OTP supervision trees. Fault isolation is structural.\n\n**Internal
+  Event Bus:** `rabbit_event` uses `gen_event` for internal pub/sub instrumentation.
+  Stats emitters call `rabbit_event:notify/2`; management agents and tracing subscribe.
+  This is a decoupling mechanism within the kernel, not an Event-Driven topology.\n\n**Raft
+  Replication:** Quorum queues use the `ra` library (`rabbit_fifo.erl` implements
+  `ra_machine`). Stream queues use Osiris. Both registered as `rabbit_queue_type`
+  plugins.\n\n**Khepri Metadata Store:** `rabbit_khepri.erl` wraps Khepri (Raft-based
+  tree) as a migration path from Mnesia. The `khepri_db` feature flag gates the transition.
+  `rabbit_db*.erl` modules provide a facade over both backends.\n\n### Why Not Other
+  Styles\n\n**Not Microservices:** Single Erlang VM; no independently deployable services
+  with network boundaries.\n\n**Not Event-Driven (primary):** `rabbit_event` is internal
+  instrumentation, not the topology-defining communication model. The broker IS the
+  event infrastructure for external systems.\n\n**Not Layered (primary):** The dependency
+  direction (`rabbit_common` \u2192 `rabbit` \u2192 plugins) exists but the defining
+  characteristic is the runtime plugin registry, not horizontal layer contracts.\n\n**Not
+  Pipeline:** The reader\u2192channel\u2192exchange\u2192queue routing path resembles
+  a pipeline but is driven by runtime binding table lookups, not composable pipe/filter
+  stages."
+review_notes: "RabbitMQ is the canonical Erlang/OTP Microkernel. The rabbit_registry\
+  \ gen_server, -rabbit_boot_step DAG, and ~57 behaviour-implementing OTP plugin applications\
+  \ are textbook microkernel evidence. The prior entry incorrectly listed language as\
+  \ JavaScript -- corrected to Erlang. Secondary Modular Monolith style reflects that\
+  \ all plugins ship and run in a single BEAM release artifact."
+review_required: false

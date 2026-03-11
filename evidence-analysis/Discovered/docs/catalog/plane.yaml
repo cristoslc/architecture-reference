@@ -18,76 +18,56 @@ architecture_styles:
 - Service-Based
 - Event-Driven
 classification_status: classified
-review_notes: 'The Plane repository follows a **Service-Based** architecture, characterized
-  by a few coarse-grained services that collaborate to form the application, while
-  sharing a common backing data store.
-
-
-  ### Primary Style: Service-Based
-
-  Unlike a pure Microservices architecture where each service owns its database, Plane''s
-  `docker-compose.yml` reveals that the core functional components (`api`, `worker`,
-  `beat-worker`, `migrator`) all connect to the same PostgreSQL instance (`plane-db`)
-  and Redis instance (`plane-redis`). These services are essentially specialized deployments
-  of the same codebase (the `apps/api` Django application), separated to handle different
-  concerns:
-
-  - **`api`**: Synchronous HTTP/REST request handling.
-
-  - **`worker`/`beat-worker`**: Asynchronous background task processing and scheduled
-  jobs.
-
-  - **`live`**: A separate Node.js service (likely utilizing Hocuspocus/Yjs for real-time
-  collaboration) that handles socket-based traffic.
-
-  - **`web`/`admin`/`space`**: Frontend applications deployed as independent units
-  but acting as consumers of the unified API.
-
-
-  ### Secondary Style: Event-Driven'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.85
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:32:15Z'
+classification_confidence: 0.88
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Scalability
+- Real-time Collaboration
+- Separation of Concerns
+- Observability
+- Extensibility
+- Reliability
+one_line_summary: Open-source project management tool deployed as a Service-Based
+  architecture with a shared-database Django backend, Celery/RabbitMQ async task tier,
+  and a dedicated Hocuspocus real-time collaboration service.
 classification_reasoning: "## Architecture Analysis\n\n### Primary Style: Service-Based\n\
-  \nThe Plane repository exhibits a **Service-Based Architecture** with the following\
-  \ evidence:\n\n**Multiple coarse-grained deployable services** (from `docker-compose.yml`):\n\
-  - **web** (React Router frontend - main UI)\n- **admin** (Admin dashboard frontend)\n\
-  - **space** (Public/shared UI frontend)\n- **api** (Django REST API backend)\n-\
-  \ **worker** + **beat-worker** (Celery background task processors)\n- **live** (WebSocket\
-  \ collaboration server using HocusPocus)\n- **proxy** (Caddy reverse proxy)\n\n\
-  **Shared database** - All services use a single PostgreSQL instance (`plane-db`):\n\
-  ```yaml\nplane-db:\n  image: postgres:15.7-alpine\n```\n\n**Shared caching/messaging\
-  \ infrastructure**:\n- `plane-redis` (Valkey/Redis) for caching and Celery broker\n\
-  - `plane-mq` (RabbitMQ) for message queuing\n\n**Monolithic backend** - The `apps/api`\
-  \ Django application is internally organized as a monolith with layered components:\n\
-  - Views (`apps/api/plane/app/views/`)\n- Serializers (`apps/api/plane/app/serializers/`)\n\
-  - Models (`apps/api/plane/db/models/`)\n- Django apps: `analytics`, `api`, `app`,\
-  \ `authentication`, `bgtasks`, `db`, `license`, `space`, `web`\n\nThis matches the\
-  \ Service-Based pattern: 2-5 coarse-grained services sharing a database, where the\
-  \ backend is monolithic and frontends are separate deployment units.\n\n### Secondary\
-  \ Style: Event-Driven\n\nThe system incorporates **Event-Driven** patterns via Celery\
-  \ background tasks:\n\nFrom `apps/api/plane/celery.py`:\n```python\napp.conf.beat_schedule\
-  \ = {\n    \"check-every-five-minutes-to-send-email-notifications\": {...},\n  \
-  \  \"check-every-day-to-delete-hard-delete\": {...},\n    ...\n}\n```\n\nBackground\
-  \ tasks handle:\n- Email notifications (`email_notification_task`)\n- Issue activities\
-  \ tracking (`issue_activities_task`)\n- Webhook dispatches (`webhook_task`)\n- Cleanup\
-  \ tasks (`cleanup_task`)\n\nThe `live` service uses WebSockets for real-time collaborative\
-  \ editing (HocusPocus/Yjs), enabling event-driven real-time updates.\n\n### What\
-  \ This Is NOT\n\n- **Not Microservices**: Single shared database, coarse-grained\
-  \ services, no clear bounded contexts with independent data ownership\n- **Not Modular\
-  \ Monolith**: Multiple independently deployable services, not a single deployment\
-  \ unit\n- **Not pure Layered**: Multiple deployment units break horizontal layering;\
-  \ frontends are separate from backend\n- **Not Hexagonal**: No ports/adapters pattern;\
-  \ Django ORM directly couples to PostgreSQL\n\n### Frontend Monorepo Structure\n\
-  \nThe frontend uses a **pnpm workspace** (`pnpm-workspace.yaml`) with:\n- 4 applications\
-  \ (`apps/web`, `apps/admin`, `apps/space`, `apps/live`)\n- 14 shared packages (`@plane/types`,\
-  \ `@plane/services`, `@plane/ui`, `@plane/editor`, etc.)\n\nThis is a **monorepo\
-  \ with shared component libraries**, supporting the Service-Based architecture with\
-  \ reusable code across frontends.\n\n### Summary\n\nPlane is a **Service-Based Architecture**\
-  \ with **Event-Driven** secondary characteristics:\n- 5+ deployable services sharing\
-  \ infrastructure\n- Single monolithic Django backend with layered internals\n- Multiple\
-  \ frontend applications for different user contexts\n- Background task processing\
-  \ via Celery for async operations\n- Real-time collaboration via dedicated WebSocket\
-  \ server"
+  \nPlane's `docker-compose.yml` defines the canonical deployment topology: multiple\
+  \ independently started services that all share one PostgreSQL instance (`plane-db`)\
+  \ and one Redis/Valkey instance (`plane-redis`).\n\nDeployed services:\n- **api**\
+  \ — Django REST backend, synchronous HTTP handling\n- **worker** — Celery consumer,\
+  \ async background task processing\n- **beat-worker** — Celery Beat scheduler, periodic\
+  \ tasks\n- **migrator** — DB migration runner (ephemeral)\n- **live** — Node.js\
+  \ Hocuspocus/Y.js real-time collaboration server\n- **web** / **admin** / **space**\
+  \ — React Router v7 SPAs (three separate frontend applications)\n- **proxy** — Caddy\
+  \ reverse proxy\n\nThe `api`, `worker`, and `beat-worker` are all built from the\
+  \ same Django codebase (`apps/api`), differentiated only by their startup scripts.\
+  \ All connect to the same PostgreSQL database. This is the defining characteristic\
+  \ of Service-Based: coarse-grained service partitions with a shared backing store,\
+  \ not independent bounded contexts with separate databases.\n\n### Secondary Style:\
+  \ Event-Driven (Celery/RabbitMQ)\n\nViews dispatch side-effects asynchronously\
+  \ via Celery `.delay()` calls — e.g., `issue_activity.delay()`, `model_activity.delay()`,\
+  \ `recent_visited_task.delay()` from `plane/app/views/issue/base.py`. The Celery\
+  \ beat schedule in `plane/celery.py` defines ~12 periodic tasks (email batching,\
+  \ cleanup, automation, telemetry). RabbitMQ (`plane-mq`) is the Celery broker in\
+  \ production. This decouples mutation side-effects from the synchronous request\
+  \ path, constituting a clear event-driven processing tier — secondary to the primary\
+  \ service topology.\n\n### Internal Django Backend: Layered\n\nWithin the `apps/api`\
+  \ monorepo package, the Django application is internally organized in horizontal\
+  \ layers: URL routing → Views → Serializers → Models (`plane/db/models/`) → Background\
+  \ tasks (`plane/bgtasks/`). This is a supporting internal pattern, not the top-level\
+  \ architectural style.\n\n### Frontend: MobX + pnpm Monorepo\n\nThree React Router\
+  \ v7 SPAs (`web`, `admin`, `space`) share code through pnpm workspace packages\
+  \ (`@plane/services`, `@plane/shared-state`, `@plane/types`, `@plane/ui`, `@plane/editor`).\
+  \ The main `web` app uses a deep MobX `CoreRootStore` with 35+ domain stores.\n\
+  \n### What This Is NOT\n\n- **Not Microservices**: Single shared PostgreSQL database\
+  \ across all backend services; no bounded contexts with independent data ownership;\
+  \ coarse-grained service split\n- **Not Modular Monolith**: Multiple independently\
+  \ deployed processes with separate Dockerfiles, not a single deployment unit\n-\
+  \ **Not Hexagonal**: No explicit port/adapter interfaces; Django ORM accessed directly\
+  \ from views and tasks\n- **Not CQRS**: No read/write model split; optional read\
+  \ replica is a performance optimization, not a CQRS pattern\n- **Not Event-Driven\
+  \ (primary)**: Celery tasks are triggered imperatively via `.delay()` calls, not\
+  \ via a domain event bus; message queue is an implementation detail of background\
+  \ processing"

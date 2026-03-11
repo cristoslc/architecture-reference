@@ -5,7 +5,7 @@ source: Discovered
 source_url: https://github.com/PrefectHQ/prefect
 project_url: https://github.com/PrefectHQ/prefect
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:56:20Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Workflow Orchestration
@@ -15,94 +15,99 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Microkernel
-- Layered
+- Pipeline
 - Event-Driven
+- Modular Monolith
 classification_status: classified
-review_notes: 'The Prefect repository is primarily structured using a **Layered**
-  architecture, though it functions as a sophisticated framework that incorporates
-  **Microkernel (Plugin)** and **Event-Driven** patterns to manage its extensibility
-  and distributed nature.
-
-
-  ### 1. Primary Style: Layered
-
-  The codebase follows a clear horizontal separation of concerns, particularly within
-  the `src/prefect/server` and `src/prefect/client` directories.
-
-  - **Presentation/API Layer**: `src/prefect/server/api/server.py` defines a FastAPI
-  application that aggregates multiple routers (`api.flows`, `api.tasks`, etc.). Reference:
-  `API_ROUTERS` in `server.py`.
-
-  - **Domain/Logic Layer**: The business logic is encapsulated in "models" and "orchestration"
-  logic within `src/prefect/server/models` and `src/prefect/server/orchestration`.
-
-  - **Data Access Layer**: Persistence is abstracted via SQLAlchemy and specific database
-  drivers located in `src/prefect/server/database`.
-
-  - **SDK/Client Layer**: The system provides a high-level SDK (`src/prefect/client`)
-  that abstracts the REST API communication from the user''s workflow code.
-
-
-  ### 2. Secondary Style: Microkernel (Plugin)'
+one_line_summary: Python workflow orchestration platform combining a state-machine
+  pipeline engine with a first-class event-driven automation system, delivered as
+  a single-distribution modular monolith with 18 pluggable integration collections.
+review_notes: Flow->Task pipeline enforced by server-side orchestration rules on every
+  state transition; EventPublisher + ReactiveTriggers + actions.py form a complete
+  reactive automation loop; server and client co-shipped in one distribution with
+  clean HTTP boundary; 18 integration packages loaded via prefect.collections entry
+  points.
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:33:07Z'
-classification_reasoning: "## Analysis\n\n### Primary: Microkernel (Plugin) Architecture\n\
-  \nPrefect exhibits a clear **Microkernel (Plugin)** architecture with strong evidence:\n\
-  \n**1. Plugin Discovery System** (`src/prefect/plugins.py`):\n```python\ncollection_entrypoints:\
-  \ EntryPoints = entry_points(group=\"prefect.collections\")\n```\nThe core system\
-  \ discovers and loads extensions via Python entry points, a standard plugin mechanism.\n\
-  \n**2. Integration Packages** (`src/integrations/`):\nEach integration (prefect-aws,\
-  \ prefect-kubernetes, prefect-docker, etc.) defines entry points:\n```toml\n[project.entry-points.\"\
-  prefect.collections\"]\nprefect_aws = \"prefect_aws\"\n[project.entry-points.\"\
-  prefect.plugins\"]\naws = \"prefect_aws.plugins\"\n```\nThese are separate Python\
-  \ packages that extend the core without modifying it.\n\n**3. Dynamic Dispatch Registry**\
-  \ (`src/prefect/utilities/dispatch.py`):\n- `_TYPE_REGISTRIES` maintains a global\
-  \ registry mapping dispatch keys to types\n- `@register_base_type` decorator marks\
-  \ base types for extension\n- `lookup_type(Base, key)` dynamically retrieves registered\
-  \ implementations\n\n**4. Extensible Base Types**:\n\n`Block` class (`src/prefect/blocks/core.py:315`):\n\
-  ```python\n@register_base_type\nclass Block(BaseModel, ABC):\n    \"\"\"A base class\
-  \ for implementing a block that wraps an external service.\"\"\"\n```\n\n`BaseWorker`\
-  \ class (`src/prefect/workers/base.py:533`):\n```python\n@register_base_type\nclass\
-  \ BaseWorker(abc.ABC, Generic[C, V, R]):\n    type: str\n    job_configuration:\
-  \ Type[C] = BaseJobConfiguration\n```\n\nIntegration packages provide concrete implementations:\n\
-  - `prefect-aws/prefect_aws/workers/ecs_worker.py` → `ECSWorker(BaseWorker)`\n- `prefect-aws/prefect_aws/s3.py`\
-  \ → `S3Bucket(Block)`\n- `prefect-aws/prefect_aws/credentials.py` → `AwsCredentials(Block)`\n\
-  \n**5. Core System Isolation**:\nThe core `src/prefect/` package defines interfaces\
-  \ (abstract base classes) that integrations implement. The core knows about Blocks\
-  \ and Workers abstractly, but concrete implementations live in integration packages.\n\
-  \n### Secondary: Layered Architecture\n\nWithin the server component, there's clear\
-  \ horizontal layering (`src/prefect/server/`):\n\n- **Presentation Layer**: `server/api/`\
-  \ - FastAPI REST endpoints (flows.py, deployments.py, flow_runs.py)\n- **Service\
-  \ Layer**: `server/services/` - Background services (scheduler, late_runs, foreman)\n\
-  - **Model Layer**: `server/models/` - ORM models for database entities\n- **Database\
-  \ Layer**: `server/database/` - SQLAlchemy interfaces, Alembic migrations\n\nEach\
-  \ layer has limited dependencies on lower layers, following traditional layered\
-  \ architecture patterns.\n\n### Secondary: Event-Driven Components\n\nEvent-driven\
-  \ architecture is present but scoped to specific subsystems:\n\n**Event System**\
-  \ (`src/prefect/events/`):\n- `emit_event()` for publishing events\n- `Event`, `ReceivedEvent`\
-  \ schemas\n- Event filters and subscribers\n\n**Server-Side Event Processing** (`src/prefect/server/events/`):\n\
-  - Event persister service\n- Trigger evaluation service\n- Action execution service\n\
-  \n**Automations** (`src/prefect/events/actions.py`):\n```python\nclass RunDeployment(DeploymentAction):\n\
-  \    \"\"\"Runs the given deployment with the given parameters\"\"\"\nclass CancelFlowRun(Action):\n\
-  \    \"\"\"Cancel a flow run when triggered\"\"\"\n```\n\nEvents trigger actions\
-  \ via automations, but the core flow/task execution model is not primarily event-driven\
-  \ - events are specifically for automation triggers and external integrations.\n\
-  \n### What This Is NOT\n\n- **Not Microservices**: Single deployable server (`Dockerfile`),\
-  \ one main package. Workers communicate with one server, not multiple independent\
-  \ services.\n\n- **Not Service-Based (in the coarse-grained sense)**: While there's\
-  \ a client-server separation, the server is monolithic with internal services, not\
-  \ 2-5 separate services sharing a database.\n\n- **Not CQRS**: No separation between\
-  \ read and write models; the same ORM models serve both.\n\n- **Not DDD**: No bounded\
-  \ contexts, aggregates, or domain-driven organizational structure.\n\n- **Not Hexagonal**:\
-  \ While `Block` abstracts external services, there's no formal ports-and-adapters\
-  \ isolation layer.\n\n- **Not Serverless**: Workers are long-running processes (see\
-  \ `runner/runner.py`), not ephemeral functions triggered by cloud providers.\n\n\
-  ### Deployment Topology\n\nThe architecture supports two deployment modes:\n1. **Self-hosted\
-  \ server**: Single Docker container with FastAPI server + background services\n\
-  2. **Prefect Cloud**: Client connects to managed server\n\nBoth modes use the same\
-  \ plugin mechanism for integrations - packages are installed into the environment\
-  \ and discovered via entry points at import time."
+classification_method: deep-analysis
+classification_confidence: 0.91
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Observability
+- Resilience
+- Extensibility
+- Scalability
+- Deployability
+- Evolvability
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary
+  Styles: Pipeline + Event-Driven\n\n**PIPELINE (primary, 0.93):** Prefect's fundamental
+  abstraction is the `@flow` / `@task` composition model, where every flow run is
+  a series of state-machine transitions — Pending → Running → Completed/Failed —
+  each of which must be validated by the server-side orchestration engine before user
+  code can proceed. This is documented explicitly in `server/orchestration/rules.py`:
+  \"no governed user code will execute without first requesting Prefect REST API validate
+  a change in state.\" The five-stage execution path is: (1) a deployment scheduler
+  (`server/services/scheduler.py`) creates Scheduled flow runs, (2) a Worker or Runner
+  polls the API for runs and dispatches them, (3) the Flow Engine (`flow_engine.py`)
+  runs the flow body, (4) each task is submitted to a TaskRunner and its state transitions
+  are managed by the Task Engine (`task_engine.py`), (5) results are persisted via
+  the result storage layer. The `runner/` module makes the pipeline explicit with
+  named components: `_scheduled_run_poller.py`, `_flow_run_executor.py`, `_state_proposer.py`,
+  `_hook_runner.py`. The `CoreFlowPolicy` and `CoreTaskPolicy` define the complete
+  set of orchestration rules (retry, crash, pause, cancel, concurrency) applied at
+  each transition.\n\n**EVENT-DRIVEN (primary, 0.87):** The events subsystem is architecturally
+  central, not peripheral. Client-side, `emit_event()` is called throughout workers,
+  flows, and tasks to emit lifecycle events. Server-side, an `EventPublisher` publishes
+  to a pluggable topic-based message broker (configurable via `PREFECT_MESSAGING_BROKER`
+  — memory or external). Background `Service` subclasses consume the event stream:
+  `ReactiveTriggers` evaluates `EventTrigger`, `CompoundTrigger`, and `SequenceTrigger`
+  automations (`server/events/triggers.py`), and on a match fires `TriggeredAction`
+  objects (`server/events/actions.py`) that can run deployments, cancel flow runs,
+  change state, call webhooks, send notifications, or pause/resume work pools. This
+  constitutes a complete reactive event loop entirely decoupled from the polling scheduler.
+  `EventsPipeline` (`server/events/pipeline.py`) shows the explicit stages: event
+  → message → task_run_recorder consumer → event_persister consumer. The broker abstraction
+  (`server/utilities/messaging/__init__.py`) with `Publisher`, `Consumer`, `Cache`,
+  and `MessageHandler` protocols is a textbook event-driven backbone.\n\n### Secondary
+  Style: Modular Monolith\n\n**MODULAR MONOLITH (secondary, 0.82):** Both the server
+  and the client SDK are shipped as a single `prefect` Python distribution (one `pyproject.toml`,
+  one Dockerfile). Internally the code is organized into strong module boundaries:
+  `server/` (FastAPI REST API, orchestration, DB, services, events), `client/` (HTTP
+  client, schema objects), `workers/` (abstract work dispatch), `runner/` (process-level
+  runner), `events/` (client-side event emission and automation schema), `blocks/`
+  (pluggable credential/config storage), `concurrency/` (global slot controls). Modules
+  communicate across the HTTP boundary: `PrefectClient` and `SyncPrefectClient` are
+  the sole entry points from client code to the server — there is no direct function
+  call across this boundary in production use. The 18 integration packages in `src/integrations/`
+  (prefect-aws, prefect-dbt, prefect-kubernetes, etc.) are independently versioned
+  and loaded via `prefect.collections` entry points, giving the monolith a lightweight
+  microkernel extension layer without changing the core delivery model.\n\n### What
+  Was Rejected and Why\n\n**Not Microservices:** All process types (server, worker,
+  runner) are deployed from the same `prefect` package and share a single database.
+  Workers communicate with the server via the REST API as an integration boundary,
+  not as peer services; they have no independent data stores or deployment pipelines.\n\
+  \n**Not Microkernel (primary):** The plugin system (entry-point collections) is
+  present but is not the primary architectural organising principle. The core server/orchestration/events
+  subsystem is not a minimal kernel — it is a substantial application. The Pipeline
+  + Event-Driven combination better explains the dominant structural patterns.\n\n\
+  **Not CQRS:** While the server exposes read and write endpoints separately and the
+  ORM uses a query-components abstraction (`server/database/query_components.py`),
+  there is no separate read model or event-sourced command log; state is stored and
+  queried from the same SQLAlchemy-backed database.\n\n### Quality Attributes Evidence\n\
+  \n**OBSERVABILITY:** Every flow and task state transition is recorded in the DB;
+  `emit_event()` publishes lifecycle events; OpenTelemetry and prometheus-client are
+  bundled; `telemetry/` provides structured instrumentation; UI served embedded in
+  the server.\n\n**RESILIENCE:** `CoreFlowPolicy` / `CoreTaskPolicy` handle retries,
+  crashes, pauses, cancellations; `CancellationCleanupService`, `LateRunsService`,
+  and `RepossessorService` repair stale or abandoned runs.\n\n**EXTENSIBILITY:** 18
+  integration collections via entry points; `Block` base class for pluggable storage
+  backends; `TaskRunner` abstract base enables thread-pool, process-pool, Dask, Ray
+  executors; `BaseWorker` abstract class for new infrastructure targets.\n\n**SCALABILITY:**
+  Work pools dispatch to Docker, Kubernetes, or cloud-native infrastructure; `TaskRunner`
+  enables intra-flow parallelism; global and tag-based concurrency limits control
+  slot allocation across the fleet.\n\n**DEPLOYABILITY:** Single Dockerfile; `prefect
+  server start` for self-hosted; Prefect Cloud for managed; `prefect.yaml` manifest
+  for GitOps-style deployment; work pools abstract infrastructure.\n\n**EVOLVABILITY:**
+  Alembic migrations in `server/database/_migrations/`; `PrefectDBInterface` singleton
+  abstracts SQLite vs PostgreSQL; pluggable message broker via settings; `_experimental/`
+  namespace for pre-release features."
