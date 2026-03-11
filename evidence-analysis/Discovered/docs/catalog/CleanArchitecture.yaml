@@ -8,107 +8,161 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:29:15Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Developer Tools
+domain: Developer Tools / Task Management
 language: C#
 languages:
-- C#
-- TypeScript
-- JavaScript
+  - C#
+  - TypeScript
+  - JavaScript
 architecture_styles:
-- Hexagonal Architecture
-- Domain-Driven Design
+  - Hexagonal Architecture
+  - Domain-Driven Design
+  - CQRS
 classification_status: classified
-review_notes: 'This repository is a quintessential implementation of **Hexagonal Architecture**
-  (also known as Clean, Onion, or Ports-and-Adapters). The project structure is explicitly
-  designed to isolate the core business logic from external concerns like databases,
-  UI, and third-party services.
+classification_confidence: 0.96
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+one_line_summary: >-
+  Reference .NET 10 solution template demonstrating Clean/Hexagonal Architecture
+  with DDD tactical patterns and CQRS via MediatR, deployable to Azure via azd.
+quality_attributes:
+  observability:
+    present: true
+    confidence: 0.95
+    evidence:
+      - "ServiceDefaults/Extensions.cs registers OpenTelemetry traces, metrics (ASP.NET
+        Core, HTTP client, runtime instrumentation), and structured logging via
+        AddOpenTelemetry()"
+      - "PerformanceBehaviour logs a warning when any MediatR request exceeds 500 ms
+        (src/Application/Common/Behaviours/PerformanceBehaviour.cs)"
+      - "LoggingBehaviour logs every incoming request with user context before handling
+        (src/Application/Common/Behaviours/LoggingBehaviour.cs)"
+      - "Health check endpoints /health and /alive provided by ServiceDefaults; OTLP
+        exporter configured when OTEL_EXPORTER_OTLP_ENDPOINT is set"
+  modularity:
+    present: true
+    confidence: 0.97
+    evidence:
+      - "Four-project layer structure (Domain, Application, Infrastructure, Web) with
+        enforced compile-time dependency rules documented in each layer README"
+      - "Domain has zero project references; Application references only Domain;
+        Infrastructure depends on Application and Domain; Web is the composition root"
+      - "Database adapter is swappable at template-generation time: SQLite (default),
+        PostgreSQL, or SQL Server via conditional compilation in
+        Infrastructure/DependencyInjection.cs"
+      - "MediatR pipeline behaviours (Logging, UnhandledException, Authorization,
+        Validation, Performance) are independently composable"
+  evolvability:
+    present: true
+    confidence: 0.90
+    evidence:
+      - "FluentValidation injected into MediatR pipeline allows new validators to be
+        registered without modifying handlers"
+      - "dotnet new ca-usecase scaffolding template reduces cost of adding new
+        commands or queries to the feature folders"
+      - "Central NuGet package management (Directory.Packages.props) simplifies
+        coordinated dependency upgrades across all projects"
+      - "Interface-based ports (IApplicationDbContext, IIdentityService) allow
+        infrastructure implementations to be replaced without touching Application
+        or Domain code"
+  deployability:
+    present: true
+    confidence: 0.92
+    evidence:
+      - "Azure Developer CLI integration (azure.yaml, infra/main.bicep) provisions
+        full Azure environment (App Service, Key Vault, Log Analytics, Application
+        Insights, database) with azd up"
+      - ".NET Aspire AppHost (src/AppHost/Program.cs) orchestrates local multi-service
+        environment including database provisioning and frontend wiring"
+      - "Frontend published as Docker image via PublishAsDockerFile() in AppHost"
+      - "azd pipeline config generates GitHub Actions or Azure DevOps CI/CD pipelines"
+  fault_tolerance:
+    present: true
+    confidence: 0.80
+    evidence:
+      - "ServiceDefaults adds AddStandardResilienceHandler() to all HTTP clients,
+        applying default retry and circuit-breaker policies"
+      - "UnhandledExceptionBehaviour in MediatR pipeline catches and logs all
+        unhandled exceptions before they propagate"
+  scalability:
+    present: false
+    confidence: 0.85
+    evidence:
+      - "Single deployable unit (Azure App Service); no horizontal scaling primitives
+        or distributed session management present"
+      - "Stateless HTTP handler design is compatible with scale-out but no explicit
+        scaling configuration is included"
+classification_reasoning: |
+  ## Architecture Classification — CleanArchitecture (jasontaylordev)
 
+  ### Primary Style: Hexagonal Architecture (confidence 0.96)
 
-  ### Primary Style: Hexagonal Architecture
+  The repository is explicitly organized around the dependency inversion principle.
+  Four C# projects form concentric rings: Domain, Application, Infrastructure, and Web.
+  Dependency arrows point strictly inward toward the domain.
 
-  The codebase is divided into distinct projects that represent the layers of Clean
-  Architecture:
+  Key structural evidence:
+  - `src/Domain/Domain.csproj` has zero project references; its README states
+    "The Domain layer must not depend on any other project."
+  - `src/Application/Common/Interfaces/IApplicationDbContext.cs` defines a port
+    (interface) that the Application layer depends on, never on the concrete EF Core
+    DbContext.
+  - `src/Infrastructure/Data/ApplicationDbContext.cs` implements `IApplicationDbContext`,
+    acting as the adapter. Infrastructure's `DependencyInjection.cs` registers:
+    `builder.Services.AddScoped<IApplicationDbContext>(provider =>
+      provider.GetRequiredService<ApplicationDbContext>());`
+  - `src/Web/Program.cs` is the composition root that wires all layers together via
+    extension methods: `AddApplicationServices()`, `AddInfrastructureServices()`,
+    `AddWebServices()`.
+  - Layer READMEs explicitly document the dependency rules, confirming the hexagonal
+    intent is architectural policy, not coincidence.
 
-  - **`src/Clean.Architecture.Core` (The Center):** Contains the domain model (entities,
-  aggregates, and domain events) and abstractions (interfaces). It has zero dependencies
-  on external projects or infrastructure libraries. Citing paths: `src/Clean.Architecture.Core/ContributorAggregate`
-  and `src/Clean.Architecture.Core/Interfaces`.
+  ### Secondary Style: Domain-Driven Design (confidence 0.90)
 
-  - **`src/Clean.Architecture.UseCases`:** Sits around the Core. It defines the application
-  logic using the Mediator pattern, orchestrating how domain objects interact to fulfill
-  specific business requirements. Citing paths: `src/Clean.Architecture.UseCases/Contributors/Create`
-  and `src/Clean.Architecture.UseCases/Contributors/List`.
+  The Domain layer employs DDD tactical patterns:
+  - `BaseEntity` carries a domain-event collection with `AddDomainEvent()`,
+    `RemoveDomainEvent()`, and `ClearDomainEvents()`.
+  - `TodoItem.Done` property setter emits `TodoItemCompletedEvent` when the item
+    transitions to done, encapsulating invariant behavior inside the entity.
+  - Three domain events exist: `TodoItemCreatedEvent`, `TodoItemCompletedEvent`,
+    `TodoItemDeletedEvent`, all extending `BaseEvent : INotification`.
+  - `BaseAuditableEntity` tracks created/modified timestamps and user identity.
+  - `ValueObject` base class is provided for future value types.
+  - `DispatchDomainEventsInterceptor` (EF Core `SaveChangesInterceptor`) harvests
+    domain events from all tracked entities after `SaveChangesAsync` and publishes
+    them via MediatR, maintaining transactional consistency.
+  - Application event handlers (`LogTodoItemCompleted`, `LogTodoItemCreated`) act as
+    subscribers to these domain events.
 
-  - **`src/Clean.Architecture.Infrastructure` (Adapters):** Implements the interfaces
-  defined in the Core. It contains the data access logic (Entity Framework, Repositories)
-  and external services (Email). Citing paths: `src/Clean.Architecture.Infrastructure/Data/EfRepository.cs`
-  and `src/Clean.Architecture.Infrastructure/Email/MimeKitEmailSender.cs`.
+  ### Secondary Style: CQRS (confidence 0.92)
 
-  - **`src/Clean.Architecture.Web` (Entry Point):** The presentation layer that handles
-  HTTP requests. It depends on `Core` and `UseCases`, and wires up the `Infrastructure`
-  implementation via Dependency Injection.
+  The Application layer is explicitly divided into `Commands/` and `Queries/` per
+  feature area:
+  - Commands: `CreateTodoItem`, `UpdateTodoItem`, `UpdateTodoItemDetail`,
+    `DeleteTodoItem`, `CreateTodoList`, `UpdateTodoList`, `DeleteTodoList`.
+  - Queries: `GetTodoItemsWithPagination`, `GetTodos`, `GetWeatherForecasts`.
+  - Commands return minimal values (e.g., `IRequest<int>` for created ID); queries
+    return read-optimized DTOs via AutoMapper `ProjectTo<>`.
+  - MediatR 14 dispatches both through a composable pipeline of five
+    `IPipelineBehavior<,>` implementations: LoggingBehaviour (pre-processor),
+    UnhandledExceptionBehaviour, AuthorizationBehaviour, ValidationBehaviour,
+    PerformanceBehaviour.
+  - This is CQRS at the application-use-case level, not at the database level
+    (no separate read/write stores).
 
+  ### Deployment Topology
 
-  ### Secondary Style: Domain-Driven Design (DDD)'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:16:40Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: Hexagonal Architecture (Ports and Adapters)\n\nThis repository implements\
-  \ **Hexagonal Architecture** (also known as Ports and Adapters or Clean Architecture),\
-  \ which the README explicitly acknowledges:\n\n> \"Clean Architecture is just the\
-  \ latest in a series of names for the same loosely-coupled, dependency-inverted\
-  \ architecture. You will also find it named hexagonal, ports-and-adapters, or onion\
-  \ architecture.\"\n\n**Key Evidence:**\n\n1. **Dependency Inversion with Core at\
-  \ Center** (`src/*/Clean.Architecture.*.csproj`):\n   - `Core.csproj` — Zero project\
-  \ references; depends only on domain-focused NuGet packages\n   - `UseCases.csproj`\
-  \ — References only Core\n   - `Infrastructure.csproj` — References Core and UseCases\n\
-  \   - `Web.csproj` — References Infrastructure and UseCases (composition root)\n\
-  \n2. **Ports (Interfaces) Defined in Core** (`src/Clean.Architecture.Core/Interfaces/`):\n\
-  \   - `IEmailSender` — Abstraction for email delivery\n   - `IDeleteContributorService`\
-  \ — Abstraction for domain service\n   - Repository interfaces via `IRepository<T>`\
-  \ from Ardalis.SharedKernel\n\n3. **Adapters (Implementations) in Infrastructure**\
-  \ (`src/Clean.Architecture.Infrastructure/`):\n   - `MimeKitEmailSender` and `FakeEmailSender`\
-  \ implement `IEmailSender`\n   - `EfRepository<T>` implements repository interfaces\n\
-  \   - `AppDbContext` implements data persistence adapter\n   - Infrastructure README\
-  \ confirms: *\"Infrastructure classes implement interfaces found in the Core (Use\
-  \ Cases) project(s).\"*\n\n4. **DI Wire-up at Composition Root** (`src/Clean.Architecture.Web/Configurations/ServiceConfigs.cs`):\n\
-  \   ```csharp\n   services.AddScoped<IEmailSender, MimeKitEmailSender>();\n   services.AddScoped(typeof(IRepository<>),\
-  \ typeof(EfRepository<>));\n   ```\n\n### Secondary Style: Domain-Driven Design\n\
-  \nThe Core project implements DDD tactical patterns:\n\n1. **Aggregates** (`src/Clean.Architecture.Core/ContributorAggregate/Contributor.cs`):\n\
-  \   ```csharp\n   public class Contributor(ContributorName name) : EntityBase<Contributor,\
-  \ ContributorId>, IAggregateRoot\n   ```\n\n2. **Value Objects** using Vogen library:\n\
-  \   - `ContributorId` — Strongly-typed ID with validation\n   - `ContributorName`\
-  \ — Value object with length constraints\n   - `PhoneNumber` — Encapsulated phone\
-  \ number value\n\n3. **Domain Events** (`src/Clean.Architecture.Core/ContributorAggregate/Events/`):\n\
-  \   - `ContributorNameUpdatedEvent`\n   - `ContributorDeletedEvent`\n   - Events\
-  \ raised via `RegisterDomainEvent()` on entity base\n\n4. **Domain Event Handlers**\
-  \ in Core:\n   ```csharp\n   public class ContributorNameUpdatedEmailNotificationHandler(\n\
-  \     ILogger<...> logger, IEmailSender emailSender) \n     : INotificationHandler<ContributorNameUpdatedEvent>\n\
-  \   ```\n\n5. **Specifications** (`src/Clean.Architecture.Core/ContributorAggregate/Specifications/ContributorByIdSpec.cs`)\n\
-  \n6. **Domain Services** (`src/Clean.Architecture.Core/Services/DeleteContributorService.cs`)\n\
-  \n### CQRS Organization\n\nThe UseCases project follows CQRS separation (`src/Clean.Architecture.UseCases/Contributors/`):\n\
-  \n- **Commands** (mutate state): `CreateContributorCommand`, `DeleteContributorCommand`,\
-  \ `UpdateContributorCommand`\n- **Queries** (read-only): `ListContributorsQuery`,\
-  \ `GetContributorQuery`\n- Handlers implement `ICommandHandler<,>` and `IQueryHandler<,>`\n\
-  \n### Single Deployable Unit (Not Microservices)\n\nThis is a **modular monolith**\
-  \ with enforced internal boundaries:\n- Single executable: `Clean.Architecture.Web.csproj`\
-  \ (output type `Exe`)\n- `AspireHost` project is for local development orchestration\
-  \ only\n- No Dockerfiles or container deployment manifests\n- All layers compile\
-  \ into a single deployment unit\n\n### What Was Rejected\n\n- **Microservices**:\
-  \ Rejected — Single deployable web application, not distributed services\n- **Layered\
-  \ (traditional)**: Rejected — Traditional layered puts UI at top, business logic\
-  \ in middle, data at bottom with dependencies flowing downward. This architecture\
-  \ has dependencies flowing **inward** toward Core (dependency inversion principle)\n\
-  - **Modular Monolith**: Considered, but the defining characteristic here is the\
-  \ **ports-and-adapters pattern with dependency inversion**, not merely having module\
-  \ boundaries. The hexagonal pattern is the primary organizing principle\n- **Event-Driven**:\
-  \ Rejected — While domain events exist, they're used for in-process coordination\
-  \ within the monolith, not asynchronous message broker communication between services\n\
-  \n### Summary\n\nThe CleanArchitecture repository is a textbook implementation of\
-  \ **Hexagonal Architecture** with strong **Domain-Driven Design** influences. The\
-  \ architecture achieves:\n- Dependency inversion pointing toward Core\n- Infrastructure\
-  \ as pluggable adapters\n- Domain model isolation from framework concerns\n- Testability\
-  \ through port abstractions"
+  Single deployable unit (ASP.NET Core Web + optional Angular/React SPA) targeted
+  at Azure App Service. .NET Aspire AppHost provides local multi-service orchestration.
+  Azure Developer CLI with Bicep IaC provisions the full cloud environment. The
+  repository is primarily a reference template distributed via NuGet.
+
+  ### Rejected Styles
+
+  - **Microservices**: Single deployable artifact; no inter-service communication.
+  - **Layered (traditional)**: Dependencies flow inward (inverted), not top-to-bottom.
+  - **Event-Driven**: Domain events are in-process via MediatR, not asynchronous
+    message brokers across services.
+  - **Modular Monolith**: While modular, the defining characteristic is ports-and-adapters
+    (hexagonal), not just module boundaries.

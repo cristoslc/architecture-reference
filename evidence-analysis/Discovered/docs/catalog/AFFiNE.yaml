@@ -1,189 +1,33 @@
 project_name: AFFiNE
-scope: application
+scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/toeverything/AFFiNE
 project_url: https://github.com/toeverything/AFFiNE
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T05:09:14Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Productivity
+domain: Knowledge Management / Collaborative Workspace
 language: TypeScript
 languages:
-- TypeScript
-- Swift
-- Rust
-- Java/Kotlin
-- JavaScript
+  - TypeScript
+  - Rust
+  - JavaScript
+  - Swift
+  - Java/Kotlin
 architecture_styles:
-- Microkernel
-- Modular Monolith
+  - Microkernel
+  - Modular Monolith
+  - Event-Driven
 classification_status: classified
-review_notes: "The AFFiNE repository (and its core engine `blocksuite`) is structured\
-  \ primarily as a **Microkernel (Plugin)** architecture. The system is designed as\
-  \ a minimalist \"operating system\" for blocks, where the core framework provides\
-  \ essential services (CRDT synchronization, state management, and basic UI lifecycle)\
-  \ while all specific functionalities (text, image, database, kanban, etc.) are implemented\
-  \ as independent, hot-swappable plugins or \"blocks.\"\n\n### Architecture Analysis\n\
-  \n**1. Microkernel (Plugin) - Primary Style**\nThe directory structure under `blocksuite/affine/blocks`\
-  \ and `blocksuite/affine/widgets` demonstrates a strict plugin-based organization.\
-  \ \n- **The Kernel:** Located in `blocksuite/framework/std`, it provides the `ServiceManager`,\
-  \ `Extension` interfaces, and lifecycle hooks (`blocksuite/framework/std/src/extension/index.ts`).\n\
-  - **Plugins:** Each block (e.g., `blocks/database`, `blocks/image`, `blocks/root`)\
-  \ and fragment (e.g., `fragments/outline`) is a self-contained module that registers\
-  \ its own views, models, and logic into the kernel via the `Extension` and `Service`\
-  \ patterns found in the `std` framework. This allows the editor to be \"hyper-fused\"\
-  \ (as the README states) by loading only the necessary extensions for a given context\
-  \ (Docs vs. Whiteboard).\n\n**2. Domain-Driven Design (DDD) - Secondary Style**"
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:16:34Z'
-classification_reasoning: '## Analysis
-
-
-  AFFiNE exhibits a **Microkernel (Plugin)** architecture as its primary style, with
-  **Modular Monolith** as a secondary characteristic.
-
-
-  ### Microkernel/Plugin Evidence
-
-
-  **1. Extension System Architecture** (`blocksuite/framework/store/src/extension/extension.ts`)
-
-  The codebase implements a sophisticated plugin system:
-
-  - `ExtensionType` interface with `setup(di: Container)` method for dependency injection-based
-  registration
-
-  - Extensions can register services, implementations, and factories dynamically
-
-  - Documentation explicitly states: "Extensions provide a way to extend the functionality
-  of a system using dependency injection... creating pluggable architecture where
-  components can be added or removed"
-
-
-  **2. Extension Provider/Manager Pattern** (`blocksuite/affine/ext-loader/`)
-
-  A complete extension loading infrastructure:
-
-  - `BaseExtensionProvider<Scope, Options>` - Abstract base for all extension providers
-
-  - `ViewExtensionProvider` with 6 scope variants (page, edgeless, preview-page, preview-edgeless,
-  mobile-page, mobile-edgeless)
-
-  - `StoreExtensionProvider` for data layer extensions
-
-  - `ExtensionManager<Scope>` handles registration, configuration, and lifecycle
-
-  - Configuration API: `manager.configure(Provider, options)` with Zod schema validation
-
-  - One-time initialization via `effect()` method
-
-
-  **3. Block-Based Plugin Architecture** (`blocksuite/affine/blocks/`)
-
-  25+ independent block plugins (paragraph, list, image, database, surface, embed-doc,
-  etc.), each implementing:
-
-  - Block definition (`*-block.ts`)
-
-  - Store/state management (`store.ts`)
-
-  - View rendering (`view.ts`)
-
-  - Effects and initialization (`effects.ts`)
-
-  - Styles (`styles.ts`)
-
-
-  Each block is a self-contained plugin that registers itself through the extension
-  system.
-
-
-  ### Modular Monolith Evidence
-
-
-  **1. Enforced Module Boundaries via Framework** (`packages/common/infra/src/framework/`)
-
-  A custom dependency injection framework with:
-
-  - `Framework` class managing component registration and resolution
-
-  - Explicit component types: Service, Entity, Store, Scope
-
-  - Hierarchical scope system (Root → Workspace → Doc)
-
-  - Framework configuration functions: `configureDocModule(framework)`, `configureWorkspaceModule(framework)`,
-  etc.
-
-  - ~50 modules in `packages/frontend/core/src/modules/` (ai-button, app-sidebar,
-  cloud, doc, editor, journal, notification, etc.)
-
-
-  **2. Workspace Organization**
-
-  Clear package separation in monorepo:
-
-  - `blocksuite/` - Framework core and block plugins
-
-  - `packages/frontend/` - Frontend apps and shared core
-
-  - `packages/backend/` - Server (NestJS-based)
-
-  - `packages/common/` - Shared infrastructure
-
-  - Single deployable per platform (web, electron, iOS, Android)
-
-
-  **3. Technology Stack Unity**
-
-  - TypeScript throughout frontend/core
-
-  - React for UI
-
-  - Yjs for CRDT-based collaboration
-
-  - Shared dependency injection framework
-
-
-  ### What This Is NOT
-
-
-  - **NOT Microservices**: Single backend server (`@affine/server`) using NestJS modules,
-  not separate deployable services. The server shares a database (Prisma schema).
-
-
-  - **NOT Layered**: While there are horizontal concerns, the primary organization
-  is around vertical feature modules and plugins, not horizontal layers. The DI framework
-  enables cross-cutting concerns without strict layering.
-
-
-  - **NOT Event-Driven Architecture**: While Yjs provides real-time sync and there''s
-  event infrastructure (`EventBus`), components communicate primarily through the
-  DI container, not message brokers.
-
-
-  - **NOT Domain-Driven Design**: Although there are entities and services, there''s
-  no evidence of aggregates, bounded contexts with separate models, or ubiquitous
-  language. The modules are organized by feature capability, not business domains.
-
-
-  ### Architecture Summary
-
-
-  AFFiNE implements a **microkernel architecture** where:
-
-  1. The **core framework** (`@blocksuite/framework`, `@toeverything/infra`) provides
-  minimal runtime: dependency injection, extension loading, and block lifecycle management
-
-  2. **Plugins/Extensions** (blocks, features) are loaded at build-time and registered
-  via DI
-
-  3. The system is **extensible** through the provider/manager pattern with configuration
-  support
-
-  4. All modules share a single deployment unit per platform (modular monolith deployment
-  model)'
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+  - Deployability
+  - Modularity
+  - Scalability
+  - Observability
+  - Evolvability
+  - Fault Tolerance
+one_line_summary: "A local-first collaborative workspace platform (Notion + Miro alternative) built on a microkernel block-plugin architecture with a modular NestJS backend and event-driven async processing."
+classification_reasoning: "AFFiNE exhibits a three-style composition: Microkernel as primary, Modular Monolith and Event-Driven as secondary.\n\nMICROKERNEL (primary, 0.90): The blocksuite/ directory implements a formal extension system. ExtensionType, BaseExtensionProvider<Scope, Options>, and ExtensionManager<Scope> in blocksuite/affine/ext-loader/ provide the plugin infrastructure. The framework core (blocksuite/framework/std) supplies DI, lifecycle hooks, and minimal runtime; all 25+ block types (paragraph, image, database, surface, embed-doc, etc.) register as independent plugins through this system. The NestJS backend mirrors this pattern via AppModuleBuilder with conditional module loading (useIf() predicated on env.flavors.*), making entire server capabilities (GraphQL, sync, renderer, doc service) opt-in components.\n\nMODULAR MONOLITH (secondary, 0.85): packages/common/infra/src/framework/ provides a custom DI framework with explicit component types (Service, Entity, Store, Scope) and a hierarchical scope chain (Root -> Workspace -> Doc). ~50 modules in packages/frontend/core/src/modules/ (ai-button, cloud, doc, editor, feature-flag, journal, notification, workspace, etc.) are wired at startup via configure*Module(framework) functions but deploy as a single unit per platform. The NestJS backend deploys as one Docker image (ghcr.io/toeverything/affine) with all enabled modules co-located and sharing a single Prisma/PostgreSQL database.\n\nEVENT-DRIVEN (secondary, 0.72): A typed EventBus (base/event/eventbus.ts) built on eventemitter2 propagates domain events across modules with OnEvent decorator. Domain events are declared in modules (e.g., workspace.members.invite, workspace.members.removed in core/workspaces/event.ts). BullMQ job queues (nightly, notification, doc, copilot, indexer) decouple async processing. The EventBus also supports cluster-wide broadcast via Socket.io serverSideEmit for multi-instance deployments.\n\nDEPLOYABILITY evidence: Docker image, 4 Helm sub-charts (graphql, front, doc, sync) each independently scalable, GCP PodMonitoring configuration, multi-flavor server build via Flavor enum (AllInOne, Graphql, Sync, Renderer, Front, Doc).\n\nMODULARITY evidence: Custom DI framework with typed Services/Entities/Stores; NestJS modules with explicit import/export; 50+ frontend feature modules; 25+ blocksuite block plugins each self-contained with block definition, store, view, effects, and styles.\n\nSCALABILITY evidence: Four server flavors deployable independently; Redis used for cache (CacheRedis), session (SessionRedis), socket.io adapter (SocketIoRedis), and BullMQ queue (QueueRedis) - all separate instances; Helm allows independent replicaCount per service; pgvector extension for AI embeddings at scale.\n\nOBSERVABILITY evidence: OpenTelemetry NodeSDK with PrometheusExporter (port 9464), ZipkinExporter for distributed tracing, W3C trace context propagation, instrumentation plugins for GraphQL/HTTP/Redis/Prisma/Socket.io/NestJS, request ID via CLS propagated through all log lines, metrics for memory/event handlers/socket events.\n\nEVOLVABILITY evidence: AFFINE_FLAGS feature flag system in packages/frontend/core/src/modules/feature-flag/ with canary/stable/mobile-gated flags; AppModuleBuilder.useIf() for conditional server capabilities; plugin registration via DI avoids hard-wired dependencies between blocks.\n\nFAULT TOLERANCE evidence: BullMQ job queues with retry semantics; suppressError option on event handlers (EventBus.on); EventBus error boundary catching unhandled rejections from dispatchAsync; RateLimiterModule (base/throttler) with SkipThrottle decorator.\n\nRULED OUT - Microservices: Single NestJS server sharing one PostgreSQL database and one Docker image. Different flavors are build-time configurations of the same codebase, not separate services with independent data stores.\n\nRULED OUT - Layered: Organization is vertical by feature/plugin, not horizontal by layer. The DI framework enables cross-cutting concerns without strict layering.\n\nRULED OUT (pure) DDD: Feature modules rather than bounded contexts with separate ubiquitous languages. No aggregate roots, domain events in the DDD sense, or anti-corruption layers between bounded contexts."

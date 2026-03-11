@@ -5,111 +5,98 @@ source: Discovered
 source_url: https://github.com/Lidarr/Lidarr
 project_url: https://github.com/Lidarr/Lidarr
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T04:45:02Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Media Automation
+domain: Media Automation / Music Library Management
 language: C#
 languages:
 - C#
-- JavaScript
 - TypeScript
+- JavaScript
 architecture_styles:
 - Modular Monolith
-- Event-Driven
+- Microkernel
 classification_status: classified
-review_notes: 'Lidarr follows a **Layered** architecture, which is the standard architectural
-  pattern for the "Servarr" family of applications (derived from the original NzbDrone/Sonarr
-  codebase). The system is organized into distinct horizontal layers that separate
-  concerns between the host/entry point, the API, and the core business logic.
-
-
-  ### Evidence of Layered Architecture:
-
-  The backend (C#/.NET) is split into several projects that represent the classic
-  horizontal layers:
-
-  1.  **Host/Presentation Layer (`src/NzbDrone.Host`, `src/NzbDrone.Console`)**: These
-  projects handle the application startup, web server hosting (Kestrel), and the integration
-  with the underlying operating system (Windows Services, Mono/Linux daemons).
-
-  2.  **API Layer (`src/Lidarr.Api.V1`)**: This layer handles RESTful endpoints, request/response
-  mapping, and authentication, acting as the gateway for the React-based frontend.
-
-  3.  **Application/Core Layer (`src/NzbDrone.Core`)**: This is the largest project
-  and contains the "fat" middle layer. It houses the business logic, domain models,
-  and service classes that orchestrate data between indexers, download clients, and
-  the database.
-
-  4.  **Infrastructure/Common Layer (`src/NzbDrone.Common`, `src/Lidarr.Http`)**:
-  Provides shared utilities, file system abstractions, and HTTP clients used by the
-  upper layers.
-
-
-  ### Evidence of Modular Monolith:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:27:12Z'
-classification_reasoning: "## Architecture Classification: Lidarr Repository\n\n###\
-  \ Primary Style: Modular Monolith\n\nLidarr is architected as a **Modular Monolith**\
-  \ - a single deployable application with well-defined internal module boundaries\
-  \ enforced through separate .NET assemblies.\n\n**Evidence:**\n\n1. **Single Deployable\
-  \ Unit**: The application builds to a single executable (`Lidarr`/`NzbDrone.Console`),\
-  \ confirmed by the solution structure showing multiple projects that compile into\
-  \ one application:\n   - `src/NzbDrone/Lidarr.csproj` - Main executable entry point\n\
-  \   - `src/NzbDrone.Host/Lidarr.Host.csproj` - ASP.NET Core web host\n   - `src/NzbDrone.Core/Lidarr.Core.csproj`\
-  \ - Core business logic\n   - `src/Lidarr.Api.V1/Lidarr.Api.V1.csproj` - REST API\
-  \ layer\n\n2. **Enforced Module Boundaries via Projects**: The solution (`src/Lidarr.sln`)\
-  \ contains ~25 distinct .NET projects with clear separation:\n   - **Core**: `NzbDrone.Core`\
-  \ - Domain logic, data access, services\n   - **API**: `Lidarr.Api.V1`, `Lidarr.Http`\
-  \ - HTTP/REST layer\n   - **Platform**: `NzbDrone.Windows`, `NzbDrone.Mono` - Platform-specific\
-  \ implementations\n   - **Infrastructure**: `NzbDrone.Common` - Cross-cutting concerns\n\
-  \   - **SignalR**: `NzbDrone.SignalR` - Real-time communication\n\n3. **Project\
-  \ References Define Dependency Graph**: From `Lidarr.Host.csproj`:\n   ```xml\n\
-  \   <ProjectReference Include=\"..\\Lidarr.Api.V1\\Lidarr.Api.V1.csproj\" />\n \
-  \  <ProjectReference Include=\"..\\NzbDrone.Core\\Lidarr.Core.csproj\" />\n   <ProjectReference\
-  \ Include=\"..\\NzbDrone.Common\\Lidarr.Common.csproj\" />\n   ```\n\n4. **Clear\
-  \ Module Boundaries in Core**: The `NzbDrone.Core` project organizes functionality\
-  \ into distinct bounded modules:\n   - `Indexers/` - External indexer integrations\n\
-  \   - `Download/` - Download client management\n   - `Notifications/` - Notification\
-  \ providers\n   - `ImportLists/` - Import list services\n   - `Music/` - Artist/album/track\
-  \ domain\n   - `Datastore/` - Database access layer\n\n### Secondary Style: Event-Driven\n\
-  \nThe architecture employs significant **Event-Driven** patterns for internal module\
-  \ communication.\n\n**Evidence:**\n\n1. **Event Aggregator Pattern** (`src/NzbDrone.Core/Messaging/Events/EventAggregator.cs`):\n\
-  \   ```csharp\n   public class EventAggregator : IEventAggregator\n   {\n      \
-  \ public void PublishEvent<TEvent>(TEvent @event) where TEvent : class, IEvent\n\
-  \       {\n           // Routes events to sync and async handlers\n       }\n  \
-  \ }\n   ```\n\n2. **Event Handler Interfaces** (`src/NzbDrone.Core/Messaging/Events/IHandle.cs`):\n\
-  \   ```csharp\n   public interface IHandle<TEvent> : IProcessMessage<TEvent> where\
-  \ TEvent : IEvent\n   {\n       void Handle(TEvent message);\n   }\n   public interface\
-  \ IHandleAsync<TEvent> : IProcessMessageAsync<TEvent> where TEvent : IEvent\n  \
-  \ {\n       void HandleAsync(TEvent message);\n   }\n   ```\n\n3. **Extensive Event\
-  \ Usage**: Found across the codebase:\n   - `DownloadEventHub : IHandle<DownloadFailedEvent>,\
-  \ IHandle<DownloadCompletedEvent>, IHandle<DownloadCanBeRemovedEvent>`\n   - `ArtistAddedHandler\
-  \ : IHandle<ArtistAddedEvent>, IHandle<ArtistsImportedEvent>`\n   - `SeedConfigProvider\
-  \ : IHandle<ProviderUpdatedEvent<IIndexer>>`\n\n### Notable Pattern: Plugin-like\
-  \ Provider System\n\nLidarr implements a sophisticated **Provider/Plugin pattern**\
-  \ via `ThingiProvider` infrastructure:\n\n**Evidence:**\n\n1. **Provider Contract**\
-  \ (`src/NzbDrone.Core/ThingiProvider/IProvider.cs`):\n   ```csharp\n   public interface\
-  \ IProvider\n   {\n       string Name { get; }\n       Type ConfigContract { get;\
-  \ }\n       IEnumerable<ProviderDefinition> DefaultDefinitions { get; }\n      \
-  \ ProviderDefinition Definition { get; set; }\n       ValidationResult Test();\n\
-  \   }\n   ```\n\n2. **Provider Factory for Dynamic Loading** (`src/NzbDrone.Core/ThingiProvider/ProviderFactory.cs`):\n\
-  \   ```csharp\n   public abstract class ProviderFactory<TProvider, TProviderDefinition>\
-  \ : IProviderFactory<TProvider, TProviderDefinition>, \n       IHandle<ApplicationStartedEvent>\n\
-  \   {\n       // Discovers and instantiates providers dynamically\n       public\
-  \ TProvider GetInstance(TProviderDefinition definition)\n       {\n           var\
-  \ type = GetImplementation(definition);\n           var instance = (TProvider)_container.GetRequiredService(type);\n\
-  \           // ...\n       }\n   }\n   ```\n\n3. **Concrete Implementations** extend\
-  \ base classes:\n   - `IndexerBase<TSettings>`, `DownloadClientBase<TSettings>`,\
-  \ `NotificationBase<TSettings>`, `ImportListBase<TSettings>`\n   - Each provider\
-  \ type has many implementations (e.g., 20+ download clients: Sabnzbd, Transmission,\
-  \ qBittorrent, etc.)\n\n### What Was Rejected\n\n- **Not Microservices**: Single\
-  \ deployable unit, not distributed services. All modules run in one process.\n-\
-  \ **Not Serverless**: Self-hosted ASP.NET Core application, not function-based.\n\
-  - **Not CQRS**: No separate read/write models; uses standard repository pattern\
-  \ with `BasicRepository<T>`.\n- **Not Hexagonal Architecture**: While there's dependency\
-  \ injection and interfaces, no formal ports/adapters isolation. The `ThingiProvider`\
-  \ system \n\n[truncated]"
+classification_confidence: 0.91
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+- Modularity
+- Evolvability
+- Observability
+- Deployability
+- Fault Tolerance
+- Scalability
+one_line_summary: An automated music collection manager built as a Modular Monolith
+  with a Microkernel plugin layer — the ThingiProvider framework lets indexers, download
+  clients, and notifications be added at runtime without touching the core, while
+  an internal EventAggregator and CommandExecutor coordinate all domain workflows
+  within a single ASP.NET Core process.
+classification_reasoning: "## Primary Style: Modular Monolith\n\nLidarr is a single\
+  \ deployable ASP.NET Core process bootstrapped in\n`NzbDrone.Host/Bootstrap.cs`\
+  \ using DryIoc (`AutoAddServices(assemblies)`).\nThe solution (`Lidarr.sln`) contains\
+  \ ~25 projects, all compiled into one binary:\n\n- `NzbDrone.Core` — 1,399 .cs files,\
+  \ all business logic\n- `Lidarr.Api.V1` — REST controllers (ASP.NET Core MVC)\n\
+  - `Lidarr.Http` — middleware, authentication, error handling\n- `NzbDrone.SignalR`\
+  \ — real-time WebSocket push to the React frontend\n- `NzbDrone.Common` — shared\
+  \ infrastructure (HTTP, disk, serialization, DI)\n- `NzbDrone.Windows` / `NzbDrone.Mono`\
+  \ — platform-specific shims\n\nWithin `NzbDrone.Core`, every functional domain is\
+  \ organized as a vertical slice:\n\n- `Music/` — Artist, Album, Track services,\
+  \ events (`AlbumAddedEvent`), handlers\n- `Download/` — download client abstraction,\
+  \ completion/failure processing\n- `Indexers/` — indexer request/response pipeline,\
+  \ RSS sync\n- `Notifications/` — notification fanout on grab/import/rename/health\
+  \ events\n- `MediaFiles/` — disk scan, audio tag read/write, file import/rename\n\
+  - `Queue/` — in-progress download tracking\n- `History/` — persistent download/import\
+  \ audit log\n- `ImportLists/` — Spotify, Last.fm, Headphones, MusicBrainz list providers\n\
+  \nThe system runs against a single SQLite or PostgreSQL database accessed through\n\
+  `BasicRepository<T>` (Dapper-based), with 80 ordered migration scripts under\n`Datastore/Migration/`.\n\
+  \n## Secondary Style: Microkernel\n\nThe `ThingiProvider` framework (`NzbDrone.Core/ThingiProvider/`)\
+  \ is a generic\nplugin bus. Every extension category — indexers, download clients,\
+  \ notifications,\nimport lists, metadata providers — implements `IProvider`:\n\n\
+  \  public interface IProvider\n  {\n      string Name { get; }\n      Type ConfigContract\
+  \ { get; }\n      IEnumerable<ProviderDefinition> DefaultDefinitions { get; }\n\
+  \      ProviderDefinition Definition { get; set; }\n      ValidationResult Test();\n\
+  \      object RequestAction(string action, IDictionary<string, string> query);\n\
+  \  }\n\nThe generic `ProviderFactory<TProvider, TProviderDefinition>` (implements\n\
+  `IProviderFactory`) resolves implementations from the DryIoc container at\nruntime\
+  \ (`_container.GetRequiredService(type)`) and publishes lifecycle events\n(`ProviderAddedEvent<T>`,\
+  \ `ProviderUpdatedEvent<T>`, `ProviderDeletedEvent<T>`)\nthrough `EventAggregator`.\
+  \ Concrete plugin counts:\n\n- ~20 download client implementations (qBittorrent,\
+  \ Transmission, Deluge,\n  SABnzbd, rTorrent, uTorrent, Flood, etc.) via `DownloadClientBase<TSettings>`\n\
+  - ~30 notification targets (Discord, Email, Webhook, Apprise, Gotify, Join,\n  Plex,\
+  \ Notifiarr, etc.) via `NotificationBase` / `INotification`\n- ~15 indexer types\
+  \ (Newznab, Torznab, Gazelle, Redacted, Headphones, etc.)\n  via `HttpIndexerBase`\n\
+  - ~10 import list sources (Spotify, Last.fm, MusicBrainz, Headphones, etc.)\n\n\
+  Adding a new extension requires zero changes to the factory core; the new\nclass\
+  \ is auto-discovered by DryIoc's `AutoAddServices`.\n\nThe internal event/command\
+  \ infrastructure reinforces the plugin model:\n\n- `EventAggregator.PublishEvent<TEvent>`\
+  \ resolves all `IHandle<TEvent>` +\n  `IHandleAsync<TEvent>` subscribers from the\
+  \ container and dispatches\n  synchronously then asynchronously via `TaskFactory`.\n\
+  - `CommandExecutor` resolves `IExecute<TCommand>` handlers from the container\n\
+  \  and runs them across three worker threads from a `CommandQueue`.\n- Example flow:\
+  \ `AlbumAddedHandler : IHandle<AlbumAddedEvent>` reacts to an\n  album being added\
+  \ and pushes a `RefreshArtistCommand` or `RefreshAlbumCommand`\n  back to the `CommandQueueManager`.\n\
+  \n## What This Is NOT\n\n- **NOT Microservices**: One binary, one database, no network\
+  \ service boundary.\n  The *arr ecosystem is Service-Based at the ecosystem level,\
+  \ but each member\n  is a self-contained monolith.\n- **NOT Layered (horizontal)**:\
+  \ Organizing principle is vertical domain modules\n  within `NzbDrone.Core`, not\
+  \ horizontal technical tiers (though Api -> Core ->\n  Datastore dependency direction\
+  \ is layered).\n- **NOT Event-Driven (async messaging)**: `EventAggregator` is an\
+  \ in-process\n  publish/subscribe mechanism — no Kafka, RabbitMQ, or durable queues.\n\
+  - **NOT CQRS**: No separate read/write models; services read and write through\n\
+  \  the same `BasicRepository<T>` and service layer.\n\n## Quality Attribute Evidence\n\
+  \n- **Modularity**: Domain folders with own Models/Services/Repositories/Events;\n\
+  \  `ThingiProvider` plugin contracts enforce separation between core and extensions;\n\
+  \  DryIoc auto-discovery wires all implementations.\n- **Evolvability**: 80 ordered\
+  \ DB migrations; adding new indexer/download-client/\n  notification requires no\
+  \ core changes; `IHandle<TEvent>` allows new event\n  reactions without modifying\
+  \ publishers.\n- **Observability**: NLog throughout; SignalR `MessageHub` pushes\
+  \ real-time\n  command/event status to React UI; 20 `HealthCheck/Checks/` covering\
+  \ indexer\n  status, download client config, root folder validity, API key, mount\
+  \ points.\n- **Deployability**: Cross-platform .NET (Windows service, Linux daemon,\
+  \ Docker);\n  SQLite default, PostgreSQL optional; Kestrel embedded web server;\
+  \ no IIS\n  dependency.\n- **Fault Tolerance**: `CommandExecutor` catches per-command\
+  \ exceptions and marks\n  commands failed without crashing worker threads; `ProviderFactory.Handle(ApplicationStartedEvent)`\n\
+  \  removes missing implementations on startup rather than throwing; download\n \
+  \ failure tracked and reported via `FailedDownloadService`.\n- **Scalability**:\
+  \ Single-process, single-host design; vertical scaling only;\n  PostgreSQL support\
+  \ allows external DB for home-lab multi-container setups.\n"

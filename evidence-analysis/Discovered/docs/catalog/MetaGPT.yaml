@@ -4,96 +4,181 @@ use_type: production
 source: Discovered
 source_url: https://github.com/geekan/MetaGPT
 project_url: https://github.com/geekan/MetaGPT
-evidence_type: automated-discovery
-discovered_at: '2026-03-06T06:05:42Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: AI/ML
+evidence_type: deep-analysis
+domain: AI Agent Framework / Software Automation
 language: Python
 languages:
-- Python
-- JavaScript
-- TypeScript
+  - Python
+  - JavaScript
 architecture_styles:
-- Multi-Agent
-- Event-Driven
+  - Multi-Agent
+  - Pipeline
 classification_status: classified
-review_notes: 'MetaGPT is a textbook implementation of a **Multi-Agent** architecture.
-  The codebase is explicitly organized around the coordination of autonomous entities
-  ("Roles") that encapsulate logic, state, and decision-making capabilities to achieve
-  a shared goal.
-
-
-  ### 1. Multi-Agent (Primary Style)
-
-  The core of the repository is built on the interaction between autonomous agents.
-
-  - **Agent Encapsulation:** The `metagpt/roles/role.py` file defines the `Role` base
-  class, which encapsulates its own "Memory," "Actions," and "React Mode" (e.g., `PLAN_AND_ACT`).
-  This follows the agent-oriented paradigm where each component is an independent
-  actor.
-
-  - **Social Coordination:** The system uses a "Software Company" metaphor to manage
-  complex tasks, assigning specialized agents like `ProductManager`, `Architect`,
-  and `Engineer` (`metagpt/roles/`).
-
-  - **Environment Context:** The `metagpt/environment/base_env.py` provides the "world"
-  (the `Environment` class) where agents exist, observe state, and act. This is a
-  fundamental characteristic of Multi-Agent Systems (MAS).
-
-
-  ### 2. Event-Driven (Secondary Style)
-
-  While the high-level logic is Multi-Agent, the underlying communication mechanism
-  is a sophisticated **Event-Driven** pub/sub system.'
-review_required: false
-classification_method: deep-analysis-tooluse
 classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:30:53Z'
-classification_reasoning: "## Architecture Classification: Multi-Agent\n\n**MetaGPT\
-  \ is a Multi-Agent framework** designed for orchestrating autonomous AI agents that\
-  \ collaborate to solve complex tasks.\n\n### Core Architectural Evidence:\n\n**1.\
-  \ Agent as Primary Abstraction**\n- The `Role` class (`metagpt/roles/role.py`) defines\
-  \ autonomous agents with:\n  - Identity (`name`, `profile`, `goal`, `constraints`)\n\
-  \  - Memory (`Memory` for storing messages and history)\n  - Cognition (`_think()`,\
-  \ `_observe()`, `_act()` methods)\n  - Autonomy (`react_mode`: REACT, BY_ORDER,\
-  \ PLAN_AND_ACT)\n  - Planning capability (`Planner` for task decomposition)\n\n\
-  **2. Team Coordination**\n- `Team` class (`metagpt/team.py`) orchestrates multiple\
-  \ agents:\n```python\nclass Team(BaseModel):\n    env: Optional[Environment] = None\n\
-  \    def hire(self, roles: list[Role]):\n        self.env.add_roles(roles)\n```\n\
-  - Agents are \"hired\" into a shared environment where they interact\n\n**3. Message-Based\
-  \ Communication**\n- Agents communicate via `Message` objects with routing metadata\
-  \ (`send_to`, `cause_by`, `sent_from`)\n- `Environment.publish_message()` distributes\
-  \ messages to subscribing agents\n- Each agent watches for specific action types\
-  \ via `_watch([ActionClass])` to determine relevance\n\n**4. Standard Operating\
-  \ Procedures (SOP)**\nFrom `software_company.py`:\n```python\ncompany.hire([\n \
-  \   TeamLeader(),\n    ProductManager(),\n    Architect(),\n    Engineer2(),\n \
-  \   DataAnalyst(),\n])\n```\n- Predefined workflows: ProductManager watches UserRequirement\
-  \ → Architect watches WritePRD → Engineer watches WriteTasks\n- The README explicitly\
-  \ states: **\"Code = SOP(Team)\"** - codifying coordinated agent behavior\n\n**5.\
-  \ Autonomous Behavior Patterns**\nFrom `metagpt/roles/role.py`:\n```python\nclass\
-  \ RoleReactMode(str, Enum):\n    REACT = \"react\"\n    BY_ORDER = \"by_order\"\n\
-  \    PLAN_AND_ACT = \"plan_and_act\"\n```\n- Agents can reason and act autonomously,\
-  \ not just execute predefined workflows\n\n### Secondary Style: Event-Driven\n\n\
-  The coordination mechanism between agents follows an event-driven pattern:\n- Messages\
-  \ contain `cause_by` (what action triggered this message)\n- Agents subscribe to\
-  \ specific action types and react when relevant messages arrive\n- The `Environment`\
-  \ acts as an event bus routing messages between agents\n\nFrom `environment/base_env.py`:\n\
-  ```python\ndef publish_message(self, message: Message, peekable: bool = True) ->\
-  \ bool:\n    \"\"\"Distribute the message to the recipients.\"\"\"\n```\n\n### Rejected\
-  \ Alternatives:\n\n- **Not Microservices**: Single deployable unit (`pip install\
-  \ metagpt`), no independent service boundaries, no network communication between\
-  \ components\n- **Not Pipeline**: Agents can react dynamically (REACT mode), not\
-  \ just sequential stages. Communication is bidirectional and context-aware\n- **Not\
-  \ Domain-Driven Design**: While there are domain concepts (ProductManager, Architect),\
-  \ the primary organization is around *autonomous agents*, not bounded contexts or\
-  \ aggregates\n- **Not Modular Monolith**: The module structure (`actions/`, `roles/`,\
-  \ `tools/`) supports the multi-agent paradigm but isn't about enforcing module boundaries\
-  \ in the traditional sense\n- **Not Hexagonal**: No ports-and-adapters isolation\
-  \ pattern; agents directly interact with LLMs and tools\n\n### Key Differentiating\
-  \ Features:\n1. **Agent autonomy**: Each agent can think, plan, and act independently\n\
-  2. **Coordination via SOP**: Structured workflows define how agents interact\n3.\
-  \ **Memory and state**: Agents maintain conversation history and working memory\n\
-  4. **Tool extensibility**: `@register_tool` decorator allows dynamic capability\
-  \ addition"
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+one_line_summary: >
+  Multi-agent framework that models a software company as cooperating LLM-powered roles
+  (ProductManager, Architect, Engineer, QaEngineer, DataInterpreter, TeamLeader) executing
+  structured SOPs to convert a one-line requirement into production code.
+quality_attributes:
+  extensibility:
+    present: true
+    evidence: >
+      @register_tool decorator in metagpt/tools/tool_registry.py allows new tools to be
+      registered at import time without modifying the runtime. New Role subclasses can be
+      instantiated and hired into any Team via team.hire(). Fifteen-plus LLM backends
+      (OpenAI, Azure, Anthropic, Ollama, Gemini, Bedrock, Qianfan, Dashscope, etc.) are
+      swappable through metagpt/provider/llm_provider_registry.py with no changes to role
+      or action code.
+  modularity:
+    present: true
+    evidence: >
+      The package is cleanly partitioned into roles/, actions/, memory/, environment/,
+      strategy/, tools/, provider/, and ext/. Each role owns its own action list and Memory
+      object with no direct cross-role coupling. The ext/ subtree contains fully independent
+      extensions (aflow, stanford_town, werewolf, minecraft, android_assistant, sela, spo)
+      that import from the core but are not imported by it.
+  autonomy:
+    present: true
+    evidence: >
+      RoleReactMode (REACT, BY_ORDER, PLAN_AND_ACT) in metagpt/roles/role.py:82 lets agents
+      reason independently about their next action using the LLM. The Planner class
+      (metagpt/strategy/planner.py) supports dynamic multi-step task planning with AskReview
+      checkpoints. RoleZero (metagpt/roles/di/role_zero.py) agents can execute shell
+      commands, edit files with Editor, and browse the web with Browser — genuine tool-using
+      autonomy.
+  composability:
+    present: true
+    evidence: >
+      Team.serialize / Team.deserialize (metagpt/team.py) persist and recover the full agent
+      team state across runs. AFlow (metagpt/ext/aflow/) automatically generates and optimises
+      agentic workflows by composing operator primitives. The MGXEnv TeamLeader dynamically
+      dispatches work to the appropriate specialist role based on message content, enabling
+      runtime composition.
+  observability:
+    present: true
+    evidence: >
+      Structured logging via loguru (metagpt/logs.py). ThoughtReporter streams intermediate
+      LLM thoughts to the console or callback in real time (metagpt/utils/report.py).
+      TaskReporter tracks task status through execution. Every Role maintains a full
+      conversation History in Memory (metagpt/memory/memory.py) indexed by cause_by for
+      post-hoc inspection and debugging.
+notable_strengths:
+  - Clean Role/Action/Environment triad makes it straightforward to add new agent types
+  - SOP workflow (WritePRD → DesignAPI → WriteTasks → WriteCode) produces end-to-end software artifacts from a single prompt
+  - Supports 15+ LLM backends through a uniform provider abstraction
+  - MGXEnv TeamLeader provides orchestrated, conversational multi-agent interaction
+  - AFlow extension enables automated agentic workflow search and optimisation
+notable_gaps:
+  - No distributed deployment support; the entire agent team runs in a single Python process
+  - No built-in observability infrastructure (no Prometheus metrics, no distributed tracing)
+  - Memory is in-process and volatile; long-context runs risk hitting LLM context limits
+  - No formal interface contract between roles — coupling is through string-matched cause_by tags
+has_running_code: true
+has_tests: true
+has_ci_cd: false
+has_documentation: true
+has_adr: false
+key_technologies:
+  - Python
+  - Pydantic v2
+  - asyncio
+  - loguru
+  - tenacity
+  - OpenAI API
+  - lancedb
+  - faiss_cpu
+architecture_qualifiers:
+  - type: communication-model
+    value: message-passing
+    note: >
+      Agents communicate exclusively through typed Message objects published to the
+      shared Environment and routed by address-set subscription (role.addresses / cause_by watch set).
+  - type: design-approach
+    value: event-driven
+    note: >
+      Message routing is event-triggered: each role's _observe() method filters the
+      message buffer by cause_by type, and SubscriptionRunner supports async generator
+      triggers for external event sources.
+classification_reasoning: |
+  ## Architecture Classification Analysis
+
+  ### Primary Style: Multi-Agent
+
+  MetaGPT's entire design is built around autonomous agents (Roles) that perceive, reason,
+  and act in a shared Environment. The evidence is comprehensive and unambiguous:
+
+  **Agent abstraction:** The `Role` base class (`metagpt/roles/role.py`) gives every agent:
+  - Identity (`name`, `profile`, `goal`, `constraints`)
+  - Private memory (`Memory`, `working_memory` — see `RoleContext` at line 100)
+  - A perception-cognition-action loop (`_observe` → `_think` → `_act`)
+  - Three selectable autonomy modes: `REACT` (LLM selects action each turn),
+    `BY_ORDER` (fixed sequence), `PLAN_AND_ACT` (LLM plans, then executes)
+  - A `Planner` object for multi-step task decomposition with review checkpoints
+
+  **Specialised agent roster:** Concrete role subclasses encapsulate distinct professional
+  competencies — `ProductManager` (writes PRD), `Architect` (designs API), `Engineer`
+  (writes and reviews code), `QaEngineer` (writes tests), `DataInterpreter` (data analysis
+  with code execution), `TeamLeader` (orchestrates other agents in MGX mode), `SWEAgent`
+  (code repair via command loop). This is characteristic SOP-based multi-agent design.
+
+  **Shared environment:** `Environment` (`metagpt/environment/base_env.py`) hosts all roles
+  and implements address-set routing via `publish_message`. Each role subscribes to
+  messages it cares about by registering addresses (`role.name`, `role.profile`) and
+  watching specific `cause_by` action types. The `MGXEnv` variant adds a TeamLeader
+  orchestrator that acts as a supervisor routing messages between specialist agents.
+
+  **Team lifecycle:** `Team` (`metagpt/team.py`) assembles agents via `hire(roles)`,
+  manages the investment/budget constraint, and runs the multi-round loop
+  (`env.run()` dispatching `asyncio.gather` across all active roles). Serialisation
+  and recovery are first-class features.
+
+  **Research-grade extensions** in `metagpt/ext/` — AFlow (automated workflow generation),
+  stanford_town (social simulation), werewolf (game-playing agents), minecraft (embodied
+  agents), android_assistant (GUI agents) — all demonstrate the framework's generality
+  as a multi-agent substrate beyond the primary software-company use case.
+
+  ### Secondary Style: Pipeline (Pipe-and-Filter)
+
+  The standard software development workflow in MetaGPT is a linear, dependency-ordered
+  pipeline where each stage produces a typed artefact that triggers the next stage:
+
+  `UserRequirement` → `WritePRD` (ProductManager) → `DesignAPI` (Architect) →
+  `WriteTasks` (ProjectManager) → `WriteCode` (Engineer) → `WriteCodeReview` (Engineer) →
+  `SummarizeCode`
+
+  This pipeline character is structurally enforced: each role's `_watch` set contains
+  exactly the `cause_by` type it depends on, so the message bus effectively acts as a
+  typed pipe connecting sequential filters. The `Researcher` role makes this explicit with
+  `RoleReactMode.BY_ORDER` across its three-action sequence. `ActionGraph`
+  (`metagpt/actions/action_graph.py`) provides a topological-sort harness for
+  dependency-ordered action execution within more complex agent flows.
+
+  The pipeline pattern is secondary because in REACT mode and with MGX's TeamLeader,
+  the flow is dynamic and bidirectional — agents can loop, ask for human input, and
+  hand work back up the chain.
+
+  ### Styles Considered But Not Primary
+
+  - **Event-Driven:** The `cause_by`/address-based message routing and `SubscriptionRunner`
+    are event-driven in mechanism. However, the macro-level workflow is agent-orchestrated,
+    not event-reactive — there is no event backbone, no event store, and no independent
+    event consumers. Event-driven is therefore an architectural qualifier rather than a
+    primary style.
+  - **Modular Monolith:** The package structure is clean and well-partitioned, but module
+    boundaries are not enforced as deployment units or service contracts. It is a
+    single-process Python application.
+  - **Microservices:** No network service boundaries, no container orchestration, no inter-
+    service protocols. The application runs as a single Python process.
+  - **Hexagonal Architecture:** No port/adapter separation pattern; roles directly import
+    and use LLM providers and tool implementations.
+
+  ### Confidence
+
+  0.95 — Multi-Agent is unambiguously the primary organising principle: the entire codebase
+  is structured around the Role/Environment/Message triad, and the README's stated philosophy
+  ("Code = SOP(Team)") makes the design intent explicit. Pipeline is strongly evidenced by
+  the sequential SOP workflow and BY_ORDER react mode. Minor uncertainty on whether to list
+  Event-Driven as a secondary style vs. qualifier; the qualifier treatment is more precise.

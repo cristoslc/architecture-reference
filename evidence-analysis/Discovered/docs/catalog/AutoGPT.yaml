@@ -5,96 +5,139 @@ source: Discovered
 source_url: https://github.com/Significant-Gravitas/AutoGPT
 project_url: https://github.com/Significant-Gravitas/AutoGPT
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T06:05:36Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: AI/ML
+domain: AI Agent Platform / Workflow Automation
 language: Python
 languages:
-- Python
-- TypeScript
-- JavaScript
+  - Python
+  - TypeScript
+  - JavaScript
 architecture_styles:
-- Pipeline
-- Microservices
+  - Pipeline
+  - Microservices
+  - Multi-Agent
 classification_status: classified
-review_notes: 'The AutoGPT repository has evolved from a single-script experiment
-  into a sophisticated distributed system. The architecture is now split into two
-  main sections: "Classic" (legacy agents) and the "Platform" (the modern distributed
-  infrastructure).
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+  deployability:
+    present: true
+    evidence: >
+      Eight independently containerised services (rest_server, executor, copilot_executor,
+      websocket_server, database_manager, scheduler_server, notification_server, frontend)
+      each use a separate Docker Compose service with distinct ports, Dockerfile build
+      targets, and health-check-gated startup ordering. Services can be scaled or
+      replaced independently.
+  modularity:
+    present: true
+    evidence: >
+      275+ Block subclasses are loaded dynamically at startup via importlib in
+      blocks/__init__.py. A public backend.sdk module re-exports all base classes,
+      enabling third-party block development without touching the executor or core.
+      Blocks are categorised (AI, TEXT, SEARCH, LOGIC, COMMUNICATION, DEVELOPER_TOOLS,
+      etc.) with no circular dependencies between block files and the execution engine.
+  scalability:
+    present: true
+    evidence: >
+      The executor uses a ThreadPoolExecutor with a configurable pool size exposed as
+      a Prometheus gauge (execution_manager_pool_size). Graph execution tasks are
+      dispatched via RabbitMQ direct exchanges and queues, allowing multiple executor
+      replicas to consume work in parallel. A dedicated copilot_executor service handles
+      CoPilot workloads independently of graph execution.
+  fault_tolerance:
+    present: true
+    evidence: >
+      RabbitMQ connection configuration explicitly sets BLOCKED_CONNECTION_TIMEOUT=300s,
+      SOCKET_TIMEOUT=30s, and CONNECTION_ATTEMPTS=5 with retry logic. The continuous_retry
+      and func_retry decorators wrap execution entry points. A Redis-backed ClusterLock
+      prevents duplicate graph execution across replicas. InsufficientBalanceError and
+      ModerationError are caught and converted to execution status updates rather than
+      crashes.
+  observability:
+    present: true
+    evidence: >
+      monitoring/instrumentation.py defines Prometheus counters (autogpt_graph_executions_total,
+      autogpt_block_executions_total), a histogram (autogpt_block_duration_seconds with
+      nine buckets), and a gauge (autogpt_websocket_connections_total). Sentry is initialised
+      in util/metrics.py and integrated into every service. Structured logging uses a
+      TruncatedLogger wrapper. Redis streams real-time execution status events to
+      WebSocket clients. monitoring/ also contains AccuracyMonitor, BlockErrorMonitor,
+      and LateExecutionMonitor for operational alerting.
+  evolvability:
+    present: true
+    evidence: >
+      LaunchDarkly feature flags gate new frontend capabilities (frontend/src/services/feature-flags/).
+      AgentGraph models carry an integer graph_version field, enabling forward-compatible
+      versioning of agent definitions. The classic/ subtree is preserved alongside
+      autogpt_platform/ as a maintained legacy path. Block SDK design allows new
+      integrations to be added as independent Python packages without modifying the core
+      executor.
+one_line_summary: >
+  AI agent platform built on a block-based pipeline execution engine deployed as
+  eight cooperating microservices, with recursive multi-agent composition and
+  production-grade observability.
+classification_reasoning: |
+  ## Architecture Classification Analysis
 
+  ### Primary Style: Pipeline (Pipe-and-Filter)
 
-  ### 1. Primary Style: Microservices
+  AutoGPT's core execution model is a directed-graph dataflow engine. The 275+
+  classes in `backend/backend/blocks/` each extend `Block` and define a typed
+  `BlockSchemaInput`, a `BlockSchemaOutput`, and an async `run()` method that
+  yields `(output_pin, value)` tuples. Agents are stored as `AgentGraph` objects
+  (schema.prisma: AgentGraph, AgentNode, AgentNodeLink). `Link` instances wire a
+  `source_name` output pin on a source `Node` to a `sink_name` input pin on a sink
+  `Node`. The `ExecutionManager` in `executor/manager.py` traverses nodes in
+  dependency order, calls `execute_node()` for each, and propagates outputs to
+  connected sink nodes via an in-process `ExecutionQueue`. This is a textbook
+  pipe-and-filter pattern: blocks are stateless filters, links are typed pipes,
+  and graphs are composed pipelines.
 
-  The `autogpt_platform` is structured as a set of independently executable services.
-  Evidence from `autogpt_platform/backend/pyproject.toml` shows defined entry points
-  for distinct operational roles that correspond to a microservices topology:
+  ### Secondary Style: Microservices
 
-  - **API/Rest Service**: `backend.rest:main` (External interface)
+  The platform deploys eight independently containerised processes visible in
+  `docker-compose.platform.yml`:
+  - rest_server (FastAPI REST API, port 8006)
+  - websocket_server (real-time push, port 8001)
+  - executor (graph execution, port 8002)
+  - copilot_executor (CoPilot AI, port 8008)
+  - database_manager (DB proxy, port 8005)
+  - scheduler_server (cron/triggers, port 8003)
+  - notification_server (email/push, port 8007)
+  - frontend (Next.js, port 3000)
 
-  - **Executor**: `backend.executor:main` (Computational/Agent worker)
+  Inter-service communication uses two mechanisms: asynchronous message dispatch
+  via RabbitMQ (fanout and direct exchanges defined in `data/rabbitmq.py` and
+  `executor/utils.py`) and synchronous HTTP RPC through the `BaseAppService`
+  framework in `util/service.py`. Services share PostgreSQL (via Supabase) and
+  Redis but otherwise run independently. All eight can be individually scaled,
+  replaced, or omitted from a deployment.
 
-  - **Scheduler**: `backend.scheduler:main` (Temporal coordination)
+  ### Tertiary Style: Multi-Agent
 
-  - **Notification**: `backend.notification:main` (Side-effect management)
+  The `AgentExecutorBlock` (`blocks/agent.py`, BlockType.AGENT) allows any node
+  in a graph to invoke a separate, independently versioned `AgentGraph` as a
+  sub-agent. This enables recursive composition: agents can orchestrate other
+  agents. The `agents/` directory contains 17 pre-built agent JSON definitions.
+  `BlockType.MCP_TOOL` enables agents to call external Model Context Protocol tool
+  servers. The Store marketplace allows users to publish and reuse agent templates,
+  making cross-user agent composition practical at platform scale.
 
-  - **Websocket Service**: `backend.ws:main` (Real-time updates)'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:21:46Z'
-classification_reasoning: "## Analysis\n\n### Primary Architecture: Pipeline (Pipe-and-Filter)\n\
-  \nThe AutoGPT Platform is built around a **Block-based pipeline system** where:\n\
-  \n1. **Blocks are the fundamental processing units** - There are **275+ blocks**\
-  \ in `autogpt_platform/backend/backend/blocks/`, each defining:\n   - Input schema\
-  \ (`BlockSchemaInput`) \n   - Output schema (`BlockSchemaOutput`)\n   - An async\
-  \ `run()` method that yields output tuples\n\n2. **Graphs (Agents) are composed\
-  \ of connected blocks** - From `backend/data/graph.py`:\n   - `Node` instances reference\
-  \ a `block_id` \n   - `Link` instances connect source blocks to sink blocks via\
-  \ `source_id`, `sink_id`, `source_name`, `sink_name`\n   - Data flows through the\
-  \ graph from block to block\n\n3. **Execution follows pipeline semantics** - The\
-  \ `ExecutionManager` in `backend/executor/manager.py` orchestrates graph execution\
-  \ by:\n   - Queueing execution via RabbitMQ\n   - Executing blocks in dependency\
-  \ order\n   - Passing output from one block as input to connected blocks\n\n4. **Block\
-  \ categories define processing stages** - From `_base.py`, blocks are categorized\
-  \ as AI, TEXT, SEARCH, LOGIC, COMMUNICATION, etc. - each performing a specific transformation.\n\
-  \n5. **Dynamic block discovery** - From `blocks/__init__.py`:\n```python\ndef load_all_blocks()\
-  \ -> dict[str, type[\"AnyBlockSchema\"]]:\n    # Dynamically load all modules under\
-  \ backend.blocks\n    for f in current_dir.rglob(\"*.py\"):\n        importlib.import_module(f\"\
-  .{module}\", package=__name__)\n    # Load all Block instances from the available\
-  \ modules\n    for block_cls in _all_subclasses(Block):\n        available_blocks[block.id]\
-  \ = block_cls\n```\n\n### Secondary Architecture: Microservices\n\nThe platform\
-  \ is deployed as **multiple independently deployable services** (from `docker-compose.platform.yml`):\n\
-  \n- **rest_server** - FastAPI REST API (port 8006)\n- **executor** - Graph execution\
-  \ engine (port 8002)  \n- **copilot_executor** - AI copilot processing (port 8008)\n\
-  - **websocket_server** - Real-time client updates\n- **database_manager** - Database\
-  \ operations\n- **scheduler_server** - Scheduled job execution\n- **notification_server**\
-  \ - Notification handling\n- **frontend** - Next.js web application\n\n**Asynchronous\
-  \ communication via RabbitMQ** - Services communicate through message queues defined\
-  \ in `backend/data/rabbitmq.py`:\n```python\nclass RabbitMQBase(ABC):\n    \"\"\"\
-  Base class for RabbitMQ connections with shared configuration\"\"\"\n```\n\n**Shared\
-  \ infrastructure**: PostgreSQL (via Supabase), Redis for caching, RabbitMQ for messaging.\n\
-  \n### What This Is NOT\n\n- **NOT Layered** - While there are API/executor/data\
-  \ components, the core abstraction is graph-based flow, not horizontal layering\n\
-  - **NOT Modular Monolith** - Multiple independent Docker services with separate\
-  \ deployment units\n- **NOT CQRS** - No explicit read/write model separation\n-\
-  \ **NOT DDD** - No bounded contexts or aggregate patterns\n- **NOT Hexagonal Architecture**\
-  \ - While integrations exist, the core isn't organized around ports-and-adapters\
-  \ isolation\n\n### Supporting Evidence\n\n**Block-based composition** - Example\
-  \ from `blocks/basic.py`:\n```python\nclass FileStoreBlock(Block):\n    async def\
-  \ run(self, input_data: Input, ...) -> BlockOutput:\n        yield \"file_out\"\
-  , await store_media_file(...)\n```\n\n**Flow control blocks** - `blocks/branching.py`\
-  \ shows conditional routing:\n```python\nclass ConditionBlock(Block):\n    # Routes\
-  \ data based on comparison operators\n    # Outputs to yes_output or no_output based\
-  \ on condition\n```\n\n**Graph execution** - From `executor/manager.py`:\n```python\n\
-  from backend.data.graph import Link, Node\nfrom backend.data.execution import GraphExecution,\
-  \ NodeExecutionEntry\n```\n\n**275+ block files** provide extensive processing capabilities:\n\
-  ```\n$ find autogpt_platform/backend/backend/blocks -name \"*.py\" -type f | wc\
-  \ -l\n275\n```\n\n### Conclusion\n\nThe AutoGPT Platform implements a **Pipeline\
-  \ (Pipe-and-Filter)** architecture where:\n- **Filters** = Blocks (processing units\
-  \ with defined input/output schemas)\n- **Pipes** = Links (connections between block\
-  \ outputs and inputs)\n- **Graphs** = Compositions of interconnected blocks forming\
-  \ complete workflows/agents\n\nThis is enhanced by a **Microservices** deployment\
-  \ topology where services communicate asynchronously via RabbitMQ, enabling independent\
-  \ scaling and deployment of the executor, API, scheduler, and other components."
+  ### Styles Considered But Not Primary
+
+  - Event-Driven: RabbitMQ and the Redis event bus are used for async dispatch, but
+    they are infrastructure choices serving the microservices topology; the execution
+    model is graph-ordered, not event-reactive.
+  - Microkernel: The Block SDK provides an extension mechanism, but blocks are not
+    dynamically loaded plugins in the traditional microkernel sense; they are
+    statically compiled into the server image.
+  - Hexagonal Architecture: Port/adapter separation exists for integrations
+    (backend/integrations/) but is not the organising principle of the codebase.
+
+  ### Confidence
+
+  0.93 — The Pipeline and Microservices patterns are unambiguous from code and
+  deployment configuration. Multi-Agent is strongly evidenced by AgentExecutorBlock
+  and the recursive graph invocation pattern. Minor uncertainty on precise boundary
+  between Pipeline and Event-Driven given the RabbitMQ usage.

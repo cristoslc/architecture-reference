@@ -5,84 +5,68 @@ source: Discovered
 source_url: https://github.com/marcinstelmach/Ecommerce.Api
 project_url: https://github.com/marcinstelmach/Ecommerce.Api
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T04:56:47Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: E-Commerce
 language: C#
 languages:
-- C#
+  - C#
 architecture_styles:
-- Layered
-- CQRS
+  - Layered
+  - CQRS
+  - Domain-Driven Design
 classification_status: classified
-review_notes: '### Architectural Analysis
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: "2026-03-10"
+quality_attributes:
+  Modularity: Autofac DI modules (RepositoriesModule, ServicesModule, FactoriesModule, HelpersModule, MediaTrModule, MapperModule) partition all registrations; automated convention tests assert every service class is internal and implements an interface.
+  Evolvability: Interface-per-service convention enforced by xUnit convention tests; strict downward-only layer dependencies prevent cross-cutting coupling; code analysis rulesets (StyleCop + FxCop) on every project.
+  Observability: Serilog integrated at host level with log-level differentiation (Warning for client errors, Error for server faults) in ExceptionHandlerMiddleware; structured error messages serialised to JSON HTTP responses.
+  Fault Tolerance: Unhandled exceptions are written to Azure Storage Queue (AzureStorageQueueManager); a separate Azure Functions app (ExceptionQueueFunction) consumes the queue and sends alert emails, decoupling failure alerting from the request path.
+  Deployability: Azure Pipelines CI pipeline performs dotnet build, dotnet test, and dotnet publish for every push to master/develop; Streetwood.Functions targets Azure Functions v2 as an independently deployable unit.
+  Scalability: In-process memory cache (AddMemoryCache) reduces repeated DB queries; README acknowledges shared single SQL Server as the current scale ceiling ("one database").
+one_line_summary: ASP.NET Core 2.2 e-commerce API using strict three-layer architecture (API / Infrastructure / Core) with MediatR-based CQRS and DDD-lite rich domain entities, complemented by an Azure Functions sidecar for async exception alerting.
+classification_reasoning: |
+  ## Architecture Classification: Ecommerce.Api (Streetwood)
 
+  ### Primary Style: Layered Architecture
 
-  The repository is a classic example of a **CQRS (Command Query Responsibility Segregation)**
-  architecture implemented within a .NET environment. The README explicitly identifies
-  the use of CQRS and MediatR, and the directory structure reinforces this through
-  a strict separation of read and write concerns at the infrastructure level.
+  The solution divides all code into three compile-time layers with enforced downward-only dependency:
+  - **Streetwood.API** (presentation): controllers, view models, middleware, filters, Swagger, bus abstraction.
+  - **Streetwood.Infrastructure** (application): command/query handlers and models, services, DTOs, mappers, managers, factories.
+  - **Streetwood.Core** (domain): entities, repository interfaces, EF Core DbContext, enums, migrations, settings.
 
+  Project-reference evidence is conclusive: `Streetwood.API.csproj` references only `Streetwood.Infrastructure`; `Streetwood.Infrastructure.csproj` references only `Streetwood.Core`. No skip-layer dependencies exist.
 
-  #### Evidence of CQRS:
+  ### Secondary Style: CQRS
 
-  - **Separation of Models:** Under `src/Streetwood.Infrastructure`, there are distinct
-  directories for `Commands` and `Queries`.
+  The README explicitly declares "CQRS (one database :))". The Infrastructure project contains two physically separate sub-trees:
+  - `Commands/Models/` + `Commands/Handlers/` — write operations, handlers return scalar results or mutate state.
+  - `Queries/Models/` + `Queries/Handlers/` — read operations, handlers return DTOs.
 
-  - **Handler Pattern:** The presence of `Commands/Handlers` and `Queries/Handlers`
-  indicates the use of the Mediator pattern (via MediatR) to decouple the entry points
-  (API Controllers) from the execution logic.
+  MediatR is the in-process message bus. Controllers never call services directly; they dispatch via `IBus.SendAsync()` (a thin `MediatorBus` wrapper). Service interfaces are also split: `IOrderCommandService` vs `IOrderQueryService`. Because both reads and writes share the same SQL Server database, this is single-database CQRS, not event-sourced.
 
-  - **DTOs vs Domain:** A large collection of DTOs in `src/Streetwood.Infrastructure/Dto`
-  is used for queries, while the `src/Streetwood.Core/Domain` contains the entities
-  used for command-side persistence and state transitions.
+  ### Tertiary Style: Domain-Driven Design (lite)
 
+  The README states "Smart domain objects (DDD)". Evidence in `Streetwood.Core/Domain/Entities/`:
+  - Rich entities with protected setters and domain-verb methods (`Order.Close()`, `Order.SetShipment()`, `User.SetPassword()`, `User.SetRefreshToken()`).
+  - Encapsulated collections exposed only as `IReadOnlyCollection<T>`.
+  - Base `Entity` class providing `Guid Id`.
+  - Repository interfaces defined inside the domain layer and implemented in Core (not Infrastructure), keeping the domain agnostic of EF Core details at the interface level.
 
-  #### Evidence of Layered/Hexagonal influence:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:16:40Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: Layered Architecture\n\nThe repository exhibits a classic **Layered Architecture**\
-  \ with three well-defined horizontal layers:\n\n1. **Presentation Layer (`Streetwood.API`)**:\
-  \ Controllers, view models, middleware, filters, and API configuration\n2. **Application/Data\
-  \ Access Layer (`Streetwood.Infrastructure`)**: Command/query handlers, services,\
-  \ DTOs, mappers, and infrastructure concerns\n3. **Domain/Core Layer (`Streetwood.Core`)**:\
-  \ Domain entities, repository interfaces, database context, migrations, and domain\
-  \ abstractions\n\n**Evidence of strict layering:**\n- Dependencies flow downward\
-  \ only: `Streetwood.API` → `Streetwood.Infrastructure` → `Streetwood.Core` (verified\
-  \ in `.csproj` files)\n- Each layer has distinct responsibilities without cross-cutting\
-  \ concerns\n- `Streetwood.API.csproj` only references `Streetwood.Infrastructure`,\
-  \ not Core directly\n- `Streetwood.Infrastructure.csproj` references `Streetwood.Core`\
-  \ for domain abstractions\n\n### Secondary Style: CQRS\n\nThe codebase implements\
-  \ **CQRS (Command Query Responsibility Segregation)** using MediatR:\n\n**Evidence:**\n\
-  - README explicitly states: \"CQRS (one database :)\"\n- Clear directory separation\
-  \ under `src/Streetwood.Infrastructure/`:\n  - `Commands/Handlers/` and `Commands/Models/`\
-  \ for write operations\n  - `Queries/Handlers/` and `Queries/Models/` for read operations\n\
-  - Command handlers implement `IRequestHandler<CreateOrderCommandModel, int>` (returns\
-  \ command result)\n- Query handlers implement `IRequestHandler<GetOrderQueryModel,\
-  \ OrderDto>` (returns DTOs)\n- Separate service interfaces: `ICharmCommandService`\
-  \ vs `ICharmQueryService`\n- Controllers dispatch via `IBus.SendAsync()` abstraction\
-  \ over MediatR (see `OrdersController.cs`)\n\n### DDD Lite Elements (Not Primary)\n\
-  \nThe README mentions \"Smart Domain objects (DDD)\" and there are DDD-influenced\
-  \ patterns:\n- Rich entities with behavior methods (`Order.cs`, `Product.cs`, `User.cs`)\n\
-  - Protected setters with domain methods like `SetName()`, `SetPrice()`, `Close()`\n\
-  - Encapsulated collections with `IReadOnlyCollection`\n- Entity base class (`Streetwood.Core/Domain/Abstract/Entity.cs`)\n\
-  \nHowever, it lacks full DDD tactical patterns:\n- No explicit Aggregate Root markers\n\
-  - No Bounded Contexts\n- Single shared database context for all entities\n- No value\
-  \ objects identified\n\n### What This Is NOT\n\n- **NOT Microservices**: Single\
-  \ deployable ASP.NET Core application, single database, one solution\n- **NOT Serverless\
-  \ (primary)**: Main API is a traditional web app; `Streetwood.Functions` is a secondary\
-  \ Azure Functions project for background email processing\n- **NOT Hexagonal Architecture**:\
-  \ No explicit ports/adapters pattern; Core layer contains EF Core DbContext, not\
-  \ pure domain isolation\n\n### Deployment Topology\n\nSingle monolithic web application\
-  \ with:\n- Main API project (`Streetwood.API`)\n- Auxiliary Azure Functions project\
-  \ (`Streetwood.Functions`) for queue-triggered exception email handling\n- Shared\
-  \ database accessed by the main API\n\n### Architectural Enforcement\n\n- Code analysis\
-  \ ruleset (`streetwood.ruleset`) with StyleCop and FxCop analyzers\n- Convention\
-  \ tests ensuring services are internal and implement interfaces (see `Streetwood.Convention.Tests`)\n\
-  - Clear module separation via Autofac DI modules (`RepositoriesModule`, `MediaTrModule`,\
-  \ etc.)"
+  What is absent prevents full DDD classification: no explicit Aggregate Root markers, no Bounded Contexts, no Value Objects, a single shared `StreetwoodContext` spanning all 17 entity types, and no domain events.
+
+  ### Deployment Topology
+
+  The main API is a traditional monolithic ASP.NET Core web app deployed as a single unit. A companion `Streetwood.Functions` project (Azure Functions v2) handles two async background tasks: a timer-triggered keep-alive HTTP ping and a queue-triggered exception-email relay. The two deployable units communicate via Azure Storage Queue — exceptions are enqueued by the API's `ExceptionHandlerMiddleware` and dequeued by `ExceptionQueueFunction`. Azure Blob Storage backs image file management. No Docker, Kubernetes, or service-mesh configuration is present.
+
+  ### What This Is NOT
+
+  - **Not Microservices / Service-Based**: Single ASP.NET Core process, single SQL Server, one solution.
+  - **Not Hexagonal Architecture**: Core layer contains EF Core `DbContext` and Migrations; no explicit Ports/Adapters boundary exists.
+  - **Not Event-Driven**: The Azure Queue usage is a narrow operational channel for error alerting, not a domain event bus.
+  - **Not Serverless (primary)**: The main workload is a long-running web server; Functions is a sidecar.
+
+  ### Confidence Rationale
+
+  Confidence 0.92. The Layered + CQRS combination is unambiguous — confirmed by project structure, .csproj references, README, and code inspection. DDD-lite is added at tertiary level because the rich-entity evidence is clear but incomplete (no BCs, no value objects). The 0.08 uncertainty reflects the absence of explicit Aggregate Root declarations and the fact that Core also hosts EF infrastructure code.

@@ -4,97 +4,190 @@ use_type: production
 source: Discovered
 source_url: https://github.com/opentripplanner/OpenTripPlanner
 project_url: https://github.com/opentripplanner/OpenTripPlanner
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-07T05:03:40Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Logistics
-language: Java/Kotlin
+domain: Transportation
+language: Java
 languages:
-- Java/Kotlin
-- TypeScript
-- Python
+  - Java
+  - TypeScript
+  - Python
 architecture_styles:
-- Modular Monolith
-- Layered
+  - Modular Monolith
+  - Layered
+architecture_qualifiers:
+  - type: design-approach
+    value: ddd
+    note: Aggregate roots, entities, value objects, and repository interfaces in transit domain model; bounded contexts map to Maven modules
+one_line_summary: Multi-modal transit trip planner (GTFS/NeTEx + OSM) structured as a strictly-bounded Modular Monolith with a four-layer internal architecture enforced by ArchUnit tests.
 classification_status: classified
-review_notes: "The OpenTripPlanner (OTP) architecture is a classic example of a **Modular\
-  \ Monolith** that is progressively evolving from a traditional **Layered** structure\
-  \ toward a more rigorous **Domain-Driven Design (DDD)** approach.\n\n### 1. Modular\
-  \ Monolith (Primary Style)\nWhile the end product is a \"unified shaded JAR\" (as\
-  \ noted in the README), the codebase is strictly partitioned into high-level Maven\
-  \ modules that enforce boundary isolation. \n- **Component Isolation:** The `ARCHITECTURE.md`\
-  \ explicitly highlights the `raptor` module as a decoupled component with \"as few\
-  \ dependencies as possible\" and \"no dependencies from Raptor to other parts of\
-  \ OTP code.\" This demonstrates a move away from a \"Big Ball of Mud\" toward enforced\
-  \ module boundaries.\n- **Service Segregation:** Key algorithmic and domain concerns\
-  \ are separated into sibling modules like `raptor`, `astar`, `street`, and `domain-core`.\
-  \ The `application` module acts as the orchestrator that brings these together.\n\
-  \n### 2. Layered & DDD (Secondary Styles)\nThe internal structure within these modules,\
-  \ particularly within `application` and the documented design goals, follows a horizontal\
-  \ layering strategy influenced by DDD:\n- **Use Case Services vs. Domain Services:**\
-  \ `ARCHITECTURE.md` defines a clear hierarchy: `Use Case Services` (stateless orchestrators)\
-  \ and `Domain Models` (encapsulated business logic). It mentions that complex domains\
-  \ (like `transit`) use a separate `Service` and `Repository` layer."
+classification_method: deep-analysis
+classification_confidence: 0.93
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+key_technologies:
+  - Java 25
+  - Maven (multi-module)
+  - Dagger (dependency injection)
+  - ArchUnit (architecture tests)
+  - GraphQL (Jersey + custom schema)
+  - GTFS / NeTEx / SIRI / GTFS-RT
+  - OpenStreetMap (GeoTools, JTS)
+  - Micrometer (metrics)
+  - Protocol Buffers
+  - Lucene (stop search)
+quality_attributes:
+  - Modularity
+  - Testability
+  - Performance
+  - Evolvability
+  - Observability
+  - Deployability
+  - Fault Tolerance
+notable_strengths:
+  - Raptor module has zero runtime dependencies on the rest of OTP, enforced by ArchUnit — textbook module isolation
+  - Four-layer architecture (Use Case Service → Domain Service → Domain Model → Repository) explicitly documented and consistently applied
+  - SpeedTest performance benchmark runs automatically on every merged PR against real Norway data
+  - Sandbox feature-flag mechanism isolates experimental features without contaminating the core
+  - Versioned graph serialization prevents silent data corruption across OTP versions
+notable_gaps:
+  - ARCHITECTURE.md acknowledges package structure "needs cleanup" — goal state not yet fully realized in all packages
+  - Multi-criteria Raptor architecture test is @Disabled, indicating the enforcement is incomplete
+  - No clear ports-and-adapters boundary between the APIs layer and domain services (uses direct injection, not port interfaces)
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: true
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:34:02Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: Modular Monolith\n\nOpenTripPlanner exhibits clear characteristics of a\
-  \ **Modular Monolith** architecture with strongly enforced internal module boundaries:\n\
-  \n**1. Single Deployable Unit with Enforced Module Boundaries**\n- The project produces\
-  \ a single unified JAR (`otp-shaded/target/otp-shaded-VERSION.jar`) as documented\
-  \ in `README.md` lines 51-55\n- Uses Maven multi-module structure with explicit\
-  \ modules: `utils`, `domain-core`, `raptor`, `astar`, `street`, `gtfs-realtime-protobuf`,\
-  \ `application` (pom.xml lines 97-107)\n- Architecture tests using ArchUnit enforce\
-  \ package dependencies (see `TimetableRepositoryArchitectureTest.java` and `RaptorArchitectureTest.java`)\n\
-  \n**2. Strict Module Isolation**\n- The Raptor module explicitly documents: *\"\
-  there are no dependencies from Raptor to other parts of OTP code, only to utility\
-  \ classes not found in the JDK\"* (`raptor/pom.xml` lines 35-37, `ARCHITECTURE.md`\
-  \ lines 66-69)\n- Each module has controlled dependencies declared in pom.xml (e.g.,\
-  \ `raptor` only depends on `utils`, `street` depends on `domain-core` and `astar`)\n\
-  - Development Decision Records explicitly state: *\"Keep modules clean. Consider\
-  \ adding an `api`, `spi` and mapping code to isolate the module from the rest of\
-  \ the code. Avoid circular dependencies between modules.\"* (DEVELOPMENT_DECISION_RECORDS.md\
-  \ lines 76-79)\n\n**3. Dependency Enforcement via Architecture Tests**\nThe architecture\
-  \ tests enforce allowed dependencies between packages:\n```java\n// From RaptorArchitectureTest.java\
-  \ - explicit dependency boundaries\nRAPTOR_SPI.dependsOn(OTP_UTILS, API_MODEL, API_PATH).verify();\n\
-  ```\n\n**4. Module Wiring via Dependency Injection**\n- Uses Dagger for component\
-  \ wiring with explicit module classes (`*Module.java` files)\n- Module wiring follows\
-  \ documented pattern: `\"Put the wiring code in <module-name>/configure/<Module-name>Module.java\"\
-  ` (DEVELOPMENT_DECISION_RECORDS.md lines 67-68)\n- Clear service/repository interfaces\
-  \ with implementations in `internal` packages (see `service/` directory structure\
-  \ in `application/src/main/java/org/opentripplanner/service/`)\n\n### Secondary\
-  \ Style: Layered Architecture\n\nThe codebase exhibits layered architecture patterns\
-  \ within and across modules:\n\n**Layer Organization (from ARCHITECTURE.md lines\
-  \ 21-36):**\n- **Use Case Services**: Stateless services combining multiple domain\
-  \ services (e.g., `RoutingService`, `TransitService`)\n- **Domain Services**: Business\
-  \ logic for specific domains (transit, vehicle position, etc.)\n- **Domain Models**:\
-  \ Encapsulate business areas with separate Service and Repository\n- **Repositories**:\
-  \ Maintain domain models, used by updaters\n\n**Service Package Structure (from\
-  \ service/package.md):**\n```\no.o.service.<name>\n  configure/          -- Dependency\
-  \ Injection configuration\n  internal/           -- Internal implementation\n  model/\
-  \              -- Public model/api\n  <Name>Service       -- Interface for read-only\
-  \ service\n  <Name>Repository    -- Interface for updating the model\n```\n\n**API\
-  \ Layer:**\n- GraphQL APIs in `application/src/main/java/org/opentripplanner/apis/`\n\
-  - Configuration layer in `standalone/config/` that injects POJOs into components\n\
-  \n### Evidence Against Other Styles\n\n- **Not Microservices**: Single deployable\
-  \ JAR, no service boundaries for independent deployment\n- **Not Serverless**: No\
-  \ function-based deployment units, runs as standalone server\n- **Not CQRS**: No\
-  \ separate read/write models documented (though real-time data handling exists)\n\
-  - **Not Microkernel/Plugin**: No runtime plugin loading; modules are compile-time\
-  \ defined\n- **Not Event-Driven (primary)**: While real-time updaters exist (`updater/`\
-  \ package), the core architecture is synchronous request-response via GraphQL\n\
-  - **Not Hexagonal**: No explicit ports/adapters pattern; uses direct service injection\
-  \ rather than port interfaces\n\n### Conclusion\n\nOpenTripPlanner is a mature,\
-  \ well-structured **Modular Monolith** that has evolved over 15+ years. The architecture\
-  \ emphasizes:\n\n1. **Strong module encapsulation** enforced by both build system\
-  \ (Maven dependencies) and architecture tests (ArchUnit)\n2. **Clear layered structure**\
-  \ within modules following Use Case → Domain Service → Repository patterns\n3. **Explicit\
-  \ dependency injection** via Dagger modules with documented wiring conventions\n\
-  4. **Domain-driven design concepts** (aggregates, entities, value objects) applied\
-  \ within modules\n\nThe isolated Raptor routing engine module demonstrates particularly\
-  \ strong boundary enforcement, with zero dependencies on the rest of OTP beyond\
-  \ utility classes."
+review_notes: >
+  OpenTripPlanner (OTP) is a mature Modular Monolith that has evolved over 15+ years of
+  active production use across national transit agencies. The primary architectural concern
+  is enforced module isolation within a single deployable JAR. The Raptor routing engine
+  module is the clearest example: its zero-dependency contract from the rest of OTP code
+  is documented in ARCHITECTURE.md and enforced by RaptorArchitectureTest (ArchUnit).
+  Internal structure follows a four-layer hierarchy documented explicitly — Use Case
+  Services, Domain Services, Domain Models, Repositories — making Layered the appropriate
+  secondary style. DDD tactical patterns (aggregate roots, entities, value objects,
+  repositories, bounded contexts) appear throughout the transit domain model and are
+  called out in transit/model/package.md, qualifying as an architecture_qualifier rather
+  than a primary style.
+classification_reasoning: |
+  ## Architecture Classification Analysis
+
+  ### Primary Style: Modular Monolith
+
+  OpenTripPlanner exhibits all defining characteristics of a Modular Monolith:
+
+  **1. Single Deployable Unit**
+  - The project produces one unified fat JAR: `otp-shaded/target/otp-shaded-VERSION.jar`
+    (documented in README.md and CLAUDE.md)
+  - A single `OTPMain` entry point starts the server process
+  - No container orchestration, no independent service deployments
+
+  **2. Well-Defined Internal Module Boundaries**
+  - Eight Maven modules declared in root `pom.xml` (lines 97–107): `utils`, `domain-core`,
+    `raptor`, `astar`, `street`, `gtfs-realtime-protobuf`, `application`, `otp-shaded`
+  - Each module has a `pom.xml` with explicit `<dependency>` declarations controlling
+    what each module may see
+  - DEVELOPMENT_DECISION_RECORDS.md §Use-Module-Encapsulation mandates: "Consider adding
+    an `api`, `spi` and mapping code to isolate the module from the rest of the code.
+    Avoid circular dependencies between modules."
+
+  **3. Compile-Time and Test-Time Boundary Enforcement**
+  - `RaptorArchitectureTest.java` (ArchUnit) verifies exact allowed dependencies for
+    every package within the Raptor module:
+    - `API_MODEL.dependsOn(OTP_UTILS).verify()`
+    - `RAPTOR_SPI.dependsOn(OTP_UTILS, API_MODEL, API_PATH).verify()`
+    - `enforceNoCyclicDependencies()` test ensures the entire Raptor subgraph is cycle-free
+  - `TimetableRepositoryArchitectureTest.java`, `DataStoreArchitectureTest.java`,
+    `FrameworkArchitectureTest.java` apply similar ArchUnit enforcement to other modules
+  - `OtpArchitectureModules.java` declares the canonical package-to-module mapping used
+    by all architecture tests
+
+  **4. Raptor as Canonical Isolated Module**
+  - ARCHITECTURE.md (lines 64–67) states explicitly: "there are no dependencies from
+    Raptor to other parts of OTP code, only to utility classes not found in the JDK"
+  - OTP communicates with Raptor only via the SPI in `raptor/spi/` — OTP implements
+    the SPI interfaces; Raptor knows nothing about OTP domain types
+  - `RoutingService` maps from OTP's `RouteRequest` → `RaptorRequest` and back, acting
+    as the anti-corruption layer between the two modules
+
+  **5. Dagger Dependency Injection as Composition Root**
+  - `standalone/configure/ConstructApplication.java` is the single wiring class that
+    instantiates and connects all services before the HTTP server starts
+  - Module wiring convention: each module places its Dagger `@Module` in
+    `<module>/configure/<Module>Module.java` (DEVELOPMENT_DECISION_RECORDS.md
+    §Use-Dependency-Injection)
+
+  **6. Sandbox Feature Isolation**
+  - Experimental features live under their own package with `OTPFeature` flag disabled by
+    default, preventing unfinished code from leaking into the stable module graph
+
+  ### Secondary Style: Layered
+
+  ARCHITECTURE.md defines four explicit horizontal layers applied consistently across modules:
+
+  - **Use Case Services** — stateless orchestrators combining multiple domain services to
+    serve a use case (e.g., `DefaultRoutingService` delegates to `RoutingWorker` which
+    then delegates to Raptor via the SPI adapter)
+  - **Domain Services** — business logic for a specific domain (TransitService,
+    RealtimeVehicleService, VehicleParkingService, etc.)
+  - **Domain Models** — aggregate roots with separate read-only Service interface and
+    mutable Repository interface (the transit model is the primary example)
+  - **Repositories** — in-memory model stores updated by background real-time updater
+    threads; the updater SPI (`GraphUpdater`, `WriteToGraphCallback`) ensures updaters
+    cannot call services, only write to repositories
+
+  The API layer (GraphQL via Jersey) sits above Use Case Services and has no direct
+  contact with repositories or domain models. Config POJOs injected via Dagger sit
+  outside the service layers. This is consistent with a classic horizontal layered topology.
+
+  The `service/package.md` canonical sub-package layout (`configure/`, `internal/`,
+  `model/`, `<Name>Service`, `<Name>Repository`) codifies this layering at the package
+  level, making it prescriptive rather than emergent.
+
+  ### Architecture Qualifiers
+
+  **DDD Design Approach**
+  - `transit/model/package.md` explicitly references Domain-Driven Design (footnote [1])
+    and documents aggregate roots, entities, value objects, `sameAs()` semantics, and
+    `logName()` conventions
+  - `TimetableRepository` (610 lines) is the primary aggregate root for the transit domain
+  - `TransitEditorService` / `TransitService` model a read/write split within the domain
+    service layer (though not full CQRS — the same in-memory model backs both)
+  - Repository interfaces (`TransitEditorService`, `VehicleParkingRepository`,
+    `VehicleRentalRepository`, `RealtimeVehicleRepository`) follow DDD repository pattern
+
+  ### Evidence Against Other Styles
+
+  - **Not Microservices**: One deployable JAR, no independent service deployment units,
+    no network boundaries between routing and transit data
+  - **Not Hexagonal Architecture**: No explicit "ports" defined as Java interfaces that
+    the application layer depends on; modules use DI injection directly
+  - **Not CQRS**: While TransitService/TransitEditorService split read and write paths,
+    they share the same in-memory model (TimetableRepository) — not separate read/write
+    data stores. No command bus / query bus separation.
+  - **Not Event-Driven**: The updater system uses polling (PollingGraphUpdater) and
+    direct writes (WriteToGraphCallback), not asynchronous event propagation. Routing
+    requests are synchronous HTTP/GraphQL.
+  - **Not Microkernel**: The "sandbox" feature flag mechanism superficially resembles
+    plugins but extensions are compiled-in modules, not dynamically loaded plugins.
+    There is no plugin registry or runtime discovery mechanism.
+  - **Not Pipeline**: While the graph builder (`graph_builder/`) processes data through
+    sequential `GraphBuilderModule` steps, this is a one-time startup phase — not the
+    primary runtime topology.
+
+  ### Conclusion
+
+  OpenTripPlanner is a textbook production **Modular Monolith** — a 15-year-old Java
+  system that has deliberately avoided distributed architecture while still achieving
+  strong modularity through Maven module boundaries, ArchUnit enforcement, and Dagger DI.
+  Its internal organization follows a **Layered** architecture with DDD tactical patterns
+  (aggregate roots, repositories, entities, value objects) applied inside the domain
+  layer, qualifying as a design-approach qualifier rather than a topology-defining style.
+  Classification confidence is 0.93 — the only uncertainty is that the ARCHITECTURE.md
+  itself notes the package structure "needs cleanup," meaning the current code does not
+  perfectly match the documented goal state.

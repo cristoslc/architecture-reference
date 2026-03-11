@@ -8,94 +8,98 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-07T04:56:53Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Conference Management
+domain: Conference / Event Management
 language: C#
 languages:
 - C#
 architecture_styles:
 - Modular Monolith
 - Domain-Driven Design
+- CQRS
+- Event-Driven
 classification_status: classified
-review_notes: 'The repository is explicitly designed as a **Modular Monolith**, as
-  stated in the README and evidenced by the project structure. The core architecture
-  centers on a single deployable unit (the `Bootstrapper`) that aggregates multiple
-  independent modules located under `src/Modules/`.
-
-
-  ### Primary Style: Modular Monolith
-
-  - **Single Deployment Unit:** The `src/Bootstrapper/Confab.Bootstrapper` project
-  serves as the entry point. Its responsibility is to load and initialize all modules
-  into a single process.
-
-  - **Module Isolation:** Modules (e.g., `Attendances`, `Agendas`, `Tickets`) are
-  organized into separate folders with their own internal layering (Domain, Application,
-  Infrastructure, Api).
-
-  - **Module Loading:** The presence of `src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs`
-  indicates a formal mechanism for discovering and starting these modules within the
-  monolith''s lifecycle.
-
-  - **Strict Boundaries:** The README mentions the use of "local contracts" instead
-  of shared projects to prevent tight coupling between independent modules.
-
-
-  ### Secondary Style: Event-Driven
-
-  - **Inter-Module Communication:** The system uses asynchronous messaging for integration
-  between modules. This is supported by infrastructure in `src/Shared/Confab.Shared.Infrastructure/Messaging`
-  and `Events`.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:16:34Z'
-classification_reasoning: "## Architecture Classification: Modular Monolith\n\n###\
-  \ Evidence for Modular Monolith\n\n**Single Deployable with Module Boundaries:**\n\
-  - The `Bootstrapper` project (`src/Bootstrapper/Confab.Bootstrapper/Confab.Bootstrapper.csproj`)\
-  \ references all modules and serves as the single entry point\n- All modules are\
-  \ compiled into one application and run via `dotnet run` from the Bootstrapper\n\
-  \n**Explicit Module Contract (`IModule` interface):**\n```csharp\n// src/Shared/Confab.Shared.Abstractions/Modules/IModule.cs\n\
-  public interface IModule\n{\n    string Name { get; }\n    string Path { get; }\n\
-  \    IEnumerable<string> Policies => null;\n    void Register(IServiceCollection\
-  \ services);\n    void Use(IApplicationBuilder app);\n}\n```\n\n**Dynamic Module\
-  \ Loading with Enable/Disable Support:**\n```csharp\n// src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs\n\
-  var enabled = configuration.GetValue<bool>($\"{moduleName}:module:enabled\");\n\
-  if (!enabled) { disabledModules.Add(file); }\n```\n\n**Inter-Module Communication\
-  \ via Local Contracts:**\n- `IModuleClient` provides `SendAsync()` for request/response\
-  \ and `PublishAsync()` for broadcast\n- Type translation via serialization prevents\
-  \ direct type dependencies between modules:\n```csharp\n// src/Shared/Confab.Shared.Infrastructure/Modules/ModuleClient.cs\n\
-  private T TranslateType<T>(object value)\n    => _moduleSerializer.Deserialize<T>(_moduleSerializer.Serialize(value));\n\
-  ```\n\n**Separate Database Schemas Per Module:**\n```csharp\n// src/Modules/Agendas/Confab.Modules.Agendas.Infrastructure/EF/AgendasDbContext.cs\n\
-  protected override void OnModelCreating(ModelBuilder modelBuilder)\n{\n    modelBuilder.HasDefaultSchema(\"\
-  agendas\");\n}\n```\n\n**7 Well-Defined Modules:**\n- Agendas, Attendances, Conferences,\
-  \ Saga, Speakers, Tickets, Users\n- Each has its own namespace: `Confab.Modules.*`\n\
-  - Each has internal layering (Api/Application/Domain/Infrastructure or Core)\n\n\
-  ### Evidence for Domain-Driven Design (Secondary)\n\n**Aggregate Root Pattern:**\n\
-  ```csharp\n// src/Shared/Confab.Shared.Abstractions/Kernel/Types/AggregateRoot.cs\n\
-  public abstract class AggregateRoot<T>\n{\n    public IEnumerable<IDomainEvent>\
-  \ Events => _events;\n    protected void AddEvent(IDomainEvent @event) { ... }\n\
-  }\n```\n\n**Domain Entities with Business Logic:**\n```csharp\n// src/Modules/Agendas/Confab.Modules.Agendas.Domain/Submissions/Entities/Submission.cs\n\
-  public sealed class Submission : AggregateRoot\n{\n    public void Approve() =>\
-  \ ChangeStatus(SubmissionStatus.Approved, SubmissionStatus.Rejected);\n    // Business\
-  \ logic encapsulated in entity methods\n}\n```\n\n**Domain Events and Handlers:**\n\
-  ```csharp\n// src/Modules/Agendas/Confab.Modules.Agendas.Domain/Agendas/Events/Handlers/SubmissionApprovedHandler.cs\n\
-  internal sealed class SubmissionApprovedHandler : IDomainEventHandler<SubmissionStatusChanged>\n\
-  ```\n\n**Domain Services, Repositories, and Value Objects present in module Domain\
-  \ layers**\n\n### What This Architecture Is NOT\n\n- **NOT Microservices**: The\
-  \ README explicitly states this is a modular monolith. All modules deploy together\
-  \ through the Bootstrapper. The `APIGateway` and `Services/Tickets` projects exist\
-  \ for future microservices transition demonstration, not current deployment.\n\n\
-  - **NOT Just Layered**: While modules have internal horizontal layers (Api/Application/Domain/Infrastructure),\
-  \ the **primary architectural driver is vertical module boundaries** with enforced\
-  \ isolation. Horizontal layering is secondary.\n\n- **NOT Service-Based**: Service-Based\
-  \ architecture has 2-5 coarse-grained services often sharing a database. This has\
-  \ 7 fine-grained modules with separate schemas and stronger isolation through local\
-  \ contracts.\n\n### Conclusion\n\nConfab is a textbook example of **Modular Monolith**\
-  \ architecture with strong module boundary enforcement through:\n1. Explicit `IModule`\
-  \ contracts\n2. Dynamic loading with enable/disable capability\n3. Separate database\
-  \ schemas per module\n4. Local contracts approach for inter-module communication\
-  \ (no shared types)\n5. Serialization-based type translation preventing direct dependencies\n\
-  \nThe DDD patterns (aggregates, domain events, entities with business logic) are\
-  \ applied **within modules**, making DDD a complementary secondary style supporting\
-  \ the modular monolith primary architecture."
+classification_confidence: 0.96
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+  Modularity: High — IModule + IModuleClient enforce type-boundary isolation via JSON
+    serialization; per-module enabled/disabled config toggles; no shared type references
+    between modules
+  Evolvability: High — local event contracts (no shared project) allow independent
+    module evolution; IModule.Register/Use pattern means new modules require no changes
+    to bootstrapper code
+  Deployability: Medium — all modules deploy as one dotnet process; YARP API gateway
+    routes to monolith and standalone Tickets service; Docker Compose manages PostgreSQL
+    and RabbitMQ infrastructure
+  Observability: Medium — request-scoped IContext propagates RequestId and TraceId;
+    centralized ErrorHandlerMiddleware with ILogger; Swagger/ReDoc registered globally
+    across all modules
+  Fault Tolerance: Medium — RabbitMQ retry policy (3 retries, 2-second interval);
+    PostgresUnitOfWork transaction rollback on exception; Chronicle saga compensating
+    actions on failure
+  Scalability: Low-Medium — single-process monolith with shared PostgreSQL; RabbitMQ
+    integration enables future extraction demonstrated by the standalone Tickets microservice
+one_line_summary: Reference modular monolith for conference management demonstrating
+  DDD, CQRS, and event-driven inter-module communication with a microservices extraction
+  proof-of-concept
+classification_reasoning: "## Architecture Classification\n\n### Primary: Modular\
+  \ Monolith (confidence: 0.96)\n\nConfab is a textbook Modular Monolith. Seven bounded-context\
+  \ modules — Agendas, Attendances, Conferences, Saga, Speakers, Tickets, Users —\
+  \ each implement `IModule` (defined in `src/Shared/Confab.Shared.Abstractions/Modules/IModule.cs`):\n\
+  \n```csharp\npublic interface IModule {\n    string Name { get; }\n    string Path\
+  \ { get; }\n    IEnumerable<string> Policies => null;\n    void Register(IServiceCollection\
+  \ services);\n    void Use(IApplicationBuilder app);\n}\n```\n\n`ModuleLoader` (`src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs`)\
+  \ discovers modules from DLLs by scanning for `IModule` implementations at startup\
+  \ and respects per-module `module:enabled` config flags. The single `Confab.Bootstrapper`\
+  \ host wires everything into one running process.\n\nCross-module communication\
+  \ uses `IModuleClient` (`src/Shared/Confab.Shared.Abstractions/Modules/IModuleClient.cs`),\
+  \ which serializes requests to JSON and deserializes them into the receiving module's\
+  \ local types — preventing any direct type coupling. The `ModuleClient` implementation\
+  \ routes `SendAsync` via a `ModuleRegistry` path map and `PublishAsync` via event-name-based\
+  \ broadcast registrations.\n\nEach module has per-module JSON config (`module.agendas.json`,\
+  \ etc.) loaded at startup, enabling independent feature toggles without recompilation.\n\
+  \n### Secondary: Domain-Driven Design (confidence: 0.92)\n\nThe Agendas and Attendances\
+  \ modules implement full DDD building blocks:\n\n- `AggregateRoot<T>` base class\
+  \ with domain event collection and optimistic versioning (`src/Shared/Confab.Shared.Abstractions/Kernel/Types/AggregateRoot.cs`)\n\
+  - Typed value objects: `AggregateId`, `ConferenceId`, `SpeakerId`, `EntityId`\n\
+  - `AgendaTrack` aggregate with invariant enforcement: `ChangeName` validates non-empty,\
+  \ `AddRegularSlot`/`AddPlaceholderSlot` validate time conflicts, `ChangeSlotAgendaItem`\
+  \ enforces slot-type rules\n- Repository interfaces per aggregate (`IAgendaTrackRepository`,\
+  \ `IParticipantsRepository`, etc.)\n- Domain services and domain events dispatched\
+  \ via `IDomainEventDispatcher`\n\nThe README explicitly acknowledges that simpler\
+  \ modules (Users, Conferences, Speakers, Tickets) use a CRUD approach, making DDD\
+  \ targeted at domains with meaningful business rules.\n\n### Secondary: CQRS (confidence:\
+  \ 0.90)\n\nA shared CQRS framework is registered across all module assemblies:\n\
+  \n- `ICommand : IMessage`, `ICommandDispatcher`, `ICommandHandler<T>`\n- `IQuery<T>`,\
+  \ `IQueryDispatcher`, `IQueryHandler<T, TResult>`\n\nThe `TransactionalCommandHandlerDecorator<T>`\
+  \ (`src/Shared/Confab.Shared.Infrastructure/Postgres/Decorators/TransactionalCommandHandlerDecorator.cs`)\
+  \ wraps command handlers using a `UnitOfWorkTypeRegistry` to scope database transactions\
+  \ automatically. DDD modules (Agendas, Attendances) have structurally separate `Commands/`\
+  \ and `Queries/` folders with distinct handler trees.\n\n### Secondary: Event-Driven\
+  \ (confidence: 0.88)\n\nModules communicate via events using a local contracts pattern:\
+  \ each module defines its own copy of consumed events in its own namespace (e.g.,\
+  \ `Confab.Modules.Attendances.Application.Events.External.TicketPurchased`), avoiding\
+  \ shared package dependencies.\n\n`IMessageBroker.PublishAsync` (`src/Shared/Confab.Shared.Infrastructure/Messaging/Brokers/MessageBroker.cs`)\
+  \ simultaneously publishes to:\n1. RabbitMQ via `IBusPublisher` (external delivery,\
+  \ cross-service)\n2. `IModuleClient.PublishAsync` (in-process fan-out to other modules)\n\
+  \nThe Saga module implements Chronicle-based saga coordination (`InviteSpeakerSaga`)\
+  \ that reacts to `SignedUp`, `SpeakerCreated`, and `SignedIn` events with compensating\
+  \ actions.\n\nThe standalone `Confab.Services.Tickets` (`src/Services/Tickets/`)\
+  \ subscribes to `ConferenceCreated` via RabbitMQ using Convey — demonstrating the\
+  \ microservices extraction path documented in the README.\n\n### Evidence Paths\n\
+  \n| Component | Path | Pattern |\n|-----------|------|---------|\n| IModule contract\
+  \ | `Shared.Abstractions/Modules/IModule.cs` | Modular Monolith |\n| ModuleLoader\
+  \ | `Bootstrapper/ModuleLoader.cs` | Modular Monolith |\n| ModuleClient in-process\
+  \ routing | `Shared.Infrastructure/Modules/ModuleClient.cs` | Modular Monolith\
+  \ |\n| AggregateRoot base class | `Shared.Abstractions/Kernel/Types/AggregateRoot.cs`\
+  \ | DDD |\n| AgendaTrack aggregate | `Modules.Agendas.Domain/Agendas/Entities/AgendaTrack.cs`\
+  \ | DDD |\n| TransactionalCommandHandlerDecorator | `Shared.Infrastructure/Postgres/Decorators/`\
+  \ | CQRS |\n| MessageBroker dual-publish | `Shared.Infrastructure/Messaging/Brokers/MessageBroker.cs`\
+  \ | Event-Driven |\n| Local event contracts | `Modules.Attendances.Application/Events/External/`\
+  \ | Event-Driven |\n| InviteSpeakerSaga | `Modules.Saga/InviteSpeaker/InviteSpeakerSaga.cs`\
+  \ | Event-Driven |\n| Standalone Tickets service | `Services/Tickets/Confab.Services.Tickets.Api/Startup.cs`\
+  \ | Microservices extraction demo |\n| YARP API Gateway | `APIGateway/Confab.APIGateway/appsettings.json`\
+  \ | Deployability |\n| IContext RequestId/TraceId | `Shared.Abstractions/Contexts/IContext.cs`\
+  \ | Observability |\n| RabbitMQ retry config | `Bootstrapper/appsettings.json`\
+  \ | Fault Tolerance |"

@@ -4,108 +4,161 @@ use_type: production
 source: Discovered
 source_url: https://github.com/EventStore/EventStore
 project_url: https://github.com/EventStore/EventStore
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:26:20Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: C#
 languages:
-- C#
-- JavaScript
-- TypeScript
+  - C#
+  - JavaScript
+  - TypeScript
 architecture_styles:
-- Microkernel
-- Layered
+  - Microkernel
+  - Layered
 classification_status: classified
-review_notes: 'This repository is primarily structured as a **Microkernel (Plugin)**
-  architecture. The core database engine acts as a minimal host that orchestrates
-  various system capabilities—ranging from networking protocols and authentication
-  to storage subsystems—through a formal plugin mechanism.
-
-
-  ### Evidence for Microkernel (Plugin)
-
-  The `src/KurrentDB/KurrentDB.csproj` file serves as the "kernel" or executive entry
-  point. It is notably lightweight, as its primary role is to aggregate a vast array
-  of `ProjectReference` items that represent distinct functional plugins.
-
-  - **Protocol Plugins:** The repository separates the transport layers into independent
-  modules such as `src/KurrentDB.TcpPlugin`, `src/KurrentDB.Plugins.Api.V2` (gRPC/HTTP),
-  and `src/KurrentDB.Transport.Http`. This allows the core to remain agnostic of how
-  clients communicate with the database.
-
-  - **Cross-Cutting Plugins:** Security and monitoring features are implemented as
-  plugins, evident in `src/KurrentDB.Auth.OAuth`, `src/KurrentDB.Auth.UserCertificates`,
-  and `src/KurrentDB.Diagnostics.LogsEndpointPlugin`.
-
-  - **Infrastructure Plugins:** Even fundamental database operations like indexing
-  and scavenge are separated (e.g., `src/KurrentDB.AutoScavenge`, `src/KurrentDB.SecondaryIndexing`).
-
-  - **Plugin Hosting:** The project explicitly includes a `KurrentDB.PluginHosting`
-  library, which likely handles the discovery, loading, and lifecycle management of
-  these components using .NET''s `System.ComponentModel.Composition` (MEF), as referenced
-  in the main `csproj`.
-
-
-  ### Evidence for Domain-Driven Design (DDD)'
+one_line_summary: "Event-native database (KurrentDB) with a microkernel runtime that loads authentication, transport, indexing, and connector capabilities as isolated plugins over a layered core engine."
+classification_method: deep-analysis
+classification_confidence: 0.94
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:22:33Z'
-classification_reasoning: "## Analysis\n\nKurrentDB (formerly EventStoreDB) is architected\
-  \ as a **Microkernel (Plugin)** system with secondary **Layered** organization within\
-  \ its core.\n\n### Primary Evidence for Microkernel (Plugin)\n\n**1. Plugin Infrastructure\
-  \ (Strongest Evidence)**\n\nThe codebase has a well-defined plugin infrastructure\
-  \ in `src/KurrentDB.Plugins/` with explicit contracts:\n\n- `IPlugableComponent`\
-  \ (line 13) - base interface for all pluggable components with lifecycle methods\n\
-  - `Plugin` abstract class (`src/KurrentDB.Plugins/Plugin.cs`) - provides `ConfigureServices()`,\
-  \ `ConfigureApplication()`, licensing integration, and diagnostics\n- `ISubsystemsPlugin`\
-  \ and `SubsystemsPlugin` - for plugins that manage subsystems with `Start()`/`Stop()`\
-  \ lifecycle\n\n**2. Dual Plugin Discovery Mechanisms**\n\nFrom `src/KurrentDB/ClusterVNodeHostedService.cs`\
-  \ (lines 67-69):\n```csharp\n// two plugin mechanisms; pluginLoader is the new one\n\
-  var pluginLoader = new PluginLoader(new DirectoryInfo(Locations.PluginsDirectory));\n\
-  var plugInContainer = FindPlugins();\n```\n\nThe system supports:\n- **MEF-based\
-  \ discovery** (`CompositionContainer` with `DirectoryCatalog`) - finds plugins via\
-  \ `[Export]` attributes\n- **Custom dynamic loading** (`PluginLoader` with `AssemblyLoadContext`)\
-  \ - isolates plugin assemblies with proper dependency resolution\n\n**3. Extensive\
-  \ Plugin Ecosystem**\n\nThe codebase contains numerous plugin implementations, all\
-  \ following the plugin contracts:\n\n| Plugin Type | Examples |\n|------------|----------|\n\
-  | Authentication | `KurrentDB.Auth.Ldaps`, `KurrentDB.Auth.OAuth`, `KurrentDB.Auth.UserCertificates`\
-  \ |\n| Authorization | `KurrentDB.Auth.StreamPolicyPlugin`, `KurrentDB.Auth.LegacyAuthorizationWithStreamAuthorizationDisabled`\
-  \ |\n| Infrastructure | `KurrentDB.AutoScavenge`, `KurrentDB.SecondaryIndexing`,\
-  \ `KurrentDB.Diagnostics.LogsEndpointPlugin` |\n| Connectors | `KurrentDB.Plugins.Connectors`\
-  \ (HTTP, Kafka, MongoDB, RabbitMQ, Elasticsearch sinks) |\n| Security | `KurrentDB.Security.EncryptionAtRest`\
-  \ |\n| Protocol | `KurrentDB.TcpPlugin` (legacy TCP protocol) |\n| API | `KurrentDB.Plugins.Api.V2`,\
-  \ `KurrentDB.Plugins.SchemaRegistry` |\n\n**4. Plugin Isolation**\n\nFrom `src/KurrentDB.PluginHosting/PluginLoader.cs`\
-  \ (lines 49-66):\n```csharp\nprivate class PluginLoadContext : AssemblyLoadContext\
-  \ {\n    private static readonly string[] Shared = { \"Serilog\", \"YamlDotNet\"\
-  , \"EventStore.Plugins\" };\n    // ...isolates plugin assemblies while sharing\
-  \ core contracts\n}\n```\n\n**5. Extension Points**\n\nMultiple plugin interfaces\
-  \ define extension contracts:\n- `IAuthenticationPlugin`, `IAuthorizationPlugin`\
-  \ - authentication/authorization extensions\n- `IChunkTransform` - storage layer\
-  \ transformations\n- `IMD5Plugin` - hashing algorithm extensions\n- `IPersistentSubscriptionConsumerStrategyPlugin`\
-  \ - subscription behavior extensions\n- `ISubsystem` - subsystem lifecycle management\n\
-  \n### Secondary Evidence for Layered Architecture\n\nWithin the core (non-plugin)\
-  \ codebase, there's clear horizontal layering:\n\nFrom `src/KurrentDB.Core/Services/`:\n\
-  - **Transport Layer**: `Transport/Http/`, `Transport/Grpc/`, `Transport/Tcp/`\n\
-  - **Storage Layer**: `Storage/` (with `ReaderIndex/`, `EpochManager/`, `InMemory/`)\n\
-  - **Replication Layer**: `Replication/`, `Cluster/`, `Gossip/`\n- **Business Services**:\
-  \ `PersistentSubscription/`, `TimerService/`, `Monitoring/`\n- **Data Layer**: `TransactionLog/`,\
-  \ `Index/`\n\n### What This Architecture is NOT\n\n- **Not Microservices**: Single\
-  \ deployable (`KurrentDB.dll`), docker-compose shows clustered nodes for HA, not\
-  \ decomposition into independent services\n- **Not Modular Monolith**: Plugin system\
-  \ provides runtime extensibility with dynamic loading, not compile-time module boundaries\n\
-  - **Not Event-Driven**: While KurrentDB is an event store database, its internal\
-  \ architecture uses request/response patterns, message bus for internal coordination,\
-  \ not event-driven choreography between components\n- **Not Hexagonal**: Ports/adapters\
-  \ exist but are secondary to the primary plugin extension mechanism\n- **Not CQRS**:\
-  \ The database supports event sourcing but doesn't internally separate read/write\
-  \ models as an architectural principle\n\n### Rejection of Alternatives\n\n- **Modular\
-  \ Monolith**: Rejected because plugins are dynamically loaded at runtime from separate\
-  \ assemblies with `AssemblyLoadContext` isolation, not compile-time bounded contexts\n\
-  - **Service-Based**: Rejected because it's a single database node, not multiple\
-  \ coarse-grained services sharing data\n- **Event-Driven**: Rejected because internal\
-  \ components communicate via direct method calls and internal message bus, not through\
-  \ event brokers"
+key_technologies:
+  - .NET 10 / C#
+  - gRPC / Protocol Buffers
+  - DuckDB (secondary indexing)
+  - SQLite (scavenging state)
+  - OpenTelemetry
+  - Blazor (embedded admin UI)
+  - MEF (System.ComponentModel.Composition)
+quality_attributes:
+  - Extensibility
+  - Availability
+  - Performance
+  - Security
+  - Observability
+  - Evolvability
+notable_strengths:
+  - Runtime plugin isolation via AssemblyLoadContext allows capabilities to be added as drop-in DLLs without recompile
+  - Quorum-based 3-node clustering with gossip-protocol leader election and read-only replicas
+  - DuckDB-backed secondary indexes for category and event-type queries enabled by default in v25.1
+  - Dual plugin mechanisms (legacy MEF + modern PluginLoader) allow gradual migration of extension points
+notable_gaps:
+  - Legacy MEF-based plugin system coexists with newer AssemblyLoadContext loader, creating two parallel extension paths
+  - Enterprise features (OTLP exporter, encryption at rest, TCP plugin, archiving) are license-gated, limiting open-source feature set
+  - API v2 is explicitly marked as under rapid development with expected breaking changes
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+architecture_qualifiers:
+  - type: distribution-model
+    value: primary-secondary
+    note: Quorum-based 3-node cluster with elected leader (primary) and follower replicas; read-only replica mode supported
+  - type: data-pattern
+    value: event-sourcing
+    note: Core data model is an append-only write-ahead log of immutable events organized in named streams; the database is the canonical event store for event sourcing patterns
+classification_reasoning: |
+  ## Analysis
+
+  KurrentDB (formerly EventStoreDB) is architected as a **Microkernel** system with **Layered** organization within its core engine. This is a single-binary, single-deployment-unit database server — not a distributed microservices system.
+
+  ### Primary Style: Microkernel
+
+  The microkernel evidence is definitive and pervasive throughout the codebase.
+
+  **1. Formal Plugin Contracts (KurrentDB.Plugins)**
+
+  The `src/KurrentDB.Plugins/` project establishes the kernel's extension API:
+  - `IPlugableComponent` — base interface with `ConfigureServices(IServiceCollection, IConfiguration)` and `ConfigureApplication(IApplicationBuilder, IConfiguration)` lifecycle methods
+  - `Plugin` abstract class — wraps `IPlugableComponent` with versioning, licensing entitlement checks, and `DiagnosticListener` telemetry
+  - `ISubsystemsPlugin` / `ISubsystem` — for plugins that manage subsystem start/stop lifecycle
+  - `IAuthenticationPlugin`, `IAuthorizationPlugin` — authentication and authorization extension points
+  - `IChunkTransform`, `IMD5Plugin`, `IPersistentSubscriptionConsumerStrategyPlugin` — fine-grained kernel extension hooks
+
+  **2. Dual Plugin Discovery Mechanisms**
+
+  From `src/KurrentDB/ClusterVNodeHostedService.cs` lines 67-69:
+  ```csharp
+  // two plugin mechanisms; pluginLoader is the new one
+  var pluginLoader = new PluginLoader(new DirectoryInfo(Locations.PluginsDirectory));
+  var plugInContainer = FindPlugins();
+  ```
+
+  The system supports:
+  - **MEF-based discovery** (`CompositionContainer` with `AggregateCatalog` + `DirectoryCatalog`) — legacy mechanism using `[Export]` attributes
+  - **Custom dynamic loading** (`PluginLoader` with `AssemblyLoadContext`) — modern mechanism with per-plugin assembly isolation
+
+  **3. Extensive Built-in Plugin Ecosystem**
+
+  `LoadSubsystemsPlugins` (lines 282-304) registers 10+ plugins at startup:
+  - `OtlpExporterPlugin` — OpenTelemetry log/metric export (license-gated)
+  - `UserCertificatesPlugin` — certificate-based authentication
+  - `LogsEndpointPlugin` — structured log streaming
+  - `EncryptionAtRestPlugin` — chunk-level encryption (license-gated)
+  - `ConnectedSubsystemsPlugin` — POC connected subsystems
+  - `AutoScavengePlugin` — automatic disk space reclamation
+  - `TcpApiPlugin` — legacy TCP protocol (license-gated)
+  - `ConnectorsPlugin` — catch-up subscription sinks (HTTP, Kafka, MongoDB, RabbitMQ, Elasticsearch)
+  - `SchemaRegistryPlugin` — event schema validation
+  - `ApiV2Plugin` — next-generation gRPC API
+
+  Authentication plugins loaded dynamically: `LdapsAuthenticationPlugin`, `OAuthAuthenticationPlugin`, plus any external DLLs in `plugins/`
+
+  **4. Plugin Assembly Isolation**
+
+  From `src/KurrentDB.PluginHosting/PluginLoader.cs` lines 49-56:
+  ```csharp
+  private class PluginLoadContext : AssemblyLoadContext {
+      private static readonly string[] Shared = { "Serilog", "YamlDotNet", "EventStore.Plugins" };
+      // isolates plugin assemblies while sharing only core contracts
+  }
+  ```
+
+  Each plugin directory gets its own `AssemblyLoadContext` with isolated dependency resolution. Only the plugin contract assembly (`EventStore.Plugins`) and logging infrastructure are shared with the kernel — classic microkernel boundary enforcement.
+
+  **5. Runtime Enable/Disable**
+
+  Plugins can be enabled or disabled at runtime via `IsEnabled(IConfiguration)` and the `Disable(string reason)` method on `Plugin`. License-gated plugins self-disable when `ILicenseService` rejects their entitlements.
+
+  ### Secondary Style: Layered
+
+  Within `KurrentDB.Core`, there is clear horizontal layering with unidirectional downward dependencies:
+
+  - **Transport Layer**: `Services/Transport/{Grpc,Http,Tcp}` — gRPC (primary), HTTP, legacy TCP
+  - **Service/Business Layer**: `Services/RequestManager/`, `Services/PersistentSubscription/`, `Services/Gossip/`, `Services/Replication/`, `Services/ElectionsService.cs`
+  - **Storage Layer**: `Services/Storage/{ReaderIndex,EpochManager,InMemory}`, `StorageReaderService`, `StorageWriterService`, `StorageChaser`
+  - **Transaction Log Layer**: `TransactionLog/Chunks/`, `TransactionLog/LogRecords/`, `TransactionLog/Scavenging/`, `TransactionLog/Checkpoint/`
+
+  The `InMemoryBus` (`Bus/InMemoryBus.cs`) is a synchronous typed-dispatch message bus that allows services within the same layer boundary to communicate without direct coupling. The `ClusterVNodeController` drives a `VNodeFSM` finite state machine with 10+ states (`Initializing`, `DiscoverLeader`, `Leader`, `Follower`, `CatchingUp`, `Clone`, `ReadOnlyReplica`, etc.), coordinating layer transitions through message publication.
+
+  ### What This Architecture Is NOT
+
+  - **Not Microservices**: Single binary (`KurrentDB.dll`), single process. Docker-compose deploys 3 identical `esdb-node*` containers for HA clustering, not for service decomposition.
+  - **Not Modular Monolith**: Plugins are loaded from external assemblies at runtime with `AssemblyLoadContext` isolation — this is runtime extensibility, not compile-time module boundaries. The kernel operates correctly with any subset of plugins.
+  - **Not Event-Driven**: KurrentDB stores events for others to build event-driven systems, but its internal architecture uses synchronous `InMemoryBus` dispatch and request/response patterns, not event-driven choreography between components.
+  - **Not CQRS**: While KurrentDB is a canonical backend for CQRS implementations, its own architecture does not separate read/write models — `ReadIndex` and `StorageWriterService` are distinct services, but this is standard layered separation, not the CQRS pattern.
+  - **Not Hexagonal**: Ports/adapters exist (the `IPlugableComponent` ASP.NET integration resembles an adapter) but are secondary to the primary plugin extension mechanism, which goes well beyond hexagonal's in/out port model.
+
+  ### Confidence Rationale
+
+  Confidence is 0.94. The microkernel classification is extremely strong — dual plugin systems, formal contracts, assembly isolation, runtime enable/disable, and an entire `KurrentDB.Plugins` library define the architectural intent unambiguously. The 0.06 uncertainty accounts for the possibility that the "layered" internal organization could alternatively be framed as a modular monolith at the subsystem level, and for the active evolution of API v2 which may shift integration patterns.
+review_notes: |
+  KurrentDB (formerly EventStoreDB) is a Microkernel (Plugin) architecture. The core database engine
+  acts as a minimal host that assembles its runtime capabilities from a registry of plugins loaded via
+  two mechanisms: a legacy MEF-based CompositionContainer and a modern PluginLoader with
+  AssemblyLoadContext isolation.
+
+  The KurrentDB.Plugins project defines formal extension contracts (IPlugableComponent,
+  IAuthenticationPlugin, IAuthorizationPlugin, ISubsystem, IChunkTransform, IMD5Plugin) and the
+  Plugin abstract base class provides licensing, diagnostics, and enable/disable lifecycle for all
+  extensions.
+
+  Within the core, components are organized in a Layered fashion: Transport → Service/Request
+  Management → Storage → Transaction Log, mediated by an InMemoryBus typed message dispatcher and
+  a ClusterVNodeController finite state machine.
+
+  The classification as Microkernel primary / Layered secondary is consistent with the prior
+  classification and has been confirmed by deep code analysis of the v25.1 codebase.

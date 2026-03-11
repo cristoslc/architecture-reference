@@ -4,98 +4,216 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/JasonGT/NorthwindTraders
 project_url: https://github.com/JasonGT/NorthwindTraders
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:51:38Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: E-Commerce
 language: C#
 languages:
-- C#
-- TypeScript
-- JavaScript
+  - C#
+  - TypeScript
+  - JavaScript
 architecture_styles:
-- Hexagonal Architecture
-- CQRS
+  - Hexagonal Architecture
+  - CQRS
 classification_status: classified
-review_notes: 'This repository is a classic implementation of **Hexagonal Architecture**
-  (commonly referred to in the .NET ecosystem as **Clean Architecture**, as explicitly
-  stated in the README). The codebase is structured into concentric layers where dependencies
-  point inwards toward the core logic, isolating the application from external concerns
-  like databases and UI frameworks.
-
-
-  ### Evidence for Hexagonal Architecture
-
-  The project is divided into distinct projects within the `Src/` directory that map
-  directly to Hexagonal/Clean layers:
-
-  1.  **Domain (`Src/Domain`)**: The "Center." It contains enterprise logic, entities
-  (e.g., `Customer.cs`, `Product.cs`), and value objects (`AdAccount.cs`), with zero
-  dependencies on other layers.
-
-  2.  **Application (`Src/Application`)**: The "Core." This layer defines the interfaces
-  (`Src/Application/Common/Interfaces`) that act as **Ports**. It contains the business
-  flow logic and is independent of data access or UI frameworks.
-
-  3.  **Infrastructure/Persistence (`Src/Infrastructure`, `Src/Persistence`)**: The
-  **Adapters**. These projects implement the interfaces defined in the Application
-  layer (e.g., `NorthwindDbContext.cs` implementing database access).
-
-  4.  **WebUI (`Src/WebUI`)**: The entry point or "Primary Adapter," containing the
-  controllers and the frontend (Angular).
-
-
-  ### Evidence for CQRS (Command Query Responsibility Segregation)'
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+one_line_summary: >-
+  Archived .NET Core 3 reference application demonstrating Clean/Hexagonal
+  Architecture with CQRS via MediatR over the classic Northwind trade domain.
+key_technologies:
+  - ASP.NET Core 3.0
+  - Entity Framework Core 3.0
+  - MediatR 7
+  - IdentityServer 4
+  - FluentValidation
+  - AutoMapper
+  - Angular (SPA)
+  - SQL Server
+quality_attributes:
+  testability:
+    present: true
+    confidence: 0.95
+    evidence:
+      - "Ports-and-adapters design allows all Application handlers to be unit-tested
+        with in-memory port substitutes; Tests/ folder includes Application.UnitTests,
+        Domain.UnitTests, WebUI.IntegrationTests, and Persistence.IntegrationTests"
+      - "INorthwindDbContext interface isolates EF Core from Application layer,
+        enabling mock/stub injection in tests without a real database"
+  modularity:
+    present: true
+    confidence: 0.96
+    evidence:
+      - "Six C# projects enforce layer boundaries at compile time: Domain, Application,
+        Common, Infrastructure, Persistence, WebUI"
+      - "Domain.csproj has zero project references; Application references only Domain
+        and Common; Infrastructure/Persistence reference Application (inward dependency)"
+      - "Solution organized into explicit Core / Infrastructure / Presentation solution
+        folders in Northwind.sln, confirming intentional structural policy"
+  evolvability:
+    present: true
+    confidence: 0.90
+    evidence:
+      - "New use cases require only a Command/Query + Handler + Validator triple;
+        existing handlers are never touched (open/closed principle via MediatR dispatch)"
+      - "FluentValidation validators are registered automatically and injected into
+        the MediatR pipeline without handler modification"
+      - "Interface-based ports (INorthwindDbContext, ICurrentUserService,
+        INotificationService) allow infrastructure swap without touching domain logic"
+  observability:
+    present: true
+    confidence: 0.82
+    evidence:
+      - "RequestPerformanceBehaviour logs a warning for any MediatR request exceeding
+        500 ms, including user context and request payload
+        (Src/Application/Common/Behaviours/RequestPerformanceBehaviour.cs)"
+      - "RequestLogger logs every MediatR request with user identity before dispatch
+        (Src/Application/Common/Behaviours/RequestLogger.cs)"
+  security:
+    present: true
+    confidence: 0.88
+    evidence:
+      - "IdentityServer 4 via Microsoft.AspNetCore.ApiAuthorization.IdentityServer
+        provides OpenID Connect / OAuth 2.0 authentication"
+      - "ICurrentUserService abstracts authenticated user identity across the
+        Application layer, implemented by CurrentUserService in WebUI"
+      - "[Authorize] applied at controller level; OidcConfigurationController
+        serves OIDC discovery document"
+  scalability:
+    present: false
+    confidence: 0.90
+    evidence:
+      - "Single deployable ASP.NET Core process with a single SQL Server database;
+        no distributed cache, message broker, or horizontal scaling configuration"
+      - "Stateless HTTP request handling is compatible with scale-out but no
+        explicit scaling infrastructure is present"
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: false
+has_adr: false
+notable_strengths:
+  - "Textbook ports-and-adapters boundary enforcement: Domain has zero external
+    dependencies, Application defines all ports, outer layers implement adapters"
+  - "Per-feature Commands/Queries organization makes use cases immediately
+    discoverable and independently testable"
+  - "MediatR pipeline behaviours cleanly separate cross-cutting concerns
+    (validation, performance logging) from business logic"
+  - "Dual DbContext design: separate NorthwindDbContext (business) and
+    ApplicationDbContext (identity) prevents concern mixing"
+notable_gaps:
+  - "No Aggregate Root pattern or domain events; entities are anemic data containers
+    with no behavior beyond value-object encapsulation (AdAccount)"
+  - "No bounded contexts — entire application uses a single flat domain model
+    covering all Northwind entities"
+  - "Archived project (2019 codebase, .NET Core 3.0); no longer maintained"
+  - "INotificationService implementation is a no-op stub; no real notification
+    infrastructure present"
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:32:49Z'
-classification_reasoning: "## Analysis\n\nThis repository implements **Hexagonal Architecture\
-  \ (Ports and Adapters)** using the Clean Architecture pattern, with **CQRS** as\
-  \ a secondary pattern implemented via MediatR.\n\n### Evidence for Hexagonal Architecture\n\
-  \n**1. Clear dependency inversion with ports defined in the Application layer:**\n\
-  - `Src/Application/Common/Interfaces/INorthwindDbContext.cs` - defines the data\
-  \ access interface (port)\n- `Src/Application/Common/Interfaces/INotificationService.cs`\
-  \ - defines external service interface\n- `Src/Application/Common/Interfaces/ICurrentUserService.cs`\
-  \ - defines authentication context interface\n- `Src/Application/Common/Interfaces/IDateTime.cs`\
-  \ - defines time abstraction\n\n**2. Adapters implementing ports in outer layers:**\n\
-  - `Src/Persistence/NorthwindDbContext.cs` implements `INorthwindDbContext` (adapter\
-  \ for data persistence)\n- `Src/Infrastructure/NotificationService.cs` implements\
-  \ `INotificationService` (adapter for notifications)\n- `Src/WebUI/Services/CurrentUserService.cs`\
-  \ implements `ICurrentUserService` (adapter for HTTP context)\n- `Src/Infrastructure/MachineDateTime.cs`\
-  \ implements `IDateTime` (adapter for system time)\n\n**3. Strict dependency flow\
-  \ enforcement:**\n- **Domain layer** (`Src/Domain/Domain.csproj`): Pure .NET Standard\
-  \ 2.1, no external project references - contains only entities, value objects, and\
-  \ domain logic\n- **Application layer**: References Domain and Common only - defines\
-  \ interfaces implemented by outer layers\n- **Infrastructure/Persistence layers**:\
-  \ Reference Application (implementing its interfaces)\n- **Presentation layer**\
-  \ (`Src/WebUI`): References all inner layers but is the outermost layer\n\n**4.\
-  \ Solution structure organization (`Northwind.sln`):**\n```\nCore folder:\n  - Common,\
-  \ Domain, Application\nInfrastructure folder:\n  - Infrastructure, Persistence \
-  \ \nPresentation folder:\n  - WebUI\n```\n\n### Evidence for CQRS\n\n**1. Command/Query\
-  \ separation using MediatR:**\n- Commands: `CreateProductCommand`, `UpdateProductCommand`,\
-  \ `DeleteProductCommand` (`Src/Application/Products/Commands/`)\n- Queries: `GetProductsListQuery`,\
-  \ `GetProductDetailQuery`, `GetProductsFileQuery` (`Src/Application/Products/Queries/`)\n\
-  \n**2. Separate handlers for each operation:**\n- `CreateProductCommandHandler :\
-  \ IRequestHandler<CreateProductCommand, int>`\n- `GetProductsListQueryHandler :\
-  \ IRequestHandler<GetProductsListQuery, ProductsListVm>`\n\n**3. Pipeline behaviors\
-  \ for cross-cutting concerns:**\n- `RequestValidationBehavior<TRequest, TResponse>`\
-  \ (`Src/Application/Common/Behaviours/`)\n- `RequestPerformanceBehaviour<TRequest,\
-  \ TResponse>`\n\n### Why not primarily Domain-Driven Design?\n\nWhile the codebase\
-  \ uses some DDD tactical patterns:\n- **Value Objects**: `ValueObject` base class\
-  \ (`Src/Domain/Common/ValueObject.cs`), `AdAccount` value object\n- **Domain Exceptions**:\
-  \ `AdAccountInvalidException`\n\nIt lacks key strategic DDD elements:\n- No Aggregate\
-  \ Root pattern implementation\n- No Bounded Contexts (single domain model for entire\
-  \ application)\n- No Repository pattern abstraction (uses DbContext directly via\
-  \ interface)\n\n### Why not primarily Layered?\n\nWhile there are layers, this is\
-  \ not traditional layered architecture because:\n- **Dependency inversion**: Inner\
-  \ layers define interfaces that outer layers implement (not top-down dependencies)\n\
-  - **Application core independence**: Domain and Application layers have no infrastructure\
-  \ dependencies\n- **Ports and Adapters pattern**: The key distinction is that business\
-  \ logic doesn't depend on infrastructure - infrastructure depends on business logic\
-  \ abstractions\n\n### Why not Microservices?\n\nThis is a single deployable monolithic\
-  \ application:\n- Single `WebUI.csproj` as the deployable unit\n- Single database\
-  \ context (`NorthwindDbContext`)\n- Angular SPA served from same host\n- All projects\
-  \ compile into one deployment artifact"
+classification_reasoning: |
+  ## Architecture Classification — NorthwindTraders (JasonGT)
+
+  ### Primary Style: Hexagonal Architecture (confidence 0.93)
+
+  The codebase is organized around strict ports-and-adapters dependency inversion
+  across six C# projects grouped into three solution folders (Core, Infrastructure,
+  Presentation).
+
+  Structural evidence:
+  - `Src/Domain/Domain.csproj` has zero project references (pure .NET Standard 2.1).
+    This is the innermost ring with no knowledge of any outer layer.
+  - `Src/Application/Application.csproj` references only Domain and Common. It
+    defines five interface ports:
+      - `INorthwindDbContext` — data access port
+      - `ICurrentUserService` — authentication context port
+      - `INotificationService` — messaging port
+      - `ICsvFileBuilder` — file generation port
+      - `IUserManager` — user management port
+  - `Src/Persistence/NorthwindDbContext.cs` declares
+    `public class NorthwindDbContext : DbContext, INorthwindDbContext`, acting as
+    the data-access adapter. The Persistence project references Application.
+  - `Src/Infrastructure/NotificationService.cs` implements `INotificationService`,
+    and `Src/Infrastructure/Files/CsvFileBuilder.cs` implements `ICsvFileBuilder`.
+    Infrastructure references Application.
+  - `Src/WebUI/Services/CurrentUserService.cs` implements `ICurrentUserService`
+    by reading from the ASP.NET Core HTTP context. WebUI references Infrastructure
+    and Persistence (the outermost ring).
+  - `Northwind.sln` solution folder nesting confirms the intent:
+      - Core folder: Common, Domain, Application
+      - Infrastructure folder: Infrastructure, Persistence
+      - Presentation folder: WebUI
+
+  All dependency arrows point inward toward Domain. Outer layers know about inner
+  layers; inner layers know nothing about outer layers. This is the defining
+  structural characteristic of Hexagonal Architecture (Ports and Adapters).
+
+  ### Secondary Style: CQRS (confidence 0.91)
+
+  The Application layer enforces Command/Query separation across all feature areas:
+
+  Commands (state mutation via INorthwindDbContext port):
+  - `CreateProductCommand` / `CreateProductCommandHandler`
+  - `UpdateProductCommand` / `UpdateProductCommandHandler`
+  - `DeleteProductCommand` / `DeleteProductCommandHandler`
+  - `CreateCustomerCommand`, `UpdateCustomerCommand`, `DeleteCustomerCommand`
+  - `UpsertCategoryCommand`, `DeleteCategoryCommand`
+  - `UpsertEmployeeCommand`, `DeleteEmployeeCommand`
+
+  Queries (read-optimized ViewModels via AutoMapper):
+  - `GetProductsListQuery` → `ProductsListVm`
+  - `GetProductDetailQuery` → `ProductDetailVm`
+  - `GetProductsFileQuery` → `ProductsFileVm` (CSV download)
+  - `GetCustomersListQuery`, `GetCustomerDetailQuery`
+  - `GetEmployeesListQuery`, `GetEmployeeDetailQuery`
+  - `GetCategoriesListQuery`
+
+  All are dispatched via MediatR 7 `IRequestHandler<TRequest, TResponse>`.
+  Controllers contain no business logic — they delegate entirely to MediatR:
+  `var vm = await Mediator.Send(new GetProductsListQuery());`
+
+  Cross-cutting pipeline behaviours apply uniformly:
+  - `RequestValidationBehavior<TRequest, TResponse>` — FluentValidation
+  - `RequestPerformanceBehaviour<TRequest, TResponse>` — 500 ms threshold logging
+  - `RequestLogger<TRequest, TResponse>` — pre-handle request logging
+
+  This is CQRS at the application use-case level, not at the database level
+  (single NorthwindDbContext serves both reads and writes).
+
+  ### Domain-Driven Design elements (tactical, not strategic)
+
+  Some DDD tactical patterns are present but do not rise to primary classification:
+  - `ValueObject` abstract base class in `Src/Domain/Common/ValueObject.cs`
+  - `AdAccount` value object with factory method `AdAccount.For(string)` and
+    domain exception `AdAccountInvalidException`
+  - `AuditableEntity` tracking CreatedBy, Created, LastModifiedBy, LastModified
+
+  Strategic DDD is absent:
+  - No Aggregate Root pattern or aggregate enforcement
+  - No domain events or domain event handlers
+  - No bounded contexts; single flat domain model for all Northwind entities
+  - No repository pattern abstraction (DbContext exposed directly via interface)
+
+  ### Deployment Topology
+
+  Single deployable unit: one ASP.NET Core 3.0 process hosting both the REST API
+  (`/api/...` controllers) and the Angular SPA (`ClientApp/` via SpaServices). One
+  SQL Server database accessed via NorthwindDbContext (business data) and a separate
+  ApplicationDbContext (identity data). CI/CD via Azure Pipelines. Archived in 2023.
+
+  ### Rejected Styles
+
+  - **Layered (traditional)**: Dependencies are inverted (inner layers define
+    interfaces that outer layers implement), not traditional top-to-bottom layering.
+  - **Modular Monolith**: The defining characteristic is ports-and-adapters isolation,
+    not vertical module partitioning with independent data ownership.
+  - **Microservices**: Single deployable artifact, single database, no inter-service
+    communication.
+  - **Event-Driven**: No message broker, no event bus, no asynchronous domain events
+    published across process boundaries. MediatR notifications are in-process only
+    and not used for domain events in this repo (unlike its successor CleanArchitecture).
+  - **Domain-Driven Design (primary)**: Only tactical DDD patterns present; no
+    aggregate roots, no bounded contexts, no strategic DDD structure.

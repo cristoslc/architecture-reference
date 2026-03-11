@@ -11,100 +11,71 @@ discovery_version: 1.0.0
 domain: Payments
 language: C#
 languages:
-- C#
+  - C#
 architecture_styles:
-- Modular Monolith
-- Event-Driven
+  - Modular Monolith
+  - Event-Driven
+  - Domain-Driven Design
 classification_status: classified
-review_notes: 'The repository is a textbook implementation of a **Modular Monolith**.
-  It is explicitly designed to demonstrate high cohesion within modules and low coupling
-  between them, while maintaining a single deployment unit.
+classification_confidence: 0.97
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+  - Modularity
+  - Evolvability
+  - Reliability
+  - Testability
+  - Simplicity
+  - Observability
+one_line_summary: "A virtual payments reference application built as an explicitly modular monolith in .NET 6, where four autonomous bounded-context modules (Customers, Payments, Wallets, Users) share a single process and PostgreSQL server but communicate exclusively through an in-process event bus with transactional Outbox/Inbox, aggregate-rooted DDD domain models, and a Saga for cross-module business processes."
+classification_reasoning: |
+  MODULAR MONOLITH (primary, 0.97):
 
+  The entire system boots as a single ASP.NET Core process from src/Bootstrapper/Inflow.Bootstrapper. Startup.cs calls ModuleLoader.LoadAssemblies() to discover all Inflow.Modules.* assemblies at runtime, then iterates each IModule to call Register() and Use() on the shared DI container and application pipeline. Every module .csproj carries ProjectReferences only to Inflow.Shared.Abstractions or Inflow.Shared.Infrastructure — no module references another module at the project or namespace level. Physical isolation is enforced at four levels: (1) separate project assemblies per module, (2) separate DbContext types per module with distinct PostgreSQL schemas (wallets, payments, customers, users), (3) local-contracts pattern prevents shared event DTOs, and (4) module-internal types declared internal with InternalsVisibleTo restricted to layers within the same module. The docker-compose.yml contains only PostgreSQL, confirming single-process deployment with no external broker.
 
-  ### Evidence of Modular Monolith
+  EVIDENCE:
+  - ModuleLoader.LoadAssemblies() / LoadModules(): src/Shared/Inflow.Shared.Infrastructure/Modules/ModuleLoader.cs
+  - Zero cross-module ProjectReference in any module .csproj file (verified across all 14 module projects)
+  - WalletsDbContext.HasDefaultSchema("wallets"), PaymentsDbContext.HasDefaultSchema("payments"), CustomersDbContext.HasDefaultSchema("customers")
+  - IModule interface with Name, Register(), Use(): src/Shared/Inflow.Shared.Abstractions/Modules/IModule.cs
+  - Single docker-compose.yml with only PostgreSQL service
 
-  - **Single Deployment Unit**: The `src/Bootstrapper` project acts as the entry point,
-  responsible for initializing all modules and starting a single web application (`Program.cs`,
-  `Startup.cs`).
+  EVENT-DRIVEN (secondary, 0.93):
 
-  - **Enforced Boundaries**: The README explicitly states there are no references
-  between modules. Communication is handled via "local contracts" or asynchronous
-  events, rather than direct project dependencies.
+  Inter-module communication is handled exclusively through the IMessageBroker abstraction. InMemoryMessageBroker routes published IMessage events in-process via ModuleClient.PublishAsync(), which performs a JSON serialization round-trip to enforce type boundary isolation — a module receives its own local contract type, not the publisher's type. This prevents accidental coupling through shared object graphs. Optional async dispatch is supported via AsyncMessageDispatcher backed by Channel<MessageEnvelope>. The shared infrastructure provides transactional Outbox and Inbox tables (EfOutbox, EfInbox via OutboxProcessor background job) for reliable at-least-once cross-module delivery. A dedicated Saga module implements the Chronicle saga pattern: NewCustomerBonusFundsSaga listens to CustomerVerified, WalletAdded, DepositCompleted, and FundsAdded events to orchestrate a new-customer bonus deposit flow across module boundaries with compensating actions.
 
-  - **Internal Structure**: The directory `src/Modules/` contains autonomous folders
-  (Customers, Payments, Users, Wallets), each mimicking a microservice''s internal
-  structure (Core, Api, Infrastructure).
+  EVIDENCE:
+  - InMemoryMessageBroker: src/Shared/Inflow.Shared.Infrastructure/Messaging/Brokers/InMemoryMessageBroker.cs
+  - ModuleClient.PublishAsync() with JSON serialize/deserialize round-trip: src/Shared/Inflow.Shared.Infrastructure/Modules/ModuleClient.cs
+  - EfOutbox, EfInbox, OutboxProcessor: src/Shared/Inflow.Shared.Infrastructure/Messaging/Outbox/
+  - Local contracts e.g. Wallets module owns its own CustomerCompleted.cs: src/Modules/Wallets/Inflow.Modules.Wallets.Application/Owners/Events/External/CustomerCompleted.cs
+  - NewCustomerBonusFundsSaga: src/Modules/Saga/Inflow.Modules.Saga.Api/Sagas/NewCustomerBonusFundsSaga.cs
 
+  DOMAIN-DRIVEN DESIGN (secondary, 0.82):
 
-  ### Evidence of Event-Driven Style
+  DDD tactical patterns are applied consistently within each module. The Wallets module exhibits the fullest expression: Wallet extends AggregateRoot<WalletId> with a domain-event collection and optimistic-concurrency Version counter. Rich aggregate behavior (TransferFunds, AddFunds, DeductFunds) enforces domain invariants (InsufficientWalletFundsException, InvalidTransferAmountException) inside the aggregate rather than in application services. Value objects (TransferName, TransferMetadata, OwnerName, TaxId, Currency, Amount) validate at construction. Domain repository interfaces (IWalletRepository) are declared in the Core domain layer; EF Core implementations live in the Infrastructure layer, respecting the dependency rule. The Wallets module uses a full four-layer structure (Core → Application → Infrastructure → Api) corresponding to a DDD-aligned Clean Architecture. The Customers module is simpler (Core + Api only) but still uses value objects (Name, Address, Identity) and a rich Customer entity with domain methods (Complete, Verify, Lock, Unlock). IDomainEvent and IDomainEventDispatcher abstractions in Inflow.Shared.Abstractions.Kernel confirm DDD as a first-class concern.
 
-  - **Asynchronous Integration**: The README highlights that integration between modules
-  is based on an "event-driven approach to achieve greater autonomy."
+  EVIDENCE:
+  - Wallet : AggregateRoot<WalletId> with IncrementVersion(): src/Modules/Wallets/Inflow.Modules.Wallets.Core/Wallets/Entities/Wallet.cs
+  - AggregateRoot<T> base with IDomainEvent collection: src/Shared/Inflow.Shared.Abstractions/Kernel/Types/AggregateRoot.cs
+  - IDomainEvent, IDomainEventDispatcher, IDomainEventHandler: src/Shared/Inflow.Shared.Abstractions/Kernel/
+  - Value objects in Wallets.Core: TransferName, TransferMetadata, OwnerName, TaxId
+  - Domain invariants raised as typed exceptions in aggregate: InsufficientWalletFundsException, InvalidTransferAmountException
+  - IWalletRepository (Core) vs WalletRepository : IWalletRepository (Infrastructure): domain/infra separation
 
-  - **Infrastructure Support**: The `src/Shared/Inflow.Shared.Infrastructure/Events`
-  and `Messaging` directories indicate a robust internal event bus or message broker
-  abstraction used for inter-module communication.'
+  CQRS WITHIN MODULES (0.88, supporting DDD secondary):
+  Every module implements CQRS internally using ICommand / ICommandHandler and IQuery / IQueryHandler from the shared abstractions, with ICommandDispatcher and IQueryDispatcher routing. Commands mutate state and publish events; queries use separate read-side storage (IWalletStorage, ITransferStorage via EF projections). This is an implementation detail within each module rather than a top-level architectural style, so it supports the DDD secondary classification.
+
+  REJECTED STYLES:
+
+  Microservices: Single process, single deployment artifact, single PostgreSQL server. The README notes the microservices transition is a separate branch and separate repository (Inflow-micro), explicitly confirming this codebase is not microservices.
+
+  Service-Based: Service-Based implies a small number (2-5) of coarse services that share a single database without schema isolation. Inflow has tighter module boundaries (schema isolation, local contracts, no direct DB sharing) and finer-grained decomposition than Service-Based implies.
+
+  Hexagonal Architecture: While dependency inversion is used within modules (domain interfaces, infrastructure implementations), the defining characteristic of the overall system is module boundary enforcement, not port/adapter port mapping at the system level. Hexagonal ports/adapters exist within the DDD layers of individual modules but do not define the system topology.
+
+  Layered: Organization is vertical by bounded context (module), with layers existing only inside each module. The top-level `src/Modules/` structure is horizontal by domain concern, not by technical layer (presentation/business/data).
+
+  Pipeline: No data-transformation pipeline topology. The messaging system routes events but does not apply sequential filters or transformers.
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:19:43Z'
-classification_reasoning: "## Classification Analysis\n\n### Primary Style: Modular\
-  \ Monolith\n\n**Inflow is a textbook example of a Modular Monolith architecture.**\
-  \ The evidence is compelling:\n\n**Single Deployment Unit:**\n- One deployable application:\
-  \ `src/Bootstrapper/Inflow.Bootstrapper` \n- A single Docker container runs the\
-  \ entire application (PostgreSQL database only in `docker-compose.yml`)\n- All modules\
-  \ are loaded into the same process via `ModuleLoader.LoadAssemblies()`\n\n**Enforced\
-  \ Module Boundaries:**\n- **Physical separation**: 4 autonomous modules (Customers,\
-  \ Payments, Wallets, Users, plus Saga) each with their own project structure\n-\
-  \ **No cross-module references**: Search for `using Inflow.Modules.(Customers|Payments|Users|Wallets)`\
-  \ returned **no matches** - modules cannot import from each other\n- **Project reference\
-  \ isolation**: Each module's `.csproj` only references Shared.* projects and internal\
-  \ layers—never other modules\n- **InternalsVisibleTo scoping**: `InternalsVisibleTo`\
-  \ attributes restrict visibility to `Api`, `Application`, `Infrastructure`, and\
-  \ `Tests` within the same module (e.g., `Inflow.Modules.Wallets.Core` exposes to\
-  \ `Inflow.Modules.Wallets.Api` but NOT to other modules)\n\n**Module Interface Pattern:**\n\
-  Each module implements `IModule` interface with controlled registration:\n```csharp\n\
-  // src/Modules/Wallets/Inflow.Modules.Wallets.Api/WalletsModule.cs\ninternal class\
-  \ WalletsModule : IModule\n{\n    public string Name { get; } = \"Wallets\";\n \
-  \   public void Register(IServiceCollection services) { ... }\n    public void Use(IApplicationBuilder\
-  \ app) { ... }\n}\n```\n\n**Independent Database Schemas:**\nEach module owns its\
-  \ data with separate schemas:\n- `WalletsDbContext` → `modelBuilder.HasDefaultSchema(\"\
-  wallets\")`\n- `PaymentsDbContext` → `modelBuilder.HasDefaultSchema(\"payments\"\
-  )`\n- `CustomersDbContext` → `modelBuilder.HasDefaultSchema(\"customers\")`\n\n\
-  **Configurable Module Loading:**\n```csharp\n// ModuleLoader.cs\nvar enabled = configuration.GetValue<bool>($\"\
-  {moduleName}:module:enabled\");\nif (!enabled) { disabledModules.Add(file); }\n\
-  ```\n\n### Secondary Style: Event-Driven\n\n**Modules communicate exclusively through\
-  \ events**, achieving strong decoupling:\n\n**Local Contracts Pattern:**\nInstead\
-  \ of sharing types, each module defines its own contract for external events:\n\
-  ```csharp\n// Wallets module defines its own contract for CustomerCompleted\n[Message(\"\
-  customers\")]\ninternal class CustomerCompletedContract : Contract<CustomerCompleted>\n\
-  {\n    public CustomerCompletedContract() { RequireAll(); }\n}\n```\n\n**Cross-Module\
-  \ Event Handlers:**\n```csharp\n// Wallets module handles Customers module events\n\
-  internal sealed class CustomerCompletedHandler : IEventHandler<CustomerCompleted>\n\
-  {\n    public async Task HandleAsync(CustomerCompleted @event, ...)\n    {\n   \
-  \     var owner = new IndividualOwner(@event.CustomerId, ...);\n        await _ownerRepository.AddAsync(owner);\n\
-  \    }\n}\n```\n\n**Inbox/Outbox Pattern:**\nEach module has `InboxMessage` and\
-  \ `OutboxMessage` tables for reliable event delivery.\n\n**Saga Implementation:**\n\
-  A dedicated Saga module orchestrates cross-module business processes (e.g., `CustomerVerified`\
-  \ → `WalletAdded` → `DepositCompleted` → `FundsAdded`).\n\n### Domain-Driven Design\
-  \ Elements (Not Primary Style)\n\nThe codebase incorporates DDD tactical patterns\
-  \ but these serve the module structure rather than define it:\n- Aggregate roots\
-  \ (`Wallet : AggregateRoot<WalletId>`)\n- Value objects (`TransferMetadata`, `OwnerName`,\
-  \ `TaxId`)\n- Domain events (`IDomainEvent`)\n- Bounded contexts (each module =\
-  \ bounded context)\n\nDDD is the **implementation approach within modules**, not\
-  \ the architectural style governing the overall system.\n\n### What Was Rejected\n\
-  \n- **Microservices**: Single process, single deployment, shared database. The `microservices`\
-  \ branch mentioned in README confirms this is intentionally NOT microservices.\n\
-  \n- **Service-Based**: This would imply 2-5 coarse services. Inflow has 5+ fine-grained\
-  \ modules with strict internal boundaries and local contracts—not coarse services\
-  \ sharing a database.\n\n- **Layered**: Not organized horizontally (presentation\
-  \ → business → data). The primary organization is **vertical slices** (modules),\
-  \ with layers existing internally within each module.\n\n- **Hexagonal Architecture**:\
-  \ While abstractions exist (`ICommand`, `IEvent`, `IRepository`), the defining characteristic\
-  \ is module boundaries, not ports/adapters isolation. The `Shared.Abstractions`\
-  \ provides cross-cutting infrastructure, not hexagonal ports.\n\n### Confidence:\
-  \ 0.95\n\nThe architecture is explicitly documented as \"Modular Monolith\" in README,\
-  \ and the code structure matches perfectly. The event-driven secondary style is\
-  \ clearly implemented through local contracts, saga pattern, and inbox/outbox—making\
-  \ this a well-architected modular monolith with event-driven inter-module communication."

@@ -4,94 +4,160 @@ use_type: production
 source: Discovered
 source_url: https://github.com/inventree/InvenTree
 project_url: https://github.com/inventree/InvenTree
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-07T05:03:48Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Logistics
 language: Python
 languages:
-- Python
-- TypeScript
-- JavaScript
+  - Python
+  - TypeScript
+  - JavaScript
 architecture_styles:
-- Microkernel
-- Layered
+  - Microkernel
+  - Layered
 classification_status: classified
-review_notes: 'The InvenTree repository is a classic **Layered** architecture, specifically
-  built on the Django framework. According to the `docs/docs/develop/architecture.md`,
-  it follows a "classical Django Application" structure. The system is organized into
-  a Python/Django backend (located in `src/backend/InvenTree`) and a React-based Single
-  Page Application (SPA) frontend.
-
-
-  ### Primary Style: Layered
-
-  The codebase follows the horizontal layering typical of Django/DRF (Django Rest
-  Framework) applications:
-
-  - **Presentation Layer**: A React SPA frontend served as static files, communicating
-  with the backend via a RESTful API.
-
-  - **Business Logic Layer**: Implemented within Django apps, utilizing services and
-  background workers (Django Q2) for long-running tasks.
-
-  - **Data Access Layer**: Uses Django’s ORM to abstract interactions with PostgreSQL,
-  MySQL, or SQLite.
-
-  - **Infrastructure**: Employs Redis for caching and session management and Gunicorn
-  as the WSGI server.
-
-
-  The architecture emphasizes a "modular" monolith approach where concerns are separated
-  into Django apps, but they are deployed as a single unit (as evidenced by the `docker-compose.yml`
-  and the architecture diagram showing a single `inventree/inventree` image containing
-  the Django server processes).'
+one_line_summary: >-
+  Open-source inventory management system with a plugin microkernel over a Django/DRF layered backend
+  and React SPA frontend.
+review_notes: >-
+  InvenTree is primarily a Microkernel architecture: a central PluginsRegistry (plugin/registry.py)
+  dynamically loads and manages plugins at runtime through 20+ named extension points defined by
+  PluginMixinEnum. Core features (barcodes, labels, currency exchange, notifications) are themselves
+  implemented as mandatory built-in plugins, making the extension mechanism first-class. Within each
+  Django domain app the code follows strict horizontal Layered architecture (models/serializers/api/
+  tasks/admin). Deployed as a monolithic unit (single Docker image) with a separate qcluster worker
+  process for async tasks.
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:20:39Z'
-classification_reasoning: "## Architecture Analysis: InvenTree\n\n### Primary Style:\
-  \ Microkernel (Plugin)\n\nInvenTree implements a **Microkernel architecture** centered\
-  \ on a sophisticated plugin system that allows the core system to be extended at\
-  \ runtime.\n\n**Key Evidence:**\n\n1. **Plugin Registry** (`src/backend/InvenTree/plugin/registry.py`):\n\
-  \   - Central `PluginsRegistry` class that discovers, loads, and manages plugins\n\
-  \   - Maintains lists of active/inactive plugin instances\n   - Thread-safe loading\
-  \ with locks\n   - Dynamic URL and app registration\n\n2. **Plugin Base Class**\
-  \ (`src/backend/InvenTree/plugin/plugin.py`):\n   - `InvenTreePlugin` base class\
-  \ that all plugins extend\n   - `PluginMixinEnum` defining 20+ extension points\
-  \ (ACTION, API_CALL, BARCODE, LABELS, REPORT, VALIDATION, EVENTS, etc.)\n\n3. **Plugin\
-  \ Mixin System** (`src/backend/InvenTree/plugin/base/`):\n   - `SettingsMixin` -\
-  \ plugins can define custom settings\n   - `AppMixin` - plugins can register as\
-  \ full Django apps with models\n   - `UrlsMixin` - plugins can expose custom URL\
-  \ endpoints\n   - `NavigationMixin` - plugins can add navigation items\n   - `ReportMixin`,\
-  \ `LabelMixin` - plugins can provide report/label generation\n   - `ValidationMixin`\
-  \ - plugins can hook into data validation\n   - `EventMixin` - plugins can respond\
-  \ to system events\n\n4. **Builtin Plugins** (`src/backend/InvenTree/plugin/builtin/`):\n\
-  \   - Core functionality implemented as plugins: barcode, exporters, labels, notifications,\
-  \ currency exchange\n   - `MANDATORY_PLUGINS` list for plugins that provide essential\
-  \ functionality\n\n5. **Sample Plugins** (`src/backend/InvenTree/plugin/samples/`):\n\
-  \   - Demonstrates extension points with working examples\n\n### Secondary Style:\
-  \ Layered\n\nWithin each Django app module, the code follows a classic **Layered\
-  \ architecture** (MVC pattern):\n\n- **Data Layer**: `models.py` - Django ORM models\n\
-  - **API/Controller Layer**: `api.py` - Django REST Framework views\n- **Serialization\
-  \ Layer**: `serializers.py` - Data transformation\n- **Admin Layer**: `admin.py`\
-  \ - Admin interface configuration\n- **Presentation Layer**: `templates/` - HTML\
-  \ templates\n\n**Example** (`src/backend/InvenTree/part/`):\n```\npart/\n├── models.py\
-  \      # Data layer - Part, PartCategory, BomItem models\n├── api.py         # API\
-  \ views - CategoryList, PartList endpoints\n├── serializers.py # DRF serializers\
-  \ for JSON serialization\n├── admin.py       # Django admin configuration\n├── filters.py\
-  \     # Query filtering\n└── tests.py       # Test layer\n```\n\n### What This Is\
-  \ NOT\n\n- **Not Microservices**: Single deployable unit (`inventree/inventree`\
-  \ Docker image), single database, shared codebase\n- **Not Modular Monolith**: While\
-  \ organized into Django apps, there are no enforced module boundaries, separate\
-  \ schemas, or bounded contexts. The apps share the same database and can import\
-  \ each other freely\n- **Not Hexagonal Architecture**: No ports/adapters pattern;\
-  \ uses Django ORM directly throughout\n- **Not Event-Driven Architecture**: While\
-  \ there's an event system for plugins, synchronous REST API calls are the primary\
-  \ communication pattern\n\n### Deployment Topology\n\nFrom `contrib/container/docker-compose.yml`:\n\
-  - Single `inventree-server` container (gunicorn)\n- Background `inventree-worker`\
-  \ container (django-q, same codebase)\n- Shared PostgreSQL database\n- Redis cache\n\
-  - Caddy reverse proxy\n\nThis is a **monolithic deployment** with a background worker\
-  \ process - typical for Django applications with async task requirements."
+classification_method: deep-analysis
+classification_confidence: 0.90
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+classification_reasoning: |
+  ## Architecture Analysis: InvenTree
+
+  ### Primary Style: Microkernel (confidence 0.88)
+
+  InvenTree is structured around a formal plugin microkernel. The central artefact is
+  `PluginsRegistry` (`src/backend/InvenTree/plugin/registry.py`), which:
+  - Discovers and loads plugins from pip entry points, a plugin file, and built-in packages
+  - Maintains an ordered dict of active/inactive plugin instances with thread-safe locks
+  - Dynamically registers Django apps, URL patterns, and admin interfaces per plugin at runtime
+  - Exposes a `check_reload()` cycle so plugins can be hot-reloaded without restarting the server
+
+  The extension contract is defined by `InvenTreePlugin` (plugin/plugin.py) and
+  `PluginMixinEnum`, which enumerates 20+ named capabilities a plugin may provide:
+  ACTION, API_CALL, APP, BARCODE, CURRENCY_EXCHANGE, EVENTS, EXPORTER, ICON_PACK, LABELS,
+  LOCATE, MACHINE, MAIL, NAVIGATION, NOTIFICATION, REPORT, SCHEDULE, SETTINGS,
+  STATE_TRANSITION, SUPPLIER, SUPPLIER_BARCODE, UI_MIXIN, VALIDATION.
+
+  Each capability maps to a mixin class in `plugin/base/integration/` and `plugin/base/`:
+  - ScheduleMixin — cron-style background tasks via django-q2
+  - EventMixin — subscribe to domain events dispatched by `trigger_event()`
+  - AppMixin — register full Django apps with models and migrations
+  - UrlsMixin — expose custom REST endpoints
+  - ValidationMixin — hook into model validation
+  - UserInterfaceMixin, NavigationMixin — extend the React SPA
+
+  Critically, core system capabilities are themselves delivered as built-in plugins under
+  `plugin/builtin/`: barcode scanning, label printing, data exporters, currency exchange,
+  supplier integrations, and notification delivery. A `MANDATORY_PLUGINS` registry list
+  ensures these are always active. This is the defining Microkernel signal: the core
+  runtime provides lifecycle management and extension points; features live in plugins.
+
+  The Machine subsystem (`src/backend/InvenTree/machine/`) follows the same pattern —
+  `MachineDriverMixin` is a plugin mixin, and machine types are registered via the plugin
+  registry, not hard-coded.
+
+  ### Secondary Style: Layered (confidence 0.85)
+
+  Within each Django domain application the codebase rigidly follows horizontal layering:
+  - Data layer: `models.py` — Django ORM models (4,446 lines in part/models.py alone)
+  - Serialisation layer: `serializers.py` — DRF serializers for JSON I/O
+  - API/Controller layer: `api.py` — DRF class-based views with filtering and permissions
+  - Admin layer: `admin.py` — Django admin registrations
+  - Async layer: `tasks.py` — django-q2 offloaded tasks
+  - Test layer: per-module `test_*.py` files
+
+  Domain apps following this pattern: part, stock, order, build, company, machine, report,
+  importer, data_exporter, common, users, generic.
+
+  The React/Mantine SPA (`src/frontend/`) is the presentation tier consuming the REST API
+  exclusively via axios and @tanstack/react-query. The gunicorn WSGI process serves the web
+  tier; a separate qcluster process (same codebase, different entrypoint) handles background
+  tasks. Redis optionally provides shared cache and acts as the django-q2 broker when
+  GLOBAL_CACHE_ENABLED is true.
+
+  ### Domain Event System
+
+  Each domain app publishes a typed event enum (`StockEvents`, `PartEvents`, `PurchaseOrderEvents`,
+  `SalesOrderEvents`, `BuildEvents`) using `BaseEventEnum`. `trigger_event()` offloads event
+  dispatch to the qcluster worker via `offload_task(register_event, ...)`. Plugins implementing
+  `EventMixin` subscribe to these events. This is an event bus within the plugin microkernel
+  — not a primary Event-Driven architecture style (all user-facing operations are synchronous REST).
+
+  ### Deployment Topology
+
+  - Single Docker image `inventree/inventree` contains both web (gunicorn) and worker (qcluster)
+  - `Procfile`: `web: gunicorn ... InvenTree.wsgi` and `worker: manage.py qcluster`
+  - Shared PostgreSQL (or MySQL/SQLite) database; no per-service databases
+  - Optional Redis for cache, session, and queue broker
+  - Caddy reverse proxy in compose; static frontend served by whitenoise/gunicorn
+
+  ### What This Is NOT
+
+  - Not Microservices: single Docker image, single shared database, no service boundaries
+  - Not Modular Monolith: apps share the database, import each other freely; no enforced bounded contexts
+  - Not Hexagonal: no ports/adapters abstraction; Django ORM used directly throughout domain apps
+  - Not Event-Driven primary: REST synchronous API is the primary interaction model; events are a
+    plugin notification mechanism, not the core communication backbone
+
+key_technologies:
+  - Python
+  - Django
+  - Django REST Framework
+  - django-q2
+  - React
+  - Mantine
+  - Redis
+  - PostgreSQL
+  - Gunicorn
+  - drf-spectacular
+  - django-allauth
+  - mptt
+quality_attributes:
+  - Extensibility: PluginsRegistry with 20+ extension points; AppMixin enables plugins to register Django apps with models
+  - Deployability: Single Docker image (inventree/inventree); Procfile-driven web+worker; supports PostgreSQL/MySQL/SQLite
+  - Maintainability: Uniform per-app layering (models/serializers/api/tasks/admin) across all domain modules
+  - Scalability: Configurable django-q2 qcluster worker count; Redis as shared cache/queue broker when enabled
+  - Testability: Pytest with per-module test files; PLUGIN_TESTING and PLUGIN_TESTING_EVENTS isolation flags
+  - Interoperability: drf-spectacular OpenAPI schema; OAuth2/SSO/API-token auth; APICallMixin for outbound plugin integrations
+  - Observability: structlog structured logging; OpenTelemetry tracing; optional Sentry for web and worker
+notable_strengths:
+  - Runtime plugin hot-reload without server restart
+  - Core features (barcodes, labels, currency) extensible via same plugin API as third-party code
+  - REST API fully documented with OpenAPI/drf-spectacular; Python client library available
+  - Supports multiple databases and storage backends without code changes
+notable_gaps:
+  - No enforced bounded contexts between domain apps; cross-app imports are unrestricted
+  - No service mesh or API gateway; horizontal scaling requires external load balancer
+  - Background task visibility limited to django-q2 admin; no built-in workflow orchestration
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+architecture_qualifiers:
+  - type: design-approach
+    value: plugin-system
+    note: PluginsRegistry with MANDATORY_PLUGINS and 20+ PluginMixinEnum extension points
+  - type: api-style
+    value: rest
+    protocol: HTTP/JSON via Django REST Framework + drf-spectacular
+  - type: async-model
+    value: task-queue
+    protocol: django-q2 (ORM or Redis broker)
+  - type: auth
+    value: multi-scheme
+    note: Session, API token, OAuth2, SSO (allauth), MFA
