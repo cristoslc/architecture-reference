@@ -22,7 +22,7 @@
 | SPEC-025 | Ecosystem Catalog Schema | Ecosystem entry format + architecture_qualifiers + style-taxonomy.yaml. Foundation for EPIC-010. | 2026-03-10 | 7b733d0b |
 | SPEC-026 | Ecosystem Curation | Curate 10+ ecosystems, add missing member repos, deep-validate emergent architecture. Depends on SPEC-025. | 2026-03-10 | 50b19d24 |
 | SPEC-027 | Ecosystem Validation and Reporting | Validation, quality report, frequency analysis, and index updates for ecosystem entries. Pipeline classification mechanics deferred to ADR-005. Depends on SPEC-025. | 2026-03-10 | ddab6b42 |
-| SPEC-028 | Reference Library Ecosystem Integration | Update reference docs with ecosystem evidence alongside single-repo evidence. Depends on SPEC-026, SPEC-027. | 2026-03-10 | — |
+| SPEC-028 | Reference Library Ecosystem Integration | Update reference docs with ecosystem evidence alongside single-repo evidence. Depends on SPEC-026, SPEC-027. | 2026-03-10 | 89b29a7c |
 
 ## Active
 
