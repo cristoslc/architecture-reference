@@ -8,102 +8,82 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-07T04:44:52Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Media Automation
+domain: Media Automation / Indexer Manager & Proxy
 language: C#
 languages:
 - C#
-- JavaScript
 - TypeScript
+- JavaScript
 architecture_styles:
+- Modular Monolith
 - Microkernel
-- Layered
 classification_status: classified
-review_notes: 'Prowlarr follows a traditional **Layered** architecture, which is the
-  standard architectural template for the "*arr" family of applications (Sonarr, Radarr,
-  etc.). It organizes the system into horizontal layers (Common, Core, Api, Host)
-  that compile into a single deployable unit.
-
-
-  ### 1. Horizontal Layering
-
-  The codebase is strictly partitioned into functional layers as seen in `src/Prowlarr.sln`:
-
-  - **Prowlarr.Common / NzbDrone.Common**: The lowest layer containing cross-cutting
-  concerns like `Crypto`, `Serializer`, `Http` clients, and `EnvironmentInfo`.
-
-  - **Prowlarr.Core (NzbDrone.Core)**: The business logic layer. It contains the domain
-  entities and the primary services that orchestrate indexing and tracking logic.
-
-  - **Prowlarr.Api.V1**: The presentation/service layer, exposing REST endpoints.
-  It depends on `Core` to execute business operations.
-
-  - **Prowlarr.Host (NzbDrone.Host / Prowlarr.Console)**: The entry point and infrastructure
-  setup layer responsible for bootstrapping the application, dependency injection,
-  and hosting the web server.
-
-
-  ### 2. Hexagonal (Ports and Adapters) Signals'
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:35:48Z'
-classification_reasoning: "## Architecture Analysis: Prowlarr\n\n### Primary Classification:\
-  \ Microkernel (Plugin)\n\nProwlarr implements a **Microkernel architecture** with\
-  \ a plugin-based extensibility pattern centered around the \"Provider\" abstraction.\
-  \ This is the dominant architectural style.\n\n**Key Evidence:**\n\n1. **Provider\
-  \ Plugin System** (`src/NzbDrone.Core/ThingiProvider/`):\n   - Core interface `IProvider`\
-  \ defines the plugin contract with methods like `Test()`, `RequestAction()`, and\
-  \ properties for configuration\n   - Abstract `ProviderFactory<TProvider, TProviderDefinition>`\
-  \ serves as the plugin registry/factory\n   - All extension points use this pattern:\
-  \ `IndexerFactory`, `ApplicationFactory`, `NotificationFactory`, `IndexerProxyFactory`,\
-  \ `DownloadClientFactory`\n\n2. **Runtime Plugin Discovery** (`src/NzbDrone.Common/Composition/Extensions.cs`):\n\
-  \   ```csharp\n   public static IContainer AutoAddServices(this IContainer container,\
-  \ List<string> assemblyNames)\n   {\n       container.RegisterMany(assemblies,\n\
-  \           serviceTypeCondition: type => type.IsInterface && !type.FullName.StartsWith(\"\
-  System\"),\n           reuse: Reuse.Singleton);\n   }\n   ```\n   - DryIoc DI container\
-  \ automatically discovers and registers all provider implementations\n\n3. **143+\
-  \ Indexer Implementations** (`src/NzbDrone.Core/Indexers/Definitions/`):\n   - Each\
-  \ indexer (AlphaRatio, Anidex, BroadcastheNet, Cardigann, etc.) is a plugin implementing\
-  \ `IIndexer`\n   - Abstract base class `IndexerBase<TSettings>` provides template\
-  \ method pattern\n   - Indexers can be added without modifying core system\n\n4.\
-  \ **External Definition Loading** (`src/NzbDrone.Core/IndexerVersions/IndexerDefinitionUpdateService.cs`):\n\
-  \   - Cardigann indexers load YAML definitions from external servers\n   - `https://indexers.prowlarr.com/{branch}/{version}`\
-  \ downloads new indexer definitions at runtime\n   - True plugin capability without\
-  \ code changes\n\n5. **Multiple Extension Points**:\n   - **Indexers**: `IIndexer`\
-  \ with 143+ implementations\n   - **Applications**: `IApplication` for integrations\
-  \ (Sonarr, Radarr, Lidarr, etc.)\n   - **Notifications**: `INotification` for push\
-  \ notifications\n   - **Download Clients**: `IDownloadClient` for torrent/usenet\
-  \ clients\n   - **Indexer Proxies**: `IIndexerProxy` for VPN/proxy support\n\n###\
-  \ Secondary Classification: Layered\n\nProwlarr exhibits conventional **Layered\
-  \ architecture** as a supporting pattern:\n\n**Horizontal Layers** (from solution\
-  \ structure `src/Prowlarr.sln`):\n- **Presentation Layer**: `frontend/` (React/TypeScript\
-  \ SPA)\n- **API Layer**: `Prowlarr.Api.V1/`, `Prowlarr.Http/` (REST controllers)\n\
-  - **Application/Host Layer**: `NzbDrone.Host/`, `NzbDrone.Console/` (bootstrap,\
-  \ lifecycle)\n- **Core Domain Layer**: `NzbDrone.Core/` (business logic, providers,\
-  \ services)\n- **Infrastructure Layer**: `NzbDrone.Common/`, `NzbDrone.Mono/`, `NzbDrone.Windows/`\
-  \ (platform abstractions)\n- **Data Access**: `NzbDrone.Core/Datastore/` (SQLite/PostgreSQL\
-  \ repositories)\n\n**Evidence**:\n- Clean separation via project references and\
-  \ namespaces\n- `Startup.cs` configures ASP.NET Core middleware pipeline\n- Repository\
-  \ pattern in `BasicRepository<TModel>` with event aggregation\n- Controllers in\
-  \ `ProviderControllerBase` delegate to services/factories\n\n### Why Not Other Styles:\n\
-  \n- **Not Microservices**: Single deployable application, shared database (SQLite/PostgreSQL),\
-  \ no inter-service communication\n- **Not Domain-Driven Design**: No bounded contexts,\
-  \ aggregates, domain events, or ubiquitous language organization\n- **Not Event-Driven\
-  \ Architecture**: Uses in-process `EventAggregator` for internal decoupling, not\
-  \ external message brokers\n- **Not CQRS**: No separate read/write models\n- **Not\
-  \ Service-Based**: Not multiple coarse-grained services\n\n### Architecture Summary\
-  \ Diagram:\n\n```\n┌─────────────────────────────────────────────────────────┐\n\
-  │                   Frontend (React)                       │\n└──────────────────────────┬──────────────────────────────┘\n\
-  \                           │ HTTP/REST\n┌──────────────────────────▼──────────────────────────────┐\n\
-  │              API Layer (Prowlarr.Api.V1)                 │\n│         ProviderControllerBase,\
-  \ REST endpoints          │\n└──────────────────────────┬──────────────────────────────┘\n\
-  \                           │\n┌──────────────────────────▼──────────────────────────────┐\n\
-  │                   Core (NzbDrone.Core)                   │\n│  ┌─────────────────────────────────────────────────────┐│\n\
-  │  │           ProviderFactory<TProvider>               ││\n│  │    Plugin Registry\
-  \ & Runtime Discovery              ││\n│  └──────────────────────┬──────────────────────────────┘│\n\
-  │                         │                                │\n│  ┌──────────┬───────────┼───────────┬──────────┐\
-  \         │\n│  │          │           │           │          │         │\n│  ▼\
-  \          ▼           ▼           ▼          ▼         │\n│ Indexers  Apps   Notifications\
-  \  Downloads  Proxies      │\n│ (143+)   (6+)       (20+)        (10+)      (4+)\
-  \        │\n└───────────────────\n\n[truncated]"
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+- Modularity
+- Evolvability
+- Observability
+- Deployability
+- Interoperability
+- Fault Tolerance
+- Scalability
+one_line_summary: An indexer manager and proxy built as a Modular Monolith with a
+  Microkernel plugin layer — the ThingiProvider framework hosts 71+ indexer definitions
+  (plus a Cardigann YAML engine for 500+ trackers), while ApplicationService reacts
+  to indexer lifecycle events to push configuration outward to Sonarr, Radarr, Lidarr,
+  and other *arr apps, all within a single ASP.NET Core process.
+classification_reasoning: "## Primary Style: Modular Monolith\n\nProwlarr is a single
+  deployable ASP.NET Core process bootstrapped in\n`NzbDrone.Host/Bootstrap.cs` using
+  DryIoc auto-discovery. The solution\nspans ~28 projects compiled into one binary:\n\n-
+  `NzbDrone.Core` — 938 .cs files, all business logic\n- `Prowlarr.Api.V1` — REST
+  controllers (ASP.NET Core MVC)\n- `Prowlarr.Http` — middleware, authentication,
+  error handling\n- `NzbDrone.SignalR` — real-time WebSocket push to the React frontend\n-
+  `NzbDrone.Common` — shared infrastructure (HTTP, disk, serialization, DI)\n- `NzbDrone.Windows`
+  / `NzbDrone.Mono` — platform-specific shims\n\nWithin `NzbDrone.Core`, every functional
+  domain is vertically organized:\n\n- `Indexers/` — indexer request/response pipeline,
+  RSS sync, 71+ definitions\n- `IndexerSearch/` — fan-out search across multiple
+  indexers concurrently\n- `Applications/` — outbound sync to downstream *arr apps\n-
+  `Download/` — download client abstraction and grab pipeline\n- `Notifications/`
+  — notification fanout on grab/health events\n- `History/` — persistent grab/search
+  audit log\n- `IndexerProxies/` — per-indexer HTTP/SOCKS/FlareSolverr proxies\n-
+  `Jobs/` — scheduled task system\n- `Profiles/` — indexer sync profiles\n\nThe system
+  runs against a single SQLite or PostgreSQL database accessed through\n`BasicRepository<T>`
+  (Dapper-based), with 21+ migration scripts under\n`Datastore/Migration/`.\n\n##
+  Secondary Style: Microkernel\n\nThe `ThingiProvider` framework (`NzbDrone.Core/ThingiProvider/`)\
+  \ is a generic\nplugin bus. Every extension category implements `IProvider`.\nThe
+  generic `ProviderFactory<TProvider, TProviderDefinition>` resolves\nimplementations
+  from the DryIoc container at runtime and publishes lifecycle events\n(`ProviderAddedEvent<T>`,
+  `ProviderUpdatedEvent<T>`, `ProviderDeletedEvent<T>`)\nthrough `EventAggregator`.
+  Plugin populations:\n\n- 71+ indexer definitions in `Indexers/Definitions/` covering
+  500+ trackers;\n  Cardigann YAML engine (`CardigannBase`/`CardigannParser`) interprets\n
+  \ community-maintained YML specs at runtime without code changes\n- ~20 download
+  client implementations (qBittorrent, Transmission, SABnzbd, etc.)\n- ~20 notification
+  targets (Discord, Telegram, Slack, Email, Webhook, etc.)\n- 4 indexer proxy types
+  (HTTP, SOCKS4, SOCKS5, FlareSolverr) via `IndexerProxyBase`\n- 7 downstream app
+  integrations (Sonarr, Radarr, Lidarr, Readarr,\n  Mylar, Whisparr, LazyLibrarian)
+  via `ApplicationBase`\n\nThe `ApplicationService` is event-driven within the monolith:
+  it handles\n`ProviderAddedEvent<IIndexer>`, `ProviderUpdatedEvent<IIndexer>`,\n`ProviderBulkUpdatedEvent<IIndexer>`,
+  `ProviderDeletedEvent<IIndexer>`, and\n`ApiKeyChangedEvent` to push indexer configuration
+  changes to downstream apps.\n\n## What This Is NOT\n\n- **NOT Microservices**: One
+  binary, one database, no network service boundary\n  between components.\n- **NOT
+  Layered (horizontal)**: Organizing principle is vertical domain modules\n  within
+  `NzbDrone.Core`, not horizontal technical tiers.\n- **NOT Event-Driven (async messaging)**:
+  `EventAggregator` is in-process\n  publish/subscribe — no Kafka, RabbitMQ, or durable
+  queues.\n- **NOT CQRS**: No separate read/write models.\n\n## Quality Attribute
+  Evidence\n\n- **Modularity**: Domain folders with own Models/Services/Repositories/Events;\n
+  \ `ThingiProvider` plugin contracts enforce separation between core and extensions.\n-
+  **Evolvability**: 21+ DB migrations; Cardigann YAML engine allows zero-code tracker\n
+  \ additions; `IHandle<TEvent>` allows new event reactions without modifying publishers.\n-
+  **Observability**: NLog; SignalR real-time push to UI; 19 `HealthCheck/Checks/`;\n
+  \ `IndexerStatusService` tracks per-indexer backoff state.\n- **Deployability**:
+  Cross-platform .NET (Windows service, Linux daemon, Docker);\n  SQLite default,
+  PostgreSQL optional.\n- **Interoperability**: Exposes Newznab/Torznab-compatible
+  API; actively pushes\n  indexer config to 7 downstream *arr app types via their
+  own REST APIs.\n- **Fault Tolerance**: Per-indexer backoff via `IndexerStatusService`;\n
+  \ `CommandExecutor` isolates command failures; FlareSolverr proxy handles\n  Cloudflare-protected
+  indexers.\n- **Scalability**: Single-process, single-host design; vertical scaling
+  only.\n"

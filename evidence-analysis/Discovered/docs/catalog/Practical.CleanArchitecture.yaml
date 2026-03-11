@@ -4,97 +4,241 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/phongnguyend/Practical.CleanArchitecture
 project_url: https://github.com/phongnguyend/Practical.CleanArchitecture
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:29:11Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
 language: C#
 languages:
-- C#
-- TypeScript
-- JavaScript
+  - C#
+  - TypeScript
+  - JavaScript
 architecture_styles:
-- Modular Monolith
-- Hexagonal Architecture
-- Layered
+  - Modular Monolith
+  - Microservices
+  - Layered
 classification_status: classified
-review_notes: "This repository is a comprehensive architectural reference project.\
-  \ While it contains multiple implementations (including a Monolith and a Modular\
-  \ Monolith inside the `src/` directory), the **Microservices** architecture is the\
-  \ most feature-complete and sophisticated representation of the codebase's organization,\
-  \ specifically designed for independent deployment and scaling.\n\n### Architectural\
-  \ Evidence:\n\n1.  **Microservices (Primary Style):**\n    The directory `src/Microservices/`\
-  \ contains distinct, independently deployable services such as:\n    *   `Services.Notification`,\
-  \ `Services.Identity`, `Services.Product`, `Services.AuditLog`, `Services.Storage`,\
-  \ and `Services.Configuration`.\n    *   **Independent Deployment Units:** Each\
-  \ service contains its own solution (`.sln`) file, `docker build.txt` file, and\
-  \ dedicated API/Background projects.\n    *   **Orchestration & Infrastructure:**\
-  \ The repo includes a root `docker-compose.yml` (in the Microservices folder), Kubernetes\
-  \ manifests (`.k8s/*.yaml`), and Helm charts (`.helm/`), which are key indicators\
-  \ of a Microservices architecture.\n    *   **API Gateways:** It implements specialized\
-  \ gateways in `src/Microservices/Gateways.WebAPI` and `src/Microservices/Gateways.GraphQL`."
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+one_line_summary: >-
+  Comprehensive .NET 8 reference implementation demonstrating Clean Architecture
+  across three parallel deployment topologies — Monolith, Modular Monolith, and
+  Microservices — with CQRS, hexagonal inner structure, and DDD tactical patterns.
+key_technologies:
+  - ASP.NET Core 8
+  - Entity Framework Core
+  - Duende IdentityServer
+  - .NET Aspire
+  - RabbitMQ
+  - Kafka
+  - gRPC
+  - Docker Compose
+  - Kubernetes
+  - Helm
+  - NetArchTest
+  - Angular
+  - React
+  - Vue
+  - SQL Server / PostgreSQL / MySQL
+architecture_qualifiers:
+  - type: design-approach
+    value: hexagonal
+    note: >-
+      Domain project has zero external dependencies; IFileStorageManager and
+      IMessageBus ports are defined in Domain/Infrastructure/ and implemented
+      as adapters (Local, Azure Blob, Amazon S3, RabbitMQ, Kafka) in Infrastructure.
+  - type: design-approach
+    value: clean-architecture
+    note: >-
+      Explicit concentric-ring layering (Domain, Application, Infrastructure,
+      Persistence, Presentation) enforced by NetArchTest assertions in
+      ClassifiedAds.ArchTests.
+  - type: data-pattern
+    value: cqrs
+    note: >-
+      Hand-rolled Dispatcher resolves ICommandHandler<T> and IQueryHandler<TQuery,TResult>
+      at runtime; all feature areas expose Commands/ and Queries/ sub-folders
+      with generic base types in Application/Common/.
+  - type: design-approach
+    value: ddd
+    note: >-
+      IAggregateRoot, Entity<TKey>, IDomainEvent/IDomainEventHandler, value objects
+      (Address, Money), and Outbox pattern for reliable async domain event delivery.
+quality_attributes:
+  testability:
+    present: true
+    confidence: 0.95
+    evidence:
+      - "NetArchTest assertions in ClassifiedAds.ArchTests enforce at compile time
+        that Domain has no dependency on Application, Infrastructure, or Persistence;
+        ports-and-adapters design allows infrastructure substitution in unit tests."
+      - "Per-module and per-service test projects: ClassifiedAds.UnitTests,
+        ClassifiedAds.Modules.Product.UnitTests, ClassifiedAds.Modules.Product.IntegrationTests,
+        ClassifiedAds.Modules.Product.EndToEndTests, EndToEndApiTests/, EndToEndUiTests/
+        (Selenium)."
+  modularity:
+    present: true
+    confidence: 0.97
+    evidence:
+      - "Six dedicated module projects in ModularMonolith — each with self-contained
+        entities, commands, queries, event handlers, EF Core DbContext, and
+        ServiceCollectionExtensions registration — enforce vertical boundaries at the
+        C# project level."
+      - "ClassifiedAds.Contracts project provides typed inter-module service interfaces
+        (IAuditLogService, etc.) instead of direct cross-module project references,
+        preventing tight coupling."
+      - "Microservices variant isolates each domain into its own .sln, Dockerfile,
+        and per-service SQL Server database, demonstrating module-to-service extraction path."
+  evolvability:
+    present: true
+    confidence: 0.93
+    evidence:
+      - "All three deployment topologies (Monolith, Modular Monolith, Microservices)
+        are maintained in parallel, demonstrating a progressive architectural evolution
+        path from monolith to microservices."
+      - "New storage or messaging adapters require only a new Infrastructure class
+        implementing the domain port interface; no changes to Domain or Application code."
+      - "Generic CQRS base types (AddEntityCommand<T>, GetEntitiesQuery<T>, etc.)
+        allow new features to be added with minimal boilerplate."
+  scalability:
+    present: true
+    confidence: 0.90
+    evidence:
+      - "Microservices variant provides independent per-service databases, Docker Compose
+        orchestration, Kubernetes manifests (.k8s/*.yaml), and Helm charts (.helm/)
+        enabling independent horizontal scaling per service."
+      - "Distributed caching options (Redis, SQL Server distributed cache) and message
+        broker adapters (RabbitMQ, Kafka, Azure Service Bus, Azure Queue Storage)
+        support scale-out data patterns."
+  observability:
+    present: true
+    confidence: 0.92
+    evidence:
+      - "OpenTelemetry integration (traces and metrics via OTLP endpoint) and Azure
+        Application Insights are implemented as pluggable monitoring options configured
+        via appsettings.json Monitoring section."
+      - "Health Checks UI endpoint with visual dashboard; file-based logging (always on)
+        plus Elasticsearch and Windows Event Log as optional sinks."
+      - "Interceptors (LoggingInterceptor, ErrorCatchingInterceptor) configurable
+        per-environment for cross-cutting request visibility."
+  security:
+    present: true
+    confidence: 0.90
+    evidence:
+      - "Duende IdentityServer provides OpenID Connect / OAuth 2.0 authentication for
+        all variants; separate IdentityServers/Duende solution with its own deployable."
+      - "Multiple identity provider adapters: IAzureActiveDirectoryB2CIdentityProvider,
+        IAuth0IdentityProvider defined as Domain interfaces with Infrastructure implementations."
+      - "CORS, security headers (CSP, X-Frame-Options, X-Content-Type-Options),
+        and external social login (Google, Facebook, Microsoft, Azure AD) configured
+        in appsettings.json."
+  portability:
+    present: true
+    confidence: 0.88
+    evidence:
+      - "Three separate persistence projects for SQL Server, PostgreSQL, and MySQL
+        (ClassifiedAds.Persistence, ClassifiedAds.Persistence.PostgreSQL,
+        ClassifiedAds.Persistence.MySQL) allow database engine swap without changing
+        domain or application code."
+      - "Storage adapters for Local filesystem, Azure Blob Storage, and Amazon S3
+        are interchangeable via 'Provider' configuration key."
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+notable_strengths:
+  - "Three parallel deployment topologies (Monolith, Modular Monolith, Microservices)
+    make architectural progression and trade-offs directly comparable in the same codebase."
+  - "NetArchTest assertions codify the dependency rules as executable tests, making
+    architectural constraints enforceable in CI."
+  - "Pluggable infrastructure via Domain ports: storage (3 providers), messaging
+    (4 providers), caching (3 providers), monitoring (2 providers), databases (3 engines)."
+  - "Outbox pattern for reliable async domain event delivery prevents lost events
+    on service or broker failures."
+  - ".NET Aspire integration and Kubernetes/Helm deployment artifacts bring the
+    reference implementation closer to production-grade operation."
+notable_gaps:
+  - "No explicit bounded context documentation or domain model canvas; module
+    boundaries map 1:1 to infrastructure concerns (AuditLog, Configuration) rather
+    than business subdomains."
+  - "CQRS dispatcher is hand-rolled and minimal; no pipeline behaviors (validation,
+    retry, logging) comparable to MediatR pipeline behaviors."
+  - "Domain entities are relatively anemic — business logic is in Application services
+    rather than on aggregate roots — limiting the DDD classification to 'tactical only'."
+  - "No event sourcing; domain events are ephemeral and delivered via the Outbox
+    pattern but not persisted as the source of truth."
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:33:05Z'
-classification_reasoning: "## Analysis\n\nThe **Practical.CleanArchitecture** repository\
-  \ demonstrates multiple architectural approaches across three separate solution\
-  \ variants (Monolith, ModularMonolith, Microservices). The most architecturally\
-  \ significant and well-structured variant is the **ModularMonolith**, which exhibits\
-  \ clear modular monolith characteristics with enforced internal boundaries.\n\n\
-  ### Evidence for Modular Monolith (Primary)\n\n**1. Explicit Module Boundaries:**\n\
-  The ModularMonolith solution (`src/ModularMonolith/ClassifiedAds.ModularMonolith.slnx`)\
-  \ shows clear module organization:\n- `ClassifiedAds.Modules.AuditLog`\n- `ClassifiedAds.Modules.Configuration`\n\
-  - `ClassifiedAds.Modules.Identity`\n- `ClassifiedAds.Modules.Notification`\n- `ClassifiedAds.Modules.Product`\n\
-  - `ClassifiedAds.Modules.Storage`\n\nEach module is a separate project with self-contained\
-  \ features, controllers, entities, and persistence.\n\n**2. Module Isolation via\
-  \ Separate DbContexts:**\nEach module owns its data context:\n```csharp\n// ClassifiedAds.Modules.Product/ServiceCollectionExtensions.cs\n\
-  services.AddDbContext<ProductDbContext>(options => options.UseSqlServer(settings.ConnectionStrings.Default...));\n\
-  ```\nEach module has its own connection string configuration, enabling database-per-module\
-  \ or shared database scenarios.\n\n**3. Inter-Module Communication via Contracts:**\n\
-  The `ClassifiedAds.Contracts` project defines service interfaces that modules use\
-  \ to communicate:\n```csharp\n// ClassifiedAds.Contracts/AuditLog/Services/IAuditLogService.cs\n\
-  public interface IAuditLogService\n{\n    Task AddAsync(AuditLogEntryDTO auditLog,\
-  \ string requestId);\n    Task<List<AuditLogEntryDTO>> GetAuditLogEntriesAsync(AuditLogEntryQueryOptions\
-  \ query);\n}\n```\n\n**4. Single Deployable Unit:**\nThe docker-compose.yml for\
-  \ ModularMonolith shows a single `webapi` container:\n```yaml\nwebapi:\n    image:\
-  \ classifiedads.modularmonolith.webapi\n    # All modules are deployed together\n\
-  ```\n\n**5. Module Registration Pattern:**\nModules are registered via extension\
-  \ methods in Program.cs:\n```csharp\n.AddAuditLogModule()\n.AddConfigurationModule()\n\
-  .AddIdentityModule()\n.AddNotificationModule()\n.AddProductModule()\n.AddStorageModule()\n\
-  ```\n\n### Evidence for Hexagonal Architecture (Secondary)\n\n**1. Ports and Adapters:**\n\
-  - Domain layer defines interfaces (`IRepository<TEntity, TKey>`, `IFileStorageManager`,\
-  \ `IMessageSender<T>`)\n- Infrastructure layer provides implementations (`LocalFileStorageManager`,\
-  \ `RabbitMQSender`, `AzureBlobStorageManager`)\n- Application core is isolated from\
-  \ infrastructure concerns\n\n**2. Architecture Tests Enforce Dependency Direction:**\n\
-  ```csharp\n// DomainTests.cs\n[Fact]\npublic void DomainShouldNotHaveDependencyOnInfrastructure()\n\
-  {\n    var result = Types.InAssembly(typeof(Entity<>).Assembly)\n        .ShouldNot()\n\
-  \        .HaveDependencyOn(\"ClassifiedAds.Infrastructure\")\n        .GetResult();\n\
-  \    Assert.True(result.IsSuccessful);\n}\n```\n\n**3. Adapters Pattern:**\nInfrastructure\
-  \ implementations act as adapters (e.g., multiple storage adapters: Local, Azure\
-  \ Blob, Amazon S3):\n```csharp\npublic class LocalFileStorageManager : IFileStorageManager\n\
-  public class AmazonS3StorageManager : IFileStorageManager\npublic class AzureBlobStorageManager\
-  \ : IFileStorageManager\n```\n\n### Evidence for Layered (Secondary)\n\n**1. Horizontal\
-  \ Layering:**\n- `ClassifiedAds.Domain` - Core domain entities, value objects, repository\
-  \ interfaces\n- `ClassifiedAds.Application` - Application services, CQRS primitives\n\
-  - `ClassifiedAds.Infrastructure` - Infrastructure implementations\n- `ClassifiedAds.CrossCuttingConcerns`\
-  \ - Cross-cutting concerns\n- Presentation layer (`ClassifiedAds.WebAPI`, `ClassifiedAds.BlazorServerSide`)\n\
-  \n**2. CQRS Pattern Implementation:**\n```csharp\npublic interface ICommand { }\n\
-  public interface IQuery<TResult> { }\npublic interface ICommandHandler<TCommand>\
-  \ { }\npublic interface IQueryHandler<TQuery, TResult> { }\n```\n\n### What Was\
-  \ Rejected\n\n**Not Microservices (for ModularMonolith):**\nWhile the repository\
-  \ includes a Microservices variant, the ModularMonolith is explicitly a single deployable.\
-  \ Each module has its own database configuration but they're deployed together,\
-  \ not as independent services.\n\n**Not Event-Driven (Primary):**\nWhile RabbitMQ/Kafka\
-  \ message bus infrastructure exists and domain events are used, the primary communication\
-  \ pattern is synchronous through interfaces, not asynchronous event-driven choreography.\n\
-  \n**Not Domain-Driven Design (in full):**\nWhile there are value objects (`Address`,\
-  \ `Money`), aggregates (`IAggregateRoot`), and repository abstractions, the bounded\
-  \ contexts are more module-based than true DDD bounded contexts with ubiquitous\
-  \ language.\n\n### Conclusion\n\nThe repository is a **reference implementation\
-  \ demonstrating multiple architectural styles**. The most sophisticated variant\
-  \ is the ModularMonolith, which properly demonstrates how to structure a monolithic\
-  \ application with enforced module boundaries that could later be extracted into\
-  \ microservices. The hexagonal and layered patterns\n\n[truncated]"
+classification_reasoning: |
+  ## Architecture Classification — Practical.CleanArchitecture
+
+  ### Repository Overview
+
+  This repository is a deliberate multi-topology reference project implementing a
+  classified-ads application across three solution variants: Monolith
+  (src/Monolith/), Modular Monolith (src/ModularMonolith/), and Microservices
+  (src/Microservices/). The README diagrams explicitly label the approaches
+  (Hexagonal Architecture, Onion Architecture, The Clean Architecture, Vertical
+  Slice Architecture). Analysis covers all three variants.
+
+  ### Primary: Modular Monolith (confidence 0.95)
+
+  The ModularMonolith solution is the most architecturally sophisticated variant
+  and best represents the project's stated design intent. Evidence:
+
+  1. Six dedicated module projects in `src/ModularMonolith/ClassifiedAds.Modules.*/`
+     each containing self-contained Commands/, Queries/, Entities/, EventHandlers/,
+     Persistence/, and ServiceCollectionExtensions.cs.
+  2. `docker-compose.yml` for ModularMonolith deploys a single `webapi` container;
+     all modules share one process.
+  3. `ClassifiedAds.Contracts/` defines typed interfaces (IAuditLogService, etc.)
+     as the seam between modules, preventing direct cross-module project references.
+  4. Module registration via extension methods: `.AddAuditLogModule().AddProductModule()...`
+
+  ### Secondary: Microservices (confidence 0.93)
+
+  The Microservices variant satisfies the canonical definition: six independently
+  deployable services with per-service databases, inter-service RabbitMQ messaging,
+  API gateways, and Kubernetes deployment manifests. Each service has its own .sln,
+  Dockerfile, and separate SQL Server connection string in docker-compose.yml.
+
+  ### Supporting: Layered Architecture (confidence 0.95)
+
+  All variants share a four-layer structure (Domain, Application, Infrastructure,
+  Presentation) enforced by NetArchTest at compile time. Domain → Application →
+  Infrastructure is the declared dependency direction.
+
+  ### Architecture Qualifiers
+
+  **Hexagonal Architecture**: Domain defines interface ports (IFileStorageManager,
+  IMessageBus in Domain/Infrastructure/; IRepository<T>, IUnitOfWork in
+  Domain/Repositories/). Infrastructure provides adapter implementations —
+  LocalFileStorageManager, AmazonS3StorageManager, AzureBlobStorageManager,
+  RabbitMQSender, KafkaSender. Architecture tests verify the inward-only dependency
+  direction.
+
+  **CQRS**: Hand-rolled Dispatcher in Application/Common/Dispatcher.cs resolves
+  ICommandHandler<T> and IQueryHandler<TQuery,TResult> generically at runtime.
+  Each feature area (Products, FileEntries, Users, etc.) exposes Commands/ and
+  Queries/ sub-folders. Generic base commands (AddEntityCommand<T>,
+  DeleteEntityCommand<T>, UpdateEntityCommand<T>) are provided in Common/Commands/.
+
+  **DDD (tactical)**: IAggregateRoot marker interface, Entity<TKey> abstract base
+  with RowVersion concurrency token, IDomainEvent/IDomainEventHandler interfaces,
+  EntityCreatedEvent<T>/EntityUpdatedEvent<T>/EntityDeletedEvent<T> generic events,
+  and value objects (Address, Money) in Domain/ValueObjects/. The Outbox pattern
+  (OutboxMessage entity + OutBoxEventPublishers/) enables reliable async event
+  delivery across module and service boundaries.
+
+  ### Rejected Primary Styles
+
+  - **Event-Driven**: No asynchronous event-first topology; message broker is used
+    for reliable delivery but synchronous request/response is the primary communication
+    pattern within and between modules.
+  - **Hexagonal Architecture (as primary topology)**: Hexagonal describes the internal
+    layer structure; the deployment topology is Modular Monolith or Microservices.
+  - **Service-Based**: Microservices variant is fine-grained (six services for a simple
+    domain), not the coarse-grained 4-12 services that characterize Service-Based.

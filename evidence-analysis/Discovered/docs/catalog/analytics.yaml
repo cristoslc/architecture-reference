@@ -5,92 +5,99 @@ source: Discovered
 source_url: https://github.com/plausible/analytics
 project_url: https://github.com/plausible/analytics
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T05:11:18Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Analytics
-language: JavaScript
+language: Elixir
 languages:
-- JavaScript
-- TypeScript
+  - Elixir
+  - JavaScript
+  - TypeScript
 architecture_styles:
-- Layered
-- Modular Monolith
+  - Modular Monolith
+  - Layered
+  - Pipeline
 classification_status: classified
-review_notes: "Plausible Analytics is structured as a **Modular Monolith** built on\
-  \ the Elixir/Phoenix ecosystem. While it follows the traditional Phoenix horizontal\
-  \ layering (Web vs. Core), the internal organization of the `lib/plausible` directory\
-  \ demonstrates clear vertical boundaries based on domain concerns (e.g., `ingestion`,\
-  \ `billing`, `auth`, `shield`, `teams`).\n\n### Architectural Evidence\n\n1.  **Modular\
-  \ Monolith**: The codebase is contained within a single Elixir application but is\
-  \ partitioned into high-level domain modules. Each module (found in `lib/plausible/`)\
-  \ encapsulates its own logic and often its own repository interactions or internal\
-  \ caching strategies (e.g., `plausible/shield` for traffic filtering vs. `plausible/billing`\
-  \ for subscription management). \n2.  **Layered Architecture**: The top-level separation\
-  \ between `lib/plausible` (the domain and business logic) and `lib/plausible_web`\
-  \ (the delivery mechanism via Phoenix controllers, views, and LiveView) is a classic\
-  \ implementation of a layered monolith. The domain logic is isolated from the HTTP\
-  \ handling and UI concerns.\n3.  **Pipeline (Pipe-and-Filter) for Ingestion**: The\
-  \ analytics ingestion path constitutes a specialized pipeline. Files like `lib/plausible/ingestion/persistor.ex`,\
-  \ `write_buffer.ex`, and `event.ex` indicate a flow where incoming data is processed,\
-  \ enriched (geolocation, device detection), buffered, and eventually persisted.\
-  \ The use of a \"Persistor\" with backends (as seen in the requested file) suggests\
-  \ a pluggable strategy for handling high-volume data streams.\n4.  **Hybrid Persistence**:\
-  \ The architecture handles a clear split between relational data (PostgreSQL for\
-  \ users, sites, and settings) and analytical data (ClickHouse). This is reflected\
-  \ in the repository structure with separate repo modules (`ClickhouseRepo`, `IngestRepo`,\
-  \ and the standard `Repo` for Postgres), aligning with a domain-specific data management\
-  \ strategy within the monolith.\n\n### Why not other styles?"
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:47:37Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: **Layered**\n\nThe codebase follows a classic Phoenix/Elixir layered architecture\
-  \ with clear horizontal separation:\n\n**1. Presentation Layer (`lib/plausible_web/`)**\n\
-  - Controllers handle HTTP requests (`controllers/`)\n- Views and templates for rendering\
-  \ (`views/`, `templates/`)\n- LiveViews for interactive UI (`live/`)\n- Plugs for\
-  \ request processing pipeline (`plugs/`)\n- Router defines HTTP endpoints (`router.ex`)\n\
-  \n**2. Business/Domain Layer (`lib/plausible/`)**\n- Domain contexts: `auth/`, `billing/`,\
-  \ `teams/`, `sites/`, `stats/`, `ingestion/`, `goals/`, `imported/`, `shield/`,\
-  \ etc.\n- Each module encapsulates business logic\n- Example: `Plausible.Stats.Query`\
-  \ builds analytics queries; `Plausible.Sites.Index` manages site listings\n\n**3.\
-  \ Data Access Layer**\nMultiple specialized repositories:\n- `Plausible.Repo` —\
-  \ PostgreSQL (users, sites, teams, billing)\n- `Plausible.ClickhouseRepo` — ClickHouse\
-  \ read-only queries  \n- `Plausible.IngestRepo` — ClickHouse writes for event ingestion\n\
-  - `Plausible.AsyncInsertRepo` — Async database operations\n\n### Secondary Style:\
-  \ **Modular Monolith**\n\n**Evidence for Modular Monolith:**\n1. **Single Deployable**:\
-  \ One OTP application (`:plausible`), one Dockerfile artifact\n2. **Organized Domain\
-  \ Modules**: Clear separation into domain contexts\n   - `lib/plausible/auth/` —\
-  \ authentication, users, sessions\n   - `lib/plausible/billing/` — subscriptions,\
-  \ plans, quotas\n   - `lib/plausible/teams/` — team management, memberships\n  \
-  \ - `lib/plausible/stats/` — analytics query building and execution\n   - `lib/plausible/ingestion/`\
-  \ — event processing pipeline\n3. **Single Entry Point**: `Plausible.Application`\
-  \ starts all supervisors and children\n4. **Shared Infrastructure**: Common cache,\
-  \ telemetry, and logging infrastructure\n\n### What This Is NOT\n\n**Not Microservices:**\n\
-  - Single deployment artifact (one release)\n- No service boundaries, API gateways,\
-  \ or inter-service communication\n- Direct function calls between all modules\n\n\
-  **Not Event-Driven Architecture:**\n- Uses Oban for background jobs (email reports,\
-  \ analytics imports) — standard Elixir pattern\n- WriteBuffer batches ClickHouse\
-  \ inserts for performance — not event-based communication\n- Components communicate\
-  \ via direct function calls, not events\n\n**Not Service-Based:**\n- Not 2-5 coarse-grained\
-  \ services sharing a database\n- Single application with multiple repositories\n\
-  \n**Not Hexagonal/Ports & Adapters:**\n- No explicit ports/adapters abstraction\
-  \ layer\n- Controllers call contexts directly; contexts call repos directly\n\n\
-  **Not Microkernel/Plugin:**\n- `Plausible.PluginsAPI` is an external API for users,\
-  \ not a plugin system\n- No runtime extension loading mechanism\n\n### Key Architecture\
-  \ Details\n\n**Dual Database Architecture:**\n- PostgreSQL: Transactional data (accounts,\
-  \ configuration)\n- ClickHouse: Analytical data (events_v2, sessions_v2 tables)\n\
-  \nThis is an optimization for the analytics domain, not a microservices pattern.\n\
-  \n**Background Job Processing:**\n- Oban workers in `lib/workers/` for async tasks\n\
-  - Email reports, analytics imports, cleanup jobs\n- Standard Phoenix pattern, not\
-  \ event-driven architecture\n\n**Edition Feature Toggles:**\n- `on_ee`/`on_ce` macros\
-  \ conditionally compile features\n- Single codebase serves both Community Edition\
-  \ and Enterprise Edition\n\n### Conclusion\n\nPlausible Analytics is a well-structured\
-  \ **Layered Monolith** with **Modular Monolith** characteristics. The Phoenix framework\
-  \ naturally enforces the layered pattern (controllers → contexts → repos), while\
-  \ the internal organization into domain modules provides clean separation of concerns\
-  \ within a single deployable unit. The dual-database architecture (PostgreSQL +\
-  \ ClickHouse) is a domain-specific optimization for web analytics, not a distributed\
-  \ system pattern."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+  - Deployability
+  - Modularity
+  - Scalability
+  - Observability
+  - Evolvability
+  - Fault Tolerance
+one_line_summary: "A privacy-focused web analytics platform built as a single-release Elixir Modular Monolith (~20 domain modules) over a Phoenix Layered presentation stack, with a discrete 18-step Pipeline for high-throughput event ingestion into a dual PostgreSQL/ClickHouse persistence tier."
+classification_reasoning: |
+  ## Primary Style: Modular Monolith
+
+  A single OTP application (`:plausible`) ships as one Elixir release — one Dockerfile,
+  one `mix release plausible`. Internally, `lib/plausible/` is partitioned into ~20 vertical
+  domain modules (`auth/`, `billing/`, `teams/`, `sites/`, `stats/`, `ingestion/`, `shield/`,
+  `goals/`, `segments/`, `imported/`, `session/`, `plugins/`, `google/`, `s3/`, etc.) each
+  encapsulating its own business logic, Ecto schemas, and repository access.
+  `Plausible.Application` assembles all supervisors at startup from a single OTP entry point.
+  There are no service boundaries, API gateways, or inter-process communication between domains.
+
+  CE/EE edition divergence is handled by `on_ee`/`on_ce` compile-time macros that conditionally
+  include code, allowing a single codebase to serve both Community Edition and Enterprise Edition
+  without branching.
+
+  ## Secondary Style: Layered
+
+  A clear horizontal three-layer separation runs across the entire codebase:
+  - `lib/plausible_web/` — presentation (Phoenix controllers, LiveViews, plugs, router, email templates)
+  - `lib/plausible/` — domain logic and business rules
+  - Data-access sublayer: four specialised Ecto repos: `Plausible.Repo` (PostgreSQL),
+    `Plausible.ClickhouseRepo` (reads), `Plausible.IngestRepo` (writes), `Plausible.AsyncInsertRepo`
+
+  Each layer calls downward only; web controllers call domain contexts, domain contexts call repos.
+
+  ## Secondary Style: Pipeline
+
+  `Plausible.Ingestion.Event.pipeline/0` defines a named, ordered list of 18 filter/transform
+  steps executed by `process_unless_dropped/3` via `Enum.reduce_while/3`, which short-circuits
+  on any drop reason:
+
+    drop_verification_agent → drop_datacenter_ip → drop_threat_ip →
+    drop_shield_rule_hostname → drop_shield_rule_page → drop_shield_rule_ip →
+    put_geolocation → drop_shield_rule_country → put_user_agent → put_basic_info →
+    put_source_info → maybe_infer_medium → put_props → put_revenue →
+    put_salts → put_user_id → validate_clickhouse_event → register_session
+
+  Enriched events flow into `WriteBuffer` GenServers (one for events, one for sessions) that
+  batch-flush RowBinary to ClickHouse. The `Persistor` module adds a pluggable backend
+  strategy (`Embedded`, `Remote`, `EmbeddedWithRelay`) configurable at runtime with per-user
+  hash-based traffic splitting.
+
+  ## What This Is NOT
+
+  - **NOT Microservices**: Single deployment artifact (one release). No service boundaries,
+    API gateways, or inter-service communication.
+  - **NOT Event-Driven**: Oban provides background job scheduling; `Phoenix.PubSub` is used
+    for in-process broadcast. There are no durable event buses, Kafka, or message queues
+    forming the primary communication mechanism.
+  - **NOT Hexagonal/Ports & Adapters**: No explicit port/adapter abstraction layer; controllers
+    call contexts directly; contexts call repos directly.
+  - **NOT CQRS**: Although reads (ClickhouseRepo) and writes (IngestRepo) use different repos,
+    this is a performance optimisation for the analytics domain (PostgreSQL vs ClickHouse), not
+    a CQRS command/query separation pattern.
+
+  ## Quality Attribute Evidence
+
+  - **Deployability**: Single Docker image (Alpine multistage), one mix release; CE and EE
+    compiled from the same source via MIX_ENV; self-hostable without external orchestration.
+  - **Modularity**: ~20 domain modules in lib/plausible/ with internal encapsulation; four
+    Ecto repos for clean data-access boundaries; 21 Oban workers isolated in lib/workers/.
+  - **Scalability**: ClickHouse for high-volume event and session storage; WriteBuffer GenServer
+    batch-flushing RowBinary reduces write pressure; Persistor per-user hash routing; libcluster
+    Erlang host clustering for EE; partitioned Task.Supervisor for UA parsing.
+  - **Observability**: OpenTelemetry (Cowboy, Phoenix, Ecto, Oban); PromEx with Prometheus
+    metrics; telemetry events for every pipeline step, every buffered/dropped event, and UA
+    parse timeouts.
+  - **Evolvability**: on_ee/on_ce compile-time macros for safe CE/EE feature divergence;
+    fun_with_flags feature flag library; pluggable Persistor backends; 1000+ legacy tracker
+    script variants generated from the same source.
+  - **Fault Tolerance**: OTP supervision tree (one_for_one root supervisor); WriteBuffer traps
+    exits and flushes on shutdown; Plausible.Session.Transfer for session handoff; rate limiting
+    via Plausible.RateLimit; Sentry error reporting; Oban job retry semantics.

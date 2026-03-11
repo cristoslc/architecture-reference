@@ -1,98 +1,32 @@
 project_name: Rocket.Chat
-scope: application
+scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/RocketChat/Rocket.Chat
 project_url: https://github.com/RocketChat/Rocket.Chat
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T05:10:09Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Social
+domain: Team Communication / Collaboration Platform
 language: TypeScript
 languages:
-- TypeScript
-- JavaScript
+  - TypeScript
+  - JavaScript
+  - CSS
 architecture_styles:
-- Microservices
-- Microkernel
+  - Modular Monolith
+  - Service-Based
+  - Event-Driven
+  - Microkernel
 classification_status: classified
-review_notes: 'The Rocket.Chat repository is a sophisticated transition from a traditional
-  Monolith to a Microservices architecture. While the core functionality still resides
-  in a substantial "Legacy" Monolith (the Meteor application), the architecture is
-  explicitly structured to support independent service deployment via a distributed
-  broker system.
-
-
-  ### 1. Primary Style: Microservices
-
-  The codebase is organized as a monorepo that manages multiple independently deployable
-  units. Evidence for this includes:
-
-  - **Independent Deployment Units**: Under `ee/apps/`, there are several distinct
-  services (e.g., `account-service`, `authorization-service`, `presence-service`,
-  `ddp-streamer`) each containing its own `Dockerfile` and `package.json`.
-
-  - **Service Orchestration**: The `docker-compose-local.yml` confirms these are not
-  mere code modules but separate runtime containers. It defines services like `authorization-service`,
-  `account-service`, and `presence-service` running as distinct processes.
-
-  - **Service Discovery and Communication**: The system uses **NATS** as a message
-  broker and `moleculer` (indicated in environment variables like `TRANSPORTER` and
-  `MOLECULER_LOG_LEVEL`) as the microservices framework. This allows the services
-  to communicate across network boundaries rather than just in-process memory.
-
-
-  ### 2. Secondary Style: Event-Driven
-
-  The architecture relies heavily on an event-driven or message-based backbone for
-  inter-service communication:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:39:38Z'
-classification_reasoning: "## Analysis\n\n**Primary Style: Microservices**\n\nRocket.Chat\
-  \ is architected as a **microservices system** with clear evidence:\n\n### Deployment\
-  \ Topology\nThe `docker-compose-local.yml` shows **8 independently deployable services**:\n\
-  - `rocketchat` (main Meteor application)\n- `authorization-service`\n- `account-service`\
-  \  \n- `presence-service`\n- `ddp-streamer-service`\n- `queue-worker-service`\n\
-  - `omnichannel-transcript-service`\n- Supporting infrastructure: `nats` (message\
-  \ broker), `mongo`, `traefik`\n\nEach service has its own **Dockerfile** (see `ee/apps/*/Dockerfile`)\
-  \ and can be independently built and deployed.\n\n### Service Communication\nServices\
-  \ communicate through **NATS message broker** with Moleculer framework:\n- `network-broker`\
-  \ package uses `moleculer` ServiceBroker\n- Services use `TRANSPORTER` environment\
-  \ variable for inter-service communication\n- Core services define typed event signatures\
-  \ in `packages/core-services/src/events/Events.ts`\n\n### Service Broker Pattern\n\
-  The architecture uses a broker abstraction (`packages/core-services/src/LocalBroker.ts`\
-  \ and `ee/packages/network-broker/src/NetworkBroker.ts`) with two modes:\n1. **LocalBroker**:\
-  \ In-process service orchestration (monolith mode)\n2. **NetworkBroker**: Moleculer-based\
-  \ distributed service broker (microservices mode)\n\nThe `isRunningMs()` check in\
-  \ `apps/meteor/server/services/startup.ts` conditionally registers services:\n```typescript\n\
-  if (!isRunningMs()) {\n    // Services run in-process for monolith\n    api.registerService(new\
-  \ Presence());\n    api.registerService(new Authorization());\n}\n```\n\n### Service\
-  \ Definitions\nTyped service interfaces in `packages/core-services/src/types/` define\
-  \ contracts: `IAccount`, `IAuthorization`, `IPresence`, `IMessageService`, `IOmnichannelService`,\
-  \ etc.\n\n---\n\n**Secondary Style: Microkernel (Plugin)**\n\nThe **Apps Engine**\
-  \ (`packages/apps-engine`) implements a plugin architecture:\n\n### Core Plugin\
-  \ Infrastructure\n- **Abstract App base class** (`packages/apps-engine/src/definition/App.ts`):\
-  \ Third-party apps extend this class\n- **AppManager** (`packages/apps-engine/src/server/AppManager.ts`):\
-  \ Loads, manages, and orchestrates app lifecycle\n- **Bridge pattern**: Apps communicate\
-  \ with Rocket.Chat through bridge interfaces (`src/server/bridges/`)\n\n### Plugin\
-  \ Capabilities\nApps can extend the system through:\n- Event handlers (`AppEvents`)\n\
-  - Slash commands (`AppSlashCommandManager`)\n- API extensions (`AppApiManager`)\n\
-  - Video conference providers (`AppVideoConfProviderManager`)\n- Scheduled jobs (`AppSchedulerManager`)\n\
-  - UI Kit components (`UIActionButtonManager`)\n\n### Runtime Isolation\nThe Apps\
-  \ Engine supports isolated runtimes (`src/server/runtime/`), including Deno runtime\
-  \ for sandboxed execution.\n\n---\n\n**What I Rejected:**\n\n- **Layered**: Not\
-  \ a horizontal layering pattern. While there are UI packages and data models, the\
-  \ defining characteristic is service boundaries, not layer separation.\n\n- **Modular\
-  \ Monolith**: While there's a monolith deployment mode, the architecture is explicitly\
-  \ designed for independent service deployment with message broker communication.\
-  \ Services can be scaled independently.\n\n- **Event-Driven Architecture**: While\
-  \ services use events for communication, this is secondary to the microservices\
-  \ pattern. The events are service-to-service communications, not the primary architectural\
-  \ paradigm.\n\n- **Domain-Driven Design**: While there are domain-focused packages\
-  \ (omnichannel, livechat, etc.), the codebase doesn't exhibit DDD tactical patterns\
-  \ like aggregates, bounded contexts with separate databases, or domain events as\
-  \ a primary pattern."
+classification_confidence: 0.91
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+  - Scalability
+  - Deployability
+  - Extensibility
+  - Observability
+  - Fault Tolerance
+  - Modularity
+one_line_summary: "An open-source team communication platform with a dual-topology architecture: a Meteor-based modular monolith for single-node deployment that transparently promotes to a distributed service-based topology (Moleculer + NATS) when TRANSPORTER is set, with an Apps Engine microkernel for third-party plugin extensibility."
+classification_reasoning: "Rocket.Chat exhibits a four-style composition: Modular Monolith as primary, Service-Based and Event-Driven as secondary, Microkernel as tertiary.\n\nMODULAR MONOLITH (primary, 0.88): The Meteor app (apps/meteor/) is a single deployable unit in the default configuration. It contains ~97 feature modules under app/ (2fa, authorization, livechat, push-notifications, integrations, omnichannel, federation, etc.) and ~20 internal services under server/services/ (RoomService, TeamService, MessageService, UserService, OmnichannelService, etc.). All modules share a single MongoDB database. When TRANSPORTER env is unset, api.setBroker(new LocalBroker()) is called in server/startup/localServices.ts — LocalBroker uses a Node.js EventEmitter for in-process service dispatch. The monorepo's ~50 packages/ provide typed contracts (core-typings, rest-typings, model-typings) enforcing module interfaces.\n\nSERVICE-BASED (secondary, 0.85): When TRANSPORTER=nats://... is set (isRunningMs() returns true), the same codebase connects through NetworkBroker (ee/packages/network-broker/src/NetworkBroker.ts) backed by Moleculer and NATS. Dedicated service containers — account-service, authorization-service, presence-service, ddp-streamer-service, queue-worker-service, omnichannel-transcript-service — each run independently (ee/apps/*/src/service.ts). This is NOT Microservices: all containers share the same MONGO_URL; there is no per-service data store isolation. Inter-service communication uses Moleculer RPC over NATS. The IBroker / IApiService / proxify() abstraction in packages/core-services provides transparent switching between local and network modes.\n\nEVENT-DRIVEN (secondary, 0.78): EventSignatures (packages/core-services/src/events/Events.ts) declares ~60+ typed domain events (accounts.login, accounts.logout, message, room.video-conference, banner.new, license.sync, presence.status, livechat-inquiry-queue-observer, socket.connected/disconnected, etc.). Both LocalBroker and NetworkBroker implement broadcast() / broadcastLocal() / broadcastToServices(). Services subscribe via this.onEvent(...) and react asynchronously. NotificationsModule creates 15+ DDP streamers (notify-all, notify-logged, notify-room, room-messages, apps, roles, livechat-room, user-presence, etc.) that re-emit broker broadcasts to WebSocket clients.\n\nMICROKERNEL (tertiary, 0.72): The Apps Engine (packages/apps-engine/) implements a formal third-party plugin system. AppManager orchestrates app lifecycle (install, enable, disable, uninstall). A rich bridge layer (~20 bridge classes: MessageBridge, RoomBridge, UserBridge, LivechatBridge, CommandBridge, SchedulerBridge, HttpBridge, VideoConferenceBridge, etc.) defines the stable API surface. Third-party apps run in a sandboxed Deno runtime, isolated from core internals.\n\nDEPLOYABILITY evidence: Single Docker container for small deployments; Traefik + NATS + 6 independent service containers for enterprise scale; health check endpoints on all service containers; Docker Compose and Kubernetes supported.\n\nSCALABILITY evidence: ddp-streamer-service handles all WebSocket connections independently; NATS provides fan-out messaging for multi-node presence and notifications; account-service and authorization-service scale independently.\n\nEXTENSIBILITY evidence: Apps Engine with Deno-sandboxed apps and ~20 bridge interfaces; marketplace distribution; 20+ built-in slash command modules; REST API and webhook integrations.\n\nOBSERVABILITY evidence: Prometheus metrics via prom-client covering Meteor methods, callbacks, hooks, DDP sessions, Livechat queues (apps/meteor/app/metrics/server/lib/metrics.ts); OpenTelemetry OTLP tracing via @opentelemetry/sdk-node in packages/tracing/.\n\nFAULT TOLERANCE evidence: ServiceStarter used in OmnichannelQueue with start/stop lifecycle; NATS transporter retries in Moleculer; /health endpoints on all service containers; MongoDB replica set configuration.\n\nRULED OUT - Microservices: All service containers share the same MongoDB replica set — no per-service data store isolation. Shared data layer disqualifies true Microservices.\n\nRULED OUT - Layered: Vertical feature organization dominates; RoomService imports directly from app/lib/server/functions/; no strict horizontal layers enforced.\n\nRULED OUT - CQRS/Event Sourcing: No command/query separation or event store. MongoDB used as conventional mutable document store.\n\nRULED OUT (primary) - Hexagonal Architecture: Adapter patterns appear in federation (server/services/federation/infrastructure/rocket-chat/adapters/) but not applied consistently across the whole codebase."

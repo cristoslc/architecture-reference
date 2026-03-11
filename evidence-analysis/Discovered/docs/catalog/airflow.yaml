@@ -17,75 +17,82 @@ languages:
 - JavaScript
 architecture_styles:
 - Microkernel
+- Pipeline
 - Modular Monolith
 classification_status: classified
-one_line_summary: DAG-based workflow orchestrator with provider plugin system and
-  multi-service deployment
-review_notes: Providers/ directory with 100+ independently versioned plugins, task-sdk
-  providing BaseOperator/BaseHook contracts, docker-compose showing 4-5 coarse-grained
-  services sharing a metadata database
+one_line_summary: DAG-based workflow orchestrator with a microkernel provider plugin
+  system, a strict five-stage pipeline runtime, and an independently versioned task-sdk
+  isolation boundary.
+review_notes: 84 provider packages discovered via Python entry points; five-stage runtime
+  pipeline (author -> dag-processor -> scheduler -> worker -> triggerer) with strict
+  architectural boundaries; task-sdk isolation means workers never touch the metadata
+  DB; dual FastAPI apps (core_api + execution_api) enforce the scheduler/worker communication
+  contract.
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:43:04Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: Microkernel (Plugin)\n\nApache Airflow exhibits a **clear Microkernel/Plugin\
-  \ architecture** with strong evidence throughout the codebase:\n\n**1. Plugin Discovery\
-  \ via Entry Points**\nProviders are discovered dynamically via Python entry points.\
-  \ Each provider package declares itself using:\n```toml\n# From providers/amazon/pyproject.toml\n\
-  [project.entry-points.\"apache_airflow_provider\"]\nprovider_info = \"airflow.providers.amazon.get_provider_info:get_provider_info\"\
-  \n```\n\nThe core discovers providers at runtime via `shared/providers_discovery/src/airflow_shared/providers_discovery/providers_discovery.py`:\n\
-  ```python\ndef discover_all_providers_from_packages(...):\n    for entry_point,\
-  \ dist in entry_points_with_dist(\"apache_airflow_provider\"):\n        # Dynamically\
-  \ load provider info from installed packages\n        provider_info = entry_point.load()()\n\
-  ```\n\n**2. 100+ Independent Provider Packages**\nThe `providers/` directory contains\
-  \ 100+ independently versioned, installable provider packages:\n- `providers/amazon/`\
-  \ - AWS integrations\n- `providers/google/` - GCP integrations\n- `providers/cncf/kubernetes/`\
-  \ - Kubernetes executor\n- `providers/celery/` - Celery executor\n- `providers/postgres/`,\
-  \ `providers/mysql/`, etc.\n\nEach has its own `pyproject.toml`, independent versioning,\
-  \ and can be installed/uninstalled without modifying the core.\n\n**3. Plugin Manager\
-  \ Architecture**\nFrom `shared/plugins_manager/src/airflow_shared/plugins_manager/plugins_manager.py`:\n\
-  ```python\nclass AirflowPlugin:\n    \"\"\"Class used to define AirflowPlugin.\"\
-  \"\"\n    name: str | None = None\n    macros: list[Any] = []\n    admin_views:\
-  \ list[Any] = []\n    flask_blueprints: list[Any] = []\n    fastapi_apps: list[Any]\
-  \ = []\n    executors: list[Any] = []\n    hooks: list[Any] = []\n    listeners:\
-  \ list[Any] = []\n    # ... more extension points\n```\n\n**4. Executor Plugin System**\n\
-  From `airflow-core/src/airflow/executors/executor_loader.py`:\n```python\nclass\
-  \ ExecutorLoader:\n    executors = {\n        LOCAL_EXECUTOR: \"airflow.executors.local_executor.LocalExecutor\"\
-  ,\n        CELERY_EXECUTOR: \"airflow.providers.celery.executors.celery_executor.CeleryExecutor\"\
-  ,\n        KUBERNETES_EXECUTOR: \"airflow.providers.cncf.kubernetes.executors.kubernetes_executor.KubernetesExecutor\"\
-  ,\n    }\n```\nExecutors are loaded dynamically by class path - Celery and Kubernetes\
-  \ executors come from provider packages.\n\n**5. Extension Points**\nProviders contribute\
-  \ pluggable components:\n- **Operators**: Task implementations (e.g., `S3CopyObjectOperator`)\n\
-  - **Hooks**: External system interfaces (e.g., `S3Hook`, `BigQueryHook`)\n- **Sensors**:\
-  \ Waiting mechanisms for external conditions\n- **Executors**: Task execution backends\n\
-  - **Authentication backends**: Via `providers/fab/`\n- **Secrets backends**: For\
-  \ credential management\n- **Logging backends**: For log storage\n- **Triggers**:\
-  \ For asynchronous deferrable operations\n- **Listeners/Hooks**: Lifecycle event\
-  \ handlers\n\n### Secondary Style: Modular Monolith\n\nThe repository also exhibits\
-  \ **Modular Monolith** characteristics:\n\n**1. Monorepo with Clear Module Boundaries**\n\
-  ```\nairflow-core/      → Core scheduler, API, models\ntask-sdk/          → Lightweight\
-  \ SDK for DAG authoring/execution\nproviders/         → 100+ provider packages\n\
-  shared/            → Shared code between core and SDK\nairflow-ctl/       → Management\
-  \ CLI tool\nchart/             → Kubernetes Helm chart\n```\n\n**2. Task SDK Isolation**\n\
-  Workers execute tasks using the Task SDK without requiring the full core. The SDK\
-  \ provides:\n- `airflow.sdk.bases.operator.BaseOperator`\n- `airflow.sdk.bases.hook.BaseHook`\n\
-  - `airflow.sdk.definitions.dag.DAG`\n- Task execution runtime (`airflow/sdk/execution_time/`)\n\
-  \n**3. Architecture Boundaries Documented**\nFrom `CLAUDE.md`:\n> 1. Users author\
-  \ DAGs with the Task SDK (`airflow.sdk`).\n> 2. DAG Processor parses DAG files in\
-  \ isolated processes.\n> 3. Scheduler reads serialized DAGs — **never runs user\
-  \ code**.\n> 4. Workers execute tasks via Task SDK — **never access metadata DB\
-  \ directly**.\n> 5. API Server serves the React UI and handles all client-database\
-  \ interactions.\n> 6. Triggerer evaluates deferred tasks in isolated processes.\n\
-  \n### What Was Rejected and Why\n\n**Not Microservices**: Despite having independently\
-  \ deployable components (scheduler, webserver, workers, triggerer), these share\
-  \ the same codebase and metadata database. They are deployment units of a single\
-  \ application, not independent services owning their own data.\n\n**Not Layered**:\
-  \ While there are API, service, and data access patterns, the defining characteristic\
-  \ is plugin-based extensibility, not horizontal layer separation.\n\n**Not Hexagonal**:\
-  \ Ports and adapters pattern exists for specific integrations, but it's not the\
-  \ primary organizing principle. The core isn't isolated behind interfaces for the\
-  \ purpose of testing/substitution - the extension happens via explicit plugin contracts.\n\
-  \n### Deployment Architecture\n\nThe Helm chart (`chart/`) supports Kubernete\n\n\
-  [truncated]"
+classification_method: deep-analysis
+classification_confidence: 0.93
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+- Extensibility
+- Deployability
+- Isolation
+- Scalability
+- Observability
+- Evolvability
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Styles:\
+  \ Microkernel + Pipeline\n\n**MICROKERNEL (primary, 0.92):** The `providers/` directory\
+  \ contains 84 independently versioned provider packages (amazon, google, celery,\
+  \ cncf/kubernetes, postgres, snowflake, openai, dbt, etc.), each declaring itself\
+  \ via `[project.entry-points.\"apache_airflow_provider\"]` in its own `pyproject.toml`.\
+  \ The core discovers providers at runtime in `shared/providers_discovery/src/airflow_shared/providers_discovery/providers_discovery.py`\
+  \ using `entry_points_with_dist(\"apache_airflow_provider\")`. The `shared/plugins_manager/`\
+  \ defines `AirflowPlugin` with 10+ extension point lists: hooks, operators, sensors,\
+  \ executors, auth backends, secrets backends, listeners, triggers, flask_blueprints,\
+  \ fastapi_apps. The `ExecutorLoader` in `airflow-core/.../executors/executor_loader.py`\
+  \ loads `CeleryExecutor` and `KubernetesExecutor` from provider packages by class\
+  \ path. The `task-sdk/src/airflow/sdk/bases/` defines `BaseOperator`, `BaseHook`,\
+  \ and `BaseSensorOperator` as formal plugin contracts. DAG bundles (`AbstractDagBundle`)\
+  \ are also pluggable.\n\n**PIPELINE (primary, 0.88):** The fundamental abstraction\
+  \ is the DAG (directed acyclic graph of tasks). The five-component runtime enforces\
+  \ a strict one-way pipeline documented in `AGENTS.md`: (1) DAG authors write tasks\
+  \ via task-sdk, (2) DAG Processor parses DAG files in isolated subprocesses storing\
+  \ serialized DAGs in the metadata DB, (3) Scheduler reads serialized DAGs and creates\
+  \ task instances — never runs user code, (4) Workers execute tasks via task-sdk\
+  \ communicating through the Execution API — never access the metadata DB, (5) Triggerer\
+  \ evaluates deferred tasks in isolated processes. The dual FastAPI apps (`core_api`\
+  \ for public REST, `execution_api` for worker communication) enforce this boundary\
+  \ contractually. The supervisor in `task-sdk/.../execution_time/supervisor.py` uses\
+  \ httpx to communicate back through the Execution API.\n\n### Secondary Style: Modular\
+  \ Monolith\n\n**MODULAR MONOLITH (secondary, 0.82):** UV workspace monorepo with\
+  \ clear internal package boundaries: `airflow-core` (scheduler, API server, models,\
+  \ CLI, React UI), `task-sdk` (DAG authoring and task execution runtime), `shared/`\
+  \ (configuration, secrets, logging, observability, plugin infrastructure — 11 sub-packages),\
+  \ `airflow-ctl` (management CLI), `clients/` (Python and Go SDK clients). All packages\
+  \ share a single SQLAlchemy metadata database and deploy from a common codebase.\
+  \ They are independently testable units within the monorepo, not separate services.\n\
+  \n### What Was Rejected and Why\n\n**Not Microservices:** The five process types\
+  \ (scheduler, API server, DAG processor, worker, triggerer) share the same codebase\
+  \ and a single metadata database. They are deployment configurations of one application,\
+  \ not independent services with their own data stores.\n\n**Not pure Layered:** Organization\
+  \ is primarily vertical by component responsibility and plugin extension, not horizontal\
+  \ by layer. The `execution_api` isolation is an architectural boundary, not a traditional\
+  \ presentation/business/data layer stack.\n\n**Not Event-Driven (primary):** While\
+  \ callbacks and listeners exist, the primary coordination mechanism is the metadata\
+  \ DB poll-based scheduler loop and the synchronous Execution API, not an event broker\
+  \ or message bus.\n\n### Quality Attributes Evidence\n\n**EXTENSIBILITY:** 84 provider\
+  \ packages discovered via Python entry points; AirflowPlugin extension points; AbstractDagBundle\
+  \ for pluggable DAG sources; providers can be installed/removed without core changes.\n\
+  \n**DEPLOYABILITY:** Helm chart in `chart/`; Docker Compose for local; five independently\
+  \ scalable process types; Celery and Kubernetes executors via providers.\n\n**ISOLATION:**\
+  \ DAG processor isolates user code in subprocesses; workers never access the metadata\
+  \ DB (task-sdk boundary); scheduler never runs user code; triggerer runs deferred\
+  \ tasks in isolated processes.\n\n**SCALABILITY:** Workers scale independently of\
+  \ scheduler; Celery executor enables distributed execution across a fleet; Kubernetes\
+  \ executor creates a pod per task; async triggerer handles high-concurrency deferred\
+  \ sensors.\n\n**OBSERVABILITY:** StatsD/OpenTelemetry metrics in `airflow/_shared/observability/`;\
+  \ DualStatsManager for concurrent metric emission; structlog structured logging;\
+  \ job and task lifecycle tracking in the metadata DB.\n\n**EVOLVABILITY:** `execution_api/versions/`\
+  \ for versioned worker communication contract; provider packages versioned independently\
+  \ from `airflow-core`; `shared/` enables cross-package reuse without circular dependencies;\
+  \ strict architectural boundaries enforced in code review guidelines."

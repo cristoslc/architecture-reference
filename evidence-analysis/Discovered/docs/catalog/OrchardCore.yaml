@@ -1,102 +1,31 @@
 project_name: OrchardCore
-scope: platform
+scope: framework
 use_type: production
 source: Discovered
 source_url: https://github.com/OrchardCMS/OrchardCore
 project_url: https://github.com/OrchardCMS/OrchardCore
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:53:04Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: CMS
+domain: CMS / Application Framework
 language: C#
 languages:
-- C#
-- JavaScript
-- TypeScript
+  - C#
+  - JavaScript
+  - TypeScript
 architecture_styles:
-- Modular Monolith
-- Microkernel
+  - Microkernel
+  - Modular Monolith
+  - Pipeline
 classification_status: classified
-review_notes: "Orchard Core is a quintessential implementation of a **Microkernel\
-  \ (Plugin)** architecture, which it refers to as a \"Modular, Multi-tenant\" framework.\
-  \ \n\n### Primary Style: Microkernel (Plugin)\nThe system is built around a minimal\
-  \ core (\"Orchard Core Framework\") that provides essential infrastructure—tenant\
-  \ isolation, dependency injection orchestration, and module discovery—while all\
-  \ functional capabilities are deferred to external modules located in `src/OrchardCore.Modules/`.\n\
-  - **Module Discovery:** As seen in the `Manifest.cs` files (e.g., `src/OrchardCore.Modules/OrchardCore.Redis/Manifest.cs`),\
-  \ modules define themselves via assembly attributes. These are discovered at runtime\
-  \ to extend the system's capabilities.\n- **Dynamic Composition:** The `IShellHost.cs`\
-  \ interface and its `ShellContext` management demonstrate the \"Kernel\" behavior.\
-  \ It dynamically builds a `ShellScope` for each tenant, composing only the services\
-  \ and middleware enabled for that specific instance.\n- **Extension Points:** The\
-  \ presence of `Drivers`, `Handlers`, and `Shapes` across various modules (e.g.,\
-  \ `OrchardCore.Title`, `OrchardCore.Widgets`) indicates a robust system of \"Ports\"\
-  \ where modules can inject logic into the lifecycle of other modules or the core.\n\
-  \n### Secondary Style: Modular Monolith\nWhile the modules are highly decoupled,\
-  \ they are typically deployed as part of a single web application unit. "
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:35:13Z'
-classification_reasoning: "## Architecture Classification: Modular Monolith with Microkernel/Plugin\
-  \ Architecture\n\n### Primary Evidence for Modular Monolith\n\n**Single Deployable\
-  \ Unit:**\n- One web application project (`src/OrchardCore.Cms.Web/OrchardCore.Cms.Web.csproj`)\
-  \ serves as the sole entry point\n- Single Dockerfile producing one container image\n\
-  - All modules compile into the same application via MSBuild targets\n\n**92+ Modules\
-  \ with Enforced Boundaries:**\n- Located in `src/OrchardCore.Modules/` with consistent\
-  \ structure\n- Each module has `Manifest.cs` declaring metadata and dependencies:\n\
-  ```csharp\n[assembly: Module(\n    Name = \"Admin\",\n    Dependencies = [\"OrchardCore.Settings\"\
-  ]\n)]\n```\n- Each module has `Startup.cs` extending `StartupBase` to register services\
-  \ and configure pipelines\n- Module dependencies are explicitly declared and resolved\
-  \ by the `ExtensionManager`\n\n**Feature-Based Enablement System:**\n- Modules can\
-  \ define multiple features via `[Feature]` attributes\n- Features have explicit\
-  \ dependencies managed through `IFeatureInfo.Dependencies`\n- `IShellFeaturesManager`\
-  \ enables/disables features per tenant\n- Services can be conditionally registered\
-  \ using `[RequireFeatures]` attribute\n- `FeatureAttribute` associates services\
-  \ with specific features for conditional activation\n\n### Secondary Evidence for\
-  \ Microkernel (Plugin)\n\n**Dynamic Module Discovery and Loading:**\n- `AssemblyAttributeModuleNamesProvider`\
-  \ discovers modules via assembly attributes\n- `ModularApplicationContext` loads\
-  \ all modules at startup\n- `Module` class encapsulates assembly metadata and embedded\
-  \ resources\n- Core system (`OrchardCore` libraries) provides extension points that\
-  \ modules plug into\n\n**Extension Points Pattern:**\n- `IStartup` interface for\
-  \ module initialization\n- `IShellPipeline` for request pipeline customization\n\
-  - `IDisplayDriver<T>` for UI extensibility\n- `IFeatureValidationProvider` for feature\
-  \ validation hooks\n- `IShellContextEvents` for lifecycle hooks\n\n**Theme Plugin\
-  \ System:**\n- Themes are specialized plugins with `[assembly: Theme(...)]` attribute\n\
-  - Theme selection via `IThemeSelector` interface\n- Themes can override shapes and\
-  \ templates\n\n### Multi-Tenancy Architecture\n\n**Shell-Based Tenant Isolation:**\n\
-  - `ShellHost` manages multiple `ShellContext` instances (one per tenant)\n- Each\
-  \ tenant has its own `IServiceProvider` created by `IShellContainerFactory`\n- `RunningShellTable`\
-  \ routes requests to appropriate tenant by host/path matching\n- `ModularTenantContainerMiddleware`\
-  \ and `ModularTenantRouterMiddleware` handle tenant resolution\n\n```csharp\npublic\
-  \ class ShellContext {\n    public ShellSettings Settings { get; set; }\n    public\
-  \ IServiceProvider ServiceProvider { get; set; }\n    public ShellBlueprint Blueprint\
-  \ { get; set; }\n    public IShellPipeline Pipeline { get; set; }\n}\n```\n\n###\
-  \ What This Is NOT\n\n**Not Microservices:**\n- Single deployable application, not\
-  \ distributed services\n- All modules run in the same process\n- Single database\
-  \ connection string per tenant (not service-specific databases)\n\n**Not Traditional\
-  \ Layered:**\n- No horizontal separation into presentation/business/data layers\n\
-  - Modules are vertical feature slices (e.g., `OrchardCore.Admin`, `OrchardCore.Media`)\n\
-  - Each module contains its own controllers, services, views, and migrations\n\n\
-  **Not Event-Driven Architecture:**\n- While modules can use background tasks and\
-  \ events, the primary communication is through dependency injection and service\
-  \ interfaces\n- No message broker infrastructure for inter-module communication\n\
-  \n**Not Domain-Driven Design:**\n- No explicit aggregate roots, value objects, or\
-  \ bounded context patterns\n- Feature-based organization doesn't map directly to\
-  \ domain concepts\n- No ubiquitous language enforcement\n\n### Key Architecture\
-  \ Files\n\n| Component | File Path |\n|-----------|-----------|\n| Shell Host |\
-  \ `src/OrchardCore/OrchardCore/Shell/ShellHost.cs` |\n| Module Loader | `src/OrchardCore/OrchardCore.Abstractions/Modules/Module.cs`\
-  \ |\n| Extension Manager | `src/OrchardCore/OrchardCore/Extensions/ExtensionManager.cs`\
-  \ |\n| Feature System | `src/OrchardCore/OrchardCore.Abstractions/Extensions/Features/IFeatureInfo.cs`\
-  \ |\n| Tenant Middleware | `src/OrchardCore/OrchardCore/Modules/ModularTenantContainerMiddleware.cs`\
-  \ |\n\n### Conclusion\n\nOrchardCore is a textbook example of a **Modular Monolith**\
-  \ with a sophisticated **Microkernel/Plugin** extension mechanism. The architecture\
-  \ achieves:\n\n1. **Enforced module boundaries** through explicit dependency declarations\n\
-  2. **Feature-level enablement** allowing fine-grained control over functionality\n\
-  3. **Multi-tenant isolation** with separate DI containers per tenant\n4. **Extensibility**\
-  \ through well-defined plugin contracts\n\nThe system demonstrates that a monolithic\
-  \ deployment can still maintain clean architectural boundaries through disciplined\
-  \ use of module manifests, feature dependencies, and dynamic loading—all while supporting\
-  \ multi-tenancy within a single application instance."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
+quality_attributes:
+  - Modularity
+  - Deployability
+  - Evolvability
+  - Fault Tolerance
+  - Scalability
+  - Observability
+one_line_summary: "An open-source modular multi-tenant CMS and application framework for ASP.NET Core built on a microkernel extension system where 94 plug-in modules are independently enabled per tenant at runtime inside a single deployable process."
+classification_reasoning: "OrchardCore exhibits a three-style composition: Microkernel as primary, Modular Monolith and Pipeline as secondary.\n\nMICROKERNEL (primary, 0.94): The system is architected around a formal extension kernel. IExtensionManager (src/OrchardCore/OrchardCore/Extensions/ExtensionManager.cs) discovers, loads, and resolves dependency ordering for extensions and features using frozen dictionaries with a lazy dependency graph. Each of the 94 modules in src/OrchardCore.Modules/ declares itself via [Module] and [Feature] assembly attributes (Manifest.cs per module) with explicit Dependencies arrays. IShellHost (ShellHost.cs) manages an independent IoC container (ShellContext) per tenant, pre-created at startup and rebuilt on feature toggle. ModularTenantContainerMiddleware swaps the active ServiceProvider per HTTP request by calling httpContext.UseShellScopeServices(). IShellDescriptorFeaturesManager.UpdateFeaturesAsync() enables runtime enable/disable of features per tenant without process restart, which is the definitive microkernel plug-in lifecycle contract. IStartup.ConfigureServices() / IStartup.Configure() is the plug-in registration contract implemented by every module's Startup.cs.\n\nMODULAR MONOLITH (secondary, 0.88): All 94 modules deploy as a single ASP.NET Core process. The Dockerfile runs a single 'dotnet publish src/OrchardCore.Cms.Web/OrchardCore.Cms.Web.csproj' with a single ENTRYPOINT. OrchardCoreBuilder.ConfigureServices() accumulates all enabled module IStartup registrations into a per-tenant DI container sharing the same process heap. ShellDescriptor stores the list of enabled ShellFeature entries in a single YesSql/SQL database session per tenant. Modules communicate exclusively through shared DI interfaces (IContentManager, IContentHandler, IWorkflowManager, ISession) with no inter-module network boundary. Horizontal scaling uses optional Redis modules (OrchardCore.Redis.Cache, OrchardCore.Redis.Bus, OrchardCore.Redis.Lock) to provide distributed state across identical process instances.\n\nPIPELINE (secondary, 0.72): Three distinct pipeline patterns are present. (1) Recipe/deployment pipeline: IRecipeStep handlers (one per module: AdminMenuStep, WorkflowTypeStep, UrlRewritingStep, SitemapsStep, etc.) process JSON recipe documents sequentially. (2) Content lifecycle pipeline: ContentHandlerBase provides 14 paired before/after hooks (CreatingAsync/CreatedAsync, PublishingAsync/PublishedAsync, RemovingAsync/RemovedAsync, CloningAsync/ClonedAsync, etc.) invoked in sequence by ContentPartHandlerCoordinator across all registered IContentHandler implementations. (3) Workflow activity pipeline: WorkflowManager.cs executes user-defined DAG activity graphs (ForEach, Fork, Join, IfElse, While tasks) with a MaxRecursionDepth guard and distributed lock per workflow execution.\n\nDEPLOYABILITY evidence: Single Dockerfile producing one binary; Redis modules for distributed deployment; Deployment module for JSON recipe-based environment promotion.\n\nMODULARITY evidence: 94 modules each self-contained with Manifest.cs, Startup.cs, Permissions.cs, and optional AdminMenu.cs; feature-level granularity (Users module has 14 distinct features); runtime enable/disable per tenant via IShellDescriptorFeaturesManager.\n\nEVOLVABILITY evidence: IStartup plug-in contract allows new modules without touching existing code; Database Migrations pattern per module for schema evolution; ShellHost reload retries (up to 9) allow graceful feature reconfiguration; IModularTenantEvents for cross-cutting tenant lifecycle hooks.\n\nFAULT TOLERANCE evidence: IDistributedLock (LocalLock or RedisLock) prevents concurrent workflow execution and index rebuild races in WorkflowManager; ModularBackgroundService (ModularBackgroundService.cs) isolates per-shell background task failures; ShellHost ReloadShellMaxRetriesCount = 9 with semaphore-per-shell for safe concurrent reload.\n\nSCALABILITY evidence: Redis distributed cache, message bus, and lock modules decouple shared state for multi-node deployments; ShellHost ConcurrentDictionary supports hundreds of tenant shells each with independent feature sets; ModularBackgroundService schedules IBackgroundTask per tenant shell independently.\n\nOBSERVABILITY evidence: HealthChecks module (src/OrchardCore.Modules/OrchardCore.HealthChecks/Startup.cs) registers AddHealthChecks() with configurable URL and detail level; AuditTrail module for structured event logging of content and user operations; NLog integration via UseNLogHost() in CMS web host entry point.\n\nRULED OUT - Microservices: Single process with no inter-service network calls; modules share one database session per tenant via YesSql ISession injected through DI.\n\nRULED OUT - Event-Driven: IFeatureEventHandler and IModularTenantEvents provide lifecycle hooks but there is no central event bus or message broker for domain events between modules; communication is synchronous DI-based rather than event-sourced.\n\nRULED OUT - Layered: Module organization is vertical by feature domain, not horizontal by layer. Each module owns its own controllers, services, handlers, drivers, views, and data access, explicitly avoiding a cross-cutting layered dependency graph."

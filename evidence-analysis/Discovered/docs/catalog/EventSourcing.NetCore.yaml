@@ -1,119 +1,183 @@
 project_name: EventSourcing.NetCore
-scope: application
-use_type: reference
+scope: framework-and-samples
+use_type: reference-and-learning
 source: Discovered
 source_url: https://github.com/oskardudycz/EventSourcing.NetCore
 project_url: https://github.com/oskardudycz/EventSourcing.NetCore
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:26:47Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Developer Tools
+domain: Event Sourcing / CQRS Reference Implementation
 language: C#
 languages:
-- C#
+  - C#
+  - F#
 architecture_styles:
-- CQRS
-- Event-Driven
+  - Event-Driven
+  - CQRS
+  - Domain-Driven Design
 classification_status: classified
-review_notes: 'This repository is an architectural exemplar focused on **Event-Driven**
-  systems, specifically implementing the **Event Sourcing** pattern. While the "Samples"
-  directory was not found in the root (likely due to the repository''s structure often
-  nesting them within specialized sub-folders or being the root of the "Workshops"
-  themselves), the provided documentation and exhaustive "Workshops" directory tree
-  provide definitive evidence of its architectural organization.
-
-
-  ### Technical Reasoning
-
-
-  1.  **Event-Driven (Primary Style):** The entire codebase is structured around the
-  lifecycle of events. Components do not store current state; instead, they persist
-  discrete events (e.g., `InvoiceInitiated`, `InvoiceIssued`) to an event store (Marten
-  or EventStoreDB). The architecture is defined by "Streams" (the sequence of events)
-  and "Projections" (the mechanism to transform events into readable state). Evidence
-  is found in paths like `Workshops/BuildYourOwnEventStore/09-Projections/IProjecti
-
-
-  2.  **CQRS (Secondary Style):** The repository explicitly separates the write model
-  (commands that append to streams) from the read model (projections for queries).
-  The file `Marten.Integration.Tests/Commands/MartenAsyncCommandBusTests.cs` and the
-  workshop sections on `Projections.SingleStream` vs `Projections.MultiStream` demonstrate
-  a strict separation of Command and Query responsibilities.
-
-
-  3.  **Domain-Driven Design (Secondary Style):** The code organization utilizes DDD
-  tactical patterns to define consistency boundaries. Aggregates are used as the unit
-  of event persistence and state rehydration. Files such as `Workshops/BuildYourOwnEventStore/EventStoreBasics/IAggregate.cs`
-  and the presence of "Sagas" (e.g., `Workshops/EventDrivenArchitecture/05-Consistency/Sagas`)
-  indicate a DDD approach to managing long-running business processes and bounded
-  contexts.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:21:12Z'
-classification_reasoning: "## Architecture Analysis\n\nThe EventSourcing.NetCore repository\
-  \ is a teaching and reference implementation demonstrating Event Sourcing patterns\
-  \ in .NET. The architecture is unequivocally **CQRS (Command Query Responsibility\
-  \ Segregation)** as the primary architectural style, with **Event-Driven** as an\
-  \ essential secondary style.\n\n### Primary Evidence for CQRS\n\n**1. Explicit Command/Query\
-  \ Separation in Core Library:**\n\nThe `Core/Commands/` and `Core/Queries/` directories\
-  \ define the CQRS foundation:\n\n- `Core/Commands/ICommandBus.cs` - Command bus\
-  \ interface for write operations\n- `Core/Commands/ICommandHandler.cs` - Command\
-  \ handler contract\n- `Core/Queries/IQueryHandler.cs` - Query handler contract \
-  \ \n- `Core/Queries/QueryBus.cs` - Query bus implementation\n\n**2. Controller Usage\
-  \ Pattern:**\n\n`Sample/ECommerce/Carts/Carts.Api/Controllers/ShoppingCartsController.cs`:\n\
-  ```csharp\npublic class ShoppingCartsController(\n    ICommandBus commandBus,\n\
-  \    IQueryBus queryBus,\n    IIdGenerator idGenerator)\n```\n\nControllers explicitly\
-  \ inject both buses, routing commands for state changes and queries for reads through\
-  \ separate pipelines.\n\n**3. Registration Pattern:**\n\n`Sample/ECommerce/Carts/Carts/ShoppingCarts/Config.cs`:\n\
-  ```csharp\nprivate static IServiceCollection AddCommandHandlers(this IServiceCollection\
-  \ services) =>\n    services.AddCommandHandler<OpenShoppingCart, HandleOpenShoppingCart>()\n\
-  \        .AddCommandHandler<AddProduct, HandleAddProduct>()\n        ...\n\nprivate\
-  \ static IServiceCollection AddQueryHandlers(this IServiceCollection services) =>\n\
-  \    services.AddQueryHandler<GetCartById, ShoppingCartDetails?, HandleGetCartById>()\n\
-  \        .AddQueryHandler<GetCarts, IPagedList<ShoppingCartShortInfo>, HandleGetCarts>()\n\
-  ```\n\nCommand and query handlers are registered separately and handled through\
-  \ distinct pipelines.\n\n**4. Projections for Read Models:**\n\n`Core/Projections/IProjection.cs`\
-  \ and `Core.EntityFramework/Projections/EntityFrameworkProjection.cs` define how\
-  \ read models are built from the event stream - a classic CQRS pattern where writes\
-  \ produce events and reads consume them through projections.\n\n### Secondary Evidence\
-  \ for Event-Driven\n\n**1. Central EventBus:**\n\n`Core/Events/EventBus.cs` implements\
-  \ event publishing with typed handler resolution:\n```csharp\nvar eventEnvelopeHandlers\
-  \ = scope.ServiceProvider.GetServices<IEventHandler<EventEnvelope<TEvent>>>();\n\
-  foreach (var eventHandler in eventEnvelopeHandlers) { ... }\n```\n\n**2. Process\
-  \ Managers (Sagas):**\n\n`Sample/ECommerce/Orders/Orders/Orders/OrderSaga.cs` coordinates\
-  \ distributed workflows:\n```csharp\npublic class OrderSaga(IIdGenerator idGenerator,\
-  \ ICommandBus commandBus):\n    IEventHandler<CartFinalized>,\n    IEventHandler<OrderInitiated>,\n\
-  \    IEventHandler<PaymentFinalized>,\n    IEventHandler<OrderPaymentRecorded>,\n\
-  \    IEventHandler<PackageWasSent>,\n    ...\n```\n\nThe saga reacts to events and\
-  \ issues commands, implementing the Event-Driven orchestration pattern.\n\n**3.\
-  \ Event Store Subscriptions:**\n\n`Core.EventStoreDB/Subscriptions/EventStoreDBSubscriptionToAll.cs`\
-  \ implements catch-up subscriptions that process events asynchronously to build\
-  \ projections.\n\n**4. Kafka Integration:**\n\n`Core.Kafka/Producers/KafkaProducer.cs`\
-  \ and `Core.Kafka/Consumers/KafkaConsumer.cs` provide external event publishing/consuming,\
-  \ enabling event-driven communication between bounded contexts.\n\n### What This\
-  \ Is NOT\n\n- **Not Microservices**: While the ECommerce sample has separate services\
-  \ (Carts, Orders, Payments, Shipments), the Core library is designed as reusable\
-  \ building blocks. The samples demonstrate both monolithic and distributed deployments.\n\
-  \n- **Not Traditional Layered**: There's no horizontal presentation/business/data\
-  \ layering. The organization is vertical around commands, queries, events, and aggregates.\n\
-  \n- **Not Hexagonal Architecture**: While there are interfaces (ports), there's\
-  \ no explicit application core isolated via adapters. The focus is on CQRS pipelines\
-  \ and event flow.\n\n### Additional DDD Elements\n\nThe codebase exhibits Domain-Driven\
-  \ Design patterns:\n- **Aggregates** (`Core/Aggregates/Aggregate.cs`) with event\
-  \ sourcing\n- **Domain Events** (e.g., `ShoppingCartOpened`, `ProductAdded`)\n-\
-  \ **Bounded Contexts** visible in samples (Carts, Orders, Payments, Shipments as\
-  \ separate modules)\n- **Strongly-typed IDs** with `IIdGenerator`\n\nHowever, DDD\
-  \ is not the primary architectural driver - it supports the CQRS/Event-Driven implementation.\n\
-  \n### Conclusion\n\nThis is a reference implementation for Event Sourcing with CQRS\
-  \ as the dominant architectural pattern. The event-driven nature is essential but\
-  \ serves the CQRS separation - events are the mechanism by which the write model\
-  \ communicates changes to the read model. The high confidence (0.92) reflects the\
-  \ explicit, intentional design around these patterns throughout the codebase."
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-10'
 quality_attributes:
-- Evolvability
-- Modularity
-- Observability
-- Fault Tolerance
+  evolvability:
+    present: true
+    evidence: >
+      EventStoreDBSubscriptionToAll persists checkpoint positions enabling full
+      event stream replay from any position. Sample/EventsVersioning/ contains
+      nine concrete versioning strategies (upcasting, new schema, weak schema,
+      event transformations). MartenRepositoryWithETagDecorator and
+      EventStoreDBRepositoryWithETagDecorator apply ETag-based optimistic
+      concurrency on every aggregate write, preventing lost-update conflicts
+      as schemas evolve.
+  modularity:
+    present: true
+    evidence: >
+      Core functionality is factored into independent adapter packages:
+      Core.EventStoreDB, Core.Marten, Core.Kafka, Core.ElasticSearch, and
+      Core.EntityFramework. Each sample selects and composes adapters
+      independently with no cross-context coupling. Bounded contexts (Carts,
+      Orders, Payments, Shipments) are each self-contained C# projects with
+      their own solution files, communicating exclusively through events.
+  observability:
+    present: true
+    evidence: >
+      Core/OpenTelemetry/ implements ActivityScope and ActivitySource with
+      structured telemetry tags for commands (type, active count, total, duration),
+      queries, domain events, and Kafka messaging (system, destination, partition,
+      consumer group). CommandHandlerMetrics.cs tracks active command count,
+      total handled, and handling duration as .NET meters. Jaeger exporter is
+      wired in docker-compose; OTLP and console exporters are available via
+      OpenTelemetry.Exporter.* packages.
+  fault_tolerance:
+    present: true
+    evidence: >
+      EventBus accepts a configurable Polly AsyncPolicy wrapping every event
+      handler invocation with retry logic (default no-op, overridable per
+      service). EventStoreDBSubscriptionToAll tracks ProcessingStatus across
+      NotStarted, Starting, Started, Paused, Errored, and Stopped states with
+      checkpoint persistence for crash recovery. The GetCartById query handler
+      applies a Polly WaitAndRetryAsync(5) policy for read-after-write
+      consistency on the CQRS read model.
+  correctness:
+    present: true
+    evidence: >
+      Optimistic concurrency is enforced by expected-version checks in
+      MartenRepository.Update() (nextVersion = expectedVersion + events.Length)
+      and EventStoreDBRepository. HTTP If-Match ETag headers are extracted and
+      converted to expected stream versions in ShoppingCartsController and
+      Helpdesk Program.cs via GetAndUpdate Marten extension, preventing
+      concurrent update conflicts across all write operations.
+  testability:
+    present: true
+    evidence: >
+      Core.Testing module provides shared test harnesses. Every sample ships
+      a companion .Tests project using Testcontainers.PostgreSql for live
+      EventStoreDB/Marten instances, Alba for HTTP integration testing, and
+      Ogooreck for BDD-style scenario composition. Core.EventStoreDB.Tests
+      and Core.Marten.Tests validate adapter-level behaviour independently.
+      EventSourcing.Integration.Tests provides cross-cutting integration coverage.
+one_line_summary: >
+  .NET reference implementation of Event Sourcing, CQRS, and DDD patterns using
+  EventStoreDB or Marten/PostgreSQL, with pluggable adapters, sagas, projections,
+  and nine event-versioning strategies across realistic sample applications.
+classification_reasoning: |
+  ## Architecture Classification Analysis
+
+  ### Primary Style: Event-Driven
+
+  The entire codebase is organised around the principle that state changes are
+  represented as immutable domain events persisted to an append-only event store.
+  The base `Aggregate<TEvent, TId>` class in `Core/Aggregates/Aggregate.cs` exposes
+  `Enqueue(event)` which queues events and immediately applies them via `Apply()`;
+  `DequeueUncommittedEvents()` is called by the repository on every save, writing
+  all queued events to the event stream. `MartenRepository.Add()` calls
+  `documentSession.Events.StartStream()` and `Update()` calls
+  `documentSession.Events.Append()` — making event append, not row update, the
+  canonical persistence operation.
+
+  Subscriptions are the downstream delivery mechanism. `EventStoreDBSubscriptionToAll`
+  subscribes to the global event stream via `SubscribeToAllAsync`, batches events,
+  and dispatches them to registered `IEventBatchHandler` implementations with checkpoint
+  persistence for guaranteed delivery. Marten's async daemon (`AddAsyncDaemon(DaemonMode.HotCold)`)
+  serves the same role in Marten-backed samples. The `EventBus` in `Core/Events/EventBus.cs`
+  provides in-process fan-out, dispatching each event to all registered `IEventHandler<TEvent>`
+  implementations with Polly retry wrapping. `KafkaProducer` and `SignalRProducer` are
+  registered as Marten subscriptions in `Helpdesk.Api/Program.cs`, making cross-service
+  and cross-protocol fan-out a first-class pattern. Docker-compose creates Kafka topics
+  `Carts`, `Orders`, `Payments`, and `Shipments` for inter-context event propagation.
+
+  ### Secondary Style: CQRS
+
+  Command and query responsibilities are explicitly separated through formal interfaces.
+  `Core/Commands/` defines `ICommandHandler<TCommand>` (writes) and `ICommandBus`
+  (routing); `Core/Queries/` defines `IQueryHandler<TQuery, TResponse>` (reads) and
+  `IQueryBus` (routing). The ECommerce `ShoppingCartsController` calls
+  `commandBus.Send(command)` for all mutation operations (OpenCart, AddProduct,
+  RemoveProduct, ConfirmCart, CancelCart) and `queryBus.Query<TQuery, TResponse>()` for
+  all read operations with no cross-contamination.
+
+  Read models are purpose-built projections maintained by the event stream.
+  `ShoppingCartDetails` and `ShoppingCartShortInfo` are updated by Marten inline
+  projections. `IncidentDetailsProjection : SingleStreamProjection<IncidentDetails>`
+  folds each event type into an immutable record. `CustomerIncidentsSummaryProjection`
+  uses `ProjectionLifecycle.Async` handled by the async daemon. `HandleGetCartById`
+  queries `IQuerySession` (the Marten read-model store) not the event stream, confirming
+  read-side independence. A Polly retry in `GetCartById` polls until the read model
+  catches up to the expected version — a canonical CQRS read-after-write consistency
+  pattern.
+
+  Command handler registrations (`AddCommandHandler<OpenShoppingCart, HandleOpenShoppingCart>`)
+  and query handler registrations (`AddQueryHandler<GetCartById, ShoppingCartDetails?, HandleGetCartById>`)
+  are separately enumerated in each bounded context's `Config.cs`, making the CQRS
+  boundary explicit at the service registration layer.
+
+  ### Tertiary Style: Domain-Driven Design
+
+  The design uses DDD building blocks with precision. Aggregates are strongly typed value
+  objects with `Id` and `Version`, encapsulating domain invariants: `ShoppingCart.Confirm()`
+  throws if status is not Pending; `ShoppingCart.AddProduct()` enforces pricing via a domain
+  service `IProductPriceCalculator`. Events are named in the past tense
+  (`ShoppingCartOpened`, `IncidentLogged`, `AgentAssignedToIncident`), carrying only the
+  data needed to reconstruct state.
+
+  `OrderSaga` implements a Process Manager: it implements multiple `IEventHandler<TEvent>`
+  interfaces, reacting to `CartFinalized` to issue `InitializeOrder`, then `OrderInitiated`
+  to issue `RequestPayment`, then `PaymentFinalized` to issue `RecordOrderPayment`,
+  continuing through `PackageWasSent` to `CompleteOrder`, with compensating commands
+  (`CancelOrder`, `DiscardPayment`) on `ProductWasOutOfStock`. This is a textbook
+  saga coordinating a distributed multi-step business process through events.
+
+  `Core/Decider/Decider.cs` encodes the functional DDD Decider pattern as a generic record:
+  `Decider<TState, TCommand, TEvent>(Decide, Evolve, GetInitialState)`. The Helpdesk sample
+  applies the functional style exclusively — `Incident` is a plain `record` with static
+  `Apply` methods rather than an OO aggregate base class, and `IncidentService` is a static
+  class of pure `Handle(state, command) -> event` functions with no side effects.
+
+  Bounded contexts are enforced at the project level: `Carts.csproj`, `Orders.csproj`,
+  `Payments.csproj`, `Shipments.csproj` are separate assemblies with no direct cross-context
+  references; cross-context communication occurs exclusively through events published to
+  Kafka or the in-process event bus.
+
+  ### Styles Considered But Not Primary
+
+  - Hexagonal Architecture: Port/adapter separation exists (Core.Marten, Core.EventStoreDB,
+    Core.Kafka are infrastructure adapters behind `IMartenRepository`, `ICommandBus`,
+    `IEventBus` ports) but the codebase does not organise itself around hexagonal layers —
+    the dominant organising principle is event-centric.
+  - Microservices: The ECommerce sample decomposes into Carts, Orders, Payments, Shipments
+    services communicable over Kafka, but they share a single solution and are deployed as a
+    single `backend` Docker image in the base compose file; the multi-service topology is a
+    teaching pattern, not an independently deployable microservice fleet.
+  - Pipeline: Event stream subscriptions with checkpoint-tracked consumption form a pipeline
+    topology, but this is a delivery mechanism for the event-driven pattern rather than an
+    independent architectural style.
+
+  ### Confidence
+
+  0.95 — Event-Driven and CQRS are unambiguous from code structure, interfaces, and
+  runtime behaviour. DDD building blocks (Aggregate, ProcessManager, Decider, bounded
+  contexts, past-tense events) are central design constructs rather than incidental patterns.
+  Minor uncertainty reflects that this is a multi-purpose reference repo whose samples
+  intentionally demonstrate style variation, making any single classification a summary
+  of the dominant pattern rather than a universal descriptor.
