@@ -9,35 +9,29 @@ discovered_at: '2026-03-07T05:02:49Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Healthcare
-language: Java/Kotlin
+language: Java
 languages:
-- Java/Kotlin
+- Java
+- Kotlin
 architecture_styles:
 - Layered
 - Modular Monolith
 classification_status: classified
-review_notes: "HAPI FHIR is a textbook example of a **Modular Monolith** organized\
-  \ as a Maven multi-module project. While it contains components that can be used\
-  \ to build distributed systems, the repository itself is structured as a single\
-  \ massive codebase with strictly defined module boundaries that are compiled and\
-  \ distributed as a set of library and server components.\n\n### 1. Modular Monolith\
-  \ (Primary Style)\nThe repository is divided into dozens of highly specific modules\
-  \ (e.g., `hapi-fhir-jpaserver-searchparam`, `hapi-fhir-storage`, `hapi-fhir-structures-r4`).\
-  \ \n- **Enforced Boundaries:** Each module has its own `pom.xml`, defining clear\
-  \ dependency trees. This prevents circular dependencies and forces developers to\
-  \ use defined internal APIs to interact with other parts of the system.\n- **Versioned\
-  \ Components:** The modules are versions of the FHIR specification (DSTU2, DSTU3,\
-  \ R4, R5). This allows consumers to pick and choose specific versions while the\
-  \ core remains shared, a hallmark of a robust modular design.\n- **Shared Deployment\
-  \ Logic:** While the code is modular, the `hapi-fhir-dist` and `hapi-fhir-deployable-pom`\
-  \ suggest the project is intended to be built and released as a unified set of artifacts\
-  \ or a single distribution (like the HAPI FHIR CLI or the JPA Server).\n\n### 2.\
-  \ Layered (Secondary Style)\nWithin the modules, the project follows a classic horizontal\
-  \ layering pattern:"
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Interoperability
+- Extensibility
+- Modularity
+- Testability
+- Maintainability
+- Observability
+- Scalability
+- Security
+- Standards Compliance
+one_line_summary: "HL7 FHIR reference Java implementation organized as a 60-module Maven project with strict unidirectional Layered tiers (core/model, REST framework, storage API, JPA implementation) all assembled into a single Spring application context Modular Monolith deployment, cross-cut by a 107-pointcut interceptor framework enabling behavior injection at every lifecycle stage."
+classification_reasoning: "HAPI FHIR's dominant architectural style is Layered. The Maven module dependency graph enforces a strict directional layer hierarchy with no upward or cross-layer dependencies: hapi-fhir-base (FhirContext, interceptor API) at the core; hapi-fhir-structures-* (generated FHIR resource POJOs) and hapi-fhir-server (RestfulServer, IResourceProvider, BaseMethodBinding) at the REST framework tier; hapi-fhir-storage (IFhirResourceDao, IFhirSystemDao interfaces) and hapi-fhir-jpaserver-model (ResourceTable, ResourceIndexedSearchParam* JPA entities) at the storage API tier; hapi-fhir-jpaserver-base (BaseHapiFhirResourceDao, SearchCoordinatorSvcImpl) at the JPA implementation tier. The Pointcut enum's explicit layer-namespaced categories (CLIENT_, SERVER_, STORAGE_, JPA_PERFTRACE_, SUBSCRIPTION_, VALIDATION_) with 107 total pointcuts confirm the intentional horizontal decomposition. The secondary style is Modular Monolith: despite 60 Maven modules with compile-time boundary enforcement via pom.xml dependency declarations and Checkstyle rules, all modules assemble into a single WAR/fat JAR with a unified Spring application context (JpaConfig is the integration hub wiring all DAOs, search services, batch jobs, subscription services). No runtime module isolation, no service mesh, no independent deployment per module. Prior classification (2026-03-09, confidence 0.85) correctly identified both styles; this deep-analysis confirms with higher confidence (0.92) and corrects primary/secondary ordering — Layered is primary because it drives internal decomposition decisions, while Modular Monolith describes the deployment topology."
 review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.85
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: Multiple abstraction layers (foundation, storage interfaces,
-  JPA DAOs, resource providers) with 65+ feature modules bundled into single WAR
+spec_ref: SPEC-031

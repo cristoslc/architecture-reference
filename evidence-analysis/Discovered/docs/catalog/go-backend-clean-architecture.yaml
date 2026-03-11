@@ -13,69 +13,45 @@ language: Go
 languages:
 - Go
 architecture_styles:
-- Layered
 - Hexagonal Architecture
+- Layered
 classification_status: classified
-review_notes: "This repository is a textbook implementation of **Hexagonal Architecture**\
-  \ (also known as Ports and Adapters), specifically following the \"Clean Architecture\"\
-  \ flavor popularized by Robert C. Martin. \n\n### Evidence of Hexagonal Architecture:\n\
-  1.  **Dependency Rule**: The directory structure is organized into concentric layers.\
-  \ The `domain/` directory (the core) contains only interfaces and data structures\
-  \ (e.g., `domain/user.go`, `domain/task.go`), which act as the \"Ports.\"\n2.  **Decoupled\
-  \ Adapters**:\n    *   **Driving Adapters**: Found in `api/controller/` and `api/route/`.\
-  \ These handle the delivery mechanism (Gin/HTTP) and depend on the core Usecases.\n\
-  \    *   **Driven Adapters**: Found in `repository/` and `mongo/`. These handle\
-  \ data persistence and infrastructure details, implementing the interfaces defined\
-  \ in the `domain/` layer.\n3.  **Dependency Inversion**: High-level modules (Usecases)\
-  \ do not depend on low-level modules (Repositories/MongoDB). Instead, both depend\
-  \ on abstractions (the Interfaces in `domain/`).\n4.  **Use of Mocks**: Extensive\
-  \ use of `mockery` and the presence of `domain/mocks/` and `mongo/mocks/` confirm\
-  \ that components are isolated from their side-effect-producing dependencies during\
-  \ testing, a hallmark of Hexagonal systems."
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+spec_ref: SPEC-031
+report_path: docs/architecture-reports/go-backend-clean-architecture-2026-03-11.md
+quality_attributes:
+- Testability
+- Maintainability
+- Flexibility
+- Separation of Concerns
+- Learnability
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:22:54Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: Layered Architecture\n\nThe repository implements a classic **Layered Architecture**\
-  \ with clear horizontal separation of concerns:\n\n| Layer | Directory | Responsibility\
-  \ |\n|-------|-----------|----------------|\n| Router | `api/route/` | HTTP route\
-  \ registration |\n| Controller | `api/controller/` | Request handling, HTTP binding\
-  \ |\n| Usecase | `usecase/` | Business logic orchestration |\n| Repository | `repository/`\
-  \ | Data access abstraction |\n| Domain | `domain/` | Entity definitions, interfaces\
-  \ |\n\n**Evidence of layering:**\n- `README.md` lines 27-33 explicitly document:\
-  \ \"Router → Controller → Usecase → Repository → Domain\"\n- Request flow follows\
-  \ strict layer ordering (e.g., `api/route/task_route.go:17-18` wires controller\
-  \ → usecase → repository)\n\n### Secondary Style: Hexagonal Architecture (Ports\
-  \ and Adapters)\n\nThe codebase implements **dependency inversion** characteristic\
-  \ of hexagonal architecture:\n\n**Domain layer defines interfaces (ports):**\n```go\n\
-  // domain/task.go:19-22\ntype TaskRepository interface {\n    Create(c context.Context,\
-  \ task *Task) error\n    FetchByUserID(c context.Context, userID string) ([]Task,\
-  \ error)\n}\n```\n\n**Outer layers implement adapters:**\n```go\n// repository/task_repository.go:17\n\
-  func NewTaskRepository(db mongo.Database, collection string) domain.TaskRepository\n\
-  ```\n\n**Database adapter pattern** (`mongo/mongo.go`):\n- Defines abstract interfaces:\
-  \ `Database`, `Collection`, `Client`, `Cursor`, `SingleResult`\n- Concrete implementations\
-  \ wrap MongoDB driver\n- Repository depends on `mongo.Database` interface, not concrete\
-  \ driver\n- Enables database substitution by implementing interfaces\n\n**Dependency\
-  \ direction:** All dependencies point **inward** toward `domain`:\n- `usecase` imports\
-  \ `domain` (line 7 in `usecase/task_usecase.go`)\n- `repository` imports `domain`\
-  \ (line 6 in `repository/task_repository.go`)\n- `controller` imports `domain` (line\
-  \ 6 in `api/controller/task_controller.go`)\n\n### Deployment Model: Single Monolith\n\
-  \n- Single `Dockerfile` builds one binary from `cmd/main.go`\n- Single `docker-compose.yaml`\
-  \ with one `web` service\n- Single Go module (`go.mod`) with no workspace/submodules\n\
-  - Entry point (`cmd/main.go:11-26`) wires all dependencies in one process\n\n###\
-  \ What This Is NOT\n\n**Not Microservices:** Single deployable, single database\
-  \ connection, no inter-service communication.\n\n**Not Modular Monolith:** Horizontal\
-  \ technical layers, not vertical business module boundaries. No module-specific\
-  \ packages or bounded contexts.\n\n**Not Domain-Driven Design:** Lacks aggregates,\
-  \ value objects, domain events, bounded contexts. The `domain` package contains\
-  \ anemic data structures and repository interfaces, not rich domain logic.\n\n**Not\
-  \ CQRS:** Single read/write model, no command/query separation.\n\n**Not Event-Driven:**\
-  \ Synchronous request-response only, no message brokers or event handlers.\n\n###\
-  \ Conclusion\n\nThis is a textbook implementation of **Clean Architecture** (Robert\
-  \ Martin's variant) applied to a layered system. It combines the horizontal layering\
-  \ of traditional N-tier architecture with the dependency inversion principle of\
-  \ hexagonal architecture. The innermost `domain` layer defines the core abstractions\
-  \ (ports), while `repository`, `usecase`, `controller`, and `route` serve as increasingly\
-  \ outward adapters."
+review_notes: >
+  Textbook Hexagonal Architecture (Ports and Adapters) / Clean Architecture (Robert C. Martin)
+  implemented in Go. Domain layer defines all port interfaces (TaskRepository, TaskUsecase,
+  UserRepository, LoginUsecase, etc.); outer layers (usecase/, repository/, api/controller/)
+  implement or consume those interfaces. A double adapter layer in mongo/ wraps the MongoDB
+  driver behind abstract Database/Collection/Client interfaces, enabling mock-based tests
+  without a live database. Composition root lives in api/route/ where concrete adapters are
+  instantiated and injected through port interfaces. The project is a single-process monolith
+  (one binary, one Dockerfile, one docker-compose service) — not microservices, not DDD,
+  not CQRS, not event-driven. The Layered secondary classification reflects the explicit
+  horizontal ring structure (Router → Controller → Usecase → Repository → Domain) documented
+  in the README and diagrams.
+classification_reasoning: >
+  Primary style is Hexagonal Architecture because: (1) domain/ defines all port interfaces and
+  has no upward imports; (2) usecase/ and repository/ depend only on domain interfaces;
+  (3) api/controller/ holds domain.TaskUsecase as an interface field; (4) mongo/ provides
+  its own abstract interfaces (Database, Collection, Client) wrapping the real driver;
+  (5) mockery-generated mocks exist for every port enabling fully isolated unit tests;
+  (6) composition root in route/ wires concrete adapters through interface injection.
+  Secondary style is Layered because the README explicitly documents Router → Controller →
+  Usecase → Repository → Domain as the layer ordering, and the package structure reflects
+  strict horizontal technical tiers. Hexagonal and Layered are complementary: Layered
+  describes the ring structure; Hexagonal explains the dependency rule governing those rings.
+  Rejected: Microservices (single binary/module/container), Modular Monolith (horizontal not
+  vertical boundaries), DDD (anemic domain, no aggregates/value objects/events), CQRS (no
+  command/query separation), Event-Driven (synchronous request-response only).

@@ -8,93 +8,80 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:31:02Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: E-Commerce
+domain: E-Commerce / Food Delivery
 language: Go
 languages:
 - Go
-- JavaScript
 architecture_styles:
 - Microservices
-- Event-Driven
 - CQRS
+- Event-Driven
 - Domain-Driven Design
 classification_status: classified
-review_notes: "The repository is a textbook implementation of a **Microservices**\
-  \ architecture, explicitly designed as an exemplar for this style. The codebase\
-  \ is partitioned into independent, deployable services located under `internal/services/`,\
-  \ including `catalogwriteservice`, `catalogreadservice`, and `orderservice`. Each\
-  \ service contains its own `Dockerfile`, `go.mod`, configuration, and internal logic,\
-  \ ensuring strict deployment boundaries.\n\n### Architectural Logic:\n\n1.  **Microservices\
-  \ (Primary):**\n    *   **Independent Deployability:** Each directory in `internal/services/`\
-  \ is a self-contained unit with its own lifecycle management (Dockerfiles, separate\
-  \ `go.mod` files).\n    *   **Data Sovereignty:** The README and directory structure\
-  \ indicate different backing stores for different services (e.g., `catalogreadservice`\
-  \ uses MongoDB/ElasticSearch while `catalogwriteservice` uses Postgres), a hallmark\
-  \ of microservices.\n    *   **Polyglot Persistence:** Use of MongoDB, Postgres,\
-  \ and EventStoreDB across different service boundaries.\n\n2.  **Event-Driven (Secondary):**"
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:26:39Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary:\
-  \ **Microservices Architecture**\n\nThe repository exhibits clear microservices\
-  \ architecture with the following evidence:\n\n**Deployment Independence:**\n- Three\
-  \ independently deployable services: `catalogreadservice`, `catalogwriteservice`,\
-  \ `orderservice`\n- Each service has its own `go.mod` file, `Dockerfile`, and can\
-  \ be built/deployed independently\n- Docker compose orchestration with separate\
-  \ infrastructure services (RabbitMQ, PostgreSQL, MongoDB, EventStoreDB, Redis, Elasticsearch)\n\
-  \n**Database-per-Service:**\n- `catalogwriteservice` → PostgreSQL (`catalogs_write_service`\
-  \ database)\n- `catalogreadservice` → MongoDB + Redis + Elasticsearch  \n- `orderservice`\
-  \ → MongoDB + EventStoreDB\n- Each service owns its data completely\n\n**Service\
-  \ Communication:**\n- Asynchronous messaging via RabbitMQ (integration events like\
-  \ `ProductCreatedV1`, `OrderCreatedV1`)\n- Synchronous gRPC for internal service\
-  \ calls (protobuf definitions in `api/protobuf/`)\n- REST endpoints for external\
-  \ APIs\n\n**Evidence from configs** (`config.development.json` files):\n```json\n\
-  \"appOptions\": { \"serviceName\": \"catalogwriteservice\" }\n\"grpcOptions\": {\
-  \ \"port\": \":6003\" }\n\"echoHttpOptions\": { \"port\": \":7000\" }\n```\n\n---\n\
-  \n### Secondary: **Event-Driven Architecture**\n\nStrong evidence for event-driven\
-  \ communication:\n\n**Message Broker Infrastructure:**\n- RabbitMQ configuration\
-  \ in all services (`rabbitmqOptions`)\n- Custom event bus implementation (`internal/pkg/rabbitmq/bus/rabbitmq-bus.go`)\n\
-  - Producer/Consumer pattern for publishing and consuming events\n\n**Integration\
-  \ Events:**\n```go\n// internal/services/catalogwriteservice/internal/products/features/creatingproduct/v1/events/integrationevents/product_created.go\n\
-  type ProductCreatedV1 struct {\n    *types.Message\n    *dtoV1.ProductDto\n}\n```\n\
-  \n**Event Publishing** (from `create_product_handler.go`):\n```go\nerr = c.RabbitmqProducer.PublishMessage(ctx,\
-  \ productCreated, nil)\n```\n\n**Event Sourcing in OrderService:**\n- Uses EventStoreDB\
-  \ for persisting events\n- `EventSourcedAggregateRoot` base type\n- Domain events\
-  \ like `OrderCreatedV1` applied via `When()` method\n- Projections to MongoDB and\
-  \ Elasticsearch read models\n\n---\n\n### Secondary: **CQRS Pattern**\n\nClear Command\
-  \ Query Responsibility Segregation:\n\n**Separate Read/Write Services:**\n- `catalogwriteservice`\
-  \ - handles product writes (CRUD operations)\n- `catalogreadservice` - handles product\
-  \ reads (queries, search)\n\n**Command/Query Types** (`internal/pkg/core/cqrs/`):\n\
-  ```go\ntype Command interface { isCommand(); Request; TypeInfo }\ntype Query interface\
-  \ { isQuery(); Request; TypeInfo }\n```\n\n**Vertical Slice Feature Organization:**\n\
-  ```\nfeatures/\n  creatingproduct/v1/\n    create_product.go          # Command\n\
-  \    create_product_handler.go  # Command Handler\n  gettingproducts/v1/\n    get_products.go\
-  \            # Query\n    get_products_handler.go    # Query Handler\n```\n\n**Mediator\
-  \ Pattern** using `go-mediatr` library for dispatching commands/queries to handlers.\n\
-  \n---\n\n### Secondary: **Domain-Driven Design**\n\nDDD tactical patterns throughout:\n\
-  \n**Aggregates:**\n```go\n// internal/services/orderservice/internal/orders/models/orders/aggregate/order.go\n\
-  type Order struct {\n    *models.EventSourcedAggregateRoot\n    shopItems      \
-  \ []*value_objects.ShopItem\n    accountEmail    string\n    deliveryAddress string\n\
-  \    // ...\n}\n```\n\n**Value Objects:**\n```go\n// internal/services/orderservice/internal/orders/models/orders/value_objects/shop_item.go\n\
-  type ShopItem struct {\n    title       string\n    description string\n    quantity\
-  \    uint64\n    price       float64\n}\n```\n\n**Domain Events:**\n- `OrderCreatedV1`,\
-  \ `ProductCreatedV1` domain events\n- Domain exceptions (`InvalidDeliveryAddressError`,\
-  \ `OrderNotFoundError`)\n\n**Bounded Contexts:**\n- Separate services represent\
-  \ different bounded contexts (Orders, Catalogs)\n- Each service has its own domain\
-  \ models, repositories, and business logic\n\n---\n\n### Not Classified As:\n\n\
-  - **Layered Architecture**: No horizontal layering (presentation/business/data).\
-  \ Instead, vertical slices organize by features.\n- **Modular Monolith**: Services\
-  \ are independently deployable with separate databases, not a single deployable\
-  \ unit.\n- **Hexagonal Architecture**: While there are ports/adapters patterns for\
-  \ infrastructure (repositories, gRPC), the primary organization is by vertical slices\
-  \ and bounded contexts, not ports-and-adapters.\n- **Serverless**: No serverless\
-  \ functions (AWS Lambda, etc.), all services are containerized applications.\n\n\
-  ---\n\n### Architecture Summary\n\nThis is a **Microservices architecture** with\
-  \ strong **Event-Driven**, **CQRS**, and **DDD** influences. Each service is independently\
-  \ deployable, owns its database, and communicates asynchronously via RabbitMQ integration\
-  \ events. The OrderService implements Event Sourcing with projections to read models,\
-  \ while the Catalog services follow a simpler CRUD pattern with separate read/write\
-  \ services. Code is organized using **Vertical Slice Architecture** within each\n\
-  \n[truncated]"
+classification_method: deep-analysis
+classification_confidence: 0.97
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Scalability
+- Observability
+- Maintainability
+- Testability
+- Decoupling
+- Evolvability
+- Fault Tolerance
+- Auditability
+one_line_summary: "Go reference implementation combining three independently deployable\
+  \ Microservices (Catalog Write, Catalog Read, Order) with Vertical Slice Architecture\
+  \ intra-service organisation, Go-MediatR CQRS mediator, RabbitMQ event-driven integration,\
+  \ DDD aggregates, and full Event Sourcing on the Order service backed by EventStoreDB."
+classification_reasoning: "## Architecture Classification\n\n### Primary: Microservices\
+  \ (confidence: 0.97)\n\nThree independent Go modules with separate `go.mod`, Dockerfile,\
+  \ binary entry point, and dedicated data stores:\n- `catalogwriteservice` \u2014\
+  \ PostgreSQL (GORM)\n- `catalogreadservice` \u2014 MongoDB + Elasticsearch (pure\
+  \ read projection)\n- `orderservice` \u2014 EventStoreDB (events) + MongoDB (read\
+  \ model)\n\nNo shared runtime process. RabbitMQ is the integration boundary. Traefik\
+  \ acts as API gateway. gRPC (`api/protobuf/`) handles synchronous inter-service\
+  \ calls. Kubernetes + Skaffold deployment configuration confirms cloud-native independent\
+  \ deployability.\n\n### Secondary: Vertical Slice Architecture (confidence: 0.96)\n\
+  \nIntra-service code is organised by feature, not by technical layer. Each feature\
+  \ folder (`creatingproduct/v1/`, `getting_orders/v1/`, etc.) contains the endpoint,\
+  \ command/query struct, handler, DTOs, and integration events in one place. No shared\
+  \ `services/` or `controllers/` layer spans features. Version namespacing (`v1/`)\
+  \ enables additive evolution.\n\n### Secondary: CQRS (confidence: 0.95)\n\n`github.com/mehdihadeli/go-mediatr`\
+  \ mediator dispatches all commands and queries. Command handlers (write) and query\
+  \ handlers (read) are distinct registered types. The Catalog Read service is a separate\
+  \ process with a separate database \u2014 the ultimate CQRS signal. OTel mediator\
+  \ pipeline (`mediator_metrics_pipeline.go`) instruments every dispatch.\n\n### Secondary:\
+  \ Event-Driven Architecture (confidence: 0.95)\n\nCustom RabbitMQ bus (`internal/pkg/rabbitmq/bus/rabbitmq-bus.go`)\
+  \ carries typed integration events (`ProductCreatedV1`, `ProductUpdatedV1`, `ProductDeletedV1`,\
+  \ `OrderCreatedV1`). Consumers dispatch internal CQRS commands, cleanly separating\
+  \ the messaging layer from application logic. Domain events within the Order aggregate\
+  \ feed the event store.\n\n### Secondary: Domain-Driven Design (confidence: 0.90)\n\
+  \nOrder service: `Order` aggregate root (`models/orders/aggregate/order.go`) embeds\
+  \ `EventSourcedAggregateRoot`, holds `[]*value_objects.ShopItem`, enforces invariants\
+  \ in factory, raises domain events via `Apply()`. Typed domain exceptions, repository\
+  \ contracts in `contracts/repositories/`. Catalog Write: domain model + repository\
+  \ pattern. Bounded context isolation enforced \u2014 no domain types cross service\
+  \ boundaries.\n\n### Secondary: Event Sourcing (confidence: 0.93)\n\n`internal/pkg/es/models/event_sourced_aggregate.go`\
+  \ defines `Apply()` (records pending events, increments CurrentVersion), `fold()`\
+  \ (replays for state rebuild), and `When()` (aggregate state transition dispatch).\
+  \ Optimistic concurrency via `OriginalVersion`. EventStoreDB (`github.com/EventStore/EventStore-Client-Go/esdb`)\
+  \ is the authoritative write store. MongoDB read model (`read_models/order_read.go`)\
+  \ projected from events.\n\n### Evidence Paths\n\n| Component | Path | Pattern\
+  \ |\n|-----------|------|---------|\n| Separate go.mod per service | `internal/services/*/go.mod`\
+  \ | Microservices |\n| Separate Dockerfiles | `internal/services/*/Dockerfile`\
+  \ | Microservices |\n| RabbitMQ integration bus | `internal/pkg/rabbitmq/bus/rabbitmq-bus.go`\
+  \ | Event-Driven |\n| ProductCreatedV1 event | `catalogwriteservice/.../events/integrationevents/product_created.go`\
+  \ | Event-Driven |\n| productUpdatedConsumer | `catalogreadservice/.../events/integration_events/external_events/`\
+  \ | Event-Driven |\n| Feature slice (create product) | `catalogwriteservice/.../creatingproduct/v1/`\
+  \ | Vertical Slice |\n| MediatR handler registration | `create_product_handler.go`\
+  \ | CQRS |\n| Order aggregate root | `orderservice/.../aggregate/order.go` | DDD\
+  \ + Event Sourcing |\n| ShopItem value object | `orderservice/.../value_objects/shop_item.go`\
+  \ | DDD |\n| EventSourcedAggregateRoot | `internal/pkg/es/models/event_sourced_aggregate.go`\
+  \ | Event Sourcing |\n| EventStoreDB client | `internal/pkg/eventstroredb/eventstroredb.go`\
+  \ | Event Sourcing |\n| Order read model | `orderservice/.../read_models/order_read.go`\
+  \ | Event Sourcing projection |\n| OTel mediator pipeline | `internal/pkg/otel/metrics/mediatr/pipelines/`\
+  \ | Observability |\n| Traefik gateway config | `deployments/docker-compose/traefik/traefik.toml`\
+  \ | Microservices |\n| gRPC protobuf contracts | `api/protobuf/catalogwriteservice/products.proto`\
+  \ | Microservices |"

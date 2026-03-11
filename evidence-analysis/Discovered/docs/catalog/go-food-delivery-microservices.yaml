@@ -19,72 +19,82 @@ architecture_styles:
 - CQRS
 - Domain-Driven Design
 classification_status: classified
-review_notes: "The repository is a textbook implementation of a **Microservices**\
-  \ architecture, explicitly designed as an exemplar of modern distributed systems.\
-  \ \n\n### Architecture Breakdown\n\n1.  **Microservices (Primary Style):**\n   \
-  \ *   **Independent Deployability:** The project contains multiple distinct services\
-  \ under `internal/services/` (`catalogwriteservice`, `catalogreadservice`, and `orderservice`).\
-  \ Each service has its own `Dockerfile`, `go.mod`, `config/`, and `Makefile`, allowing\
-  \ them to be built and deployed independently.\n    *   **Data Sovereignty:** The\
-  \ services utilize different database technologies (Postgres for writes, MongoDB/ElasticSearch\
-  \ for reads, and EventStoreDB for sourcing), aligning with the microservices principle\
-  \ of using the \"right tool for the job.\"\n    *   **Inter-Service Communication:**\
-  \ The system uses gRPC for synchronous real-time communication and RabbitMQ for\
-  \ asynchronous messaging.\n\n2.  **Event-Driven (Secondary Style):**"
+review_notes: "A textbook Go microservices reference implementation for a food delivery\
+  \ platform. Three independently deployable services (catalogwriteservice, catalogreadservice,\
+  \ orderservice) each with their own go.mod, Dockerfile, and database. Catalog is\
+  \ split write/read (PostgreSQL vs MongoDB+Redis) as a service-level CQRS boundary.\
+  \ Orders use EventStoreDB event sourcing with MongoDB/Elasticsearch projections.\
+  \ RabbitMQ integration events propagate state across service boundaries. DDD tactical\
+  \ patterns (event-sourced aggregate, value objects, domain events with invariant\
+  \ validation, bounded context isolation) applied consistently. Vertical Slice Architecture\
+  \ used within each service. Full OpenTelemetry observability stack."
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:27:28Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: Microservices\n\n**Strong evidence for Microservices architecture:**\n\n\
-  1. **Three independently deployable services** with separate go.mod files:\n   -\
-  \ `internal/services/catalogwriteservice/go.mod` —独立的go模块\n   - `internal/services/catalogreadservice/go.mod`\
-  \ —独立的go模块  \n   - `internal/services/orderservice/go.mod` —独立的go模块\n\n2. **Separate\
-  \ databases per service** (database-per-service pattern):\n   - `catalogwriteservice`:\
-  \ PostgreSQL (`gormOptions` in config)\n   - `catalogreadservice`: MongoDB + Elasticsearch\
-  \ + Redis (`mongoDbOptions`, `elasticOptions`, `redisOptions`)\n   - `orderservice`:\
-  \ EventStoreDB + MongoDB + Elasticsearch (`eventStoreDbOptions`, `mongoDbOptions`)\n\
-  \n3. **Individual Dockerfiles** for each service (`internal/services/*/Dockerfile`)\n\
-  \n4. **Separate ports** for each service:\n   - catalogwriteservice: HTTP 7000,\
-  \ gRPC 6003\n   - catalogreadservice: HTTP 7001, gRPC 6004\n   - orderservice: HTTP\
-  \ 8000, gRPC 6005\n\n5. **Service-specific configurations** with distinct service\
-  \ names and infrastructure dependencies\n\n### Secondary Style: Event-Driven Architecture\n\
-  \n**Evidence:**\n\n1. **RabbitMQ message broker** configured in `docker-compose.infrastructure.yaml`\n\
-  \n2. **Integration events** published between services:\n   ```go\n   // internal/services/catalogwriteservice/internal/products/features/creatingproduct/v1/create_product_handler.go\n\
-  \   productCreated := integrationevents.NewProductCreatedV1(productDto)\n   err\
-  \ = c.RabbitmqProducer.PublishMessage(ctx, productCreated, nil)\n   ```\n\n3. **Event\
-  \ bus abstraction** in `internal/pkg/core/messaging/bus/bus.go`:\n   ```go\n   type\
-  \ Bus interface {\n       producer.Producer\n       consumer.BusControl\n      \
-  \ consumer.ConsumerConnector\n   }\n   ```\n\n4. **Projections** for handling events\
-  \ (`orderservice/internal/orders/projections/`)\n\n### Secondary Style: CQRS\n\n\
-  **Evidence:**\n\n1. **Separate read/write services**: `catalogreadservice` and `catalogwriteservice`\
-  \ are physically separated services\n\n2. **Command/Query interfaces** in `internal/pkg/core/cqrs/`:\n\
-  \   ```go\n   type Command interface { isCommand(); Request; TypeInfo }\n   type\
-  \ Query interface { isQuery(); Request; TypeInfo }\n   ```\n\n3. **Different database\
-  \ technologies** for read vs write sides:\n   - Write side: PostgreSQL (relational,\
-  \ ACID transactions)\n   - Read side: MongoDB + Elasticsearch (document stores,\
-  \ optimized for queries)\n\n4. **MediatR pattern** used for dispatching commands\
-  \ and queries (`github.com/mehdihadeli/go-mediatr`)\n\n### Secondary Style: Domain-Driven\
-  \ Design\n\n**Evidence:**\n\n1. **Aggregate roots** with domain behavior:\n   ```go\n\
-  \   // internal/services/orderservice/internal/orders/models/orders/aggregate/order.go\n\
-  \   type Order struct {\n       *models.EventSourcedAggregateRoot\n       shopItems\
-  \       []*value_objects.ShopItem\n       accountEmail    string\n       // ...\n\
-  \   }\n   ```\n\n2. **Domain events** (`createOrderDomainEventsV1`, `integrationevents`)\n\
-  \n3. **Value objects** (`internal/services/orderservice/internal/orders/models/orders/value_objects/shop_item.go`)\n\
-  \n4. **Domain exceptions** (`internal/services/orderservice/internal/orders/exceptions/domain_exceptions/`)\n\
-  \n5. **Event Sourcing** implementation for Order aggregate with `EventSourcedAggregateRoot`\
-  \ base type\n\n### What This Is NOT\n\n- **NOT a Modular Monolith**: Services are\
-  \ separate deployment units with their own Dockerfiles, not modules within a single\
-  \ application\n- **NOT Layered Architecture**: While there's some layering within\
-  \ features, the primary organization is vertical slices per feature (`features/creatingproduct/`,\
-  \ `features/gettingproducts/`)\n- **NOT Serverless**: No function-as-a-service deployments;\
-  \ services are containerized applications\n- **NOT Hexagonal Architecture**: While\
-  \ there are ports/adapters patterns, this is secondary to the microservices organization\n\
-  \n### Vertical Slice Organization\n\nWithin each microservice, the code is organized\
-  \ using **Vertical Slice Architecture**:\n```\ninternal/services/catalogwriteservice/internal/products/features/\n\
-  ├── creatingproduct/v1/\n│   ├── create_product.go\n│   ├── create_product_endpoint.go\n\
-  │   ├── create_product_handler.go\n│   ├── dtos/\n│   └── events/integrationevents/\n\
-  ├── gettingproducts/v1/\n├── updatingproduct/\n└── deletingproduct/\n```\n\nEach\
-  \ feature folder contains all the code it needs (handler, endpoint, DTOs, events),\
-  \ rather than organizing by technical layer."
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+classification_reasoning: "## Architecture Classification\n\n### Primary: Microservices\n\
+  \nThree independently deployable services with separate go.mod files, Dockerfiles,\
+  \ and port allocations:\n- catalogwriteservice: HTTP :7000, gRPC :6003, PostgreSQL\
+  \ (catalogs_write_service)\n- catalogreadservice: HTTP :7001, gRPC :6004, MongoDB\
+  \ (catalogs_read_service) + Redis\n- orderservice: HTTP :8000, gRPC :6005, EventStoreDB\
+  \ + MongoDB (orders_service)\n\nDatabase-per-service enforced at config level. Services\
+  \ communicate asynchronously via RabbitMQ and synchronously via gRPC.\n\n### Secondary:\
+  \ Event-Driven\n\nRabbitMQ is the sole inter-service async integration mechanism.\
+  \ ProductCreatedV1 integration event published in createProductHandler after PostgreSQL\
+  \ write; consumed by catalogreadservice productCreatedConsumer to project into MongoDB\
+  \ and Redis. Typed Bus interface (Producer + BusControl + ConsumerConnector) in\
+  \ internal/pkg/core/messaging/bus. RabbitMQ consumer implements exponential backoff\
+  \ retry (3 attempts, 300ms). OrderCreatedV1 domain events drive projections to MongoDB\
+  \ and Elasticsearch in the Order service.\n\n### Secondary: CQRS\n\nCatalog domain\
+  \ split across two physical services: catalogwriteservice (writes to PostgreSQL)\
+  \ and catalogreadservice (reads from MongoDB + Redis). Formal Command/Query type\
+  \ system in internal/pkg/core/cqrs. All dispatch via go-mediatr registered handlers.\
+  \ Order service applies CQRS internally: EventStoreDB as write store, MongoDB/Elasticsearch\
+  \ projections as read models.\n\n### Secondary: Domain-Driven Design\n\nOrder aggregate\
+  \ extends EventSourcedAggregateRoot with full event-sourcing lifecycle. ShopItem\
+  \ is a proper value object (unexported fields, accessor methods only). Domain events\
+  \ (OrderCreatedV1) enforce business invariants in factory constructors. Domain exceptions\
+  \ are typed (OrderShopItemsRequiredError, InvalidDeliveryAddressError). Services\
+  \ represent bounded contexts with no shared domain types.\n\n### Notable: Vertical\
+  \ Slice Architecture\n\nEach feature folder (e.g., creatingproduct/v1/) contains\
+  \ command type, HTTP endpoint, command handler, DTOs, and integration events — all\
+  \ concerns for a single feature in one place. Applied consistently across all three\
+  \ services.\n\n### Ruled Out\n\n- Modular Monolith: separate Dockerfiles and databases\
+  \ per service\n- Layered: vertical feature slices, not horizontal technical layers\n\
+  - Hexagonal: bounded context decomposition is the primary driver, not port-centric\
+  \ design\n- Serverless: all services are containerized long-running processes"
+quality_attributes:
+- name: Scalability
+  justification: Each service is independently containerized and can be scaled horizontally
+    without affecting siblings. Kubernetes manifests in deployments/kubernetes/ support
+    replica-based scaling per service.
+- name: Deployability
+  justification: Three independent Dockerfiles, three independent go.mod files, and
+    per-service Makefile/taskfile.yml enable fully independent build and deploy pipelines.
+- name: Data Isolation
+  justification: Strict database-per-service (PostgreSQL, MongoDB+Redis, EventStoreDB+MongoDB)
+    with no cross-service direct database access possible by architecture.
+- name: Fault Tolerance
+  justification: RabbitMQ consumer implements exponential backoff retry (3 attempts,
+    300ms initial delay). EventStoreDB subscription uses durable named subscriptionId
+    for at-least-once delivery. Services fail independently.
+- name: Consistency (Eventual)
+  justification: Cross-service state propagated asynchronously via RabbitMQ integration
+    events. Catalog read model and Order MongoDB projection are eventually consistent
+    with their respective write stores.
+- name: Testability
+  justification: testcontainers-go used for integration tests with real infrastructure
+    per test. Mockery-generated mocks for all interface boundaries. config.test.json
+    provides isolated test configurations.
+- name: Observability
+  justification: OpenTelemetry distributed tracing with Jaeger and Tempo exporters;
+    Prometheus metrics with Grafana dashboards; Uber Zap structured logging; Swagger
+    UI on all REST endpoints. Wired per-service throughout.
+- name: Evolvability
+  justification: Bounded context isolation allows independent domain model evolution
+    per service. Versioned integration event types (ProductCreatedV1, OrderCreatedV1)
+    support backward-compatible evolution. Shared infrastructure is a local module
+    replacement, not a published dependency.
+report_path: docs/architecture-reports/go-food-delivery-microservices-2026-03-11.md
+spec_ref: SPEC-031

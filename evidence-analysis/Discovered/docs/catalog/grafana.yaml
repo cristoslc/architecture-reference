@@ -4,7 +4,7 @@ use_type: production
 source: Discovered
 source_url: https://github.com/grafana/grafana
 project_url: https://github.com/grafana/grafana
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:45:44Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
@@ -18,163 +18,111 @@ architecture_styles:
 - Microkernel
 - Modular Monolith
 classification_status: classified
-review_notes: "Grafana is a classic example of a **Microkernel (Plugin)** architecture,\
-  \ where a stable core (the \"kernel\") provides the essential infrastructure (authentication,\
-  \ data routing, web serving) while almost all functional capabilities (visualizations,\
-  \ data sources, alerting integrations) are implemented as plugins.\n\n### 1. Microkernel\
-  \ (Plugin)\nThe system is designed around a strictly defined extension API. \n-\
-  \ **Plugin Registry:** In `pkg/server/server.go`, the server initializes a `backgroundServiceRegistry`,\
-  \ which manages the lifecycle of various internal and external components.\n- **Pluggability\
-  \ of Core Logic:** The `pkg/plugins` directory contains the orchestration logic\
-  \ for loading both frontend (JS/TS) and backend (Go) plugins. Backend plugins often\
-  \ run as separate processes communicating over gRPC (seen in `pkg/plugins/backendplugin`).\n\
-  - **Data Sources as Plugins:** The directory `pkg/tsdb` contains numerous sub-packages\
-  \ (e.g., `loki`, `prometheus`, `mysql`), each acting as an adapter. The README explicitly\
-  \ highlights that \"Panel plugins offer many different ways to visualize\" and \"\
-  mixed data sources\" are supported via custom providers.\n\n### 2. Modular Monolith\n\
-  While Grafana supports out-of-process plugins, the core repository is shipped as\
-  \ a single binary (`grafana-server`). "
+one_line_summary: "Open-source observability and visualization platform with a formal\
+  \ plugin registry as its primary integration seam for datasources, panels, and apps."
+review_notes: "Grafana is a **Microkernel** architecture with a **Modular Monolith**\
+  \ backend. The plugin registry (`pkg/plugins/manager/registry/in_memory.go`) is\
+  \ the load-bearing integration seam: all datasource connectivity and visualization\
+  \ extensibility flows through a 5-stage plugin load pipeline (Discovery \u2192 Bootstrap\
+  \ \u2192 Validation \u2192 Initialization \u2192 Termination). Backend plugins run\
+  \ as separate OS processes communicating over gRPC via `hashicorp/go-plugin`. The\
+  \ backend is a single Go binary assembled by Google Wire from 74 domain-scoped service\
+  \ packages sharing a unified SQL database. A `pkg/modules/` dskit-based system\
+  \ allows StorageServer, SearchServer, and ZanzanaServer to be deployed as standalone\
+  \ gRPC targets, but the default mode (`target = all`) runs everything in one process."
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:28:01Z'
-classification_reasoning: '## Analysis
-
-
-  ### Primary: Microkernel (Plugin) Architecture
-
-
-  Grafana''s architecture is fundamentally defined by its **extensive plugin system**,
-  which is the core extensibility mechanism:
-
-
-  **Evidence from `pkg/plugins/manager/pipeline/`:**
-
-  - Clear plugin lifecycle pipeline with distinct stages: **discovery → bootstrap
-  → validation → initialization → termination**
-
-  - Each stage has well-defined interfaces (`Discoverer`, `Bootstrapper`, `Validator`,
-  `Initializer`, `Terminator`)
-
-
-  **Evidence from `pkg/plugins/backendplugin/`:**
-
-  - Backend plugins run as separate processes communicating via **gRPC** (`client_v2.go`,
-  `grpc_plugin.go`)
-
-  - Plugin interface (`ifaces.go`) defines contracts: `QueryDataHandler`, `CheckHealthHandler`,
-  `StreamHandler`, `CallResourceHandler`, `AdmissionHandler`, `ConversionHandler`
-
-  - Plugins implement `Start()`, `Stop()`, `Decommission()` lifecycle methods
-
-
-  **Evidence from `pkg/plugins/plugins.go`:**
-
-  - Plugin types include: datasource, panel, app, renderer
-
-  - Plugins have signatures, external services, routes, dependencies
-
-  - Frontend plugins loaded dynamically via SystemJS
-
-
-  **Evidence from `apps/plugins/`:**
-
-  - Dedicated app for plugin management with its own API (`plugins.grafana.app`)
-
-
-  ### Secondary: Modular Monolith
-
-
-  Grafana exhibits strong **internal module boundaries** within a single deployable:
-
-
-  **Evidence from `apps/` directory structure:**
-
-  - 20+ self-contained apps: `dashboard`, `alerting`, `annotation`, `playlist`, `plugins`,
-  `secrets`, etc.
-
-  - Each app has its own `go.mod` (Go module) and `Makefile`
-
-  - Apps define resources via **CUE schemas** in `kinds/*.cue` files
-
-
-  **Evidence from architecture documentation (`contribute/architecture/k8s-inspired-backend-arch.md`):**
-
-  - "Grafana is adopting a Kubernetes-inspired, resource-oriented model"
-
-  - Apps define APIs via CUE schemas, generating code through `grafana-app-sdk`
-
-  - Resource APIs follow Kubernetes conventions: `/apis/<group>/<version>/namespaces/<namespace>/<resource>/<name>`
-
-
-  **Evidence from `pkg/registry/apps/apps.go`:**
-
-  - App installers are registered and managed centrally
-
-  - Feature toggles control which apps are enabled
-
-  - Apps are installed via `AppInstaller` interface
-
-
-  **Evidence from `pkg/services/` organization:**
-
-  - Services organized by domain: `accesscontrol`, `annotations`, `dashboards`, `datasources`,
-  `alerting`, etc.
-
-  - Wire dependency injection composes services together
-
-  - Clear package-by-feature hierarchy documented in `contribute/backend/package-hierarchy.md`
-
-
-  **Evidence from single deployable:**
-
-  - Single `Dockerfile` produces one binary
-
-  - Single `go.mod` at root for the main application
-
-  - `pkg/server/wire.go` shows all services wired together
-
-
-  ### Rejected Styles:
-
-
-  - **Not Microservices**: Single binary, single container deployment. No service
-  mesh or inter-service communication. Docker compose files are for development/testing
-  dependencies (databases), not microservices.
-
-
-  - **Not pure Layered**: While there are horizontal layers (API, services, storage),
-  the package organization is **by feature** not by layer. Documentation explicitly
-  states "Grafana has long used a package-by-layer layout" as **legacy**, moving to
-  **package-by-feature**.
-
-
-  - **Not Event-Driven**: The `pkg/bus/bus.go` is a simple in-process event dispatcher
-  for internal notifications, not a message broker architecture. Events are published/subscribed
-  within the same process.
-
-
-  - **Not Hexagonal**: No ports-and-adapters pattern. Dependencies flow inward to
-  services, but there''s no explicit application core isolated via interfaces from
-  infrastructure adapters.
-
-
-  ### Why Not Primary Modular Monolith:
-
-
-  While the modular monolith characteristics are strong, the **plugin system is the
-  defining architectural feature** of Grafana. Plugins are:
-
-  1. Loaded at runtime (not compile-time)
-
-  2. Run as separate processes (backend plugins)
-
-  3. Define the extension contract through interfaces
-
-  4. The primary mechanism for Grafana''s extensibility
-
-
-  The modular app structure (`apps/`) is a secondary organizational pattern that works
-  alongside the plugin system, but plugins are what make Grafana a platform rather
-  than just a well-organized monolith.'
+classification_method: deep-analysis
+classification_confidence: 0.91
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+classification_reasoning: "## Architecture Classification: Grafana\n\n**Primary Style:\
+  \ Microkernel** with **Modular Monolith** as the secondary deployment structure.\n\
+  \n### Evidence for Microkernel\n\n**1. Plugin Registry as Primary Integration Seam**\n\
+  \n`pkg/plugins/manager/registry/in_memory.go` maintains the runtime plugin registry\
+  \ keyed by plugin ID. All datasources, panels, and apps enter the system through\
+  \ this registry. The host's query service (`pkg/services/query/`) fans out to plugins\
+  \ via `plugins.BackendFactoryProvider` \u2014 no direct SQL or external API calls\
+  \ exist in the core query path.\n\n**2. Formal 5-Stage Plugin Load Pipeline**\n\
+  \n`pkg/plugins/manager/pipeline/doc.go` documents: Discovery \u2192 Bootstrap \u2192\
+  \ Validation \u2192 Initialization \u2192 Termination. This is a structured lifecycle\
+  \ contract managed by the host, not by plugins.\n\n**3. gRPC Process Isolation\
+  \ for Backend Plugins**\n\n`pkg/plugins/backendplugin/grpcplugin/grpc_plugin.go`\
+  \ uses `hashicorp/go-plugin` (confirmed in `go.mod`) to launch backend plugin binaries\
+  \ as separate OS processes and communicate over gRPC. Plugin boundary is a physical\
+  \ process isolation point.\n\n**4. Built-in Plugins Use Same Registry Interface**\n\
+  \nThe 20 built-in datasources in `pkg/tsdb/` (prometheus, loki, cloudwatch, elasticsearch,\
+  \ etc.) are registered through the same `PluginSource` \u2192 `InMemory` registry\
+  \ as external community plugins \u2014 no privileged core code path.\n\n**5. Frontend\
+  \ Plugin SDK**\n\n`packages/grafana-runtime/` exposes a formal SDK to frontend plugins.\
+  \ `public/app/extensions/` provides extension point registry for panel-to-panel\
+  \ and app-to-panel UI extension slots.\n\n### Evidence for Modular Monolith\n\n\
+  **1. Single Binary, Shared Database**\n\nSingle entrypoint: `pkg/cmd/grafana/main.go`.\
+  \ Google Wire assembles all 74 services into one DI graph (`pkg/server/wire_gen.go`).\
+  \ All services share one SQL database (`pkg/infra/db.DB` via xorm) and Redis cache.\n\
+  \n**2. 74 Domain-Scoped Service Packages**\n\n`pkg/services/` contains 74 packages\
+  \ (accesscontrol, authn, authz, dashboards, datasources, ngalert, live, query, sqlstore,\
+  \ featuremgmt, grpcserver, provisioning, secrets, etc.) \u2014 domain-vertical organization.\n\
+  \n**3. dskit Module System as Optional Scaling**\n\n`pkg/modules/dependencies.go`\
+  \ defines 12 module constants. Default target `All \u2192 {Core}` runs the full\
+  \ HTTP server as one process. StorageServer, SearchServer, ZanzanaServer are optional\
+  \ standalone targets \u2014 not the architectural model.\n\n**4. Enterprise Extension\
+  \ via ModuleRegisterer**\n\n`pkg/server/module_registerer.go` defines a `ModuleRegisterer`\
+  \ interface. Enterprise builds inject additional modules via `s.moduleRegisterer.RegisterModules(m)`.\n\
+  \n### What This Is NOT\n\n- **Not Microservices**: All 74 services share one database.\
+  \ Default mode is one process.\n- **Not Layered**: Service organization is domain-vertical,\
+  \ not horizontal layer separation.\n- **Not Service-Based**: Optional module targets\
+  \ share unified storage backend, not independent databases.\n- **Not Event-Driven**:\
+  \ `InProcBus` covers side-effect notifications only; primary integration is synchronous\
+  \ Wire-injected Go calls."
+key_technologies:
+- Go
+- TypeScript
+- React
+- gRPC
+- hashicorp/go-plugin
+- grafana/dskit
+- Google Wire
+- OpenTelemetry
+- Centrifuge (WebSocket)
+- xorm
+- SQLite/MySQL/PostgreSQL
+- Redis
+- Prometheus client
+- OpenFGA/Zanzana
+- CUE (schema)
+quality_attributes:
+- Extensibility
+- Observability
+- Scalability
+- Security
+- Reliability
+- Maintainability
+- Real-time capability
+notable_strengths:
+- Plugin system is the load-bearing integration seam enabling 1000+ community plugins
+  without core modification
+- Formal 5-stage plugin load pipeline with signature verification and OS-process isolation
+  via gRPC
+- Google Wire compile-time DI graph eliminates runtime reflection overhead for 74
+  services
+- dskit module system enables optional horizontal scaling of storage and search without
+  architectural refactoring
+- OpenFGA/Zanzana as optional authorization backend for relationship-based RBAC at
+  scale
+notable_gaps:
+- Shared SQL database couples 74 services with no per-domain schema decomposition
+- No formal module boundary enforcement tooling (unlike GitLab bounded_contexts.yml)
+- Plugin contract is split across Go/gRPC (backend) and TypeScript (frontend) with
+  no unified cross-tier specification
+- apps/ operator pattern is nascent and not yet the primary module delivery mechanism
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+architecture_qualifiers:
+- type: concurrency-model
+  value: coroutine
+  note: Go goroutines with dskit services.Manager for lifecycle; Centrifuge for WebSocket
+    fan-out
+github_stars_approx: 65000

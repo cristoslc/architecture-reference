@@ -5,79 +5,23 @@ source: Discovered
 source_url: https://github.com/bxcodec/go-clean-arch
 project_url: https://github.com/bxcodec/go-clean-arch
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:29:18Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Developer Tools
 language: Go
 languages:
-- Go
+  - Go
 architecture_styles:
-- Layered
-- Hexagonal Architecture
+  - Hexagonal Architecture
+  - Layered
 classification_status: classified
-review_notes: "The repository is a textbook implementation of **Hexagonal Architecture**\
-  \ (also known as Ports and Adapters), specifically following the \"Clean Architecture\"\
-  \ flavor popularized by Robert C. Martin. \n\n### Core Architectural Evidence:\n\
-  1.  **Isolation of the Core (Domain):** The `domain/` directory contains entities\
-  \ (e.g., `article.go`, `author.go`) and error definitions that have no dependencies\
-  \ on external frameworks or infrastructure. This represents the inner-most circle\
-  \ of the architecture.\n2.  **Ports (Interfaces):** The project follows the pattern\
-  \ of defining interfaces to describe requirements for external components. Version\
-  \ 4 of the project (per the README) explicitly moved to \"declare interfaces to\
-  \ the consuming side,\" a hallmark of Hexagonal Architecture where the core defines\
-  \ the \"ports\" it needs.\n3.  **Adapters (Infrastructure/Delivery):** \n    * \
-  \  **Driving Adapters:** The `internal/rest/` directory contains the HTTP delivery\
-  \ logic (using the Echo framework), acting as an entry point to the system.\n  \
-  \  *   **Driven Adapters:** The `internal/repository/mysql/` directory contains\
-  \ the concrete implementations of the persistence interfaces defined in the domain/service\
-  \ layers.\n4.  **Dependency Rule:** Dependencies point inwards. The `app/main.go`\
-  \ file acts as the \"Composition Root,\" wire-framing the dependencies by instantiating\
-  \ the MySQL repository, passing it to the internal service (Usecase), and finally\
-  \ injecting that service into the REST handler."
-review_required: false
-classification_method: deep-analysis-tooluse
 classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:25:03Z'
-classification_reasoning: "## Analysis\n\nThis repository is a textbook implementation\
-  \ of **Clean Architecture** (as explicitly stated in the README), which manifests\
-  \ as a **Layered architecture with Hexagonal Architecture characteristics**.\n\n\
-  ### Evidence for Layered Architecture (Primary)\n\nThe codebase exhibits clear horizontal\
-  \ layering with four distinct layers:\n\n1. **Domain Layer** (`domain/`): Contains\
-  \ pure business entities (`Article`, `Author`) and domain errors with zero external\
-  \ dependencies\n2. **Service/Usecase Layer** (`article/`): Business logic orchestration\
-  \ - the `Service` struct coordinates between repositories\n3. **Delivery Layer**\
-  \ (`internal/rest/`): HTTP handlers using Echo framework - receives requests, validates,\
-  \ calls service\n4. **Repository Layer** (`internal/repository/mysql/`): Data access\
-  \ implementations for MySQL\n\nThe dependency flow follows strict layer boundaries:\n\
-  - `internal/rest/article.go:23-30` defines `ArticleService` interface for the delivery\
-  \ layer\n- `article/service.go:16-30` defines `ArticleRepository` and `AuthorRepository`\
-  \ interfaces\n- `internal/repository/mysql/article.go` implements the repository\
-  \ interface\n\n### Evidence for Hexagonal Architecture (Secondary)\n\nThe codebase\
-  \ implements the **ports and adapters** pattern characteristic of Hexagonal Architecture:\n\
-  \n1. **Consumer-side interface definitions**: Interfaces are defined by their consumers,\
-  \ not providers:\n   - `article/service.go:16-30` - Repository interfaces defined\
-  \ in the service layer (business logic), not repository layer\n   - `internal/rest/article.go:23-30`\
-  \ - Service interface defined in the delivery layer\n\n2. **Dependency Inversion**:\
-  \ The `article/service.go:38-43` constructor accepts interfaces, allowing any implementation:\n\
-  \   ```go\n   func NewService(a ArticleRepository, ar AuthorRepository) *Service\n\
-  \   ```\n\n3. **Adapters (implementations)** are isolated in `internal/`:\n   -\
-  \ MySQL repository implementations are internal adapters\n   - REST handlers are\
-  \ external delivery adapters\n   - The `internal/README.md` explicitly states this\
-  \ prevents \"exposure of detailed implementations... to the public\"\n\n4. **Testability\
-  \ through mocking**: `article/mocks/` contains generated mocks enabling service\
-  \ testing without database:\n   ```go\n   mockArticleRepo := new(mocks.ArticleRepository)\n\
-  \   u := article.NewService(mockArticleRepo, mockAuthorrepo)\n   ```\n\n### What\
-  \ Was Rejected\n\n- **Not Microservices**: Single deployable unit (`app/main.go`),\
-  \ single Dockerfile, single database instance\n- **Not Modular Monolith**: No explicit\
-  \ module boundaries, no separate `go.mod` per module, no module-scoped packages\n\
-  - **Not DDD**: No aggregates, value objects, bounded contexts, or rich domain behavior\
-  \ - entities are anemic data structures\n- **Not Event-Driven**: No message brokers,\
-  \ no event handlers, no async messaging patterns\n- **Not CQRS**: No separation\
-  \ of read/write models\n\n### Composition Root Pattern\n\nThe `app/main.go:75-81`\
-  \ demonstrates classic dependency injection wiring:\n```go\nauthorRepo := mysqlRepo.NewAuthorRepository(dbConn)\n\
-  articleRepo := mysqlRepo.NewArticleRepository(dbConn)\nsvc := article.NewService(articleRepo,\
-  \ authorRepo)\nrest.NewArticleHandler(e, svc)\n```\n\nThis explicit composition\
-  \ at the application entry point is characteristic of both Layered and Hexagonal\
-  \ architectures where dependencies flow inward and are wired at the outermost layer."
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Testability
+  - Maintainability
+  - Modularity
+  - Flexibility / Evolvability
+  - Learnability
+one_line_summary: "Canonical Go reference implementation of Clean Architecture (Hexagonal / Ports and Adapters) with consumer-side interface declarations, compiler-enforced adapter isolation, and full per-layer test coverage."
+classification_reasoning: "go-clean-arch (v4/master) is a textbook Hexagonal Architecture implementation. Primary evidence: (1) port interfaces are declared on the consuming side — ArticleRepository and AuthorRepository are defined in article/service.go (the use-case consumer), not in the MySQL adapter; ArticleService is defined in internal/rest/article.go (the driving adapter), not in the service package; (2) driven adapters (internal/repository/mysql/) and driving adapters (internal/rest/) are isolated behind the Go compiler's internal/ visibility boundary, preventing external importers from accessing concrete implementations; (3) app/main.go is the sole composition root — the only file that instantiates concrete types and wires them through interface-typed constructors (NewService(articleRepo, authorRepo), NewArticleHandler(e, svc)); (4) full unit-test isolation at every layer is only achievable when Hexagonal boundaries are correctly maintained: service tests use generated mocks for repositories (no DB), handler tests use a mock service (no business logic), repository tests use go-sqlmock (no real MySQL). Secondary classification of Layered is supported by the project's own documentation (four named layers: Models, Repository, Usecase, Delivery) and the strict inward-only dependency flow through the layer stack. This is the standard Clean Architecture signature: a Layered conceptual framing expressed through Hexagonal mechanisms. Rejected: Microservices (single binary, single process, single MySQL); Modular Monolith (no separate go.mod per module, no module-scoped build boundaries); DDD (anemic entities, no aggregates, value objects, or bounded contexts); Event-Driven (no message broker, internal/workers/ is empty placeholder); CQRS (no read/write model separation); Service-Based (no distributed service boundaries)."

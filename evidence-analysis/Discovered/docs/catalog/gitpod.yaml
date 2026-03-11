@@ -18,99 +18,54 @@ languages:
 architecture_styles:
 - Microservices
 - Event-Driven
+quality_attributes:
+- Scalability
+- Security
+- Resilience
+- Observability
+- Extensibility
+- Portability
+- Performance
+- Maintainability
 classification_status: classified
-review_notes: 'The Gitpod repository is a classic example of a **Microservices** architecture
-  managed within a monorepo. The system is decomposed into dozens of functional, independently
-  deployable units located under the `components/` directory.
-
-
-  ### Evidence of Microservices
-
-  1. **Service Decomposition**: The `components/` list includes specialized services
-  such as `ws-manager` (workspace lifecycle), `content-service` (storage), `image-builder`
-  (environment provisioning), `server` (business logic/orchestration), and `proxy`.
-
-  2. **Independent Entry Points**: The `main.go` glob results confirm that multiple
-  components maintain their own executable entry points (e.g., `components/public-api-server/main.go`,
-  `components/usage/main.go`, `components/image-builder-bob/main.go`).
-
-  3. **Internal Communication**: The code in `components/ide/code/codehelper/main.go`
-  demonstrates inter-service communication using **gRPC** (e.g., `supervisor.NewStatusServiceClient(supervisorConn)`),
-  which is a hallmark of microservices rather than a simple modular monolith.
-
-  4. **Polyglot Tendencies**: The presence of both `go.mod` files and `package.json`
-  files throughout different components indicates that services are built with the
-  most appropriate runtime for their task.
-
-  5. **Deployment Logic**: The `install/installer` and `install/preview` directories
-  contain logic for rendering Kubernetes manifests, treating the system as a distributed
-  collection of containers.
-
-
-  ### Evidence of Hexagonal Architecture (Secondary)'
+classification_method: deep-analysis
+classification_confidence: 0.93
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+spec_ref: SPEC-031
+report_path: docs/architecture-reports/gitpod-2026-03-11.md
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:24:29Z'
+review_notes: 'Gitpod (now Ona) is a cloud-native developer environment platform built
+  as a large-scale Microservices architecture deployed on Kubernetes. The system decomposes
+  into 25+ independently deployable services, each with its own Go module or Node.js
+  package, Docker image, and Kubernetes Deployment. Services communicate via gRPC
+  (65 proto files, 55+ named services) synchronously and via Redis Pub/Sub for event
+  fan-out asynchronously. The workspace execution plane (supervisor in-workspace daemon,
+  workspacekit namespace isolation, ws-daemon node agent) forms a nested service topology
+  within each workspace pod. The Event-Driven secondary style is the architectural
+  mechanism enabling stateless horizontal scaling of the server layer: ws-manager-bridge
+  converts gRPC Subscribe streams into Redis Pub/Sub events consumed by all server
+  replicas. A partial shared-database antipattern exists (gitpod-db TypeORM layer
+  shared by TypeScript services), but Go services access disjoint table sets via GORM,
+  mitigating the violation. Confidence 0.93.'
 classification_reasoning: "## Analysis\n\n### Primary Classification: Microservices\n\
-  \nThe Gitpod repository exhibits a clear **Microservices architecture** with strong\
-  \ evidence across multiple dimensions:\n\n**1. Multiple Independently Deployable\
-  \ Services (25+ services)**\n\nThe `components/` directory contains numerous distinct\
-  \ services, each with its own:\n- Build configuration (`BUILD.yaml`)\n- Docker container\
-  \ definition (`leeway.Dockerfile` or `Dockerfile`)\n- Module dependencies (`go.mod`\
-  \ for Go services, `package.json` for TypeScript services)\n\nKey services identified:\n\
-  - `server` - Main application server (TypeScript)\n- `ws-manager-mk2` - Kubernetes-based\
-  \ workspace manager (Go)\n- `ws-manager-bridge` - Bridge service (TypeScript)\n\
-  - `content-service` - Content management (Go)\n- `blobserve` - Blob serving (Go)\n\
-  - `image-builder-mk3` - Image building (Go)\n- `registry-facade` - Registry proxy\
-  \ (Go)\n- `ws-daemon` - Workspace daemon (Go)\n- `ws-proxy` - Workspace proxy (Go)\n\
-  - `public-api-server` - Public API (Go)\n- `usage` - Usage tracking (Go)\n- `ide-metrics`\
-  \ - Metrics collection (Go)\n- `ide-service` - IDE management (Go)\n- `supervisor`\
-  \ - Workspace supervision (Go)\n- `dashboard` - Frontend UI (TypeScript/React)\n\
-  - `spicedb` - Authorization service\n\n**2. gRPC-Based Inter-Service Communication**\n\
-  \nExtensive use of Protocol Buffers and gRPC for synchronous service communication:\n\
-  - `ws-manager-api/core.proto` - WorkspaceManager service with StartWorkspace, StopWorkspace,\
-  \ Subscribe operations\n- `content-service-api/workspace.proto` - WorkspaceService\
-  \ for content operations\n- `image-builder-api/imgbuilder.proto` - Image building\
-  \ service\n- `public-api/` - Public API definitions\n- `usage-api/` - Usage tracking\
-  \ API\n- `ide-service-api/ide.proto` - IDE service API\n- `supervisor-api/` - Workspace\
-  \ supervisor API\n\n**3. Kubernetes-Native Deployment**\n\nThe `install/installer/`\
-  \ directory contains deployment orchestration:\n- Each service has corresponding\
-  \ Kubernetes manifests (deployments, configmaps, services)\n- CRD (Custom Resource\
-  \ Definition) for workspaces in `ws-manager-mk2`\n- Services deployed as separate\
-  \ pods with distinct scaling capabilities\n\n**4. Independent Build Artifacts**\n\
-  \nFrom `components/BUILD.yaml`, each service produces independent Docker images:\n\
-  ```yaml\ndeps:\n  - components/blobserve:docker\n  - components/content-service:docker\n\
-  \  - components/server:docker\n  - components/ws-manager-mk2:docker\n  - components/ws-proxy:docker\n\
-  \  # ... 20+ more independent containers\n```\n\n### Secondary Classification: Event-Driven\n\
-  \nThe architecture incorporates **Event-Driven** patterns via Redis Pub/Sub:\n\n\
-  **Evidence from `components/server/src/messaging/redis-subscriber.ts`:**\n```typescript\n\
-  const channels = [WorkspaceInstanceUpdatesChannel, PrebuildUpdatesChannel, HeadlessUpdatesChannel];\n\
-  await this.redis.subscribe(chan);\nthis.redis.on(\"message\", async (channel: string,\
-  \ message: string) => {...});\n```\n\n**Event flow pattern:**\n1. `ws-manager-bridge`\
-  \ receives gRPC stream updates from workspace managers (via Subscribe RPC)\n2. Events\
-  \ are published to Redis channels\n3. Multiple `server` instances subscribe to receive\
-  \ updates\n4. WebSocket clients receive real-time workspace instance updates\n\n\
-  This hybrid approach combines:\n- **Synchronous gRPC** for request-response operations\n\
-  - **Asynchronous Redis Pub/Sub** for event distribution to multiple server instances\n\
-  \n### What This Is NOT\n\n**Not a Modular Monolith:** Services are independently\
-  \ deployable containers, not modules in a single deployable. Each has its own Docker\
-  \ image and Kubernetes deployment configuration.\n\n**Not Service-Based (coarse-grained):**\
-  \ The architecture has 25+ fine-grained services rather than 2-5 coarse-grained\
-  \ services typical of Service-Based architecture.\n\n**Not Layered:** While individual\
-  \ services may have internal layering, the overall architecture is organized around\
-  \ business capabilities (workspace management, content service, image building,\
-  \ usage tracking) rather than horizontal layers.\n\n**Not Hexagonal:** Services\
-  \ don't follow ports-and-adapters pattern consistently. The `gitpod-protocol` package\
-  \ provides shared interfaces, but services don't isolate application cores behind\
-  \ adapter interfaces.\n\n**Not CQRS:** No explicit separation of read/write models\
-  \ across the system.\n\n### Architecture Summary\n\nGitpod implements a cloud-native\
-  \ microservices architecture designed for Kubernetes deployment:\n- **25+ independent\
-  \ services** with separate build pipelines and containers\n- **gRPC for synchronous\
-  \ service-to-service communication** with Protocol Buffer contracts\n- **Redis Pub/Sub\
-  \ for event distribution** enabling real-time updates across server instances\n\
-  - **Shared databases** (MySQL via TypeORM, Redis) rather than database-per-service\n\
-  - **Custom Leeway build system** managing cross-service dependencies and Docker\
-  \ image production\n- **Kubernetes installer** generating deployment manifests for\
-  \ all services"
+  \n25+ independently deployable services, each with independent build artifact (go.mod\
+  \ or package.json, leeway.Dockerfile), separate Kubernetes Deployment generated\
+  \ by install/installer/ per-component deployers, and typed gRPC contracts. Services\
+  \ are fine-grained by capability: ws-manager-mk2 (workspace lifecycle CRD controller),\
+  \ content-service (workspace content storage with GCS/S3/MinIO backends), image-builder-mk3\
+  \ (on-demand image building), registry-facade (composable OCI registry with IPFS),\
+  \ supervisor (in-workspace gRPC init daemon), ws-daemon (node-level DaemonSet operator),\
+  \ ws-proxy (WebSocket/SSH reverse proxy), public-api-server (gRPC-Connect gateway),\
+  \ spicedb (Zanzibar-style authorization), usage (metering + Stripe billing). Polyglot:\
+  \ TypeScript for control-plane services (server, ws-manager-bridge, dashboard),\
+  \ Go for execution-plane services.\n\n### Secondary Classification: Event-Driven\n\
+  \nWorkspace state propagation: ws-manager-mk2 emits via gRPC Subscribe streaming\
+  \ RPC -> ws-manager-bridge publishes to Redis channels (WorkspaceInstanceUpdatesChannel,\
+  \ PrebuildUpdatesChannel, HeadlessUpdatesChannel) -> all server replicas consume\
+  \ via ioredis and forward to WebSocket clients. Event schema formalized in gitpod-protocol\
+  \ shared types. This fan-out pattern is the mechanism enabling stateless horizontal\
+  \ server scaling.\n\n### What This Is NOT\n\nNot Service-Based: 25+ fine-grained\
+  \ services, not 2-5 coarse-grained domain services. Not Hexagonal: storage adapter\
+  \ pattern local to content-service only, not system-wide. Not Modular Monolith:\
+  \ services deploy as independent containers, not shared-process modules."

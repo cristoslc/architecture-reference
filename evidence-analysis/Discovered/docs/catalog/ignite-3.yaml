@@ -4,108 +4,137 @@ use_type: production
 source: Discovered
 source_url: https://github.com/apache/ignite-3
 project_url: https://github.com/apache/ignite-3
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-07T04:58:12Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Grid
-language: Java/Kotlin
+language: Java
 languages:
-- Java/Kotlin
+- Java
 - C#
 - C/C++
 - Python
 architecture_styles:
 - Modular Monolith
+- Space-Based
 - Microkernel
 classification_status: classified
-review_notes: '### Architecture Analysis
-
-
-  Apache Ignite 3 is structured as a **Modular Monolith** that is designed for distributed
-  deployment. While the system runs as a distributed cluster (as evidenced by `packaging/docker/docker-compose.yml`),
-  the codebase itself is organized into a strictly defined set of modules within a
-  single repository, which are compiled and packaged into a uniform node binary.
-
-
-  #### 1. Modular Monolith (Primary Style)
-
-  The repository is split into over 60 granular modules under the `modules/` directory,
-  managed via a central `settings.gradle`. This is the hallmark of a Modular Monolith:
-
-  - **Strict Separation of Concerns**: Each major subsystem has its own module (e.g.,
-  `ignite-sql-engine`, `ignite-transactions`, `ignite-network`, `ignite-storage-api`).
-
-  - **API/Implementation Decoupling**: There is a clear pattern of separating interfaces
-  from implementations (e.g., `metastorage-api` vs `metastorage`, `sql-engine-api`
-  vs `sql-engine`, `network-api` vs `network`). This allows internal components to
-  interact through well-defined contracts.
-
-  - **Unified Deployment**: Despite the internal modularity, the `packaging/db` logic
-  indicates these modules are bundled into a single unit of execution (the Ignite
-  Node), rather than being independent microservices.'
+one_line_summary: >-
+  Apache Ignite 3 — distributed in-memory data grid with ACID transactions, distributed SQL,
+  and colocated compute, structured as a strictly modular single-artifact server with a
+  ServiceLoader plugin layer for storage engines.
+classification_method: deep-analysis
+classification_confidence: 0.95
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:29:04Z'
-classification_reasoning: "## Architecture Classification: Modular Monolith with Plugin\
-  \ Extension Points\n\n### Primary Evidence for **Modular Monolith**\n\n**1. Single\
-  \ Deployable Unit**\nThe repository builds a single distributable package (`ignite3-db`).\
-  \ The docker-compose.yml shows multiple homogeneous node instances, not different\
-  \ microservices:\n```yaml\n# All nodes use the same image with different names\n\
-  services:\n  node1, node2, node3: # All use apacheignite/ignite:${IGNITE3_VERSION}\n\
-  ```\n\n**2. Enforced Internal Module Boundaries**\nThe `modules/README.md` explicitly\
-  \ documents strict modularity rules:\n> \"We prohibit cyclic dependencies between\
-  \ modules in order to simplify JIGSAW migration in the future.\"\n> \"Each module\
-  \ provides an exposed API which should be used by external modules. Not exposed\
-  \ APIs must not be used by external modules.\"\n\n**3. Gradle Multi-Module Structure**\n\
-  `settings.gradle` defines 70+ internal modules with clear separation of concerns:\n\
-  - `ignite-api` - Public API interfaces\n- `ignite-network` - Cluster communication\n\
-  - `ignite-raft` - Consensus protocol\n- `ignite-storage-api` / `ignite-storage-rocksdb`\
-  \ - Storage abstraction\n- `ignite-sql-engine` - Query processing\n- `ignite-transactions`\
-  \ - ACID transactions\n\n**4. Runner as Composition Root**\nThe `ignite-runner`\
-  \ module (100+ dependency lines) acts as the single composition root that wires\
-  \ all components:\n```gradle\n// ignite-runner/build.gradle\nimplementation project(':ignite-configuration')\n\
-  implementation project(':ignite-network')\nimplementation project(':ignite-raft')\n\
-  implementation project(':ignite-metastorage')\n// ... 40+ module dependencies\n\
-  ```\n\n**5. Acyclic Component Dependency Graph**\nFrom `modules/runner/README.md`:\n\
-  > \"Components form an acyclic directed graph that is constructed in topological\
-  \ sort order wrt root.\"\n> \"Since metastorage watches can only be added during\
-  \ the component startup, the watch notification order is consistent with the component\
-  \ initialization order.\"\n\n### Secondary Evidence for **Microkernel (Plugin)**\n\
-  \n**1. ServiceLoader-Based Extension Points**\nThe architecture explicitly uses\
-  \ `java.util.ServiceLoader` for runtime pluggability:\n\n**Storage Engine Plugin**\
-  \ (`DataStorageModule.java`):\n```java\npublic interface DataStorageModule {\n \
-  \   String name();\n    StorageEngine createEngine(...);\n}\n```\n\n**Configuration\
-  \ Module Plugin** (`ConfigurationModule.java`):\n```java\n// Designed for ServiceLoader\
-  \ mechanism\npublic interface ConfigurationModule {\n    ConfigurationType type();\n\
-  \    Collection<RootKey<?, ?, ?>> rootKeys();\n    Collection<Class<?>> schemaExtensions();\n\
-  }\n```\n\n**2. Polymorphic Configuration Extensions**\nFrom `modules/storage-api/README.md`:\n\
-  > \"To add a new data storage you need:\n> - Add a new module\n> - Implement interfaces:\
-  \ DataStorageModule, StorageEngine, MvTableStorage...\n> - Add services (loaded\
-  \ via ServiceLoader):\n>   - Implementation of DataStorageModule\n>   - Implementation\
-  \ of ConfigurationModule\"\n\n**3. Auto-Service Registration**\nImplementation modules\
-  \ use `@AutoService` annotation:\n```java\n@AutoService(ConfigurationModule.class)\n\
-  public class RocksDbStorageEngineLocalConfigurationModule implements ConfigurationModule\
-  \ {\n    @Override\n    public Collection<Class<?>> polymorphicSchemaExtensions()\
-  \ {\n        return List.of(RocksDbProfileConfigurationSchema.class);\n    }\n}\n\
-  ```\n\n**4. Runtime Component Discovery**\nIn `IgniteImpl.java`:\n```java\nServiceLoader.load(DataStorageModule.class,\
-  \ serviceProviderClassLoader)\nServiceLoader.load(ConfigurationModule.class, classLoader)\n\
-  ChannelTypeRegistryProvider.loadByServiceLoader(serviceProviderClassLoader)\n```\n\
-  \n### What This Architecture Is NOT\n\n**Not Microservices**: Single deployment\
-  \ artifact, homogeneous nodes, shared database via Raft consensus. Nodes are replicas,\
-  \ not independent services.\n\n**Not Domain-Driven Design**: Modules are organized\
-  \ by technical capability (network, storage, sql-engine, transactions) rather than\
-  \ domain bounded contexts. No aggregates, entities, or value object patterns.\n\n\
-  **Not Layered Architecture**: While there are API modules, the structure is not\
-  \ horizontal layering (presentation/business/data). Instead, modules are vertical\
-  \ capabilities with their own implementation stacks.\n\n**Not Event-Driven (primary)**:\
-  \ While Raft uses messages for consensus and components use metastorage watches,\
-  \ the primary interaction is synchronous RPC via Netty, not asynchronous event streams\
-  \ through brokers.\n\n### Summary\n\nApache Ignite 3 is a **Modular Monolith** with\
-  \ **Microkernel-style plugin extensions**. It enforces strict internal module boundaries\
-  \ (acyclic dependencies, exposed APIs only) while building a single deployable artifact.\
-  \ The `runner` module serves as the composition root, and extension points like\
-  \ storage engines use ServiceLoader for runtime pluggability, making it a well-structured\
-  \ hybrid of modular monolith organization with microkernel extensibility patterns."
+review_notes: >-
+  Re-classification (deep-analysis) replacing earlier automated-discovery result.
+  Primary style confirmed as Modular Monolith: 78+ Gradle submodules, enforced acyclic
+  dependency graph, single ignite3-db deployment artifact, ignite-runner composition root.
+  Space-Based added as explicit secondary style: data is partitioned across peer nodes via
+  Raft-backed distribution zones, compute colocates with data partitions, no shared central
+  database. Microkernel tertiary: ServiceLoader-based storage engine and ConfigurationModule
+  plugin contracts with @AutoService registration. Compared to Ignite 2.x (Microkernel primary),
+  Ignite 3 inverts the hierarchy — strict modular monolith organization dominates.
+classification_reasoning: |
+  ## Architecture Classification: Modular Monolith + Space-Based + Microkernel
+
+  ### Primary: Modular Monolith
+
+  **Single deployment artifact**
+  packaging/docker/docker-compose.yml shows three cluster nodes sharing one image
+  (apacheignite/ignite:${IGNITE3_VERSION}) differentiated only by --node-name. All 78+
+  internal modules are bundled into a single ignite3-db distribution by packaging/db.
+
+  **Enforced acyclic module boundaries**
+  modules/README.md: "We prohibit cyclic dependencies between modules in order to simplify
+  JIGSAW migration in the future." Each module exposes a public -api artifact; internal
+  implementations may not be used by other modules.
+
+  **API/implementation pairs throughout**
+  ignite-network-api / ignite-network, ignite-raft-api / ignite-raft,
+  ignite-metastorage-api / ignite-metastorage, ignite-sql-engine-api / ignite-sql-engine,
+  ignite-storage-api / ignite-storage-rocksdb+page-memory, ignite-placement-driver-api /
+  ignite-placement-driver, ignite-security-api / ignite-security.
+
+  **Runner as composition root**
+  ignite-runner/build.gradle declares 40+ direct implementation project() dependencies.
+  modules/runner/README.md: "Components form an acyclic directed graph that is constructed
+  in topological sort order wrt root." IgniteImpl.java (2274 lines) is the assembly class.
+
+  ### Secondary: Space-Based
+
+  Apache Ignite 3 is explicitly a distributed in-memory data grid:
+  - Data partitioned across nodes via distribution zones (ignite-distribution-zones module)
+  - Placement Driver (ignite-placement-driver) manages partition-to-node assignments
+  - Each partition is a Raft replication group — no shared central database
+  - ignite-compute module enables code execution on the node holding the data partition
+    (colocated compute — the canonical Space-Based pattern)
+  - Dynamic rebalancing when nodes join or leave
+
+  ### Tertiary: Microkernel (storage engine plugin layer)
+
+  IgniteImpl.java uses ServiceLoader.load(DataStorageModule.class, serviceProviderClassLoader).
+  modules/storage-api/README.md documents the explicit extension contract: implement
+  DataStorageModule + StorageEngine + ConfigurationModule, register via ServiceLoader.
+  Default engines (RocksDB, page-memory) use this same mechanism.
+  @AutoService(ConfigurationModule.class) wires implementations automatically.
+  ChannelTypeRegistryProvider.loadByServiceLoader() extends the network channel type registry.
+
+  ### Not Microservices
+  Single deployment artifact, homogeneous peer nodes, data in distributed cluster.
+
+  ### Not Layered
+  Modules are vertical technical capabilities (raft, metastorage, sql, compute), not
+  horizontal presentation/business/data layers.
+
+  ### Not Event-Driven (primary)
+  Primary interface is synchronous RPC via Netty. Raft and metastorage watches are
+  message-passing internally but there is no central event broker.
+key_technologies:
+- JRaft (Raft consensus)
+- ScaleCube (gossip cluster membership)
+- Netty (networking)
+- RocksDB (persistent storage engine)
+- Apache Calcite (SQL planning)
+- Typesafe HOCON (configuration)
+- ServiceLoader (plugin registration)
+- Gradle multi-project build
+quality_attributes:
+- high-availability
+- fault-tolerance
+- horizontal-scalability
+- strong-consistency
+- extensibility
+- observability
+- multi-language-support
+- testability
+- evolvability
+- high-performance
+notable_strengths:
+- Strict API/implementation module separation enforced at build time
+- Acyclic module dependency graph enables topological initialization ordering
+- Pluggable storage engine API (RocksDB, page-memory, extensible to custom engines)
+- Raft-native design — every stateful subsystem uses dedicated Raft groups
+- First-class native clients for Java, .NET, C++, Python, JDBC, ODBC
+notable_gaps:
+- CI/CD mostly on Apache internal infrastructure (not visible in repo)
+- No ADR directory — design decisions in Apache JIRA/Confluence IEP documents
+- Several README files contain TODO links (in-flight documentation)
+- Spring Boot auto-configuration thin compared to competitors
+architecture_qualifiers:
+- type: distribution-model
+  value: peer-to-peer
+  note: Homogeneous peer nodes — each node is an equal participant in partition ownership
+    and Raft group membership; no dedicated master
+- type: data-pattern
+  value: cqrs
+  note: Partition leaseholder handles writes; read replicas and read-only queries can
+    route to any replica via Raft read index
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false

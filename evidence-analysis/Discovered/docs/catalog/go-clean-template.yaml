@@ -4,7 +4,7 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/evrone/go-clean-template
 project_url: https://github.com/evrone/go-clean-template
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:30:35Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
@@ -14,88 +14,115 @@ languages:
 - Go
 architecture_styles:
 - Layered
-- Hexagonal Architecture
+architecture_qualifiers:
+- type: design-approach
+  value: clean-architecture
+  note: Uncle Bob Clean Architecture variant of Layered — dependency inversion at
+    repo boundary, interfaces in usecase/repo contracts, composition root in app.go
 classification_status: classified
-review_notes: "This repository is an explicit implementation of **Hexagonal Architecture**\
-  \ (also known as Ports and Adapters), specifically following the \"Clean Architecture\"\
-  \ flavor popularized by Robert C. Martin. \n\n### Evidence of Hexagonal Architecture\n\
-  The project structure is strictly organized to decouple the business logic (the\
-  \ \"Core\") from technical details (the \"Infrastructure\").\n\n1.  **The Core (Entities\
-  \ & Usecases):** Located in `internal/entity` and `internal/usecase`. These represent\
-  \ the domain models and business rules. Crucially, the README and `internal/usecase/contracts.go`\
-  \ demonstrate that the core defines interfaces (Ports) that external layers must\
-  \ implement.\n2.  **Driving Adapters (Controllers):** Located in `internal/controller`.\
-  \ The repository provides multiple entry points (REST/Fiber, gRPC, AMQP RPC, NATS\
-  \ RPC) that all drive the same underlying business logic. This \"pluggability\"\
-  \ of transport layers is a hallmark of Hexagonal Architecture.\n3.  **Driven Adapters\
-  \ (Repositories):** Located in `internal/repo`. These implement the interfaces defined\
-  \ by the application layer. The segregation between `internal/repo/persistent` (Postgres)\
-  \ and `internal/repo/webapi` (External HTTP APIs) shows that the domain logic doesn't\
-  \ care whether data is stored in a database or fetched from a remote service.\n\
-  4.  **Dependency Inversion:** The `internal/app/app.go` file acts as the \"Composition\
-  \ Root,\" where dependencies are injected upwards. The business logic (`usecase`)\
-  \ has zero imports from the `controller`, `repo`, or `pkg` directories, ensuring\
-  \ it remains \"Clean.\""
-review_required: false
-classification_method: deep-analysis-tooluse
 classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:25:42Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: **Layered**\n\nThe repository explicitly implements **Clean Architecture**\
-  \ (as stated in README: \"Clean Architecture template for Golang services\" using\
-  \ \"principles of Robert Martin (aka Uncle Bob)\"), which is fundamentally a layered\
-  \ architecture with dependency inversion.\n\n**Evidence of Layered Structure:**\n\
-  \n1. **Clear Horizontal Layers** with explicit separation:\n   - **Entity Layer**\
-  \ (`internal/entity/`) - Business entities, no dependencies on outer layers\n  \
-  \ - **Use Case Layer** (`internal/usecase/`) - Business logic, defines interfaces\n\
-  \   - **Controller Layer** (`internal/controller/`) - Delivery mechanisms (REST,\
-  \ gRPC, AMQP, NATS)\n   - **Repository Layer** (`internal/repo/`) - Data access\
-  \ implementations\n\n2. **README explicitly documents the layers:**\n   ```\n  \
-  \ Line 145-147: \"Dependency injection occurs through the 'New ...' constructors.\n\
-  \   This technique allows us to layer the application using the Dependency Injection\
-  \ principle.\n   This makes the business logic independent from other layers.\"\n\
-  \   ```\n\n3. **Directory structure enforces layer boundaries:**\n   ```\n   internal/\n\
-  \     app/          # Application composition root\n     controller/   # Handler\
-  \ layer (outer)\n     entity/       # Business entities (inner)\n     repo/    \
-  \     # Data access layer (outer)\n     usecase/      # Business logic layer (inner)\n\
-  \   ```\n\n### Secondary Style: **Hexagonal Architecture (Ports and Adapters)**\n\
-  \nThe implementation also exhibits strong Hexagonal Architecture characteristics:\n\
-  \n**Evidence:**\n\n1. **Interfaces Define Ports:**\n   - `internal/usecase/contracts.go`\
-  \ defines the business logic port:\n     ```go\n     type Translation interface\
-  \ {\n         Translate(context.Context, entity.Translation) (entity.Translation,\
-  \ error)\n         History(context.Context) (entity.TranslationHistory, error)\n\
-  \     }\n     ```\n   - `internal/repo/contracts.go` defines repository ports:\n\
-  \     ```go\n     type TranslationRepo interface {\n         Store(context.Context,\
-  \ entity.Translation) error\n         GetHistory(context.Context) ([]entity.Translation,\
-  \ error)\n     }\n     ```\n\n2. **Multiple Adapters for Same Port:**\n   - Four\
-  \ different delivery mechanism adapters (REST, gRPC, AMQP RPC, NATS RPC) in `internal/controller/`\n\
-  \   - Two repository adapters (`persistent/` for PostgreSQL, `webapi/` for external\
-  \ API)\n\n3. **Dependency Inversion with Interface Injection:**\n   From `internal/usecase/translation/translation.go`:\n\
-  \   ```go\n   func New(r repo.TranslationRepo, w repo.TranslationWebAPI) *UseCase\
-  \ {\n       return &UseCase{\n           repo:   r,\n           webAPI: w,\n   \
-  \    }\n   }\n   ```\n   Business logic receives interfaces, not concrete implementations.\n\
-  \n4. **README explicitly acknowledges this:**\n   ```\n   Line 439-441: \"In addition\
-  \ to Clean architecture, Onion architecture and \n   Hexagonal (Ports and adapters)\
-  \ are similar to it. Ports and adapters are \n   very close to Clean Architecture,\
-  \ the differences are mainly in terminology.\"\n   ```\n\n5. **Testing demonstrates\
-  \ isolation:**\n   - Mocks generated from interfaces (`mocks_repo_test.go`)\n  \
-  \ - Business logic tested independently of infrastructure (`translation_test.go`)\n\
-  \n### Why Not Other Styles:\n\n- **Not Microservices**: Single deployable unit (one\
-  \ Dockerfile, one `go.mod`, one `cmd/app/main.go`). This is a monolithic service\
-  \ template.\n\n- **Not Domain-Driven Design**: No bounded contexts, aggregates,\
-  \ domain events, or value objects. Entities are simple data structs, not rich domain\
-  \ models. The `entity/translation.go` contains basic structs without behavior.\n\
-  \n- **Not Modular Monolith**: No enforced module boundaries within the codebase.\
-  \ The separation is along layer lines, not feature/module lines.\n\n- **Not Service-Based**:\
-  \ Single service, not multiple coarse-grained services.\n\n### Dependency Flow Verification:\n\
-  \n```\n┌─────────────────────────────────────────────────┐\n│  Controllers (REST,\
-  \ gRPC, AMQP, NATS)           │  ← Outer layer\n├─────────────────────────────────────────────────┤\n\
-  │  Use Cases (Business Logic)                     │  ← Inner layer\n│     ↓ depends\
-  \ on interfaces (contracts)          │\n├─────────────────────────────────────────────────┤\n\
-  │  Repositories (persistent, webapi)              │  ← Outer layer (implementations)\n\
-  │     ↑ implement interfaces                       │\n└─────────────────────────────────────────────────┘\n\
-  \        ┌─────────────────────────┐\n        │  Entities (core domain) │  ← Innermost\n\
-  \        └─────────────────────────┘\n```\n\nDependencies point **inward** only\
-  \ (from outer to inner layers), with outer layers implementing interfaces defined\
-  \ for the inner layer's needs."
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: Go Clean Architecture service template with four pluggable transport
+  adapters (REST, gRPC, AMQP RPC, NATS RPC) organized in strict horizontal layers
+  with dependency inversion at the repository boundary.
+quality_attributes:
+- Testability
+- Maintainability
+- Extensibility
+- Deployability
+- Observability
+- Portability
+- Modularity
+key_technologies:
+- Go
+- Fiber
+- gRPC
+- RabbitMQ
+- NATS
+- PostgreSQL
+- pgx/v5
+- zerolog
+- Prometheus
+- golang-migrate
+- go-playground/validator
+- go.uber.org/mock
+- Swagger/swag
+notable_strengths:
+- Business logic layer has zero framework or infrastructure imports — pure unit-testable
+- Four transport adapters (REST, gRPC, AMQP RPC, NATS RPC) demonstrate transport
+  interchangeability without touching use cases
+- Twelve-factor config via environment variables, Dockerfile, and Docker Compose for
+  complete local dev stack
+- CI pipeline covers linting, CVE scanning, unit tests, and integration tests
+- Prometheus metrics and zerolog structured logging built in from the start
+notable_gaps:
+- No tooling (e.g., go-arch-lint) enforces layer boundaries at CI time — convention-only
+- Single go.mod; boundaries not enforced by Go module system
+- No OpenTelemetry distributed tracing despite multi-transport surface area
+- Domain entities are plain structs with no behavior — template does not demonstrate
+  rich domain modeling
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+review_required: false
+review_notes: "Re-classified from Hexagonal Architecture + Layered (prior entry) to\
+  \ **Layered** (primary) with a `clean-architecture` design-approach qualifier.\n\
+  \nThe prior classification placed Hexagonal Architecture as the primary style and\
+  \ Layered as secondary, but this inverts the actual structural evidence:\n\n1. The\
+  \ repository's own README and diagrams (`docs/img/layers-1.png`, `docs/img/layers-2.png`)\
+  \ explicitly show a horizontal layer model.\n2. The `repo/` package contains both\
+  \ port interfaces (`contracts.go`) and adapter implementations (`persistent/`, `webapi/`)\
+  \ in the same directory subtree — not a true hexagonal ports-defined-by-core model.\n\
+  3. All four controllers are a single style of driving adapter organized by transport\
+  \ protocol, and the use case layer defines what it needs through contracts.go —\
+  \ consistent with layered dependency inversion, not the full Hexagonal core-with-ports\
+  \ model.\n4. Per the style taxonomy (ADR-006), Hexagonal is a design-approach qualifier,\
+  \ not a topology-defining style in this catalog. The topology is Layered.\n\nThis\
+  \ aligns the entry with ADR-006's qualifier system and with the way other clean-architecture-flavored\
+  \ Go repos in the catalog are classified."
+classification_reasoning: "## Analysis\n\nThis repository implements **Layered Architecture**\
+  \ in the Clean Architecture (Uncle Bob) variant — four strictly-ordered horizontal\
+  \ layers with dependency inversion at the repository boundary.\n\n### Evidence for\
+  \ Layered Architecture (primary)\n\n**1. Four explicit horizontal layers:**\n- `internal/entity/`\
+  \ — Domain entities. No imports from other internal packages.\n- `internal/usecase/`\
+  \ — Business logic. Imports `entity/` and `repo/` (interfaces only). Zero imports\
+  \ from `controller/` or `pkg/`.\n- `internal/repo/` — Port interfaces (`contracts.go`)\
+  \ plus adapter implementations (`persistent/`, `webapi/`). Depends on `entity/`.\n\
+  - `internal/controller/` — Transport handlers (REST, gRPC, AMQP, NATS). Depends\
+  \ on `usecase/` interface and `entity/`. Outer-most layer.\n\n**2. Dependency inversion\
+  \ at repo boundary:**\n`internal/usecase/translation/translation.go` imports `repo`\
+  \ (the interface package), not `persistent` or `webapi` (the concrete adapters).\
+  \ Concrete types are injected at the composition root (`internal/app/app.go`).\n\
+  \n**3. README labels this \"Clean Architecture\" with layer diagrams:**\nThe README\
+  \ shows `docs/img/layers-1.png` and `docs/img/layers-2.png` — horizontal layer\
+  \ model diagrams, not a hexagonal diagram. The README explicitly cites \"principles\
+  \ of Robert Martin (aka Uncle Bob).\"\n\n**4. Composition root assembles the entire\
+  \ stack:**\n`app.go` imports all concrete packages and wires them together. This\
+  \ is the standard pattern in layered Clean Architecture — a single wiring point\
+  \ at the top.\n\n**5. No feature-module or bounded-context organization:**\nAll\
+  \ code for a single use case (Translation) is spread horizontally across the four\
+  \ layers. This is horizontal layering, not vertical slicing or modular decomposition.\n\
+  \n### Why NOT Other Styles\n\n- **NOT Hexagonal Architecture (primary):** In true\
+  \ Hexagonal, all ports are defined in the core and all adapters (inbound AND outbound)\
+  \ are treated symmetrically. Here, `repo/contracts.go` defines outbound port interfaces\
+  \ but lives in the same package subtree as the adapter implementations. The README's\
+  \ own layer diagrams show a stack, not a hexagon. Per ADR-006, Hexagonal is a design-approach\
+  \ qualifier in this catalog.\n- **NOT Microservices:** Single `go.mod`, single\
+  \ Dockerfile, single process with all transports running concurrently.\n- **NOT\
+  \ Domain-Driven Design:** No aggregates, bounded contexts, value objects, domain\
+  \ events, or ubiquitous language. `entity.Translation` is a plain struct with no\
+  \ behavior.\n- **NOT Modular Monolith:** No enforced module boundaries (no sub-module\
+  \ `go.mod` files, no go-arch-lint rules). Separation is layer-based, not feature-module-based.\n\
+  - **NOT Event-Driven:** AMQP and NATS are used with Request-Reply pattern (synchronous\
+  \ RPC), not for asynchronous event streaming or pub/sub.\n\n### Dependency Flow\n\
+  \n```\n controller/ (REST, gRPC, AMQP, NATS)    ← outer\n      ↓ depends on interface\n\
+  \ usecase/                                  ← business logic\n      ↓ depends on\
+  \ port interfaces\n repo/contracts.go                          ← port definitions\n\
+  \      ↑ implemented by\n repo/persistent/  repo/webapi/           ← driven adapters\n\
+  \n entity/                                    ← innermost (no dependencies)\n```\n\
+  \nAll dependencies point inward. Outer layers provide implementations for interfaces\
+  \ defined at inner layer boundaries."
