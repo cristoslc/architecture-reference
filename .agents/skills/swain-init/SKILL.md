@@ -1,18 +1,19 @@
 ---
 name: swain-init
-description: "One-time project onboarding for swain. Migrates existing CLAUDE.md content to AGENTS.md (with the @AGENTS.md include pattern), installs and initializes bd (beads) for task tracking, cleans bd's auto-injected AGENTS.md content, and offers to add swain governance rules. Run once when adopting swain in a new project — use swain-config for ongoing per-session governance checks."
+description: "One-time project onboarding for swain. Migrates existing CLAUDE.md content to AGENTS.md (with the @AGENTS.md include pattern), installs and initializes bd (beads) for task tracking, cleans bd's auto-injected AGENTS.md content, and offers to add swain governance rules. Run once when adopting swain in a new project — use swain-doctor for ongoing per-session health checks."
 user-invocable: true
 license: MIT
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, AskUserQuestion
 metadata:
   short-description: One-time swain project onboarding
-  version: 1.0.0
+  version: 1.1.0
   author: cristos
+  source: swain
 ---
 
 # Project Onboarding
 
-One-time setup for adopting swain in a project. This skill is **not idempotent** — it migrates files and installs tools. For per-session governance checks, use swain-config.
+One-time setup for adopting swain in a project. This skill is **not idempotent** — it migrates files and installs tools. For per-session health checks, use swain-doctor.
 
 Run all phases in order. If a phase detects its work is already done, skip it and move to the next.
 
@@ -73,19 +74,38 @@ Tell the user:
 
 If merge: append CLAUDE.md content (minus any `<!-- swain governance -->` block) to AGENTS.md, replace CLAUDE.md with `@AGENTS.md`.
 
-## Phase 2: Install and initialize bd (beads)
+## Phase 2: Install dependencies and initialize bd (beads)
 
-Goal: ensure the project has a working bd installation and an initialized `.beads/` directory.
+Goal: ensure uv and bd are available, and the project has an initialized `.beads/` directory.
 
-### Step 2.1 — Check bd availability
+### Step 2.1 — Check uv availability
+
+```bash
+command -v uv
+```
+
+If uv is found, skip to Step 2.2.
+
+If missing, install:
+
+```bash
+curl -LsSf https://astral.sh/uv/install.sh | sh
+```
+
+If installation fails, tell the user:
+> uv installation failed. You can install it manually (https://docs.astral.sh/uv/getting-started/installation/) — swain scripts require uv for Python execution.
+
+Then skip the rest of Phase 2 (don't block init on uv, but warn that scripts will not function without it).
+
+### Step 2.2 — Check bd availability
 
 ```bash
 command -v bd
 ```
 
-If bd is found, skip to Step 2.3.
+If bd is found, skip to Step 2.4.
 
-### Step 2.2 — Install bd
+### Step 2.3 — Install bd
 
 Detect platform and install:
 
@@ -99,7 +119,7 @@ If installation fails, tell the user:
 
 Then skip the rest of Phase 2 (don't block init on bd).
 
-### Step 2.3 — Initialize bd
+### Step 2.4 — Initialize bd
 
 Check for existing initialization:
 
@@ -107,7 +127,7 @@ Check for existing initialization:
 test -d .beads && echo "exists" || echo "missing"
 ```
 
-If `.beads/` exists, skip to Step 2.4.
+If `.beads/` exists, skip to Step 2.5.
 
 If missing:
 
@@ -117,7 +137,7 @@ If missing:
 4. Tell the user:
    > Initialized bd in `.beads/`. Cleaned bd's auto-generated AGENTS.md content — swain-do handles bd integration through its skill instructions instead.
 
-### Step 2.4 — Validate
+### Step 2.5 — Validate
 
 ```bash
 bd doctor --json
@@ -165,7 +185,7 @@ Append the following to AGENTS.md:
 |-------|---------|
 | **swain** | Meta-router — routes `/swain` prompts to the correct sub-skill |
 | **swain-init** | One-time project onboarding — CLAUDE.md migration, bd setup, governance |
-| **swain-config** | Session-start governance — ensures routing rules are installed |
+| **swain-doctor** | Session-start health checks — governance, gitignore hygiene, legacy cleanup |
 | **swain-design** | Artifact lifecycle — Vision, Epic, Story, Spec, ADR, Spike, Bug, Persona, Runbook, Journey |
 | **swain-do** | Execution tracking — task management via bd (beads) |
 | **swain-release** | Release automation — changelog, version bump, git tag |
@@ -206,11 +226,15 @@ mkdir -p .agents
 
 This directory is used by swain-do for configuration and by swain-design scripts for logs.
 
-### Step 4.2 — Onboarding
+### Step 4.2 — Run swain-doctor
+
+Invoke the **swain-doctor** skill. This validates `.beads/.gitignore` against the canonical reference (patching missing entries), cleans up any already-tracked runtime files via `git rm --cached`, removes legacy skill directories, and ensures governance is correctly installed. Running the doctor here catches issues from both fresh `bd init` runs and pre-existing `.beads/` directories.
+
+### Step 4.3 — Onboarding
 
 Invoke the **swain-help** skill in onboarding mode to give the user a guided orientation of what they just installed.
 
-### Step 4.3 — Summary
+### Step 4.4 — Summary
 
 Report what was done:
 
