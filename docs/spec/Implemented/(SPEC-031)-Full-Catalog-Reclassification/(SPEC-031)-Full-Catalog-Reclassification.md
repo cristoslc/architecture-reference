@@ -9,9 +9,8 @@ parent-epic: EPIC-013
 linked-research: []
 linked-adrs:
   - ADR-005
-depends-on:
-  - SPEC-029
-  - SPEC-030
+  - ADR-006
+depends-on: []
 addresses: []
 evidence-pool: ""
 swain-do: required
@@ -102,5 +101,5 @@ The 184+ catalog entries were classified by SPEC-024 (GLM-5 tool-calling + Sonne
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Draft | 2026-03-10 | — | Initial creation under EPIC-013 |
+| Draft | 2026-03-10 | 398ebe55 | Initial creation under EPIC-013 |
 | Implemented | 2026-03-11 | 62aefe43 | Full campaign complete: 184 sonnet deep-analysis + 11 ecosystem updates; ADR-006 compliance sweep |

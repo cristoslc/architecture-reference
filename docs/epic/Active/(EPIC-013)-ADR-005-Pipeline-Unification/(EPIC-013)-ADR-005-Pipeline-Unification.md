@@ -1,7 +1,7 @@
 ---
 title: "ADR-005 Pipeline Unification"
 artifact: EPIC-013
-status: Proposed
+status: Active
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -51,7 +51,7 @@ The end state: one specification (the discover skill), one output schema (catalo
 |----|-------|--------|---------|
 | SPEC-029 | Catalog Entry Schema Validation | Draft | Validate existing template against SPEC-003 requirements, create machine-readable schema, test dual output |
 | SPEC-030 | Pipeline Runtime Prompt Assembly | Draft | Refactor classify-tooluse.sh to read discover skill files at runtime. Depends on SPEC-029 |
-| SPEC-031 | Full Catalog Reclassification | Draft | Reclassify all 184+ entries via unified pipeline, produce dual output. Depends on SPEC-029, SPEC-030 |
+| SPEC-031 | Full Catalog Reclassification | Implemented | Reclassified all 195 entries via ADR-005/ADR-006-compliant pipeline, dual output (report + catalog entry). 184 sonnet deep-analysis + 11 ecosystem updates |
 | SPEC-032 | Legacy Pipeline Retirement | Draft | Remove deprecated prompts, parsers, and scripts. Depends on SPEC-030 |
 
 ## Key Dependencies
@@ -72,4 +72,5 @@ The end state: one specification (the discover skill), one output schema (catalo
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Proposed | 2026-03-10 | — | Implement ADR-005 decision across the pipeline |
+| Proposed | 2026-03-10 | e02f2eff | Implement ADR-005 decision across the pipeline |
+| Active | 2026-03-11 | — | SPEC-031 implemented; 3 child specs remain |

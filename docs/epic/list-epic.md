@@ -5,13 +5,13 @@
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | EPIC-011 | Platform-Aware Architecture Advising | Enhance the architecture-advisor skill to detect whether the user's context is platform/ecosystem-centric or application-centric, and tailor guidance, trade-off analysis, and style recommendations accordingly. | 2026-03-06 | — |
-| EPIC-013 | ADR-005 Pipeline Unification | Implement ADR-005: make the discover skill the single specification for all pipeline classification. Create catalog-entry template, refactor pipeline for runtime prompt assembly, reclassify all 184+ entries, retire legacy prompts/parsers. Blocks SPEC-003. | 2026-03-10 | — |
 
 ## Active
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | EPIC-003 | Architecture Discovery and Scaling | Build automated discovery tooling to classify architecture patterns from repos, then scale the evidence base from 62 to 200+ projects with comparative analysis. | 2026-03-03 | b63f031 |
+| EPIC-013 | ADR-005 Pipeline Unification | Implement ADR-005: make the discover skill the single specification for all pipeline classification. SPEC-031 implemented; 3 child specs remain. | 2026-03-11 | — |
 
 ## Complete
 

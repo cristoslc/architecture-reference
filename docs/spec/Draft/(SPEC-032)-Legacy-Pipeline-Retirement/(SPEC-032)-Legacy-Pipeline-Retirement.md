@@ -13,6 +13,7 @@ linked-adrs:
   - ADR-003
 depends-on:
   - SPEC-030
+  - SPEC-031
 addresses: []
 evidence-pool: ""
 swain-do: required
@@ -94,4 +95,4 @@ ADR-005 makes the discover skill the single classification specification, ADR-00
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Draft | 2026-03-10 | — | Initial creation under EPIC-013 |
+| Draft | 2026-03-10 | 398ebe55 | Initial creation under EPIC-013 |
