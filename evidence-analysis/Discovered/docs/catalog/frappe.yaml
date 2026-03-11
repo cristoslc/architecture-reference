@@ -1,5 +1,5 @@
 project_name: frappe
-scope: application
+scope: framework
 use_type: production
 source: Discovered
 source_url: https://github.com/frappe/frappe
@@ -8,7 +8,7 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-07T05:09:23Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: CRM
+domain: Web Framework / Low-Code Platform
 language: Python
 languages:
 - Python
@@ -17,191 +17,137 @@ architecture_styles:
 - Microkernel
 - Layered
 classification_status: classified
-review_notes: 'The Frappe Framework is a quintessential example of a **Microkernel
-  (Plugin)** architecture, designed specifically to be extended by "apps" (such as
-  ERPNext). Its core identity revolves around the "Bench" environment, which manages
-  a collection of independent applications that are loaded into a single runtime.
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- extensibility
+- modifiability
+- portability
+- security
+- testability
+- scalability
+- observability
+- deployability
+one_line_summary: >-
+  Full-stack low-code web framework built on a microkernel plugin architecture
+  where a stable layered kernel (ORM, HTTP routing, auth, scheduler, multi-tenancy)
+  hosts external "apps" that register behavior via a hooks-based extension system.
+classification_reasoning: >-
+  ## Analysis
 
 
-  ### Reasoning:
+  Frappe Framework is a **Microkernel** architecture with a **Layered** internal kernel
+  structure. The plugin system is the primary and defining architectural characteristic.
 
 
-  **1. Microkernel (Plugin) / Extension Architecture:**
-
-  Frappe is built on the concept of "Apps" as plugins.
-
-  - **`frappe/hooks.py`**: This is the central integration point. It defines how external
-  apps can hook into the core framework’s events, overriding or extending functionality
-  without modifying the core.
-
-  - **`frappe/core`**: This directory contains the "Microkernel" components—the essential
-  services like user management, file handling, and permissions that all other plugins
-  (apps) rely on.
-
-  - **Metadata-Driven**: The README mentions the "Semantic Web" inspiration. The framework
-  treats "DocTypes" (metadata definitions) as the primary way to extend the system,
-  allowing plugins to define data structures that the core then renders and manages.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:20:09Z'
-classification_reasoning: '## Analysis
+  ### Primary Style: Microkernel (0.93)
 
 
-  ### Primary Style: Microkernel (Plugin)
+  Frappe is built around the concept of "apps" as first-class plugins installed on a
+  per-site basis. The kernel provides infrastructure; apps register all domain behavior
+  through a structured hooks manifest.
 
 
-  Frappe Framework is architected as a **core system extended via plugins** (called
-  "apps" in Frappe terminology):
+  **Hook aggregation** (`frappe/__init__.py:976`): `get_hooks()` iterates all installed
+  apps' `hooks.py` files and merges them into a single runtime registry. Installed apps
+  are tracked per-site via `get_installed_apps()`, and `install_app()` / `uninstall_app()`
+  in `installer.py` manage the full plugin lifecycle.
 
 
-  **Plugin Discovery and Loading:**
-
-  - `frappe/__init__.py:976` — The `get_hooks()` function dynamically loads hooks
-  from all installed apps'' `hooks.py` files
-
-  - `frappe/model/base_document.py:116-128` — The `get_controller()` function dynamically
-  loads DocType controller classes, allowing apps to override or extend base behavior
-
-
-  **Hook-Based Extension Points:**
-
-  `frappe/hooks.py` defines the canonical extension mechanism:
-
-  ```python
-
-  # Lifecycle hooks
-
-  before_install = "frappe.utils.install.before_install"
-
-  after_install = "frappe.utils.install.after_install"
+  **`frappe/hooks.py`** defines 30+ named extension points: `doc_events` (DocType lifecycle
+  callbacks — on_update, on_cancel, on_trash, after_insert, after_rename); `scheduler_events`
+  (cron/all/hourly/daily/weekly job registrations); `permission_query_conditions` and
+  `has_permission` (row- and document-level permission hooks); `before_request` / `after_request`
+  / `before_job` / `after_job` (lifecycle middleware); `override_whitelisted_methods`
+  (endpoint replacement); `override_doctype_class` (controller class substitution);
+  `extend_bootinfo` (client boot payload injection); `app_include_js` / `app_include_css`
+  (asset bundle injection).
 
 
-  # Asset injection hooks
-
-  app_include_js = ["desk.bundle.js", "form.bundle.js", ...]
-
-
-  # Permission hooks
-
-  permission_query_conditions = {...}
-
-  has_permission = {...}
+  **DocType controller dispatch** (`frappe/model/base_document.py:116`): `get_controller()`
+  checks the `override_doctype_class` hook registry first, allowing any installed app to
+  substitute or subclass the controller for any DocType at runtime. This is a canonical
+  microkernel plugin dispatch mechanism.
 
 
-  # Document event hooks
-
-  doc_events = {"*": {"on_update": [...], "after_rename": ...}}
-
-  ```
-
-
-  **Runtime Extensibility:**
-
-  - `frappe/core/doctype/server_script/server_script.json` — Server Scripts allow
-  users to inject Python code at runtime for DocType events (Before Insert, After
-  Save, etc.), API endpoints, and scheduled jobs
-
-  - `frappe/utils/safe_exec.py` — Provides a sandboxed execution environment for runtime
-  scripts
+  **Runtime code injection**: The `Server Script` DocType (managed in `frappe/utils/safe_exec.py`
+  using `RestrictedPython`) allows administrators to inject Python at runtime for DocType events,
+  API endpoints, and scheduled jobs without redeployment. This is an embedded script engine
+  within the kernel.
 
 
-  **App Installation/Uninstallation:**
-
-  - `frappe/installer.py:103-112` — Apps are installed on a per-site basis with `install_app()`,
-  demonstrating the plugin lifecycle management
-
-  - `frappe/apps.py` — Manages the list of installed apps and their routes
+  **App lifecycle** (`frappe/installer.py`): Apps are installed per site (`install_app()`),
+  notified of their lifecycle via `after_app_install` / `after_app_uninstall` hooks, and
+  discoverable in the UI via the `add_to_apps_screen` hook.
 
 
-  ### Secondary Style: Layered
+  ### Secondary Style: Layered (0.90)
 
 
-  The framework exhibits clear horizontal layering:
+  The kernel itself is organized into strict horizontal layers with no upward dependencies:
 
 
   ```
-
-  frappe/
-
-  ├── database/          # Data Access Layer
-
-  ├── model/             # Domain Model Layer (Document, Meta, etc.)
-
-  ├── api/               # API Layer (v1.py, v2.py)
-
-  ├── desk/              # Desktop/UI Layer (forms, lists, reports)
-
-  ├── website/           # Website/Frontend Layer
-
-  └── core/              # Core Business Entities
-
+  Website Layer      (frappe/website/) — PathResolver, page_renderers, WebsiteGenerator
+  Desk/UI Layer      (frappe/desk/)    — forms, notifications, dashboard, kanban
+  API Layer          (frappe/api/)     — REST v1/v2, method whitelisting, werkzeug routing
+  Model Layer        (frappe/model/)   — Document (2,403 lines), BaseDocument, Meta, Workflow
+  Data Access Layer  (frappe/database/) — abstract Database → MariaDB / Postgres / SQLite
+  Infrastructure     (frappe/utils/)   — Redis/RQ queues, session, rate limiting
   ```
 
 
-  **Request Flow Through Layers** (`frappe/app.py:98-137`):
-
-  1. `application()` receives WSGI request
-
-  2. `init_request()` initializes context
-
-  3. `frappe.handler.handle()` or `frappe.api.handle()` processes business logic
-
-  4. Response built through layers
+  **Request flow** (`frappe/app.py`): `application()` → `init_request()` (infrastructure) →
+  `validate_auth()` (auth) → `frappe.api.handle()` (API layer) or `get_response()` (website
+  layer). Layers never skip: the API layer calls services via the model layer; the model layer
+  calls the database layer exclusively through the `Database` abstract class.
 
 
-  **Data Layer Abstraction:**
+  **Data access abstraction** (`frappe/database/database.py:84`): `Database` is an abstract
+  base class with three concrete implementations — `MariaDBDatabase`, `PostgresDatabase`,
+  `SQLiteDatabase`. The model layer is fully decoupled from driver specifics.
 
-  - `frappe/database/database.py` — Abstract `Database` class with MariaDB, PostgreSQL,
-  SQLite implementations
 
-  - `frappe/model/document.py` — `Document` class provides ORM-style abstraction over
-  raw database operations
+  **`frappe.local`**: A thread-local context object carries per-request state (`db`, `qb`,
+  `conf`, `form_dict`, `session`, `flags`) that flows through all layers without direct
+  coupling between them.
 
 
   ### What Was Rejected
 
 
-  **Not Microservices:** Single deployable unit (one `pyproject.toml`), single database
-  per site, no inter-service communication patterns.
+  **Not Modular Monolith**: Frappe's internal modules (Core, Website, Workflow, Email,
+  Automation, etc.) are framework infrastructure concerns, not independently deployable
+  business domain modules. The defining characteristic is the plugin architecture for
+  hosting external apps, not DDD-style module decomposition.
 
 
-  **Not Event-Driven:** While background jobs use Redis/RQ (`frappe/utils/background_jobs.py`),
-  the primary communication pattern is synchronous request-response, not event-based
-  messaging.
+  **Not Event-Driven**: Redis/RQ background jobs are operational task queuing, not
+  event-driven integration. The `doc_events` hook is a synchronous in-process callback
+  registry. There is no event bus, publish/subscribe messaging, event sourcing, or domain
+  event pattern.
 
 
-  **Not Domain-Driven Design:** Modules are organized by feature areas (Core, Email,
-  Desk, etc.) but lack DDD constructs like aggregates, value objects, or bounded context
-  boundaries. The `modules.txt` lists feature modules, not domains.
+  **Not Microservices**: Single `pyproject.toml`, single Python package, single database
+  per site, single process. No inter-service communication.
 
 
-  **Not Hexagonal Architecture:** No explicit ports/adapters pattern. The framework
-  directly couples to database implementations rather than through repository interfaces.
+  **Not Hexagonal**: `Document` controllers call `frappe.db.*` directly without
+  ports/adapters abstraction. No inversion of dependency between domain and persistence.
 
 
-  **Not Modular Monolith:** While there are modules, the key distinction is that Frappe
-  is designed as a **framework that hosts plugins**, not a single application with
-  internal modules. The ability for external apps (like ERPNext) to be installed,
-  define DocTypes, and extend behavior through hooks is the defining microkernel characteristic.
+  **Not DDD**: No bounded contexts, aggregates, or value objects. DocTypes are generic
+  metadata-driven entities managed by a universal ORM.
 
 
-  ### Summary
+  ### Conclusion
 
 
-  Frappe Framework is a **low-code web framework** built on a **Microkernel architecture**
-  where:
-
-  - The core provides infrastructure (ORM, auth, API, UI framework)
-
-  - Apps are plugins that register functionality via hooks
-
-  - DocTypes are metadata-defined entities that can have custom controller classes
-
-  - Server Scripts enable runtime code injection
-
-
-  The layered structure provides clear separation between database, model, API, and
-  UI concerns, but the defining architectural characteristic is the plugin/app extensibility
-  mechanism.'
+  Frappe's kernel ships a compact stable core (ORM, HTTP, auth, scheduler, multi-tenancy,
+  permissions) and exposes 30+ hook categories through which installed apps register all
+  domain behavior. The layered internal structure provides change isolation within the
+  kernel. This is an archetypal low-code microkernel framework hosting an ecosystem of
+  installable application plugins. Confidence 0.93; the hook aggregation mechanism and
+  DocType controller dispatch are unambiguous microkernel evidence.

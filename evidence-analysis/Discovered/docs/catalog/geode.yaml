@@ -9,84 +9,109 @@ discovered_at: '2026-03-06T06:02:18Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Data Grid
-language: Java/Kotlin
+language: Java
 languages:
-- Java/Kotlin
-- JavaScript
-- Go
+- Java
 architecture_styles:
 - Modular Monolith
-- Layered
+- Space-Based
+- Microkernel
 classification_status: classified
-review_notes: 'Apache Geode is a quintessential implementation of the **Space-Based
-  Architecture** style. The repository is organized to build a distributed data management
-  platform that pools memory, CPU, and storage across multiple nodes (processes) to
-  create a "tuple space" or "data grid."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- high-availability
+- horizontal-scalability
+- fault-tolerance
+- low-latency
+- distributed-consistency
+- extensibility
+- observability
+one_line_summary: >-
+  A Modular Monolith data grid whose 30+ Gradle modules produce a single
+  distribution; at runtime nodes form a Space-Based cluster of partitioned/replicated
+  in-memory regions with compute-on-data Function Execution, extended via a
+  ServiceLoader CacheService plugin mechanism.
+classification_reasoning: |
+  ## Primary Style: Modular Monolith
 
+  Apache Geode packages all modules into a single distribution artifact.
+  `geode-server-all/build.gradle` aggregates every subproject via `api` and
+  `runtimeOnly` project dependencies into one server JAR. `geode-assembly/build.gradle`
+  produces `apache-geode` as a tarball and Docker image — one deployable unit per node.
 
-  ### Primary Style: Space-Based
+  `settings.gradle` declares 30+ Gradle subprojects with explicit `api` vs.
+  `implementation` dependency visibility:
 
-  The architecture is centered around the concept of a "distributed data container"
-  (the Cache) where state is distributed across processing units.
+  - Foundation layer: `geode-common`, `geode-logging`, `geode-serialization`, `geode-unsafe`
+  - Transport/membership: `geode-membership` (JGroups), `geode-tcp-server`
+  - Core kernel: `geode-core` (Cache, Region, PartitionedRegion, GemFireCacheImpl)
+  - Feature modules: `geode-wan`, `geode-cq`, `geode-lucene`, `geode-memcached`, `geode-connectors`
+  - Management plane: `geode-management`, `geode-gfsh`, `geode-web-management`, `geode-web-api`, `geode-pulse`
+  - Assembly: `geode-assembly`, `geode-server-all`
 
-  - **Data Partitioning & Replication:** Evidence in the README describes "partitioned
-  regions" and "replicated regions," which are core mechanics of Space-Based systems
-  to ensure scalability and high availability without a central bottleneck.
+  `internal` packages (`org.apache.geode.internal.*`) enforce public API / implementation
+  separation throughout the codebase.
 
-  - **Shared-Nothing Persistence:** The README explicitly mentions a "shared nothing"
-  architecture, a hallmark of space-based systems where each node operates independently.
+  ## Secondary Style: Space-Based
 
-  - **Topology Components:** The mention of `Locators` (for discovery and load balancing)
-  and `Servers` (holding the data regions) matches the classic pattern of a processing
-  grid where clients connect to a virtualized pool of resources.
+  At runtime, Geode nodes form a distributed in-memory data grid — the canonical
+  Space-Based topology. Each JVM process holds a share of the total data and operates
+  on it locally without a central database bottleneck.
 
+  Key evidence:
 
-  ### Secondary Style: Event-Driven
+  - `PartitionedRegion.java` (extends LocalRegion) implements data partitioning across
+    bucket owners, supported by `BucketRegion`, `BucketAdvisor`, and
+    `PartitionedRegionDataStore`.
+  - `DistributedRegion.java` implements full data replication across cluster members.
+  - The public `PartitionAttributes` / `PartitionAttributesFactory` API configures
+    bucket count, redundancy copies, and colocated-with relationships.
+  - The README explicitly states a "shared nothing" persistence architecture.
+  - `FunctionService` in `geode-core/src/main/java/org/apache/geode/cache/execute/`
+    routes user-defined `Function<T>` execution co-located with the target data
+    partitions (compute-to-data pattern).
+  - `AsyncEventQueue` / `AsyncEventListener` provide reliable async mutation
+    notifications; `CacheListener`, `CacheWriter`, `CacheLoader` are synchronous
+    extension points in the Region mutation path.
+  - `geode-membership` uses JGroups (`JGroupsMessenger`) for reliable group
+    communication, failure detection, and split-brain quorum management.
 
-  Geode includes significant infrastructure for asynchronous decoupled communication:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:23:42Z'
-classification_reasoning: "## Analysis\n\n**Primary Style: Modular Monolith**\n\n\
-  Apache Geode is a textbook example of a well-structured modular monolith with strong\
-  \ evidence:\n\n1. **Single Deployable Unit**: The `geode-assembly` and `geode-server-all`\
-  \ modules aggregate all components into one distribution. Docker packaging (`docker/Dockerfile`,\
-  \ `geode-assembly/Dockerfile`) produces a single container image.\n\n2. **Explicit\
-  \ Module Boundaries**: The codebase is organized into 50+ Gradle subprojects with\
-  \ enforced dependencies:\n   - Core modules: `geode-common`, `geode-logging`, `geode-serialization`,\
-  \ `geode-unsafe`\n   - Main implementation: `geode-core` (the substantial implementation)\n\
-  \   - Feature modules: `geode-wan`, `geode-cq`, `geode-lucene`, `geode-memcached`\n\
-  \   - Extensions: `extensions/geode-modules`, `extensions/geode-modules-session`\n\
-  \n3. **Enforced API Boundaries**: \n   - Gradle build files use `api` vs `implementation`\
-  \ dependencies for explicit visibility control\n   - BOMs (`boms/geode-all-bom`,\
-  \ `boms/geode-client-bom`) provide dependency governance\n   - `internal` packages\
-  \ throughout (e.g., `org.apache.geode.internal.*`, `org.apache.geode.cache.internal.*`)\
-  \ separate public API from implementation\n\n4. **Code Organization Evidence** (`settings.gradle`\
-  \ lines 70-113):\n   ```groovy\n   include 'geode-common'\n   include 'geode-core'\n\
-  \   include 'geode-wan'\n   include 'geode-cq'\n   include 'geode-lucene'\n   ...\n\
-  \   ```\n\n**Secondary Style: Layered**\n\nClear horizontal layering is present:\n\
-  \n1. **Foundation Layer**: `geode-common` (annotations, utilities), `geode-logging`,\
-  \ `geode-serialization`, `geode-unsafe`\n\n2. **Core Business Layer**: `geode-core`\
-  \ contains:\n   - Cache abstraction (`org.apache.geode.cache.*`)\n   - Distributed\
-  \ system implementation (`org.apache.geode.distributed.*`)\n   - Internal cache\
-  \ implementation (`org.apache.geode.internal.cache.*`)\n\n3. **Service Layer**:\
-  \ `geode-wan` (gateway/WAN), `geode-cq` (continuous queries), `geode-lucene` (search\
-  \ indexing)\n\n4. **Presentation/Interface Layer**: `geode-gfsh` (CLI shell), `geode-web`,\
-  \ `geode-web-api`, `geode-web-management`\n\n5. **Assembly Layer**: `geode-assembly`,\
-  \ `geode-server-all` (packaging)\n\n**What This Is NOT:**\n\n- **NOT Microservices**:\
-  \ Single JVM deployment, not multiple independent services. Geode nodes form a peer-to-peer\
-  \ distributed system, not separately deployed microservices.\n\n- **NOT primarily\
-  \ Event-Driven**: While Geode has event capabilities (`CacheListener`, `CacheWriter`,\
-  \ continuous queries), these are features *within* the monolith, not the primary\
-  \ architectural organizing principle.\n\n- **NOT Domain-Driven Design**: Code is\
-  \ organized by technical capability (serialization, logging, core, WAN) rather than\
-  \ bounded contexts.\n\n- **NOT Microkernel/Plugin**: While `Declarable`, `Function`,\
-  \ `CacheLoader`, and `JarDeployer` provide extensibility, the core system isn't\
-  \ structured as a minimal kernel with plugins. The extension points are features\
-  \ of a complete product, not the fundamental architecture.\n\n**Key Evidence Files:**\n\
-  - `settings.gradle` - Shows all 50+ subprojects in single build\n- `geode-server-all/build.gradle`\
-  \ - Aggregates all modules into single artifact\n- `geode-core/src/main/java/org/apache/geode/cache/*.java`\
-  \ - Public API interfaces\n- `geode-core/src/main/java/org/apache/geode/internal/*`\
-  \ - Internal implementation packages"
+  ## Tertiary Style: Microkernel
+
+  `GemFireCacheImpl.initializeServices()` uses `ServiceLoader<CacheService>` to
+  discover and initialize optional capabilities at cache startup:
+
+  ```java
+  ServiceLoader<CacheService> loader = ServiceLoader.load(CacheService.class);
+  for (CacheService service : loader) {
+    if (service.init(this)) {
+      services.put(service.getInterface(), service);
+    }
+  }
+  ```
+
+  Optional modules register via `META-INF/services/org.apache.geode.internal.cache.CacheService`:
+  - `geode-http-service` → `InternalHttpService`
+  - `geode-wan` → `WanCopyRegionFunctionService`
+  - `geode-lucene` → `LuceneServiceImpl`
+
+  The `Declarable` interface allows user code (CacheLoader, CacheWriter, CacheListener,
+  Function, PartitionResolver) to be declared in XML and loaded by name.
+
+  ## Rejected Styles
+
+  - Microservices: Single JVM per node; nodes form a peer cluster, not independently
+    deployed services with private stores.
+  - Event-Driven: CacheListener/AsyncEventQueue are features within the data grid,
+    not the structural organizing principle.
+  - Layered: Internal layering exists but is subordinate to capability-based module
+    decomposition; not the primary architectural identity.
+  - Pipeline: No sequential processing-stage topology.
+  - CQRS: No command/query separation; reads and writes share the same Region/DataStore.
+  - DDD: Organized by technical capability (partitioning, WAN, Lucene), not business
+    bounded contexts.
+  - Hexagonal: Extension points exist but are not organized as named inbound/outbound
+    ports in the Hexagonal sense.

@@ -9,135 +9,46 @@ discovered_at: '2026-03-06T05:30:40Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
-language: TypeScript
+language: Python
 languages:
-- TypeScript
-- Python
+  - Python
+  - TypeScript
 architecture_styles:
-- Service-Based
-- Layered
+  - Service-Based
+  - Layered
 classification_status: classified
-review_notes: 'This repository follows a traditional **Layered** architecture, which
-  is the standard organizational pattern for FastAPI-based full-stack applications.
-  While it uses Docker Compose to manage a suite of components (PostgreSQL, Traefik,
-  Mailcatcher, Backend, Frontend), the internal code organization of the application
-  logic itself is strictly partitioned into horizontal layers.
-
-
-  ### Evidence of Layered Architecture:
-
-  The backend (`/backend/app`) is structured by technical responsibility rather than
-  functional domains:
-
-  - **Presentation/API Layer**: `backend/app/api/` contains the routes and dependency
-  injection logic (`deps.py`).
-
-  - **Business Logic/Persistence Layer**: `backend/app/crud.py` acts as the data access/manipulation
-  layer.
-
-  - **Data Model Layer**: `backend/app/models.py` defines the SQLModel (SQLAlchemy
-  + Pydantic) schemas and entities used across the application.
-
-  - **Cross-Cutting Concerns**: `backend/app/core/` handles configuration, security
-  (JWT), and database initialization.
-
-
-  ### Why not other styles:'
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: "Opinionated full-stack starter template pairing a FastAPI/SQLModel backend with a React/TypeScript SPA, deployed as two separately containerized services sharing a PostgreSQL database behind a Traefik reverse proxy."
+quality_attributes:
+  - Developer Experience
+  - Security
+  - Testability
+  - Deployability
+  - Maintainability
+  - Observability
+key_technologies:
+  - FastAPI
+  - SQLModel
+  - PostgreSQL
+  - Alembic
+  - React
+  - TypeScript
+  - TanStack Router
+  - TanStack Query
+  - shadcn/ui
+  - Tailwind CSS
+  - Playwright
+  - Traefik
+  - Docker Compose
+  - Copier
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:20:58Z'
-classification_reasoning: '## Architecture Classification
-
-
-  ### Primary Style: Service-Based
-
-
-  This repository exhibits a classic **Service-Based Architecture** with the following
-  characteristics:
-
-
-  **Evidence from `compose.yml`:**
-
-  - **2 coarse-grained services** deployed independently: `backend` (FastAPI Python)
-  and `frontend` (React/TypeScript served via Nginx)
-
-  - **Shared database**: Both services connect to a single PostgreSQL instance (`db`
-  service)
-
-  - **Single Docker Compose deployment** with Traefik reverse proxy handling routing
-
-  - Typical of small-to-medium applications with 2-5 services sharing data storage
-
-
-  The deployment topology clearly shows services that are separately containerized
-  and scalable, but they share a common PostgreSQL database—exactly matching the Service-Based
-  pattern where coarse-grained services collaborate around a shared data store.
-
-
-  ### Secondary Style: Layered
-
-
-  The backend demonstrates classic **horizontal layering**:
-
-
-  **From `backend/app/` directory structure:**
-
-  ```
-
-  api/routes/     → Presentation Layer (FastAPI route handlers/controllers)
-
-  crud.py         → Business Logic Layer (service operations)
-
-  models.py       → Data Access Layer (SQLModel ORM entities)
-
-  core/           → Infrastructure Layer (config, db, security)
-
-  api/deps.py     → Cross-cutting concerns (dependency injection)
-
-  ```
-
-
-  **Evidence from `backend/app/api/routes/users.py` (lines 56-77):**
-
-  - Routes call `crud.create_user()` and `crud.get_user_by_email()` rather than direct
-  database access
-
-  - Clear separation between HTTP handling (routes) and business logic (crud)
-
-
-  **Evidence from `backend/app/crud.py`:**
-
-  - Pure data operations: `create_user()`, `update_user()`, `get_user_by_email()`,
-  `authenticate()`
-
-  - No HTTP concerns, only Session and model operations
-
-
-  ### What This Is NOT
-
-
-  - **NOT Microservices**: Only 2 services sharing a single database; no independent
-  data ownership per service, no service mesh, no complex inter-service communication
-  patterns
-
-  - **NOT Modular Monolith**: Two separately deployable containers (`backend/Dockerfile`,
-  `frontend/Dockerfile`), not a single deployable unit
-
-  - **NOT Event-Driven**: No message brokers (Kafka, RabbitMQ, Redis, Celery) found
-  in codebase; synchronous REST API only between frontend and backend
-
-  - **NOT Hexagonal Architecture**: No ports/adapters pattern; routes directly import
-  and use SQLModel ORM with no abstraction layer
-
-  - **NOT Domain-Driven Design**: No bounded contexts, aggregates, or domain-focused
-  organization; simple User/Item entities with basic CRUD operations
-
-
-  ### Communication Pattern
-
-
-  The frontend generates an API client from the backend''s OpenAPI spec (`frontend/src/client/sdk.gen.ts`),
-  making synchronous REST calls to the backend API. This is standard request-response
-  communication, not event-driven messaging.'
+classification_reasoning: "The primary organizing topology is Service-Based: compose.yml defines two separately-built application containers (backend FastAPI, frontend React/Nginx) sharing a single PostgreSQL database instance, with Traefik as the TLS-terminating reverse proxy. This matches the Service-Based pattern exactly — coarse-grained services collaborating over a shared data store, without independent data ownership or the operational complexity of Microservices. The backend internal structure is unambiguously Layered: api/routes/ (presentation), crud.py (data access), models.py (domain entities + Pydantic schemas), and core/ (infrastructure) form horizontal layers with clean unidirectional dependencies. Routes call crud functions; crud functions accept SQLModel Session objects and return ORM entities; no HTTP concerns bleed into crud.py and no database code appears in routes. A prestart service handles Alembic migrations before the backend starts, gated by a Docker healthcheck dependency. The frontend is a React SPA auto-generated against the backend's OpenAPI spec using openapi-ts, eliminating manual API contract work. Playwright covers E2E testing; pytest covers backend; GitHub Actions runs both in CI with staging and production deployment workflows. No message broker, no service mesh, no independent per-service databases, no plugin extension points — the classification is straightforward."
+review_notes: "Service-Based is the correct primary style: two coarse-grained services (backend + frontend) share one PostgreSQL database, deployed via Docker Compose. The backend's internal horizontal layering (routes -> crud -> models -> core) qualifies as Layered secondary. This is a reference template (use_type: reference), not a production deployment — it provides an opinionated starting point that engineers fork, which accounts for the slightly lower scope compared to production applications. The previous entry listed Service-Based + Layered and this reclassification confirms both styles with updated metadata conforming to the SPEC-031 catalog-entry schema."

@@ -4,7 +4,7 @@ use_type: production
 source: Discovered
 source_url: https://github.com/forem/forem
 project_url: https://github.com/forem/forem
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:33:24Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
@@ -17,85 +17,96 @@ architecture_styles:
 - Layered
 - Event-Driven
 classification_status: classified
-review_notes: 'Forem is a classic example of a **Layered** architecture, specifically
-  following the standard Ruby on Rails pattern but extended with high-scale enterprise
-  patterns. While it contains a vast number of features, it remains a single deployment
-  unit (monolith) organized horizontally.
-
-
-  ### 1. Primary Style: Layered
-
-  The codebase follows the strict "Model-View-Controller" (MVC) layering common to
-  Rails, but introduces additional sub-layers to manage complexity:
-
-  - **Presentation Layer**: Controllers and "Decorators" (`app/decorators`) for view-specific
-  logic. It is transitioning to a Preact frontend but still utilizes Rails views/helpers.
-
-  - **Business Logic (Service) Layer**: An extensive `app/services` directory houses
-  the bulk of the system''s domain logic (e.g., `app/services/articles/creator.rb`,
-  `app/services/badges/award.rb`). This separates complex orchestration from the models.
-
-  - **Query Layer**: Dedicated `app/queries` (e.g., `app/queries/articles/api_search_query.rb`)
-  extract complex SQL/ActiveRecord logic from the models to maintain maintainability.
-
-  - **Data Access Layer**: Handled by `app/models` using ActiveRecord, with heavy
-  use of "Concerns" to share behavior across models.
-
-
-  ### 2. Secondary Style: Event-Driven'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:21:00Z'
-classification_reasoning: "## Architecture Analysis\n\n**Forem** is a classic **Layered\
-  \ Architecture** with Event-Driven elements for background processing.\n\n### Primary\
-  \ Style: Layered\n\nThe codebase exhibits clear horizontal layering characteristic\
-  \ of Rails MVC applications:\n\n1. **Presentation Layer** (`app/views/`, `app/decorators/`,\
-  \ `app/helpers/`) - 55+ view directories with templates, decorators for view-specific\
-  \ logic, and helper modules\n2. **Controller Layer** (`app/controllers/`) - 91+\
-  \ controllers organized by domain (articles, comments, users, admin, api/v0, api/v1)\n\
-  3. **Service/Business Logic Layer** (`app/services/`) - 268 service objects organized\
-  \ into domain namespaces like `Articles::Creator`, `Notifications::NewFollower::Send`,\
-  \ `Users::Update`\n4. **Data Access Layer** (`app/models/`) - 119 ActiveRecord models\
-  \ including Article, User, Comment, Organization with relationships and data validations\n\
-  5. **Policy Layer** (`app/policies/`) - Authorization using Pundit with ApplicationPolicy\
-  \ and domain-specific policies\n\nEvidence:\n- Standard Rails directory structure:\
-  \ `app/{controllers,models,views,services,policies,decorators,helpers}`\n- ApplicationController\
-  \ inherits from ActionController::Base (app/controllers/application_controller.rb:1)\n\
-  - ApplicationRecord as base model class (app/models/application_record.rb)\n- Service\
-  \ objects follow pattern: `Module::Class.call(...)` (app/services/articles/creator.rb:3-4)\n\
-  \n### Secondary Style: Event-Driven\n\nForem uses background job processing extensively\
-  \ via Sidekiq:\n\n**Evidence:**\n- `app/workers/` contains 48 worker directories\
-  \ with namespaced workers\n- Workers use `include Sidekiq::Job` (app/workers/notifications/new_follower_worker.rb:3)\n\
-  - Priority queue configuration (config/sidekiq.yml:1-6):\n  ```yaml\n  :queues:\n\
-  \    - [\"default\", 1]\n    - [\"low_priority\", 10]\n    - [\"medium_priority\"\
-  , 100]\n    - [\"high_priority\", 1000]\n    - [\"scheduler\", 1000]\n    - [\"\
-  mailers\", 1000]\n  ```\n- Scheduled jobs via sidekiq-cron (config/schedule.yml)\
-  \ for feeds import, metrics recording, badge awards\n- Event-driven notification\
-  \ system (`Notifications::NewFollowerWorker`, `Notifications::NewCommentWorker`,\
-  \ etc.)\n- Redis for job queueing (docker-compose.yml:111-122)\n\n### What It's\
-  \ NOT\n\n**Not Microservices**: Single Dockerfile, single deployment unit, one PostgreSQL\
-  \ database, one Redis instance. All code runs in one Rails application.\n\n**Not\
-  \ Modular Monolith**: While organized by domain concepts (articles, users, notifications),\
-  \ there are no enforced module boundaries. Models directly associate with each other\
-  \ without module-scoped isolation. The `app/services/` and `app/models/` directories\
-  \ use namespace organization but share the same database and don't have strict boundaries.\n\
-  \n**Not Microkernel/Plugin**: The Liquid tag system (62 liquid tags in app/liquid_tags/)\
-  \ provides content embedding extensibility, but this is user-facing content functionality,\
-  \ not a plugin architecture for extending the core system. Liquid tags are registered\
-  \ at build time via `Liquid::Template.register_tag()`.\n\n**Not Hexagonal Architecture**:\
-  \ While services encapsulate business logic, the architecture doesn't have explicit\
-  \ ports/adapters pattern. Controllers directly use models and services without an\
-  \ application core isolated by interfaces.\n\n**Not CQRS**: Single model per domain\
-  \ concept; no separate read/write models. Models handle both reading and writing.\n\
-  \n### Key Architectural Features\n\n1. **Service Object Pattern**: Business logic\
-  \ extracted into service objects (app/services/) following `Module::Class.call(...)`\
-  \ pattern\n2. **Policy-based Authorization**: Pundit policies (app/policies/) for\
-  \ authorization\n3. **Background Jobs**: Extensive use of Sidekiq workers for async\
-  \ processing\n4. **Liquid Templating**: User content supports embedded liquid tags\
-  \ for external content\n5. **API Versioning**: REST API with v0 and v1 versions\
-  \ (app/controllers/api/v0/, app/controllers/api/v1/)\n6. **Admin Interface**: Comprehensive\
-  \ admin controllers under `Admin::` namespace\n\n### Deployment\n\n- Single Rails\
-  \ application container (Dockerfile)\n- PostgreSQL 13 for database\n- Redis 7 for\
-  \ caching and job queues\n- Puma as web server\n- Sidekiq for background job processing"
+classification_confidence: 0.90
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: Rails monolith powering DEV.to with strict horizontal layering (265
+  service objects, 37 Pundit policies, 18 query objects) and an extensive Sidekiq
+  background job subsystem (122 workers, 6-tier priority queue) for async domain side-effects.
+quality_attributes:
+- scalability
+- maintainability
+- extensibility
+- testability
+- operability
+- security
+- performance
+key_technologies:
+- Ruby on Rails
+- Sidekiq
+- PostgreSQL
+- Redis
+- Pundit
+- Devise
+- Draper
+- PgSearch
+- Algolia
+- Preact
+- Liquid
+notable_strengths:
+- 265 service objects with consistent Module::Class.call(...) pattern keeps business
+  logic named, focused, and testable
+- 6-tier Sidekiq priority queue (default/low/medium/high/scheduler/mailers) with
+  deduplication (sidekiq-unique-jobs) and throttling (sidekiq-throttled)
+- Pundit policy layer documented as canonical authorization source with 37 policy
+  files covering all domain entities
+- 18 query objects separate complex ActiveRecord SQL from models
+- Fastly CDN integration and edge cache services for high-scale content delivery
+- 1,203 RSpec spec files plus Cypress end-to-end tests
+- DataDog metrics instrumentation with dedicated background workers reporting queue stats
+notable_gaps:
+- No enforced module boundaries between domain areas despite large codebase (shared
+  database, models freely cross-reference each other)
+- No plugin API for community-contributed application extensions (Liquid tags are
+  content embedding only, not application extensibility hooks)
+- Single PostgreSQL database is the primary horizontal scaling bottleneck
+- ActionCable not used (action_cable/engine commented out in application.rb) — real-time
+  features are limited to polling or external push services
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+classification_reasoning: "Forem is classified as Layered (primary) + Event-Driven
+  (secondary).\n\n### Primary Style: Layered\n\nThe codebase organizes every concern
+  into explicit horizontal layers with unidirectional dependencies:\n\n1. **HTTP/Routing
+  Layer** (`app/controllers/`, 229 files) — ApplicationController inherits from ActionController::Base,
+  includes Pundit::Authorization, CachingHeaders, SessionCurrentUser. Routes split
+  into admin.rb, api.rb, listing.rb sub-files within config/routes/ (510-line main
+  file).\n2. **Authorization Layer** (`app/policies/`, 37 files, Pundit) — ApplicationPolicy
+  documents itself as \"the canonical source for authorization\". Policies cover all
+  domain entities (Article, User, Comment, Organization, etc.).\n3. **Business Logic
+  Layer** (`app/services/`, 265 files) — ApplicationService defines a `.perform`
+  base. All service objects follow `Module::Class.call(...)` pattern. Examples: Articles::Creator,
+  Users::Update, Badges::Award, Notifications::NewFollower::Send.\n4. **Query Layer**
+  (`app/queries/`, 18 files) — dedicated query classes separate complex ActiveRecord
+  SQL (articles/api_search_query.rb, users/listing_query.rb, billboards/listing_query.rb).\n5.
+  **Data Access Layer** (`app/models/`, 147 files, ActiveRecord) — ApplicationRecord
+  adds batch query helpers, decorator inference, statement timeout controls. Models
+  use Concerns (Reactable, AlgoliaSearchable, Purgeable) for cross-cutting behaviors.\n6.
+  **Decoration Layer** (`app/decorators/`, 10 files, Draper) — Draper-based view-specific
+  formatting. ApplicationRecord#decorator_class infers decorator from model name.\n\n###
+  Secondary Style: Event-Driven\n\n122 Sidekiq worker files organized in domain namespaces
+  constitute a substantial async event processing subsystem:\n\n- 6-tier priority
+  queue: default(1), low_priority(10), medium_priority(100), high_priority(1000),
+  scheduler(1000), mailers(1000)\n- sidekiq-cron: 15+ scheduled background events
+  (feed imports, metrics recording, badge awards)\n- sidekiq-unique-jobs: deduplication
+  semantics treating jobs as events\n- sidekiq-throttled: per-queue concurrency control\n-
+  Workers namespace mirrors service namespace (notifications/, articles/, feeds/, users/,
+  badges/, metrics/, spam/)\n- Workers delegate to service objects — async dispatch
+  is separate from business logic\n\nExample: Notifications::NewFollowerWorker#perform
+  calls Notifications::NewFollower::Send.call(follow_data, is_read: is_read)\n\n###
+  Rejected classifications:\n\n- **Microkernel**: 64 Liquid tags are user-content
+  embedding (render HTML in article bodies), not application extension hooks. No plugin
+  lifecycle, no runtime enable/disable, no route/model/middleware injection by plugins.\n-
+  **Modular Monolith**: No enforced module boundaries. Ruby namespace organization
+  (Articles::, Users::, etc.) without isolation contracts, shared database, free cross-model
+  references.\n- **Microservices/Service-Based**: Single Containerfile, single PostgreSQL,
+  single Redis. Procfile has two processes (web + sidekiq), not services.\n- **CQRS**:
+  Standard ActiveRecord read/write. Query objects are encapsulation patterns, not
+  CQRS read models.\n- **Hexagonal**: No ports/adapters. Controllers call services
+  directly; services call models directly.\n- **Pipeline**: No sequential transformation
+  stages.\n\nConfidence 0.90: cap reflects that the Event-Driven pattern operates
+  entirely within Sidekiq queue model (no message broker/pub-sub bus) — some analysts
+  would weight it as a significant implementation pattern rather than co-primary style."

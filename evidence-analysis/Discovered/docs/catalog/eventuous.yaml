@@ -4,7 +4,7 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/eventuous/eventuous
 project_url: https://github.com/eventuous/eventuous
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-07T04:56:40Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
@@ -14,26 +14,164 @@ languages:
 - C#
 - TypeScript
 architecture_styles:
+- Microkernel
 - Event-Driven
-- CQRS
 classification_status: classified
-review_notes: "This repository is organized as a high-intent **Domain-Driven Design\
-  \ (DDD)** framework, specifically focused on Event Sourcing (ES). The architecture\
-  \ of the codebase itself mirrors the patterns it facilitates for its users, emphasizing\
-  \ clear boundaries between the core domain logic, application services, and infrastructure\
-  \ adapters.\n\n### Evidence for Style Classification:\n\n1.  **Domain-Driven Design\
-  \ (Primary Style):**\n    *   The directory structure under `src/Core/src` explicitly\
-  \ separates concerns into `Eventuous.Domain` and `Eventuous.Application`.\n    *\
-  \   The test suite includes a \"System Under Test\" (SUT) specifically for domain\
-  \ modeling: `test/Eventuous.Sut.Domain/` containing typical DDD tactical patterns:\
-  \ `Booking.cs` (Aggregate), `Money.cs` (Value Object), and `BookingState.cs`.\n\
-  \    *   The project defines a structured approach to Aggregate Roots and State\
-  \ transitions, which are central tenets of DDD-based Event Sourcing.\n\n2.  **Event-Driven\
-  \ (Secondary Style):**"
+classification_method: deep-analysis
+classification_confidence: 0.93
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: >-
+  Event Sourcing framework for .NET with a minimal plug-in core (IEventStore,
+  IProducer, IEventHandler) extended by 10+ adapters for KurrentDB, Kafka,
+  RabbitMQ, PostgreSQL, MongoDB, Redis, and more; runtime model is fully
+  event-driven via composable subscription pipelines and CQRS projections.
+quality_attributes:
+- Extensibility
+- Testability
+- Observability
+- Consistency
+- Resilience
+- Performance
+- Maintainability
+key_technologies:
+- .NET 8
+- KurrentDB
+- Apache Kafka
+- RabbitMQ
+- PostgreSQL
+- MongoDB
+- Redis
+- OpenTelemetry
+- Azure Service Bus
+- Google Pub/Sub
+architecture_qualifiers:
+  - type: data-pattern
+    value: event-sourcing
+    note: Aggregate state is derived exclusively by replaying domain events from IEventStore
+  - type: data-pattern
+    value: cqrs
+    note: CommandService handles writes; Projector/IEventHandler implementations maintain read-side views
+  - type: design-approach
+    value: ddd
+    note: Aggregate<T>, State<T>, Id base classes encode DDD tactical patterns; two OO and functional command service styles
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
 review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.92
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: Event sourcing library with IEventStore abstraction, subscriptions,
-  projections-as-read-models, and pluggable brokers
+classification_reasoning: |
+  ## Architecture Analysis
+
+  ### Primary Style: Microkernel (Plugin)
+
+  Eventuous is structured around a minimal, infrastructure-free core that
+  defines abstract contracts, extended by a rich ecosystem of pluggable adapters
+  registered through .NET DI.
+
+  **Core system (zero external I/O dependencies):**
+  - `Eventuous.Domain` — `Aggregate<T>`, `State<T>`, `Id`
+  - `Eventuous.Application` — `CommandService<TAggregate,TState,TId>` and
+    `CommandService<TState>` (functional variant)
+  - `Eventuous.Persistence` — `IEventStore`, `IEventReader`, `IEventWriter`,
+    `ICheckpointStore`, `IStateStore`
+  - `Eventuous.Subscriptions` — `EventSubscription<T>`, `ConsumePipe`,
+    `IConsumeFilter`, `IEventHandler`, `ICheckpointStore`
+  - `Eventuous.Producers` — `IProducer<T>`, `BaseProducer`, `ProduceRequest`
+  - `Eventuous.Serialization` — `IEventSerializer`
+
+  **Plug-in registry:**
+  The .NET DI container acts as the plug-in registry. Each adapter provides
+  `AddXxx()` extension methods on `IServiceCollection` to register its
+  concrete implementations. Example: `AddKurrentDB()`, `AddKafka()`,
+  `AddMongoProjections()`, `AddPostgresStore()`.
+
+  **Plug-in adapters (10+):**
+  - `Eventuous.KurrentDB` — `IEventStore` + subscriptions + producers for
+    KurrentDB/EventStoreDB (the primary production target)
+  - `Eventuous.Kafka` — `IProducer<KafkaProduceOptions>` +
+    `IMessageSubscription` via Confluent.Kafka
+  - `Eventuous.RabbitMq` — `IProducer<RabbitMqProduceOptions>` +
+    `IMessageSubscription` via RabbitMQ.Client
+  - `Eventuous.Postgresql` — `IEventStore` + `PostgresProjector` +
+    Postgres checkpoint store
+  - `Eventuous.Projections.MongoDB` — `MongoProjector` (`IEventHandler`)
+    with typed builder API for read-model maintenance
+  - `Eventuous.Redis` — `IEventStore` + Redis checkpoint store
+  - `Eventuous.Sqlite` — `IEventStore` + `SqliteProjector`
+  - `Eventuous.SqlServer` — `IEventStore` + `SqlServerProjector`
+  - `Eventuous.Azure.ServiceBus` — `IProducer<ServiceBusProduceOptions>`
+  - `Eventuous.GooglePubSub` — `IMessageSubscription` + producers
+  - `Eventuous.ElasticSearch` — experimental projector + checkpoint store
+
+  **Open composition of abstractions:**
+  `TieredEventStore` composes two `IEventStore` instances (hot + archive read),
+  demonstrating the plug-in interfaces are openly composable. The `Gateway`
+  module composes any `IMessageSubscription` + `IProducer<T>` for event shovel
+  / fanout patterns without coupling to specific implementations.
+
+  ### Primary Co-Style: Event-Driven
+
+  The runtime computation model is fundamentally event-driven:
+
+  1. Commands arrive at `CommandService`, which loads aggregate state by replaying
+     events from `IEventStore` (fold via `State<T>.When()`).
+  2. The aggregate's `Apply<TEvent>()` records new domain events as `Changes`.
+  3. `CommandService.Handle()` appends those events back to the store via
+     `IEventWriter.AppendEvents()` with `ExpectedStreamVersion` for optimistic
+     concurrency.
+  4. `EventSubscription<T>` implementations subscribe to the event stream,
+     pushing each event through the `ConsumePipe` filter chain.
+  5. `IEventHandler` implementations (projectors, saga handlers, gateway handlers)
+     react to events to update read models or produce downstream events.
+
+  **ConsumePipe filter chain:**
+  `ConsumePipe` is a `LinkedList<IConsumeFilter>` providing intra-process pipeline
+  composition within the event-driven flow:
+  `TracingFilter → MessageFilter → PartitioningFilter → AsyncHandlingFilter
+  → ConsumerFilter → [user IEventHandler instances]`
+
+  The `PartitioningFilter` uses MurmurHash3 to shard events across parallel
+  consumer lanes, enabling ordered-per-key concurrent processing.
+
+  **Subscription resilience:**
+  `EventSubscription<T>` implements automatic resubscription with exponential
+  backoff on drop, ensuring continuous event-driven processing even under
+  transient broker failures.
+
+  ### Design Qualifiers
+
+  **Event Sourcing (data-pattern):**
+  `Aggregate<T>` maintains `Original` (persisted events) and `Changes`
+  (pending events). `Load()` folds historical events; `Apply()` appends new
+  ones. `IEventStore` is the sole write-side persistence mechanism — no
+  mutable state tables.
+
+  **CQRS (data-pattern):**
+  Write side: `CommandService` → `IEventWriter.AppendEvents()`.
+  Read side: `IEventHandler` projectors subscribed via `EventSubscription`
+  maintain denormalized read models (MongoDB documents, SQL rows, etc.).
+  `IStateStore` provides an alternative read path for folding events on
+  demand without a persistent projection.
+
+  **Domain-Driven Design (design-approach):**
+  `Aggregate<T>` enforces business invariants and owns the event journal.
+  `State<T>` is an immutable record with a type-dispatch table built via
+  `On<TEvent>(Func<T, TEvent, T>)`. `Id` provides strongly-typed aggregate
+  identity. Two command service styles accommodate OO aggregate-based and
+  functional modeling preferences.
+
+  ### Rejected Styles
+
+  - **Layered:** The core → adapter relationship is vertical plug-in
+    decomposition, not horizontal layers with upward-call restrictions.
+  - **Modular Monolith:** A library/framework, not a deployed application.
+  - **Microservices:** Enables services; is not itself a system of independently
+    deployed services.
+  - **Pipeline:** `ConsumePipe` is a local intra-process filter chain within
+    the subscription path, not the primary organizing topology.
+  - **Service-Based:** No shared-database coarse-service topology.
+  - **Space-Based:** No in-memory data grid or tuple-space runtime.
+  - **Serverless:** Long-running hosted subscriptions, not FaaS.
+  - **Multi-Agent:** No agent orchestration model.

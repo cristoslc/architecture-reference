@@ -15,93 +15,62 @@ languages:
 - JavaScript
 architecture_styles:
 - Layered
-- Hexagonal Architecture
+- Microkernel
 classification_status: classified
-review_notes: 'The Netflix Eureka repository follows a **Layered** architecture at
-  its core, but it is specifically designed as a **Service-Based** infrastructure
-  component that utilizes a **Microkernel (Plugin)** approach for extensibility (especially
-  regarding cloud provider integrations).
-
-
-  ### 1. Primary Style: Layered
-
-  The codebase is structured around traditional horizontal layers. Despite the complex
-  distribution logic, the internal organization of modules like `eureka-core` and
-  `eureka-client` relies on standard Java patterns for separation of concerns:
-
-  - **API/Resources Layer:** Found in `eureka-resources` and the `webapp` directories
-  in `eureka-server`, handling RESTful interactions.
-
-  - **Service/Logic Layer:** `DiscoveryClient.java` and associated classes in `eureka-core`
-  handle the orchestration of registration, heartbeats, and registry fetches.
-
-  - **Data/Registry Layer:** The `com.netflix.eureka.registry` package (implied by
-  references in `EurekaServerConfig.java`) manages the in-memory state of service
-  instances.
-
-
-  ### 2. Secondary Style: Microkernel (Plugin)
-
-  Eureka is built to be extended via "Adapters" or "Plugins," a necessity for supporting
-  multiple cloud environments (AWS being the primary one) while keeping the core logic
-  environment-agnostic.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.85
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:19:36Z'
-classification_reasoning: "## Architecture Analysis for Eureka Repository\n\n### Primary\
-  \ Classification: Layered Architecture\n\nThe Eureka repository exhibits a classic\
-  \ **Layered Architecture** with clear horizontal separation of concerns:\n\n**Evidence\
-  \ for Layered Architecture:**\n\n1. **Presentation Layer (REST Resources)**\n  \
-  \ - Located in `eureka-core/src/main/java/com/netflix/eureka/resources/`\n   - JAX-RS\
-  \ annotated classes: `ApplicationsResource.java`, `InstanceResource.java`, `VIPResource.java`,\
-  \ `StatusResource.java`\n   - Handles HTTP request/response, content negotiation,\
-  \ and routing\n   - Delegates business logic to lower layers\n\n2. **Business Logic\
-  \ Layer (Service/Registry)**\n   - Core registry interfaces and implementations\
-  \ in `eureka-core/src/main/java/com/netflix/eureka/registry/`\n   - Key classes:\
-  \ `InstanceRegistry`, `AbstractInstanceRegistry`, `PeerAwareInstanceRegistryImpl`\n\
-  \   - Handles registration, renewal, cancellation, eviction, and replication logic\n\
-  \   - Lease management: `LeaseManager` interface\n\n3. **Data Access Layer (In-Memory\
-  \ Storage)**\n   - `ConcurrentHashMap<String, Map<String, Lease<InstanceInfo>>>`\
-  \ as the primary registry storage\n   - `ResponseCacheImpl` for cached responses\n\
-  \   - Read/write locks for concurrency control\n\n**Module Structure Supporting\
-  \ Layers:**\n```\neureka-server/     → Presentation/Web Layer (WAR deployment)\n\
-  eureka-core/       → Business Logic + Data Access\neureka-client/     → Client Library\
-  \ (used by both external apps and server for peer replication)\neureka-resources/\
-  \  → Static web resources (UI)\n```\n\n### Secondary Classification: Hexagonal Architecture\
-  \ (Ports and Adapters)\n\nEvidence for hexagonal patterns:\n\n1. **Core Interfaces\
-  \ (Ports):**\n   - `LookupService<T>` - defines service discovery contract\n   -\
-  \ `EurekaClient` - extends `LookupService`, defines client operations\n   - `EurekaServerConfig`\
-  \ - server configuration interface\n   - `InstanceRegistry` extends `LeaseManager<T>`\
-  \ and `LookupService<String>`\n\n2. **Pluggable Implementations (Adapters):**\n\
-  \   - Multiple HTTP client implementations: `eureka-client-jersey2`, `eureka-core-jersey2`\n\
-  \   - Configuration adapters: `eureka-client-archaius2` (Archaius 2.x configuration\
-  \ system)\n   - Dependency injection frameworks: `eureka-server-governator` (alternative\
-  \ DI using Netflix Governator)\n\n3. **Dependency Injection:**\n   - Heavy use of\
-  \ Google Guice: `@Inject`, `@Singleton` annotations throughout\n   - `EurekaModule.java`\
-  \ provides bindings with clear separation of interface and implementation:\n   \
-  \  ```java\n     bind(EurekaClient.class).to(DiscoveryClient.class).in(Scopes.SINGLETON);\n\
-  \     bind(EurekaClientConfig.class).toProvider(DefaultEurekaClientConfigProvider.class);\n\
-  \     ```\n\n### What This Is NOT:\n\n- **Not Microservices**: This is a single\
-  \ deployable unit (WAR file). While Eureka *enables* microservice discovery, the\
-  \ repository itself is one monolithic application.\n\n- **Not Modular Monolith**:\
-  \ While there are separate Gradle modules (`eureka-client`, `eureka-core`, `eureka-server`),\
-  \ these are library modules for reuse and packaging, not enforced bounded contexts.\
-  \ The `eureka-client` is used both as a standalone library AND embedded in the server\
-  \ for peer-to-peer communication.\n\n- **Not Event-Driven**: Eureka uses synchronous\
-  \ REST calls for communication, not message brokers or event streams. Peer replication\
-  \ uses HTTP batch requests (`PeerEurekaNode`, `ReplicationTaskProcessor`).\n\n-\
-  \ **Not Service-Based**: There's no concept of multiple coarse-grained services\
-  \ sharing a database. This is one service (the Eureka server) with its own in-memory\
-  \ data store.\n\n### Architecture Characteristics:\n\n- **REST API**: JAX-RS (Jersey)\
-  \ based HTTP endpoints\n- **Peer-to-Peer Replication**: Eureka servers replicate\
-  \ state to each other (`PeerEurekaNodes`, `PeerEurekaNode`)\n- **In-Memory Registry**:\
-  \ No persistent database; data is maintained in memory with lease-based expiration\n\
-  - **Client Library**: The `DiscoveryClient` provides registration, heartbeat, and\
-  \ service discovery capabilities\n- **Servlet Container Deployment**: Packaged as\
-  \ WAR file, runs in servlet containers\n\n### Conclusion:\n\nEureka implements a\
-  \ **Layered Architecture** with **Hexagonal Architecture** influences. The primary\
-  \ structure is horizontal layering (presentation → business logic → data), while\
-  \ the dependency injection and interface-driven design allow for pluggable implementations\
-  \ of HTTP clients and configuration systems."
+classification_confidence: 0.90
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Availability
+- Consistency
+- Scalability
+- Maintainability
+- Extensibility
+- Performance
+- Operability
+- Resilience
+one_line_summary: Netflix service registry organized as a Layered WAR application (REST resources → registry business logic → in-memory lease store) extended by a Microkernel adapter layer for swappable HTTP transport, configuration, and DI bootstrap modules.
+classification_reasoning: "## Architecture Analysis: Netflix Eureka\n\n### Primary Classification:\
+  \ Layered + Microkernel\n\nEureka produces a single WAR file (`eureka-server`) from a Gradle\
+  \ multi-project build. The server-side codebase is strictly **Layered** with three horizontal\
+  \ tiers:\n\n1. **REST / Presentation Layer** (`eureka-core/resources/`): JAX-RS annotated\
+  \ classes (`ApplicationsResource`, `InstanceResource`, `VIPResource`, `PeerReplicationResource`,\
+  \ `StatusResource`). Zero business logic — delegates all operations to `PeerAwareInstanceRegistry`\
+  \ via `EurekaServerContext`.\n\n2. **Business Logic / Registry Layer** (`eureka-core/registry/`,\
+  \ `cluster/`, `aws/`): `AbstractInstanceRegistry` implements register, renew, cancel, eviction,\
+  \ and delta computation. `PeerAwareInstanceRegistryImpl` adds peer replication.\
+  \ `PeerEurekaNodes` manages HTTP replication to sibling servers.\n\n3. **Data / State Layer**:\
+  \ `ConcurrentHashMap<String, Map<String, Lease<InstanceInfo>>>` in `AbstractInstanceRegistry`;\
+  \ `ResponseCacheImpl` (Guava cache); `Lease<T>` model. No persistent database — intentionally\
+  \ in-memory only.\n\nLayered dependency chain: `ApplicationsResource \u2192 PeerAwareInstanceRegistry\
+  \ \u2192 ConcurrentHashMap registry`. No cross-layer violations — `AbstractInstanceRegistry`\
+  \ contains zero JAX-RS imports; `ApplicationsResource` contains zero registry data structures.\n\n\
+  ### Microkernel (co-primary)\n\nThe stable kernel (`eureka-core`, `eureka-client`) exposes\
+  \ explicit extension points formalized as separate Gradle modules:\n\n- **Transport adapters**:\
+  \ `EurekaHttpClient` port interface; Jersey 1 default (`JerseyApplicationClient`); Jersey 2\
+  \ replacement in `eureka-client-jersey2` module.\n- **Configuration adapters**: Archaius 1.x\
+  \ default (`DefaultEurekaClientConfig`); Archaius 2.x replacement in `eureka-client-archaius2`\
+  \ module.\n- **DI/Bootstrap adapters**: `eureka-server` (Jersey 1 + manual bootstrap);\
+  \ `eureka-server-governator` (Netflix Governator DI) as an alternate WAR.\n- **AWS binding\
+  \ adapters**: `AwsBinder` port with `AwsBinderDelegate`; EIP, ENI, Route53 binder implementations\
+  \ in `eureka-core/aws/`.\n- **Decorator chain**: `EurekaHttpClientDecorator` enables wrapping\
+  \ transport with retry, sessions, redirects, metrics without modifying the core.\n\nThe Guice\
+  \ `EurekaModule.configure()` uses `Modules.override()` as the runtime extension mechanism:\
+  \ `bind(EurekaClient.class).to(DiscoveryClient.class)` is the default wiring, overridable\
+  \ per-deployment.\n\n### What This Is NOT\n\n- **NOT Microservices**: Single WAR deployment;\
+  \ `eureka-client` is a library embedded in both the server and client applications.\n- **NOT\
+  \ Modular Monolith**: Module boundaries are technical adapter swaps, not domain-bounded contexts.\
+  \ Eureka has one domain (service registration); no domain modules exist.\n- **NOT Hexagonal**:\
+  \ Servo metrics imports permeate the registry layer; dependencies do not point strictly inward.\
+  \ The `EurekaMonitors` cross-cutting concern exists at the business logic tier.\n- **NOT\
+  \ Event-Driven**: All communication is synchronous REST. Peer replication is HTTP batch\
+  \ requests (`ReplicationTaskProcessor`); no message brokers or event buses.\n\n### Confidence\
+  \ Rationale: 0.90\n\n- Layered classification is unambiguous from direct code inspection:\
+  \ zero cross-tier coupling violations across all three layers.\n- Microkernel classification\
+  \ is strongly supported by explicit multi-module adapter structure and `Modules.override()`\
+  \ design. Build-time rather than runtime plugin loading is a recognized Microkernel variant.\n\
+  - The prior classification (Layered + Hexagonal) is revised: Hexagonal requires the domain\
+  \ layer to have zero external imports, which Eureka violates via Servo metrics throughout\
+  \ `AbstractInstanceRegistry`. The Microkernel pattern better describes the deliberate\
+  \ adapter-module architecture."
