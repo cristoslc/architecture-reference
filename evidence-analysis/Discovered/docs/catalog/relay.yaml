@@ -1,5 +1,5 @@
 project_name: relay
-scope: platform
+scope: service
 use_type: production
 source: Discovered
 source_url: https://github.com/getsentry/relay
@@ -8,36 +8,27 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-07T04:58:24Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Observability
+domain: Event Ingestion / Observability
 language: Rust
 languages:
-- Rust
-- Python
+  - Rust
+  - Python
 architecture_styles:
-- Modular Monolith
+  - Pipeline
+  - Modular Monolith
 classification_status: classified
-review_notes: "The Sentry Relay is structured as a **Modular Monolith** built on top\
-  \ of a custom actor-like framework defined in `relay-system`. While it is a single\
-  \ deployable binary, it is meticulously partitioned into dozens of local crates\
-  \ (over 40 workspace members in `Cargo.toml`), each with strictly defined responsibilities\
-  \ and internal APIs.\n\n### 1. Modular Monolith / Actor System\nThe core of the\
-  \ architecture is defined in `relay-system/src/lib.rs`. It provides a `Service`\
-  \ and `Interface` abstraction that mimics the Actor model. Components communicate\
-  \ by sending messages to an `Addr<T>`. \n- **Internal Boundaries:** The `relay-server`\
-  \ crate acts as the primary orchestrator, but high-level logic is delegated to specialized\
-  \ \"services\" located in `relay-server/src/services/` (e.g., `processor.rs`, `outcome.rs`,\
-  \ `upstream.rs`).\n- **Encapsulation:** By splitting the logic into crates like\
-  \ `relay-event-normalization`, `relay-filter`, and `relay-metrics`, the project\
-  \ enforces compile-time boundary checks. Each module owns its specific logic (PII\
-  \ scrubbing, normalization, etc.), preventing a \"big ball of mud.\"\n\n### 2. Event-Driven\
-  \ (Internal & External)\nThe system is heavily event-driven in two ways:\n- **Internal:**\
-  \ The `relay-system` framework uses asynchronous message passing between services\
-  \ via `tokio` channels, decoupling the HTTP ingestion layer from the processing\
-  \ and forwarding layers."
-review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.75
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: Single binary deployment with 39 modular Rust crates, clear
-  module boundaries, and actor-based services communicating via message passing
+classification_method: deep-analysis
+classification_confidence: 0.88
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Throughput
+  - Reliability
+  - Scalability
+  - Security
+  - Observability
+  - Modifiability
+  - Performance
+  - Operability
+one_line_summary: "Single-binary Rust event ingestion proxy organized as a multi-stage processing pipeline (parse → normalize → filter → sample → rate-limit → PII-scrub → forward) within a modular monolith of ~28 workspace crates backed by an actor-style async service runtime."
+classification_reasoning: "The dominant architectural force in Relay is a deterministic, ordered pipeline through which every SDK envelope must pass before reaching its destination (Kafka or upstream HTTP). The Processor/Forward trait chain in relay-server/src/processing/ formalizes this as a compile-time pipeline contract, and the lib.rs crate-level documentation explicitly illustrates the pipeline with a Mermaid sequence diagram. Each stage (normalize, filter, dynamic-sample, Redis quota, PII-scrub, metrics-extract, Kafka-write) is isolated in its own sub-module and produces typed output consumed by the next. The physical deployment unit is one Rust binary compiled from a single Cargo workspace of ~28 crates (relay-event-normalization, relay-pii, relay-filter, relay-sampling, relay-kafka, relay-quotas, relay-metrics, etc.). Crate visibility rules enforce strict module boundaries at compile time, but no network boundary separates them — all inter-service communication is in-process via the relay-system Addr<I> typed channel primitives. This makes the physical structure a Modular Monolith. Relay produces to Kafka (ingest-events, ingest-transactions, ingest-spans, profiles, ingest-metrics, outcomes) but does not consume from Kafka and does not route internal work via an event broker, so Event-Driven is not a primary style. Two RelayMode variants (Proxy and Managed/Processing) gate full pipeline execution behind a Cargo feature flag, but both modes execute the same single-process pipeline architecture."

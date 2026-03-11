@@ -8,87 +8,31 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:27:03Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Messaging
-language: C/C++
+domain: Streaming Data / Event Streaming
+language: C++
 languages:
-- C/C++
-- Python
-- Go
-- Rust
-- Java/Kotlin
+  - C++
+  - Go
+  - Python
 architecture_styles:
-- Modular Monolith
-- Microkernel
+  - Modular Monolith
+  - Event-Driven
 classification_status: classified
-review_notes: "Redpanda is structured as a **Modular Monolith**. While it serves as\
-  \ a distributed system, the codebase itself is organized into a single high-performance\
-  \ C++ executable (the Redpanda broker) comprising several highly decoupled modules\
-  \ with strict ownership boundaries.\n\n### Core Architectural Analysis\n\n1.  **Modular\
-  \ Monolith**:\n    The directory structure under `src/v/` represents a vertical\
-  \ decomposition of the system's concerns. Each subdirectory acts as a self-contained\
-  \ module with its own domain logic:\n    *   `src/v/storage`: The log-structured\
-  \ persistence engine.\n    *   `src/v/raft`: The consensus algorithm implementation.\n\
-  \    *   `src/v/kafka`: The protocol facade that makes Redpanda Kafka-compatible.\n\
-  \    *   `src/v/cluster`: Logic for membership, partition balancing, and metadata\
-  \ management."
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:55:15Z'
-classification_reasoning: "## Analysis\n\n### Primary Classification: Modular Monolith\n\
-  \n**Evidence for Single Deployable Unit:**\n\n1. **Single Entry Point and Binary:**\
-  \ The repository produces a single `redpanda` binary from `src/v/redpanda/main.cc`,\
-  \ which instantiates one `application` object that orchestrates all functionality:\n\
-  \   ```cpp\n   // src/v/redpanda/main.cc\n   int main(int argc, char** argv, char**\
-  \ /*env*/) {\n       syschecks::initialize_intrinsics();\n       application app;\n\
-  \       debug::app = &app;\n       return app.run(argc, argv);\n   }\n   ```\n\n\
-  2. **Bazel Build Structure:** The root `BUILD` file confirms single deployable targets:\n\
-  \   ```python\n   alias(\n       name = \"redpanda\",\n       actual = \"//src/v/redpanda:redpanda\"\
-  ,\n   )\n   alias(\n       name = \"rpk\",  # Separate CLI tool, not a service\n\
-  \       actual = \"//src/go/rpk/cmd/rpk:rpk_wrapper\",\n   )\n   ```\n\n3. **No\
-  \ Microservice Artifacts:** No k8s manifests, helm charts, or docker-compose for\
-  \ production deployment of multiple services. The `tests/docker/docker-compose.yml`\
-  \ is solely for test infrastructure (minio, mysql for integration tests).\n\n**Evidence\
-  \ for Enforced Internal Module Boundaries:**\n\n1. **Clear Directory-Based Module\
-  \ Separation:** The `src/v/` directory contains 50+ well-separated modules:\n  \
-  \ - `cluster/` - Cluster management and metadata (284 files)\n   - `kafka/` - Kafka\
-  \ protocol implementation\n   - `raft/` - Raft consensus implementation\n   - `storage/`\
-  \ - Storage layer\n   - `cloud_storage/` - Tiered storage to S3/GCS/Azure\n   -\
-  \ `transform/` - Data transforms framework\n   - `wasm/` - WebAssembly runtime\n\
-  \   - `pandaproxy/` - HTTP proxy and schema registry\n\n2. **Bazel Build Enforcement:**\
-  \ Each module has its own `BUILD` file with explicit dependencies, preventing circular\
-  \ dependencies and enforcing boundaries at compile time.\n\n3. **Internal Communication\
-  \ via Defined Interfaces:** The `application.h` class shows explicit wiring of 50+\
-  \ sharded services with clear dependency injection patterns:\n   ```cpp\n   ss::sharded<cluster::partition_manager>\
-  \ partition_manager;\n   ss::sharded<cluster::metadata_cache> metadata_cache;\n\
-  \   ss::sharded<kafka::group_router> group_router;\n   ss::sharded<storage::api>\
-  \ storage;\n   ss::sharded<raft::group_manager> raft_group_manager;\n   ```\n\n\
-  4. **Controller Pattern:** A central `cluster::controller` class coordinates cross-cutting\
-  \ concerns with explicit sharded service references, not loose coupling through\
-  \ events.\n\n### Secondary Classification: Microkernel (Plugin)\n\n**Evidence for\
-  \ Plugin Architecture:**\n\n1. **WebAssembly Data Transforms:** The system has a\
-  \ full plugin infrastructure for user-defined transformations:\n   - `src/v/wasm/`\
-  \ - Wasmtime-based WASM runtime engine\n   - `src/v/transform/` - Transform management\
-  \ and execution framework\n   - `src/transform-sdk/` - SDKs for C++, Go, Python,\
-  \ JavaScript\n\n2. **Plugin Frontend:** Explicit plugin management service (`src/v/cluster/plugin_frontend.h`):\n\
-  \   ```cpp\n   // The plugin frontend takes care of all (WASM) plugin related functionality\n\
-  \   class plugin_frontend : public ss::peering_sharded_service<plugin_frontend>\
-  \ {\n       ss::future<errc> upsert_transform(model::transform_metadata, ...);\n\
-  \       ss::future<mutation_result> remove_transform(model::transform_name, ...);\n\
-  \   };\n   ```\n\n3. **Runtime Plugin Loading:** From `src/v/wasm/README.md`: \"\
-  A factory represents a compiled artifact that can cheaply be made into engines for\
-  \ a given core. Since compilation and the resulting artifacts are very expensive,\
-  \ we only create one per process.\"\n\n### Rejected Classifications\n\n- **Not Microservices:**\
-  \ No independent service deployments. Everything runs in one process. No inter-service\
-  \ communication protocols (REST/gRPC between services).\n\n- **Not Event-Driven:**\
-  \ While Redpanda IS an event streaming platform, its internal architecture uses\
-  \ direct method calls, futures/promises (Seastar), and Raft consensus—not internal\
-  \ event queues or message brokers between components.\n\n- **Not Layered:** While\
-  \ there are clear concerns (protocol, business logic, storage), the architecture\
-  \ doesn't follow strict horizontal layering. Modules communicate laterally through\
-  \ direct sharded service references.\n\n- **Not Service-Based:** There aren't 2-5\
-  \ coarse-grained services sharing a database. It's a single cohesive application\
-  \ with many internal modules.\n\n- **Not Hexagonal:** No explicit ports/adapters\
-  \ pattern. The application uses direct dependency injection rather than inverted\
-  \ dependencies through interfaces."
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Performance
+  - Scalability
+  - Reliability
+  - Durability
+  - Throughput
+  - Availability
+  - Extensibility
+  - Observability
+  - Security
+  - Operability
+one_line_summary: "Apache Kafka-compatible distributed streaming platform implemented as a single C++ binary with ~30 well-bounded internal modules (Modular Monolith) organized around a Raft-replicated distributed log as the authoritative event source (Event-Driven)."
+classification_reasoning: "Redpanda compiles to one process containing all runtime subsystems — raft, cluster, storage, kafka, pandaproxy, schema_registry, cloud_storage, cloud_topics, transform, wasm, datalake, security, rpc, net, config, model — each in its own C++ namespace and Bazel BUILD target, wired by injected references to Seastar sharded services (ss::sharded<T>). This is a textbook Modular Monolith: firm module boundaries enforced at compile time by Bazel, no inter-process boundary between modules on the same node, single deployment unit. The rpk CLI is a separate Go binary but is a management tool only. Event-Driven is co-primary: the product is a distributed event-streaming platform (Kafka produce/consume); internally every durable state change is encoded as a Raft command making the controller Raft log the authoritative event source for the entire cluster; state machines (rm_stm, tm_stm, id_allocator_stm, archival_metadata_stm, transform_offsets_stm, datalake state machines) react to log entries as events; the transform control plane is explicitly documented (transform/README.md) as an event-emitting loop reacting to Raft leadership and data-plane error events; the cloud-topics write path is a sequential event pipeline through object storage and Raft placeholder replication. Microservices is ruled out — no inter-process HTTP/gRPC boundaries exist between runtime modules on the same node. Microkernel is ruled out — the Wasm/transform plugin system is a feature of one module (transform/wasm), not a system-wide microkernel organizing principle. CQRS is ruled out — no separate read/write models at the system level. Hexagonal is ruled out — ports-and-adapters is not the system-wide organizing principle."

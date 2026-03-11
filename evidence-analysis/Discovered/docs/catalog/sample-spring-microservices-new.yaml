@@ -9,76 +9,91 @@ discovered_at: '2026-03-06T05:25:04Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Developer Tools
-language: Java/Kotlin
+language: Java
 languages:
-- Java/Kotlin
+- Java
 architecture_styles:
 - Microservices
 classification_status: classified
-review_notes: "The repository is a textbook implementation of a **Microservices**\
-  \ architecture using the Spring Cloud ecosystem. The codebase is structured into\
-  \ multiple independent Maven modules, each representing a distinct deployment unit\
-  \ with its own lifecycle, configuration, and responsibility.\n\n### Evidence of\
-  \ Microservices\n1.  **Independent Services**: The root directory contains separate\
-  \ modules for `employee-service`, `department-service`, and `organization-service`.\
-  \ According to the README, these are independent microservices that communicate\
-  \ with each other (e.g., `organization-service` calls `employee-service`).\n2. \
-  \ **Infrastructure Components**: The architecture includes dedicated modules for\
-  \ standard microservice patterns:\n    *   **Service Discovery**: `discovery-service`\
-  \ (Eureka/Nacos) for dynamic service registration and lookup.\n    *   **API Gateway**:\
-  \ `gateway-service` (Zuul/Spring Cloud Gateway) acting as the entry point and proxy.\n\
-  \    *   **Externalized Configuration**: `config-service` (Spring Cloud Config)\
-  \ to manage environment-specific properties across services.\n3.  **Deployment Orchestration**:\
-  \ The presence of a root-level `docker-compose.yml` and a `Jenkinsfile` in `config-service`\
-  \ indicates that these services are intended to be containerized and deployed independently\
-  \ or as a coordinated swarm.\n4.  **Distributed Tracing**: The README mentions integration\
-  \ with Zipkin and Micrometer Tracing, which are used to observe requests as they\
-  \ flow across service boundaries."
+one_line_summary: Spring Cloud microservices reference with Eureka, Config Server, API Gateway, and OpenFeign inter-service communication.
+review_notes: "The repository is a textbook implementation of a Microservices architecture\
+  \ using the Spring Cloud ecosystem. The codebase is structured into six independent\
+  \ Maven modules, each representing a distinct deployment unit with its own lifecycle,\
+  \ configuration, and responsibility: employee-service, department-service, organization-service,\
+  \ gateway-service, config-service, and discovery-service. Business services communicate\
+  \ synchronously via OpenFeign HTTP clients; there is no message broker, no shared\
+  \ database, and no asynchronous event bus. Distributed tracing is provided via\
+  \ OpenTelemetry and Zipkin. The architecture demonstrates canonical Spring Cloud\
+  \ patterns: service discovery (Eureka), centralized configuration (Spring Cloud Config),\
+  \ API gateway routing with load balancing, and dynamic port assignment for horizontal scaling."
 review_required: false
 classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:55:15Z'
-classification_reasoning: "## Analysis\n\nThis repository demonstrates a clear **Microservices\
-  \ architecture** implemented with Spring Cloud. The evidence is unambiguous:\n\n\
-  ### Multiple Independently Deployable Services\n\nThe codebase consists of **6 separate\
-  \ deployable units**, each built as an independent Spring Boot application with\
-  \ its own container image:\n\n| Service | Purpose | Docker Image |\n|---------|---------|--------------|\n\
-  | `employee-service` | Employee CRUD operations | `piomin/employee-service:1.2-SNAPSHOT`\
-  \ |\n| `department-service` | Department CRUD operations | `piomin/department-service:1.2-SNAPSHOT`\
-  \ |\n| `organization-service` | Organization CRUD operations | `piomin/organization-service:1.2-SNAPSHOT`\
+classification_confidence: 0.97
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+classification_reasoning: "## Analysis\n\nThis repository is an unambiguous **Microservices**\
+  \ architecture implemented with Spring Cloud.\n\n### Six Independently Deployable\
+  \ Services\n\nThe root `pom.xml` declares six Maven modules, each building a separate\
+  \ Spring Boot application with its own Docker image:\n\n| Service | Purpose | Image\
+  \ |\n|---------|---------|-------|\n| `employee-service` | Employee CRUD | `piomin/employee-service:1.2-SNAPSHOT`\
+  \ |\n| `department-service` | Department CRUD | `piomin/department-service:1.2-SNAPSHOT`\
+  \ |\n| `organization-service` | Organization CRUD | `piomin/organization-service:1.2-SNAPSHOT`\
   \ |\n| `gateway-service` | API Gateway | `piomin/gateway-service:1.1-SNAPSHOT` |\n\
-  | `config-service` | Centralized configuration | `piomin/config-service:1.1-SNAPSHOT`\
-  \ |\n| `discovery-service` | Service registry (Eureka) | `piomin/discovery-service:1.1-SNAPSHOT`\
-  \ |\n\n**Evidence:** `pom.xml` defines 6 Maven modules; `docker-compose.yml` defines\
-  \ 7 containers (including Zipkin).\n\n### Each Service Owns Its Data\n\nEach business\
-  \ service has its own data repository isolated from others:\n- `EmployeeRepository`\
-  \ in `employee-service` (`EmployeeRepository.java`)\n- `DepartmentRepository` in\
-  \ `department-service`  \n- `OrganizationRepository` in `organization-service`\n\
-  \nAll use in-memory storage with no shared database — clear data ownership boundaries.\n\
-  \n### Service Discovery and Registration\n\nAll business services register with\
-  \ Eureka:\n```xml\n<!-- employee-service/pom.xml, department-service/pom.xml, organization-service/pom.xml\
-  \ -->\n<dependency>\n    <groupId>org.springframework.cloud</groupId>\n    <artifactId>spring-cloud-starter-netflix-eureka-client</artifactId>\n\
-  </dependency>\n```\n\n### API Gateway Pattern\n\n`gateway-service` implements Spring\
-  \ Cloud Gateway (`GatewayApplication.java`):\n- Routes requests to downstream services\n\
-  - Dynamically discovers services via Eureka\n- Aggregates Swagger UI across all\
-  \ microservices\n\n### Inter-Service Communication via OpenFeign\n\nServices communicate\
-  \ synchronously through declarative HTTP clients:\n- `department-service` → `employee-service`\
-  \ via `EmployeeClient` (`@FeignClient(name = \"employee-service\")`)\n- `organization-service`\
-  \ → `employee-service` and `department-service` via respective clients\n\n### Infrastructure\
-  \ Services\n\n- **Config Server** (`config-service`): Externalized configuration\n\
-  - **Discovery Server** (`discovery-service`): Netflix Eureka\n- **Distributed Tracing**:\
-  \ Zipkin integration with OpenTelemetry\n\n---\n\n### Styles Rejected\n\n- **Service-Based**:\
-  \ Rejected because there are 6 fine-grained independently deployable services, not\
-  \ 2-5 coarse-grained services sharing a database. This is the key distinction.\n\
-  \n- **Layered**: Rejected because there is no horizontal layering across the application.\
-  \ Each service has its own controller/repository, but these are isolated within\
-  \ service boundaries, not shared layers.\n\n- **Modular Monolith**: Rejected because\
-  \ this is explicitly NOT a single deployable — each service builds its own Docker\
-  \ image and runs in its own container.\n\n- **Event-Driven**: Rejected because communication\
-  \ is synchronous HTTP via OpenFeign. No message broker (Kafka, RabbitMQ) is present\
-  \ in dependencies or docker-compose.\n\n- **Hexagonal Architecture**: Rejected because\
-  \ there are no explicit ports/adapters patterns. Services use standard Spring MVC\
-  \ controllers with in-memory repositories, not dependency inversion through interfaces.\n\
-  \nThis is a textbook example of Spring Cloud microservices architecture with all\
-  \ the canonical infrastructure components."
+  | `config-service` | Config Server | `piomin/config-service:1.1-SNAPSHOT` |\n\
+  | `discovery-service` | Eureka Server | `piomin/discovery-service:1.1-SNAPSHOT`\
+  \ |\n\n`docker-compose.yml` confirms seven containers (six services + Zipkin) with\
+  \ health-check ordered startup.\n\n### Isolated Data Ownership\n\nEach business\
+  \ service owns its own in-memory repository with no shared state: `EmployeeRepository`,\
+  \ `DepartmentRepository`, `OrganizationRepository`. No shared database exists.\n\
+  \n### Service Discovery\n\nAll business services register with Eureka (`spring-cloud-starter-netflix-eureka-client`\
+  \ in each POM; `@EnableDiscoveryClient` on application classes). `discovery-service`\
+  \ runs `@EnableEurekaServer`.\n\n### Synchronous OpenFeign Communication\n\n- `department-service`\
+  \ -> `employee-service` via `@FeignClient(name = \"employee-service\")`\n- `organization-service`\
+  \ -> `employee-service` and `department-service` via respective Feign clients\n\
+  \nAll calls are synchronous HTTP. Zero references to Kafka, RabbitMQ, or any message\
+  \ broker in source or config.\n\n### API Gateway\n\n`gateway-service` uses Spring\
+  \ Cloud Gateway with `lb://` URIs for load-balanced routing to all three business\
+  \ services. Routes are defined in config-service YAML.\n\n### Centralized Configuration\n\
+  \n`config-service` serves 11 per-service YAML files from classpath via Spring Cloud\
+  \ Config Server (native mode).\n\n### Distributed Tracing\n\nAll business services\
+  \ depend on `micrometer-tracing-bridge-otel` + `opentelemetry-exporter-zipkin`\
+  \ with 100% sampling probability.\n\n### Styles Rejected\n\n- **Event-Driven**:\
+  \ No message broker, no async consumers, all calls are blocking OpenFeign HTTP.\n\
+  - **Service-Based**: Fine-grained single-entity services with isolated data stores;\
+  \ no shared database pattern.\n- **Modular Monolith**: Six separate container images;\
+  \ no single deployable artifact.\n- **Layered**: No shared horizontal technical\
+  \ layers across services.\n- **Hexagonal**: No ports-and-adapters structure; standard\
+  \ Spring MVC controllers and plain repositories.\n- **CQRS**: No read/write model\
+  \ separation.\n- **DDD**: Simple POJO entities with no aggregates, value objects,\
+  \ or domain events."
+key_technologies:
+- Spring Boot 4.0
+- Spring Cloud 2025.1.1
+- Spring Cloud Netflix Eureka
+- Spring Cloud Gateway
+- Spring Cloud Config
+- Spring Cloud OpenFeign
+- Micrometer Tracing (OpenTelemetry)
+- Zipkin
+- Docker Compose
+- Maven
+quality_attributes:
+- Scalability
+- Deployability
+- Observability
+- Maintainability
+- Discoverability
+notable_strengths:
+- Textbook Spring Cloud microservices patterns — excellent learning reference
+- Full infrastructure stack included (discovery, config, gateway, tracing)
+- Dynamic port assignment enables multi-instance Eureka registration out of the box
+- Aggregated Swagger UI across all services via the gateway
+notable_gaps:
+- No circuit breaker or retry logic (no Resilience4j)
+- In-memory repositories only — no persistent storage
+- No authentication or authorization layer
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false

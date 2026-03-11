@@ -4,7 +4,7 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/cloudevents/sdk-go
 project_url: https://github.com/cloudevents/sdk-go
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-07T04:56:43Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
@@ -16,61 +16,129 @@ architecture_styles:
 - Microkernel
 - Hexagonal Architecture
 classification_status: classified
-review_notes: "The Go SDK for CloudEvents is structured using **Hexagonal Architecture**\
-  \ (Ports and Adapters). The codebase is designed to isolate the core domain—the\
-  \ `CloudEvent` entity and its manipulation logic—from the numerous transport protocols\
-  \ (HTTP, Kafka, NATS, AMQP, etc.) that carry these events.\n\n### Reasoning:\n\n\
-  1.  **Core Domain Isolation (The Hexagon):**\n    The core \"inside\" of the application\
-  \ is the `v2/event` and `v2/binding` logic. This layer defines how a CloudEvent\
-  \ is represented in memory and provides abstract interfaces for handling them. The\
-  \ presence of `v2/binding/message.go` and `v2/binding/transformer.go` acts as the\
-  \ primary \"Port,\" defining a generic protocol-agnostic way to interact with an\
-  \ event regardless of its wire format.\n\n2.  **Adapters (The Outside):**\n    The\
-  \ repository contains a vast collection of adapters located in the `protocol/` directory\
-  \ (e.g., `protocol/amqp`, `protocol/kafka_sarama`, `protocol/nats`). Each of these\
-  \ sub-modules implements the logic to map technology-specific envelopes (like a\
-  \ Kafka message or an HTTP request) into the core `CloudEvent` model. These are\
-  \ classic \"Adapters\" that connect the core logic to external infrastructure."
+classification_confidence: 0.90
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: >-
+  CNCF CloudEvents Go SDK — a Microkernel library with a stable kernel (v2/event,
+  v2/binding, v2/client) and nine independently-versioned protocol plugins (AMQP,
+  Kafka, NATS, MQTT, Pub/Sub, WebSocket) that implement kernel-defined interfaces.
+quality_attributes:
+- Extensibility
+- Portability
+- Interoperability
+- Modularity
+- Observability
+- Testability
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: >-
+    The kernel's v2/protocol and v2/binding packages define explicit ports (Sender,
+    Receiver, Message interfaces); each protocol module is an adapter. Core isolation
+    is strict — v2/ imports no concrete protocol implementations.
+key_technologies:
+- CloudEvents 1.0 / 0.3
+- Go modules (multi-module workspace)
+- AMQP
+- Apache Kafka (Sarama, Confluent)
+- NATS / NATS JetStream
+- MQTT (Paho)
+- Google Cloud Pub/Sub
+- WebSocket
+- OpenTelemetry
+- OpenCensus
+- ANTLR4 (CESQL expression parser)
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:56:57Z'
-classification_reasoning: "## Analysis\n\nThe **sdk-go** repository implements a **Microkernel\
-  \ (Plugin)** architecture with a minimal core system extended by independently developed\
-  \ protocol binding plugins.\n\n### Core System Evidence\n\nThe `v2/` module serves\
-  \ as the minimal core:\n\n- **`v2/protocol/`** defines the plugin contract through\
-  \ interfaces (`Sender`, `Receiver`, `Requester`, `Responder`, `Closer`, `Opener`\
-  \ in `inbound.go`, `outbound.go`, `lifecycle.go`)\n- **`v2/binding/`** defines the\
-  \ message transformation pipeline (`Message`, `Transformer`, `MessageReader`)\n\
-  - **`v2/client/`** provides the application-facing API that accepts any plugin implementation\n\
-  - **`v2/event/`** provides the canonical event model\n\n### Plugin Architecture\
-  \ Evidence\n\nThe `protocol/` directory contains **9 independently versioned protocol\
-  \ plugins**:\n- `amqp/`, `kafka_confluent/`, `kafka_sarama/`, `mqtt_paho/`, `nats/`,\
-  \ `nats_jetstream/`, `pubsub/`, `stan/`, `ws/`\n\nEach plugin:\n1. **Has its own\
-  \ Go module** (`go.mod` with unique module path like `github.com/cloudevents/sdk-go/protocol/kafka_sarama/v2`)\n\
-  2. **Implements core interfaces** with explicit conformance assertions:\n   ```go\n\
-  \   var _ protocol.Receiver = (*Protocol)(nil)\n   var _ protocol.Sender = (*Protocol)(nil)\n\
-  \   ```\n3. **Depends only on the core**, not other plugins (e.g., `protocol/nats/v2/protocol.go`\
-  \ imports only `github.com/cloudevents/sdk-go/v2/binding` and `v2/protocol`)\n\n\
-  ### Extension Mechanism\n\nThe client uses **duck typing to discover plugin capabilities**\
-  \ (`v2/client/client.go` lines 65-79):\n```go\nfunc New(obj interface{}, opts ...Option)\
-  \ (Client, error) {\n    if p, ok := obj.(protocol.Sender); ok {\n        c.sender\
-  \ = p\n    }\n    if p, ok := obj.(protocol.Requester); ok {\n        c.requester\
-  \ = p\n    }\n    // ... etc\n}\n```\n\nThis allows plugins to be mixed and matched—users\
-  \ import only the protocols they need.\n\n### Additional Plugin Categories\n\nThe\
-  \ `observability/` directory provides **observability plugins** (OpenCensus, OpenTelemetry)\
-  \ following the same pattern—separate modules extending core capabilities.\n\n###\
-  \ Why Hexagonal Architecture as Secondary\n\nThe architecture exhibits **ports and\
-  \ adapters characteristics**:\n- **Ports**: The interfaces in `v2/protocol/` (`Sender`,\
-  \ `Receiver`, etc.) and `v2/binding/` (`Message`, `StructuredWriter`, `BinaryWriter`)\n\
-  - **Adapters**: Each protocol implementation adapts external systems (NATS, Kafka,\
-  \ AMQP) to the port interfaces\n- **Core isolation**: The `client/` package depends\
-  \ only on abstractions, never concrete implementations\n\nHowever, the **primary\
-  \ architectural driver** is the plugin extensibility pattern rather than application-level\
-  \ hexagonal design—this is an SDK, not a business application.\n\n### What Was Rejected\n\
-  \n- **Layered**: No horizontal layering exists (no presentation/business/data separation)\n\
-  - **Modular Monolith**: Not a single deployable unit; each protocol is independently\
-  \ importable\n- **Event-Driven**: While CloudEvents handles events, the SDK's internal\
-  \ architecture uses direct interface calls, not event-based communication\n- **Service-Based/Microservices**:\
-  \ This is a library, not a deployed system of services"
+classification_reasoning: |
+  ## Architecture Classification Analysis
+
+  ### Primary: Microkernel
+
+  The cloudevents/sdk-go repository is a textbook Microkernel (Plugin) architecture.
+  The evidence is consistent across module boundaries, interface definitions, and
+  dependency graphs.
+
+  **1. Stable kernel module (v2/)**
+
+  The core is the single `github.com/cloudevents/sdk-go/v2` module. Its `v2/go.mod`
+  has zero dependency on any protocol or observability implementation. It contains:
+
+  - `v2/event`: canonical `Event` struct + `EventContext` for spec versions 0.3 and 1.0
+  - `v2/binding`: `Message`, `MessageReader`, `Transformer` — the primary plugin contract
+  - `v2/protocol`: `Sender`, `Receiver`, `Requester`, `Responder`, `Opener`, `Closer`
+    interfaces — the extension points
+  - `v2/client`: plugin host; accepts any object implementing the protocol interfaces
+  - `v2/types`, `v2/context`, `v2/extensions`, `v2/observability`: shared utilities
+
+  **2. Interface-defined extension points**
+
+  `v2/protocol/inbound.go` and `v2/protocol/outbound.go` define the five capability
+  interfaces plugins may implement. The kernel does not care which subset a plugin
+  satisfies — missing capabilities are simply absent.
+
+  **3. Plugin host via duck typing**
+
+  `v2/client/client.go` discovers plugin capabilities at construction time through
+  Go interface type assertions (lines 65-79):
+
+      if p, ok := obj.(protocol.Sender); ok     { c.sender = p }
+      if p, ok := obj.(protocol.Requester); ok  { c.requester = p }
+      if p, ok := obj.(protocol.Responder); ok  { c.responder = p }
+      if p, ok := obj.(protocol.Receiver); ok   { c.receiver = p }
+      if p, ok := obj.(protocol.Opener); ok     { c.opener = p }
+
+  This is the canonical Microkernel plugin-host pattern.
+
+  **4. Nine independently-versioned protocol plugins**
+
+  The `protocol/` directory contains nine sub-modules, each with its own `go.mod`:
+  amqp, kafka_confluent, kafka_sarama, mqtt_paho, nats, nats_jetstream,
+  nats_jetstream/v3, pubsub, stan, ws. Two observability plugins (opencensus,
+  opentelemetry) follow the same pattern by implementing `client.ObservabilityService`.
+
+  Each plugin:
+  - Imports only `github.com/cloudevents/sdk-go/v2/binding` and `v2/protocol`; never
+    imports another plugin.
+  - Declares compile-time conformance assertions (e.g.,
+    `var _ protocol.Sender = (*Protocol)(nil)`).
+  - Uses a `replace` directive to reference the local kernel during development.
+
+  **5. Selective import = selective inclusion**
+
+  Adopters import only the protocol they need:
+  `go get github.com/cloudevents/sdk-go/protocol/kafka_sarama/v2`.
+  Unused plugins add zero weight to the final binary. This is Microkernel's defining
+  deployment characteristic.
+
+  ### Secondary Design Approach: Hexagonal (Ports and Adapters)
+
+  The kernel boundary exhibits textbook ports-and-adapters structuring:
+  - Ports: `v2/protocol` interfaces and `v2/binding` interfaces
+  - Adapters: each protocol module adapting an external broker to the port interfaces
+  - Core isolation: `v2/client` and `v2/event` depend only on abstractions
+
+  Hexagonal isolation reinforces the Microkernel model but is a structural design
+  approach, not the topology-defining style. It belongs in `architecture_qualifiers`.
+
+  ### Rejected Styles
+
+  - **Layered**: No horizontal layering (presentation/business/data). The dominant
+    axis is vertical plugin extension.
+  - **Modular Monolith**: Plugins are independently importable Go modules, not
+    modules within a single deployable unit.
+  - **Event-Driven**: The SDK transports CloudEvents but internally uses direct
+    synchronous interface calls between its own components. No event bus between
+    kernel and plugins.
+  - **Pipeline**: The `binding.Transformer` chain is an intra-message encoding
+    detail within the write path, not the system's primary topology.
+  - **Microservices / Service-Based**: This is a library, not a deployed service mesh.
+  - **CQRS / DDD / Serverless / Space-Based / Multi-Agent**: None of these topologies
+    appear as organizing principles in the codebase.
+  - **Indeterminate**: Architecture is clear and consistent throughout.

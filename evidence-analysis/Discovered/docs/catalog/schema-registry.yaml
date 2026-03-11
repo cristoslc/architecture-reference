@@ -5,45 +5,107 @@ source: Discovered
 source_url: https://github.com/confluentinc/schema-registry
 project_url: https://github.com/confluentinc/schema-registry
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T04:47:47Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Data Processing
-language: Java/Kotlin
+domain: Schema Management
+language: Java
 languages:
-- Java/Kotlin
+- Java
+- Kotlin
 architecture_styles:
-- Layered
+- Modular Monolith
 - Microkernel
+- Layered
 classification_status: classified
-review_notes: 'The Confluent Schema Registry is structured as a **Microkernel (Plugin)**
-  architecture built within a **Modular Monolith** containing a specialized **Event-Driven**
-  storage engine.
-
-
-  ### 1. Primary Style: Microkernel (Plugin)
-
-  The system''s core capability (storing and validating schemas) is designed to be
-  extensible through a plugin architecture. Although the specific `SchemaProvider.java`
-  file was not found under `core/src/main/java`, the `SchemaRegistryConfig.java` defines
-  a `SCHEMA_PROVIDERS_CONFIG` constant and the `pom.xml` reveals a highly modular
-  structure where support for different schema formats (Avro, Protobuf, JSON Schema)
-  is implemented in separate modules:
-
-  - `protobuf-provider`, `json-schema-provider`, `avro-data`
-
-  - `protobuf-serializer`, `json-schema-serializer`, `avro-serializer`
-
-  - `client-encryption-aws`, `client-encryption-azure`, `client-encryption-hcvault`
-
-
-  The system loads these "providers" at runtime to extend the registry''s support
-  to new schema types and encryption backends without modifying the `core` server
-  logic.'
+one_line_summary: Single-process schema registry built as a Maven multi-module monolith
+  with a microkernel plugin system for schema providers, REST extensions, and ID generators,
+  layered internally as REST resources -> domain service -> Kafka-backed storage.
+review_notes: 30+ Maven modules in one deployable JVM process; three formal plugin extension
+  points (SchemaProvider, SchemaRegistryResourceExtension, IdGenerator); DEK registry
+  installs itself as a plugin via DekRegistryResourceExtension; strict three-layer
+  structure within core (REST -> KafkaSchemaRegistry -> KafkaStore/InMemoryCache);
+  leader election via Kafka consumer group protocol; all writes serialized through
+  the leader and propagated via compacted _schemas topic.
 review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.88
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: Single-deployed REST service with layered request handling
-  (REST-Business-Storage via Kafka) and pluggable schema providers
+classification_method: deep-analysis
+classification_confidence: 0.91
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Availability
+- Consistency
+- Scalability
+- Schema Compatibility
+- Security
+- Deployability
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Styles:\
+  \ Modular Monolith + Microkernel\n\n**MODULAR MONOLITH (primary, 0.90):** The repository\
+  \ is a Maven multi-module monorepo with 30+ explicitly bounded modules declared\
+  \ in the root `pom.xml`. Despite this modularity, all modules deploy into a single\
+  \ JVM process via the `package-schema-registry` assembly. Modules communicate through\
+  \ in-process Java interfaces -- `SchemaRegistry`, `Store<K,V>`, `SchemaProvider`,\
+  \ `IdGenerator` -- rather than over a network. Follower nodes in a multi-node deployment\
+  \ forward writes to the leader over HTTP, but this is a leader-election mechanism,\
+  \ not a service decomposition: all nodes run the same process and code. The full\
+  \ list of primary modules: `core`, `client`, `avro-serializer`, `json-schema-serializer`,\
+  \ `protobuf-serializer`, `avro-serde`, `json-schema-serde`, `protobuf-serde`, `avro-data`,\
+  \ `avro-converter`, `json-schema-converter`, `protobuf-converter`, `schema-rules`,\
+  \ `client-encryption`, `dek-registry`, `client-encryption-aws`, `client-encryption-azure`,\
+  \ `client-encryption-gcp`, `client-encryption-hcvault`, `client-encryption-tink`.\n\
+  \n**MICROKERNEL (primary, 0.87):** Three formal runtime plugin extension points exist\
+  \ in `core`. (1) `SchemaProvider` (interface in `client/src/main/java/io/confluent/kafka/schemaregistry/SchemaProvider.java`)\
+  \ is loaded from a comma-separated `schema.providers` config; built-in providers\
+  \ for Avro, JSON Schema, and Protobuf are registered in `AbstractSchemaRegistry.initProviders()`;\
+  \ custom providers can be dropped in by class name. (2) `SchemaRegistryResourceExtension`\
+  \ (`core/.../rest/extensions/SchemaRegistryResourceExtension.java`) is a JAX-RS\
+  \ plugin loaded from `resource.extension.classes`; the entire `dek-registry` module\
+  \ (`DekRegistryResourceExtension`) uses this interface to register its REST endpoints\
+  \ and storage via Guice/Governator DI without any modification to core routing code.\
+  \ (3) `IdGenerator` (`core/.../id/IdGenerator.java`) is a pluggable ID allocation\
+  \ strategy; `IncrementalIdGenerator` is the default but the contract is open for\
+  \ extension. This pattern mirrors a classic microkernel: a minimal, stable core\
+  \ with well-defined ports into which feature modules are plugged.\n\n### Secondary\
+  \ Style: Layered\n\n**LAYERED (secondary, 0.80):** Within `core`, the code is organized\
+  \ in strict horizontal layers with top-down call flow only. REST presentation layer:\
+  \ `rest/resources/` (SubjectsResource, SchemasResource, CompatibilityResource,\
+  \ ConfigResource, ModeResource, SubjectVersionsResource, ContextsResource, AssociationsResource)\
+  \ -- all plain JAX-RS classes that inject a `SchemaRegistry` and delegate immediately.\
+  \ Domain/service layer: `KafkaSchemaRegistry extends AbstractSchemaRegistry implements\
+  \ LeaderAwareSchemaRegistry` -- all business logic (schema registration, compatibility\
+  \ checking, versioning, subject management, leader-aware write routing). Storage\
+  \ layer: `KafkaStore<K,V> implements Store<K,V>` (Kafka producer + KafkaStoreReaderThread\
+  \ consumer), `InMemoryCache`, `LookupCache`. The compacted Kafka topic `_schemas`\
+  \ is the authoritative durable store; the in-memory cache is reconstructed at startup\
+  \ by replaying the topic from the beginning.\n\n### What Was Rejected and Why\n\n\
+  **Not Microservices:** Although there are many modules, all deploy as one process\
+  \ and communicate in-process. There is no service mesh, no inter-service network\
+  \ calls, no separate databases per bounded context (beyond the dek-registry using\
+  \ its own Kafka topic).\n\n**Not Event-Driven:** Kafka is used as a durable log\
+  \ and in-process cache synchronization mechanism (KafkaStoreReaderThread replays\
+  \ the compacted topic into InMemoryCache), not as an event bus between decoupled\
+  \ services. Both producer and consumer sides are inside the same JVM process.\n\n\
+  **Not Pipeline:** There is no linear processing pipeline. The REST API handles requests\
+  \ synchronously; schema registration is a request/response operation, not a staged\
+  \ data transformation.\n\n**Not Service-Based:** The leader/follower topology is\
+  \ a consistency mechanism within a single service, not a decomposition into separately\
+  \ deployed service groups.\n\n### Quality Attributes Evidence\n\n**EXTENSIBILITY:**\
+  \ Three plugin contracts (SchemaProvider, SchemaRegistryResourceExtension, IdGenerator);\
+  \ DEK registry is a fully functional plugin; cloud KMS backends (AWS/Azure/GCP/HCV)\
+  \ are separate provider modules loaded at runtime.\n\n**AVAILABILITY:** Kafka consumer\
+  \ group leader election (KafkaGroupLeaderElector) provides automatic failover; followers\
+  \ serve reads from local in-memory cache independently of the leader.\n\n**CONSISTENCY:**\
+  \ Single-writer leader model; all writes serialized through the leader to the compacted\
+  \ `_schemas` Kafka topic; KafkaStoreReaderThread propagates to all nodes; leader\
+  \ waits for reader thread catch-up after election.\n\n**SCALABILITY:** Read scaling\
+  \ by adding follower nodes (each serves reads from local Caffeine cache); write\
+  \ scaling limited to the leader node; schema parse cache in AbstractSchemaRegistry\
+  \ reduces re-parse cost.\n\n**SCHEMA COMPATIBILITY:** Compatibility checking (BACKWARD,\
+  \ FORWARD, FULL, TRANSITIVE) in AbstractSchemaRegistry via SchemaProvider.isCompatible();\
+  \ first-class REST operation (CompatibilityResource); CEL/JSONata rule engine in\
+  \ schema-rules module.\n\n**SECURITY:** Field-level encryption (client-encryption\
+  \ + dek-registry); cloud KMS integrations; mTLS/SSL for Kafka and REST; auth extension\
+  \ via SchemaRegistryResourceExtension.\n\n**DEPLOYABILITY:** Single JVM process;\
+  \ Debian packaging; launch scripts; Docker/Kubernetes compatible as a Confluent\
+  \ Platform component."
