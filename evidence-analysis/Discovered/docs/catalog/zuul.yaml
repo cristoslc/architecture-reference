@@ -16,94 +16,90 @@ architecture_styles:
 - Pipeline
 - Microkernel
 classification_status: classified
-review_notes: '### Analysis
-
-
-  Netflix Zuul is architecturally structured as a **Microkernel (Plugin)** system,
-  specifically designed around a "Filter" chain mechanism. While it functions as a
-  gateway, its internal code organization is defined by a stable core that manages
-  the lifecycle of request/response cycles and a set of dynamically loadable or pluggable
-  filters that implement the actual logic.
-
-
-  #### 1. Microkernel (Plugin)
-
-  The core of the system (`zuul-core`) provides the infrastructure for request handling,
-  session management, and metric collection, but it contains very little hardcoded
-  business or routing logic. The primary extension point is the **Zuul Filter**.
-
-  - **`zuul-core`**: Acts as the microkernel. It manages the Netty pipeline, connection
-  pooling, and the execution engine for filters.
-
-  - **`zuul-processor`**: Likely handles the annotation processing or compilation
-  of filters (Zuul is famous for its ability to load Groovy filters from disk at runtime
-  without restarting).
-
-  - **Extensibility**: The README and linked Wiki documentation emphasize that almost
-  all functionality (auth, routing, logging, throttling) is implemented as individual
-  filters that plug into the core''s lifecycle hooks.'
+classification_method: deep-analysis
+classification_confidence: 0.93
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: Async non-blocking L7 API gateway whose every request traverses
+  a strict three-stage filter pipeline (INBOUND→ENDPOINT→OUTBOUND) over a Microkernel
+  core that provides the Netty execution engine and filter-plugin infrastructure.
+architecture_qualifiers:
+- gateway
+- proxy-topology
+- pipe-and-filter
+- plugin-model
+- async-nonblocking
+quality_attributes:
+  performance: Non-blocking Netty event loop with native epoll/io_uring; RxJava async
+    filter execution; per-server connection pools; JMH-benchmarked core paths.
+  extensibility: Formal @Filter annotation plugin model; compile-time annotation-processor
+    discovery (META-INF/zuul/allfilters); runtime DynamicFilterLoader class loading;
+    injectable FilterFactory; @ApplyAfter/@ApplyBefore declarative ordering.
+  resilience: Per-origin concurrency limits; ProxyEndpoint retry with RequestAttempts;
+    OriginThrottledException circuit-breaker hook; graceful shutdown via ClientConnectionsShutdown;
+    idle-timeout and connection-expiry handlers.
+  observability: Spectator metrics (HttpMetricsChannelHandler, ConnectionPoolMetrics,
+    PerEventLoopMetricsChannelHandler); CurrentPassport per-request lifecycle stamping;
+    access log publishing; ZuulStatusCategory error taxonomy.
+  security: Mutual TLS (Http1MutualSslChannelInitializer); TLS-PSK (TlsPskHandler);
+    StripUntrustedProxyHeadersHandler; SslClientCertCheck extension point; ELB and
+    HAProxy proxy-protocol support.
+  scalability: Stateless filter chain per request; DynamicServerResolver tracks Eureka
+    server lists dynamically; per-event-loop connection pools prevent cross-thread
+    contention.
+  maintainability: Single Gradle multi-project build (5 modules); clear package separation
+    by concern; extensive JUnit 5 test coverage; ZuulServerExtension integration test
+    harness.
+  interoperability: HTTP/1.1, HTTP/2, WebSocket, SSE, TLS-PSK; Eureka service discovery;
+    Ribbon client load-balancing; Archaius dynamic configuration; Spectator/Atlas
+    metrics.
+classification_reasoning: "## Analysis\n\nZuul 2 is an L7 application gateway built\
+  \ on Netty deployed as a single JVM application. Its defining architectural principle\
+  \ is the three-stage Pipeline (pipe-and-filter): INBOUND filters \u2192 ENDPOINT\
+  \ filter (ProxyEndpoint) \u2192 OUTBOUND filters. This is not an incidental implementation\
+  \ choice but the explicit public API that Zuul\u2019s adopters program against.\n\
+  \n### Pipeline (Primary)\n\nFilterType.java defines exactly INBOUND, ENDPOINT, and\
+  \ OUTBOUND. BaseZuulChannelInitializer.addZuulFilterChainHandler() assembles them\
+  \ in mandatory order: requestFilterChain \u2192 endPoint \u2192 responseFilterChain.\
+  \ ZuulFilterChainRunner.runFilters() iterates an ordered ZuulFilter<T,T>[] array\
+  \ sequentially, with AtomicInteger position tracking, Pending/Complete state per\
+  \ filter, and SessionContext as the shared state carrier (the pipe). ZuulFilterChainHandler\
+  \ coordinates the bidirectional (request + response) pipeline. Filters are ordered\
+  \ by filterOrder() integer. Every line of Zuul\u2019s operational code implements\
+  \ this pipeline.\n\n### Microkernel (Secondary)\n\nzuul-core is the microkernel:\
+  \ it provides the Netty server, filter execution engine, connection pooling, metrics,\
+  \ and SSL infrastructure but no routing or business logic. The plugin system has\
+  \ formal contracts (ZuulFilter interface + @Filter annotation), compile-time discovery\
+  \ (zuul-processor annotation processor generates META-INF/zuul/allfilters), runtime\
+  \ loading (DynamicFilterLoader.putFiltersForClasses()), and injectable instantiation\
+  \ (FilterFactory). @Filter.ApplyAfter and @ApplyBefore support declarative ordering\
+  \ relative to named filters. Netflix runs hundreds of internal filters not present\
+  \ in the open-source repo through this mechanism.\n\n### Gateway qualifier\n\nThe\
+  \ explicit deployment topology: Zuul terminates client connections and proxies to\
+  \ upstream origins via ProxyEndpoint + OriginManager + DefaultClientChannelManager\
+  \ (Ribbon/Eureka). The README describes it as an \u2018L7 application gateway.\u2019\
+  \ WebSocket and SSE push via PushConnectionRegistry extend the gateway beyond HTTP\
+  \ request-response.\n\n### Rejected styles\n\nNot Microservices (single JAR, five\
+  \ build modules are compile-time, no inter-process communication). Not Layered (packages\
+  \ are by concern but the primary organizing principle is the pipeline execution model).\
+  \ Not Event-Driven (RxJava Observable is a concurrency mechanism within the pipeline,\
+  \ not an architectural event-broker pattern). Not Modular Monolith (module separation\
+  \ is shallow; the primary decomposition is filter-level, not module-level).\n\n\
+  Confidence 0.93. The Pipeline + Microkernel classification is unambiguous; both\
+  \ patterns are simultaneously present, mutually reinforcing, and explicitly reflected\
+  \ in the public API. Small gap for the theoretical Layered argument on zuul-core\
+  \ internals."
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:48:39Z'
-classification_reasoning: "## Analysis\n\nThe Zuul repository exhibits a **Pipeline\
-  \ (Pipe-and-Filter)** architecture with **Microkernel (Plugin)** as a supporting\
-  \ pattern. This classification is based on the following evidence:\n\n### Pipeline\
-  \ (Pipe-and-Filter) - Primary Style\n\nThe core architecture of Zuul is built around\
-  \ sequential request processing through ordered filter stages:\n\n**Evidence from\
-  \ `FilterType.java`** (`zuul-core/src/main/java/com/netflix/zuul/filters/FilterType.java`):\n\
-  ```java\npublic enum FilterType {\n    INBOUND(\"in\"),\n    ENDPOINT(\"end\"),\n\
-  \    OUTBOUND(\"out\");\n```\n\nRequests flow through three distinct pipeline stages:\n\
-  1. **INBOUND**: Pre-processing filters (routing decisions, authentication, etc.)\n\
-  2. **ENDPOINT**: The processing stage (typically `ProxyEndpoint` for routing to\
-  \ origins)\n3. **OUTBOUND**: Post-processing filters (response transformation, logging,\
-  \ etc.)\n\n**Evidence from `ZuulFilterChainRunner.java`** (`zuul-core/src/main/java/com/netflix/zuul/netty/filter/ZuulFilterChainRunner.java`):\n\
-  - Filters are stored in an ordered array: `private final ZuulFilter<T, T>[] filters;`\n\
-  - Sequential processing via `runFilters()` method\n- Each filter receives input,\
-  \ processes it, and passes to the next filter\n- Filter ordering controlled by `filterOrder()`\
-  \ with explicit ordering semantics\n\n**Evidence from `ZuulFilterChainHandler.java`**:\n\
-  - Coordinates two separate pipelines: `requestFilterChain` and `responseFilterChain`\n\
-  - `SessionContext` carries state through the pipeline (acts as the \"pipe\" data)\n\
-  - Chain of responsibility pattern where each filter can modify or short-circuit\
-  \ the flow\n\n**Evidence from sample filters** (`zuul-sample/src/main/java/com/netflix/zuul/sample/filters/inbound/Routes.java`):\n\
-  - `Routes` filter (order 0) sets the endpoint destination\n- Filters are explicitly\
-  \ ordered and composed sequentially\n\n### Microkernel (Plugin) - Secondary Style\n\
-  \nZuul implements a plugin architecture where the core system is extended through\
-  \ dynamically loaded filters:\n\n**Evidence from filter loading infrastructure**:\n\
-  - `FilterLoader` interface (`zuul-core/src/main/java/com/netflix/zuul/FilterLoader.java`):\
-  \ \"This class is one of the core classes in Zuul. It compiles, loads from a File,\
-  \ and checks if source code changed.\"\n- `FilterRegistry` interface and `MutableFilterRegistry`\
-  \ implementation for runtime filter management\n- `FilterFactory` interface for\
-  \ instantiating filter plugins\n\n**Evidence from `DynamicFilterLoader.java`**:\n\
-  - Dynamic loading of filters by class name: `putFiltersForClasses(String[] classNames)`\n\
-  - Runtime filter registration and hot-reload capability\n\n**Evidence from annotation-based\
-  \ discovery** (`zuul-processor/src/main/java/com/netflix/zuul/filters/processor/FilterProcessor.java`):\n\
-  - `@Filter` annotation marks plugin classes\n- Compile-time annotation processor\
-  \ generates `META-INF/zuul/allfilters` registry\n- Auto-discovery of filters at\
-  \ build time\n\n**Evidence from `zuul-sample/build.gradle`**:\n```gradle\nannotationProcessor\
-  \ project(\":zuul-processor\")\n```\n- Sample application uses annotation processing\
-  \ to auto-register custom filters\n\n**Evidence from filter base classes**:\n- `ZuulFilter<I,\
-  \ O>` interface defines the plugin contract\n- `BaseFilter`, `BaseSyncFilter`, `Endpoint`\
-  \ provide extension points\n- `HttpInboundSyncFilter`, `HttpOutboundFilter`, `HttpSyncEndpoint`\
-  \ are specialized filter types developers extend\n\n### What This Architecture Is\
-  \ NOT\n\n**Not Layered Architecture**: While there are packages like `netty/`, `filters/`,\
-  \ `origins/`, the primary organization is around the processing pipeline, not horizontal\
-  \ layers like presentation/business/data access.\n\n**Not Microservices**: Zuul\
-  \ is a single deployable unit (a library/JAR). It's an API gateway that fronts microservices\
-  \ but is not itself architected as microservices.\n\n**Not Event-Driven**: While\
-  \ Zuul uses RxJava Observables for async processing, components don't communicate\
-  \ via event brokers. The communication model is synchronous request/response through\
-  \ the filter pipeline.\n\n**Not Hexagonal Architecture**: While there are interfaces\
-  \ (`FilterFactory`, `FilterLoader`), there's no explicit ports-and-adapters pattern\
-  \ with application core isolation.\n\n### Module Structure\n\nThe Gradle multi-module\
-  \ structure supports the plugin architecture:\n- **zuul-core**: The microkernel\
-  \ core with filter infrastructure and pipeline engine\n- **zuul-processor**: Compile-time\
-  \ annotation processor for filter discovery\n- **zuul-discovery**: Service discovery\
-  \ integration (separate concern)\n- **zuul-sample**: Example application showing\
-  \ how to extend the core with custom filters\n- **zuul-integration-test**: Integration\
-  \ testing\n\n### Summary\n\nZuul is a textbook implementation of **Pipeline (Pipe-and-Filter)**\
-  \ architecture combined with **Microkernel (Plugin)**. The pipeline pattern defines\
-  \ the request processing model (inbound → endpoint → outbound), while the microkernel\
-  \ pattern provides the extensibility mechanism through dynamically loaded filters.\
-  \ Developers extend Zuul by impl\n\n[truncated]"
+review_notes: "### Analysis\n\nNetflix Zuul 2 is architecturally structured as a\
+  \ **Pipeline (Pipe-and-Filter)** system with a **Microkernel (Plugin)** core.\n\n\
+  #### 1. Pipeline (Primary)\n\nFilterType.java defines INBOUND, ENDPOINT, and OUTBOUND\
+  \ as the three mandatory pipeline stages. ZuulFilterChainRunner executes each stage\
+  \ as an ordered filter array. ZuulFilterChainHandler coordinates the bidirectional\
+  \ request/response pipeline. SessionContext is the shared state carrier.\n\n####\
+  \ 2. Microkernel (Secondary)\n\nzuul-core is the microkernel: it provides the Netty\
+  \ execution engine, filter runner, connection pools, and SSL — but no business logic.\
+  \ The @Filter annotation + zuul-processor annotation processor + DynamicFilterLoader\
+  \ constitute a formal plugin system. All routing, auth, throttling, and response\
+  \ logic is implemented as filter plugins.\n\n#### Gateway Topology\n\nProxyEndpoint\
+  \ + OriginManager + DefaultClientChannelManager implement the L7 proxy behavior.\
+  \ Eureka/Ribbon provide dynamic origin discovery."

@@ -16,85 +16,95 @@ languages:
 - JavaScript
 architecture_styles:
 - Microkernel
+- Pipeline
 - Layered
 classification_status: classified
-review_notes: 'Traefik follows a **Microkernel** (or Plugin-based) architecture, where
-  the core system provides a basic request-handling lifecycle that is extended by
-  dynamic "Providers" and "Middlewares."
-
-
-  ### Primary Style: Microkernel (Plugin)
-
-  The core of Traefik is a minimal engine that manages the lifecycle of entrypoints
-  and servers, while the actual logic for discovering infrastructure and handling
-  requests is delegated to modular components:
-
-  1.  **Providers (`pkg/provider/`):** Traefik uses a provider-based system to discover
-  configurations. Every external integration (Docker, Kubernetes, Consul, File) is
-  a separate module that satisfies a provider interface. The code in `cmd/traefik/traefik.go`
-  shows a `ProviderAggregator` that collects these sources and feeds dynamic configuration
-  changes back to the core.
-
-  2.  **Explicit Plugin Support (`pkg/plugins/`):** Traefik specifically includes
-  a plugin manager and builder that allows loading WebAssembly (Wasm) or Yaegi-interpreted
-  Go code at runtime to extend the system''s capabilities without modifying the core
-  binary.
-
-  3.  **Isolation:** The core `pkg/server/server.go` serves as the orchestrator (Microkernel)
-  that manages entrypoints without knowing the specific implementation details of
-  where the routing rules come from.
-
-
-  ### Secondary Style: Pipeline (Pipe-and-Filter)
-
-  The request-handling logic is a classic **Pipeline**. '
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:06:54Z'
-classification_reasoning: "## Analysis\n\nTraefik exhibits a clear **Microkernel (Plugin)\
-  \ architecture** as its primary organizational pattern, with secondary Layered characteristics\
-  \ in its internal package organization.\n\n### Evidence for Microkernel (Plugin)\n\
-  \n**1. Plugin Infrastructure with Dynamic Loading**\n- `pkg/plugins/manager.go`\
-  \ implements a full plugin lifecycle manager that downloads, validates (via hash),\
-  \ and installs plugins from `https://plugins.traefik.io/public/`\n- `pkg/plugins/builder.go`\
-  \ builds middleware and provider plugins at runtime, supporting two execution runtimes:\
-  \ **Yaegi** (Go interpreter) and **WebAssembly (WASM)**\n- `pkg/plugins/types.go:9-11`\
-  \ defines plugin types: `typeMiddleware` and `typeProvider`\n\n**2. Well-Defined\
-  \ Extension Contracts**\n- `pkg/provider/provider.go:8-14` defines the core Provider\
-  \ interface:\n  ```go\n  type Provider interface {\n      Provide(configurationChan\
-  \ chan<- dynamic.Message, pool *safe.Pool) error\n      Init() error\n  }\n  ```\n\
-  - `pkg/plugins/builder.go:14` defines the middleware Constructor type:\n  ```go\n\
-  \  type Constructor func(context.Context, http.Handler) (http.Handler, error)\n\
-  \  ```\n\n**3. Plugin Integration Points**\n- `pkg/server/middleware/plugins.go:14-17`\
-  \ defines `PluginsBuilder` interface that bridges plugin middleware into the core\
-  \ routing system\n- `cmd/traefik/plugins.go:18-25` initializes the plugin builder\
-  \ and integrates it with the static configuration\n- The RouterFactory in `pkg/server/routerfactory.go:33`\
-  \ explicitly holds a `pluginBuilder` dependency\n\n**4. Provider Aggregation Pattern**\n\
-  - `pkg/provider/aggregator/aggregator.go:62-68` aggregates all providers (both built-in\
-  \ and plugin-based) uniformly\n- Built-in providers (Docker, Kubernetes, ECS, Consul,\
-  \ etc.) and plugin providers implement the identical `Provider` interface\n- The\
-  \ aggregator treats all providers polymorphically regardless of origin\n\n**5. Single\
-  \ Deployable Core**\n- `Dockerfile` shows Traefik is deployed as a single binary:\
-  \ `COPY ./dist/$TARGETPLATFORM/traefik /`\n- `go.mod` confirms it's a single Go\
-  \ module (`github.com/traefik/traefik/v3`)\n- The core system is complete and functional\
-  \ without any plugins\n\n### Evidence for Layered (Secondary)\n\nThe internal package\
-  \ structure shows horizontal layering:\n- **Configuration Layer**: `pkg/config/static/`,\
-  \ `pkg/config/dynamic/`\n- **Provider Layer**: `pkg/provider/` with subdirectories\
-  \ for each provider type\n- **Server/Router Layer**: `pkg/server/`, `pkg/server/router/`\n\
-  - **Middleware Layer**: `pkg/middlewares/` with 20+ built-in middleware implementations\n\
-  - **Transport Layer**: `pkg/tcp/`, `pkg/udp/`, `pkg/tls/`\n\nThe middleware builder\
-  \ in `pkg/server/middleware/middlewares.go` demonstrates the layering through its\
-  \ imports of all built-in middleware packages (lines 13-40).\n\n### What Was Rejected\n\
+classification_confidence: 0.91
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: Cloud-native reverse proxy and load balancer with a microkernel plugin
+  architecture and a composable middleware pipeline for request handling.
+architecture_qualifiers:
+- reverse-proxy
+- api-gateway
+- load-balancer
+- plugin-runtime-yaegi
+- plugin-runtime-wasm
+- dynamic-config-hot-reload
+- single-binary-deployment
+quality_attributes:
+- extensibility
+- observability
+- reliability
+- security
+- performance
+- portability
+- maintainability
+- dynamism
+classification_reasoning: "## Analysis\n\nTraefik exhibits a **Microkernel** architecture\
+  \ as its primary pattern, with a strong **Pipeline** secondary pattern governing\
+  \ request handling, and a **Layered** package topology as a supporting structural\
+  \ property.\n\n### Evidence for Microkernel (Primary)\n\n**1. Formal Provider Interface**\n\
+  - `pkg/provider/provider.go` defines `Provider{Provide(chan<- dynamic.Message, *safe.Pool)\
+  \ error; Init() error}`\n- All 13+ built-in providers (Docker, Kubernetes, Consul,\
+  \ ECS, Nomad, File, HTTP, KV, REST, ACME, Tailscale) and plugin providers implement\
+  \ this identical contract\n- The core never references a concrete provider type\n\
+  \n**2. Runtime Plugin Loading**\n- `pkg/plugins/manager.go` downloads, hash-validates\
+  \ (SHA256), and installs plugins at runtime from an external registry\n- `pkg/plugins/builder.go`\
+  \ instantiates them via Yaegi (Go interpreter) or Wazero (Wasm) without recompiling\
+  \ the binary\n- Two plugin types: `typeMiddleware` and `typeProvider`\n- `type Constructor\
+  \ func(context.Context, http.Handler) (http.Handler, error)` is the formal middleware\
+  \ plugin contract\n\n**3. Extension Points in RouterFactory**\n- `pkg/server/routerfactory.go`\
+  \ carries `pluginBuilder PluginsBuilder` as an interface dependency\n- Plugin middleware\
+  \ and provider plugins are first-class in the routing assembly pipeline\n\n**4.\
+  \ ProviderAggregator Pattern**\n- `pkg/provider/aggregator/aggregator.go` fans-in\
+  \ all provider channels uniformly\n- Built-in and plugin providers are indistinguishable\
+  \ from the aggregator's perspective\n\n**5. Single Deployable Core**\n- `Dockerfile`\
+  \ copies a single `traefik` binary; `go.mod` is `github.com/traefik/traefik/v3`\n\
+  - The core is fully functional with zero plugins installed\n\n### Evidence for Pipeline\
+  \ (Secondary)\n\n**1. Middleware Chain Composition**\n- Every HTTP request passes\
+  \ through an ordered `alice` chain: Recovery → Tracing/Metrics → AccessLog → EncodedCharacterDeny\
+  \ → user middlewares → service handler\n- Each middleware receives `http.Handler`\
+  \ and returns `http.Handler` — textbook pipe-and-filter\n\n**2. TCP Connection Pipeline**\n\
+  - `TCPEntryPoint`: accept → deadline config → protocol sniff (`HandlerSwitcher`)\
+  \ → TLS termination or passthrough → HTTP server dispatch\n\n**3. Configuration\
+  \ Pipeline**\n- `receiveConfigurations` → transform/deduplicate → `applyConfigurations`\
+  \ → `RouterFactory.CreateRouters()`\n- 100-capacity buffered channel between stages\n\
+  \n**4. 30+ Composable Middleware Packages**\n- `pkg/middlewares/` contains independent\
+  \ filter packages: auth, ratelimiter, circuitbreaker, compress, redirect, headers,\
+  \ retry, buffering, capture, metrics, observability, ipallowlist, forwardedheaders,\
+  \ passtlsclientcert, grpcweb, mirror, etc.\n\n### Evidence for Layered (Supporting)\n\
+  \nStrict horizontal layering in `pkg/`:\n- Configuration Layer: `config/static/`,\
+  \ `config/dynamic/`\n- Provider Layer: `provider/` (discovery adapters)\n- Server/Entrypoint\
+  \ Layer: `server/` (listener management)\n- Router Layer: `server/router/`, `muxer/`\
+  \ (rule matching)\n- Middleware Layer: `middlewares/` (request transformation)\n\
+  - Service/Proxy Layer: `server/service/`, `proxy/` (backend forwarding)\n- Transport\
+  \ Layer: `tcp/`, `udp/`, `tls/` (protocol primitives)\n\n### What Was Rejected\n\
   \n**Not Microservices**: Single binary deployment, single Go module, no inter-service\
-  \ communication. The README explicitly states: \"Packaged as a single binary file.\"\
-  \n\n**Not Modular Monolith**: While there are clear package boundaries, the defining\
-  \ characteristic is the **runtime plugin loading** capability. Modular monoliths\
-  \ have compile-time module boundaries; Traefik has true dynamic extension via Yaegi\
-  \ interpreter and WASM runtime.\n\n**Not Event-Driven Architecture**: While configuration\
-  \ changes flow through channels (`dynamic.Message`), this is internal communication\
-  \ within the monolith, not architectural event-driven messaging between independent\
-  \ components.\n\n**Not Hexagonal Architecture**: There are no explicit \"ports\"\
-  \ (interfaces) and \"adapters\" pattern. The plugin interfaces serve as extension\
-  \ points, not as isolation boundaries between application core and external world.</arg_value></tool_call>"
+  \ network communication.\n\n**Not Modular Monolith**: The runtime plugin loading\
+  \ (Yaegi + Wasm) crosses into true microkernel territory. Modular monoliths have\
+  \ compile-time-only extension; Traefik has genuine runtime extension without recompilation.\n\
+  \n**Not Event-Driven Architecture**: Go channels are an internal delivery mechanism\
+  \ for the configuration pipeline, not an architectural event bus. `dynamic.Message`\
+  \ is the config update DTO, not a domain event.\n\n**Not Service-Based**: No decomposition\
+  \ into separately deployed services; the API and dashboard are embedded in the same\
+  \ binary.\n\n### Architecture Qualifiers Note\n\nPer ADR-006, Hexagonal/ports-and-adapters\
+  \ is not assigned as a style. The Provider interface does resemble a port-and-adapter\
+  \ boundary, but the dominant framing is microkernel (core + plugins) rather than\
+  \ hexagonal (application + ports + adapters). Reverse-proxy, api-gateway, and load-balancer\
+  \ are captured as `architecture_qualifiers` since they describe the domain role\
+  \ rather than structural pattern."
+review_notes: 'Traefik follows a Microkernel + Pipeline architecture. The core engine
+  manages entrypoints and configuration watching without knowing about concrete providers
+  or middleware implementations. All 13+ provider backends (Docker, Kubernetes, ECS,
+  Consul, Nomad, File, HTTP, KV, REST, ACME, Tailscale) implement a single Provider
+  interface and are treated uniformly by the ProviderAggregator. A runtime plugin
+  system (Yaegi + Wasm) extends both middleware and provider types without binary
+  recompilation. The request-handling path is a classic pipe-and-filter pipeline:
+  TCP connections pass through a staged accept/sniff/route pipeline, and HTTP requests
+  traverse an ordered alice middleware chain (Recovery → Observability → AccessLog
+  → user middlewares → service handler) before reaching the backend. The Layered
+  package structure enforces strict downward dependency flow across seven horizontal
+  layers from config through transport.'
+review_required: false

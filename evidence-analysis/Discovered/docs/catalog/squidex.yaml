@@ -15,67 +15,138 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
+- Layered
 - Microkernel
-- Event-Driven
 classification_status: classified
-review_notes: |-
-  The Squidex codebase is a highly structured .NET application that explicitly identifies itself in the README as being built with **CQRS** (Command Query Responsibility Segregation). The directory structure and project naming conventions provide strong evidence for this and several secondary architectural patterns.
-
-  ### Primary Style: CQRS
-  The repository is fundamentally organized around the separation of write operations (Commands) and read operations (Queries).
-  - **Evidence in Structure:** The test projects clearly mirror this separation (e.g., `backend/tests/Squidex.Infrastructure.Tests/Commands` and `backend/tests/Squidex.Infrastructure.Tests/Queries`).
-  - **Infrastructure Support:** The infrastructure layer includes specific support for `EventSourcing` (`backend/tests/Squidex.Infrastructure.Tests/EventSourcing`), which is the standard persistence mechanism for the "Write" side of sophisticated CQRS systems.
-  - **API implementation:** The TestSuite contains explicit tests for `RuleEventsTests.cs` and `RuleRunnerTests.cs`, indicating an asynchronous command processing pipeline.
-
-  ### Secondary Style: Domain-Driven Design (DDD)
-  The backend project structure follows DDD tactical patterns to manage the complexity of a headless CMS.
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:41:45Z'
-classification_reasoning: "## Analysis\n\nSquidex is a headless CMS built with a **CQRS with Event Sourcing** architecture\
-  \ as its primary style, with strong secondary elements of Microkernel (Plugin) and Event-Driven patterns.\n\n### Primary\
-  \ Style: CQRS (Command Query Responsibility Segregation)\n\nThe codebase exhibits definitive CQRS patterns:\n\n**1. Command/Query\
-  \ Separation:**\n- Commands: `CreateContent`, `UpdateContent`, `DeleteApp`, `CreateAsset` in `backend/src/Squidex.Domain.Apps.Entities/*/Commands/`\n\
-  - Queries: Dedicated query services like `IContentQueryService`, `ContentQueryService`, `AssetQueryService` in `*/Queries/`\
-  \ directories\n- Controllers clearly separate operations - `ContentsController` uses `ICommandBus` for writes and `IContentQueryService`\
-  \ for reads\n\n**2. Event Sourcing Infrastructure:**\n- `DomainObject<T>` base class (`backend/src/Squidex.Infrastructure/Commands/DomainObject.cs`)\
-  \ manages aggregate state through events\n- `IPersistence<T>` interface handles snapshot and event persistence\n- Events\
-  \ stored in `Squidex.Domain.Apps.Events/` with domain events like `AppCreated`, `ContentCreated`, `AssetUpdated`\n\n**3.\
-  \ Aggregate Roots with Event Application:**\n```csharp\n// AppDomainObject.cs - commands produce events\npublic override\
-  \ Task<CommandResult> ExecuteAsync(IAggregateCommand command, CancellationToken ct)\n{\n    switch (command)\n    {\n  \
-  \      case CreateApp create:\n            return ApplyReturn(create, c => { Create(c); return Snapshot; }, ct);\n    }\n\
-  }\n```\n\n**4. Separate Read Models:**\n- `IContentRepository` provides query-specific interfaces for reading projected\
-  \ content\n- `ContentQueryService` handles optimized read queries independent of write model\n\n**5. Explicit CQRS Mention:**\n\
-  - README.md states: \"We build it with ASP.NET Core and CQRS\"\n\n### Secondary Style: Microkernel (Plugin)\n\nThe system\
-  \ has a well-defined plugin infrastructure:\n\n**Plugin Contract (`IPlugin`):**\n```csharp\n// backend/src/Squidex.Infrastructure/Plugins/IPlugin.cs\n\
-  public interface IPlugin\n{\n    void ConfigureServices(IServiceCollection services, IConfiguration config);\n    void ConfigureServicesPost(IServiceCollection\
-  \ services, IConfiguration config);\n}\n```\n\n**Dynamic Plugin Loading:**\n- `PluginManager` uses `McMaster.NETCore.Plugins`\
-  \ to load assemblies at runtime\n- Plugins discovered via reflection: `assembly.GetTypes().Where(t => typeof(IPlugin).IsAssignableFrom(t))`\n\
-  \n**Rich Extension Ecosystem (`backend/extensions/Squidex.Extensions/`):**\n- 20+ action plugins: `KafkaPlugin`, `ElasticSearchPlugin`,\
-  \ `AlgoliaPlugin`, `WebhookPlugin`, `SlackPlugin`\n- Asset metadata sources: `AzureMetadataSourcePlugin`\n- Text indexing:\
-  \ `AzureTextPlugin`, `ElasticSearchTextPlugin`\n- Each plugin registers its own services and flow steps\n\n### Secondary\
-  \ Style: Event-Driven\n\nThe system uses events for cross-cutting concerns:\n\n**Event Consumers:**\n```csharp\n// RuleEnqueuer.cs\n\
-  public sealed class RuleEnqueuer : IEventConsumer, IRuleEnqueuer\n{\n    public async Task On(IEnumerable<Envelope<IEvent>>\
-  \ events) { ... }\n}\n```\n\n**Event Flow:**\n- Domain events persist to event store (MongoDB, GetEventStore, or SQL)\n\
-  - `IEventConsumer` implementations (like `RuleEnqueuer`) subscribe to events\n- Events trigger rules, update projections,\
-  \ and synchronize read models\n\n**Messaging Infrastructure:**\n- `MessagingServices.cs` configures channels for backup,\
-  \ rules execution, and distributed processing\n- Worker processes consume events for background tasks\n\n### What Was Rejected\n\
-  \n**Not Microservices:**\n- Single `Dockerfile` produces one deployable unit (`Squidex.dll`)\n- No service boundaries with\
-  \ independent deployment\n- Single shared database (MongoDB/SQL)\n\n**Not Modular Monolith:**\n- While well-organized into\
-  \ layers, there's no enforced module boundary system\n- All projects compile into a single application\n\n**Not Domain-Driven\
-  \ Design (Bounded Contexts):**\n- Although domain-driven naming exists (App, Schema, Content aggregates), there's no explicit\
-  \ bounded context isolation\n- Single domain model shared across the application\n\n**Not Hexagonal Architecture:**\n- No\
-  \ explicit ports/adapters pattern\n- Infrastructure concerns (persistence, event store) are abstracted but not through a\
-  \ formal port/adapter structure\n\n### Architecture Summary\n\n```\n┌─────────────────────────────────────────────────────────────┐\n\
-  │                    API Layer (Controllers)                   │\n│         Squidex.Web / Areas/Api/Controllers        \
-  \         │\n├─────────────────────┬───────────────────────────────────────┤\n│    Commands (Write) │        Queries (Read)\
-  \                  │\n│    ICommandBus      │    IContentQueryService               │\n│    DomainObject<T>  │    IContentRepository\
-  \                 │\n├─────────────────────┴───────────────────────────────────────┤\n│              Domain Layer (Entities)\
-  \                         │\n│    Squidex.Domain.Apps.Entities (Apps, Contents, Assets)    │\n├─────────────────────────────────────────────────────────────┤\n\
-  │              Event Sourcing Infrastructure                  \n\n[truncated]"
+classification_method: deep-analysis
+classification_confidence: 0.85
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: >-
+  Open-source headless CMS built as a layered modular monolith with a
+  Microkernel plugin system, CQRS command bus, and event-sourced aggregate
+  roots deployed as a single ASP.NET Core process.
+quality_attributes:
+- extensibility
+- auditability
+- polyglot-persistence
+- scalability
+- observability
+- security
+- deployability
+- testability
 architecture_qualifiers:
 - type: data-pattern
   value: cqrs
-  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)
+  note: >-
+    InMemoryCommandBus dispatches through ordered ICommandMiddleware pipeline
+    for writes; separate IContentQueryService / IAssetQueryService read paths
+    bypass the command bus entirely — a clean CQRS separation enforced
+    throughout all domain aggregates.
+- type: data-pattern
+  value: event-sourcing
+  note: >-
+    DomainObject<T> base class hydrates aggregate state by replaying persisted
+    domain events via IPersistenceFactory<T>.WithSnapshotsAndEventSourcing();
+    pluggable IEventStore supports MongoDB, SQL (EntityFramework), and
+    EventStoreDB backends. Rich domain event library (25+ App events, plus
+    Assets, Contents, Schemas, Rules, Teams events).
+- type: design-approach
+  value: ddd
+  note: >-
+    Domain aggregates organized by bounded context (Apps, Assets, Contents,
+    Schemas, Rules, Teams) each with Commands/, DomainObject/, Queries/, and
+    Repositories/ sub-packages. Explicit aggregate roots (AppDomainObject,
+    ContentDomainObject, etc.) and Guard classes enforce domain invariants
+    before event production.
+classification_reasoning: |
+  ## Analysis
+
+  Squidex is a headless CMS whose runtime topology is a single deployable
+  process (one Dockerfile, one Squidex.dll). The internal structure is
+  organized around clear horizontal layers enforced by project boundaries:
+  core domain models → core operations → entities/aggregates → web/API →
+  host. This is the defining characteristic of the **Layered** style.
+
+  ### Primary Style: Layered
+
+  The project is divided into six distinct compilation units that form a
+  strict dependency hierarchy:
+
+  1. `Squidex.Domain.Apps.Core.Model` — pure domain models (no infrastructure
+     dependencies)
+  2. `Squidex.Domain.Apps.Core.Operations` — business logic operating on those
+     models
+  3. `Squidex.Domain.Apps.Events` — domain event definitions
+  4. `Squidex.Domain.Apps.Entities` — aggregate roots, command handlers, query
+     services, repositories (interfaces)
+  5. `Squidex.Infrastructure` — cross-cutting concerns: command bus, event
+     sourcing engine, caching, plugin manager, messaging
+  6. `Squidex.Web` / `Squidex` (host) — ASP.NET Core controllers, middleware,
+     DI composition root
+
+  `Startup.cs` registers services in strict layer order, and ASP.NET Core
+  Areas further separate API, IdentityServer, and Frontend concerns. Data
+  access is isolated in `Squidex.Data.MongoDb` and
+  `Squidex.Data.EntityFramework` behind `IStore<T>` / `IPersistenceFactory<T>`
+  interfaces. This is a classic layered architecture.
+
+  ### Secondary Style: Microkernel
+
+  Squidex has a well-designed plugin system as a first-class architectural
+  feature. The `IPlugin` interface defines `ConfigureServices` and
+  `ConfigureServicesPost` hooks. `PluginManager` uses `McMaster.NETCore.Plugins`
+  to load external assemblies at runtime, sharing the core Squidex assemblies
+  as the stable kernel. The built-in `backend/extensions/Squidex.Extensions/`
+  library delivers 20+ action plugins (Kafka, ElasticSearch, Algolia, Slack,
+  Webhook, Typesense, OpenSearch, AzureQueue, SignalR, etc.), text indexing
+  plugins (Azure, ElasticSearch), and asset metadata plugins. `AddSquidexPluginsPost`
+  runs last in `Startup.ConfigureServices` to allow plugins to override any
+  registered service — the canonical Microkernel pattern.
+
+  ### CQRS (data-pattern qualifier)
+
+  The command side uses `InMemoryCommandBus` which composes an ordered chain
+  of `ICommandMiddleware` instances. Every aggregate is reached through
+  `AggregateCommandMiddleware<TCommand, TDomainObject>`. The read side uses
+  completely separate query services (`ContentQueryService`, `AssetQueryService`)
+  that query `IContentRepository` directly without involving the command bus.
+  Commands are in `.../Commands/` directories; queries in `.../Queries/`
+  directories — a rigid structural enforcement of CQRS at the package level.
+  The README explicitly states "built with ASP.NET Core and CQRS."
+
+  ### Event Sourcing (data-pattern qualifier)
+
+  `DomainObject<T>` is the universal aggregate root base class. It holds an
+  `IPersistence<T>` that is initialized with `WithSnapshotsAndEventSourcing()`
+  — meaning every aggregate state change is stored as a domain event. Uncommitted
+  events accumulate in a list and are flushed atomically. Three pluggable
+  `IEventStore` backends are supported: MongoDB, SQL via EntityFramework, and
+  EventStoreDB. The `EventConsumerManager` and `EventConsumerWorker` process
+  the outbound event stream to update projections, execute rules, and publish
+  subscriptions.
+
+  ### DDD (design-approach qualifier)
+
+  All 15 domain areas (Apps, Assets, Backup, Billing, Collaboration, Contents,
+  History, Invitation, Jobs, Properties, Rules, Schemas, Search, Tags, Teams)
+  have their own dedicated aggregate roots and bounded sub-packages following
+  DDD tactical patterns. Guard classes enforce domain invariants. Domain events
+  are separated into their own project. This is thorough application of DDD
+  tactical patterns, though there are no explicit published bounded context
+  contracts (no inter-context integration events), so full strategic DDD is
+  not applied.
+
+  ### What Was Rejected
+
+  **Not Microservices**: Single Dockerfile, single process, shared database.
+  No independent deployment units.
+
+  **Not Modular Monolith**: There are no enforced module boundaries with
+  explicit public API contracts between modules. Dependencies flow through
+  shared DI registrations, not through module facades.
+
+  **Not Event-Driven (primary)**: Events are used internally for persistence
+  (event sourcing) and rule triggering, but the system's topology is not
+  organized around asynchronous event channels as the primary integration
+  mechanism. The command bus is synchronous and in-process.

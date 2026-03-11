@@ -17,154 +17,77 @@ languages:
 architecture_styles:
 - Microservices
 - Service-Based
+- Pipeline
 classification_status: classified
-review_notes: "The Supabase repository is a quintessential example of a **Microservices**\
-  \ architecture, managed within a polyglot monorepo. The core system is composed\
-  \ of several independently developed and deployable services that communicate over\
-  \ the network, orchestrated via Docker and governed by an API Gateway.\n\n### Primary\
-  \ Style: Microservices\nThe evidence for Microservices is definitive based on the\
-  \ following:\n1.  **Service Decomposition**: The system is split into specialized\
-  \ functional units:\n    -   `auth` (GoTrue): Go-based authentication service.\n\
-  \    -   `rest` (PostgREST): Haskell-based automated REST API.\n    -   `realtime`:\
-  \ Elixir-based server for database changes.\n    -   `storage`: Node.js/TypeScript\
-  \ API for file management.\n    -   `meta` (postgres-meta): Node.js API for database\
-  \ management."
+review_notes: null
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:04:33Z'
-classification_reasoning: '## Architecture Classification: Microservices with Service-Based
-  Characteristics
-
-
-  ### Evidence
-
-
-  **Deployment Topology (docker/docker-compose.yml)**
-
-  The repository defines **13+ independently deployable services** via Docker Compose:
-
-  - `supabase-studio` - Dashboard UI (Next.js)
-
-  - `supabase-kong` - API Gateway (routes traffic to services)
-
-  - `supabase-auth` - Authentication (GoTrue)
-
-  - `supabase-rest` - REST API (PostgREST)
-
-  - `supabase-realtime` - WebSocket server
-
-  - `supabase-storage` - File storage API
-
-  - `supabase-imgproxy` - Image transformation
-
-  - `supabase-meta` - Database management API
-
-  - `supabase-edge-functions` - Serverless functions runtime
-
-  - `supabase-analytics` - Log ingestion/query
-
-  - `supabase-db` - PostgreSQL database
-
-  - `supabase-vector` - Vector embeddings
-
-  - `supabase-pooler` - Connection pooler (Supavisor)
-
-
-  Each service runs in its own container with distinct images (`supabase/gotrue:v2.186.0`,
-  `kong:2.8.1`, etc.).
-
-
-  **API Gateway Pattern (docker/volumes/api/kong.yml)**
-
-  Kong serves as the API Gateway, routing requests by path prefix:
-
-  - `/auth/v1/*` → `http://auth:9999/`
-
-  - `/rest/v1/*` → `http://rest:3000/`
-
-  - `/graphql/v1` → `http://rest:3000/rpc/graphql`
-
-  - `/realtime/v1/*` → `ws://realtime:4000/socket`
-
-  - `/storage/v1/*` → `http://storage:5000/`
-
-  - `/functions/v1/*` → `http://functions:9000/`
-
-
-  **Service Independence**
-
-  - Services can be scaled independently
-
-  - Each has its own health checks and restart policies
-
-  - Services communicate via HTTP/WebSocket through the gateway
-
-  - Services are developed in separate repositories (per README links to `github.com/supabase/gotrue`,
-  `github.com/supabase/realtime`, etc.)
-
-
-  **Shared Database (Service-Based characteristic)**
-
-  All backend services connect to the same PostgreSQL instance:
-
-  ```yaml
-
-  GOTRUE_DB_DATABASE_URL: postgres://supabase_auth_admin:${POSTGRES_PASSWORD}@${POSTGRES_HOST}:${POSTGRES_PORT}/${POSTGRES_DB}
-
-  ```
-
-
-  Services use different database users (`supabase_auth_admin`) but share the same
-  database cluster—a pattern more aligned with **Service-Based** architecture than
-  pure microservices with separate data stores.
-
-
-  **Monorepo for Frontend (pnpm-workspace.yaml, turbo.json)**
-
-  This repository is primarily a **Turborepo monorepo** for frontend applications:
-
-  - `apps/studio` - Supabase Dashboard
-
-  - `apps/www` - Marketing website
-
-  - `apps/docs` - Documentation site
-
-  - `packages/*` - Shared packages (UI, icons, config)
-
-
-  The monorepo structure supports the development workflow but the **deployment architecture**
-  is microservices.
-
-
-  ### What Was Rejected
-
-
-  - **Layered**: No horizontal layering pattern. Services are vertical slices (auth,
-  storage, realtime) not presentation/business/data layers.
-
-  - **Modular Monolith**: Services are separate containers, not internal modules within
-  a single deployable.
-
-  - **Serverless**: Uses Docker containers with `restart: unless-stopped`, not function-based
-  compute.
-
-  - **Event-Driven**: Services communicate synchronously via HTTP through Kong API
-  Gateway, not through message brokers or event streams.
-
-  - **CQRS**: No separation of read/write models observed.
-
-  - **Domain-Driven Design**: Not organized around bounded contexts with aggregates/entities/value
-  objects.
-
-  - **Hexagonal Architecture**: No ports-and-adapters isolation pattern in the services.
-
-
-  ### Conclusion
-
-
-  This is a **Microservices** deployment with **Service-Based** characteristics (shared
-  database). The repository itself is the orchestration layer and frontend monorepo,
-  while the actual backend services (auth, storage, realtime, etc.) are independently
-  developed and deployed containers coordinated through an API Gateway.'
+classification_method: deep-analysis
+classification_confidence: 0.92
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: Polyglot microservices platform (13 independent containers) orchestrated
+  by a Kong API gateway over a shared PostgreSQL cluster, with a Vector log-processing
+  pipeline for observability.
+quality_attributes:
+- Scalability
+- Observability
+- Extensibility
+- Security
+- Deployability
+- Evolvability
+architecture_qualifiers:
+- API Gateway Pattern (Kong routing by path prefix)
+- Shared Database (all services → single Postgres cluster)
+- CDC-based real-time (Postgres logical replication → Elixir Realtime → WebSocket)
+- ETL log pipeline (Vector source/transform/sink)
+- Dual-mode frontend (platform vs self-hosted toggle)
+- Serverless functions sub-system (Deno Edge Runtime)
+classification_reasoning: '## Architecture Classification: Microservices + Service-Based
+  + Pipeline
+
+
+  ### Primary: Microservices (0.92)
+
+  The docker/docker-compose.yml defines 13 independently deployable services, each
+  with a distinct Docker image, technology stack, health check, and restart policy:
+  studio (Next.js), kong (Kong 2.8.1), auth (GoTrue/Go), rest (PostgREST/Haskell),
+  realtime (Elixir), storage (Node.js/TS), imgproxy (Go), meta (postgres-meta/Node.js),
+  functions (Deno edge-runtime), analytics (Logflare/Elixir), db (Postgres 15),
+  vector (Vector/Rust), supavisor (Erlang/Elixir). Each service is developed in
+  a separate upstream repository and consumed as a pre-built image. Kong (docker/volumes/api/kong.yml)
+  routes by path prefix to seven backend services, enforcing JWT key-auth and ACL
+  per route. Services communicate exclusively via HTTP/WebSocket through the gateway
+  — no shared in-process calls.
+
+
+  ### Secondary: Service-Based (0.80)
+
+  Despite independent deployment, all backend services connect to the same PostgreSQL
+  cluster via distinct DB users (supabase_auth_admin, supabase_storage_admin, supabase_admin).
+  Initialization scripts (realtime.sql, webhooks.sql, roles.sql, logs.sql, pooler.sql)
+  install shared schemas and extensions into a single database instance. This shared-database
+  topology is the canonical Service-Based qualifier that distinguishes this from
+  pure Microservices.
+
+
+  ### Supporting: Pipeline (0.82)
+
+  docker/volumes/logs/vector.yml defines a fully structured ETL log pipeline: a
+  docker_host source collects stdout/stderr from all containers; a project_logs
+  transform normalizes metadata; a router transform fans events to per-service channels;
+  seven per-service transforms (kong_logs, auth_logs, rest_logs, realtime_logs,
+  storage_logs, functions_logs, db_logs) parse and enrich each stream; six HTTP
+  sinks deliver structured JSON to Logflare analytics. A secondary pipeline operates
+  at the database layer: the pg_net extension + supabase_functions.http_request()
+  trigger (docker/volumes/db/webhooks.sql) forms a Postgres-event-to-HTTP pipeline
+  for webhooks.
+
+
+  ### Rejected Styles
+
+  Modular Monolith: services are separate containers with separate images, not internal
+  modules of a single deployable. Event-Driven: no message broker or event bus;
+  service-to-service communication is synchronous HTTP through Kong. Serverless:
+  the edge-runtime container is long-running (restart: unless-stopped), not on-demand;
+  user functions run inside it but the platform itself is not serverless. Layered:
+  no horizontal presentation/business/data layer decomposition across the system.'

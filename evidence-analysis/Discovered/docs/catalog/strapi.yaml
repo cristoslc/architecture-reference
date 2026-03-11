@@ -16,79 +16,86 @@ languages:
 architecture_styles:
 - Microkernel
 - Layered
+- Event-Driven
 classification_status: classified
-review_notes: '### Architecture Analysis
-
-
-  Strapi is structured as a **Microkernel (Plugin)** architecture. The core system
-  provides a minimal engine that manages the application lifecycle, while all functional
-  domains (Authentication, Content-Management, Upload, Internationalization) are implemented
-  as independent plugins that register themselves with the core.
-
-
-  #### 1. Microkernel (Plugin) Style
-
-  The most defining characteristic of Strapi''s architecture is its plugin system.
-  As seen in `packages/core/strapi/package.json`, the main `@strapi/strapi` package
-  acts as an orchestrator, pulling in multiple internal packages:
-
-  - `@strapi/admin`: The dashboard UI.
-
-  - `@strapi/content-manager`: Logic for managing data.
-
-  - `@strapi/content-type-builder`: Logic for schema modification.
-
-  - `@strapi/upload`, `@strapi/i18n`, `@strapi/permissions`: Functional extensions.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:42:38Z'
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: Plugin-based headless CMS with a minimal Koa core that hosts discrete
+  functional plugins arranged in MVC layers, connected by an in-process event bus
+  for lifecycle side-effects.
+quality_attributes:
+- extensibility
+- maintainability
+- portability
+- developer-experience
+- testability
+architecture_qualifiers:
+- service-locator
+- decorator-pattern
+- repository-pattern
+- provider-swap
+- streaming-pipeline
+- in-process-event-bus
+- ce-ee-feature-flag-split
 classification_reasoning: "## Analysis\n\n### Primary: Microkernel (Plugin) Architecture\n\
-  \nStrapi is fundamentally designed as a **plugin-based system** with a core runtime\
-  \ that loads and orchestrates plugins at startup:\n\n**Plugin Loading Infrastructure:**\n\
-  - `packages/core/core/src/loaders/plugins/index.ts` - Central plugin loader that\
-  \ discovers, validates, and initializes plugins\n- `packages/core/core/src/registries/plugins.ts`\
-  \ - Plugin registry with `add()`, `get()`, `getAll()` methods\n- Plugins declare\
-  \ themselves via `strapi-server.js` entry point with a well-defined contract\n\n\
-  **Plugin Contract (defaultPlugin in loaders/plugins/index.ts:18-32):**\n```javascript\n\
-  const defaultPlugin = {\n  bootstrap() {},\n  destroy() {},\n  register() {},\n\
-  \  config: { default: {}, validator() {} },\n  routes: [],\n  controllers: {},\n\
-  \  services: {},\n  policies: {},\n  middlewares: {},\n  contentTypes: {},\n};\n\
-  ```\n\n**Internal vs External Plugins:**\n- `INTERNAL_PLUGINS` list in `get-enabled-plugins.ts:36-44`\
-  \ defines core plugins always loaded: content-manager, content-type-builder, email,\
-  \ upload, i18n, content-releases, review-workflows\n- External plugins loaded from\
-  \ `node_modules` or local paths via `plugins.js` config\n\n**Provider Extension\
-  \ Pattern:**\n- `packages/providers/` contains swappable implementations (email-amazon-ses,\
-  \ email-sendgrid, upload-aws-s3, upload-cloudinary)\n- Providers implement `init()`\
-  \ interface, allowing runtime replacement\n\n**User Extension Mechanism:**\n- `applyUserExtension()`\
-  \ function loads user overrides from `extensions/` directory\n- Users can override\
-  \ plugin schemas and inject custom `strapi-server.js` to mutate plugin behavior\n\
-  \n**Admin Panel Plugin System:**\n- `packages/core/admin/admin/src/StrapiApp.tsx`\
-  \ - Admin-side plugin registration with `appPlugins`, `registerPlugin()`, injection\
-  \ zones\n- `PluginsInitializer.tsx` - Orchestrates plugin initialization lifecycle\
-  \ in the frontend\n\n### Secondary: Layered Architecture\n\nWithin each plugin and\
-  \ the core, Strapi follows a traditional layered pattern:\n\n**MVC-style Organization:**\n\
-  - **Routes Layer**: `packages/core/core/src/services/server/register-routes.ts`\
-  \ - Route registration\n- **Controllers Layer**: `packages/core/core/src/registries/controllers.ts`\
-  \ - Request handling\n- **Services Layer**: `packages/core/core/src/registries/services.ts`\
-  \ - Business logic\n- **Data Layer**: `packages/core/database/` - Database abstraction\n\
-  \n**Core API Structure (`packages/core/core/src/core-api/`):**\n```\ncore-api/\n\
-  \  controller/    # Request handlers\n  routes/        # Route definitions\n  service/\
-  \       # Business logic\n```\n\nEach plugin (e.g., `packages/plugins/i18n/server/src/`)\
-  \ follows this same pattern with `controllers/`, `services/`, `routes/`, `content-types/`.\n\
-  \n### What This Is NOT\n\n**Not Microservices:** Single Node.js process, single\
-  \ database connection, no service-to-service communication. The monorepo packages\
-  \ are library modules, not independent services.\n\n**Not Modular Monolith:** While\
-  \ organized as packages, they don't represent enforced internal module boundaries\
-  \ within a single deployable. They're framework components published separately\
-  \ to npm, designed to be extended via plugins.\n\n**Not Hexagonal Architecture:**虽有\
-  \ dependency injection (`Container` class), but lacks the ports-and-adapters separation.\
-  \ Controllers directly access `strapi` global service locator rather than depending\
-  \ on injected interfaces.\n\n**Not Domain-Driven Design:** Code is organized by\
-  \ technical layer (controllers, services) within plugins, not by bounded context\
-  \ with aggregates/entities/value objects.\n\n### Conclusion\n\nStrapi is a **plugin-based\
-  \ CMS framework** where the core provides the runtime, registry, and extension points,\
-  \ while plugins provide features. Users extend the system by installing plugins,\
-  \ creating local plugins, or overriding plugin behavior through extensions. This\
-  \ is the canonical Microkernel pattern: a minimal core with a rich plugin ecosystem."
+  \nStrapi's most defining structural property is its plugin system. The `Strapi`\
+  \ class (`packages/core/core/src/Strapi.ts`) extends a `Container` service-locator\
+  \ that lazily resolves named factories. `providers/registries.ts` registers all\
+  \ core registries at `init()` time. The loader in `loaders/` discovers both\
+  \ `INTERNAL_PLUGINS` (content-manager, content-type-builder, email, upload, i18n,\
+  \ content-releases, review-workflows) and user-configured external plugins.\n\n\
+  Every plugin conforms to a well-defined lifecycle contract: `{ bootstrap, destroy,\
+  \ register, config, routes, controllers, services, policies, middlewares, contentTypes\
+  \ }`. The `applyUserExtension()` mechanism allows application developers to override\
+  \ plugin schemas and inject custom `strapi-server.js` without forking core code.\n\
+  \n`packages/providers/` contains swappable implementations for email (Amazon SES,\
+  \ Mailgun, Sendgrid, Nodemailer, Sendmail) and upload (AWS S3, Cloudinary, local).\
+  \ Providers expose an `init()` interface, enabling runtime replacement via config.\n\
+  \nOn the frontend, `StrapiApp.tsx` exposes `registerPlugin()`, injection zones,\
+  \ and hook overrides, mirroring the server-side plugin contract.\n\n### Secondary:\
+  \ Layered Architecture\n\nWithin every plugin and the core, a consistent three-tier\
+  \ layered structure is applied:\n- **HTTP / Routing** — `server/routes/`, `register-routes.ts`,\
+  \ Koa middleware stack\n- **Controllers** — request/response shaping, sanitization,\
+  \ validation\n- **Services** — domain operations, business rules\n- **Data** — `@strapi/database`\
+  \ (Knex-backed entity-manager, query builder, schema sync)\n\nThe Document Service\
+  \ (`services/document-service/`) wraps the deprecated Entity Service, adding Draft\
+  \ & Publish state management, locale branching (i18n), component handling, and\
+  \ relation bidirectionality logic. It exposes repository-style methods (`findMany`,\
+  \ `create`, `update`, `publish`, `unpublish`, `discard`) that delegate to `strapi.db.query()`.\n\
+  \nThe Core API (`core-api/controller/`, `core-api/service/`) auto-generates default\
+  \ CRUD controllers and services for every user-defined content type.\n\n### Tertiary:\
+  \ Event-Driven (in-process)\n\nStrapi embeds an internal EventHub (`services/event-hub.ts`)\
+  \ implementing a pub/sub bus with named events (`entry.create`, `entry.update`,\
+  \ `entry.delete`, `entry.publish`, `entry.unpublish`, `entry.draft-discard`). The\
+  \ Document Service event manager (`services/document-service/events.ts`) emits\
+  \ these events after the wrapping database transaction commits (`onCommit`), ensuring\
+  \ consistent payloads. The Webhook Runner subscribes to the EventHub and routes\
+  \ events to registered HTTP endpoints via an in-process `WorkerQueue` (concurrency\
+  \ 5). A separate `lifecycles/` provider in `@strapi/database` handles lower-level\
+  \ database operation hooks (timestamps, model-level subscribers).\n\n### What This\
+  \ Is NOT\n\n**Not Microservices:** Single Node.js process, single database connection,\
+  \ no service-to-service network communication. Monorepo packages are library modules\
+  \ co-deployed into one process.\n\n**Not Modular Monolith:** Packages represent\
+  \ framework components published separately to npm for extension, not bounded module\
+  \ boundaries within a single deployable unit.\n\n**Not Hexagonal (Ports & Adapters):**\
+  \ While the Container acts as a service locator and providers are swappable, controllers\
+  \ access the global `strapi` singleton rather than injected port interfaces. Inbound\
+  \ adapters are tied to Koa, not abstracted behind ports.\n\n### Conclusion\n\n\
+  Strapi is a **Microkernel + Layered** system with a meaningful in-process **Event-Driven**\
+  \ component. The core provides a minimal runtime, registry, and lifecycle surface;\
+  \ all functional capabilities arrive as plugins conforming to a documented contract.\
+  \ Inside plugin boundaries, a classic layered decomposition (routes → controllers\
+  \ → services → database) provides familiar structure. The event system decouples\
+  \ lifecycle side-effects (webhooks, hooks) from the mutation path without requiring\
+  \ a message broker.\n\nConfidence is 0.92: the three-style combination is strongly\
+  \ evidenced by direct source inspection of Container, EventHub, provider registries,\
+  \ plugin loader, Document Service, and Webhook Runner."
+review_notes: Deep analysis performed 2026-03-11 by claude-sonnet-4-6. Previous classification
+  (openrouter/z-ai/glm-5, 2026-03-08) correctly identified Microkernel + Layered.
+  This revision adds Event-Driven as a confirmed tertiary style based on direct inspection
+  of event-hub.ts, document-service/events.ts, and webhook-runner.ts. Architecture
+  qualifiers added to capture service-locator, decorator, repository, and provider
+  patterns without misclassifying them as top-level styles.
+review_required: false

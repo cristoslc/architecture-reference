@@ -16,82 +16,44 @@ languages:
 architecture_styles:
 - Layered
 classification_status: classified
-review_notes: 'The Umami repository follows a traditional **Layered** architecture,
-  specifically optimized for the Next.js ecosystem. It functions as a single deployable
-  application where concerns are separated horizontally into distinct tiers:
-
-
-  1.  **Presentation/Routing (App Router):** The `src/app` directory utilizes Next.js
-  App Router for both the frontend UI and the API endpoints (`src/app/api`).
-
-  2.  **Business logic/Services:** The `src/lib` directory contains the core logic,
-  including authentication (`auth.ts`), data processing (`detect.ts`, `filters.ts`),
-  and coordination.
-
-  3.  **Data Access Layer (DAL):** The repository abstracts database interactions
-  into `src/queries`, with specific implementations for both **Prisma** (Relational)
-  and raw **SQL** (Clickhouse/PostgreSQL). This separation allows the application
-  to support multiple storage engines (PostgreSQL and Clickhouse) via a consistent
-  internal API.
-
-  4.  **State Management:** The frontend utilizes `src/store` (Zustand) for client-side
-  state, maintaining a clear boundary between UI components and data orchestration.
-
-
-  **Secondary Style: Event-Driven**
-
-  While Umami is a web monolith, it incorporates **Event-Driven** patterns as a scaling
-  strategy for high-volume data ingestion. The inclusion of `kafkajs` in `package.json`
-  and `src/lib/kafka.ts` indicates that the "collect" functionality (tracking events)
-  can be decoupled from the main database writes via a message broker. This allows
-  the system to handle ingestion bursts asynchronously, separate from the primary
-  application flow.'
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: Privacy-focused web analytics platform built as a single Next.js
+  monolith with strict horizontal layer separation across presentation, API routing,
+  permissions, business logic, and a dual-backend analytics data access layer.
+architecture_qualifiers:
+- dal-read-write-split
+- dual-storage-engine
+- optional-kafka-ingest-buffer
+- optional-redis-auth-cache
+quality_attributes:
+  deployability: high
+  scalability: moderate-to-high
+  maintainability: high
+  testability: moderate
+  observability: low-moderate
+  privacy: high
+  extensibility: moderate
+classification_reasoning: "Umami is a canonical Layered architecture — a single Next.js\
+  \ 15 full-stack monolith organized into five explicit horizontal layers: (1) Presentation\
+  \ layer: src/app/(main)/ React pages and src/store/ Zustand client state. (2) API/Controller\
+  \ layer: src/app/api/ Next.js route handlers that parse, validate via Zod, authorize,\
+  \ and delegate — no business logic. (3) Permissions layer: src/permissions/ named\
+  \ authorization functions (canViewWebsite, canUpdateWebsite, etc.) called explicitly\
+  \ from every API route. (4) Business logic/utilities layer: src/lib/ containing\
+  \ auth, crypto, detect/geo enrichment, request parsing, date utilities, and infrastructure\
+  \ adapters (Prisma, ClickHouse, Kafka, Redis). (5) Data access layer: src/queries/prisma/\
+  \ for entity CRUD via Prisma ORM and src/queries/sql/ for analytics queries dispatched\
+  \ to PostgreSQL or ClickHouse at runtime via src/lib/db.ts::runQuery(). Every API\
+  \ route follows the identical pattern: parseRequest -> canViewX -> getXMetrics ->\
+  \ json(data). Deployment is unambiguously a single unit: one package.json, one Dockerfile,\
+  \ docker-compose.yml with exactly two services (app + database). Kafka (kafkajs)\
+  \ is present as an optional write-side buffer on the ClickHouse ingest path only\
+  \ (a conditional branch in saveEvent); there are no event consumers in the application\
+  \ codebase, so Event-Driven does not apply. Redis is an optional auth-cache sidecar.\
+  \ The dual-DAL design (prisma/ for entity CRUD vs sql/ for analytical aggregations)\
+  \ is a read/write path separation at the data access layer — a CQRS-like qualifier,\
+  \ not a separate architecture style."
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:45:23Z'
-classification_reasoning: "## Analysis\n\n**Umami is a classic Layered Architecture**\
-  \ — a single deployable Next.js application organized into horizontal layers with\
-  \ clear separation of concerns.\n\n### Evidence for Layered Architecture\n\n**1.\
-  \ Horizontal Layer Organization:**\n- **API/Controller Layer:** `src/app/api/` contains\
-  \ Next.js API route handlers (e.g., `api/websites/[websiteId]/route.ts`) that handle\
-  \ HTTP requests, validate input via Zod schemas, check permissions, and delegate\
-  \ to queries\n- **Business Logic/Query Layer:** `src/queries/` contains data access\
-  \ functions organized by entity (`prisma/website.ts`, `prisma/user.ts`, etc.) and\
-  \ SQL queries (`sql/events/`, `sql/sessions/`)\n- **Data Access Layer:** `src/lib/prisma.ts`,\
-  \ `src/lib/clickhouse.ts`, `src/lib/db.ts` provide database client abstractions\n\
-  - **Presentation Layer:** `src/components/` contains React UI components (charts,\
-  \ metrics, input controls), and `src/app/(main)/` contains page components\n- **Security\
-  \ Layer:** `src/permissions/` contains authorization functions like `canViewWebsite()`,\
-  \ `canUpdateWebsite()`\n\n**2. Typical Layered Request Flow:**\n```typescript\n\
-  // API route: src/app/api/websites/[websiteId]/route.ts\nexport async function GET(request:\
-  \ Request, { params }) {\n  const { auth, error } = await parseRequest(request);\
-  \      // Auth\n  if (!(await canViewWebsite(auth, websiteId))) ...         // Permissions\n\
-  \  const website = await getWebsite(websiteId);              // Query layer\n  return\
-  \ json(website);                                      // Response\n}\n```\n\n**3.\
-  \ Single Deployable Unit:**\n- One `package.json` at repository root\n- Single `Dockerfile`\
-  \ producing one container image\n- `docker-compose.yml` defines exactly one application\
-  \ service (`umami`) plus one database (`db`)\n- No microservices, no separate deployable\
-  \ units\n\n**4. Single Shared Database:**\n- PostgreSQL via Prisma ORM with a unified\
-  \ schema (`prisma/schema.prisma`)\n- Optional ClickHouse for high-volume analytics\
-  \ data\n- Single database connection string (`DATABASE_URL`)\n- No per-service database\
-  \ ownership\n\n### What This Is NOT\n\n**Not Modular Monolith:** There are no enforced\
-  \ internal module boundaries. The `src/` directory is organized by technical role\
-  \ (components, lib, queries, permissions) rather than business domains with encapsulated\
-  \ internals. Code imports freely across the codebase without module-scoped interfaces.\n\
-  \n**Not Microservices:** A single container, single database, single deployment\
-  \ unit. The optional Kafka integration is for analytics event ingestion at scale,\
-  \ not for inter-service communication.\n\n**Not Event-Driven:** While the system\
-  \ ingests analytics events, internal component communication is synchronous request-response.\
-  \ There's no event broker mediating between internal modules.\n\n**Not Serverless:**\
-  \ Standard Node.js server deployment via Docker, not function-as-a-service. No serverless.yml,\
-  \ SAM templates, or function-based deployment patterns.\n\n**Not Domain-Driven Design:**\
-  \ No aggregates, entities, value objects, or bounded context patterns. The `src/queries/prisma/`\
-  \ directory has entity-named files, but these are simple data access objects, not\
-  \ DDD domain models with business logic encapsulation.\n\n### Technology Stack Supporting\
-  \ Layered Architecture\n\n- **Framework:** Next.js 15 with App Router\n- **ORM:**\
-  \ Prisma for PostgreSQL\n- **Analytics DB:** Optional ClickHouse for time-series\
-  \ data\n- **Message Queue:** Optional Kafka for high-throughput event ingestion\n\
-  - **Caching:** Optional Redis for session/auth caching\n- **UI:** React components\
-  \ with TanStack Query for data fetching"

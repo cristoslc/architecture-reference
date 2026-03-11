@@ -16,84 +16,89 @@ languages:
 - Python
 architecture_styles:
 - Modular Monolith
-- Layered
+- Event-Driven
 classification_status: classified
-review_notes: 'The Twenty CRM repository is structured as a **Modular Monolith** within
-  an Nx monorepo. While it uses a monorepo structure, the core business logic and
-  API reside almost entirely within a single deployable backend unit (`packages/twenty-server`).
-
-
-  ### 1. Modular Monolith (Primary Style)
-
-  The backend (`twenty-server`) uses NestJS to enforce structural boundaries. Evidence
-  includes:
-
-  - **Centralized API**: Most business logic is concentrated in `packages/twenty-server`,
-  which houses the NestJS application. This is not a microservices architecture because
-  the services (note, connected-account, etc.) are compiled and run as part of a single
-  unified server process.
-
-  - **Internal Module Encapsulation**: The file structure inside `packages/twenty-server/src/modules/`
-  (e.g., `connected-account`, `note`) follows a pattern where each domain has its
-  own `.module.ts`, services, and entities. This allows for clear separation of concerns
-  while maintaining a single deployment unit.
-
-  - **Shared Infrastructure**: The presence of `packages/twenty-shared` and `packages/twenty-ui`
-  indicates a "platform" approach where multiple frontend/backend components share
-  logic and types, typical of a modular monolith that might eventually split into
-  services but currently remains unified.
-
-
-  ### 2. Event-Driven (Secondary Style)
-
-  The architecture incorporates asynchronous, decoupled communication:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:08:12Z'
+classification_method: deep-analysis
+classification_confidence: 0.90
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: Open-source CRM built as a NestJS modular monolith with an event-driven
+  async layer (BullMQ + EventEmitter2), an AI agent execution engine supporting 7
+  LLM providers, and a visual workflow builder — all within a single deployable unit
+  backed by PostgreSQL and Redis.
+quality_attributes:
+  extensibility: high — metadata-driven dynamic schema; NestJS module system; 8 pluggable
+    tool providers; application marketplace with OAuth and package registry
+  scalability: medium — horizontal scaling possible via BullMQ worker pool (Redis-backed);
+    workspace-scoped datasources allow per-tenant isolation; single shared PostgreSQL
+    is the ceiling
+  maintainability: high — Nx monorepo with enforced package boundaries; 278+ NestJS
+    modules with explicit dependency injection; strict TypeScript; Prometheus metrics
+    and OpenTelemetry instrumentation
+  observability: medium-high — Prometheus exporter (v1.17.0), OpenTelemetry via
+    instrument.ts, per-queue job metrics, BullMQ dashboard integration
+  testability: high — NestJS DI makes unit testing straightforward; Jest integration
+    config; mock driver (SyncDriver) for queue-free testing; Playwright e2e suite
+  ai_integration: high — first-class AI subsystem with 7 LLM providers (OpenAI,
+    Anthropic, Bedrock, Google, xAI, Groq, Mistral); ReAct agentic loop with tool
+    calling; MCP server endpoint; AI workflow action step; frontend AI chat
 classification_reasoning: "## Analysis\n\n### Primary Style: Modular Monolith\n\n\
-  The Twenty repository exhibits strong characteristics of a **Modular Monolith**\
-  \ architecture:\n\n**Single Deployable Unit:**\n- The `docker-compose.yml` (`packages/twenty-docker/docker-compose.yml`)\
-  \ shows a single Docker image (`twentycrm/twenty`) used for both the `server` and\
-  \ `worker` services\n- The worker runs from the same codebase with `yarn worker:prod`\
-  \ command, not as a separate service\n- Single shared PostgreSQL database and Redis\
-  \ instance\n\n**Enforced Internal Module Boundaries:**\n- **278 NestJS modules**\
-  \ organized with clear cohesion\n- Each module in `packages/twenty-server/src/modules/`\
-  \ follows consistent structure:\n  - `standard-objects/` for workspace entities\n\
-  \  - `services/` for business logic\n  - `jobs/` for background processing\n  -\
-  \ `resolvers/` for GraphQL endpoints\n  - `repositories/` for data access\n- Examples\
-  \ include: `calendar/`, `messaging/`, `workflow/`, `favorite/`, `connected-account/`,\
-  \ `dashboard/`\n\n**Module Isolation:**\n- NestJS module system enforces explicit\
-  \ dependencies via `imports` arrays\n- Each module encapsulates its own:\n  - Workspace\
-  \ entities (e.g., `company.workspace-entity.ts`, `person.workspace-entity.ts`)\n\
-  \  - Services with dependency injection\n  - GraphQL resolvers\n  - Background jobs\n\
-  \n**Nx Workspace Enforcing Boundaries:**\n- Monorepo structure (`nx.json` line 2-5)\
-  \ organizes packages\n- Build dependencies enforced (`\"dependsOn\": [\"^build\"\
-  ]`)\n- Tags for scope control (`\"scope:backend\"`, `\"scope:frontend\"`)\n\n###\
-  \ Secondary Style: Layered\n\nHorizontal layering is evident in the backend architecture:\n\
-  \n**API Layer** (`packages/twenty-server/src/engine/api/`):\n- `graphql/` - GraphQL\
-  \ endpoints with Yoga driver\n- `rest/` - REST API controllers\n- `mcp/` - Model\
-  \ Context Protocol support\n\n**Business Logic Layer:**\n- `packages/twenty-server/src/modules/`\
-  \ - Domain business logic (calendar, messaging, workflow)\n- `packages/twenty-server/src/engine/core-modules/`\
-  \ - Infrastructure concerns (auth, billing, email, file-storage)\n\n**Data Access\
-  \ Layer:**\n- TypeORM entities and repositories\n- TwentyORM custom abstraction\
-  \ (`packages/twenty-server/src/engine/twenty-ORM/`)\n- Workspace entities with defined\
-  \ relations\n\n### What This Is NOT\n\n**Not Microservices:**\n- Single deployable\
-  \ Docker image (not independently deployable services)\n- Single shared database\
-  \ (not database-per-service)\n- In-process communication via NestJS modules (not\
-  \ network calls)\n\n**Not Event-Driven Architecture:**\n- BullMQ queues are for\
-  \ background job processing within the monolith, not inter-service communication\n\
-  - EventEmitter2 (`packages/twenty-server/src/engine/workspace-event-emitter/`) handles\
-  \ internal events in-process\n- No message broker for service-to-service communication\n\
-  \n**Not Domain-Driven Design:**\n- No bounded context terminology or aggregates\n\
-  - Workspace entities are ORM models, not DDD entities with invariants\n- Module\
-  \ organization follows NestJS conventions, not DDD tactical patterns\n\n**Not Hexagonal\
-  \ Architecture:**\n- No ports/adapters terminology\n- Uses standard NestJS dependency\
-  \ injection, not explicit adapter interfaces\n- Infrastructure concerns mixed in\
-  \ modules rather than isolated\n\n### Evidence Summary\n\n| Criterion | Finding\
-  \ |\n|-----------|---------|\n| Deployable units | 1 Docker image (server + worker\
-  \ share codebase) |\n| Database topology | Single shared PostgreSQL |\n| Module\
-  \ count | 278 NestJS modules with explicit boundaries |\n| Communication | In-process\
-  \ (NestJS DI), not network-based |\n| Background processing | Queue worker from\
-  \ same codebase (BullMQ) |\n| Frontend | Separate React SPA, not SSR Next.js |"
+  Twenty is definitively a Modular Monolith. The decisive evidence:\n\n**Single deployable\
+  \ unit:** `docker-compose.yml` uses one Docker image (`twentycrm/twenty`) for both\
+  \ the `server` and `worker` services. The worker runs with `yarn worker:prod` from\
+  \ the same compiled codebase. One shared PostgreSQL database and one Redis instance.\
+  \ No network boundary separates application logic.\n\n**278+ NestJS modules with\
+  \ explicit boundaries:** Modules under `src/engine/` and `src/modules/` use NestJS\
+  \ `@Module` decorator with explicit `imports` arrays. Domain modules (calendar, messaging,\
+  \ workflow, connected-account, note, task, opportunity, company, person) each have\
+  \ their own `.module.ts`, services, repositories, resolvers, and jobs — maintaining\
+  \ strong cohesion within and loose coupling between domains.\n\n**TwentyORM multi-tenant\
+  \ abstraction:** A custom TypeORM layer manages per-workspace datasources, keeping\
+  \ all data access within the single deployment boundary while supporting multi-tenant\
+  \ schema isolation.\n\n**Nx enforced boundaries:** The monorepo uses Nx scope tags\
+  \ (`scope:backend`, `scope:frontend`) with build dependency enforcement. The 15+\
+  \ packages are compilation units, not runtime services.\n\n### Secondary Style:\
+  \ Event-Driven\n\nThree event-driven mechanisms are structurally embedded:\n\n1.\
+  \ **WorkspaceEventEmitter (EventEmitter2):** In-process typed event bus for domain\
+  \ events (CRUD actions, custom workspace events). Decouples modules without network\
+  \ calls.\n\n2. **BullMQ job queue (17 named queues):** Redis-backed async job processing\
+  \ for messaging, calendar, webhooks, AI, workflow, billing, and more. The queue\
+  \ worker is a separate process but runs from the same codebase.\n\n3. **Redis SSE\
+  \ subscriptions:** Real-time push to the React frontend via graphql-sse, backed\
+  \ by Redis pub/sub for multi-instance support.\n\nThese are genuine event-driven\
+  \ mechanisms that shape how cross-module coupling is managed, making Event-Driven\
+  \ a legitimate secondary style rather than incidental middleware.\n\n### Why NOT\
+  \ Microservices\n\nNo bounded context with its own deployable + database. Server\
+  \ and worker share one image, one PostgreSQL, one Redis. In-process NestJS DI mediates\
+  \ all module communication — no HTTP or message bus service-to-service calls.\n\n\
+  ### Why NOT Multi-Agent (primary style)\n\nAI agents are a rich feature set within\
+  \ the monolith (AgentEntity, ai-agent-execution, 7 LLM providers, ReAct loop, MCP\
+  \ server). But the system itself is not organized as autonomous coordinating agents.\
+  \ Agents are configurable user-facing capabilities, not the runtime topology of\
+  \ the platform.\n\n### Why NOT Pipeline (primary style)\n\nThe workflow engine implements\
+  \ a DAG execution model (trigger → builder → runner → executor → action handlers).\
+  \ This is a genuine Pipeline pattern scoped to the workflow feature. But it is one\
+  \ module cluster inside the monolith, not the organizing principle of the entire\
+  \ system.\n\n### Evidence Summary\n\n| Criterion | Finding |\n|-----------|---------|\n\
+  | Deployable units | 1 Docker image (server + worker share codebase) |\n| Database\
+  \ topology | Single shared PostgreSQL 16 |\n| Module count | 278+ NestJS modules\
+  \ with explicit boundaries |\n| Communication | In-process NestJS DI (primary),\
+  \ BullMQ/Redis (async jobs), EventEmitter2 (internal events) |\n| Background processing\
+  \ | Queue worker from same codebase (BullMQ, 17 queues) |\n| Real-time | Redis\
+  \ SSE (graphql-sse) |\n| AI | Full agent execution engine: 7 providers, ReAct loop,\
+  \ MCP server, AI workflow action |\n| Frontend | React SPA (separate package, communicates\
+  \ via GraphQL + SSE) |"
+architecture_qualifiers:
+- type: design-approach
+  value: metadata-driven-schema
+  note: Runtime dynamic schema defined via object-metadata modules; GraphQL schema
+    built per-workspace at startup
+- type: design-approach
+  value: multi-tenant-datasource
+  note: TwentyORM maintains per-workspace TypeORM datasources for schema-per-tenant
+    isolation within a single PostgreSQL instance
+- type: design-approach
+  value: ai-native
+  note: First-class AI subsystem with 7 LLM providers, ReAct agentic loop, MCP tool
+    server, AI workflow steps, and agent RBAC — embedded within the monolith
+review_required: false

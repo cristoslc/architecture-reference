@@ -18,47 +18,39 @@ languages:
 - Python
 architecture_styles:
 - Microservices
-- Modular Monolith
+- Pipeline
 classification_status: classified
-review_notes: 'The Zadig repository is structured as a **Microservices** architecture,
-  characterized by multiple independently deployable components, each with its own
-  entry point, lifecycle, and Dockerfile. While the "Aslan" service acts as a large
-  core containing significant business logic (suggesting a **Service-Based** approach
-  where a few services are more coarse-grained), the overall deployment topology and
-  high number of auxiliary services lean heavily toward microservices.
-
-
-  ### Architectural Evidence:
-
-  1.  **Independent Deployment Units**: The `Makefile` defines `MICROSERVICE_TARGETS`
-  including `aslan`, `cron`, `executor`, `hub-agent`, `hub-server`, `user`, etc. Each
-  of these corresponds to a specific Dockerfile in the `/docker` directory and a unique
-  `main.go` entry point in the `/cmd` directory.
-
-  2.  **Internal Service Isolation**: The code is organized such that each service''s
-  implementation logic is housed under `pkg/microservice/<service_name>`. For example,
-  `pkg/microservice/aslan` and `pkg/microservice/user` contain the specific handlers,
-  routers, and logic for those services.
-
-  3.  **Polyglot Persistence/Infrastructure**: The `System-Architecture-Overview.md`
-  describes a distributed infrastructure using MongoDB, MySQL, and NSQ (Message Queue),
-  which are common in distributed systems to satisfy different data needs and asynchronous
-  communication.
-
-  4.  **API Gateway**: The documentation confirms the use of **Gloo Edge** as an API
-  Gateway to route traffic to the various backend services (`aslan`, `user`, etc.).
-
-  5.  **Event-Driven Communication**: The presence of `pkg/tool/eventbus` and the
-  reliance on **NSQ** (as cited in the architecture overview) indicates that services
-  communicate via an asynchronous message-passing pattern, particularly for decoupling
-  long-running workflow tasks from the main API.
-
-
-  ### Component Breakdown:'
+classification_method: deep-analysis
+classification_confidence: 0.88
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+classification_reasoning: >
+  Fourteen independently deployable binaries (each with its own cmd/ entry point and
+  Dockerfile) communicate via an API gateway (Gloo Edge) and internal HTTP REST — a
+  clear Microservices topology. The core business domain is CI/CD workflow orchestration,
+  implemented as a sequential Pipeline of named stages (with intra-stage concurrent
+  job pools, 30+ factory-dispatched job types, and state-machine status aggregation).
+  Pipeline is not merely a feature: it is the dominant internal topology of the primary
+  service and the system's central value proposition. Event-Driven signals (Redis
+  pub/sub for workflow cancel/debug) and internal layered structure (handler→service→
+  repository) are architectural qualifiers, not primary styles.
+one_line_summary: >
+  Cloud-native DevOps platform built as true Microservices with a sequential Pipeline
+  workflow engine at its core, LLM-augmented analytics, and multi-cluster Kubernetes
+  management via WebSocket reverse tunnels.
+quality_attributes:
+- scalability
+- extensibility
+- observability
+- multi-tenancy
+- cloud-native
+- integration-breadth
+architecture_qualifiers:
+- layered-internal-structure
+- event-driven-signals
+- reverse-tunnel-sidecar
+- plugin-extension-model
+- polling-agent
+- ai-augmented-analytics
+- multi-cluster-topology
 review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.85
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: Multiple independently deployable services (aslan, cron,
-  user, jobexecutor) with separate Dockerfiles and REST/gRPC communication

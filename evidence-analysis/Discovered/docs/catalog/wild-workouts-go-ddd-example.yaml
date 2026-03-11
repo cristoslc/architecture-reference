@@ -15,69 +15,100 @@ languages:
 - JavaScript
 architecture_styles:
 - Microservices
+one_line_summary: >-
+  A Go fitness-scheduling application structured as three independently deployed
+  microservices (trainer, trainings, users), each internally organized with
+  hexagonal architecture and DDD bounded contexts, communicating via gRPC.
 classification_status: classified
-review_notes: |-
-  This repository is an exemplar of a **Microservices** architecture, explicitly designed to demonstrate **Domain-Driven Design (DDD)**, **CQRS**, and **Clean/Hexagonal Architecture** within a Go ecosystem.
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+classification_reasoning: >-
+  The repository is unambiguously Microservices. Three bounded contexts
+  (trainer, trainings, users) each have their own go.mod, their own main.go,
+  and are deployed as separate Cloud Run services (five services in
+  terraform/cloud-run.tf). Inter-service communication is exclusively
+  synchronous gRPC over Protobuf contracts defined in api/protobuf/. There are
+  no shared databases — each service owns its own Firestore collections. A
+  shared internal/common library provides only cross-cutting infrastructure
+  (auth, logging, metrics, decorator framework) with no business logic.
 
-  ### 1. Microservices (Primary Style)
-  The codebase is structured into multiple independent services located under the `internal/` directory: `trainings`, `users`, and `trainer`.
-  - **Independent Deployment:** The presence of `terraform/service` and `docker/app` strategies implies these are deployed as separate Cloud Run services. Each service has its own `main.go` and `go.mod` (using Go Workspaces/`go.work` for local development).
-  - **Communication:** Services interact via gRPC, as evidenced by `api/protobuf/` containing `users.proto` and `trainer.proto`, and the corresponding adapters in `internal/trainings/adapters/users_grpc.go`.
-  - **Data Ownership:** Although the directory tree suggests a shared terraform state for Firestore, the README and project intent describe independent services that would typically manage their own persistence context.
+  DDD, hexagonal architecture, and CQRS are all present and prominent, but per
+  ADR-006 these are design approaches / data patterns, not architectural styles.
+  DDD is evidenced by private-field entities (internal/trainer/domain/hour/),
+  type-safe value objects, factory-enforced invariants, and repository
+  interfaces defined inside the domain layer. Hexagonal is evidenced by the
+  consistent ports/ (inbound HTTP + gRPC adapters) and adapters/ (outbound
+  Firestore + gRPC clients) structure across trainer and trainings services.
+  CQRS is evidenced by the Application struct splitting Commands and Queries,
+  the generic CommandHandler[C] / QueryHandler[Q,R] interfaces in
+  internal/common/decorator, and separate app/command/ and app/query/
+  subdirectories in each service.
 
-  ### 2. Domain-Driven Design (DDD) & Hexagonal Architecture
-  The project explicitly organizes code around Bounded Contexts:
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:08:21Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Style: Domain-Driven Design (DDD)\n\nThis\
-  \ repository is explicitly designed as a DDD example project, with clear architectural evidence throughout:\n\n**Bounded\
-  \ Contexts:**\nThe codebase is organized into three distinct bounded contexts, each as a separate Go module:\n- `internal/trainer/`\
-  \ - Trainer availability management\n- `internal/trainings/` - Training session management  \n- `internal/users/` - User\
-  \ balance management\n\nEach context has its own `go.mod` file and domain model.\n\n**Domain Layer Structure:**\nEach bounded\
-  \ context follows the same DDD-aligned structure:\n- `domain/` - Contains entities, value objects, and repository interfaces\n\
-  - `app/` - Application layer with use cases\n- `adapters/` - Infrastructure adapters implementing domain interfaces\n- `ports/`\
-  \ - Incoming interface adapters (HTTP/gRPC handlers)\n\n**Rich Domain Model Evidence:**\n\nFrom `internal/trainer/domain/hour/hour.go`:\n\
-  - Private encapsulated fields with public getters (`hour time.Time`, `availability Availability`)\n- Factory pattern for\
-  \ entity creation with validation (`NewFactory()`, `FactoryConfig`)\n- Domain invariants enforced in business logic\n- Domain-specific\
-  \ error types (`TooDistantDateError`, `TooEarlyHourError`)\n\nFrom `internal/trainer/domain/hour/availability.go`:\n- Type-safe\
-  \ value object enum pattern (`Availability` struct instead of string)\n- Domain behavior methods (`ScheduleTraining()`,\
-  \ `CancelTraining()`, `MakeAvailable()`)\n\nFrom `internal/trainer/domain/hour/repository.go`:\n- Repository interface defined\
-  \ in domain layer (dependency inversion)\n\n**README Explicit Documentation:**\n> \"Wild Workouts is an **example Go DDD**\
-  \ project... apply DDD by refactoring\"\n> \n> Article titles: \"When microservices in Go are not enough: introduction to\
-  \ DDD Lite\", \"Combining DDD, CQRS, and Clean Architecture\"\n\n### Secondary Style: CQRS\n\nClear Command Query Responsibility\
-  \ Segregation within each bounded context:\n\n**Structure Evidence:**\n```\ninternal/trainer/app/\n├── command/\n│   ├──\
-  \ cancel_training.go\n│   ├── schedule_training.go\n│   └── make_hours_available.go\n└── query/\n    ├── available_hours.go\n\
-  \    └── hour_availability.go\n```\n\n**Application Layer Design (`internal/trainer/app/app.go`):**\n```go\ntype Application\
-  \ struct {\n    Commands Commands\n    Queries  Queries\n}\n\ntype Commands struct {\n    CancelTraining   command.CancelTrainingHandler\n\
-  \    ScheduleTraining command.ScheduleTrainingHandler\n    // ...\n}\n\ntype Queries struct {\n    HourAvailability    \
-  \  query.HourAvailabilityHandler\n    TrainerAvailableHours query.AvailableHoursHandler\n}\n```\n\n**Separate Handler Types:**\n\
-  - Command handlers: `decorator.CommandHandler[ScheduleTraining]`\n- Query handlers: `decorator.QueryHandler[AvailableHours,\
-  \ []Date]`\n- Read models for queries: `AvailableHoursReadModel` interface\n\nREADME article 10 explicitly documents this:\
-  \ \"Introducing basic CQRS by refactoring\"\n\n### Secondary Style: Microservices\n\n**Independent Deployment Units:**\n\
-  - Three services deployed independently on Google Cloud Run (from `terraform/cloud-run.tf`):\n  - `trainer-http` / `trainer-grpc`\n\
-  \  - `trainings-http`\n  - `users-http` / `users-grpc`\n\n**Separate Go Modules:**\nGo workspace (`go.work`) defines separate\
-  \ modules for each service:\n```go\nuse (\n    ./internal/common\n    ./internal/trainer\n    ./internal/trainings\n   \
-  \ ./internal/users\n)\n```\n\n**Inter-Service Communication:**\n- Synchronous gRPC calls between services\n- Protobuf definitions\
-  \ in `api/protobuf/`\n- Services call each other: `trainings` service calls `trainer` and `users` gPC endpoints (from `internal/trainings/adapters/trainer_grpc.go`\
-  \ and `users_grpc.go`)\n\n### What Was Rejected\n\n**Not Hexagonal Architecture:** While there's a `ports/` directory and\
-  \ clear separation of concerns, the pattern is DDD first. The directory naming (ports, adapters) is influenced by hexagonal\
-  \ concepts, but the primary organizational principle is bounded contexts and domain models. This is \"DDD Lite\" as the\
-  \ authors describe it.\n\n**Not Event-Driven:** Services communicate via synchronous gRPC calls, not through events or message\
-  \ brokers. No message queue configuration, event handlers, or async event processing was found.\n\n**Not Pure Layered:**\
-  \ There's no horizontal layering across the entire application (presentation → business → data). Instead, each bounded context\
-  \ has its own internal vertical architecture.\n\n**Not Serverless (Primary):** While deployed to Cloud Run (serverless platform),\
-  \ the architecture is defined by DDD bounded contexts and microservices patterns. Serverless is the deployment model, not\
-  \ the architectural style.\n\n### Summary\n\nThis repository demonstrates a well-structured DDD implementation with CQRS\
-  \ patterns applied within bounded contexts, deployed as independent microservices. The README and article series explicitly\
-  \ document the intentional evolution from \"too modern\" serverless to DDD-organized architecture, making this an exemplary\
-  \ reference for these architectural styles combined."
+  Confidence is 0.95. The Microservices classification is strongly supported by
+  independent modules, independent Cloud Run deployments, and gRPC-only
+  cross-service communication. The 0.05 uncertainty reflects that this is a
+  pedagogical project — the users service lacks DDD internal structure, and the
+  project is explicitly designed as a teaching tool rather than a production
+  system with emergent architecture.
+quality_attributes:
+  testability: >-
+    In-memory repository implementations enable unit tests without
+    infrastructure; shared repository test suites run against all
+    implementations (Firestore, MySQL, in-memory); command handler unit tests
+    are isolated from ports and adapters.
+  maintainability: >-
+    Strict layer isolation — domain has zero infrastructure imports; application
+    layer depends only on domain interfaces; ports and adapters depend on
+    application interfaces. Persistence technology is swappable within a single
+    adapter file.
+  deployability: >-
+    Each service deployed independently to Google Cloud Run; Terraform manages
+    per-service image tags and environment variables; Docker Compose mirrors
+    the full topology locally for development.
+  evolvability: >-
+    Separate Go modules prevent accidental cross-service coupling; CQRS
+    separation allows read and write paths to evolve independently; repository
+    interfaces in the domain layer decouple business logic from persistence
+    technology.
+  observability: >-
+    Generic decorator framework wraps every command and query handler with
+    structured logging (logrus) and metrics automatically via type introspection;
+    consistent across all services via the shared common module.
+  security: >-
+    Firebase Auth JWT validation in internal/common/auth/; gRPC backend
+    services require signed tokens (Cloud Run authentication = true); HTTP
+    frontends sit behind authenticated gRPC backends.
 architecture_qualifiers:
 - type: design-approach
   value: ddd
-  note: Domain-Driven Design approach (reclassified from style per ADR-006)
+  note: >-
+    Domain-Driven Design — bounded contexts per service, private-field
+    entities, type-safe value objects, factory-enforced invariants, repository
+    interfaces defined inside the domain layer. Per ADR-006, not an
+    architecture style.
+- type: design-approach
+  value: hexagonal
+  note: >-
+    Hexagonal / ports-and-adapters — each bounded context has ports/ (inbound
+    HTTP + gRPC) and adapters/ (outbound Firestore + gRPC client) directories;
+    inbound ports hold only an Application reference and delegate all logic.
+    Per ADR-006, not an architecture style.
 - type: data-pattern
   value: cqrs
-  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)
+  note: >-
+    Command-Query Responsibility Segregation — Application struct splits
+    Commands and Queries; generic CommandHandler[C] and QueryHandler[Q,R]
+    interfaces in internal/common/decorator; separate app/command/ and
+    app/query/ subdirectories per service. Per ADR-006, not an architecture
+    style.
+review_notes: >-
+  This repository is a canonical Microservices application with DDD, hexagonal
+  architecture, and CQRS applied as internal design approaches within each
+  service. The previous classification listed DDD as the primary style; this
+  has been corrected per ADR-006 — DDD, hexagonal, and CQRS are
+  architecture_qualifiers. Microservices is the sole architecture_style,
+  confirmed by independent Go modules, five Cloud Run service definitions,
+  and gRPC-only inter-service contracts.
+review_required: false

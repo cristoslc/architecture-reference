@@ -8,7 +8,7 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-07T05:09:45Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: E-Commerce
+domain: E-Commerce / Headless Commerce Framework
 language: TypeScript
 languages:
 - TypeScript
@@ -16,85 +16,112 @@ languages:
 architecture_styles:
 - Microkernel
 - Layered
+- Event-Driven
 classification_status: classified
-review_notes: 'Vendure Core is architected as a **Microkernel (Plugin)** system, designed
-  specifically for extreme extensibility while maintaining a stable core. It is built
-  on the NestJS framework and follows a monorepo structure using Lerna.
-
-
-  ### 1. Microkernel (Plugin) Architecture
-
-  The defining characteristic of Vendure is its plugin system. As seen in `packages/core/src/plugin/plugin.module.ts`,
-  the system dynamically injects functionality via `PluginModule.forRoot()`, which
-  spreads `...getConfig().plugins` into the main application imports.
-
-  - **Plugin Contract:** The README and docs highlight that almost every aspect (GraphQL
-  schema, database entities, background tasks) can be extended via plugins.
-
-  - **Evidence:** The `app.module.ts` depends on a `PluginModule` that acts as the
-  registry and lifecycle manager for externalized logic.
-
-
-  ### 2. Layered Architecture
-
-  Within the core package, Vendure follows a traditional horizontal layering (standard
-  for NestJS applications):
-
-  - **API Layer:** Found in `packages/core/src/api`, focusing on GraphQL resolvers,
-  guards, and interceptors. It is strictly separated into `admin` and `shop` contexts.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:07:45Z'
-classification_reasoning: "## Analysis\n\n### Primary Style: Microkernel (Plugin)\n\
-  \nVendure is architected as a **plugin-based system** where a core framework is\
-  \ extended through a well-defined plugin contract. The evidence is substantial:\n\
-  \n**Plugin Infrastructure:**\n- The `@VendurePlugin` decorator (`packages/core/src/plugin/vendure-plugin.ts`)\
-  \ is the central extension mechanism, built on top of NestJS modules but with Vendure-specific\
-  \ metadata\n- Plugins can extend the GraphQL API (`shopApiExtensions`, `adminApiExtensions`),\
-  \ add database entities, modify configuration, and provide controllers/services\n\
-  - The `PluginModule.forRoot()` dynamically loads all configured plugins at bootstrap\
-  \ time\n\n**Plugin Metadata Contract** (from `vendure-plugin.ts`):\n```typescript\n\
-  export interface VendurePluginMetadata extends ModuleMetadata {\n    configuration?:\
-  \ PluginConfigurationFn;\n    shopApiExtensions?: APIExtensionDefinition;\n    adminApiExtensions?:\
-  \ APIExtensionDefinition;\n    entities?: Array<Type<any>> | (() => Array<Type<any>>);\n\
-  \    compatibility?: string;  // semver version checking\n}\n```\n\n**Official Plugins\
-  \ Demonstrating the Pattern:**\n- `AssetServerPlugin` - serves and transforms assets\n\
-  - `EmailPlugin` - handles transactional emails via EventBus\n- `AdminUiPlugin` -\
-  \ serves the admin UI with metrics extensions\n- `PaymentsPlugin` - Stripe, Mollie,\
-  \ Braintree, PayPal integrations\n- `ElasticsearchPlugin` - search indexing\n- `SentryPlugin`,\
-  \ `HardenPlugin`, `StellatePlugin` - cross-cutting concerns\n\nEach plugin follows\
-  \ the same pattern: `@VendurePlugin({...})` decorator, `init()` static method for\
-  \ configuration, and integration with the core via well-defined extension points.\n\
-  \n### Secondary Style: Layered\n\nWithin the core package, there's clear horizontal\
-  \ layering:\n\n1. **API Layer** (`packages/core/src/api/`): GraphQL resolvers (admin/shop),\
-  \ middleware, schema definitions\n2. **Service Layer** (`packages/core/src/service/`):\
-  \ Business logic services like `OrderService`, `ProductService`, `CustomerService`\n\
-  3. **Data Layer** (`packages/core/src/entity/`, `packages/core/src/connection/`):\
-  \ TypeORM entities, transaction management\n\nThe `ApiModule` imports (`packages/core/src/api/api.module.ts`):\n\
-  ```typescript\nimports: [\n    ServiceModule,        // Business logic\n    ConnectionModule,\
-  \     // Data access\n    AdminApiModule,       // Admin resolvers\n    ShopApiModule,\
-  \        // Shop resolvers\n    // ...\n]\n```\n\n### What This Is NOT\n\n- **Not\
-  \ Microservices**: Vendure is a single deployable unit (a Node.js/NestJS application).\
-  \ The worker mode for job processing is an optimization, not a service boundary.\n\
-  - **Not Modular Monolith**: While it's a monolith, the extension mechanism is external\
-  \ plugins, not enforced internal module boundaries. The `ServiceModule` is a single\
-  \ cohesive layer.\n- **Not Hexagonal Architecture**: There's no ports-and-adapters\
-  \ pattern. Strategies are configuration-based, not port interfaces.\n- **Not DDD**:\
-  \ No bounded contexts, aggregates, or ubiquitous language organization. Services\
-  \ are organized by entity type (OrderService, ProductService), not domain boundaries.\n\
-  \n### Additional Architectural Elements\n\n**Strategy Pattern for Extensibility**:\
-  \ Vendure uses numerous strategy interfaces for customization points:\n- `JobQueueStrategy`\
-  \ (Redis, in-memory, database-backed)\n- `PaymentMethodHandler` (with `createPayment`,\
-  \ `settlePayment`, etc.)\n- `AssetStorageStrategy` (local, S3)\n- `AuthenticationStrategy`,\
-  \ `TaxZoneStrategy`, `OrderProcess`, etc.\n\n**Event-Driven Elements**: \n- `EventBus`\
-  \ with RxJS observables for domain events\n- `JobQueue` for background processing\n\
-  - Worker process for async job execution\n\nHowever, these are implementation mechanisms\
-  \ within the plugin architecture, not defining architectural characteristics. The\
-  \ EventBus is primarily used by plugins to react to domain events, reinforcing the\
-  \ microkernel pattern.\n\n### Conclusion\n\nVendure is a textbook example of a **Microkernel\
-  \ (Plugin) architecture** - a core system designed to be extended through plugins\
-  \ loaded at runtime. The layered structure within the core is a subordinate organizing\
-  \ principle. The extensive use of strategies and events are mechanisms that support\
-  \ the plugin extensibility model."
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Modularity
+- Maintainability
+- Scalability
+- Testability
+- Reliability
+- Security
+- Developer Experience
+one_line_summary: "An open-source headless commerce framework built on NestJS/TypeScript
+  whose primary architecture is a Microkernel (Plugin) system — a minimal core kernel
+  extended at runtime through the @VendurePlugin contract across 40+ strategy slots
+  and 58 domain events — layered internally in a strict API→Service→Data hierarchy
+  and supported by an RxJS EventBus and pluggable JobQueue for event-driven plugin
+  integration."
+classification_reasoning: "Vendure exhibits a three-style composition: Microkernel\
+  \ as primary, Layered and Event-Driven as secondary.\n\nMICROKERNEL (primary, 0.93):\
+  \ The entire framework is designed around a formal plugin contract. The @VendurePlugin\
+  \ decorator (packages/core/src/plugin/vendure-plugin.ts) extends NestJS @Module\
+  \ with Vendure-specific metadata: configuration (PluginConfigurationFn to mutate\
+  \ VendureConfig before bootstrap), shopApiExtensions/adminApiExtensions (GraphQL\
+  \ schema and resolver injection), entities (TypeORM entity registration), and compatibility\
+  \ (semver version checking). PluginModule.forRoot() dynamically spreads getConfig().plugins\
+  \ into the NestJS AppModule imports array at runtime. The bootstrap pipeline (packages/core/src/bootstrap.ts)\
+  \ runs plugin configuration functions sequentially, merges plugin entities into\
+  \ the entity registry (with name-conflict detection), and validates semver compatibility.\
+  \ The VendureConfig interface exposes 40+ strategy interfaces as kernel extension\
+  \ points: AuthenticationStrategy, AssetStorageStrategy, OrderMergeStrategy, JobQueueStrategy,\
+  \ PaymentMethodHandler, FulfillmentHandler, TaxZoneStrategy, SchedulerStrategy,\
+  \ InstrumentationStrategy, and 31 others. Every significant production capability\
+  \ is implemented as a first-party plugin: AssetServerPlugin (asset storage and transformation),\
+  \ EmailPlugin (EventBus subscription + JobQueue dispatch), AdminUiPlugin (Angular/React\
+  \ admin), ElasticsearchPlugin (search), JobQueuePlugin/BullMQ (Redis-backed queues),\
+  \ PaymentsPlugin (Stripe, Mollie, Braintree), HardenPlugin (security), SentryPlugin\
+  \ (error/instrumentation strategy), StellatePlugin (CDN cache invalidation). This\
+  \ is textbook Microkernel: a stable minimal kernel with formal extension contracts\
+  \ and externalized, interchangeable plug-in components.\n\nLAYERED (secondary, 0.88):\
+  \ Within packages/core/src/, there is rigorous three-layer organisation with unidirectional\
+  \ dependency flow. API Layer (api/) contains GraphQL resolvers split into admin/\
+  \ and shop/ subdirectories (20+ resolvers each), GraphQL schema definitions, guards\
+  \ (AuthGuard), interceptors (IdInterceptor, CustomFieldProcessingInterceptor, TranslateErrorResultInterceptor),\
+  \ and middleware. The api.module.ts imports ServiceModule and ConnectionModule —\
+  \ never the reverse. Service Layer (service/) contains 20+ domain services (OrderService,\
+  \ ProductService, CustomerService, PaymentService, FulfillmentService) plus helpers\
+  \ (OrderCalculator, OrderStateMachine, OrderModifier). Services follow Transaction\
+  \ Script style: each method is a complete business transaction coordinating repositories,\
+  \ strategies, and event publishing. ErrorResultUnion<T, R> return types replace\
+  \ exception-based control flow for domain errors. Data Layer (entity/, connection/)\
+  \ contains 60+ TypeORM entity classes. TransactionalConnection wraps TypeORM, carrying\
+  \ transaction scope via RequestContext; withTransaction() provides explicit boundaries\
+  \ for non-request contexts (JobQueue, scripts). No upward dependencies — the pattern\
+  \ is enforced consistently.\n\nEVENT-DRIVEN (secondary, 0.78): An RxJS-based EventBus\
+  \ (packages/core/src/event-bus/event-bus.ts) uses a Subject<VendureEvent> stream.\
+  \ publish() emits to all subscribers; ofType() filters by class type. Transaction-awareness\
+  \ is built in: subscribers are only called after active DB transactions complete,\
+  \ preventing dirty reads. Blocking handlers execute synchronously within the publishing\
+  \ transaction with dependency-ordered sequencing. 58 named domain events exist in\
+  \ event-bus/events/: OrderEvent, OrderPlacedEvent, OrderStateTransitionEvent, PaymentStateTransitionEvent,\
+  \ FulfillmentEvent, ProductEvent, CustomerEvent, LoginEvent, AccountRegistrationEvent,\
+  \ PasswordResetEvent, StockMovementEvent, and 47 others. Plugins subscribe via the\
+  \ ofType() pattern (EmailPlugin example: for each handler, eventBus.ofType(handler.event).subscribe(event\
+  \ => handleEvent(handler, event))). JobQueue (packages/core/src/job-queue/) is strategy-backed:\
+  \ JobQueueStrategy allows in-memory, database, or BullMQ/Redis. Optional worker\
+  \ process (packages/core/src/worker/) polls queues independently for horizontal\
+  \ scaling. Event-driven is secondary because the synchronous GraphQL request-response\
+  \ flow is primary; events are side-effect notifications propagated to plugins.\n\n\
+  RULED OUT - Modular Monolith: No enforced bounded-context module boundaries isolating\
+  \ domain concerns from each other. The core is a cohesive ServiceModule containing\
+  \ all services. Plugin packages are external extensions, not bounded-context modules.\
+  \ This contrasts with Medusa (35 DI-container-wired bounded-context modules with\
+  \ RemoteJoiner federation) and Shopware (13 subdomain namespaces with @Package annotations).\n\
+  \nRULED OUT - Microservices: Single deployable Node.js process per role (server,\
+  \ worker). No inter-service HTTP calls, no service registry, no independent deployment\
+  \ per domain. The server/worker split is an operational scaling optimisation sharing\
+  \ a common database and configuration.\n\nRULED OUT - DDD (as style): No bounded\
+  \ contexts, no aggregates, no ubiquitous language organisation. Services are named\
+  \ by entity type (OrderService, ProductService), not domain subdomain. Entities are\
+  \ anemic TypeORM classes; business logic lives in Transaction Script services. Domain\
+  \ events exist but serve the plugin bus, not aggregate lifecycle management.\n\n\
+  QUALITY ATTRIBUTES evidence: Extensibility — 40+ strategy slots; @VendurePlugin\
+  \ GraphQL/entity/config/UI extension; 58 domain events for plugin reactions; custom\
+  \ fields on any entity; semver compatibility checking. Modularity — plugin packages\
+  \ are independently versioned npm packages; first-party plugins demonstrate clear\
+  \ kernel/extension separation. Maintainability — NestJS DI enforces interface-based\
+  \ dependencies; TypeScript throughout; per-resolver and per-service separation.\
+  \ Scalability — stateless server replicas; BullMQ/Redis worker pool for horizontal\
+  \ job scaling; Redis-backed cache and session strategies via strategy pattern. Testability\
+  \ — packages/testing provides TestServer utilities; strategy pattern allows mock\
+  \ implementations. Reliability — transaction-aware event delivery; state machine\
+  \ enforcement for order/payment/fulfillment; pessimistic locking in order concurrency\
+  \ paths. Security — AuthGuard on all API layers; separate admin/shop API schemas\
+  \ with distinct permissions; strategy-abstracted authentication. Developer Experience\
+  \ — NestJS DI; TypeScript-first; GraphQL code-first; @VendurePlugin decorator pattern."
+architecture_qualifiers:
+- type: design-approach
+  value: strategy-pattern
+  note: Pervasive GoF Strategy pattern — 40+ strategy interfaces in VendureConfig form the kernel extension points; not a Hexagonal ports-and-adapters structure
+- type: design-approach
+  value: transaction-script
+  note: Service layer uses Transaction Script style — business logic lives in service methods (OrderService, ProductService), not in anemic entity classes
+- type: design-approach
+  value: state-machine
+  note: OrderStateMachine, PaymentStateMachine, and FulfillmentStateMachine enforce valid state transitions; configurable via OrderProcess/PaymentProcess/FulfillmentProcess strategy interfaces

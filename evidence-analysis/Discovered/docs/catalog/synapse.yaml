@@ -19,88 +19,103 @@ architecture_styles:
 - Service-Based
 - Microkernel
 classification_status: classified
-review_notes: "Synapse is structured as a **Service-Based** architecture that can\
-  \ be deployed either as a monolith or as a set of specialized, coarse-grained services\
-  \ (referred to in the codebase as \"workers\"). While it shares some traits with\
-  \ Microservices (independent scalability), it is fundamentally service-based because\
-  \ all workers typically share a single logical database and are built from the same\
-  \ unified codebase using a shared configuration.\n\n### 1. Primary Style: Service-Based\n\
-  The \"Worker\" architecture is the defining structural characteristic of Synapse.\
-  \ \n- **Shared Codebase & Logic:** The directory `synapse/app/` contains multiple\
-  \ entry points like `federation_reader.py`, `pusher.py`, and `client_reader.py`.\
-  \ These allow the monolith to be split into functional units that handle specific\
-  \ subsets of the Matrix protocol.\n- **Shared Database:** Unlike pure microservices,\
-  \ Synapse workers generally operate against a shared PostgreSQL instance. The `synapse/storage`\
-  \ layer is designed to be shared across these instances, using a custom replication\
-  \ protocol (found in `synapse/replication/`) to keep in-memory caches synchronized\
-  \ across processes.\n- **Coarse-Grained Separation:** The separation is based on\
-  \ functional areas (Reading vs. Writing, Federation vs. Client API) rather than\
-  \ fine-grained domain boundaries.\n\n### 2. Secondary Style: Layered\nInternally,\
-  \ each synapse service follows a strict horizontal layering pattern:"
+classification_confidence: 0.91
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: >-
+  Matrix homeserver implemented as a layered Python/Twisted monolith with optional
+  Redis-coordinated worker scaling and a Microkernel plugin API, participating in
+  the global Matrix federation network as a peer node.
+architecture_qualifiers:
+- federated
+- cqrs-at-infrastructure-level
+- rust-accelerated-core
+- event-dag-domain-model
+quality_attributes:
+- scalability
+- federation-interoperability
+- extensibility
+- observability
+- resilience
+- security
+classification_reasoning: >-
+  ## Architecture Analysis: Synapse (Matrix Homeserver)
+
+
+  ### Primary Style: Layered
+
+
+  Every Synapse process — monolith or worker — is structured as a strict three-tier
+  horizontal stack. The REST layer (synapse/rest/) handles HTTP parsing and delegates
+  to the handler layer (synapse/handlers/, ~50 handler modules) which implements all
+  business logic. The handler layer calls the storage layer (synapse/storage/) via
+  SQLBaseStore subclasses for all persistence. The docs/architecture.md diagram makes
+  this explicit, showing REST ↔ handlers ↔ storage ↔ DB. The HomeServer service
+  locator (synapse/server.py) wires all components together via lazy factory methods
+  but does not break the downward-only dependency convention.
+
+
+  ### Primary Style: Service-Based
+
+
+  Synapse implements an optional worker topology documented in docs/workers.md and
+  docs/replication.md. Multiple Python processes are deployed from the same codebase
+  with different entry points under synapse/app/. All processes share one PostgreSQL
+  database. Communication uses two channels: Redis pub/sub for the internal replication
+  stream (named streams: EventsStream, PresenceStream, TypingStream, ReceiptsStream,
+  ToDeviceStream, DeviceListsStream, PushRulesStream, CachesStream, etc.), and HTTP
+  to the main process's internal replication listener for synchronous operations
+  (event persistence, membership changes, presence updates). This is Service-Based
+  and not Microservices because the database is shared, workers are from the same
+  codebase, decomposition is coarse-grained (~5 service types), and monolith
+  deployment is the default recommendation for small instances.
+
+
+  ### Secondary Style: Microkernel
+
+
+  synapse/module_api/__init__.py defines the ModuleApi class: a stable, versioned
+  extension interface. External Python packages register callbacks at named hook
+  points (spam checking, presence routing, password auth, third-party event rules,
+  account validity, media upload limits, ratelimit overrides) and can add HTTP
+  endpoints via register_web_resource(). Callback registries in
+  synapse/module_api/callbacks/ hold lists of callables contributed by all loaded
+  modules. This is a textbook Microkernel plugin system: a stable core with defined
+  extension points, with extensions not requiring core modification.
+
+
+  ### Architecture Qualifier: federated
+
+
+  The Matrix federation protocol is a core architectural concern, not a peripheral
+  feature. Every Synapse instance participates as a peer in the global Matrix network.
+  FederationServer (synapse/federation/federation_server.py) receives inbound PDUs/EDUs;
+  FederationClient and FederationSender handle outbound delivery with retry and
+  per-destination backoff. All federated room events form a cryptographically signed
+  DAG with auth_events and prev_events links. State Resolution v1/v2 algorithms
+  merge divergent DAG branches. This federated distribution model is fundamental to
+  what Synapse is.
+
+
+  ### Architecture Qualifier: cqrs-at-infrastructure-level
+
+
+  The worker topology implements a read/write separation at the infrastructure level:
+  the main process (or designated stream writer) owns event persistence; generic
+  workers handle reads. The stream writer assignment configuration allows specific
+  named streams to be owned by named worker instances. This is genuine CQRS-style
+  separation at the deployment level, but it is an operational concern within the
+  Service-Based topology, not a domain-level command/query model with separate
+  aggregates.
+
+
+  ### What Was Rejected
+
+
+  Not Microservices: shared PostgreSQL, shared codebase, no per-service data ownership.
+  Not Event-Driven (primary): Redis pub/sub is a cache invalidation bus, not an
+  application event broker between bounded contexts; synchronous HTTP is the primary
+  inter-worker coordination channel for writes. Not Modular Monolith: no enforced
+  module boundaries; HomeServer allows arbitrary cross-cutting access.
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:04:56Z'
-classification_reasoning: "## Architecture Analysis: Synapse (Matrix Homeserver)\n\
-  \n### Primary Style: Layered Architecture\n\nSynapse exhibits a classic **layered\
-  \ architecture** with clear horizontal separation of concerns:\n\n**Evidence from\
-  \ codebase structure:**\n- **REST Layer** (`synapse/rest/`): HTTP servlets handling\
-  \ client, admin, federation, and media endpoints. Files like `synapse/rest/client/_base.py`\
-  \ define URL patterns and servlet interfaces.\n- **Handler Layer** (`synapse/handlers/`):\
-  \ Business logic components (~50 handlers) including `message.py`, `federation.py`,\
-  \ `presence.py`, `room.py`, etc.\n- **Storage Layer** (`synapse/storage/`): Database\
-  \ abstraction with `SQLBaseStore` base class and specialized stores (`databases/main/`,\
-  \ `databases/state/`).\n- **API Layer** (`synapse/api/`): Constants, errors, filtering,\
-  \ and other cross-cutting concerns.\n\n**Architecture diagram from `docs/architecture.md`:**\n\
-  ```\nsynapse\n.-----------------------------------------------------.\n|       \
-  \                   Notifier                   |\n|                            ^\
-  \  |                     |\n|                  .------------|------.           \
-  \   |\n|                  | handlers/  |      |              |\n|              \
-  \    |            v      |              |\n|                  | Event*Handler <-------->\
-  \ rest/* <=> Client\n|                  | Rooms*Handler     |              |\nHS\
-  \ <=> federation/* <==> FederationHandler |              |\n...\n|      `-------------->\
-  \ storage/*                     |\n'--------------------------|--------------------------'\n\
-  \                           v\n                        .----.\n                \
-  \        | DB |\n```\n\n### Secondary Style: Service-Based Architecture\n\nSynapse\
-  \ supports **horizontal scaling via workers** - independently deployable processes\
-  \ that share a common PostgreSQL database:\n\n**Evidence from `docs/workers.md`:**\n\
-  > \"For larger instances where performance is a concern it can be helpful to split\
-  \ out functionality into multiple separate python processes. These processes are\
-  \ called 'workers', and are (eventually) intended to scale horizontally independently.\"\
-  \n\n**Worker types** (`synapse/app/`):\n- `homeserver.py` - Main process\n- `generic_worker.py`\
-  \ - Handles client/federation requests  \n- `federation_sender.py` - Sends federation\
-  \ transactions\n- `pusher.py` - Push notifications\n- `media_repository.py` - Media\
-  \ handling\n- `synchrotron.py` - /sync endpoints\n- `user_dir.py` - User directory\n\
-  \n**Communication mechanism:**\n- Redis pub/sub for replication streams between\
-  \ processes\n- HTTP for synchronous request/response operations\n- All workers share\
-  \ the same PostgreSQL database\n\n**Docker compose example** (`contrib/docker_compose_workers/docker-compose.yaml`):\n\
-  ```yaml\nsynapse-generic-worker-1:\n  environment:\n    SYNAPSE_WORKER: synapse.app.generic_worker\n\
-  synapse-federation-sender-1:\n  environment:\n    SYNAPSE_WORKER: synapse.app.federation_sender\n\
-  ```\n\nThis is **Service-Based** (not Microservices) because:\n- 2-5 coarse-grained\
-  \ service types (not dozens of microservices)\n- Shared database (PostgreSQL) is\
-  \ the norm\n- Workers are optional - monolith deployment is default\n\n### Secondary\
-  \ Style: Microkernel (Plugin)\n\nSynapse has a **plugin/module system** for extending\
-  \ functionality:\n\n**Evidence from `docs/modules/index.md`:**\n> \"Synapse supports\
-  \ extending its functionality by configuring external modules... Each module is\
-  \ defined by a path to a Python class as well as a configuration.\"\n\n**Module\
-  \ API (`synapse/module_api/__init__.py`):**\n- `register_web_resource()` - Add HTTP\
-  \ endpoints\n- `register_spam_checker_callbacks()` - Content moderation hooks\n\
-  - `register_presence_router_callbacks()` - Presence routing\n- `register_password_auth_provider_callbacks()`\
-  \ - Custom authentication\n- `register_third_party_rules_callbacks()` - Event validation\
-  \ hooks\n- Cache management APIs for modules\n\n**Configuration example:**\n```yaml\n\
-  modules:\n  - module: my_super_module.MySuperClass\n    config:\n      do_thing:\
-  \ true\n```\n\n### What This Is NOT\n\n**Not Microservices:**\n- No independent\
-  \ data ownership - all workers share PostgreSQL\n- No API gateways between services\n\
-  - Workers are same codebase, different entry points\n- Default deployment is monolithic\n\
-  \n**Not Event-Driven:**\n- Matrix protocol handles events (business domain), not\
-  \ architectural pattern\n- Redis pub/sub is for data replication, not application\
-  \ event routing\n- Synchronous HTTP between workers for most operations\n\n**Not\
-  \ Domain-Driven Design:**\n- No bounded contexts, aggregates, or ubiquitous language\n\
-  - Organized by technical layers (handlers, storage, rest)\n- No domain event patterns\
-  \ or event sourcing\n\n**Not CQRS:**\n- Single unified data model\n- No separate\
-  \ read/write models\n- Direct database access from handlers\n\n**Not Hexagonal:**\n\
-  - No ports/adapters isolation\n- Handlers directly instantiate and call storage\n\
-  - Database is tightly integrated, not abstracted through interfaces\n\n### Conclusion\n\
-  \nSynapse is a **Layered monolithic application** with optional **Service-Based**\
-  \ scaling capa\n\n[truncated]"

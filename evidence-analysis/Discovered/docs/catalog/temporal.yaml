@@ -11,77 +11,48 @@ discovery_version: 1.0.0
 domain: Workflow Orchestration
 language: Go
 languages:
-- Go
+  - Go
 architecture_styles:
-- Service-Based
-- Layered
+  - Service-Based
+  - Event-Driven
 classification_status: classified
-review_notes: "The Temporal server repository is a classic exemplar of a **Microservices**\
-  \ architecture, specifically following the \"Service-Based\" patterns often seen\
-  \ in high-scale Uber-originated projects (like its predecessor, Cadence). \n\n###\
-  \ 1. Primary Style: Microservices\nThe system is decomposed into several functional\
-  \ services that are independently scalable and often independently deployable, as\
-  \ evidenced by:\n- **Service Boundaries**: The logic is explicitly split in the\
-  \ `service/` directory into four primary roles: `frontend`, `history`, `matching`,\
-  \ and `worker`.\n- **Deployment Topology**: The `docker/config_template.yaml` defines\
-  \ distinct RPC and Membership ports for each service (e.g., Frontend on 7233, History\
-  \ on 7234, Matching on 7235).\n- **Communication**: Services interact via gRPC.\
-  \ The `common/membership` and `common/cluster` modules facilitate service discovery\
-  \ and cluster metadata management across these distributed components.\n- **Dependency\
-  \ Injection**: Each service uses **Uber Fx** (`service/*/fx.go`) to define its own\
-  \ dependency graph, allowing each service to boot with only the specific resources\
-  \ (persistence, metrics, handlers) it requires.\n\n### 2. Secondary Style: Event-Driven"
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T23:43:29Z'
-classification_reasoning: "## Analysis\n\n### Primary Style: Service-Based Architecture\n\
-  \nThe Temporal server exhibits clear Service-Based architecture characteristics:\n\
-  \n**Evidence:**\n\n1. **Coarse-grained services (4 services)**: The system is decomposed\
-  \ into four well-defined services:\n   - `service/frontend/` - API gateway handling\
-  \ external gRPC requests\n   - `service/history/` - Core workflow execution state\
-  \ management with sharding\n   - `service/matching/` - Task queue management and\
-  \ dispatch\n   - `service/worker/` - Background processing (archival, replication)\n\
-  \n   Defined in `temporal/server.go`:\n   ```go\n   var Services = []string{\n \
-  \      string(primitives.FrontendService),\n       string(primitives.InternalFrontendService),\n\
-  \       string(primitives.HistoryService),\n       string(primitives.MatchingService),\n\
-  \       string(primitives.WorkerService),\n   }\n   ```\n\n2. **Shared database**:\
-  \ All services use the same persistence layer (Cassandra, MySQL, PostgreSQL, or\
-  \ SQLite). Configuration shows `numHistoryShards` as a shared persistence parameter\
-  \ in `config/development.yaml`:\n   ```yaml\n   persistence:\n     defaultStore:\
-  \ sqlite-default\n     visibilityStore: sqlite-visibility\n     numHistoryShards:\
-  \ 1\n   ```\n\n3. **Inter-service gRPC communication**: Services communicate via\
-  \ generated gRPC clients, not in-process calls. The `client/client_bean.go` shows\
-  \ the client abstraction:\n   ```go\n   type Bean interface {\n       GetHistoryClient()\
-  \ historyservice.HistoryServiceClient\n       GetMatchingClient(namespaceIDToName\
-  \ NamespaceIDToNameFunc) (matchingservice.MatchingServiceClient, error)\n      \
-  \ GetFrontendClient() workflowservice.WorkflowServiceClient\n   }\n   ```\n\n4.\
-  \ **Single deployable with service selection**: `cmd/server/main.go` produces one\
-  \ binary that can run any combination of services. Default runs all together, but\
-  \ can be configured for independent deployment:\n   ```go\n   var DefaultServices\
-  \ = []string{\n       string(primitives.FrontendService),\n       string(primitives.HistoryService),\n\
-  \       string(primitives.MatchingService),\n       string(primitives.WorkerService),\n\
-  \   }\n   ```\n\n5. **Service discovery via membership**: Ringpop-based membership\
-  \ system (`common/membership/ringpop/`) enables services to discover and communicate\
-  \ with each other.\n\n### Secondary Style: Layered Architecture\n\nWithin each service,\
-  \ there's internal layering:\n\n- **API/Handler layer**: gRPC handlers (e.g., `service/frontend/service.go`,\
-  \ `service/history/handler.go`)\n- **Business logic layer**: Engines and processors\
-  \ (e.g., `service/history/history_engine.go`)\n- **Data access layer**: Persistence\
-  \ abstractions in `common/persistence/` with ExecutionManager, MetadataManager,\
-  \ etc.\n\n### Rejected Alternatives\n\n- **NOT Microservices**: Services share a\
-  \ database rather than owning separate data stores. The 4 services are coarse-grained\
-  \ (not fine-grained), and the default deployment is a single process running all\
-  \ services together. This matches Service-Based, not Microservices.\n\n- **NOT Modular\
-  \ Monolith**: Services communicate via gRPC with service discovery, not internal\
-  \ function calls. Each service has its own port configuration and can be independently\
-  \ deployed and scaled.\n\n- **NOT Event-Driven**: While Temporal is a durable execution\
-  \ platform that processes workflow events, internal service-to-service communication\
-  \ is synchronous gRPC, not asynchronous messaging through a broker.\n\n- **NOT Hexagonal/Ports-and-Adapters**:\
-  \ While there are interface abstractions, the primary architectural driver is service\
-  \ decomposition, not isolation of the application core via ports and adapters.\n\
-  \n### Conclusion\n\nTemporal exemplifies Service-Based architecture: a small number\
-  \ of coarse-grained services (4) that communicate via gRPC, share a database, can\
-  \ be deployed together or separately, and use membership-based service discovery.\
-  \ The ~108K lines of service code are organized into clear vertical slices with\
-  \ shared infrastructure in `common/`."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+one_line_summary: "Durable-execution platform built as four coarse-grained gRPC services (Frontend, History, Matching, Worker) sharing a pluggable persistence tier, with event sourcing and a transactional outbox as the foundational execution model for every workflow."
+quality_attributes:
+  - Durability
+  - Scalability
+  - Consistency
+  - Fault Tolerance
+  - Extensibility
+  - Observability
+  - Maintainability
+  - Interoperability
+classification_reasoning: |-
+  Service-Based is the deployment and communication architecture: four named services (Frontend, History, Matching, Worker) share a single persistence tier (Cassandra / MySQL / PostgreSQL / SQLite configured via a shared defaultStore), communicate via synchronous gRPC with Ringpop-based service discovery, and are compiled into a single binary that supports any deployment topology (all-in-one or independently scaled). This is explicitly not Microservices (shared DB schema, coarse-grained boundaries, monorepo single binary) and not a Modular Monolith (network gRPC boundary, not in-process calls).
+
+  Event-Driven / Event Sourcing is the co-primary execution architecture and is equally load-bearing. Every workflow execution is represented as an append-only History Event log; "the sequence of History Events alone is sufficient to recover all other relevant information." The Transactional Outbox pattern (Transfer Tasks, Timer Tasks, Visibility Tasks written atomically with mutable state updates) is the core delivery mechanism for propagating work between the History and Matching services. All scheduled operations — activity timeouts, workflow task timeouts, user timers — flow through the Timer Task queue. The entire consistency model depends on this event/task duality, making Event-Driven a primary style rather than an implementation detail.
+
+  Supporting structural patterns that are not primary styles: Hierarchical State Machine (service/history/hsm/) provides type-safe validated transitions with task regeneration; the newer CHASM component framework (chasm/) introduces composable hierarchical stateful components and is emerging as a second-generation execution model with Schedules already implemented on it. Shard-based data partitioning (fixed shard count, Ringpop consistent hashing, RangeID fencing) provides the scalability substrate for the History service. Long-poll dispatch in Matching (hierarchical partition forwarding tree) enables high-throughput task delivery.
+
+  Layered is rejected as a named style: the internal handler→engine→persistence layering within each service is a universal good-practice implementation pattern, not an architectural differentiator that warrants a style classification alongside Service-Based.
+
+  Confidence 0.93. The small gap from 1.0 reflects: the emerging CHASM framework may shift style weighting as it matures; Nexus cross-namespace RPC adds an architectural layer whose design is still evolving (multi-cluster replication for Nexus not yet implemented); and the single-binary/multi-service deployment ambiguity requires judgment on intended versus actual deployment mode.
+architecture_qualifiers:
+  - type: structural-pattern
+    value: event-sourcing
+    note: Append-only History Event log is the system of record for every workflow execution; mutable state is derivable from replaying the event sequence.
+  - type: structural-pattern
+    value: transactional-outbox
+    note: Transfer, Timer, and Visibility tasks are written atomically with history event appends; queue processors deliver them as RPCs to ensure eventual consistency between History and Matching services.
+  - type: structural-pattern
+    value: hierarchical-state-machine
+    note: service/history/hsm/ provides type-safe Transition[S,SM,E] framework; chasm/ introduces a next-generation component-based execution model with nested stateful component trees.
+  - type: structural-pattern
+    value: shard-based-partitioning
+    note: Fixed shard count per cluster, Ringpop consistent hashing assigns ownership to History instances, RangeID generation counters fence split-brain during ownership transfers.
+  - type: structural-pattern
+    value: long-poll-dispatch
+    note: Matching service implements server-side long-polling for task delivery; hierarchical partition forwarding tree (default 4 partitions) enables pollers to find tasks across the partition set.

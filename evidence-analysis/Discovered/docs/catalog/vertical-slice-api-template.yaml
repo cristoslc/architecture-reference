@@ -16,89 +16,62 @@ languages:
 architecture_styles:
 - Modular Monolith
 classification_status: classified
-review_notes: |-
-  The repository is a quintessential implementation of **Vertical Slice Architecture**, explicitly stated in the README and reflected in the physical organization of the source code. Rather than grouping by technical concerns (controllers, services, repositories), the system is organized around business features.
-
-  ### Primary Style: Vertical Slice
-  The codebase rejects traditional horizontal layering (N-Tier) in favor of vertical slices where each slice encapsulates all technical requirements for a specific use case.
-  - **Feature Folders:** Under `src/App/Vertical.Slice.Template/Products`, the code is organized by features (e.g., `CreateProduct`, `GetProductById`). Each folder typically contains the endpoint definition (Minimal API), the command/query, and the handler.
-  - **High Cohesion:** The README explicitly advocates for "minimizing coupling between slices and maximizing coupling in a slice."
-  - **Project Structure:**
-    - `src/Shared`: Contains cross-cutting concerns (Infrastructure, Observability, Persistence abstractions) that act as a foundation for all slices.
-    - `src/App`: Houses the actual business logic organized by slices.
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
 review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:09:12Z'
+one_line_summary: >-
+  ASP.NET Core 9 dotnet project template demonstrating Vertical Slice Architecture
+  within a single-deployable Modular Monolith, using CQRS via source-generated
+  Mediator, Minimal APIs, and outbound MassTransit integration events.
+quality_attributes:
+  maintainability: high
+  testability: high
+  scalability: moderate
+  observability: high
+  deployability: simple
+  cohesion: high
 classification_reasoning: |-
-  ## Analysis
+  The dominant architectural style is Modular Monolith: one deployable unit, one
+  CatalogsDbContext, one process, with a structured module registration boundary
+  (AddProductsModuleServices / UseProductsModule / MapProductsModuleEndpoints
+  convention in ProductConfigurations.cs). The single service in
+  deployments/docker-compose/docker-compose.services.yaml confirms the topology.
 
-  ### Evidence for Modular Monolith
+  Vertical Slice Architecture is the defining design approach structuring the
+  interior of the monolith. All business code lives under feature folders
+  (Products/Features/CreatingProduct/v1/, GettingProductById/v1/, etc.), each
+  containing the Minimal API endpoint, command or query record, handler,
+  validator, DTOs, and DbExecutors delegate. Adding a feature is purely additive
+  — no existing files are modified. This is an architecture qualifier, not a
+  canonical style (ADR-006).
 
-  **Single Deployable Unit:**
-  - One main API project: `src/App/Vertical.Slice.Template.Api/Vertical.Slice.Template.Api.csproj`
-  - Single Docker service in `deployments/docker-compose/docker-compose.services.yaml`
-  - Single database context (`CatalogsDbContext`) at `src/App/Vertical.Slice.Template/Shared/Data/CatalogsDbContext.cs`
+  CQRS is a supporting data pattern: ICommand<T>/IQuery<T> interfaces in
+  Shared/Abstractions/Core/CQRS/ are dispatched via the source-generated Mediator
+  library with a full pipeline (validation, EF transaction, caching, observability
+  behaviors). There is no separate read/write store — reads project through EF
+  Core at query time. Classified as architecture qualifier per ADR-006.
 
-  **Enforced Internal Module Boundaries:**
-  - The `Products` module has explicit configuration boundaries following the `IModuleConfiguration` contract pattern
-  - Module configuration methods at `src/App/Vertical.Slice.Template/Products/ProductConfigurations.cs`:
-    - `AddProductsModuleServices()` - registers module services
-    - `UseProductsModule()` - configures module middleware
-    - `MapProductsModuleEndpoints()` - registers module endpoints
-  - Each module has its own:
-    - Data configurations (`Products/Data/Configurations/`)
-    - DTOs (`Products/Dtos/`)
-    - Read models (`Products/ReadModel/`)
-    - Models (`Products/Models/`)
+  Integration events (ProductCreatedIntegrationEventV1 via MasstransitExternalBus
+  → RabbitMQ) are present but are purely outbound scaffolding. No inbound
+  consumers exist in the template codebase. Event-Driven Architecture is rejected
+  as a style.
 
-  **Vertical Slice Organization Within Modules:**
-  - Each feature is a self-contained vertical slice: `Products/Features/CreatingProduct/v1/`, `GettingProductById/v1/`, `GettingProductsByPage/v1/`
-  - Each slice contains everything needed: endpoint, command/query, handler, DTOs, events, validators
-  - Example at `src/App/Vertical.Slice.Template/Products/Features/CreatingProduct/v1/`:
-    - `CreateProduct.cs` - Command record + Validator + Handler
-    - `CreateProductEndpoint.cs` - Minimal API endpoint
-    - `ProductCreatedDomainEvent.cs` - Domain event
-    - `ProductCreatedIntegrationEventV1.cs` - Integration event
-
-  ### Evidence for CQRS (Secondary)
-
-  **Command/Query Separation:**
-  - Explicit interfaces at `src/Shared/Abstractions/Core/CQRS/`:
-    - `ICommand<TResponse>` extending `IRequest<TResponse>` (MediatR)
-    - `IQuery<TResponse>` extending `IRequest<TResponse>`
-    - `ICommandHandler`, `IQueryHandler` interfaces
-  - Commands for writes: `CreateProduct : ICommand<CreateProductResult>`
-  - Queries for reads: `GetProductById : CacheQuery<GetProductByIdResult>`
-  - MediatR pipeline behaviors for cross-cutting concerns
-
-  ### What Was Rejected and Why
-
-  **NOT Microservices:**
-  - Single deployable, single database context, single solution
-  - Docker compose shows one API service, not multiple independent services
-
-  **NOT Layered Architecture:**
-  - No horizontal layering (no separate Controllers/Services/Repositories folders)
-  - Code organized by feature/slice, not by technical layer
-  - Each vertical slice contains its own endpoint, handler, DTOs, validation
-
-  **NOT Domain-Driven Design (primary):**
-  - Has DDD infrastructure (Aggregate, Entity, Domain Events base classes)
-  - But domain model is anemic: `Product.cs` is a POCO with no methods or invariants
-  - No rich aggregates with behavior, no bounded context separation
-  - DDD elements are scaffolding, not the primary architectural pattern
-
-  **NOT Event-Driven Architecture:**
-  - Integration events via MassTransit/RabbitMQ exist but are secondary
-  - Events published to external broker, not the primary communication pattern
-  - Synchronous request-response via Minimal APIs is the primary interaction model
-
-  ### Summary
-
-  This repository is a **Modular Monolith** implementing **Vertical Slice Architecture** principles. The application is a single deployable with clearly defined internal module boundaries (Products module), where each feature/use case is a self-contained vertical slice containing all necessary code. CQRS via MediatR provides the command/query separation pattern within each slice. The template explicitly documents this: "Using Vertical Slice Architecture as a high-level architecture" and "Using CQRS Pattern on top of MediatR library."
+  Microservices definitively rejected: single process, single database, single
+  Docker service. Layered Architecture rejected: no horizontal technical layering;
+  slices use Shared infrastructure utilities directly without prescribed layer
+  traversal.
 architecture_qualifiers:
+- type: design-approach
+  value: vertical-slice
+  note: Primary internal organisation — each use case is a self-contained feature folder containing endpoint, handler, command/query, validator, DTOs, and DB accessors
 - type: data-pattern
   value: cqrs
-  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)
+  note: Explicit ICommand/IQuery interface segregation dispatched via source-generated Mediator pipeline with validation, transaction, caching, and observability behaviors
+- type: integration-pattern
+  value: integration-events
+  note: Outbound MassTransit/RabbitMQ integration events published per command handler; no inbound consumers defined in template
+- type: structural-support
+  value: domain-events
+  note: In-process domain event dispatch via mediator.Publish() within command handlers
