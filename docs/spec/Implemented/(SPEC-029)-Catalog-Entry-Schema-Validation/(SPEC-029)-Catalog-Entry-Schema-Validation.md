@@ -1,7 +1,7 @@
 ---
 title: "Catalog Entry Schema Validation"
 artifact: SPEC-029
-status: Approved
+status: Implemented
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -57,6 +57,9 @@ ADR-005 requires the discover skill to produce dual output: a markdown report AN
 
 | Criterion | Evidence | Result |
 |-----------|----------|--------|
+| Template contains all SPEC-003 required fields | All 6 fields (`architecture_styles`, `domain`, `scope`, `use_type`, `quality_attributes`, `classification_confidence`) present in `catalog-entry.template.j2` | Pass |
+| Dual output produced from single classification | Discover skill run against nanoclaw repo produced both markdown report and YAML catalog entry from one analysis pass | Pass |
+| Catalog entry validates against schema | All 16 required fields from `catalog-schema.yaml` present in test output; `scope`, `use_type`, `classification_status` enums valid | Pass |
 
 ## Scope & Constraints
 
@@ -87,3 +90,5 @@ ADR-005 requires the discover skill to produce dual output: a markdown report AN
 |-------|------|--------|-------|
 | Draft | 2026-03-10 | 398ebe55 | Initial creation under EPIC-013 |
 | Approved | 2026-03-11 | b068577b | Approved for implementation |
+| Testing | 2026-03-11 | — | All acceptance criteria verified |
+| Implemented | 2026-03-11 | — | All deliverables confirmed: template validated, schema exists, SKILL.md has dual-output, test classification passed |
