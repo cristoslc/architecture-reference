@@ -1,10 +1,10 @@
 ---
 title: "Discover Skill As Sole Pipeline Classification Mechanism"
 artifact: ADR-005
-status: Proposed
+status: Adopted
 author: cristos
 created: 2026-03-09
-last-updated: 2026-03-09
+last-updated: 2026-03-10
 linked-epics:
   - EPIC-012
 linked-specs:
