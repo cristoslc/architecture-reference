@@ -16,77 +16,129 @@ languages:
 architecture_styles:
 - Microkernel
 - Layered
+- Pipeline
 classification_status: classified
-review_notes: "Directus is structured as a **Layered** architecture, organized within\
-  \ a monorepo that separates the frontend (`/app`) from the backend (`/api`). \n\n\
-  ### Primary Style: Layered\nThe backend (`/api/src`) follows a classic horizontal\
-  \ layering pattern:\n1.  **Web/Entry Layer**: Handled by `server.ts`, `app.ts`,\
-  \ and `controllers/`.\n2.  **Service Layer**: Business logic is encapsulated in\
-  \ `api/src/services/`. Files like `items.ts`, `users.ts`, and `panels.ts` contain\
-  \ the core logic for manipulating data.\n3.  **Data Access Layer**: Abstracted via\
-  \ `api/src/database/`. Directus uses Knex.js to provide a unified interface across\
-  \ multiple SQL vendors (PostgreSQL, MySQL, etc.), as evidenced by the `docker-compose.yml`\
-  \ which tests against nearly a dozen different database engines.\n\nThe cross-cutting\
-  \ concerns are also clearly partitioned into directories like `middleware/`, `auth/`,\
-  \ and `utils/`."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:05:51Z'
-classification_reasoning: "## Architecture Analysis: Directus\n\n### Primary Style:\
-  \ Microkernel (Plugin)\n\nThe defining architectural characteristic of Directus\
-  \ is its **extension system** — a robust microkernel pattern where a core system\
-  \ is extended through well-defined plugin interfaces.\n\n**Key Evidence:**\n\n1.\
-  \ **Extension Manager** (`api/src/extensions/manager.ts`):\n   - Central `ExtensionManager`\
-  \ class that dynamically loads, registers, and unloads extensions at runtime\n \
-  \  - Supports three extension sources: local filesystem, npm modules, and external\
-  \ registry\n   - Hot-reload capability via `EXTENSIONS_AUTO_RELOAD` environment\
-  \ variable\n   - Lifecycle management: `initialize()`, `reload()`, `uninstall()`,\
-  \ `broadcastReloadNotification()`\n\n2. **Multiple Extension Types** (`packages/types/src/extensions/`):\n\
-  \   - **Hooks** — Filter/action/init/schedule handlers (`hooks.ts`)\n   - **Endpoints**\
-  \ — Custom REST API endpoints via Express Router (`endpoints.ts`)\n   - **Operations**\
-  \ — Flow operation handlers (`operations.ts`)\n   - **Interfaces** — Form field\
-  \ UI components (`interfaces.ts`)\n   - **Displays** — Value display components\
-  \ (`displays.ts`)\n   - **Layouts** — Collection view layouts (`layouts.ts`)\n \
-  \  - **Modules** — Complete application modules with routes (`modules.ts`)\n   -\
-  \ **Panels** — Dashboard panels (`panels.ts`)\n   - **Themes** — Visual theming\
-  \ (`themes.ts`)\n\n3. **Extension SDK** (`packages/extensions-sdk/`):\n   - CLI\
-  \ tool (`directus-extension`) for scaffolding and building extensions\n   - Templates\
-  \ for creating new extensions\n   - Build tooling using Rollup/Vite for bundling\n\
-  \n4. **Sandboxed Extension Execution** (`api/src/extensions/lib/sandbox/`):\n  \
-  \ - API extensions run in isolated-vm for security\n   - Controlled API surface\
-  \ exposed to extensions via `directus:api` module\n   - Request, sleep, log functions\
-  \ provided to sandboxed code\n\n5. **Plugin Pattern for Infrastructure**:\n   -\
-  \ **Storage Drivers**: `@directus/storage` with pluggable drivers (S3, GCS, Azure,\
-  \ Cloudinary, Local, Supabase)\n   - **Auth Providers**: Local, OAuth2, OpenID,\
-  \ LDAP, SAML (`api/src/auth/drivers/`)\n   - **Deployment Providers**: Netlify,\
-  \ Vercel (`api/src/deployment/drivers/`)\n\n### Secondary Style: Layered\n\nWithin\
-  \ the core monolith, Directus employs a traditional layered architecture:\n\n**Layers\
-  \ in the API** (`api/src/`):\n- **Controllers** — HTTP request handling (`controllers/*.ts`)\n\
-  - **Services** — Business logic (`services/*.ts`)  \n- **Database** — Data access\
-  \ with migrations (`database/`)\n- **Middleware** — Cross-cutting concerns (`middleware/`)\n\
-  \n**Monorepo Structure**:\n- `api/` — Backend (Express + Knex)\n- `app/` — Frontend\
-  \ (Vue.js)\n- `sdk/` — JavaScript SDK\n- `packages/` — 20+ shared packages (types,\
-  \ utils, storage, etc.)\n\n### Supporting Pattern: Event-Driven (Minor)\n\nAn event\
-  \ emitter system supports cross-cutting concerns:\n- `api/src/emitter.ts` — EventEmitter2-based\
-  \ with filter/action/init channels\n- Flows can be triggered by events (`api/src/flows.ts`)\n\
-  - Extensions can register hooks for system events\n\nHowever, this event system\
-  \ primarily **supports the plugin architecture** rather than being the primary integration\
-  \ mechanism.\n\n### What Was Rejected\n\n**NOT Microservices:**\n- Single Dockerfile\
-  \ producing one deployable unit\n- One Express server (`api/src/app.ts`)\n- Single\
-  \ database connection\n- `docker-compose.yml` is for development only (multiple\
-  \ databases for testing)\n\n**NOT Modular Monolith (DDD sense):**\n- No bounded\
-  \ contexts or aggregates pattern\n- Frontend \"modules\" (`app/src/modules/`) are\
-  \ UI routing modules, not backend domain modules\n- Services are organized by entity\
-  \ (Items, Users, Files) not by domain context\n\n**NOT Serverless:**\n- Traditional\
-  \ Node.js server deployment\n- PM2 for process management\n- No serverless.yml or\
-  \ SAM templates\n\n### Summary\n\nDirectus is a **microkernel architecture** with\
-  \ a layered internal structure. The extension system is not an afterthought — it's\
-  \ the core architectural principle. The system provides:\n\n1. Well-defined extension\
-  \ points via typed APIs\n2. Runtime plugin loading and lifecycle management\n3.\
-  \ Security isolation for untrusted extensions\n4. Multiple extension categories\
-  \ covering both backend and frontend customization\n5. An ecosystem marketplace\
-  \ (`@directus/extensions-registry`)\n\nThis architecture allows Directus to be \"\
-  completely extensible\" as stated in its README, enabling white-label CMS customization\
-  \ without forking the core."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Deployability
+- Scalability
+- Modifiability
+- Interoperability
+- Security
+- Observability
+one_line_summary: >-
+  Headless CMS and data platform built on a microkernel extension system atop a layered
+  Express/Knex core, with a user-configurable flow pipeline for automation.
+classification_reasoning: >-
+  ## Architecture Analysis: Directus
+
+
+  ### Primary Style: Microkernel (0.93)
+
+
+  The defining architectural characteristic of Directus is its extension system — a
+  comprehensive microkernel pattern where a stable core is augmented through fourteen
+  well-typed plugin categories loaded and managed at runtime.
+
+
+  **Key Evidence:**
+
+
+  1. **ExtensionManager** (`api/src/extensions/manager.ts`): Central class that discovers
+     extensions from three sources (local filesystem, npm modules, and an external registry),
+     compiles them at runtime using Rollup/Rolldown, manages their full lifecycle
+     (`initialize()`, `reload()`, `uninstall()`), and broadcasts reload notifications across
+     cluster nodes via the Redis-backed message bus. `EXTENSIONS_AUTO_RELOAD` enables
+     hot-swap without process restart.
+
+
+  2. **Fourteen typed extension categories** (`packages/types/src/extensions/`): Hooks
+     (filter/action/init/schedule), Endpoints (Express Router mounts), Operations (flow step
+     handlers), Interfaces, Displays, Layouts, Modules, Panels, Bundles, and Themes.
+
+
+  3. **Sandboxed execution** (`api/src/extensions/lib/sandbox/`): API extensions run inside
+     `isolated-vm` isolates with a controlled `directus:api` SDK surface, preventing untrusted
+     third-party code from escaping the process boundary.
+
+
+  4. **Plugin driver pattern for infrastructure**: Five interchangeable storage drivers
+     (`packages/storage-driver-{local,s3,gcs,azure,cloudinary}/`), five auth providers
+     (`api/src/auth/drivers/`: local, oauth2, openid, ldap, saml), and two deployment
+     providers (`api/src/deployment/drivers/`: netlify, vercel) are all replaceable plugins.
+
+
+  5. **Extensions SDK** (`packages/extensions-sdk/`): `directus-extension` CLI with
+     scaffold templates and Rollup/Vite build tooling; `@directus/extensions-registry`
+     marketplace for third-party plugin discovery.
+
+
+  ### Secondary Style: Layered (0.90)
+
+
+  Within the single deployable unit, Directus enforces strict horizontal layering:
+
+
+  - **HTTP Entry Layer**: Express app (`api/src/app.ts`) composes 30+ routers, one per
+    resource type (`controllers/items.ts`, `controllers/graphql.ts`, `controllers/mcp.ts`, etc.)
+  - **Service Layer**: Business logic encapsulated in `api/src/services/` — `items.ts`
+    (1,239 lines), `fields.ts` (1,043 lines), `collections.ts` (844 lines), etc.
+  - **Data Access Layer**: Knex.js in `api/src/database/` abstracts across seven SQL
+    engines (PostgreSQL, MySQL, SQLite, OracleDB, CockroachDB, MariaDB, MS-SQL)
+  - **Cross-cutting Layer**: `api/src/middleware/` handles authentication, caching, CORS,
+    rate limiting, query sanitization, and schema resolution
+
+  Controllers never touch the database; services never emit HTTP responses.
+
+
+  ### Supporting Style: Pipeline (0.82)
+
+
+  The Flows subsystem implements a user-configurable data processing pipeline:
+
+
+  - `packages/types/src/flows.ts` defines `Flow` with a `TriggerType` (`event`, `schedule`,
+    `webhook`, `operation`, `manual`) and a linked `Operation` chain with `resolve`/`reject`
+    successors forming a DAG.
+  - Fifteen built-in operation types in `api/src/operations/` (`condition`, `exec`,
+    `item-create`, `item-delete`, `item-read`, `item-update`, `json-web-token`, `log`,
+    `mail`, `notification`, `request`, `sleep`, `throw-error`, `transform`, `trigger`).
+  - Custom Operation types are an extension point — third-party pipeline steps pluggable
+    via the same microkernel extension system.
+  - `FlowManager` (`api/src/flows.ts`) uses `useBus()` (Redis pub/sub or local EventEmitter)
+    for cluster-wide flow reload coordination.
+
+
+  ### What Was Rejected
+
+
+  **NOT Microservices**: Single Dockerfile produces one deployable unit; PM2 cluster mode
+  runs multiple Node.js workers sharing a single port; `docker-compose.yml` is a
+  multi-database developer test fixture (7 DB engines), not service decomposition.
+
+
+  **NOT Event-Driven (primary)**: The EventEmitter2-based emitter (`api/src/emitter.ts`)
+  and the message bus exist to support the plugin architecture and flow triggers — they are
+  mechanisms, not the primary integration pattern. There are no independent event-consuming
+  services; all handlers run within the same process.
+
+
+  **NOT Modular Monolith (DDD sense)**: No bounded contexts or aggregates pattern. Services
+  are organized by resource entity (Items, Users, Fields), not by business domain context.
+  Frontend "modules" (`app/src/modules/`) are Vue.js routing modules, not backend domain
+  boundaries.
+
+
+  ### Summary
+
+
+  Directus is a **microkernel architecture** with a layered internal core and a pipeline
+  subsystem for user-defined automation. The extension system is the primary architectural
+  principle: well-defined plugin contracts, runtime lifecycle management, security isolation
+  via `isolated-vm`, and an ecosystem SDK and marketplace. The layered core provides
+  predictable change isolation between HTTP, business logic, and data access. The Flows
+  pipeline adds configurable automation without custom code.

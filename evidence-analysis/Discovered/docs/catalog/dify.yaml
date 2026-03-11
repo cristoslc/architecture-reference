@@ -9,93 +9,107 @@ discovered_at: '2026-03-06T06:06:07Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: AI/ML
-language: TypeScript
+language: Python
 languages:
-- TypeScript
 - Python
+- TypeScript
 - JavaScript
 architecture_styles:
 - Layered
 - Event-Driven
 - Microkernel
 classification_status: classified
-review_notes: 'The repository is structured as a **Service-Based** architecture, characterized
-  by a small number of coarse-grained services that share a common data infrastructure.
-  While it has components of a monolith (shared codebase in `api/`), its deployment
-  and operational model rely on separating concerns into distinct functional units.
+classification_confidence: 0.87
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- extensibility
+- scalability
+- modularity
+- observability
+- maintainability
+one_line_summary: >-
+  LLM application development platform built as a layered modular monolith with
+  Celery-driven async event processing and a microkernel plugin system for model
+  providers, tools, and extensions.
+classification_reasoning: |
+  ## Architecture Analysis: Dify
 
+  ### Primary Style: Layered Architecture
 
-  ### Primary Style: Service-Based
+  The backend (`api/`) is organized as a strict four-tier horizontal stack with
+  unidirectional dependencies enforced by `api/.importlinter`:
 
-  The system decomposes into several primary services that operate independently but
-  are highly coupled at the database level (PostgreSQL). Evidence from `docker-compose.yaml`
-  and the directory structure shows:
+  - **Controller layer** (`api/controllers/{console,service_api,web,trigger,inner_api,mcp}/`):
+    Flask-RESTX route handlers for the console UI, external service API, end-user
+    web API, webhooks/triggers, plugin inner API, and MCP endpoints.
 
-  - **`api` service**: The core Flask application providing the RESTful interface
-  for the console and web apps.
+  - **Service layer** (`api/services/`): 50+ service classes orchestrating business
+    logic (`app_service.py`, `dataset_service.py`, `workflow_service.py`, etc.) without
+    direct database coupling.
 
-  - **`worker` service**: A separate deployment unit running Celery to handle asynchronous
-  tasks (indexing, document processing).
+  - **Core domain layer** (`api/core/`): Domain logic subpackages for agents, RAG,
+    tools, workflow, model runtime, plugins, MCP, and observability ops.
 
-  - **`sandbox` service**: A specialized service for secure code execution (`CODE_EXECUTION_ENDPOINT`),
-  providing a clear boundary for untrusted logic.
+  - **Repository/Model layer** (`api/repositories/`, `api/models/`): Protocol-backed
+    SQLAlchemy data access with explicit repository interfaces
+    (`WorkflowExecutionRepository`, `WorkflowNodeExecutionRepository`) and ORM models.
 
-  - **`web` service**: A Next.js frontend deployed independently of the backend.
+  The `dify_graph` workflow engine has its own strictly nested layering:
+  `graph_engine → graph_events → graph → nodes → node_events → entities`, with
+  import-linter contracts preventing circular dependencies and infrastructure leakage
+  into domain models.
 
+  ### Secondary Style: Event-Driven
 
-  Unlike Microservices, these units share the same database schema (`api/migrations`)
-  and core logic (`api/core`), but unlike a pure Monolith, they are scaled and managed
-  as separate runtime entities.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.82
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:11:06Z'
-classification_reasoning: "## Architecture Analysis: Dify Repository\n\n### Primary\
-  \ Style: Layered Architecture\n\nDify implements a classic **Layered Architecture**\
-  \ with clear horizontal separation:\n\n**Controller Layer** (`api/controllers/`):\n\
-  - `console/` - Admin/console API endpoints (app management, datasets, workspace)\n\
-  - `service_api/` - External service API endpoints  \n- `web/` - End-user web application\
-  \ endpoints\n- `trigger/` - Webhook and trigger endpoints\n- `inner_api/` - Internal\
-  \ API for plugin daemon communication\n\n**Service Layer** (`api/services/`):\n\
-  - Business logic classes: `app_service.py`, `dataset_service.py`, `workflow_service.py`,\
-  \ `account_service.py`, etc.\n- Service classes orchestrate domain operations without\
-  \ direct database coupling\n\n**Repository/Model Layer** (`api/models/`, `api/repositories/`):\n\
-  - SQLAlchemy ORM models: `account.py`, `dataset.py`, `model.py`, `workflow.py`\n\
-  - Repository pattern for data access abstraction\n\n**Core/Domain Layer** (`api/core/`):\n\
-  - Domain logic: `core/app/`, `core/agent/`, `core/tools/`, `core/rag/`\n- `dify_graph/`\
-  \ - Isolated workflow execution engine with strict layering\n\nThe `api/.importlinter`\
-  \ file explicitly enforces dependency rules between modules, particularly isolating\
-  \ `dify_graph` from infrastructure concerns.\n\n### Secondary Style: Event-Driven\n\
-  \n**Asynchronous task processing via Celery**:\n- `api/tasks/` - 30+ Celery task\
-  \ modules for async operations\n- `api/schedule/` - Scheduled task definitions\n\
-  - `api/events/` - Blinker signal-based internal events\n\nKey async operations:\n\
-  - Document indexing (`document_indexing_task.py`, `add_document_to_index_task.py`)\n\
-  - Workflow execution (`async_workflow_tasks.py`)\n- Mail delivery (`mail_*.py` tasks)\n\
-  - Dataset cleanup (`clean_*.py` tasks)\n\nRedis serves as the Celery message broker,\
-  \ enabling decoupled async processing.\n\n### Secondary Style: Microkernel (Plugin)\n\
-  \n**Plugin infrastructure**:\n- `plugin_daemon` service - Separate deployment unit\
-  \ managing plugin lifecycle\n- `core/plugin/` - Plugin management code (installer,\
-  \ entities, implementations)\n- `core/extension/extensible.py` - Dynamic extension\
-  \ scanning and loading\n\nThe system supports extensible:\n- **Tools**: `core/tools/builtin_tool/`,\
-  \ `core/tools/plugin_tool/`\n- **Model providers**: Model runtime plugin architecture\n\
-  - **Data sources**: `core/datasource/` with provider plugins\n- **Moderation**:\
-  \ `core/moderation/` with API and keyword implementations\n\n### Deployment Topology\n\
-  \nDocker Compose defines multiple services but NOT as independent microservices:\n\
-  - **`api` and `worker`** share identical code (`langgenius/dify-api` image) - worker\
-  \ just runs Celery\n- **Shared database** (PostgreSQL/MySQL) across all components\n\
-  - **`web`** - Next.js frontend\n- **`plugin_daemon`** - Plugin execution sandbox\n\
-  - **`sandbox`** - Code execution isolation\n- **Supporting services**: Redis, Nginx,\
-  \ vector DBs\n\nThis is a **modular deployment** of a layered monolith, not true\
-  \ microservices.\n\n### What This Is NOT\n\n- **Not Microservices**: Single codebase,\
-  \ shared database, no bounded context isolation between services\n- **Not Service-Based**:\
-  \ More than 2-3 services, but they're not coarse-grained business services\n- **Not\
-  \ Domain-Driven Design**: No aggregates, value objects, or bounded context patterns\n\
-  - **Not Hexagonal**: No ports/adapters pattern for external interface isolation\n\
-  - **Not CQRS**: No separate read/write model separation\n\n### Key Evidence Files\n\
-  \n- `api/app_factory.py` - Flask application factory with layered extension initialization\n\
-  - `api/.importlinter` - Enforces module boundaries and import restrictions\n- `docker/docker-compose.yaml`\
-  \ - Multi-service deployment (api, worker, web, plugin_daemon)\n- `api/extensions/ext_celery.py`\
-  \ - Celery configuration with task imports\n- `api/core/extension/extensible.py`\
-  \ - Plugin scanning and loading mechanism\n- `api/dify_graph/README.md` - Documents\
-  \ strict layering in workflow engine"
+  Two event mechanisms operate in parallel:
+
+  1. **Blinker signals** (`api/events/`): Synchronous in-process domain signals for
+     lifecycle events (`app_was_created`, `app_model_config_was_updated`,
+     `app_published_workflow_was_updated`). Handlers decouple cross-domain reactions.
+
+  2. **Celery + Redis task queue** (`api/tasks/`, `api/extensions/ext_celery.py`):
+     30+ async task modules for document indexing, workflow execution, mail delivery,
+     and dataset cleanup. The `worker` deployment unit (`MODE=worker`) consumes tasks
+     from Redis; `worker_beat` handles periodic scheduling.
+
+  The graph engine itself is event-driven internally: all node executions emit typed
+  events (`NodeRunStartedEvent`, `NodeRunSucceededEvent`, `NodeRunFailedEvent`) over
+  a queue. External workflow control (stop/pause/resume) travels via Redis command
+  channels (`dify_graph/graph_engine/command_channels/redis_channel.py`).
+
+  ### Secondary Style: Microkernel (Plugin System)
+
+  A microkernel-style plugin architecture governs extensibility:
+
+  - **Plugin daemon** (`langgenius/dify-plugin-daemon`): A separate deployment unit
+    managing plugin lifecycle, sandboxed execution, and package installation.
+  - **Inner API** (`api/controllers/inner_api/`): Private HTTP API for bidirectional
+    plugin-core communication.
+  - **Extension scanning** (`api/core/extension/extensible.py`): Runtime filesystem
+    scanning and dynamic import for built-in and custom extensions.
+  - **Pluggable subsystems**: tools (`builtin_tool/`, `plugin_tool/`, `mcp_tool/`),
+    moderation providers, datasource providers, and model providers
+    (`dify_graph/model_runtime/model_providers/`) all follow the same extension
+    registration pattern.
+
+  ### Deployment Topology
+
+  `docker/docker-compose.yaml` defines `api`, `worker`, `worker_beat`, `web`,
+  `plugin_daemon`, `sandbox`, plus infrastructure (Redis, PostgreSQL/MySQL, vector
+  DBs, Nginx). Both `api` and `worker` use the same image
+  (`langgenius/dify-api:1.13.0`) and share one database schema. This confirms a
+  modular monolith with operational split, not microservices.
+
+  ### What This Is Not
+
+  - **Not Microservices**: Single shared codebase and database between `api` and
+    `worker`; no bounded context isolation or independent service communication.
+  - **Not Service-Based**: Deployment units are operational splits of one monolith,
+    not coarse-grained business services.
+  - **Not CQRS**: No separate read/write model or query/command databases.
+  - **Not Hexagonal**: Controller-service-repository follows layered convention, not
+    ports/adapters.
+  - **Not Multi-Agent**: Agent execution is one supported app type within the
+    platform, not the governing architectural principle.

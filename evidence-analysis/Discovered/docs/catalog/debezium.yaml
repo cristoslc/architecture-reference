@@ -11,74 +11,88 @@ discovery_version: 1.0.0
 domain: Data Integration
 language: Java/Kotlin
 languages:
-- Java/Kotlin
-- Go
+- Java
+- Kotlin
 architecture_styles:
 - Microkernel
-- Layered
+- Pipeline
 classification_status: classified
-review_notes: "The Debezium repository is structured as a **Microkernel (Plugin)**\
-  \ architecture. The system's core design is built around the Kafka Connect framework,\
-  \ where the \"kernel\" provides the runtime environment (lifecycle management, configuration,\
-  \ and offset storage) and the individual \"plugins\" are the database-specific connectors.\n\
-  \n### Evidence of Microkernel (Plugin) Style:\n1.  **Strict Plugin Boundaries:**\
-  \ The repository is a mono-repo containing dozens of independent modules (`debezium-connector-postgres`,\
-  \ `debezium-connector-mysql`, `debezium-connector-oracle`, etc.). These modules\
-  \ are not \"services\" in the traditional sense; they are JARs intended to be loaded\
-  \ into a host runtime (Kafka Connect or the Debezium Embedded engine).\n2.  **Shared\
-  \ Core Framework:** The `debezium-core` and `debezium-common` modules define the\
-  \ SPI (Service Provider Interface) and common abstractions that every connector\
-  \ must implement.\n3.  **Extensibility via Transforms and Storage:** Aside from\
-  \ connectors, the repository includes `debezium-transforms` and `debezium-storage`.\
-  \ These represent additional plugin types (SMTs - Single Message Transforms) that\
-  \ can be plugged into the data pipeline without modifying the core engine.\n4. \
-  \ **Runtime Hosting:** The README explicitly mentions two ways to run these plugins:\n\
-  \    *   **Kafka Connect:** A distributed host for these plugins.\n    *   **Debezium\
-  \ Embedded:** A lightweight wrapper that allows the same plugins to run inside a\
-  \ custom Java application."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:09:46Z'
-classification_reasoning: "## Analysis\n\n### Primary Style: Microkernel (Plugin)\n\
-  \nDebezium exhibits a clear **Microkernel/Plugin architecture** where a core framework\
-  \ provides extension points for pluggable connectors:\n\n**Evidence of plugin infrastructure:**\n\
-  1. **Java ServiceLoader mechanism** extensively used for runtime plugin discovery:\n\
-  \   - `META-INF/services/org.apache.kafka.connect.source.SourceConnector` in every\
-  \ connector module\n   - `META-INF/services/io.debezium.spi.snapshot.Snapshotter`\
-  \ for pluggable snapshot strategies\n   - `META-INF/services/io.debezium.pipeline.signal.actions.SignalActionProvider`\
-  \ for signal handlers\n   - `META-INF/services/io.debezium.pipeline.notification.channels.NotificationChannel`\
-  \ for notification channels\n   - `META-INF/services/io.debezium.ai.embeddings.EmbeddingsModelFactory`\
-  \ for AI embedding providers\n\n2. **Explicit SPI interfaces** in `debezium-api`\
-  \ module:\n   - `Snapshotter` interface for custom snapshot behavior\n   - `CustomConverter`\
-  \ interface for value conversion customization\n   - `PostProcessor` interface for\
-  \ event post-processing\n   - `TopicNamingStrategy` for custom topic naming\n\n\
-  3. **Connector abstraction hierarchy**:\n   - `BaseSourceConnector` → `RelationalBaseSourceConnector`\
-  \ → `BinlogConnector` → concrete implementations (MySqlConnector, MariaDBConnector)\n\
-  \   - Each connector module is independently deployable as a JAR that plugs into\
-  \ the Kafka Connect runtime\n\n4. **Storage plugin modules**:\n   - `debezium-storage-kafka`,\
-  \ `debezium-storage-file`, `debezium-storage-s3`, `debezium-storage-azure-blob`,\
-  \ etc. - all pluggable storage backends\n\n### Secondary Style: Layered\n\nThe codebase\
-  \ also exhibits horizontal layering:\n\n**Layer structure:**\n1. **API Layer** (`debezium-api`):\
-  \ Defines SPIs, interfaces, and contracts\n2. **Core Layer** (`debezium-core`):\
-  \ Common implementation shared across connectors\n3. **Implementation Layer** (`debezium-connector-*`):\
-  \ Concrete connector implementations\n4. **Support Layer** (`debezium-transforms`,\
-  \ `debezium-embedded`): Cross-cutting concerns\n\n**Dependency direction:** Connectors\
-  \ depend on core, core depends on api - never reversed.\n\n### Why Not Other Styles\n\
-  \n- **Not Event-Driven**: While Debezium *produces* change events as its business\
-  \ function, the internal architecture doesn't use event-based communication between\
-  \ components. Components call each other directly, not through message brokers.\n\
-  \n- **Not Microservices**: All connector modules are library JARs, not independently\
-  \ deployed services. They run within Kafka Connect's runtime, not as separate processes.\n\
-  \n- **Not Domain-Driven Design**: The code organization follows technical boundaries\
-  \ (API, core, connectors by database type) rather than business domains/bounded\
-  \ contexts.\n\n- **Not Hexagonal Architecture**: While there are interfaces (SPIs),\
-  \ they're designed for extensibility rather than isolating the application core\
-  \ from external concerns via ports and adapters.\n\n### Key Files Referenced\n\n\
-  - `pom.xml` - Maven multi-module aggregator with 30+ modules\n- `debezium-api/src/main/java/io/debezium/spi/snapshot/Snapshotter.java`\
-  \ - SPI interface\n- `debezium-api/src/main/java/io/debezium/spi/converter/CustomConverter.java`\
-  \ - Customization SPI\n- `debezium-core/src/main/java/io/debezium/connector/common/BaseSourceConnector.java`\
-  \ - Core abstraction\n- `debezium-connector-mysql/src/main/java/io/debezium/connector/mysql/MySqlConnector.java`\
-  \ - Concrete plugin implementation\n- `META-INF/services/*` - Service loader registration\
-  \ files across modules"
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- extensibility
+- fault-tolerance
+- scalability
+- durability
+- exactly-once-delivery
+- observability
+one_line_summary: >-
+  CDC platform built on a Microkernel/Plugin architecture (stable core SPI + interchangeable
+  connector JARs) with an internal Pipeline pattern routing database log events through
+  a bounded queue to Kafka topics or embedded consumers.
+classification_reasoning: |
+  ## Primary Style: Microkernel (Plugin)
+
+  Debezium is a Maven multi-module mono-repo where a stable kernel
+  (`debezium-api`, `debezium-core`) defines all extension contracts
+  (SPIs) and a set of database-specific connector JARs are independently
+  loadable plugins. Evidence:
+
+  1. **Java ServiceLoader throughout**: Every connector registers itself
+     via `META-INF/services/org.apache.kafka.connect.source.SourceConnector`.
+     Additional ServiceLoader files cover `Snapshotter`, `SnapshotLock`,
+     `SnapshotQuery`, `SignalChannelReader`, `NotificationChannel`,
+     `SignalActionProvider`, `PostProcessor`, `HeaderConverter`, and
+     `CloudEventsProvider`.
+
+  2. **Explicit SPI module (`debezium-api`)**: Defines `Snapshotter`,
+     `CustomConverter`, `PostProcessor`, `TopicNamingStrategy`, and
+     `DataCollectionId`. The API module has no dependency on any connector.
+
+  3. **Strict anti-reversal dependency hierarchy**: `debezium-api` ←
+     `debezium-core` ← `debezium-connector-*`. Connectors are always leaf
+     modules.
+
+  4. **Multi-dimensional pluggability**: Storage backends (8 modules),
+     snapshot strategies (9 built-in Snapshotter impls + user-provided),
+     signal channels (File, Kafka, JMX, Process, Source), notification
+     channels, AI embedding providers (Ollama, HuggingFace, Voyage AI,
+     MiniLM), and SMTs (Single Message Transforms).
+
+  5. **Two host runtimes acting as the kernel**: Kafka Connect (distributed,
+     fault-tolerant) and the Debezium Embedded Engine
+     (`debezium-embedded`), both accepting the same connector JARs.
+
+  ## Secondary Style: Pipeline (Pipe-and-Filter)
+
+  Within every connector the event-processing model is a deterministic
+  sequential pipeline:
+
+  ```
+  DB log / change stream
+  → StreamingChangeEventSource.execute()
+  → EventDispatcher.dispatchDataChangeEvent()   [filter, heartbeat, watermarks]
+  → ChangeEventQueue.enqueue()                  [bounded, back-pressure]
+  → BaseSourceTask.poll()                        [SMTs, PostProcessors]
+  → Kafka topic / embedded consumer
+  ```
+
+  `ChangeEventSourceCoordinator` sequences the snapshot phase then
+  hands off to streaming; `ChangeEventQueue` is a bounded blocking
+  queue that decouples producer and consumer threads; `EventDispatcher`
+  is the central filter/routing node applying include/exclude lists,
+  transaction metadata, and heartbeats.
+
+  ## Why Not Other Styles
+
+  - **Not Microservices**: All connectors are library JARs sharing a
+    single JVM within Kafka Connect, not independent network services.
+  - **Not Event-Driven (as primary)**: Internal communication is via
+    direct method calls and an in-process queue, not an event bus.
+  - **Not Hexagonal**: SPIs provide extensibility (new DB types, new
+    storage backends), not left-port / right-port isolation of a
+    domain core for testability.
+  - **Not DDD**: Boundaries follow technical roles (api, core, connector
+    type, storage backend), not business bounded contexts.

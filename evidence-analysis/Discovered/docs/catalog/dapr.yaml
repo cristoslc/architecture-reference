@@ -12,98 +12,65 @@ domain: Developer Tools
 language: Go
 languages:
 - Go
-- Java/Kotlin
-- JavaScript
-- C#
 architecture_styles:
 - Microkernel
 - Microservices
 classification_status: classified
-review_notes: 'Dapr''s repository architecture is a classic example of a **Microkernel
-  (Plugin)** system, designed to provide a standardized runtime (the kernel) that
-  can be extended with a vast array of interchangeable infrastructure implementations
-  (the plugins).
-
-
-  ### 1. Primary Style: Microkernel (Plugin)
-
-  The core of the repository is centered around `pkg/runtime`, which defines the "kernel"
-  orchestrating sidecar lifecycle, API exposure (HTTP/gRPC), and component management.
-
-  - **Plugin Structure:** The `cmd/daprd/components` directory acts as a registry
-  for over 100 pluggable components. These files (e.g., `state_postgres.go`, `pubsub_kafka.go`)
-  are thin wrappers that register specific implementations into the Dapr runtime at
-  compile-time.
-
-  - **Separation of Concerns:** The core logic for each building block (state, pub/sub,
-  secrets) is maintained in `pkg/components`, providing a consistent loading and management
-  lifecycle for these plugins.
-
-  - **Extensibility:** The architecture is designed so that new infrastructure providers
-  can be added with minimal changes to the core runtime, adhering to the "Open-Closed
-  Principle."
-
-
-  ### 2. Secondary Style: Hexagonal Architecture (Ports and Adapters)
-
-  To maintain its "any-language, any-infrastructure" promise, Dapr heavily utilizes
-  the **Hexagonal** pattern.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:02:21Z'
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Portability
+- Resiliency
+- Security
+- Observability
+- Scalability
+one_line_summary: A Microkernel sidecar runtime with a 137-plugin registry, deployed
+  alongside independent Microservices control-plane components (operator, placement,
+  sentry, scheduler, injector).
 classification_reasoning: "## Architecture Classification Analysis\n\n### Primary:\
-  \ Microkernel (Plugin)\n\nThe Dapr repository implements a textbook **Microkernel\
-  \ (Plugin)** architecture. The evidence is substantial and unambiguous:\n\n**1.\
-  \ Registry Pattern as Core Plugin Mechanism**\n\nEvery capability in Dapr is implemented\
-  \ as a pluggable component with a dedicated registry:\n- `pkg/components/bindings/registry.go`\
-  \ - Input/output bindings\n- `pkg/components/state/registry.go` - State stores\n\
-  - `pkg/components/pubsub/registry.go` - Publish/subscribe\n- `pkg/components/secretstores/registry.go`\
-  \ - Secret stores\n- `pkg/components/lock/registry.go` - Distributed locks\n- `pkg/components/crypto/registry.go`\
-  \ - Cryptography providers\n- `pkg/components/nameresolution/registry.go` - Service\
-  \ discovery\n- `pkg/components/configuration/registry.go` - Configuration stores\n\
-  \nEach registry implements `Register*()` and `Create*()` methods for plugin discovery\
-  \ and instantiation.\n\n**2. Build-Time Plugin Registration via `init()`**\n\nIn\
-  \ `cmd/daprd/components/`, 100+ component files register themselves using Go's `init()`\
-  \ mechanism:\n\n```go\n// cmd/daprd/components/bindings_redis.go\nfunc init() {\n\
-  \    bindingsLoader.DefaultRegistry.RegisterOutputBinding(redis.NewRedis, \"redis\"\
-  )\n}\n```\n\nBuild tags control inclusion: `//go:build allcomponents || stablecomponents`\n\
-  \nThe main app (`cmd/daprd/app/app.go`) imports components anonymously to trigger\
-  \ registration:\n```go\nimport (\n    // Register all components\n    _ \"github.com/dapr/dapr/cmd/daprd/components\"\
-  \n    ...\n)\n```\n\n**3. Runtime Pluggable Components via gRPC**\n\nBeyond build-time\
-  \ plugins, Dapr supports runtime pluggable components discovered via Unix sockets:\n\
-  \n`pkg/components/pluggable/discovery.go`:\n```go\nfunc Discover(ctx context.Context)\
-  \ error {\n    // Discovers components from socket files, uses gRPC reflection\n\
-  \    services, err := serviceDiscovery(...)\n    callback(services)\n}\n```\n\n\
-  `pkg/components/pluggable/grpc.go` defines `GRPCConnector[TClient]` - a generic\
-  \ connector wrapping gRPC clients as Dapr components.\n\n**4. Well-Defined Plugin\
-  \ Contracts**\n\ngRPC protobuf contracts define stable interfaces in `dapr/proto/components/v1/`:\n\
-  - `state.proto` - State store interface\n- `pubsub.proto` - Pub/sub interface\n\
-  - `bindings.proto` - Bindings interface\n- `secretstore.proto` - Secret store interface\n\
-  \n**5. Core Runtime with Stable APIs**\n\n`dapr/proto/runtime/v1/dapr.proto` defines\
-  \ the stable Dapr API surface (50+ RPC methods) that applications use, independent\
-  \ of which plugins are loaded.\n\n### Secondary: Microservices\n\nDapr is deployed\
-  \ as **multiple independent services**:\n\n**Separate Deployable Binaries** (`cmd/`):\n\
-  - `daprd` - The sidecar runtime (core)\n- `operator` - Kubernetes operator for managing\
-  \ Dapr resources\n- `placement` - Actor placement service for distributed state\n\
-  - `scheduler` - Job scheduling service\n- `sentry` - Certificate authority for mTLS\n\
-  - `injector` - Kubernetes mutating webhook for sidecar injection\n\n**Kubernetes\
-  \ Deployment** (`charts/dapr/Chart.yaml`):\n```yaml\ndependencies:\n  - name: dapr_operator\n\
-  \  - name: dapr_placement\n  - name: dapr_sidecar_injector\n  - name: dapr_sentry\n\
-  \  - name: dapr_scheduler\n```\n\n**gRPC-Based Inter-Service Communication**: Services\
-  \ communicate via protobuf-defined protocols in `dapr/proto/`.\n\n### Why This Classification\
-  \ is Correct\n\n**Rejected Layered**: While code has layers (API/grpc, runtime,\
-  \ components), layering is not the primary organizing principle—the plugin architecture\
-  \ is.\n\n**Rejected Modular Monolith**: Dapr services are separate deployment units,\
-  \ not modules in a single binary.\n\n**Rejected Hexagonal**: Although there are\
-  \ ports/adapters patterns, the defining characteristic is the plugin registry and\
-  \ extension mechanism, not port/adapter isolation.\n\n**Rejected DDD**: No bounded\
-  \ contexts, aggregates, or domain-centric organization exists.\n\n**Not Serverless**:\
-  \ Dapr runs as long-lived processes/services, not event-triggered functions.\n\n\
-  **Not Event-Driven Primary**: While Dapr *enables* event-driven architectures for\
-  \ applications, its internal architecture is organized around the plugin microkernel\
-  \ pattern, not event-driven communication between its own components.\n\nThe architecture\
-  \ exists specifically to provide \"pluggable components without vendor lock-in\"\
-  \ (README goal) through a stable API core with swappable implementations—the essence\
-  \ of Microkernel architecture."
+  \ Microkernel\n\nDapr's repository is a textbook Microkernel (Plugin) architecture.\
+  \ The evidence is unambiguous across multiple structural layers.\n\n**1. Registry-per-capability\
+  \ plugin system**\n\nEvery building block is managed through a typed registry in\
+  \ `pkg/components/`: bindings, state, pubsub, secretstores, lock, crypto, nameresolution,\
+  \ configuration, conversation, and middleware/http. The composite `pkg/runtime/registry/registry.go`\
+  \ aggregates all ten into a single `Registry` struct held by the sidecar at startup.\n\
+  \n**2. Build-time plugin self-registration via Go `init()`**\n\n`cmd/daprd/components/`\
+  \ contains 137 Go source files. Each registers one concrete implementation into\
+  \ the appropriate typed registry using Go's `init()` mechanism. The daprd entrypoint\
+  \ triggers all registrations with a single anonymous import of the components package.\
+  \ Build tags (`//go:build allcomponents || stablecomponents`) allow selective inclusion.\n\
+  \n**3. Runtime-pluggable components via gRPC sockets**\n\n`pkg/components/pluggable/discovery.go`\
+  \ implements socket-based discovery: at startup, daprd scans a Unix socket directory,\
+  \ uses gRPC reflection to identify services, and dynamically wires them in as first-class\
+  \ components. `pkg/components/pluggable/grpc.go` provides the `GRPCConnector[TClient]`\
+  \ generic that wraps any gRPC client as a Dapr component. This extends the Microkernel\
+  \ pattern to support out-of-process plugins without recompilation.\n\n**4. Stable\
+  \ kernel API surface**\n\n`dapr/proto/runtime/v1/dapr.proto` defines 50+ RPC methods\
+  \ (state CRUD, pub/sub, secret retrieval, actor invocation, workflow, distributed\
+  \ lock, jobs, conversation) that application code calls — immutable regardless of\
+  \ which plugins are loaded.\n\n**5. Stable plugin contracts**\n\n`dapr/proto/components/v1/`\
+  \ defines protobuf interfaces (`state.proto`, `pubsub.proto`, `bindings.proto`,\
+  \ `secretstore.proto`) as the plugin API that all runtime and socket-based implementations\
+  \ must satisfy.\n\n### Secondary: Microservices\n\nDapr's control plane is six independently\
+  \ deployable services: daprd (sidecar), operator (CRD management), placement (Raft-based\
+  \ actor partition table), sentry (SPIFFE/X.509 CA), injector (Kubernetes mutating\
+  \ webhook), and scheduler (job/cron service). Each has its own `cmd/` entrypoint,\
+  \ its own gRPC API in `dapr/proto/`, and is a separate Kubernetes Deployment in\
+  \ `charts/dapr/Chart.yaml`. Services communicate exclusively over protobuf-defined\
+  \ gRPC.\n\n### Rejected Styles\n\n**Layered:** Layers exist (API / runtime / components)\
+  \ but layering is not the primary organizing principle — the plugin registry mechanism\
+  \ is.\n\n**Modular Monolith:** Services are separate deployment units communicating\
+  \ over the network, not modules in one binary.\n\n**Hexagonal Architecture:** Ports/adapters\
+  \ exist (universal API shared by HTTP and gRPC adapters), but they serve the Microkernel's\
+  \ component extension model; hexagonal isolation is not the dominant structural\
+  \ intent.\n\n**Event-Driven:** Dapr enables event-driven applications but its own\
+  \ internal component communication is synchronous gRPC, not event-driven messaging.\n\
+  \n**Domain-Driven Design:** No bounded contexts, aggregates, or domain-model-first\
+  \ organization. Structure is by infrastructure capability, not business domain.\n\
+  \n**Service-Based:** The control-plane services do not share a monolithic core behind\
+  \ a service layer; each is independently structured.\n\n**Pipeline, CQRS, Space-Based,\
+  \ Serverless, Multi-Agent:** None of these topologies appear as primary organizing\
+  \ principles in the codebase."

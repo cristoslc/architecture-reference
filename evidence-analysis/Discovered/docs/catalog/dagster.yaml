@@ -14,193 +14,70 @@ languages:
 - Python
 - TypeScript
 architecture_styles:
+- Pipeline
 - Microkernel
-- Modular Monolith
 classification_status: classified
-review_notes: '### Architecture Analysis
-
-
-  Dagster is a data orchestrator characterized by a **Pipeline (Pipe-and-Filter)**
-  architecture at its core, extended via a **Microkernel** pattern for integrations,
-  and deployed as a **Service-Based** system for its control plane.
-
-
-  #### 1. Primary Style: Pipeline (Pipe-and-Filter)
-
-  The fundamental unit of work in Dagster is the "Asset" or "Op," which are organized
-  into a Directed Acyclic Graph (DAG). The architecture is designed to manage the
-  flow of data and dependencies between these discrete processing stages.
-
-  - **Evidence:** The `python_modules/dagster/dagster/_core/execution/plan/plan.py`
-  file demonstrates a classic pipe-and-filter coordination logic. It uses `toposort`
-  to order nodes and manages `StepInput` and `StepOutput` objects to facilitate data
-  passing between filters (Ops).
-
-  - **Control Flow:** The `_PlanBuilder` class explicitly constructs an `ExecutionPlan`
-  where outputs of one step are mapped to the inputs of another (`step_output_map`),
-  matching the "Pipes" (dependencies) and "Filters" (computational units) definition.
-
-
-  #### 2. Secondary Style: Microkernel (Plugin)'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:00:26Z'
-classification_reasoning: '## Architecture Analysis: Dagster Repository
-
-
-  ### Primary Style: Microkernel (Plugin)
-
-
-  The Dagster repository exhibits a **clear Microkernel/Plugin architecture** with
-  strong evidence:
-
-
-  **1. Core Extension Points (Abstract Base Classes):**
-
-  - **`Component`** (`python_modules/dagster/dagster/components/component/component.py`):
-  Abstract base class with `build_defs()` method that plugins implement to contribute
-  definitions to the system
-
-  - **`Executor`** (`python_modules/dagster/dagster/_core/executor/base.py`): Abstract
-  executor interface with `execute()` method - implementations include in-process,
-  multiprocess, k8s, Celery, Dask
-
-  - **`ResourceDefinition`** (`python_modules/dagster/dagster/_core/definitions/resource_definition.py`):
-  Plugin mechanism for injecting external resources (databases, APIs, etc.)
-
-  - **`IOManager`**, **`RunLauncher`**, **`RunCoordinator`**, **`ComputeLogManager`**:
-  Additional extension points
-
-
-  **2. Library Registration Pattern:**
-
-  Every integration library calls the central registry in its `__init__.py`:
-
-  ```python
-
-  # dagster_aws/__init__.py
-
-  from dagster_shared.libraries import DagsterLibraryRegistry
-
-  DagsterLibraryRegistry.register("dagster-aws", __version__)
-
-  ```
-
-  This pattern appears in all 67+ libraries in `python_modules/libraries/`.
-
-
-  **3. Separation of Core and Extensions:**
-
-  - **Core kernel**: `python_modules/dagster/` - Defines the framework, abstractions,
-  and extension points
-
-  - **Plugin libraries**: `python_modules/libraries/dagster-*` - 67 independently
-  versioned packages for integrations (dbt, AWS, k8s, Airflow, Databricks, etc.)
-
-  - **Shared infrastructure**: `python_modules/libraries/dagster-shared/` - Contains
-  `DagsterLibraryRegistry` and shared utilities
-
-
-  **4. Dynamic Loading:**
-
-  The gRPC server system (`python_modules/dagster/dagster/_grpc/server.py`) dynamically
-  loads user code repositories, enabling runtime extension without kernel modification.
-
-
-  ### Secondary Style: Modular Monolith
-
-
-  Dagster also exhibits **Modular Monolith** characteristics:
-
-
-  **1. Enforced Module Boundaries:**
-
-  - Clear separation between core modules: `_core`, `_cli`, `_daemon`, `_grpc`, `_config`,
-  `_utils`
-
-  - Each library is a separate Python package with its own `pyproject.toml`
-
-  - Internal APIs use underscore-prefixed modules (`_core`, `_cli`) to indicate private
-  interfaces
-
-
-  **2. Single Deployment Unit Options:**
-
-  While deployable as multiple services, Dagster can run as a single coordinated system:
-
-  - The webserver, daemon, and user code servers share the same database
-
-  - Docker Compose example (`examples/deploy_docker/docker-compose.yml`) shows coordinated
-  services sharing PostgreSQL
-
-  - Kubernetes Helm chart (`helm/dagster/`) defines a cohesive deployment with shared
-  infrastructure
-
-
-  **3. Workspace-Based Composition:**
-
-  The `workspace.yaml` pattern allows composing multiple code locations into a unified
-  system while maintaining module isolation.
-
-
-  ### What Was Rejected:
-
-
-  **Not Microservices:**
-
-  - Services (webserver, daemon, user-code-server) share a single database schema
-  - not independently deployable with data ownership
-
-  - They are coordinated deployment units of a monolithic application, not autonomous
-  services
-
-  - The gRPC servers are extension points for user code, not separate business services
-
-
-  **Not Serverless:**
-
-  - Dagster is an orchestrator that can *launch* serverless workloads, but the core
-  system is not structured as functions
-
-  - Daemons run continuously for scheduling, sensors, and backfills
-
-
-  **Not Event-Driven:**
-
-  - While Dagster *orchestrates* event-driven workflows, its internal architecture
-  is not primarily event-based
-
-  - Components communicate via synchronous API calls and database state, not message
-  brokers
-
-
-  **Not Layered (as primary):**
-
-  - While there are layers (UI → GraphQL → Core → Storage), the dominant organizational
-  principle is the plugin/extension architecture
-
-  - The layering supports but doesn''t define the system''s primary structure
-
-
-  ### Key Architectural Evidence:
-
-
-  | Evidence | Location |
-
-  |----------|----------|
-
-  | Plugin registry | `dagster_shared.libraries.DagsterLibraryRegistry` |
-
-  | Component extension point | `dagster/components/component/component.py` |
-
-  | 67 integration libraries | `python_modules/libraries/dagster-*/` |
-
-  | Executor abstraction | `dagster/_core/executor/base.py` |
-
-  | Resource plugin system | `dagster/_core/definitions/resource_definition.py` |
-
-  | gRPC user code loading | `dagster/_grpc/server.py` |
-
-  | Workspace composition | `dagster/_core/workspace/` |'
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Modularity
+- Observability
+- Reliability
+- Portability
+- Scalability
+one_line_summary: >-
+  Data orchestration platform built on a Pipeline (DAG-based pipe-and-filter)
+  execution model extended by a Microkernel plugin architecture with 67+
+  independently versioned integration libraries.
+classification_reasoning: >-
+  Dagster exhibits two reinforcing primary architecture styles: Pipeline
+  (Pipe-and-Filter) and Microkernel.
+
+
+  PRIMARY STYLE — Pipeline (Pipe-and-Filter): The fundamental computational
+  model is a directed acyclic graph (DAG) of discrete processing units (Ops
+  and Assets) connected by typed inputs and outputs. The ExecutionPlan in
+  `dagster/_core/execution/plan/plan.py` uses `toposort` to order steps and
+  maps `StepOutput` handles to `StepInput` sources (FromStepOutput,
+  FromConfig, etc.) — the textbook pipe-and-filter pattern. The
+  `DependencyStructure` abstraction in `dagster/_core/definitions/dependency.py`
+  formally models "pipes" (dependencies) connecting "filters" (nodes). The
+  Software-Defined Asset model (`AssetsDefinition`) expresses data lineage as
+  an upstream-downstream dependency graph. The `@op`, `@graph`, `@job`, and
+  `@asset` decorator DSL provides the user-facing API for building these
+  graphs declaratively.
+
+
+  SECONDARY STYLE — Microkernel (Plugin): Dagster's extensibility is built on
+  a stable core kernel that exposes abstract extension points (ABCs) against
+  which 67+ independently versioned plugin packages register. Key extension
+  points include: `Executor` ABC (in-process, multiprocess, Celery, Dask, K8s
+  implementations), `RunLauncher` ABC (process, Docker, K8s), `RunCoordinator`
+  ABC, `IOManagerDefinition`/`ResourceDefinition` for storage and external
+  resource injection, `DagsterStorage` ABC covering EventLogStorage/RunStorage/
+  ScheduleStorage, and the `Component` ABC with `build_defs()` for the
+  component system. All 67 integration libraries call
+  `DagsterLibraryRegistry.register()` in their `__init__.py`. The gRPC server
+  dynamically loads user code repositories at runtime via
+  `ReconstructableRepository` and `LoadableTargetOrigin`, enabling kernel
+  extension without kernel modification. The `ComponentTree` discovers,
+  loads, and composes pluggable `Component` instances from YAML or Python
+  declarations.
+
+
+  The deployment topology (webserver + daemon + user-code gRPC servers +
+  shared PostgreSQL) has service-based characteristics, but these services
+  share a database schema and are coordinated deployment units of a single
+  logical system — not autonomous microservices.
+
+
+  Rejected: Microservices (shared DB schema, no independent data ownership),
+  Event-Driven (event log is a read model not a message bus; internal
+  communication is synchronous via shared storage and gRPC), CQRS (no
+  architectural command/query segregation principle), Serverless (persistent
+  long-lived daemon and webserver processes), DDD (no bounded contexts or
+  DDD tactical patterns), Hexagonal Architecture (conventional layering,
+  not ports-and-adapters).
