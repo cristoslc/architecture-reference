@@ -4,65 +4,123 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/spring-petclinic/spring-petclinic-microservices
 project_url: https://github.com/spring-petclinic/spring-petclinic-microservices
-evidence_type: automated-discovery
+evidence_type: deep-analysis-tooluse
 discovered_at: '2026-03-06T05:23:18Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Veterinary
-language: Java/Kotlin
+language: Java
 languages:
-- Java/Kotlin
-- JavaScript
+  - Java
+  - JavaScript
 architecture_styles:
-- Microservices
+  - Microservices
 classification_status: classified
-review_notes: "This repository is a definitive implementation of a **Microservices**\
-  \ architecture, specifically designed to demonstrate the decomposition of a monolithic\
-  \ application (the original Spring PetClinic).\n\n### Evidence of Microservices\
-  \ Architecture\n\n1.  **Independent Deployment Units**: The repository Map shows\
-  \ multiple independent Spring Boot applications, each with its own `pom.xml`, source\
-  \ tree, and lifecycle:\n    *   `spring-petclinic-customers-service`\n    *   `spring-petclinic-vets-service`\n\
-  \    *   `spring-petclinic-visits-service`\n    *   `spring-petclinic-genai-service`\n\
-  2.  **Infrastructure Services**: It includes dedicated services for cross-cutting\
-  \ microservices concerns:"
-review_required: false
+one_line_summary: Spring Cloud reference implementation decomposing a veterinary clinic
+  monolith into eight independently deployable microservices with Eureka, API Gateway,
+  Config Server, and a Spring AI GenAI chatbot service.
 classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:02:09Z'
-classification_reasoning: "## Analysis\n\nThis repository demonstrates a **textbook\
-  \ Microservices architecture** with clear separation of concerns, independent deployability,\
-  \ and database-per-service pattern.\n\n### Key Evidence for Microservices:\n\n**1.\
-  \ Multiple Independently Deployable Services**\n\nThe root `pom.xml` defines 8 Maven\
-  \ modules as independently deployable units:\n- **Business services:** customers-service,\
-  \ vets-service, visits-service, genai-service\n- **Infrastructure services:** api-gateway,\
-  \ config-server, discovery-server, admin-server\n\nThe `docker-compose.yml` confirms\
-  \ this deployment topology with 10+ containers, each service having its own Docker\
-  \ image and exposed port.\n\n**2. Database-Per-Service Pattern**\n\nEach business\
-  \ service owns its own database schema, stored within the service itself:\n\n- `spring-petclinic-customers-service/src/main/resources/db/hsqldb/schema.sql`:\
-  \ `owners`, `pets`, `types` tables\n- `spring-petclinic-vets-service/src/main/resources/db/hsqldb/schema.sql`:\
-  \ `vets`, `specialties`, `vet_specialties` tables  \n- `spring-petclinic-visits-service/src/main/resources/db/hsqldb/schema.sql`:\
-  \ `visits` table\n\nNo shared database exists between services - this is a defining\
-  \ characteristic of microservices (vs service-based where databases are shared).\n\
-  \n**3. Service Discovery & API Gateway**\n\n- **Eureka Discovery Server** (`spring-petclinic-discovery-server`)\
-  \ provides service registry\n- **API Gateway** (`spring-petclinic-api-gateway`)\
-  \ routes external requests with Spring Cloud Gateway:\n```yaml\nroutes:\n  - id:\
-  \ customers-service\n    uri: lb://customers-service\n    predicates: Path=/api/customer/**\n\
-  ```\n- Uses `lb://` protocol for load-balanced service discovery\n\n**4. Synchronous\
-  \ REST Communication**\n\nServices communicate via REST APIs, not events:\n```java\n\
-  // CustomersServiceClient.java\nreturn webClientBuilder.build().get()\n    .uri(\"\
-  http://customers-service/owners/{ownerId}\", ownerId)\n    .retrieve()\n    .bodyToMono(OwnerDetails.class);\n\
-  ```\n\n**5. Infrastructure Support**\n\n- Config Server for centralized configuration\n\
-  - Zipkin for distributed tracing\n- Prometheus/Grafana for monitoring\n- Circuit\
-  \ breaker pattern (Resilience4j)\n\n### What This Is NOT:\n\n- **Not Event-Driven:**\
-  \ No message brokers (Kafka, RabbitMQ), no `@EventListener` or `@KafkaListener`\
-  \ annotations found\n- **Not Service-Based:** Services don't share a database -\
-  \ each has its own embedded schema\n- **Not Modular Monolith:** 8 separate deployable\
-  \ containers, not a single application\n- **Not Layered:** No technical layer organization\
-  \ across services; each service has its own stack\n- **Not DDD:** Simple CRUD entities\
-  \ with JPA repositories; no aggregates, value objects, or bounded context patterns\n\
-  \n### Conclusion\n\nThis is the canonical Spring PetClinic Microservices reference\
-  \ implementation, explicitly designed to demonstrate microservices architecture\
-  \ using Spring Cloud. The architecture follows all key microservices tenets: independently\
-  \ deployable services, database-per-service, service discovery, API gateway, and\
-  \ fault tolerance patterns."
+classification_confidence: 0.97
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+classification_reasoning: "Spring PetClinic Microservices is a textbook Microservices\
+  \ implementation, designed explicitly as a Spring Cloud reference application. The\
+  \ README states: 'This microservices branch was initially derived from the AngularJS\
+  \ version to demonstrate how to split sample Spring application into microservices.'\n\
+  \nKey evidence:\n\n1. Eight independently deployable services: admin-server, customers-service,\
+  \ vets-service, visits-service, genai-service, config-server, discovery-server,\
+  \ api-gateway — each a separate Spring Boot application with its own Maven module,\
+  \ Docker image, and container lifecycle (docker-compose.yml confirms 12-container\
+  \ deployment).\n\n2. Database-per-service pattern strictly enforced: customers-service\
+  \ owns owners/pets/types tables; vets-service owns vets/specialties/vet_specialties\
+  \ tables; visits-service owns visits table. No shared database or cross-service\
+  \ schema references exist.\n\n3. Synchronous REST communication via Eureka service\
+  \ discovery. API gateway uses lb:// URIs routing to lb://customers-service, lb://vets-service,\
+  \ lb://visits-service, lb://genai-service. ApiGatewayController composes owner\
+  \ details from CustomersServiceClient + VisitsServiceClient reactively.\n\n4. Full\
+  \ Spring Cloud infrastructure: Config Server (centralized config from Git repo),\
+  \ Eureka Discovery Server (service registry), Spring Cloud Gateway (single ingress,\
+  \ circuit breaker, retry filters), Resilience4j circuit breakers on all service\
+  \ calls.\n\n5. GenAI service integrates Spring AI with LLM function-calling via\
+  \ @Tool-annotated PetclinicTools methods, ChatClient with MessageChatMemoryAdvisor,\
+  \ and SimpleVectorStore RAG for vet lookups — an AI-augmented microservice, not\
+  \ a separate architectural style.\n\n6. Full observability: Zipkin distributed tracing\
+  \ via OpenTelemetry/Micrometer Tracing, Prometheus metrics with custom @Timed annotations,\
+  \ Grafana dashboard, Spring Boot Admin.\n\nNo event-driven patterns (no Kafka, RabbitMQ,\
+  \ or message channels found). No shared database (ruling out Service-Based). No\
+  \ single deployable unit (ruling out Modular Monolith). No ports-and-adapters structure\
+  \ (ruling out Hexagonal). No DDD aggregates or domain events."
+review_notes: "This repository is the canonical Spring Cloud microservices reference\
+  \ implementation, explicitly designed to demonstrate decomposition of the monolithic\
+  \ Spring PetClinic application. All eight modules are independently deployable Spring\
+  \ Boot applications with separate database schemas, Eureka registration, and Docker\
+  \ containers. The genai-service (Spring AI + OpenAI function calling + vector store\
+  \ RAG) is a notable recent addition that extends the microservices composition without\
+  \ altering the architectural style. Classification: Microservices, confidence 0.97."
+review_required: false
+key_technologies:
+  - Spring Boot 4.0.1
+  - Spring Cloud 2025.1.0
+  - Spring Cloud Gateway
+  - Netflix Eureka
+  - Spring Cloud Config
+  - Spring AI 2.0.0-M1
+  - Resilience4j
+  - Micrometer
+  - OpenTelemetry
+  - Zipkin
+  - Prometheus
+  - Grafana
+  - Spring Boot Admin
+  - Docker Compose
+  - HSQLDB
+  - MySQL
+quality_attributes:
+  - Scalability
+  - Deployability
+  - Fault Tolerance
+  - Observability
+  - Maintainability
+  - Testability
+  - Extensibility
+notable_strengths:
+  - Textbook microservices reference with all canonical infrastructure services present
+  - Database-per-service strictly enforced with no cross-service schema leakage
+  - Resilience4j circuit breakers on all inter-service communication paths
+  - Full observability stack with distributed tracing, Prometheus metrics, and Grafana dashboards
+  - GenAI service with Spring AI function calling and vector store RAG demonstrates
+    AI-augmented microservices extension
+  - Startup dependency ordering enforced by Docker health checks
+notable_gaps:
+  - No message broker or async communication — all service calls are synchronous HTTP
+  - In-memory HSQLDB default means no persistence across restarts without MySQL profile
+  - No Kubernetes manifests — Docker Compose only for local orchestration
+  - GenAI service requires external OpenAI API key and has no graceful offline mode
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+architecture_qualifiers:
+  - type: communication-style
+    value: synchronous
+    protocol: REST/HTTP
+    note: All inter-service communication is synchronous REST via Eureka lb:// URIs
+  - type: design-approach
+    value: api-gateway
+    note: Spring Cloud Gateway as single entry point with circuit breaker and retry filters
+  - type: design-approach
+    value: service-discovery
+    protocol: Eureka
+    note: Netflix Eureka registry with client-side load balancing via lb:// URIs
+  - type: design-approach
+    value: externalized-configuration
+    note: Spring Cloud Config Server backed by external Git repository
+  - type: design-approach
+    value: circuit-breaker
+    protocol: Resilience4j
+    note: Reactive and imperative circuit breakers on all cross-service paths
+  - type: design-approach
+    value: rag
+    note: GenAI service uses SimpleVectorStore with Spring AI for retrieval-augmented
+      generation on vet data

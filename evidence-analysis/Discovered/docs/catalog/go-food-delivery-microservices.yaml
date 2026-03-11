@@ -2,8 +2,8 @@ project_name: go-food-delivery-microservices
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/mehdihadeli/go-food-delivery-microservices
-project_url: https://github.com/mehdihadeli/go-food-delivery-microservices
+source_url: 'https://github.com/mehdihadeli/go-food-delivery-microservices'
+project_url: 'https://github.com/mehdihadeli/go-food-delivery-microservices'
 evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:25:03Z'
 discovered_by: discover-architecture
@@ -16,85 +16,84 @@ languages:
 architecture_styles:
 - Microservices
 - Event-Driven
-- CQRS
-- Domain-Driven Design
 classification_status: classified
-review_notes: "A textbook Go microservices reference implementation for a food delivery\
-  \ platform. Three independently deployable services (catalogwriteservice, catalogreadservice,\
-  \ orderservice) each with their own go.mod, Dockerfile, and database. Catalog is\
-  \ split write/read (PostgreSQL vs MongoDB+Redis) as a service-level CQRS boundary.\
-  \ Orders use EventStoreDB event sourcing with MongoDB/Elasticsearch projections.\
-  \ RabbitMQ integration events propagate state across service boundaries. DDD tactical\
-  \ patterns (event-sourced aggregate, value objects, domain events with invariant\
-  \ validation, bounded context isolation) applied consistently. Vertical Slice Architecture\
-  \ used within each service. Full OpenTelemetry observability stack."
+review_notes: A textbook Go microservices reference implementation for a food delivery platform. Three independently deployable
+  services (catalogwriteservice, catalogreadservice, orderservice) each with their own go.mod, Dockerfile, and database. Catalog
+  is split write/read (PostgreSQL vs MongoDB+Redis) as a service-level CQRS boundary. Orders use EventStoreDB event sourcing
+  with MongoDB/Elasticsearch projections. RabbitMQ integration events propagate state across service boundaries. DDD tactical
+  patterns (event-sourced aggregate, value objects, domain events with invariant validation, bounded context isolation) applied
+  consistently. Vertical Slice Architecture used within each service. Full OpenTelemetry observability stack.
 review_required: false
 classification_method: deep-analysis
 classification_confidence: 0.95
 classification_model: claude-sonnet-4-6
 classification_date: '2026-03-11T00:00:00Z'
-classification_reasoning: "## Architecture Classification\n\n### Primary: Microservices\n\
-  \nThree independently deployable services with separate go.mod files, Dockerfiles,\
-  \ and port allocations:\n- catalogwriteservice: HTTP :7000, gRPC :6003, PostgreSQL\
-  \ (catalogs_write_service)\n- catalogreadservice: HTTP :7001, gRPC :6004, MongoDB\
-  \ (catalogs_read_service) + Redis\n- orderservice: HTTP :8000, gRPC :6005, EventStoreDB\
-  \ + MongoDB (orders_service)\n\nDatabase-per-service enforced at config level. Services\
-  \ communicate asynchronously via RabbitMQ and synchronously via gRPC.\n\n### Secondary:\
-  \ Event-Driven\n\nRabbitMQ is the sole inter-service async integration mechanism.\
-  \ ProductCreatedV1 integration event published in createProductHandler after PostgreSQL\
-  \ write; consumed by catalogreadservice productCreatedConsumer to project into MongoDB\
-  \ and Redis. Typed Bus interface (Producer + BusControl + ConsumerConnector) in\
-  \ internal/pkg/core/messaging/bus. RabbitMQ consumer implements exponential backoff\
-  \ retry (3 attempts, 300ms). OrderCreatedV1 domain events drive projections to MongoDB\
-  \ and Elasticsearch in the Order service.\n\n### Secondary: CQRS\n\nCatalog domain\
-  \ split across two physical services: catalogwriteservice (writes to PostgreSQL)\
-  \ and catalogreadservice (reads from MongoDB + Redis). Formal Command/Query type\
-  \ system in internal/pkg/core/cqrs. All dispatch via go-mediatr registered handlers.\
-  \ Order service applies CQRS internally: EventStoreDB as write store, MongoDB/Elasticsearch\
-  \ projections as read models.\n\n### Secondary: Domain-Driven Design\n\nOrder aggregate\
-  \ extends EventSourcedAggregateRoot with full event-sourcing lifecycle. ShopItem\
-  \ is a proper value object (unexported fields, accessor methods only). Domain events\
-  \ (OrderCreatedV1) enforce business invariants in factory constructors. Domain exceptions\
-  \ are typed (OrderShopItemsRequiredError, InvalidDeliveryAddressError). Services\
-  \ represent bounded contexts with no shared domain types.\n\n### Notable: Vertical\
-  \ Slice Architecture\n\nEach feature folder (e.g., creatingproduct/v1/) contains\
-  \ command type, HTTP endpoint, command handler, DTOs, and integration events — all\
-  \ concerns for a single feature in one place. Applied consistently across all three\
-  \ services.\n\n### Ruled Out\n\n- Modular Monolith: separate Dockerfiles and databases\
-  \ per service\n- Layered: vertical feature slices, not horizontal technical layers\n\
-  - Hexagonal: bounded context decomposition is the primary driver, not port-centric\
-  \ design\n- Serverless: all services are containerized long-running processes"
+classification_reasoning: |-
+  ## Architecture Classification
+
+  ### Primary: Microservices
+
+  Three independently deployable services with separate go.mod files, Dockerfiles, and port allocations:
+  - catalogwriteservice: HTTP :7000, gRPC :6003, PostgreSQL (catalogs_write_service)
+  - catalogreadservice: HTTP :7001, gRPC :6004, MongoDB (catalogs_read_service) + Redis
+  - orderservice: HTTP :8000, gRPC :6005, EventStoreDB + MongoDB (orders_service)
+
+  Database-per-service enforced at config level. Services communicate asynchronously via RabbitMQ and synchronously via gRPC.
+
+  ### Secondary: Event-Driven
+
+  RabbitMQ is the sole inter-service async integration mechanism. ProductCreatedV1 integration event published in createProductHandler after PostgreSQL write; consumed by catalogreadservice productCreatedConsumer to project into MongoDB and Redis. Typed Bus interface (Producer + BusControl + ConsumerConnector) in internal/pkg/core/messaging/bus. RabbitMQ consumer implements exponential backoff retry (3 attempts, 300ms). OrderCreatedV1 domain events drive projections to MongoDB and Elasticsearch in the Order service.
+
+  ### Secondary: CQRS
+
+  Catalog domain split across two physical services: catalogwriteservice (writes to PostgreSQL) and catalogreadservice (reads from MongoDB + Redis). Formal Command/Query type system in internal/pkg/core/cqrs. All dispatch via go-mediatr registered handlers. Order service applies CQRS internally: EventStoreDB as write store, MongoDB/Elasticsearch projections as read models.
+
+  ### Secondary: Domain-Driven Design
+
+  Order aggregate extends EventSourcedAggregateRoot with full event-sourcing lifecycle. ShopItem is a proper value object (unexported fields, accessor methods only). Domain events (OrderCreatedV1) enforce business invariants in factory constructors. Domain exceptions are typed (OrderShopItemsRequiredError, InvalidDeliveryAddressError). Services represent bounded contexts with no shared domain types.
+
+  ### Notable: Vertical Slice Architecture
+
+  Each feature folder (e.g., creatingproduct/v1/) contains command type, HTTP endpoint, command handler, DTOs, and integration events — all concerns for a single feature in one place. Applied consistently across all three services.
+
+  ### Ruled Out
+
+  - Modular Monolith: separate Dockerfiles and databases per service
+  - Layered: vertical feature slices, not horizontal technical layers
+  - Hexagonal: bounded context decomposition is the primary driver, not port-centric design
+  - Serverless: all services are containerized long-running processes
 quality_attributes:
 - name: Scalability
-  justification: Each service is independently containerized and can be scaled horizontally
-    without affecting siblings. Kubernetes manifests in deployments/kubernetes/ support
-    replica-based scaling per service.
+  justification: Each service is independently containerized and can be scaled horizontally without affecting siblings. Kubernetes
+    manifests in deployments/kubernetes/ support replica-based scaling per service.
 - name: Deployability
-  justification: Three independent Dockerfiles, three independent go.mod files, and
-    per-service Makefile/taskfile.yml enable fully independent build and deploy pipelines.
+  justification: Three independent Dockerfiles, three independent go.mod files, and per-service Makefile/taskfile.yml enable
+    fully independent build and deploy pipelines.
 - name: Data Isolation
-  justification: Strict database-per-service (PostgreSQL, MongoDB+Redis, EventStoreDB+MongoDB)
-    with no cross-service direct database access possible by architecture.
+  justification: Strict database-per-service (PostgreSQL, MongoDB+Redis, EventStoreDB+MongoDB) with no cross-service direct
+    database access possible by architecture.
 - name: Fault Tolerance
-  justification: RabbitMQ consumer implements exponential backoff retry (3 attempts,
-    300ms initial delay). EventStoreDB subscription uses durable named subscriptionId
-    for at-least-once delivery. Services fail independently.
+  justification: RabbitMQ consumer implements exponential backoff retry (3 attempts, 300ms initial delay). EventStoreDB subscription
+    uses durable named subscriptionId for at-least-once delivery. Services fail independently.
 - name: Consistency (Eventual)
-  justification: Cross-service state propagated asynchronously via RabbitMQ integration
-    events. Catalog read model and Order MongoDB projection are eventually consistent
-    with their respective write stores.
+  justification: Cross-service state propagated asynchronously via RabbitMQ integration events. Catalog read model and Order
+    MongoDB projection are eventually consistent with their respective write stores.
 - name: Testability
-  justification: testcontainers-go used for integration tests with real infrastructure
-    per test. Mockery-generated mocks for all interface boundaries. config.test.json
-    provides isolated test configurations.
+  justification: testcontainers-go used for integration tests with real infrastructure per test. Mockery-generated mocks for
+    all interface boundaries. config.test.json provides isolated test configurations.
 - name: Observability
-  justification: OpenTelemetry distributed tracing with Jaeger and Tempo exporters;
-    Prometheus metrics with Grafana dashboards; Uber Zap structured logging; Swagger
-    UI on all REST endpoints. Wired per-service throughout.
+  justification: OpenTelemetry distributed tracing with Jaeger and Tempo exporters; Prometheus metrics with Grafana dashboards;
+    Uber Zap structured logging; Swagger UI on all REST endpoints. Wired per-service throughout.
 - name: Evolvability
-  justification: Bounded context isolation allows independent domain model evolution
-    per service. Versioned integration event types (ProductCreatedV1, OrderCreatedV1)
-    support backward-compatible evolution. Shared infrastructure is a local module
+  justification: Bounded context isolation allows independent domain model evolution per service. Versioned integration event
+    types (ProductCreatedV1, OrderCreatedV1) support backward-compatible evolution. Shared infrastructure is a local module
     replacement, not a published dependency.
 report_path: docs/architecture-reports/go-food-delivery-microservices-2026-03-11.md
 spec_ref: SPEC-031
+architecture_qualifiers:
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)

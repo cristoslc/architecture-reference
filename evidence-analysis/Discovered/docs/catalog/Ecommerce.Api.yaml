@@ -2,30 +2,35 @@ project_name: Ecommerce.Api
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/marcinstelmach/Ecommerce.Api
-project_url: https://github.com/marcinstelmach/Ecommerce.Api
+source_url: 'https://github.com/marcinstelmach/Ecommerce.Api'
+project_url: 'https://github.com/marcinstelmach/Ecommerce.Api'
 evidence_type: automated-discovery
 domain: E-Commerce
 language: C#
 languages:
-  - C#
+- C#
 architecture_styles:
-  - Layered
-  - CQRS
-  - Domain-Driven Design
+- Layered
 classification_status: classified
 classification_confidence: 0.92
 classification_method: deep-analysis
 classification_model: claude-sonnet-4-6
-classification_date: "2026-03-10"
+classification_date: '2026-03-10'
 quality_attributes:
-  Modularity: Autofac DI modules (RepositoriesModule, ServicesModule, FactoriesModule, HelpersModule, MediaTrModule, MapperModule) partition all registrations; automated convention tests assert every service class is internal and implements an interface.
-  Evolvability: Interface-per-service convention enforced by xUnit convention tests; strict downward-only layer dependencies prevent cross-cutting coupling; code analysis rulesets (StyleCop + FxCop) on every project.
-  Observability: Serilog integrated at host level with log-level differentiation (Warning for client errors, Error for server faults) in ExceptionHandlerMiddleware; structured error messages serialised to JSON HTTP responses.
-  Fault Tolerance: Unhandled exceptions are written to Azure Storage Queue (AzureStorageQueueManager); a separate Azure Functions app (ExceptionQueueFunction) consumes the queue and sends alert emails, decoupling failure alerting from the request path.
-  Deployability: Azure Pipelines CI pipeline performs dotnet build, dotnet test, and dotnet publish for every push to master/develop; Streetwood.Functions targets Azure Functions v2 as an independently deployable unit.
-  Scalability: In-process memory cache (AddMemoryCache) reduces repeated DB queries; README acknowledges shared single SQL Server as the current scale ceiling ("one database").
-one_line_summary: ASP.NET Core 2.2 e-commerce API using strict three-layer architecture (API / Infrastructure / Core) with MediatR-based CQRS and DDD-lite rich domain entities, complemented by an Azure Functions sidecar for async exception alerting.
+  Modularity: Autofac DI modules (RepositoriesModule, ServicesModule, FactoriesModule, HelpersModule, MediaTrModule, MapperModule)
+    partition all registrations; automated convention tests assert every service class is internal and implements an interface.
+  Evolvability: Interface-per-service convention enforced by xUnit convention tests; strict downward-only layer dependencies
+    prevent cross-cutting coupling; code analysis rulesets (StyleCop + FxCop) on every project.
+  Observability: Serilog integrated at host level with log-level differentiation (Warning for client errors, Error for server
+    faults) in ExceptionHandlerMiddleware; structured error messages serialised to JSON HTTP responses.
+  Fault Tolerance: Unhandled exceptions are written to Azure Storage Queue (AzureStorageQueueManager); a separate Azure Functions
+    app (ExceptionQueueFunction) consumes the queue and sends alert emails, decoupling failure alerting from the request path.
+  Deployability: Azure Pipelines CI pipeline performs dotnet build, dotnet test, and dotnet publish for every push to master/develop;
+    Streetwood.Functions targets Azure Functions v2 as an independently deployable unit.
+  Scalability: 'In-process memory cache (AddMemoryCache) reduces repeated DB queries; README acknowledges shared single SQL
+    Server as the current scale ceiling ("one database").'
+one_line_summary: ASP.NET Core 2.2 e-commerce API using strict three-layer architecture (API / Infrastructure / Core) with
+  MediatR-based CQRS and DDD-lite rich domain entities, complemented by an Azure Functions sidecar for async exception alerting.
 classification_reasoning: |
   ## Architecture Classification: Ecommerce.Api (Streetwood)
 
@@ -70,3 +75,10 @@ classification_reasoning: |
   ### Confidence Rationale
 
   Confidence 0.92. The Layered + CQRS combination is unambiguous — confirmed by project structure, .csproj references, README, and code inspection. DDD-lite is added at tertiary level because the rich-entity evidence is clear but incomplete (no BCs, no value objects). The 0.08 uncertainty reflects the absence of explicit Aggregate Root declarations and the fact that Core also hosts EF infrastructure code.
+architecture_qualifiers:
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)

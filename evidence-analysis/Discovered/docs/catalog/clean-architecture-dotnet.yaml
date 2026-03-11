@@ -2,7 +2,7 @@ project_name: clean-architecture-dotnet
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/thangchung/clean-architecture-dotnet
+source_url: 'https://github.com/thangchung/clean-architecture-dotnet'
 evidence_type: automated-discovery
 domain: Developer Tools
 language: C#
@@ -11,9 +11,6 @@ languages:
 - JavaScript
 architecture_styles:
 - Microservices
-- Hexagonal Architecture
-- Domain-Driven Design
-- CQRS
 classification_status: classified
 classification_confidence: 0.95
 classification_method: deep-analysis
@@ -26,39 +23,21 @@ quality_attributes:
 - observability
 - resilience
 - modularity
-one_line_summary: >-
-  A .NET 6 reference monorepo implementing Microservices with Hexagonal Architecture,
-  DDD tactical patterns, and CQRS Lite via MediatR and Dapr.
-classification_reasoning: >-
-  The repository is an explicit reference implementation combining four co-primary
-  architectural styles.
-
-  PRIMARY — Microservices: Three independently deployable bounded-context services
-  (Product, Customer, Setting) each with a dedicated Dockerfile, database context
-  (EF Core + PostgreSQL), and Dapr sidecar. An API gateway (YARP) routes external
-  traffic. Services communicate asynchronously via Dapr pub/sub (Redis) and
-  synchronously via Dapr service invocation. Integration events and a shared
-  DataContracts package provide the inter-service contract layer. Orchestrated via
-  both Tye (tye.yaml) and Docker Compose (docker-compose.yml).
-
-  PRIMARY — Hexagonal Architecture (Ports and Adapters): Every service enforces strict
-  inward dependency direction via a tripartite structure: *.Api (primary adapters/
-  controllers), *.AppCore (domain core — no infrastructure references), and
-  *.Infrastructure (secondary adapters: EF Core, repositories, migrations). Ports are
-  defined in N8T.Core (IRepository, IGridRepository, IEventBus) with adapters in
-  N8T.Infrastructure.EfCore and N8T.Infrastructure/Bus/Dapr.
-
-  SECONDARY — Domain-Driven Design: Aggregate roots extend EntityRootBase/IAggregateRoot
-  with domain events raised during factory methods (e.g., Product.Create raises
-  ProductCreatedIntegrationEvent). TxBehavior publishes collected domain events after
-  transaction commit. Specification pattern used for queries. Separate bounded contexts
-  per service each own their database schema. Cross-context communication uses typed
-  integration events (CoolStore.IntegrationEvents).
-
-  SECONDARY — CQRS: Explicit command/query separation at interface and handler level
-  via N8T.Core/Domain/Cqrs.cs (ICommand, IQuery, ICreateCommand, IListQuery, etc.).
-  Each AppCore project has UseCases/Commands/ and UseCases/Queries/ folders. MediatR
-  dispatches all handlers through a pipeline with RequestValidationBehavior,
-  LoggingBehavior, and TxBehavior (commands only). No event sourcing — described as
-  "CQRS Lite" by the authors. Transactional Outbox pattern implemented for reliable
-  event delivery from DB transaction to Dapr pub/sub.
+one_line_summary: A .NET 6 reference monorepo implementing Microservices with Hexagonal Architecture, DDD tactical patterns,
+  and CQRS Lite via MediatR and Dapr.
+classification_reasoning: |-
+  The repository is an explicit reference implementation combining four co-primary architectural styles.
+  PRIMARY — Microservices: Three independently deployable bounded-context services (Product, Customer, Setting) each with a dedicated Dockerfile, database context (EF Core + PostgreSQL), and Dapr sidecar. An API gateway (YARP) routes external traffic. Services communicate asynchronously via Dapr pub/sub (Redis) and synchronously via Dapr service invocation. Integration events and a shared DataContracts package provide the inter-service contract layer. Orchestrated via both Tye (tye.yaml) and Docker Compose (docker-compose.yml).
+  PRIMARY — Hexagonal Architecture (Ports and Adapters): Every service enforces strict inward dependency direction via a tripartite structure: *.Api (primary adapters/ controllers), *.AppCore (domain core — no infrastructure references), and *.Infrastructure (secondary adapters: EF Core, repositories, migrations). Ports are defined in N8T.Core (IRepository, IGridRepository, IEventBus) with adapters in N8T.Infrastructure.EfCore and N8T.Infrastructure/Bus/Dapr.
+  SECONDARY — Domain-Driven Design: Aggregate roots extend EntityRootBase/IAggregateRoot with domain events raised during factory methods (e.g., Product.Create raises ProductCreatedIntegrationEvent). TxBehavior publishes collected domain events after transaction commit. Specification pattern used for queries. Separate bounded contexts per service each own their database schema. Cross-context communication uses typed integration events (CoolStore.IntegrationEvents).
+  SECONDARY — CQRS: Explicit command/query separation at interface and handler level via N8T.Core/Domain/Cqrs.cs (ICommand, IQuery, ICreateCommand, IListQuery, etc.). Each AppCore project has UseCases/Commands/ and UseCases/Queries/ folders. MediatR dispatches all handlers through a pipeline with RequestValidationBehavior, LoggingBehavior, and TxBehavior (commands only). No event sourcing — described as "CQRS Lite" by the authors. Transactional Outbox pattern implemented for reliable event delivery from DB transaction to Dapr pub/sub.
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)

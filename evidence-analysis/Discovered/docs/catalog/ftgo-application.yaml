@@ -2,8 +2,8 @@ project_name: ftgo-application
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/microservices-patterns/ftgo-application
-project_url: https://github.com/microservices-patterns/ftgo-application
+source_url: 'https://github.com/microservices-patterns/ftgo-application'
+project_url: 'https://github.com/microservices-patterns/ftgo-application'
 evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:23:16Z'
 discovered_by: discover-architecture
@@ -17,7 +17,6 @@ languages:
 architecture_styles:
 - Microservices
 - Event-Driven
-- Domain-Driven Design
 classification_status: classified
 classification_confidence: 0.97
 classification_method: deep-analysis
@@ -33,47 +32,70 @@ quality_attributes:
 - Observability
 - Evolvability
 review_required: false
-one_line_summary: "Canonical reference implementation of the Microservices Patterns
-  book: seven independently deployable food delivery services communicating via Apache
-  Kafka sagas and a CQRS order history read model, with DDD aggregates and event sourcing
-  in the Accounting Service."
-classification_reasoning: "## Architecture Classification: Microservices (primary),
-  Event-Driven and Domain-Driven Design (secondary)\n\nThe ftgo-application is a
-  deliberately constructed reference implementation for Chris Richardson's \"Microservices
-  Patterns\" book. The README states explicitly: \"Not surprisingly, this application
-  has a microservice architecture.\"\n\n### Primary: Microservices\n\n**Seven independently
-  deployable services** each with its own Dockerfile and Spring Boot entry point:\n
-  ftgo-consumer-service, ftgo-order-service, ftgo-kitchen-service, ftgo-accounting-service,\n
-  ftgo-restaurant-service, ftgo-delivery-service, ftgo-order-history-service.\n\n**Database-per-service:**
-  Eight isolated MySQL schemas (one per service) plus DynamoDB for the\n Order History
-  Service. Enforced at the infrastructure level via separate SPRING_DATASOURCE_URL\n
-  environment variables and CDC pipeline configurations per schema in docker-compose.yml.\n\n**API
-  Gateway:** ftgo-api-gateway (Spring WebFlux) is the sole external entry point, using\n
-  reactive Mono.zip() to aggregate responses from Order, Kitchen, Delivery, and Accounting\n
-  services in parallel. A GraphQL variant (Node.js/TypeScript) provides an alternative facade.\n\n**Service
-  decomposition by business capability:** Consumer, Order, Kitchen, Accounting, Restaurant,\n
-  Delivery, Order History — each with its own domain model, repository, and lifecycle.\n\n###
-  Secondary: Event-Driven\n\nApache Kafka is the primary inter-service integration
-  fabric via the Eventuate Tram framework.\n The cdc-service implements the transactional
-  outbox pattern (MySQL binary log reading) to publish\n domain events reliably without
-  two-phase commit.\n\nThree saga orchestrations (CreateOrderSaga, CancelOrderSaga,
-  ReviseOrderSaga) coordinate\n distributed transactions across up to four services
-  with compensating transaction support:\n```java\nstep().invokeParticipant(consumerService.validateOrder,
-  ...)\n.step().invokeParticipant(kitchenService.create, ...)\n  .withCompensation(kitchenService.cancel,
-  ...)\n.step().invokeParticipant(accountingService.authorize, ...)\n```\n\nThe Order
-  History Service subscribes to OrderCreatedEvent, OrderAuthorized, OrderCancelled,\n
-  and OrderRejected events from the Order aggregate to maintain a DynamoDB-backed CQRS
-  read model.\n\n### Secondary: Domain-Driven Design\n\nEvery service uses DDD aggregates
-  with state machine enforcement and domain event emission:\n- Order (JPA, ftgo-order-service)\n-
-  Account (event-sourced via Eventuate Client, ftgo-accounting-service)\n- Ticket
-  (JPA, ftgo-kitchen-service)\n- Consumer (JPA, ftgo-consumer-service)\n- Restaurant
-  (JPA, ftgo-restaurant-service)\n\nConsistent package structure per service: domain
-  / messaging / web / main.\nBounded context interfaces enforced through dedicated
-  ftgo-*-api Gradle modules (events, commands, replies).\nSpring Cloud Contract stubs
-  (ftgo-*-contracts) enable consumer-driven contract testing.\n\n### Ruled Out\n\n-
-  Modular Monolith: services are independently deployable containers, not modules
-  in a single artifact\n- Service-Based: seven fine-grained services with strict database-per-service
-  exceeds the 2-5 coarse-grained\n  services sharing a database that characterize
-  Service-Based architecture\n- Layered: organization is vertical by business capability,
-  not horizontal by technical layer\n- Hexagonal: ports-and-adapters patterns exist
-  within services but are not the primary organizing principle"
+one_line_summary: 'Canonical reference implementation of the Microservices Patterns book: seven independently deployable food
+  delivery services communicating via Apache Kafka sagas and a CQRS order history read model, with DDD aggregates and event
+  sourcing in the Accounting Service.'
+classification_reasoning: |-
+  ## Architecture Classification: Microservices (primary), Event-Driven and Domain-Driven Design (secondary)
+
+  The ftgo-application is a deliberately constructed reference implementation for Chris Richardson's "Microservices Patterns" book. The README states explicitly: "Not surprisingly, this application has a microservice architecture."
+
+  ### Primary: Microservices
+
+  **Seven independently deployable services** each with its own Dockerfile and Spring Boot entry point:
+   ftgo-consumer-service, ftgo-order-service, ftgo-kitchen-service, ftgo-accounting-service,
+   ftgo-restaurant-service, ftgo-delivery-service, ftgo-order-history-service.
+
+  **Database-per-service:** Eight isolated MySQL schemas (one per service) plus DynamoDB for the
+   Order History Service. Enforced at the infrastructure level via separate SPRING_DATASOURCE_URL
+   environment variables and CDC pipeline configurations per schema in docker-compose.yml.
+
+  **API Gateway:** ftgo-api-gateway (Spring WebFlux) is the sole external entry point, using
+   reactive Mono.zip() to aggregate responses from Order, Kitchen, Delivery, and Accounting
+   services in parallel. A GraphQL variant (Node.js/TypeScript) provides an alternative facade.
+
+  **Service decomposition by business capability:** Consumer, Order, Kitchen, Accounting, Restaurant,
+   Delivery, Order History — each with its own domain model, repository, and lifecycle.
+
+  ### Secondary: Event-Driven
+
+  Apache Kafka is the primary inter-service integration fabric via the Eventuate Tram framework.
+   The cdc-service implements the transactional outbox pattern (MySQL binary log reading) to publish
+   domain events reliably without two-phase commit.
+
+  Three saga orchestrations (CreateOrderSaga, CancelOrderSaga, ReviseOrderSaga) coordinate
+   distributed transactions across up to four services with compensating transaction support:
+  ```java
+  step().invokeParticipant(consumerService.validateOrder, ...)
+  .step().invokeParticipant(kitchenService.create, ...)
+    .withCompensation(kitchenService.cancel, ...)
+  .step().invokeParticipant(accountingService.authorize, ...)
+  ```
+
+  The Order History Service subscribes to OrderCreatedEvent, OrderAuthorized, OrderCancelled,
+   and OrderRejected events from the Order aggregate to maintain a DynamoDB-backed CQRS read model.
+
+  ### Secondary: Domain-Driven Design
+
+  Every service uses DDD aggregates with state machine enforcement and domain event emission:
+  - Order (JPA, ftgo-order-service)
+  - Account (event-sourced via Eventuate Client, ftgo-accounting-service)
+  - Ticket (JPA, ftgo-kitchen-service)
+  - Consumer (JPA, ftgo-consumer-service)
+  - Restaurant (JPA, ftgo-restaurant-service)
+
+  Consistent package structure per service: domain / messaging / web / main.
+  Bounded context interfaces enforced through dedicated ftgo-*-api Gradle modules (events, commands, replies).
+  Spring Cloud Contract stubs (ftgo-*-contracts) enable consumer-driven contract testing.
+
+  ### Ruled Out
+
+  - Modular Monolith: services are independently deployable containers, not modules in a single artifact
+  - Service-Based: seven fine-grained services with strict database-per-service exceeds the 2-5 coarse-grained
+    services sharing a database that characterize Service-Based architecture
+  - Layered: organization is vertical by business capability, not horizontal by technical layer
+  - Hexagonal: ports-and-adapters patterns exist within services but are not the primary organizing principle
+architecture_qualifiers:
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)

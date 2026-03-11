@@ -2,8 +2,8 @@ project_name: medusa
 scope: platform
 use_type: production
 source: Discovered
-source_url: https://github.com/medusajs/medusa
-project_url: https://github.com/medusajs/medusa
+source_url: 'https://github.com/medusajs/medusa'
+project_url: 'https://github.com/medusajs/medusa'
 evidence_type: automated-discovery
 discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
@@ -16,12 +16,9 @@ languages:
 architecture_styles:
 - Modular Monolith
 - Event-Driven
-- Domain-Driven Design
 classification_status: classified
-one_line_summary: Open-source commerce platform built as a modular monolith with 35+
-  DI-wired bounded-context modules, a distributed-transaction workflow engine (saga
-  with compensation), and a BullMQ-backed event bus for asynchronous domain event
-  propagation.
+one_line_summary: Open-source commerce platform built as a modular monolith with 35+ DI-wired bounded-context modules, a distributed-transaction
+  workflow engine (saga with compensation), and a BullMQ-backed event bus for asynchronous domain event propagation.
 classification_method: deep-analysis
 classification_confidence: 0.93
 classification_model: claude-sonnet-4-6
@@ -34,35 +31,12 @@ quality_attributes:
 - Scalability
 - Maintainability
 - Developer Experience
-classification_reasoning: >
-  Medusa deploys as a single Node.js/Express process whose internals are decomposed
-  into 35+ independently defined commerce modules (cart, order, product, payment,
-  fulfillment, notification, etc.) loaded into a shared Awilix DI container at
-  startup. Modules own their data models, MikroORM migrations, and service interfaces;
-  cross-module queries are federated via an in-process RemoteJoiner rather than
-  network APIs, making this a Modular Monolith rather than Microservices. A
-  first-class Workflow Engine (backed by Redis/BullMQ or in-memory) implements a
-  saga orchestrator with distributed-transaction state, step-level compensation, and
-  a createWorkflow() DSL. The @EmitEvents() decorator on every write method and a
-  subscriber-loader lifecycle evidence the Event-Driven secondary style. The 31-entry
-  Modules enum, domain-organized core-flows library (cart/, order/, payment/,
-  fulfillment/ sub-trees each with workflows/ and steps/), and the defineLink()
-  bounded-context relationship utility provide clear Domain-Driven Design evidence.
-  Module implementations are swappable (event-bus-local vs event-bus-redis,
-  file-local vs file-s3, payment-stripe as a provider) but the core framework is
-  not itself a kernel with plug-in services, so Microkernel is not assigned.
-  Pipeline is not assigned because the workflow engine implements saga coordination,
-  not a data-transformation pipeline.
-review_notes: >
-  35 module keys defined in Modules enum; 35+ packages under packages/modules/;
-  Awilix DI container wires all modules at startup; RemoteJoiner enables in-process
-  cross-module queries; TransactionOrchestrator implements saga with compensation
-  steps and Redis-persisted state; BullMQ Worker processes async domain events;
-  @EmitEvents decorator + MessageAggregator flush events after every write;
-  SubscriberLoader dynamically wires handlers at startup; file-system Express routes
-  in api/admin/ and api/store/ delegate to named workflow invocations; Turborepo
-  build pipeline; Yarn Workspaces monorepo. Prior classification assigned Pipeline
-  as secondary style — reassigned to Domain-Driven Design based on direct code
-  inspection of bounded-context decomposition, defineLink() API, and domain-organized
-  core-flows library.
+classification_reasoning: |
+  Medusa deploys as a single Node.js/Express process whose internals are decomposed into 35+ independently defined commerce modules (cart, order, product, payment, fulfillment, notification, etc.) loaded into a shared Awilix DI container at startup. Modules own their data models, MikroORM migrations, and service interfaces; cross-module queries are federated via an in-process RemoteJoiner rather than network APIs, making this a Modular Monolith rather than Microservices. A first-class Workflow Engine (backed by Redis/BullMQ or in-memory) implements a saga orchestrator with distributed-transaction state, step-level compensation, and a createWorkflow() DSL. The @EmitEvents() decorator on every write method and a subscriber-loader lifecycle evidence the Event-Driven secondary style. The 31-entry Modules enum, domain-organized core-flows library (cart/, order/, payment/, fulfillment/ sub-trees each with workflows/ and steps/), and the defineLink() bounded-context relationship utility provide clear Domain-Driven Design evidence. Module implementations are swappable (event-bus-local vs event-bus-redis, file-local vs file-s3, payment-stripe as a provider) but the core framework is not itself a kernel with plug-in services, so Microkernel is not assigned. Pipeline is not assigned because the workflow engine implements saga coordination, not a data-transformation pipeline.
+review_notes: |
+  35 module keys defined in Modules enum; 35+ packages under packages/modules/; Awilix DI container wires all modules at startup; RemoteJoiner enables in-process cross-module queries; TransactionOrchestrator implements saga with compensation steps and Redis-persisted state; BullMQ Worker processes async domain events; @EmitEvents decorator + MessageAggregator flush events after every write; SubscriberLoader dynamically wires handlers at startup; file-system Express routes in api/admin/ and api/store/ delegate to named workflow invocations; Turborepo build pipeline; Yarn Workspaces monorepo. Prior classification assigned Pipeline as secondary style — reassigned to Domain-Driven Design based on direct code inspection of bounded-context decomposition, defineLink() API, and domain-organized core-flows library.
 review_required: false
+architecture_qualifiers:
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)

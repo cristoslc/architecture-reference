@@ -2,7 +2,7 @@ project_name: ddd-forum
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/stemmlerjs/ddd-forum
+source_url: 'https://github.com/stemmlerjs/ddd-forum'
 evidence_type: automated-discovery
 domain: Social Media
 language: TypeScript
@@ -10,7 +10,6 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Domain-Driven Design
 - Layered
 classification_status: classified
 classification_confidence: 0.97
@@ -22,59 +21,80 @@ quality_attributes:
 - testability
 - modularity
 - readability
-one_line_summary: A Hacker News-style forum reference application built as an explicit
-  teaching exemplar of Domain-Driven Design tactical patterns (aggregates, value objects,
-  domain events, repositories) layered with Clean Architecture inside a single deployable
-  monolith.
-classification_reasoning: "## Analysis\n\nThis repository is an unambiguous reference\
-  \ implementation of **Domain-Driven Design (DDD)** with **Layered (Clean Architecture)**\
-  \ as the structural organizing principle. The evidence is explicit and comprehensive.\n\
-  \n### DDD Evidence\n\n**1. Bounded Contexts:**\nTwo subdomains are clearly delimited\
-  \ by directory:\n- `src/modules/users/` — User subdomain (authentication, identity,\
-  \ JWT lifecycle)\n- `src/modules/forum/` — Forum subdomain (posts, comments, members,\
-  \ voting)\n\nThe README explicitly states: *\"In DDDForum, we have 2 subdomains:\
-  \ The users subdomain and the forum subdomain.\"*\n\n**2. Aggregates and Aggregate\
-  \ Roots:**\n- `User extends AggregateRoot<UserProps>`\n- `Post extends AggregateRoot<PostProps>`\n\
-  - `Member extends AggregateRoot<MemberProps>`\n\n`AggregateRoot<T>` manages domain\
-  \ event collection via `addDomainEvent()` and deferred dispatch via\n`DomainEvents.markAggregateForDispatch()`.\n\
-  \n**3. Value Objects:**\nExtensive use of `ValueObject<T>` wrapping all domain primitives:\
-  \ `UserEmail`, `UserName`, `UserPassword`, `PostTitle`, `PostSlug`, `PostText`,\
-  \ `PostLink`, `CommentText`, `PostId`, `CommentId`, `MemberId`, etc.\n\n**4. Domain\
-  \ Events:**\n- `IDomainEvent` interface + `DomainEvents` static dispatcher (`src/shared/domain/events/`)\n\
-  - Events: `UserCreated`, `UserLoggedIn`, `UserDeleted`, `PostCreated`, `CommentPosted`,\
-  \ `PostVotesChanged`, `CommentVotesChanged`, `MemberCreated`\n- Dispatch is triggered\
-  \ by Sequelize ORM `afterCreate`/`afterUpdate`/`afterSave` hooks (`src/shared/infra/database/sequelize/hooks/index.ts`)\
-  \ — events fire synchronously after persistence commits\n- Subscribers: `AfterUserCreated`,\
-  \ `AfterCommentPosted`, `AfterCommentVotesChanged`, `AfterPostVotesChanged`\n\n\
-  **5. Repositories with DDD Pattern:**\n- Domain-layer interfaces per aggregate (`IUserRepo`,\
-  \ `IPostRepo`, `IMemberRepo`, `ICommentRepo`)\n- Concrete Sequelize implementations\
-  \ in `repos/implementations/` subdirectories\n- Dependency inversion enforced: use\
-  \ cases depend on interfaces, not Sequelize classes\n\n**6. Domain Services:**\n\
-  - `src/modules/forum/domain/services/postService.ts` encapsulates vote resolution\
-  \ logic crossing multiple aggregates\n\n**7. Mappers and DTOs:**\n- `UserMap`, `PostMap`,\
-  \ `CommentMap`, `MemberMap`, `PostDetailsMap` translate between domain objects,\
-  \ persistence rows, and transport DTOs\n- Per-use-case DTO types (e.g., `CreateUserDTO`,\
-  \ `CreatePostDTO`, `ReplyToPostDTO`)\n\n### Layered Architecture (Clean Architecture\
-  \ Variant)\n\nEach bounded context enforces a strict inward dependency rule across\
-  \ four layers:\n- **Domain:** Entities, AggregateRoots, ValueObjects, DomainEvents,\
-  \ DomainServices\n- **Application:** UseCase classes implementing `UseCase<IRequest,\
-  \ IResponse>`\n- **Adapter:** Repo interfaces, Mappers, DTOs\n- **Infrastructure:**\
-  \ Sequelize models/hooks, Express controllers/routes, Redis auth service, Apollo\
-  \ GraphQL server\n\nConstructor injection wires concrete implementations at module\
-  \ index files, preserving the dependency inversion principle throughout.\n\n### Deployment\
-  \ Topology\n\nSingle deployable monolith:\n- One `package.json`, one `Dockerfile`\n\
-  - `docker-compose.yml` provisions only supporting infrastructure (MySQL, Redis, Adminer)\
-  \ — no application service decomposition\n- Single Express process serving REST\
-  \ (`/api/v1`) and GraphQL (Apollo Server middleware) on one port\n\n### What This\
-  \ Is Not\n\n- **NOT Hexagonal Architecture:** The inward-dependency boundary exists\
-  \ but ports are not formally named types; the project follows Clean Architecture\
-  \ vocabulary, not Hexagonal/Ports-and-Adapters.\n- **NOT Microservices/Service-Based:**\
-  \ Single process, single deployment unit.\n- **NOT CQRS:** `PostDetails` and `MemberDetails`\
-  \ are query projections built inside the same repository — not a distinct read model\
-  \ updated by events.\n- **NOT Event-Driven Architecture (macro):** Domain events\
-  \ are intra-process synchronous callbacks dispatched by Sequelize hooks, not message\
-  \ broker-based inter-service messaging.\n\n### Conclusion\n\nDDD is the dominant\
-  \ architectural style — the entire structure revolves around the domain model. Clean\
-  \ Architecture layering is the secondary principle that provides structural organization\
-  \ within each bounded context. The project is a single-process monolith making it\
-  \ the canonical exemplar for teaching DDD tactical patterns within a Layered architecture."
+one_line_summary: A Hacker News-style forum reference application built as an explicit teaching exemplar of Domain-Driven
+  Design tactical patterns (aggregates, value objects, domain events, repositories) layered with Clean Architecture inside
+  a single deployable monolith.
+classification_reasoning: |-
+  ## Analysis
+
+  This repository is an unambiguous reference implementation of **Domain-Driven Design (DDD)** with **Layered (Clean Architecture)** as the structural organizing principle. The evidence is explicit and comprehensive.
+
+  ### DDD Evidence
+
+  **1. Bounded Contexts:**
+  Two subdomains are clearly delimited by directory:
+  - `src/modules/users/` — User subdomain (authentication, identity, JWT lifecycle)
+  - `src/modules/forum/` — Forum subdomain (posts, comments, members, voting)
+
+  The README explicitly states: *"In DDDForum, we have 2 subdomains: The users subdomain and the forum subdomain."*
+
+  **2. Aggregates and Aggregate Roots:**
+  - `User extends AggregateRoot<UserProps>`
+  - `Post extends AggregateRoot<PostProps>`
+  - `Member extends AggregateRoot<MemberProps>`
+
+  `AggregateRoot<T>` manages domain event collection via `addDomainEvent()` and deferred dispatch via
+  `DomainEvents.markAggregateForDispatch()`.
+
+  **3. Value Objects:**
+  Extensive use of `ValueObject<T>` wrapping all domain primitives: `UserEmail`, `UserName`, `UserPassword`, `PostTitle`, `PostSlug`, `PostText`, `PostLink`, `CommentText`, `PostId`, `CommentId`, `MemberId`, etc.
+
+  **4. Domain Events:**
+  - `IDomainEvent` interface + `DomainEvents` static dispatcher (`src/shared/domain/events/`)
+  - Events: `UserCreated`, `UserLoggedIn`, `UserDeleted`, `PostCreated`, `CommentPosted`, `PostVotesChanged`, `CommentVotesChanged`, `MemberCreated`
+  - Dispatch is triggered by Sequelize ORM `afterCreate`/`afterUpdate`/`afterSave` hooks (`src/shared/infra/database/sequelize/hooks/index.ts`) — events fire synchronously after persistence commits
+  - Subscribers: `AfterUserCreated`, `AfterCommentPosted`, `AfterCommentVotesChanged`, `AfterPostVotesChanged`
+
+  **5. Repositories with DDD Pattern:**
+  - Domain-layer interfaces per aggregate (`IUserRepo`, `IPostRepo`, `IMemberRepo`, `ICommentRepo`)
+  - Concrete Sequelize implementations in `repos/implementations/` subdirectories
+  - Dependency inversion enforced: use cases depend on interfaces, not Sequelize classes
+
+  **6. Domain Services:**
+  - `src/modules/forum/domain/services/postService.ts` encapsulates vote resolution logic crossing multiple aggregates
+
+  **7. Mappers and DTOs:**
+  - `UserMap`, `PostMap`, `CommentMap`, `MemberMap`, `PostDetailsMap` translate between domain objects, persistence rows, and transport DTOs
+  - Per-use-case DTO types (e.g., `CreateUserDTO`, `CreatePostDTO`, `ReplyToPostDTO`)
+
+  ### Layered Architecture (Clean Architecture Variant)
+
+  Each bounded context enforces a strict inward dependency rule across four layers:
+  - **Domain:** Entities, AggregateRoots, ValueObjects, DomainEvents, DomainServices
+  - **Application:** UseCase classes implementing `UseCase<IRequest, IResponse>`
+  - **Adapter:** Repo interfaces, Mappers, DTOs
+  - **Infrastructure:** Sequelize models/hooks, Express controllers/routes, Redis auth service, Apollo GraphQL server
+
+  Constructor injection wires concrete implementations at module index files, preserving the dependency inversion principle throughout.
+
+  ### Deployment Topology
+
+  Single deployable monolith:
+  - One `package.json`, one `Dockerfile`
+  - `docker-compose.yml` provisions only supporting infrastructure (MySQL, Redis, Adminer) — no application service decomposition
+  - Single Express process serving REST (`/api/v1`) and GraphQL (Apollo Server middleware) on one port
+
+  ### What This Is Not
+
+  - **NOT Hexagonal Architecture:** The inward-dependency boundary exists but ports are not formally named types; the project follows Clean Architecture vocabulary, not Hexagonal/Ports-and-Adapters.
+  - **NOT Microservices/Service-Based:** Single process, single deployment unit.
+  - **NOT CQRS:** `PostDetails` and `MemberDetails` are query projections built inside the same repository — not a distinct read model updated by events.
+  - **NOT Event-Driven Architecture (macro):** Domain events are intra-process synchronous callbacks dispatched by Sequelize hooks, not message broker-based inter-service messaging.
+
+  ### Conclusion
+
+  DDD is the dominant architectural style — the entire structure revolves around the domain model. Clean Architecture layering is the secondary principle that provides structural organization within each bounded context. The project is a single-process monolith making it the canonical exemplar for teaching DDD tactical patterns within a Layered architecture.
+architecture_qualifiers:
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)

@@ -2,8 +2,8 @@ project_name: storage
 scope: platform
 use_type: production
 source: Discovered
-source_url: https://github.com/supabase/storage
-project_url: https://github.com/supabase/storage
+source_url: 'https://github.com/supabase/storage'
+project_url: 'https://github.com/supabase/storage'
 evidence_type: automated-discovery
 discovered_at: '2026-03-07T04:48:41Z'
 discovered_by: discover-architecture
@@ -15,85 +15,58 @@ languages:
 - JavaScript
 architecture_styles:
 - Layered
-- Hexagonal Architecture
 classification_status: classified
-review_notes: 'The Supabase Storage Engine is structured as a **Modular Monolith**.
-  While it supports complex features like multi-tenancy, sharding, and multiple communication
-  protocols, it is designed to be deployed as a single unit (as evidenced by `src/start/server.ts`
-  which initializes the API server, admin server, queue workers, and background migrations
-  within one lifecycle).
-
+review_notes: |-
+  The Supabase Storage Engine is structured as a **Modular Monolith**. While it supports complex features like multi-tenancy, sharding, and multiple communication protocols, it is designed to be deployed as a single unit (as evidenced by `src/start/server.ts` which initializes the API server, admin server, queue workers, and background migrations within one lifecycle).
 
   ### Reasoning:
 
-
   #### 1. Modular Monolith Surface Area
+  The codebase is organized into high-level directories (`src/storage`, `src/internal`, `src/http`) that separate the core domain logic from infrastructure concerns.
+  - **Protocol Separation:** Despite supporting HTTP, S3, TUS, and Iceberg, these are implemented as modules within the same deployable. `src/app.ts` shows all these protocols being registered as Fastify routes within a single application instance.
+  - **Internal Boundaries:** The `src/internal` directory contains cross-cutting concerns (sharding, auth, database, monitoring) that are shared across the storage domain modules but kept distinct from the business logic in `src/storage`.
 
-  The codebase is organized into high-level directories (`src/storage`, `src/internal`,
-  `src/http`) that separate the core domain logic from infrastructure concerns.
-
-  - **Protocol Separation:** Despite supporting HTTP, S3, TUS, and Iceberg, these
-  are implemented as modules within the same deployable. `src/app.ts` shows all these
-  protocols being registered as Fastify routes within a single application instance.
-
-  - **Internal Boundaries:** The `src/internal` directory contains cross-cutting concerns
-  (sharding, auth, database, monitoring) that are shared across the storage domain
-  modules but kept distinct from the business logic in `src/storage`.
-
-
-  #### 2. Hexagonal Architecture (Ports and Adapters)'
+  #### 2. Hexagonal Architecture (Ports and Adapters)
 review_required: false
 classification_method: deep-analysis-tooluse
 classification_confidence: 0.88
 classification_model: openrouter/z-ai/glm-5
 classification_date: '2026-03-08T21:03:45Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary\
-  \ Style: Layered\n\nThe Supabase Storage repository exhibits a clear **horizontal\
-  \ layering** pattern with well-defined separation of concerns:\n\n**1. HTTP/Presentation\
-  \ Layer** (`src/http/`)\n- Routes organized by domain: `bucket/`, `object/`, `s3/`,\
-  \ `tus/`, `iceberg/`, `vector/`, `render/`, `cdn/`\n- Plugins for cross-cutting\
-  \ concerns: `jwt.ts`, `metrics.ts`, `tracing.ts`, `storage.ts`\n- Schema definitions\
-  \ and error handlers\n\n**2. Service/Business Layer** (`src/storage/`)\n- `Storage`\
-  \ class as the main orchestrator (`src/storage/storage.ts`)\n- `ObjectStorage` for\
-  \ object operations (`src/storage/object.ts`)\n- Renderers for image transformation\
-  \ (`src/storage/renderer/`)\n\n**3. Data Access Layer** (`src/storage/database/`)\n\
-  - `Database` interface defining data operations (`adapter.ts`)\n- `StorageKnexDB`\
-  \ concrete implementation (`knex.ts`)\n\n**4. Infrastructure Layer** (`src/internal/`)\n\
-  - Database connections and pooling (`internal/database/`)\n- Queue management (`internal/queue/`)\n\
-  - Monitoring and metrics (`internal/monitoring/`)\n- Authentication/crypto (`internal/auth/`)\n\
-  \n**5. Backend Storage Layer** (`src/storage/backend/`)\n- `StorageBackendAdapter`\
-  \ abstract class\n- `S3Backend` and `FileBackend` implementations\n\n### Secondary\
-  \ Style: Hexagonal Architecture (Ports and Adapters)\n\nThe codebase demonstrates\
-  \ strong hexagonal characteristics through explicit **ports and adapters**:\n\n\
-  **Ports (Interfaces):**\n- `StorageBackendAdapter` (`src/storage/backend/adapter.ts`)\
-  \ - defines storage operations like `getObject`, `uploadObject`, `deleteObject`\
-  \ as abstract methods\n- `Database` interface (`src/storage/database/adapter.ts`)\
-  \ - defines 40+ data operations as an interface contract\n\n**Adapters:**\n- `S3Backend`\
-  \ implements `StorageBackendAdapter` for S3-compatible storage\n- `FileBackend`\
-  \ implements `StorageBackendAdapter` for local filesystem storage  \n- `StorageKnexDB`\
-  \ implements `Database` for PostgreSQL via Knex\n\n**Application Core:**\nThe `Storage`\
-  \ class (`src/storage/storage.ts`) serves as the application core, receiving dependencies\
-  \ via constructor injection:\n```typescript\nconstructor(\n  public readonly backend:\
-  \ StorageBackendAdapter,\n  public readonly db: Database,\n  public readonly location:\
-  \ StorageObjectLocator\n) {}\n```\n\nThis allows the core business logic to be completely\
-  \ isolated from infrastructure concerns.\n\n### What Was Rejected\n\n**Not Microservices:**\n\
-  - Single `Dockerfile` producing one deployable artifact\n- Single `package.json`\
-  \ with one application entry point\n- No service-to-service communication patterns\n\
-  \n**Not Modular Monolith:**\n- No npm workspaces or internal package boundaries\n\
-  - No enforced module isolation (direct imports across all `src/` directories)\n\
-  - No separate compilation units or dependency enforcement\n\n**Not Primarily Event-Driven:**\n\
-  While the system has event-driven elements:\n- pg-boss queue for background jobs\
-  \ (`src/internal/queue/`)\n- Event classes like `ObjectCreated`, `BucketDeleted`\
-  \ (`src/storage/events/lifecycle/`)\n- Separate worker process (`src/start/worker.ts`)\n\
-  \nThese are **secondary** concerns for:\n- Webhook notifications\n- Background migrations\n\
-  - Async cleanup operations\n\nThe **primary request flow** remains synchronous HTTP\
-  \ request → route handler → Storage service → database/backend.\n\n### Deployment\
-  \ Structure\n\nThe system is a **single deployable service** that can run in two\
-  \ modes:\n1. **Server mode**: HTTP API handling requests (`src/start/server.ts`)\n\
-  2. **Worker mode**: Background job processing (`src/start/worker.ts`)\n\nBoth share\
-  \ the same codebase and can be deployed together or separately, but they form a\
-  \ single architectural unit.\n\n### Conclusion\n\nThe architecture is a well-structured\
-  \ **Layered system** with strong **Hexagonal** influences through its port/adapter\
-  \ pattern for storage backends and database access. This design enables testing,\
-  \ flexibility in storage backend selection (S3 vs file), and clean separation of\
-  \ concerns while maintaining the simplicity of a monolithic deployment."
+classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Style: Layered\n\nThe Supabase Storage repository\
+  \ exhibits a clear **horizontal layering** pattern with well-defined separation of concerns:\n\n**1. HTTP/Presentation Layer**\
+  \ (`src/http/`)\n- Routes organized by domain: `bucket/`, `object/`, `s3/`, `tus/`, `iceberg/`, `vector/`, `render/`, `cdn/`\n\
+  - Plugins for cross-cutting concerns: `jwt.ts`, `metrics.ts`, `tracing.ts`, `storage.ts`\n- Schema definitions and error\
+  \ handlers\n\n**2. Service/Business Layer** (`src/storage/`)\n- `Storage` class as the main orchestrator (`src/storage/storage.ts`)\n\
+  - `ObjectStorage` for object operations (`src/storage/object.ts`)\n- Renderers for image transformation (`src/storage/renderer/`)\n\
+  \n**3. Data Access Layer** (`src/storage/database/`)\n- `Database` interface defining data operations (`adapter.ts`)\n-\
+  \ `StorageKnexDB` concrete implementation (`knex.ts`)\n\n**4. Infrastructure Layer** (`src/internal/`)\n- Database connections\
+  \ and pooling (`internal/database/`)\n- Queue management (`internal/queue/`)\n- Monitoring and metrics (`internal/monitoring/`)\n\
+  - Authentication/crypto (`internal/auth/`)\n\n**5. Backend Storage Layer** (`src/storage/backend/`)\n- `StorageBackendAdapter`\
+  \ abstract class\n- `S3Backend` and `FileBackend` implementations\n\n### Secondary Style: Hexagonal Architecture (Ports\
+  \ and Adapters)\n\nThe codebase demonstrates strong hexagonal characteristics through explicit **ports and adapters**:\n\
+  \n**Ports (Interfaces):**\n- `StorageBackendAdapter` (`src/storage/backend/adapter.ts`) - defines storage operations like\
+  \ `getObject`, `uploadObject`, `deleteObject` as abstract methods\n- `Database` interface (`src/storage/database/adapter.ts`)\
+  \ - defines 40+ data operations as an interface contract\n\n**Adapters:**\n- `S3Backend` implements `StorageBackendAdapter`\
+  \ for S3-compatible storage\n- `FileBackend` implements `StorageBackendAdapter` for local filesystem storage  \n- `StorageKnexDB`\
+  \ implements `Database` for PostgreSQL via Knex\n\n**Application Core:**\nThe `Storage` class (`src/storage/storage.ts`)\
+  \ serves as the application core, receiving dependencies via constructor injection:\n```typescript\nconstructor(\n  public\
+  \ readonly backend: StorageBackendAdapter,\n  public readonly db: Database,\n  public readonly location: StorageObjectLocator\n\
+  ) {}\n```\n\nThis allows the core business logic to be completely isolated from infrastructure concerns.\n\n### What Was\
+  \ Rejected\n\n**Not Microservices:**\n- Single `Dockerfile` producing one deployable artifact\n- Single `package.json` with\
+  \ one application entry point\n- No service-to-service communication patterns\n\n**Not Modular Monolith:**\n- No npm workspaces\
+  \ or internal package boundaries\n- No enforced module isolation (direct imports across all `src/` directories)\n- No separate\
+  \ compilation units or dependency enforcement\n\n**Not Primarily Event-Driven:**\nWhile the system has event-driven elements:\n\
+  - pg-boss queue for background jobs (`src/internal/queue/`)\n- Event classes like `ObjectCreated`, `BucketDeleted` (`src/storage/events/lifecycle/`)\n\
+  - Separate worker process (`src/start/worker.ts`)\n\nThese are **secondary** concerns for:\n- Webhook notifications\n- Background\
+  \ migrations\n- Async cleanup operations\n\nThe **primary request flow** remains synchronous HTTP request → route handler\
+  \ → Storage service → database/backend.\n\n### Deployment Structure\n\nThe system is a **single deployable service** that\
+  \ can run in two modes:\n1. **Server mode**: HTTP API handling requests (`src/start/server.ts`)\n2. **Worker mode**: Background\
+  \ job processing (`src/start/worker.ts`)\n\nBoth share the same codebase and can be deployed together or separately, but\
+  \ they form a single architectural unit.\n\n### Conclusion\n\nThe architecture is a well-structured **Layered system** with\
+  \ strong **Hexagonal** influences through its port/adapter pattern for storage backends and database access. This design\
+  \ enables testing, flexibility in storage backend selection (S3 vs file), and clean separation of concerns while maintaining\
+  \ the simplicity of a monolithic deployment."
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)

@@ -2,6 +2,10 @@
 # Defines required and optional fields for catalog YAML entries
 # produced by the discover skill (per ADR-005).
 #
+# Architecture styles must be topology-defining styles from
+# style-taxonomy.yaml (per ADR-006). Design patterns (CQRS, DDD,
+# Hexagonal) belong in architecture_qualifiers, not architecture_styles.
+#
 # Usage: validate catalog entries against this schema to ensure
 # all fields needed by downstream consumers (SPEC-003 comparative
 # analysis, _index.yaml generation, reference library statistics)
@@ -45,6 +49,9 @@ enums:
     - classified
     - indeterminate
     - review_required
+  # Topology-defining styles only (per ADR-006).
+  # CQRS, Domain-Driven Design, and Hexagonal Architecture are
+  # design patterns — they belong in architecture_qualifiers.
   architecture_styles:
     - Layered
     - Modular Monolith
@@ -55,8 +62,5 @@ enums:
     - Pipeline
     - Microkernel
     - Serverless
-    - CQRS
-    - Domain-Driven Design
-    - Hexagonal Architecture
     - Multi-Agent
     - Indeterminate

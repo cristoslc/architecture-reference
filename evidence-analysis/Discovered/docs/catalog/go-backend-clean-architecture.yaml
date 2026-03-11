@@ -2,8 +2,8 @@ project_name: go-backend-clean-architecture
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/amitshekhariitbhu/go-backend-clean-architecture
-project_url: https://github.com/amitshekhariitbhu/go-backend-clean-architecture
+source_url: 'https://github.com/amitshekhariitbhu/go-backend-clean-architecture'
+project_url: 'https://github.com/amitshekhariitbhu/go-backend-clean-architecture'
 evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:29:17Z'
 discovered_by: discover-architecture
@@ -13,7 +13,6 @@ language: Go
 languages:
 - Go
 architecture_styles:
-- Hexagonal Architecture
 - Layered
 classification_status: classified
 classification_method: deep-analysis
@@ -29,29 +28,11 @@ quality_attributes:
 - Separation of Concerns
 - Learnability
 review_required: false
-review_notes: >
-  Textbook Hexagonal Architecture (Ports and Adapters) / Clean Architecture (Robert C. Martin)
-  implemented in Go. Domain layer defines all port interfaces (TaskRepository, TaskUsecase,
-  UserRepository, LoginUsecase, etc.); outer layers (usecase/, repository/, api/controller/)
-  implement or consume those interfaces. A double adapter layer in mongo/ wraps the MongoDB
-  driver behind abstract Database/Collection/Client interfaces, enabling mock-based tests
-  without a live database. Composition root lives in api/route/ where concrete adapters are
-  instantiated and injected through port interfaces. The project is a single-process monolith
-  (one binary, one Dockerfile, one docker-compose service) — not microservices, not DDD,
-  not CQRS, not event-driven. The Layered secondary classification reflects the explicit
-  horizontal ring structure (Router → Controller → Usecase → Repository → Domain) documented
-  in the README and diagrams.
-classification_reasoning: >
-  Primary style is Hexagonal Architecture because: (1) domain/ defines all port interfaces and
-  has no upward imports; (2) usecase/ and repository/ depend only on domain interfaces;
-  (3) api/controller/ holds domain.TaskUsecase as an interface field; (4) mongo/ provides
-  its own abstract interfaces (Database, Collection, Client) wrapping the real driver;
-  (5) mockery-generated mocks exist for every port enabling fully isolated unit tests;
-  (6) composition root in route/ wires concrete adapters through interface injection.
-  Secondary style is Layered because the README explicitly documents Router → Controller →
-  Usecase → Repository → Domain as the layer ordering, and the package structure reflects
-  strict horizontal technical tiers. Hexagonal and Layered are complementary: Layered
-  describes the ring structure; Hexagonal explains the dependency rule governing those rings.
-  Rejected: Microservices (single binary/module/container), Modular Monolith (horizontal not
-  vertical boundaries), DDD (anemic domain, no aggregates/value objects/events), CQRS (no
-  command/query separation), Event-Driven (synchronous request-response only).
+review_notes: |
+  Textbook Hexagonal Architecture (Ports and Adapters) / Clean Architecture (Robert C. Martin) implemented in Go. Domain layer defines all port interfaces (TaskRepository, TaskUsecase, UserRepository, LoginUsecase, etc.); outer layers (usecase/, repository/, api/controller/) implement or consume those interfaces. A double adapter layer in mongo/ wraps the MongoDB driver behind abstract Database/Collection/Client interfaces, enabling mock-based tests without a live database. Composition root lives in api/route/ where concrete adapters are instantiated and injected through port interfaces. The project is a single-process monolith (one binary, one Dockerfile, one docker-compose service) — not microservices, not DDD, not CQRS, not event-driven. The Layered secondary classification reflects the explicit horizontal ring structure (Router → Controller → Usecase → Repository → Domain) documented in the README and diagrams.
+classification_reasoning: |
+  Primary style is Hexagonal Architecture because: (1) domain/ defines all port interfaces and has no upward imports; (2) usecase/ and repository/ depend only on domain interfaces; (3) api/controller/ holds domain.TaskUsecase as an interface field; (4) mongo/ provides its own abstract interfaces (Database, Collection, Client) wrapping the real driver; (5) mockery-generated mocks exist for every port enabling fully isolated unit tests; (6) composition root in route/ wires concrete adapters through interface injection. Secondary style is Layered because the README explicitly documents Router → Controller → Usecase → Repository → Domain as the layer ordering, and the package structure reflects strict horizontal technical tiers. Hexagonal and Layered are complementary: Layered describes the ring structure; Hexagonal explains the dependency rule governing those rings. Rejected: Microservices (single binary/module/container), Modular Monolith (horizontal not vertical boundaries), DDD (anemic domain, no aggregates/value objects/events), CQRS (no command/query separation), Event-Driven (synchronous request-response only).
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)

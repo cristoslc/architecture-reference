@@ -1,98 +1,32 @@
 project_name: snakemake
-scope: platform
+scope: tool
 use_type: production
 source: Discovered
 source_url: https://github.com/snakemake/snakemake
-project_url: https://github.com/snakemake/snakemake
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T06:00:09Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Bioinformatics
+domain: Scientific Workflow Management
 language: Python
 languages:
-- Python
-- JavaScript
+  - Python
+  - Bash
+  - R
+  - Julia
 architecture_styles:
-- Microkernel
-- Layered
+  - Pipeline
+  - Microkernel
 classification_status: classified
-review_notes: 'Snakemake is a workflow management system primarily structured as a
-  **Microkernel (Plugin)** architecture. The core "kernel" handles the workflow graph
-  (DAG) resolution, job scheduling, and the DSL parsing, while almost all external
-  interactions—including execution environments, storage backends, and reporting—are
-  offloaded to a specialized plugin system.
-
-
-  ### Evidence for Microkernel (Plugin)
-
-  The system relies on a set of well-defined interfaces that allow third-party or
-  decoupled plugins to extend its capabilities. This is explicitly evidenced in the
-  `pyproject.toml` dependencies:
-
-  - `snakemake-interface-executor-plugins`: Allows Snakemake to support various backends
-  (Slurm, Kubernetes, AWS Batch, etc.) without having the logic in the core repository.
-
-  - `snakemake-interface-storage-plugins`: Abstracts data access (S3, GS, FTP).
-
-  - `snakemake-interface-report-plugins`, `snakemake-interface-logger-plugins`, and
-  `snakemake-interface-scheduler-plugins`.
-
-
-  The core repository contains the "kernel" in `src/snakemake/` (as identified via
-  `tool.setuptools_scm`), providing the execution engine and the Python-based DSL,
-  while the actual heavy lifting of infrastructure communication is handled by external
-  packages following these plugin contracts.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:02:58Z'
-classification_reasoning: "## Analysis\n\n### Primary: Microkernel (Plugin) Architecture\n\
-  \nSnakemake exhibits a **clear microkernel architecture** with a well-defined plugin\
-  \ system spanning multiple extension points:\n\n**Plugin Infrastructure Evidence:**\n\
-  \n1. **Five distinct plugin interfaces** defined as separate Python packages (see\
-  \ `pyproject.toml` lines 51-56):\n   - `snakemake-interface-executor-plugins>=9.3.2`\
-  \ — Execution environments (local, cluster, cloud)\n   - `snakemake-interface-storage-plugins>=4.3.2`\
-  \ — Storage providers (S3, GCS, Azure, FTP, etc.)\n   - `snakemake-interface-report-plugins>=1.2.0`\
-  \ — Report generation\n   - `snakemake-interface-logger-plugins>=1.1.0` — Logging\
-  \ handlers\n   - `snakemake-interface-scheduler-plugins>=2.0.0` — Job scheduling\
-  \ algorithms\n\n2. **Plugin Registry Pattern**: All plugins are discovered and loaded\
-  \ via registry classes:\n   ```python\n   # From cli.py lines 16-21\n   from snakemake_interface_executor_plugins.registry\
-  \ import ExecutorPluginRegistry\n   from snakemake_interface_storage_plugins.registry\
-  \ import StoragePluginRegistry\n   from snakemake_interface_report_plugins.registry\
-  \ import ReportPluginRegistry\n   from snakemake_interface_logger_plugins.registry\
-  \ import LoggerPluginRegistry\n   from snakemake_interface_scheduler_plugins.registry\
-  \ import SchedulerPluginRegistry\n   ```\n\n3. **Plugin Selection at Runtime** (cli.py\
-  \ lines 1967-1987):\n   ```python\n   executor_plugin = ExecutorPluginRegistry().get_plugin(args.executor)\n\
-  \   scheduler_plugin = SchedulerPluginRegistry().get_plugin(args.scheduler)\n  \
-  \ report_plugin = ReportPluginRegistry().get_plugin(args.reporter)\n   ```\n\n4.\
-  \ **Built-in Executors as Core Extensions**: The `executors/` directory contains\
-  \ only essential built-in executors (`local.py`, `dryrun.py`, `touch.py`), while\
-  \ cluster/cloud executors (SLURM, Kubernetes, Google Life Sciences, AWS Batch) are\
-  \ provided as external plugins.\n\n5. **Remote Providers Replaced by Plugins** (`src/snakemake/remote/__init__.py`):\n\
-  \   ```python\n   # remote providers have been replaced by storage plugins\n   raise\
-  \ NotImplementedError(\n       \"Remote providers have been replaced by Snakemake\
-  \ storage plugins.\"\n   )\n   ```\n\n### Secondary: Layered Architecture\n\nWithin\
-  \ the microkernel core, Snakemake exhibits **horizontal layering** with clear separation\
-  \ of concerns:\n\n| Layer | Files | Lines | Responsibility |\n|-------|-------|-------|----------------|\n\
-  | CLI/Presentation | `cli.py` | 2,282 | Argument parsing, user interaction |\n|\
-  \ API | `api.py` | 831 | Programmatic interface (`SnakemakeApi`, `WorkflowApi`)\
-  \ |\n| Workflow/Orchestration | `workflow.py` | 2,498 | Workflow definition, rule\
-  \ registration |\n| Core Logic | `dag.py`, `jobs.py`, `rules.py`, `parser.py` |\
-  \ 8,000+ | DAG construction, job scheduling, rule parsing |\n| Execution | `executors/`,\
-  \ `scheduling/` | — | Job execution strategies |\n| Infrastructure | `io/`, `deployment/`,\
-  \ `caching/`, `storage/` | — | I/O, deployment, persistence |\n\n### What This Is\
-  \ NOT\n\n- **Not Microservices**: Single deployable Python package, no inter-service\
-  \ communication, no independent deployment units\n- **Not Event-Driven**: No message\
-  \ broker, no asynchronous event handling between services; jobs are scheduled synchronously\
-  \ via the DAG\n- **Not Pipeline (as primary)**: While workflows execute as pipelines,\
-  \ the codebase organization centers on the plugin system, not pipe-and-filter data\
-  \ transformation stages\n- **Not Domain-Driven Design**: No bounded contexts, aggregates,\
-  \ or ubiquitous language patterns; the domain model (rules, jobs, DAG) is relatively\
-  \ flat\n\n### Key Architectural Insight\n\nSnakemake's architecture enables extensibility\
-  \ through a carefully designed plugin contract: interface packages define the API\
-  \ contracts (`snakemake-interface-*`), external plugins implement these interfaces,\
-  \ and the core discovers and invokes them via registries. This allows users to extend\
-  \ Snakemake with new execution backends, storage providers, and schedulers without\
-  \ modifying the core—a textbook microkernel pattern."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Reproducibility
+  - Scalability
+  - Extensibility
+  - Portability
+  - Maintainability
+  - Interoperability
+  - Observability
+  - Reliability
+one_line_summary: "Python-based scientific workflow manager organized as a DAG-driven pipeline engine with a formal six-interface microkernel plugin system for execution backends, storage, reporting, logging, and scheduling."
+classification_reasoning: "The primary organizing principle is the pipeline metaphor: Snakemake rules are pipeline stages that declare input/output file transformations, the DAG class (dag.py, 3416 lines) resolves a topological job ordering, and the JobScheduler drives execution by dispatching ready jobs to executor plugins — textbook pipe-and-filter. The Microkernel secondary style is formally designed and explicitly documented: six independently semver-versioned interface packages (snakemake-interface-executor-plugins, -storage-plugins, -report-plugins, -logger-plugins, -scheduler-plugins, -common) define typed abstract base classes; runtime plugin registries (ExecutorPluginRegistry, StoragePluginRegistry, ReportPluginRegistry, SchedulerPluginRegistry) discover and load plugins from the Python environment; a naming convention (snakemake-<type>-plugin-<name>) and PyPI catalog enable third-party extension without core modification. The core package's own documentation (docs/project_info/codebase.rst) explicitly identifies this combination as the intended architecture. The internal three-tier layering (user-facing API/CLI, language/DSL parser, core Workflow+DAG+Scheduler) is a real structural concern but subordinate to these two dominant styles. All components ship as a single PyPI wheel and run in a single Python process — a modular monolith in deployment topology."

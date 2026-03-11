@@ -2,8 +2,8 @@ project_name: vertical-slice-api-template
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/mehdihadeli/vertical-slice-api-template
-project_url: https://github.com/mehdihadeli/vertical-slice-api-template
+source_url: 'https://github.com/mehdihadeli/vertical-slice-api-template'
+project_url: 'https://github.com/mehdihadeli/vertical-slice-api-template'
 evidence_type: automated-discovery
 discovered_at: '2026-03-07T04:56:50Z'
 discovered_by: discover-architecture
@@ -15,68 +15,90 @@ languages:
 - JavaScript
 architecture_styles:
 - Modular Monolith
-- CQRS
 classification_status: classified
-review_notes: "The repository is a quintessential implementation of **Vertical Slice\
-  \ Architecture**, explicitly stated in the README and reflected in the physical\
-  \ organization of the source code. Rather than grouping by technical concerns (controllers,\
-  \ services, repositories), the system is organized around business features.\n\n\
-  ### Primary Style: Vertical Slice\nThe codebase rejects traditional horizontal layering\
-  \ (N-Tier) in favor of vertical slices where each slice encapsulates all technical\
-  \ requirements for a specific use case.\n- **Feature Folders:** Under `src/App/Vertical.Slice.Template/Products`,\
-  \ the code is organized by features (e.g., `CreateProduct`, `GetProductById`). Each\
-  \ folder typically contains the endpoint definition (Minimal API), the command/query,\
-  \ and the handler.\n- **High Cohesion:** The README explicitly advocates for \"\
-  minimizing coupling between slices and maximizing coupling in a slice.\"\n- **Project\
-  \ Structure:**\n  - `src/Shared`: Contains cross-cutting concerns (Infrastructure,\
-  \ Observability, Persistence abstractions) that act as a foundation for all slices.\n\
-  \  - `src/App`: Houses the actual business logic organized by slices."
+review_notes: |-
+  The repository is a quintessential implementation of **Vertical Slice Architecture**, explicitly stated in the README and reflected in the physical organization of the source code. Rather than grouping by technical concerns (controllers, services, repositories), the system is organized around business features.
+
+  ### Primary Style: Vertical Slice
+  The codebase rejects traditional horizontal layering (N-Tier) in favor of vertical slices where each slice encapsulates all technical requirements for a specific use case.
+  - **Feature Folders:** Under `src/App/Vertical.Slice.Template/Products`, the code is organized by features (e.g., `CreateProduct`, `GetProductById`). Each folder typically contains the endpoint definition (Minimal API), the command/query, and the handler.
+  - **High Cohesion:** The README explicitly advocates for "minimizing coupling between slices and maximizing coupling in a slice."
+  - **Project Structure:**
+    - `src/Shared`: Contains cross-cutting concerns (Infrastructure, Observability, Persistence abstractions) that act as a foundation for all slices.
+    - `src/App`: Houses the actual business logic organized by slices.
 review_required: false
 classification_method: deep-analysis-tooluse
 classification_confidence: 0.9
 classification_model: openrouter/z-ai/glm-5
 classification_date: '2026-03-08T21:09:12Z'
-classification_reasoning: "## Analysis\n\n### Evidence for Modular Monolith\n\n**Single\
-  \ Deployable Unit:**\n- One main API project: `src/App/Vertical.Slice.Template.Api/Vertical.Slice.Template.Api.csproj`\n\
-  - Single Docker service in `deployments/docker-compose/docker-compose.services.yaml`\n\
-  - Single database context (`CatalogsDbContext`) at `src/App/Vertical.Slice.Template/Shared/Data/CatalogsDbContext.cs`\n\
-  \n**Enforced Internal Module Boundaries:**\n- The `Products` module has explicit\
-  \ configuration boundaries following the `IModuleConfiguration` contract pattern\n\
-  - Module configuration methods at `src/App/Vertical.Slice.Template/Products/ProductConfigurations.cs`:\n\
-  \  - `AddProductsModuleServices()` - registers module services\n  - `UseProductsModule()`\
-  \ - configures module middleware\n  - `MapProductsModuleEndpoints()` - registers\
-  \ module endpoints\n- Each module has its own:\n  - Data configurations (`Products/Data/Configurations/`)\n\
-  \  - DTOs (`Products/Dtos/`)\n  - Read models (`Products/ReadModel/`)\n  - Models\
-  \ (`Products/Models/`)\n\n**Vertical Slice Organization Within Modules:**\n- Each\
-  \ feature is a self-contained vertical slice: `Products/Features/CreatingProduct/v1/`,\
-  \ `GettingProductById/v1/`, `GettingProductsByPage/v1/`\n- Each slice contains everything\
-  \ needed: endpoint, command/query, handler, DTOs, events, validators\n- Example\
-  \ at `src/App/Vertical.Slice.Template/Products/Features/CreatingProduct/v1/`:\n\
-  \  - `CreateProduct.cs` - Command record + Validator + Handler\n  - `CreateProductEndpoint.cs`\
-  \ - Minimal API endpoint\n  - `ProductCreatedDomainEvent.cs` - Domain event\n  -\
-  \ `ProductCreatedIntegrationEventV1.cs` - Integration event\n\n### Evidence for\
-  \ CQRS (Secondary)\n\n**Command/Query Separation:**\n- Explicit interfaces at `src/Shared/Abstractions/Core/CQRS/`:\n\
-  \  - `ICommand<TResponse>` extending `IRequest<TResponse>` (MediatR)\n  - `IQuery<TResponse>`\
-  \ extending `IRequest<TResponse>`\n  - `ICommandHandler`, `IQueryHandler` interfaces\n\
-  - Commands for writes: `CreateProduct : ICommand<CreateProductResult>`\n- Queries\
-  \ for reads: `GetProductById : CacheQuery<GetProductByIdResult>`\n- MediatR pipeline\
-  \ behaviors for cross-cutting concerns\n\n### What Was Rejected and Why\n\n**NOT\
-  \ Microservices:**\n- Single deployable, single database context, single solution\n\
-  - Docker compose shows one API service, not multiple independent services\n\n**NOT\
-  \ Layered Architecture:**\n- No horizontal layering (no separate Controllers/Services/Repositories\
-  \ folders)\n- Code organized by feature/slice, not by technical layer\n- Each vertical\
-  \ slice contains its own endpoint, handler, DTOs, validation\n\n**NOT Domain-Driven\
-  \ Design (primary):**\n- Has DDD infrastructure (Aggregate, Entity, Domain Events\
-  \ base classes)\n- But domain model is anemic: `Product.cs` is a POCO with no methods\
-  \ or invariants\n- No rich aggregates with behavior, no bounded context separation\n\
-  - DDD elements are scaffolding, not the primary architectural pattern\n\n**NOT Event-Driven\
-  \ Architecture:**\n- Integration events via MassTransit/RabbitMQ exist but are secondary\n\
-  - Events published to external broker, not the primary communication pattern\n-\
-  \ Synchronous request-response via Minimal APIs is the primary interaction model\n\
-  \n### Summary\n\nThis repository is a **Modular Monolith** implementing **Vertical\
-  \ Slice Architecture** principles. The application is a single deployable with clearly\
-  \ defined internal module boundaries (Products module), where each feature/use case\
-  \ is a self-contained vertical slice containing all necessary code. CQRS via MediatR\
-  \ provides the command/query separation pattern within each slice. The template\
-  \ explicitly documents this: \"Using Vertical Slice Architecture as a high-level\
-  \ architecture\" and \"Using CQRS Pattern on top of MediatR library.\""
+classification_reasoning: |-
+  ## Analysis
+
+  ### Evidence for Modular Monolith
+
+  **Single Deployable Unit:**
+  - One main API project: `src/App/Vertical.Slice.Template.Api/Vertical.Slice.Template.Api.csproj`
+  - Single Docker service in `deployments/docker-compose/docker-compose.services.yaml`
+  - Single database context (`CatalogsDbContext`) at `src/App/Vertical.Slice.Template/Shared/Data/CatalogsDbContext.cs`
+
+  **Enforced Internal Module Boundaries:**
+  - The `Products` module has explicit configuration boundaries following the `IModuleConfiguration` contract pattern
+  - Module configuration methods at `src/App/Vertical.Slice.Template/Products/ProductConfigurations.cs`:
+    - `AddProductsModuleServices()` - registers module services
+    - `UseProductsModule()` - configures module middleware
+    - `MapProductsModuleEndpoints()` - registers module endpoints
+  - Each module has its own:
+    - Data configurations (`Products/Data/Configurations/`)
+    - DTOs (`Products/Dtos/`)
+    - Read models (`Products/ReadModel/`)
+    - Models (`Products/Models/`)
+
+  **Vertical Slice Organization Within Modules:**
+  - Each feature is a self-contained vertical slice: `Products/Features/CreatingProduct/v1/`, `GettingProductById/v1/`, `GettingProductsByPage/v1/`
+  - Each slice contains everything needed: endpoint, command/query, handler, DTOs, events, validators
+  - Example at `src/App/Vertical.Slice.Template/Products/Features/CreatingProduct/v1/`:
+    - `CreateProduct.cs` - Command record + Validator + Handler
+    - `CreateProductEndpoint.cs` - Minimal API endpoint
+    - `ProductCreatedDomainEvent.cs` - Domain event
+    - `ProductCreatedIntegrationEventV1.cs` - Integration event
+
+  ### Evidence for CQRS (Secondary)
+
+  **Command/Query Separation:**
+  - Explicit interfaces at `src/Shared/Abstractions/Core/CQRS/`:
+    - `ICommand<TResponse>` extending `IRequest<TResponse>` (MediatR)
+    - `IQuery<TResponse>` extending `IRequest<TResponse>`
+    - `ICommandHandler`, `IQueryHandler` interfaces
+  - Commands for writes: `CreateProduct : ICommand<CreateProductResult>`
+  - Queries for reads: `GetProductById : CacheQuery<GetProductByIdResult>`
+  - MediatR pipeline behaviors for cross-cutting concerns
+
+  ### What Was Rejected and Why
+
+  **NOT Microservices:**
+  - Single deployable, single database context, single solution
+  - Docker compose shows one API service, not multiple independent services
+
+  **NOT Layered Architecture:**
+  - No horizontal layering (no separate Controllers/Services/Repositories folders)
+  - Code organized by feature/slice, not by technical layer
+  - Each vertical slice contains its own endpoint, handler, DTOs, validation
+
+  **NOT Domain-Driven Design (primary):**
+  - Has DDD infrastructure (Aggregate, Entity, Domain Events base classes)
+  - But domain model is anemic: `Product.cs` is a POCO with no methods or invariants
+  - No rich aggregates with behavior, no bounded context separation
+  - DDD elements are scaffolding, not the primary architectural pattern
+
+  **NOT Event-Driven Architecture:**
+  - Integration events via MassTransit/RabbitMQ exist but are secondary
+  - Events published to external broker, not the primary communication pattern
+  - Synchronous request-response via Minimal APIs is the primary interaction model
+
+  ### Summary
+
+  This repository is a **Modular Monolith** implementing **Vertical Slice Architecture** principles. The application is a single deployable with clearly defined internal module boundaries (Products module), where each feature/use case is a self-contained vertical slice containing all necessary code. CQRS via MediatR provides the command/query separation pattern within each slice. The template explicitly documents this: "Using Vertical Slice Architecture as a high-level architecture" and "Using CQRS Pattern on top of MediatR library."
+architecture_qualifiers:
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)

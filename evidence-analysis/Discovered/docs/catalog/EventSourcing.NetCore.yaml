@@ -2,18 +2,16 @@ project_name: EventSourcing.NetCore
 scope: framework-and-samples
 use_type: reference-and-learning
 source: Discovered
-source_url: https://github.com/oskardudycz/EventSourcing.NetCore
-project_url: https://github.com/oskardudycz/EventSourcing.NetCore
+source_url: 'https://github.com/oskardudycz/EventSourcing.NetCore'
+project_url: 'https://github.com/oskardudycz/EventSourcing.NetCore'
 evidence_type: automated-discovery
 domain: Event Sourcing / CQRS Reference Implementation
 language: C#
 languages:
-  - C#
-  - F#
+- C#
+- F#
 architecture_styles:
-  - Event-Driven
-  - CQRS
-  - Domain-Driven Design
+- Event-Driven
 classification_status: classified
 classification_confidence: 0.95
 classification_method: deep-analysis
@@ -22,65 +20,30 @@ classification_date: '2026-03-10'
 quality_attributes:
   evolvability:
     present: true
-    evidence: >
-      EventStoreDBSubscriptionToAll persists checkpoint positions enabling full
-      event stream replay from any position. Sample/EventsVersioning/ contains
-      nine concrete versioning strategies (upcasting, new schema, weak schema,
-      event transformations). MartenRepositoryWithETagDecorator and
-      EventStoreDBRepositoryWithETagDecorator apply ETag-based optimistic
-      concurrency on every aggregate write, preventing lost-update conflicts
-      as schemas evolve.
+    evidence: |
+      EventStoreDBSubscriptionToAll persists checkpoint positions enabling full event stream replay from any position. Sample/EventsVersioning/ contains nine concrete versioning strategies (upcasting, new schema, weak schema, event transformations). MartenRepositoryWithETagDecorator and EventStoreDBRepositoryWithETagDecorator apply ETag-based optimistic concurrency on every aggregate write, preventing lost-update conflicts as schemas evolve.
   modularity:
     present: true
-    evidence: >
-      Core functionality is factored into independent adapter packages:
-      Core.EventStoreDB, Core.Marten, Core.Kafka, Core.ElasticSearch, and
-      Core.EntityFramework. Each sample selects and composes adapters
-      independently with no cross-context coupling. Bounded contexts (Carts,
-      Orders, Payments, Shipments) are each self-contained C# projects with
-      their own solution files, communicating exclusively through events.
+    evidence: |
+      Core functionality is factored into independent adapter packages: Core.EventStoreDB, Core.Marten, Core.Kafka, Core.ElasticSearch, and Core.EntityFramework. Each sample selects and composes adapters independently with no cross-context coupling. Bounded contexts (Carts, Orders, Payments, Shipments) are each self-contained C# projects with their own solution files, communicating exclusively through events.
   observability:
     present: true
-    evidence: >
-      Core/OpenTelemetry/ implements ActivityScope and ActivitySource with
-      structured telemetry tags for commands (type, active count, total, duration),
-      queries, domain events, and Kafka messaging (system, destination, partition,
-      consumer group). CommandHandlerMetrics.cs tracks active command count,
-      total handled, and handling duration as .NET meters. Jaeger exporter is
-      wired in docker-compose; OTLP and console exporters are available via
-      OpenTelemetry.Exporter.* packages.
+    evidence: |
+      Core/OpenTelemetry/ implements ActivityScope and ActivitySource with structured telemetry tags for commands (type, active count, total, duration), queries, domain events, and Kafka messaging (system, destination, partition, consumer group). CommandHandlerMetrics.cs tracks active command count, total handled, and handling duration as .NET meters. Jaeger exporter is wired in docker-compose; OTLP and console exporters are available via OpenTelemetry.Exporter.* packages.
   fault_tolerance:
     present: true
-    evidence: >
-      EventBus accepts a configurable Polly AsyncPolicy wrapping every event
-      handler invocation with retry logic (default no-op, overridable per
-      service). EventStoreDBSubscriptionToAll tracks ProcessingStatus across
-      NotStarted, Starting, Started, Paused, Errored, and Stopped states with
-      checkpoint persistence for crash recovery. The GetCartById query handler
-      applies a Polly WaitAndRetryAsync(5) policy for read-after-write
-      consistency on the CQRS read model.
+    evidence: |
+      EventBus accepts a configurable Polly AsyncPolicy wrapping every event handler invocation with retry logic (default no-op, overridable per service). EventStoreDBSubscriptionToAll tracks ProcessingStatus across NotStarted, Starting, Started, Paused, Errored, and Stopped states with checkpoint persistence for crash recovery. The GetCartById query handler applies a Polly WaitAndRetryAsync(5) policy for read-after-write consistency on the CQRS read model.
   correctness:
     present: true
-    evidence: >
-      Optimistic concurrency is enforced by expected-version checks in
-      MartenRepository.Update() (nextVersion = expectedVersion + events.Length)
-      and EventStoreDBRepository. HTTP If-Match ETag headers are extracted and
-      converted to expected stream versions in ShoppingCartsController and
-      Helpdesk Program.cs via GetAndUpdate Marten extension, preventing
-      concurrent update conflicts across all write operations.
+    evidence: |
+      Optimistic concurrency is enforced by expected-version checks in MartenRepository.Update() (nextVersion = expectedVersion + events.Length) and EventStoreDBRepository. HTTP If-Match ETag headers are extracted and converted to expected stream versions in ShoppingCartsController and Helpdesk Program.cs via GetAndUpdate Marten extension, preventing concurrent update conflicts across all write operations.
   testability:
     present: true
-    evidence: >
-      Core.Testing module provides shared test harnesses. Every sample ships
-      a companion .Tests project using Testcontainers.PostgreSql for live
-      EventStoreDB/Marten instances, Alba for HTTP integration testing, and
-      Ogooreck for BDD-style scenario composition. Core.EventStoreDB.Tests
-      and Core.Marten.Tests validate adapter-level behaviour independently.
-      EventSourcing.Integration.Tests provides cross-cutting integration coverage.
-one_line_summary: >
-  .NET reference implementation of Event Sourcing, CQRS, and DDD patterns using
-  EventStoreDB or Marten/PostgreSQL, with pluggable adapters, sagas, projections,
-  and nine event-versioning strategies across realistic sample applications.
+    evidence: |
+      Core.Testing module provides shared test harnesses. Every sample ships a companion .Tests project using Testcontainers.PostgreSql for live EventStoreDB/Marten instances, Alba for HTTP integration testing, and Ogooreck for BDD-style scenario composition. Core.EventStoreDB.Tests and Core.Marten.Tests validate adapter-level behaviour independently. EventSourcing.Integration.Tests provides cross-cutting integration coverage.
+one_line_summary: |
+  .NET reference implementation of Event Sourcing, CQRS, and DDD patterns using EventStoreDB or Marten/PostgreSQL, with pluggable adapters, sagas, projections, and nine event-versioning strategies across realistic sample applications.
 classification_reasoning: |
   ## Architecture Classification Analysis
 
@@ -181,3 +144,10 @@ classification_reasoning: |
   Minor uncertainty reflects that this is a multi-purpose reference repo whose samples
   intentionally demonstrate style variation, making any single classification a summary
   of the dominant pattern rather than a universal descriptor.
+architecture_qualifiers:
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)

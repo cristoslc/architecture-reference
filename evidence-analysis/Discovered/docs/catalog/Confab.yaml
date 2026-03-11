@@ -2,8 +2,8 @@ project_name: Confab
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/devmentors/Confab
-project_url: https://github.com/devmentors/Confab
+source_url: 'https://github.com/devmentors/Confab'
+project_url: 'https://github.com/devmentors/Confab'
 evidence_type: automated-discovery
 discovered_at: '2026-03-07T04:56:53Z'
 discovered_by: discover-architecture
@@ -14,8 +14,6 @@ languages:
 - C#
 architecture_styles:
 - Modular Monolith
-- Domain-Driven Design
-- CQRS
 - Event-Driven
 classification_status: classified
 classification_confidence: 0.96
@@ -23,83 +21,97 @@ classification_method: deep-analysis
 classification_model: claude-sonnet-4-6
 classification_date: '2026-03-10'
 quality_attributes:
-  Modularity: High — IModule + IModuleClient enforce type-boundary isolation via JSON
-    serialization; per-module enabled/disabled config toggles; no shared type references
-    between modules
-  Evolvability: High — local event contracts (no shared project) allow independent
-    module evolution; IModule.Register/Use pattern means new modules require no changes
-    to bootstrapper code
-  Deployability: Medium — all modules deploy as one dotnet process; YARP API gateway
-    routes to monolith and standalone Tickets service; Docker Compose manages PostgreSQL
-    and RabbitMQ infrastructure
-  Observability: Medium — request-scoped IContext propagates RequestId and TraceId;
-    centralized ErrorHandlerMiddleware with ILogger; Swagger/ReDoc registered globally
-    across all modules
-  Fault Tolerance: Medium — RabbitMQ retry policy (3 retries, 2-second interval);
-    PostgresUnitOfWork transaction rollback on exception; Chronicle saga compensating
-    actions on failure
-  Scalability: Low-Medium — single-process monolith with shared PostgreSQL; RabbitMQ
-    integration enables future extraction demonstrated by the standalone Tickets microservice
-one_line_summary: Reference modular monolith for conference management demonstrating
-  DDD, CQRS, and event-driven inter-module communication with a microservices extraction
-  proof-of-concept
-classification_reasoning: "## Architecture Classification\n\n### Primary: Modular\
-  \ Monolith (confidence: 0.96)\n\nConfab is a textbook Modular Monolith. Seven bounded-context\
-  \ modules — Agendas, Attendances, Conferences, Saga, Speakers, Tickets, Users —\
-  \ each implement `IModule` (defined in `src/Shared/Confab.Shared.Abstractions/Modules/IModule.cs`):\n\
-  \n```csharp\npublic interface IModule {\n    string Name { get; }\n    string Path\
-  \ { get; }\n    IEnumerable<string> Policies => null;\n    void Register(IServiceCollection\
-  \ services);\n    void Use(IApplicationBuilder app);\n}\n```\n\n`ModuleLoader` (`src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs`)\
-  \ discovers modules from DLLs by scanning for `IModule` implementations at startup\
-  \ and respects per-module `module:enabled` config flags. The single `Confab.Bootstrapper`\
-  \ host wires everything into one running process.\n\nCross-module communication\
-  \ uses `IModuleClient` (`src/Shared/Confab.Shared.Abstractions/Modules/IModuleClient.cs`),\
-  \ which serializes requests to JSON and deserializes them into the receiving module's\
-  \ local types — preventing any direct type coupling. The `ModuleClient` implementation\
-  \ routes `SendAsync` via a `ModuleRegistry` path map and `PublishAsync` via event-name-based\
-  \ broadcast registrations.\n\nEach module has per-module JSON config (`module.agendas.json`,\
-  \ etc.) loaded at startup, enabling independent feature toggles without recompilation.\n\
-  \n### Secondary: Domain-Driven Design (confidence: 0.92)\n\nThe Agendas and Attendances\
-  \ modules implement full DDD building blocks:\n\n- `AggregateRoot<T>` base class\
-  \ with domain event collection and optimistic versioning (`src/Shared/Confab.Shared.Abstractions/Kernel/Types/AggregateRoot.cs`)\n\
-  - Typed value objects: `AggregateId`, `ConferenceId`, `SpeakerId`, `EntityId`\n\
-  - `AgendaTrack` aggregate with invariant enforcement: `ChangeName` validates non-empty,\
-  \ `AddRegularSlot`/`AddPlaceholderSlot` validate time conflicts, `ChangeSlotAgendaItem`\
-  \ enforces slot-type rules\n- Repository interfaces per aggregate (`IAgendaTrackRepository`,\
-  \ `IParticipantsRepository`, etc.)\n- Domain services and domain events dispatched\
-  \ via `IDomainEventDispatcher`\n\nThe README explicitly acknowledges that simpler\
-  \ modules (Users, Conferences, Speakers, Tickets) use a CRUD approach, making DDD\
-  \ targeted at domains with meaningful business rules.\n\n### Secondary: CQRS (confidence:\
-  \ 0.90)\n\nA shared CQRS framework is registered across all module assemblies:\n\
-  \n- `ICommand : IMessage`, `ICommandDispatcher`, `ICommandHandler<T>`\n- `IQuery<T>`,\
-  \ `IQueryDispatcher`, `IQueryHandler<T, TResult>`\n\nThe `TransactionalCommandHandlerDecorator<T>`\
-  \ (`src/Shared/Confab.Shared.Infrastructure/Postgres/Decorators/TransactionalCommandHandlerDecorator.cs`)\
-  \ wraps command handlers using a `UnitOfWorkTypeRegistry` to scope database transactions\
-  \ automatically. DDD modules (Agendas, Attendances) have structurally separate `Commands/`\
-  \ and `Queries/` folders with distinct handler trees.\n\n### Secondary: Event-Driven\
-  \ (confidence: 0.88)\n\nModules communicate via events using a local contracts pattern:\
-  \ each module defines its own copy of consumed events in its own namespace (e.g.,\
-  \ `Confab.Modules.Attendances.Application.Events.External.TicketPurchased`), avoiding\
-  \ shared package dependencies.\n\n`IMessageBroker.PublishAsync` (`src/Shared/Confab.Shared.Infrastructure/Messaging/Brokers/MessageBroker.cs`)\
-  \ simultaneously publishes to:\n1. RabbitMQ via `IBusPublisher` (external delivery,\
-  \ cross-service)\n2. `IModuleClient.PublishAsync` (in-process fan-out to other modules)\n\
-  \nThe Saga module implements Chronicle-based saga coordination (`InviteSpeakerSaga`)\
-  \ that reacts to `SignedUp`, `SpeakerCreated`, and `SignedIn` events with compensating\
-  \ actions.\n\nThe standalone `Confab.Services.Tickets` (`src/Services/Tickets/`)\
-  \ subscribes to `ConferenceCreated` via RabbitMQ using Convey — demonstrating the\
-  \ microservices extraction path documented in the README.\n\n### Evidence Paths\n\
-  \n| Component | Path | Pattern |\n|-----------|------|---------|\n| IModule contract\
-  \ | `Shared.Abstractions/Modules/IModule.cs` | Modular Monolith |\n| ModuleLoader\
-  \ | `Bootstrapper/ModuleLoader.cs` | Modular Monolith |\n| ModuleClient in-process\
-  \ routing | `Shared.Infrastructure/Modules/ModuleClient.cs` | Modular Monolith\
-  \ |\n| AggregateRoot base class | `Shared.Abstractions/Kernel/Types/AggregateRoot.cs`\
-  \ | DDD |\n| AgendaTrack aggregate | `Modules.Agendas.Domain/Agendas/Entities/AgendaTrack.cs`\
-  \ | DDD |\n| TransactionalCommandHandlerDecorator | `Shared.Infrastructure/Postgres/Decorators/`\
-  \ | CQRS |\n| MessageBroker dual-publish | `Shared.Infrastructure/Messaging/Brokers/MessageBroker.cs`\
-  \ | Event-Driven |\n| Local event contracts | `Modules.Attendances.Application/Events/External/`\
-  \ | Event-Driven |\n| InviteSpeakerSaga | `Modules.Saga/InviteSpeaker/InviteSpeakerSaga.cs`\
-  \ | Event-Driven |\n| Standalone Tickets service | `Services/Tickets/Confab.Services.Tickets.Api/Startup.cs`\
-  \ | Microservices extraction demo |\n| YARP API Gateway | `APIGateway/Confab.APIGateway/appsettings.json`\
-  \ | Deployability |\n| IContext RequestId/TraceId | `Shared.Abstractions/Contexts/IContext.cs`\
-  \ | Observability |\n| RabbitMQ retry config | `Bootstrapper/appsettings.json`\
-  \ | Fault Tolerance |"
+  Modularity: High — IModule + IModuleClient enforce type-boundary isolation via JSON serialization; per-module enabled/disabled
+    config toggles; no shared type references between modules
+  Evolvability: High — local event contracts (no shared project) allow independent module evolution; IModule.Register/Use
+    pattern means new modules require no changes to bootstrapper code
+  Deployability: Medium — all modules deploy as one dotnet process; YARP API gateway routes to monolith and standalone Tickets
+    service; Docker Compose manages PostgreSQL and RabbitMQ infrastructure
+  Observability: Medium — request-scoped IContext propagates RequestId and TraceId; centralized ErrorHandlerMiddleware with
+    ILogger; Swagger/ReDoc registered globally across all modules
+  Fault Tolerance: Medium — RabbitMQ retry policy (3 retries, 2-second interval); PostgresUnitOfWork transaction rollback
+    on exception; Chronicle saga compensating actions on failure
+  Scalability: Low-Medium — single-process monolith with shared PostgreSQL; RabbitMQ integration enables future extraction
+    demonstrated by the standalone Tickets microservice
+one_line_summary: Reference modular monolith for conference management demonstrating DDD, CQRS, and event-driven inter-module
+  communication with a microservices extraction proof-of-concept
+classification_reasoning: |-
+  ## Architecture Classification
+
+  ### Primary: Modular Monolith (confidence: 0.96)
+
+  Confab is a textbook Modular Monolith. Seven bounded-context modules — Agendas, Attendances, Conferences, Saga, Speakers, Tickets, Users — each implement `IModule` (defined in `src/Shared/Confab.Shared.Abstractions/Modules/IModule.cs`):
+
+  ```csharp
+  public interface IModule {
+      string Name { get; }
+      string Path { get; }
+      IEnumerable<string> Policies => null;
+      void Register(IServiceCollection services);
+      void Use(IApplicationBuilder app);
+  }
+  ```
+
+  `ModuleLoader` (`src/Bootstrapper/Confab.Bootstrapper/ModuleLoader.cs`) discovers modules from DLLs by scanning for `IModule` implementations at startup and respects per-module `module:enabled` config flags. The single `Confab.Bootstrapper` host wires everything into one running process.
+
+  Cross-module communication uses `IModuleClient` (`src/Shared/Confab.Shared.Abstractions/Modules/IModuleClient.cs`), which serializes requests to JSON and deserializes them into the receiving module's local types — preventing any direct type coupling. The `ModuleClient` implementation routes `SendAsync` via a `ModuleRegistry` path map and `PublishAsync` via event-name-based broadcast registrations.
+
+  Each module has per-module JSON config (`module.agendas.json`, etc.) loaded at startup, enabling independent feature toggles without recompilation.
+
+  ### Secondary: Domain-Driven Design (confidence: 0.92)
+
+  The Agendas and Attendances modules implement full DDD building blocks:
+
+  - `AggregateRoot<T>` base class with domain event collection and optimistic versioning (`src/Shared/Confab.Shared.Abstractions/Kernel/Types/AggregateRoot.cs`)
+  - Typed value objects: `AggregateId`, `ConferenceId`, `SpeakerId`, `EntityId`
+  - `AgendaTrack` aggregate with invariant enforcement: `ChangeName` validates non-empty, `AddRegularSlot`/`AddPlaceholderSlot` validate time conflicts, `ChangeSlotAgendaItem` enforces slot-type rules
+  - Repository interfaces per aggregate (`IAgendaTrackRepository`, `IParticipantsRepository`, etc.)
+  - Domain services and domain events dispatched via `IDomainEventDispatcher`
+
+  The README explicitly acknowledges that simpler modules (Users, Conferences, Speakers, Tickets) use a CRUD approach, making DDD targeted at domains with meaningful business rules.
+
+  ### Secondary: CQRS (confidence: 0.90)
+
+  A shared CQRS framework is registered across all module assemblies:
+
+  - `ICommand : IMessage`, `ICommandDispatcher`, `ICommandHandler<T>`
+  - `IQuery<T>`, `IQueryDispatcher`, `IQueryHandler<T, TResult>`
+
+  The `TransactionalCommandHandlerDecorator<T>` (`src/Shared/Confab.Shared.Infrastructure/Postgres/Decorators/TransactionalCommandHandlerDecorator.cs`) wraps command handlers using a `UnitOfWorkTypeRegistry` to scope database transactions automatically. DDD modules (Agendas, Attendances) have structurally separate `Commands/` and `Queries/` folders with distinct handler trees.
+
+  ### Secondary: Event-Driven (confidence: 0.88)
+
+  Modules communicate via events using a local contracts pattern: each module defines its own copy of consumed events in its own namespace (e.g., `Confab.Modules.Attendances.Application.Events.External.TicketPurchased`), avoiding shared package dependencies.
+
+  `IMessageBroker.PublishAsync` (`src/Shared/Confab.Shared.Infrastructure/Messaging/Brokers/MessageBroker.cs`) simultaneously publishes to:
+  1. RabbitMQ via `IBusPublisher` (external delivery, cross-service)
+  2. `IModuleClient.PublishAsync` (in-process fan-out to other modules)
+
+  The Saga module implements Chronicle-based saga coordination (`InviteSpeakerSaga`) that reacts to `SignedUp`, `SpeakerCreated`, and `SignedIn` events with compensating actions.
+
+  The standalone `Confab.Services.Tickets` (`src/Services/Tickets/`) subscribes to `ConferenceCreated` via RabbitMQ using Convey — demonstrating the microservices extraction path documented in the README.
+
+  ### Evidence Paths
+
+  | Component | Path | Pattern |
+  |-----------|------|---------|
+  | IModule contract | `Shared.Abstractions/Modules/IModule.cs` | Modular Monolith |
+  | ModuleLoader | `Bootstrapper/ModuleLoader.cs` | Modular Monolith |
+  | ModuleClient in-process routing | `Shared.Infrastructure/Modules/ModuleClient.cs` | Modular Monolith |
+  | AggregateRoot base class | `Shared.Abstractions/Kernel/Types/AggregateRoot.cs` | DDD |
+  | AgendaTrack aggregate | `Modules.Agendas.Domain/Agendas/Entities/AgendaTrack.cs` | DDD |
+  | TransactionalCommandHandlerDecorator | `Shared.Infrastructure/Postgres/Decorators/` | CQRS |
+  | MessageBroker dual-publish | `Shared.Infrastructure/Messaging/Brokers/MessageBroker.cs` | Event-Driven |
+  | Local event contracts | `Modules.Attendances.Application/Events/External/` | Event-Driven |
+  | InviteSpeakerSaga | `Modules.Saga/InviteSpeaker/InviteSpeakerSaga.cs` | Event-Driven |
+  | Standalone Tickets service | `Services/Tickets/Confab.Services.Tickets.Api/Startup.cs` | Microservices extraction demo |
+  | YARP API Gateway | `APIGateway/Confab.APIGateway/appsettings.json` | Deployability |
+  | IContext RequestId/TraceId | `Shared.Abstractions/Contexts/IContext.cs` | Observability |
+  | RabbitMQ retry config | `Bootstrapper/appsettings.json` | Fault Tolerance |
+architecture_qualifiers:
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)

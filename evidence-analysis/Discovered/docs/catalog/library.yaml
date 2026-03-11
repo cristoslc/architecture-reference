@@ -2,8 +2,8 @@ project_name: library
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/ddd-by-examples/library
-project_url: https://github.com/ddd-by-examples/library
+source_url: 'https://github.com/ddd-by-examples/library'
+project_url: 'https://github.com/ddd-by-examples/library'
 evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:28:45Z'
 discovered_by: discover-architecture
@@ -14,10 +14,7 @@ languages:
 - Java
 - Groovy
 architecture_styles:
-- Domain-Driven Design
 - Modular Monolith
-- Hexagonal Architecture
-- CQRS
 classification_status: classified
 classification_confidence: 0.97
 classification_method: deep-analysis
@@ -32,46 +29,23 @@ quality_attributes:
 - separation of concerns
 - correctness by construction
 - observability
-one_line_summary: A reference implementation of a public library system that demonstrates
-  Domain-Driven Design tactical patterns (aggregates, domain events, value objects,
-  bounded contexts) deployed as a Modular Monolith internally structured with Hexagonal
+one_line_summary: A reference implementation of a public library system that demonstrates Domain-Driven Design tactical patterns
+  (aggregates, domain events, value objects, bounded contexts) deployed as a Modular Monolith internally structured with Hexagonal
   Architecture and explicit CQRS read/write model separation.
-classification_reasoning: "This repository is an unambiguous, explicitly-documented
-  reference implementation of Domain-Driven Design deployed as a Modular Monolith
-  using Hexagonal Architecture with CQRS for read/write separation.\n\nDDD is the
-  primary organizing principle. Every structural decision traces back to DDD concepts:
-  bounded contexts (lending, catalogue) discovered via EventStorming, aggregates with
-  rich behavior (Patron with placeOnHold/cancelHold/checkOut returning Either monads),
-  domain events as the primary inter-aggregate communication channel (PatronEvent hierarchy),
-  value objects (BookId, PatronId, HoldDuration, ISBN), repositories that accept events
-  rather than entities (PatronRepository.save(PatronEvent)), factories (PatronFactory),
-  and business policies modelled as first-class domain concepts (PlacingOnHoldPolicy
-  with four concrete policy instances). The README explicitly identifies this as a
-  DDD reference implementation.\n\nModular Monolith is the deployment topology. A
-  single Spring Boot process hosts two bounded contexts as separate Spring application
-  contexts sharing one JVM process. The README explicitly names this a modular monolith.
-  ArchUnit tests in ModularArchitectureTest.java enforce module isolation: catalogue
-  does not depend on lending, commons depends on neither. Each context has its own
-  @Configuration and database configuration. One pom.xml, one Dockerfile, one docker-compose.yml
-  with a single app service.\n\nHexagonal Architecture is applied within the lending
-  bounded context. LendingHexagonalArchitectureTest.java enforces: model has no dependency
-  on application, infrastructure, or UI; application has no dependency on infrastructure
-  or UI. Domain model contains no Spring annotations. Domain interfaces (FindAvailableBook,
-  Patrons, BookRepository) define ports; infrastructure classes (BookDatabaseRepository,
-  PatronsDatabaseRepository) implement them as adapters. The catalogue context uses
-  a simpler CRUD local architecture, demonstrating each bounded context can choose
-  its own local architecture.\n\nCQRS is applied within the lending context. The write
-  model (Patron aggregate, PatronsDatabaseRepository) is completely separate from
-  the read models (PatronProfileReadModel for patron profile queries, SheetsReadModel
-  for daily sheets). Read models are maintained by domain event subscriptions via
-  @EventListener, not by querying the write model. The README explicitly calls this
-  a CQRS decision.\n\nWhat this is not: Not Microservices (single deployable, bounded
-  contexts are packages, shared JVM process). Not traditional Layered architecture
-  (hexagonal provides better insulation). Not Event-Driven Architecture in the macro
-  sense (events are intra-process via Spring ApplicationEvents, not a message broker;
-  primary deployment is a single app, not event-choreographed services).\n\nConfidence
-  0.97 reflects that README, docs, ArchUnit tests, package structure, and code all
-  consistently and explicitly document the architectural choices with no ambiguity."
+classification_reasoning: |-
+  This repository is an unambiguous, explicitly-documented reference implementation of Domain-Driven Design deployed as a Modular Monolith using Hexagonal Architecture with CQRS for read/write separation.
+
+  DDD is the primary organizing principle. Every structural decision traces back to DDD concepts: bounded contexts (lending, catalogue) discovered via EventStorming, aggregates with rich behavior (Patron with placeOnHold/cancelHold/checkOut returning Either monads), domain events as the primary inter-aggregate communication channel (PatronEvent hierarchy), value objects (BookId, PatronId, HoldDuration, ISBN), repositories that accept events rather than entities (PatronRepository.save(PatronEvent)), factories (PatronFactory), and business policies modelled as first-class domain concepts (PlacingOnHoldPolicy with four concrete policy instances). The README explicitly identifies this as a DDD reference implementation.
+
+  Modular Monolith is the deployment topology. A single Spring Boot process hosts two bounded contexts as separate Spring application contexts sharing one JVM process. The README explicitly names this a modular monolith. ArchUnit tests in ModularArchitectureTest.java enforce module isolation: catalogue does not depend on lending, commons depends on neither. Each context has its own @Configuration and database configuration. One pom.xml, one Dockerfile, one docker-compose.yml with a single app service.
+
+  Hexagonal Architecture is applied within the lending bounded context. LendingHexagonalArchitectureTest.java enforces: model has no dependency on application, infrastructure, or UI; application has no dependency on infrastructure or UI. Domain model contains no Spring annotations. Domain interfaces (FindAvailableBook, Patrons, BookRepository) define ports; infrastructure classes (BookDatabaseRepository, PatronsDatabaseRepository) implement them as adapters. The catalogue context uses a simpler CRUD local architecture, demonstrating each bounded context can choose its own local architecture.
+
+  CQRS is applied within the lending context. The write model (Patron aggregate, PatronsDatabaseRepository) is completely separate from the read models (PatronProfileReadModel for patron profile queries, SheetsReadModel for daily sheets). Read models are maintained by domain event subscriptions via @EventListener, not by querying the write model. The README explicitly calls this a CQRS decision.
+
+  What this is not: Not Microservices (single deployable, bounded contexts are packages, shared JVM process). Not traditional Layered architecture (hexagonal provides better insulation). Not Event-Driven Architecture in the macro sense (events are intra-process via Spring ApplicationEvents, not a message broker; primary deployment is a single app, not event-choreographed services).
+
+  Confidence 0.97 reflects that README, docs, ArchUnit tests, package structure, and code all consistently and explicitly document the architectural choices with no ambiguity.
 has_running_code: true
 has_tests: true
 has_ci_cd: true
@@ -99,3 +73,13 @@ notable_gaps:
 - Catalogue context has no domain model (CRUD only) leaving DDD demonstration incomplete
 - No API documentation or OpenAPI spec
 review_required: false
+architecture_qualifiers:
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)

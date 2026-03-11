@@ -2,7 +2,7 @@ project_name: eShopOnWeb
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/dotnet-architecture/eShopOnWeb
+source_url: 'https://github.com/dotnet-architecture/eShopOnWeb'
 evidence_type: automated-discovery
 domain: E-Commerce
 language: C#
@@ -11,8 +11,6 @@ languages:
 - JavaScript
 architecture_styles:
 - Layered
-- Hexagonal Architecture
-- Domain-Driven Design
 classification_status: classified
 classification_confidence: 0.95
 classification_method: deep-analysis
@@ -24,45 +22,64 @@ quality_attributes:
 - Modularity
 - Deployability
 - Observability
-one_line_summary: Microsoft ASP.NET Core 8 reference application demonstrating a
-  monolithic Layered Architecture with Hexagonal (Ports and Adapters) dependency
-  inversion and DDD tactical patterns in the domain core.
-classification_reasoning: "## Architecture Classification: Layered + Hexagonal Architecture\
-  \ + Domain-Driven Design\n\n### Primary Style: Layered Architecture\n\nThe repository\
-  \ is explicitly a horizontal three-layer monolith (stated in README as \"single-process\
-  \ (monolithic) application architecture\"). Layers map directly to top-level projects:\n\
-  \n```\nsrc/\n\u251C\u2500\u2500 ApplicationCore/   \u2190 Domain Layer (entities,\
-  \ interfaces, specifications, domain services)\n\u251C\u2500\u2500 Infrastructure/\
-  \    \u2190 Data/Adapter Layer (EF Core, Identity, logging)\n\u251C\u2500\u2500\
-  \ Web/               \u2190 Presentation Layer (MVC, Razor Pages, Blazor WASM host)\n\
-  \u2514\u2514\u2500\u2500 PublicApi/         \u2190 API Layer (Minimal API for Blazor\
-  \ admin)\n```\n\nDependency direction: Presentation \u2192 Infrastructure \u2192\
-  \ ApplicationCore. ApplicationCore has zero project references to any other layer.\n\
-  \n### Secondary Style: Hexagonal Architecture (Ports and Adapters)\n\nSystematic\
-  \ dependency inversion enforced via interface contracts in ApplicationCore/Interfaces/:\n\
-  \n- Ports: IRepository<T>, IReadRepository<T>, IBasketService, IOrderService, IBasketQueryService,\
-  \ IAppLogger<T>, IEmailSender, ITokenClaimsService, IUriComposer\n- Adapters in\
-  \ Infrastructure: EfRepository<T> (repository), BasketQueryService (query), LoggerAdapter<T>,\
-  \ IdentityTokenClaimService, EmailSender\n\nThe domain core is fully isolated from\
-  \ all infrastructure concerns and testable without any framework dependencies.\n\n\
-  ### Tertiary Style: Domain-Driven Design (tactical patterns)\n\nDDD tactical patterns\
-  \ applied throughout ApplicationCore:\n\n- Aggregates with IAggregateRoot marker:\
-  \ Basket, Order\n- Encapsulated collections enforcing aggregate boundaries (private\
-  \ List<T>, public IReadOnlyCollection<T>)\n- Repository-per-aggregate: IRepository<T>\
-  \ constrained to IAggregateRoot\n- Specification pattern for composable queries\
-  \ (Ardalis.Specification): BasketWithItemsSpecification, CustomerOrdersSpecification,\
-  \ CatalogFilterSpecification, etc.\n- Domain Services: BasketService, OrderService\
-  \ for cross-aggregate logic\n- Value Objects: Address, CatalogItemOrdered\n\n###\
-  \ MediatR usage (not CQRS)\n\nMediatR is used in Web/Features/ for in-process request\
-  \ dispatch (GetMyOrders, GetOrderDetails). This is query dispatch, not full CQRS:\
-  \ no separate read/write models, no distinct query stores, no command segregation.\n\
-  \n### Deployment\n\ndocker-compose.yml runs two processes (eshopwebmvc, eshoppublicapi)\
-  \ sharing the same SQL Server database with identical connection strings. This confirms\
-  \ a monolithic data model with no service-level data isolation.\n\n### Rejected\
-  \ Styles\n\n- NOT Microservices: README explicitly says monolithic; both services\
-  \ share database schema\n- NOT Modular Monolith: no vertical module boundaries;\
-  \ purely horizontal layering\n- NOT Event-Driven: no message broker, no domain\
-  \ events, synchronous communication throughout\n- NOT CQRS: MediatR is dispatch-only;\
-  \ same repositories for reads and writes\n- NOT Service-Based: the two Docker processes\
-  \ are not independent business capabilities; they share all data and exist only\
-  \ to support Blazor WebAssembly's cross-origin requirement"
+one_line_summary: Microsoft ASP.NET Core 8 reference application demonstrating a monolithic Layered Architecture with Hexagonal
+  (Ports and Adapters) dependency inversion and DDD tactical patterns in the domain core.
+classification_reasoning: |-
+  ## Architecture Classification: Layered + Hexagonal Architecture + Domain-Driven Design
+
+  ### Primary Style: Layered Architecture
+
+  The repository is explicitly a horizontal three-layer monolith (stated in README as "single-process (monolithic) application architecture"). Layers map directly to top-level projects:
+
+  ```
+  src/
+  ├── ApplicationCore/   ← Domain Layer (entities, interfaces, specifications, domain services)
+  ├── Infrastructure/    ← Data/Adapter Layer (EF Core, Identity, logging)
+  ├── Web/               ← Presentation Layer (MVC, Razor Pages, Blazor WASM host)
+  └└── PublicApi/         ← API Layer (Minimal API for Blazor admin)
+  ```
+
+  Dependency direction: Presentation → Infrastructure → ApplicationCore. ApplicationCore has zero project references to any other layer.
+
+  ### Secondary Style: Hexagonal Architecture (Ports and Adapters)
+
+  Systematic dependency inversion enforced via interface contracts in ApplicationCore/Interfaces/:
+
+  - Ports: IRepository<T>, IReadRepository<T>, IBasketService, IOrderService, IBasketQueryService, IAppLogger<T>, IEmailSender, ITokenClaimsService, IUriComposer
+  - Adapters in Infrastructure: EfRepository<T> (repository), BasketQueryService (query), LoggerAdapter<T>, IdentityTokenClaimService, EmailSender
+
+  The domain core is fully isolated from all infrastructure concerns and testable without any framework dependencies.
+
+  ### Tertiary Style: Domain-Driven Design (tactical patterns)
+
+  DDD tactical patterns applied throughout ApplicationCore:
+
+  - Aggregates with IAggregateRoot marker: Basket, Order
+  - Encapsulated collections enforcing aggregate boundaries (private List<T>, public IReadOnlyCollection<T>)
+  - Repository-per-aggregate: IRepository<T> constrained to IAggregateRoot
+  - Specification pattern for composable queries (Ardalis.Specification): BasketWithItemsSpecification, CustomerOrdersSpecification, CatalogFilterSpecification, etc.
+  - Domain Services: BasketService, OrderService for cross-aggregate logic
+  - Value Objects: Address, CatalogItemOrdered
+
+  ### MediatR usage (not CQRS)
+
+  MediatR is used in Web/Features/ for in-process request dispatch (GetMyOrders, GetOrderDetails). This is query dispatch, not full CQRS: no separate read/write models, no distinct query stores, no command segregation.
+
+  ### Deployment
+
+  docker-compose.yml runs two processes (eshopwebmvc, eshoppublicapi) sharing the same SQL Server database with identical connection strings. This confirms a monolithic data model with no service-level data isolation.
+
+  ### Rejected Styles
+
+  - NOT Microservices: README explicitly says monolithic; both services share database schema
+  - NOT Modular Monolith: no vertical module boundaries; purely horizontal layering
+  - NOT Event-Driven: no message broker, no domain events, synchronous communication throughout
+  - NOT CQRS: MediatR is dispatch-only; same repositories for reads and writes
+  - NOT Service-Based: the two Docker processes are not independent business capabilities; they share all data and exist only to support Blazor WebAssembly's cross-origin requirement
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)

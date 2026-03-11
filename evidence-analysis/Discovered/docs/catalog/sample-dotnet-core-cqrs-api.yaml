@@ -2,8 +2,8 @@ project_name: sample-dotnet-core-cqrs-api
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/kgrzybek/sample-dotnet-core-cqrs-api
-project_url: https://github.com/kgrzybek/sample-dotnet-core-cqrs-api
+source_url: 'https://github.com/kgrzybek/sample-dotnet-core-cqrs-api'
+project_url: 'https://github.com/kgrzybek/sample-dotnet-core-cqrs-api'
 evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:28:59Z'
 discovered_by: discover-architecture
@@ -14,21 +14,15 @@ languages:
 - C#
 - SQL
 architecture_styles:
-- CQRS
-- Domain-Driven Design
-- Hexagonal Architecture
 - Layered
 classification_status: classified
-one_line_summary: A .NET Core REST API demonstrating simple CQRS with a Dapper read
-  model and EF Core write model, backed by a rich DDD aggregate layer and clean hexagonal
-  project boundaries.
-review_notes: Write path uses EF Core + domain aggregates; read path uses raw Dapper
-  SQL against database views — two completely separate code paths sharing one database.
-  Domain layer raises domain events (OrderPlacedEvent, CustomerRegisteredEvent) dispatched
-  in-process by DomainEventsDispatcher. Outbox pattern via Quartz.NET provides durable
-  at-least-once delivery for integration notifications. Internal command queue supports
-  durable async scheduling. Four Autofac modules wire infrastructure adapters to domain/application
-  port interfaces.
+one_line_summary: A .NET Core REST API demonstrating simple CQRS with a Dapper read model and EF Core write model, backed
+  by a rich DDD aggregate layer and clean hexagonal project boundaries.
+review_notes: Write path uses EF Core + domain aggregates; read path uses raw Dapper SQL against database views — two completely
+  separate code paths sharing one database. Domain layer raises domain events (OrderPlacedEvent, CustomerRegisteredEvent)
+  dispatched in-process by DomainEventsDispatcher. Outbox pattern via Quartz.NET provides durable at-least-once delivery for
+  integration notifications. Internal command queue supports durable async scheduling. Four Autofac modules wire infrastructure
+  adapters to domain/application port interfaces.
 review_required: false
 classification_method: deep-analysis
 classification_confidence: 0.97
@@ -41,68 +35,53 @@ quality_attributes:
 - Reliability
 - Evolvability
 - Observability
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary Styles:\
-  \ CQRS + Domain-Driven Design\n\n**CQRS (primary, 0.97):** The read and write models\
-  \ are fully segregated at both the interface and persistence layer. Commands (`ICommand<TResult>`)\
-  \ are handled by `ICommandHandler<T>` implementations that work exclusively with\
-  \ EF Core aggregates (`Customer`, `Order`, `Payment`). Queries (`IQuery<TResult>`)\
-  \ are handled by `IQueryHandler<T>` implementations that issue raw SQL via Dapper\
-  \ against dedicated database views (`orders.v_Orders`, `orders.v_OrderProducts`).\
-  \ No domain objects appear on the read path. Both sides route through MediatR, but\
-  \ the handler implementations, data access mechanisms, and return types are entirely\
-  \ separate. A durable internal command queue (`app.InternalCommands`) and Outbox\
-  \ (`app.OutboxMessages`) extend the pattern with reliable async processing.\n\n\
-  **DOMAIN-DRIVEN DESIGN (primary, 0.96):** The domain layer is a first-class citizen\
-  \ with no framework dependencies. `Customer` is the aggregate root (`IAggregateRoot`)\
-  \ encapsulating `Order` child entities. All state changes go through aggregate methods\
-  \ (`PlaceOrder`, `ChangeOrder`, `RemoveOrder`, `MarkAsWelcomedByEmail`). Business\
-  \ invariants are expressed as `IBusinessRule` implementations checked via the `CheckRule()`\
-  \ pattern inside aggregate methods. Domain events (`OrderPlacedEvent`, `OrderChangedEvent`,\
-  \ `OrderRemovedEvent`, `CustomerRegisteredEvent`) are raised inside aggregates and\
-  \ collected on `Entity.DomainEvents`. Value objects (`MoneyValue`, `CustomerId`,\
-  \ `OrderId`, `ProductId`) provide type-safe identity and encapsulated behavior. Repository\
-  \ interfaces (`ICustomerRepository`, `IProductRepository`, `IPaymentRepository`)\
-  \ are defined in the domain layer with infrastructure implementations.\n\n### Secondary\
-  \ Styles: Hexagonal Architecture + Layered\n\n**HEXAGONAL ARCHITECTURE (secondary,\
-  \ 0.91):** The four-project layout maps to hexagonal zones. Domain is the pure core.\
-  \ Application defines port interfaces (`ISqlConnectionFactory`, `IEmailSender`, `ICommandsScheduler`,\
-  \ `IExecutionContextAccessor`). Infrastructure provides adapter implementations in\
-  \ Autofac modules (`DataAccessModule`, `MediatorModule`, `ProcessingModule`, `EmailModule`,\
-  \ `DomainModule`, `CachingModule`). API is the driving adapter — controllers hold\
-  \ only `IMediator` and dispatch commands/queries with no direct domain or persistence\
-  \ knowledge. The strict inward dependency rule is enforced by project references:\
-  \ Domain references nothing; Application references only Domain; Infrastructure\
-  \ references both; API references Application.\n\n**LAYERED (secondary, 0.85):**\
-  \ The project stack forms a conventional four-layer horizontal structure (Presentation,\
-  \ Application, Domain, Infrastructure). The key distinction from a classic layered\
-  \ architecture is that the Dependency Inversion Principle is fully applied — Infrastructure\
-  \ depends on Domain and Application abstractions, reversing the usual coupling direction.\n\
-  \n### What Was Rejected and Why\n\n**Not Microservices / Service-Based:** There\
-  \ is a single deployable unit. No inter-service HTTP calls, no service registry,\
-  \ no distributed data stores.\n\n**Not Event-Driven (primary):** Domain events are\
-  \ dispatched synchronously in-process via MediatR. The Outbox pattern adds durable\
-  \ async delivery, but only within the same application — there are no external event\
-  \ consumers or message brokers.\n\n**Not Modular Monolith:** The codebase does not\
-  \ use vertical self-contained modules each owning their own domain slice. The organization\
-  \ is horizontal by layer, not vertical by business capability.\n\n**Not Microkernel:**\
-  \ No plugin discovery system or hot-swappable extension point registry beyond standard\
-  \ DI.\n\n**Not Pipeline:** No filter-and-pipe data transformation chain. Quartz.NET\
-  \ jobs are operational scheduling, not pipeline stages.\n\n### Quality Attributes\
-  \ Evidence\n\n**MAINTAINABILITY:** Business rules encapsulated in named `IBusinessRule`\
-  \ classes; decorator pattern (`UnitOfWorkCommandHandlerDecorator`, `LoggingCommandHandlerDecorator`)\
-  \ handles cross-cutting concerns without polluting handlers; Autofac modules group\
-  \ related registrations.\n\n**TESTABILITY:** `SampleProject.UnitTests` tests aggregates\
-  \ and business rules without any infrastructure; `SampleProject.IntegrationTests`\
-  \ bootstraps the full Autofac container with a real SQL Server database. `IEmailSender`\
-  \ and `ICacheStore` are injectable stubs.\n\n**CORRECTNESS:** Business invariants\
-  \ enforced at aggregate boundaries via `CheckRule()` — e.g., a customer cannot place\
-  \ more than two orders on the same day, an order must have at least one product,\
-  \ customer email must be unique.\n\n**RELIABILITY:** Outbox pattern guarantees at-least-once\
-  \ processing of domain event notifications even if the process restarts between commit\
-  \ and publication. Internal command queue similarly persists `MarkCustomerAsWelcomedCommand`\
-  \ before execution.\n\n**EVOLVABILITY:** Port interfaces in Application layer allow\
-  \ infrastructure swaps without touching domain logic. Read model (Dapper + views)\
-  \ can evolve independently from write model (EF Core + aggregates).\n\n**OBSERVABILITY:**\
-  \ Serilog structured logging with correlation middleware; `LoggingCommandHandlerDecorator`\
-  \ logs every command with its MediatR-assigned ID; Outbox message processing is\
-  \ logged with context enricher scoping the log entry to the outbox message ID."
+classification_reasoning: |-
+  ## Architecture Classification Analysis
+
+  ### Primary Styles: CQRS + Domain-Driven Design
+
+  **CQRS (primary, 0.97):** The read and write models are fully segregated at both the interface and persistence layer. Commands (`ICommand<TResult>`) are handled by `ICommandHandler<T>` implementations that work exclusively with EF Core aggregates (`Customer`, `Order`, `Payment`). Queries (`IQuery<TResult>`) are handled by `IQueryHandler<T>` implementations that issue raw SQL via Dapper against dedicated database views (`orders.v_Orders`, `orders.v_OrderProducts`). No domain objects appear on the read path. Both sides route through MediatR, but the handler implementations, data access mechanisms, and return types are entirely separate. A durable internal command queue (`app.InternalCommands`) and Outbox (`app.OutboxMessages`) extend the pattern with reliable async processing.
+
+  **DOMAIN-DRIVEN DESIGN (primary, 0.96):** The domain layer is a first-class citizen with no framework dependencies. `Customer` is the aggregate root (`IAggregateRoot`) encapsulating `Order` child entities. All state changes go through aggregate methods (`PlaceOrder`, `ChangeOrder`, `RemoveOrder`, `MarkAsWelcomedByEmail`). Business invariants are expressed as `IBusinessRule` implementations checked via the `CheckRule()` pattern inside aggregate methods. Domain events (`OrderPlacedEvent`, `OrderChangedEvent`, `OrderRemovedEvent`, `CustomerRegisteredEvent`) are raised inside aggregates and collected on `Entity.DomainEvents`. Value objects (`MoneyValue`, `CustomerId`, `OrderId`, `ProductId`) provide type-safe identity and encapsulated behavior. Repository interfaces (`ICustomerRepository`, `IProductRepository`, `IPaymentRepository`) are defined in the domain layer with infrastructure implementations.
+
+  ### Secondary Styles: Hexagonal Architecture + Layered
+
+  **HEXAGONAL ARCHITECTURE (secondary, 0.91):** The four-project layout maps to hexagonal zones. Domain is the pure core. Application defines port interfaces (`ISqlConnectionFactory`, `IEmailSender`, `ICommandsScheduler`, `IExecutionContextAccessor`). Infrastructure provides adapter implementations in Autofac modules (`DataAccessModule`, `MediatorModule`, `ProcessingModule`, `EmailModule`, `DomainModule`, `CachingModule`). API is the driving adapter — controllers hold only `IMediator` and dispatch commands/queries with no direct domain or persistence knowledge. The strict inward dependency rule is enforced by project references: Domain references nothing; Application references only Domain; Infrastructure references both; API references Application.
+
+  **LAYERED (secondary, 0.85):** The project stack forms a conventional four-layer horizontal structure (Presentation, Application, Domain, Infrastructure). The key distinction from a classic layered architecture is that the Dependency Inversion Principle is fully applied — Infrastructure depends on Domain and Application abstractions, reversing the usual coupling direction.
+
+  ### What Was Rejected and Why
+
+  **Not Microservices / Service-Based:** There is a single deployable unit. No inter-service HTTP calls, no service registry, no distributed data stores.
+
+  **Not Event-Driven (primary):** Domain events are dispatched synchronously in-process via MediatR. The Outbox pattern adds durable async delivery, but only within the same application — there are no external event consumers or message brokers.
+
+  **Not Modular Monolith:** The codebase does not use vertical self-contained modules each owning their own domain slice. The organization is horizontal by layer, not vertical by business capability.
+
+  **Not Microkernel:** No plugin discovery system or hot-swappable extension point registry beyond standard DI.
+
+  **Not Pipeline:** No filter-and-pipe data transformation chain. Quartz.NET jobs are operational scheduling, not pipeline stages.
+
+  ### Quality Attributes Evidence
+
+  **MAINTAINABILITY:** Business rules encapsulated in named `IBusinessRule` classes; decorator pattern (`UnitOfWorkCommandHandlerDecorator`, `LoggingCommandHandlerDecorator`) handles cross-cutting concerns without polluting handlers; Autofac modules group related registrations.
+
+  **TESTABILITY:** `SampleProject.UnitTests` tests aggregates and business rules without any infrastructure; `SampleProject.IntegrationTests` bootstraps the full Autofac container with a real SQL Server database. `IEmailSender` and `ICacheStore` are injectable stubs.
+
+  **CORRECTNESS:** Business invariants enforced at aggregate boundaries via `CheckRule()` — e.g., a customer cannot place more than two orders on the same day, an order must have at least one product, customer email must be unique.
+
+  **RELIABILITY:** Outbox pattern guarantees at-least-once processing of domain event notifications even if the process restarts between commit and publication. Internal command queue similarly persists `MarkCustomerAsWelcomedCommand` before execution.
+
+  **EVOLVABILITY:** Port interfaces in Application layer allow infrastructure swaps without touching domain logic. Read model (Dapper + views) can evolve independently from write model (EF Core + aggregates).
+
+  **OBSERVABILITY:** Serilog structured logging with correlation middleware; `LoggingCommandHandlerDecorator` logs every command with its MediatR-assigned ID; Outbox message processing is logged with context enricher scoping the log entry to the outbox message ID.
+architecture_qualifiers:
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)

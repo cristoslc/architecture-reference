@@ -4,83 +4,113 @@ use_type: reference
 source: Discovered
 source_url: https://github.com/spring-projects/spring-petclinic
 project_url: https://github.com/spring-projects/spring-petclinic
-evidence_type: automated-discovery
+evidence_type: deep-analysis
 discovered_at: '2026-03-06T05:51:16Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
 domain: Veterinary
-language: Java/Kotlin
+language: Java
 languages:
-- Java/Kotlin
+- Java
+- SCSS
+- SQL
 architecture_styles:
 - Layered
 classification_status: classified
-review_notes: 'The Spring PetClinic repository is a classic implementation of a **Layered**
-  architecture, specifically optimized for the Spring Framework. While it incorporates
-  some modern organizational patterns, it adheres to the horizontal separation of
-  concerns typical of layered systems.
-
-
-  ### Primary Style: Layered
-
-  The codebase follows a clear horizontal partitioning despite being packaged by feature.
-  The architecture is defined by the flow of data between discrete responsibilities:
-
-  1.  **Presentation Layer:** Handled by `@Controller` classes (e.g., `OwnerController.java`,
-  `VetController.java`) and Thymeleaf templates in `src/main/resources/templates`.
-  The controllers manage web requests, data binding (using `WebDataBinder`), and view
-  resolution.
-
-  2.  **Persistence Layer:** Defined by Spring Data JPA interfaces (e.g., `OwnerRepository.java`,
-  `VetRepository.java`). These interfaces abstract the database interactions, supporting
-  multiple SQL dialects (H2, MySQL, PostgreSQL) through Spring Profiles.
-
-  3.  **Cross-Cutting concerns:** Centrally managed in the `org.springframework.samples.petclinic.system`
-  package, containing `CacheConfiguration`, `WebConfiguration`, and global exception
-  handling.
-
-
-  The implementation is a "skinny service" or "controller-to-repository" variant of
-  the layered style. In many cases, the `OwnerController` interacts directly with
-  the `OwnerRepository`, bypassing a formal service layer because the business logic
-  is simple enough to reside either in the controller or the domain entities themselves.'
-review_required: false
+one_line_summary: >-
+  Spring Framework canonical reference application demonstrating Layered architecture
+  with Spring Boot, Spring MVC, Spring Data JPA, and Thymeleaf in a single deployable JAR.
 classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:03:05Z'
-classification_reasoning: "## Analysis\n\n**Spring PetClinic is a textbook example\
-  \ of Layered Architecture.**\n\n### Evidence for Layered Architecture\n\n**Horizontal\
-  \ layering with clear separation of concerns:**\n\n1. **Presentation Layer** - Controllers\
-  \ handle HTTP requests:\n   - `OwnerController.java` (line 48: `@Controller`)\n\
-  \   - `VetController.java` (line 35: `@Controller`)\n   - `VisitController.java`,\
-  \ `PetController.java`, `WelcomeController.java`, `CrashController.java`\n\n2. **Data\
-  \ Access Layer** - Repository interfaces abstract persistence:\n   - `OwnerRepository.java`\
-  \ (line 36: `extends JpaRepository<Owner, Integer>`)\n   - `VetRepository.java`\
-  \ (line 38: `extends Repository<Vet, Integer>`)\n   - `PetTypeRepository.java`\n\
-  \n3. **Domain Model Layer** - JPA entities with business data:\n   - `Owner.java`\
-  \ (line 47-48: `@Entity @Table(name = \"owners\")`)\n   - `Pet.java`, `Vet.java`,\
-  \ `Visit.java`, `Specialty.java`, `PetType.java`\n   - Base classes: `BaseEntity.java`,\
-  \ `Person.java`, `NamedEntity.java`\n\n**Direct layer dependencies:** Controllers\
-  \ inject Repositories directly without an intermediate service layer (confirmed\
-  \ by no `@Service` annotations found in codebase). Example from `OwnerController.java`\
-  \ (line 53-57):\n```java\nprivate final OwnerRepository owners;\npublic OwnerController(OwnerRepository\
-  \ owners) {\n    this.owners = owners;\n}\n```\n\n### Single Deployable Unit\n\n\
-  - Single `pom.xml` with one artifact: `spring-petclinic` (line 10-11)\n- Single\
-  \ entry point: `PetClinicApplication.java` with `@SpringBootApplication`\n- No multi-module\
-  \ Maven/Gradle workspace structure\n- k8s deployment shows single container: `k8s/petclinic.yml`\
-  \ (line 32: single `image: dsyer/petclinic`)\n\n### What It Is NOT\n\n**Not Modular\
-  \ Monolith:** No enforced internal module boundaries detected:\n- No `module-info.java`\
-  \ files\n- No ArchUnit or similar architecture enforcement tests\n- No package isolation\
-  \ constraints\n- The `owner/`, `vet/`, `model/` packages are organizational, not\
-  \ architectural boundaries\n\n**Not Microservices:** Single deployable artifact,\
-  \ single database, single service definition in k8s\n\n**Not Service-Based:** Only\
-  \ one service exists\n\n**Not Event-Driven:** No message broker configuration, no\
-  \ event handlers\n\n**Not DDD:** No aggregates, bounded contexts, domain services,\
-  \ or value objects—just anemic entities with getters/setters\n\n**Not Hexagonal:**\
-  \ No ports-and-adapters pattern; repositories are Spring Data interfaces, not abstracted\
-  \ application ports\n\n**Not CQRS:** Single read/write model\n\n### Conclusion\n\
-  \nSpring PetClinic exemplifies the classic **Layered Architecture** pattern with\
-  \ Controller → Repository → Entity layers. It's a well-structured monolithic application\
-  \ demonstrating Spring Boot best practices with clean horizontal separation, but\
-  \ without the module boundary enforcement that would make it a Modular Monolith."
+classification_confidence: 0.97
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11T00:00:00Z'
+classification_reasoning: |
+  Spring PetClinic is the archetypal Layered architecture on Spring Boot. The codebase
+  has a clear horizontal separation of concerns across three layers:
+
+  1. Presentation Layer: Five @Controller classes (OwnerController, PetController,
+     VisitController, VetController, WelcomeController/CrashController) handle HTTP
+     requests and delegate to Thymeleaf templates in src/main/resources/templates/.
+
+  2. Data Access Layer: Three Spring Data JPA repository interfaces
+     (OwnerRepository extends JpaRepository<Owner, Integer>, VetRepository,
+     PetTypeRepository) abstract all persistence. Spring profiles switch the underlying
+     database (H2/MySQL/PostgreSQL) without code changes.
+
+  3. Domain Model Layer: A @MappedSuperclass inheritance hierarchy (BaseEntity ->
+     Person/NamedEntity -> Owner/Vet/Pet/PetType/Visit/Specialty) provides JPA entities
+     with simple business methods (Owner.addPet(), Owner.addVisit(), Owner.getPet()).
+
+  4. Cross-Cutting System Package: CacheConfiguration (@EnableCaching with JCache/Caffeine
+     for the vets cache), WebConfiguration, and system controllers.
+
+  Skinny-service variant: No @Service classes exist in production code. Controllers inject
+  repositories directly (e.g., OwnerController(OwnerRepository owners)). The Owner entity
+  acts as a lightweight aggregate root for coordinating pet/visit logic.
+
+  Single deployable unit: One pom.xml artifact (spring-petclinic), one @SpringBootApplication
+  entry point (PetClinicApplication), and a single-replica Kubernetes Deployment (image:
+  dsyer/petclinic). docker-compose.yml contains only database containers.
+
+  Not Modular Monolith: Feature packages (owner/, vet/, system/) are organizational only.
+  No module-info.java, no ArchUnit rules, no package-private isolation. Cross-package imports
+  are unrestricted (VisitController imports OwnerRepository from the owner package directly).
+
+  Not Event-Driven: No message broker, no domain events, no @EventListener on business
+  events, no @Async processing pipeline. The only ApplicationEvent reference is in test
+  infrastructure (PostgresIntegrationTests).
+
+  Not DDD: Entities are anemic data carriers with getters/setters. No aggregates in the
+  DDD sense, no value objects, no bounded context contracts, no domain services, no
+  domain events.
+
+  Not Hexagonal: Repositories are Spring Data interfaces (framework-coupled), not ports.
+  Controllers are Spring MVC classes, not adapters. No port/adapter contract layer exists.
+review_notes: >-
+  Spring PetClinic is a textbook Layered architecture: presentation (Spring MVC controllers
+  + Thymeleaf templates), data access (Spring Data JPA repositories), and domain model
+  (JPA entities) layers separated horizontally, with a cross-cutting system package. The
+  "skinny service" variant omits a formal service layer because business logic is simple
+  enough to live in controllers or domain entities. The feature-package layout (owner/,
+  vet/) is organizational, not architectural — no boundary enforcement exists. Single
+  Spring Boot JAR, single @SpringBootApplication, single Kubernetes Deployment.
+review_required: false
+key_technologies:
+- Spring Boot 4.0.3
+- Spring MVC
+- Spring Data JPA
+- Thymeleaf
+- Hibernate
+- JCache / Caffeine
+- H2 / MySQL / PostgreSQL
+- Spring Boot Actuator
+- GraalVM Native Image
+- Testcontainers
+- JMeter
+quality_attributes:
+- Simplicity
+- Maintainability
+- Testability
+- Deployability
+- Portability
+- Observability
+- Learnability
+notable_strengths:
+- Minimal boilerplate — controller-to-repository pattern eliminates service layer ceremony for simple CRUD
+- Feature-package colocation keeps all related code (controller, entity, repository, validator) together
+- Multiple database backends switchable via Spring profiles without code changes
+- Spring Boot Actuator exposes health, metrics, info, and CycloneDX SBOM endpoints out of the box
+- GraalVM native image support via native-maven-plugin and PetClinicRuntimeHints
+- Testcontainers-backed integration tests for MySQL and PostgreSQL
+notable_gaps:
+- No formal service layer — business logic scattered between controllers and entities as application grows
+- No module boundary enforcement — feature packages have unrestricted cross-package access
+- No security layer (authentication/authorization) in the reference implementation
+- No API versioning or REST maturity beyond basic CRUD
+- Shared single database (no schema per feature) limits future decomposition
+has_running_code: true
+has_tests: true
+has_ci_cd: true
+has_documentation: true
+has_adr: false
+github_stars_approx: 7500

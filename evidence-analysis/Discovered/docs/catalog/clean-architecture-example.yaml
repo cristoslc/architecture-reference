@@ -2,8 +2,8 @@ project_name: clean-architecture-example
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/mattia-battiston/clean-architecture-example
-project_url: https://github.com/mattia-battiston/clean-architecture-example
+source_url: 'https://github.com/mattia-battiston/clean-architecture-example'
+project_url: 'https://github.com/mattia-battiston/clean-architecture-example'
 evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:29:22Z'
 discovered_by: discover-architecture
@@ -13,7 +13,6 @@ language: Java/Kotlin
 languages:
 - Java/Kotlin
 architecture_styles:
-- Hexagonal Architecture
 - Modular Monolith
 classification_status: classified
 classification_confidence: 0.97
@@ -27,43 +26,53 @@ quality_attributes:
 - Flexibility
 - Deployability
 - Separation of Concerns
-one_line_summary: Textbook Java implementation of Hexagonal Architecture (Clean Architecture)
-  with compile-enforced module boundaries in a single Spring Boot deployable.
-classification_reasoning: "## Analysis\n\nThis repository is an unambiguous **Hexagonal\
-  \ Architecture (Ports and Adapters)** implementation with **Modular Monolith** as\
-  \ a secondary style, both demonstrably enforced at compile time through Gradle subproject\
-  \ dependency rules.\n\n### Evidence for Hexagonal Architecture\n\n**1. Core Module\
-  \ — Zero Framework Dependencies**\nThe `application/core` Gradle module lists only\
-  \ `commons-lang3` as a compile dependency. No Spring, no JDBC, no HTTP libraries.\
-  \ This isolation is structural, not conventional — importing a framework into core\
-  \ fails the build.\n\n**2. Port Interfaces Defined in Core**\nAll external collaboration\
-  \ is expressed through interfaces defined within the use case packages:\n- `GetDeviceDetails`\
-  \ — port for fetching device data\n- `GetAllDeviceHostnames`, `GetSerialNumberFromModel`,\
-  \ `GetSerialNumberFromReality`, `UpdateSerialNumberInModel` — ports for the reconcile\
-  \ use case\n- `DoesExchangeExist`, `GetAvailablePortsOfAllDevicesInExchange` — ports\
-  \ for exchange capacity\n\n**3. Driven Adapters Implement Core Ports**\n`BroadbandAccessDeviceDatabaseDataProvider`\
-  \ implements five core port interfaces simultaneously using Spring JDBC, confining\
-  \ all framework code to the `dataproviders` adapter module.\n\n**4. Driving Adapters\
-  \ in Entrypoints**\nREST controllers (`GetBroadbandAccessDeviceEndpoint`, `GetCapacityForExchangeEndpoint`)\
-  \ and a scheduled job (`ReconcileBroadbandAccessDeviceJob`) invoke use cases without\
-  \ any knowledge of implementation details — classic driving adapter pattern.\n\n\
-  **5. Composition Root in Configuration**\n`UseCaseConfiguration` is a Spring `@Configuration`\
-  \ class that manually wires adapter implementations into use cases. Use cases are\
-  \ instantiated with plain `new`, keeping domain objects annotation-free.\n\n**6.\
-  \ Gradle Dependency Graph Enforces the Dependency Rule**\n- `core` \u2192 no project\
-  \ dependencies\n- `dataproviders` \u2192 depends on `core`\n- `entrypoints` \u2192\
-  \ depends on `core`\n- `configuration` \u2192 depends on all modules (wiring layer)\n\
-  \nAll dependencies point inward; the dependency rule is mechanically enforced.\n\
-  \n### Evidence for Modular Monolith (Secondary)\n\nA single Spring Boot JAR (`clean-architecture-example.jar`)\
-  \ is produced by the `configuration` module build. The README explicitly calls it\
-  \ a 'good monolith' and frames it as a stepping stone to microservices once use\
-  \ cases are well-understood. The four Gradle submodules impose compile-time module\
-  \ boundaries — each with a distinct, bounded responsibility.\n\n### What This Is\
-  \ NOT\n\n- **NOT Layered Architecture**: Dependency direction is inverted — the\
-  \ core defines interfaces that the data layer implements, not the other way around.\n\
-  - **NOT Domain-Driven Design**: No bounded contexts, aggregates, value objects,\
-  \ domain events, or ubiquitous language patterns. Entities are plain POJOs.\n- **NOT\
-  \ Microservices**: Single process, single JAR, shared H2 in-memory database.\n-\
-  \ **NOT CQRS**: No command/query model separation or separate read/write stores.\n\
-  - **NOT Event-Driven**: No message broker or asynchronous event channels. The scheduled\
-  \ job triggers synchronously on a timer."
+one_line_summary: Textbook Java implementation of Hexagonal Architecture (Clean Architecture) with compile-enforced module
+  boundaries in a single Spring Boot deployable.
+classification_reasoning: |-
+  ## Analysis
+
+  This repository is an unambiguous **Hexagonal Architecture (Ports and Adapters)** implementation with **Modular Monolith** as a secondary style, both demonstrably enforced at compile time through Gradle subproject dependency rules.
+
+  ### Evidence for Hexagonal Architecture
+
+  **1. Core Module — Zero Framework Dependencies**
+  The `application/core` Gradle module lists only `commons-lang3` as a compile dependency. No Spring, no JDBC, no HTTP libraries. This isolation is structural, not conventional — importing a framework into core fails the build.
+
+  **2. Port Interfaces Defined in Core**
+  All external collaboration is expressed through interfaces defined within the use case packages:
+  - `GetDeviceDetails` — port for fetching device data
+  - `GetAllDeviceHostnames`, `GetSerialNumberFromModel`, `GetSerialNumberFromReality`, `UpdateSerialNumberInModel` — ports for the reconcile use case
+  - `DoesExchangeExist`, `GetAvailablePortsOfAllDevicesInExchange` — ports for exchange capacity
+
+  **3. Driven Adapters Implement Core Ports**
+  `BroadbandAccessDeviceDatabaseDataProvider` implements five core port interfaces simultaneously using Spring JDBC, confining all framework code to the `dataproviders` adapter module.
+
+  **4. Driving Adapters in Entrypoints**
+  REST controllers (`GetBroadbandAccessDeviceEndpoint`, `GetCapacityForExchangeEndpoint`) and a scheduled job (`ReconcileBroadbandAccessDeviceJob`) invoke use cases without any knowledge of implementation details — classic driving adapter pattern.
+
+  **5. Composition Root in Configuration**
+  `UseCaseConfiguration` is a Spring `@Configuration` class that manually wires adapter implementations into use cases. Use cases are instantiated with plain `new`, keeping domain objects annotation-free.
+
+  **6. Gradle Dependency Graph Enforces the Dependency Rule**
+  - `core` → no project dependencies
+  - `dataproviders` → depends on `core`
+  - `entrypoints` → depends on `core`
+  - `configuration` → depends on all modules (wiring layer)
+
+  All dependencies point inward; the dependency rule is mechanically enforced.
+
+  ### Evidence for Modular Monolith (Secondary)
+
+  A single Spring Boot JAR (`clean-architecture-example.jar`) is produced by the `configuration` module build. The README explicitly calls it a 'good monolith' and frames it as a stepping stone to microservices once use cases are well-understood. The four Gradle submodules impose compile-time module boundaries — each with a distinct, bounded responsibility.
+
+  ### What This Is NOT
+
+  - **NOT Layered Architecture**: Dependency direction is inverted — the core defines interfaces that the data layer implements, not the other way around.
+  - **NOT Domain-Driven Design**: No bounded contexts, aggregates, value objects, domain events, or ubiquitous language patterns. Entities are plain POJOs.
+  - **NOT Microservices**: Single process, single JAR, shared H2 in-memory database.
+  - **NOT CQRS**: No command/query model separation or separate read/write stores.
+  - **NOT Event-Driven**: No message broker or asynchronous event channels. The scheduled job triggers synchronously on a timer.
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)

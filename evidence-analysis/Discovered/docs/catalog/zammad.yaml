@@ -2,8 +2,8 @@ project_name: zammad
 scope: application
 use_type: production
 source: Discovered
-source_url: https://github.com/zammad/zammad
-project_url: https://github.com/zammad/zammad
+source_url: 'https://github.com/zammad/zammad'
+project_url: 'https://github.com/zammad/zammad'
 evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:37:30Z'
 discovered_by: discover-architecture
@@ -16,168 +16,87 @@ languages:
 - JavaScript
 architecture_styles:
 - Layered
-- Hexagonal Architecture
 classification_status: classified
-review_notes: 'Zammad is a classic **Layered** architecture, specifically following
-  the Ruby on Rails "Convention over Configuration" pattern. The repository structure
-  is dominated by the standard Rails directory layout (`app/models`, `app/mailers`,
-  `app/controllers` - though controllers are deeper in the tree), which inherently
-  separates concerns into a horizontal stack:
+review_notes: |-
+  Zammad is a classic **Layered** architecture, specifically following the Ruby on Rails "Convention over Configuration" pattern. The repository structure is dominated by the standard Rails directory layout (`app/models`, `app/mailers`, `app/controllers` - though controllers are deeper in the tree), which inherently separates concerns into a horizontal stack:
 
+  1.  **Presentation/Frontend**: Located in `app/frontend`, utilizing Vite (`vite.config.mjs`) and a modern TypeScript/Vue-like structure (composables, stores, components).
+  2.  **Business Logic (Domain)**: Centralized in `app/models`. Zammad uses a "Fat Model" approach, evidenced by the extensive logic nested within model directories (e.g., `app/models/user/permissions.rb`, `app/models/transaction/notification.rb`).
+  3.  **Data Access**: Handled via ActiveRecord within the models, with database management logic seen in `.gitlab/check_database_migration_consistency.sh`.
 
-  1.  **Presentation/Frontend**: Located in `app/frontend`, utilizing Vite (`vite.config.mjs`)
-  and a modern TypeScript/Vue-like structure (composables, stores, components).
-
-  2.  **Business Logic (Domain)**: Centralized in `app/models`. Zammad uses a "Fat
-  Model" approach, evidenced by the extensive logic nested within model directories
-  (e.g., `app/models/user/permissions.rb`, `app/models/transaction/notification.rb`).
-
-  3.  **Data Access**: Handled via ActiveRecord within the models, with database management
-  logic seen in `.gitlab/check_database_migration_consistency.sh`.
-
-
-  The system also exhibits strong **Event-Driven** characteristics, which is common
-  for helpdesk systems that must react to asynchronous inputs (emails, chats, triggers).
-  Evidence includes:
-
-  - **Triggers and Subscriptions**: Numerous models have an associated `triggers_subscriptions.rb`
-  or reside under `app/models/trigger`, indicating an internal observer or pub/sub
-  mechanism to handle business rules.
-
-  - **Background Processing**: The presence of `app/models/active_job_lock.rb` and
-  `app/models/scheduler.rb` confirms that a significant portion of its logic is executed
-  asynchronously via background workers (likely Sidekiq or delayed_job, standard in
-  the Rails ecosystem).
-
-  - **Channel Architecture**: `app/models/channel/driver.rb` and `app/models/channel/email_parser.rb`
-  suggest a pipe-like ingestion of external events into the system''s core.'
+  The system also exhibits strong **Event-Driven** characteristics, which is common for helpdesk systems that must react to asynchronous inputs (emails, chats, triggers). Evidence includes:
+  - **Triggers and Subscriptions**: Numerous models have an associated `triggers_subscriptions.rb` or reside under `app/models/trigger`, indicating an internal observer or pub/sub mechanism to handle business rules.
+  - **Background Processing**: The presence of `app/models/active_job_lock.rb` and `app/models/scheduler.rb` confirms that a significant portion of its logic is executed asynchronously via background workers (likely Sidekiq or delayed_job, standard in the Rails ecosystem).
+  - **Channel Architecture**: `app/models/channel/driver.rb` and `app/models/channel/email_parser.rb` suggest a pipe-like ingestion of external events into the system's core.
 review_required: false
 classification_method: deep-analysis-tooluse
 classification_confidence: 0.9
 classification_model: openrouter/z-ai/glm-5
 classification_date: '2026-03-08T23:47:19Z'
-classification_reasoning: '## Analysis
+classification_reasoning: |-
+  ## Analysis
 
-
-  Zammad is a **Ruby on Rails monolithic web application** implementing a helpdesk/customer
-  support platform. The architecture follows a **Layered** pattern with some **Hexagonal**
-  characteristics.
-
+  Zammad is a **Ruby on Rails monolithic web application** implementing a helpdesk/customer support platform. The architecture follows a **Layered** pattern with some **Hexagonal** characteristics.
 
   ### Evidence for Layered Architecture (Primary)
 
-
   **1. Classic Rails MVC Layering:**
-
-  - **Controllers** (`app/controllers/`): 100+ controllers handling HTTP requests,
-  including REST API and namespaced controllers for channels, integrations, and knowledge
-  base
-
-  - **Models** (`app/models/`): 60+ ActiveRecord models with rich domain logic (Ticket,
-  User, Organization, Channel, etc.)
-
+  - **Controllers** (`app/controllers/`): 100+ controllers handling HTTP requests, including REST API and namespaced controllers for channels, integrations, and knowledge base
+  - **Models** (`app/models/`): 60+ ActiveRecord models with rich domain logic (Ticket, User, Organization, Channel, etc.)
   - **Views** (`app/frontend/`): Vue.js SPA applications for desktop and mobile interfaces
-
   - **Helpers** (`app/helpers/`): View helpers for presentation logic
 
-
   **2. Additional Horizontal Layers:**
-
-  - **Service Layer** (`app/services/`): 120+ service classes inheriting from `Service::Base`
-  with `execute` methods (e.g., `Service::Ticket::Create`, `Service::User::Add`)
-
+  - **Service Layer** (`app/services/`): 120+ service classes inheriting from `Service::Base` with `execute` methods (e.g., `Service::Ticket::Create`, `Service::User::Add`)
   - **Policy Layer** (`app/policies/`): Pundit authorization policies for each model
-
   - **Jobs Layer** (`app/jobs/`): ActiveJob background job processing
-
-  - **GraphQL Layer** (`app/graphql/`): Mutations, queries, subscriptions, and type
-  definitions
-
+  - **GraphQL Layer** (`app/graphql/`): Mutations, queries, subscriptions, and type definitions
 
   **3. Single Deployable Unit:**
-
   - One `Dockerfile` producing a single container image
-
   - One `Gemfile` with a monolithic dependency graph
-
   - Procfile with three processes (web, websocket, worker) all from the same codebase
 
-
   **4. Database-Centric:**
-
   - Single PostgreSQL database (config in `config/database/database.yml`)
-
   - 482 migration files indicating a unified schema
-
   - ActiveRecord ORM throughout
-
 
   ### Evidence for Hexagonal Characteristics (Secondary)
 
-
   **1. Authorization Boundaries:**
-
   - Pundit policies (`app/policies/`) isolate authorization logic from controllers
-
   - Every controller action goes through `authorize!` checks
 
-
   **2. Service Layer Pattern:**
-
   - Services like `Service::Ticket::Create` orchestrate business logic
-
   - Controllers delegate to services rather than embedding logic
 
-
   **3. GraphQL API as Interface:**
-
   - Complete GraphQL schema (`Gql::ZammadSchema`) serves as a structured API boundary
-
   - Subscriptions via ActionCable for real-time updates
 
-
   However, this is **not strict Hexagonal** because:
-
   - Models remain tightly coupled to ActiveRecord
-
   - No clear ports/adapters abstraction for external services
-
   - Services often directly manipulate ActiveRecord objects
-
 
   ### What Was Rejected
 
+  **Not Microservices:** Single deployable Rails app, shared database, no inter-service communication patterns. The Procfile shows multiple processes but they're all part of one monolith.
 
-  **Not Microservices:** Single deployable Rails app, shared database, no inter-service
-  communication patterns. The Procfile shows multiple processes but they''re all part
-  of one monolith.
+  **Not Modular Monolith:** No enforced internal module boundaries. While there are namespaced subdirectories (`app/controllers/channels_admin/`, `app/controllers/integration/`), these are organizational, not architectural. No separate schemas, no module-scoped dependency enforcement.
 
+  **Not Event-Driven:** Uses `delayed_job` for background processing, but components communicate synchronously via database, not through event brokers. No message queues like RabbitMQ or Kafka.
 
-  **Not Modular Monolith:** No enforced internal module boundaries. While there are
-  namespaced subdirectories (`app/controllers/channels_admin/`, `app/controllers/integration/`),
-  these are organizational, not architectural. No separate schemas, no module-scoped
-  dependency enforcement.
+  **Not Domain-Driven Design:** No bounded contexts, no aggregates/value objects pattern, no ubiquitous language organization. Standard ActiveRecord models without domain layering.
 
-
-  **Not Event-Driven:** Uses `delayed_job` for background processing, but components
-  communicate synchronously via database, not through event brokers. No message queues
-  like RabbitMQ or Kafka.
-
-
-  **Not Domain-Driven Design:** No bounded contexts, no aggregates/value objects pattern,
-  no ubiquitous language organization. Standard ActiveRecord models without domain
-  layering.
-
-
-  **Not Microkernel:** Frontend "plugins" are Vue.js component patterns, not runtime-loadable
-  extensions for the backend system.
-
+  **Not Microkernel:** Frontend "plugins" are Vue.js component patterns, not runtime-loadable extensions for the backend system.
 
   ### Conclusion
 
-
-  Zammad is a well-structured **Layered Rails Monolith** with horizontal separation
-  of concerns (controllers → services → models) and additional refinement layers (policies,
-  GraphQL). It represents mature Rails architecture with service objects and authorization
-  policies, but remains fundamentally a single-deployment, database-centric layered
-  system.'
+  Zammad is a well-structured **Layered Rails Monolith** with horizontal separation of concerns (controllers → services → models) and additional refinement layers (policies, GraphQL). It represents mature Rails architecture with service objects and authorization policies, but remains fundamentally a single-deployment, database-centric layered system.
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)

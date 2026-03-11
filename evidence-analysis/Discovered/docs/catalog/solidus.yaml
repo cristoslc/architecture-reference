@@ -5,105 +5,30 @@ source: Discovered
 source_url: https://github.com/solidusio/solidus
 project_url: https://github.com/solidusio/solidus
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:31:35Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: E-Commerce
+domain: E-commerce / Retail
 language: Ruby
 languages:
-- Ruby
-- JavaScript
+  - Ruby
+  - JavaScript
 architecture_styles:
-- Layered
-- Microkernel
+  - Modular Monolith
+  - Microkernel
+  - Event-Driven
 classification_status: classified
-review_notes: 'Solidus is structured as a **Modular Monolith** organized through a
-  multi-gem workspace. While it is built on Ruby on Rails (which dictates a **Layered**
-  internal structure for each module), the high-level organization is defined by the
-  separation of the system into distinct, semi-autonomous engines that work together
-  within a single deployable context.
-
-
-  ### Evidence of Modular Monolith
-
-  The repository is split into several top-level directories, each functioning as
-  an autonomous Ruby gem (Engine):
-
-  - `/core`: Contains the essential domain models (`spree_core`), business logic,
-  and migrations. It serves as the "kernel" of the system.
-
-  - `/api`: (Referenced in README) Provides the RESTful interface.
-
-  - `/admin` & `/backend`: Provide administrative interfaces.
-
-  - `/legacy_promotions`: A feature-specific module separated from the core to manage
-  technical debt and specific domain logic.
-
-
-  These are not **Microservices** because they are designed to run within the same
-  process, share a common database schema (seen in the shared `db/migrate` patterns
-  across modules), and are typically required together in a single `Gemfile` to produce
-  one Rails application. The README explicitly states: *"When you require the solidus
-  gem... Bundler will install all of the following gems... All of the gems are designed
-  to work together."*'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T21:01:57Z'
-classification_reasoning: "## Analysis\n\nSolidus is a complete open-source e-commerce\
-  \ platform built on Ruby on Rails, structured as a **Layered Architecture** with\
-  \ strong **Microkernel (Plugin)** characteristics for extensibility.\n\n### Evidence\
-  \ for Layered Architecture\n\nThe codebase exhibits clear horizontal layering across\
-  \ multiple Rails Engine gems:\n\n1. **Core Layer (`solidus_core`)**: Contains domain\
-  \ models (`app/models/spree/`), concerns, validators, mailers, jobs, and fundamental\
-  \ business logic. Models include `Order`, `Product`, `LineItem`, `Payment`, `Shipment`,\
-  \ `Address`, etc. This layer has no dependencies on other Solidus gems.\n\n2. **API\
-  \ Layer (`solidus_api`)**: RESTful API controllers (`app/controllers/spree/api/`)\
-  \ that depend on `solidus_core` (per `solidus_api.gemspec:29` - `s.add_dependency\
-  \ 'solidus_core', s.version`).\n\n3. **Presentation Layers**: \n   - `solidus_backend`:\
-  \ Traditional admin interface with controllers inheriting from `Spree::BaseController`\n\
-  \   - `solidus_admin`: New admin interface using ViewComponent pattern\n\n4. **Dependency\
-  \ Direction**: The gemspecs show clear unidirectional dependencies—`solidus_backend`\
-  \ depends on `solidus_api` and `solidus_core`, while `solidus_core` has no Solidus\
-  \ dependencies.\n\n### Evidence for Microkernel (Plugin) Architecture\n\nSolidus\
-  \ implements a sophisticated plugin/extension system:\n\n1. **Registration-based\
-  \ Configuration** (`core/lib/spree/core/environment.rb`):\n   ```ruby\n   add_class_set\
-  \ :payment_methods\n   add_class_set :stock_splitters\n   add_class_set :subscribers\n\
-  \   ```\n   This allows extensions to register their implementations at runtime.\n\
-  \n2. **Ability Registration** (`core/app/models/spree/ability.rb:21-23`):\n   ```ruby\n\
-  \   def self.register_ability(ability)\n     abilities.add(ability)\n   end\n  \
-  \ ```\n   Extensions can add authorization abilities without modifying core.\n\n\
-  3. **Component Registry** (`admin/lib/solidus_admin/component_registry.rb`): UI\
-  \ components are resolved from a registry, allowing applications to override them:\n\
-  \   ```ruby\n   SolidusAdmin::Config.components['ui/button'] = \"MyApplication::Button::Component\"\
-  \n   ```\n\n4. **Permission Sets** (`core/lib/spree/core/role_configuration.rb`):\
-  \ Role-based permissions can be extended via `assign_permissions`.\n\n5. **Optional\
-  \ Module Loading** (`promotions/lib/solidus_promotions.rb:14-24`): Extensions gracefully\
-  \ handle optional dependencies:\n   ```ruby\n   begin\n     require \"solidus_admin\"\
-  \n   rescue LoadError\n     # Solidus Admin is not available\n   end\n   ```\n\n\
-  ### Event-Driven Elements (Not Primary)\n\nThe codebase uses the Omnes library for\
-  \ pub/sub (`core/lib/spree/bus.rb`), with events like `order_finalized`, `carton_shipped`,\
-  \ etc. However, this is internal infrastructure for decoupling mailers and notifications—not\
-  \ a primary architectural style. Components don't communicate primarily through\
-  \ events.\n\n### What Was Rejected\n\n- **Not Microservices**: All gems deploy as\
-  \ a single Rails application. There are no independent deployment units, no service\
-  \ boundaries, no inter-service communication. The `docker-compose.yml` shows a single\
-  \ application container for the entire platform.\n\n- **Not Service-Based**: There\
-  \ are no 2-5 coarse-grained services. The modules (core, api, backend, admin) are\
-  \ logical layers, not separate services.\n\n- **Not Modular Monolith**: While there\
-  \ are enforced module boundaries via Rails Engines, the primary organizing principle\
-  \ is horizontal layering (core → api → backend), not vertical domain modules. The\
-  \ boundaries are presentation vs. business logic vs. data access.\n\n- **Not Hexagonal\
-  \ Architecture**: There's no ports-and-adapters pattern. Controllers directly use\
-  \ models via standard Rails conventions. The `BaseController` classes don't implement\
-  \ ports/interfaces that isolate the application core.\n\n- **Not Domain-Driven Design**:\
-  \ While rich domain models exist, there's no bounded context organization, no aggregate\
-  \ patterns, no ubiquitous language segregation. It's standard Rails ActiveRecord\
-  \ domain modeling.\n\n### Conclusion\n\nSolidus follows the classic Rails architecture\
-  \ pattern of **Layered Architecture** (core business logic → API → presentation),\
-  \ enhanced with a **Microkernel/Plugin** extensibility model that allows third-party\
-  \ extensions to register capabilities (payment methods, calculators, permission\
-  \ sets, UI components) without modifying core code. This dual nature is intentional—the\
-  \ layering provides clear separation of concerns, while the plugin architecture\
-  \ enables the vibrant Solidus extension ecosystem."
+classification_confidence: 0.88
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Extensibility
+  - Replaceability
+  - Maintainability
+  - Evolvability
+  - Testability
+  - Observability
+  - Security
+one_line_summary: "A Rails-based open-source e-commerce platform structured as a Modular Monolith of cooperating Rails Engines, with a Microkernel plugin registry for swappable strategies and an in-process Omnes event bus enabling decoupled cross-module integration."
+classification_reasoning: "Solidus exhibits a three-style composition: Modular Monolith as primary, Microkernel as secondary, Event-Driven as tertiary.\n\nMODULAR MONOLITH (primary, 0.88): Solidus is a monorepo of Rails Engines packaged as gems — solidus_core, solidus_api, solidus_admin, solidus_backend, solidus_promotions, solidus_legacy_promotions, solidus_sample. All engines mount into a single Rails process, share one ActiveRecord database connection and schema, and communicate by directly calling Spree::* domain classes from core. Each engine uses isolate_namespace to prevent route/controller collisions and carries its own migrations, specs, routes, and assets. The promotions module demonstrates genuine replaceability (solidus_promotions substitutes solidus_legacy_promotions without touching solidus_core). No inter-component network communication or message brokers — pure in-process modular decomposition.\n\nMICROKERNEL (secondary, 0.82): Spree::Core::Environment maintains ClassConstantizer::Set registries for payment_methods, stock_splitters, and subscribers. Spree::AppConfiguration (backed by Spree::Preferences::Configuration) exposes ~30+ swappable class references: order_merger_class, order_mailer_class, carton_shipped_email_class, promotions.coupon_code_handler_class, stock.availability_validator_class, state_machines.order, and more. Spree::Core::EnvironmentExtension defines add_class_set and add_nested_class_set DSL methods that formalize extension points. Stock fulfillment uses a SplitterChain composing pluggable Splitter::Base subclasses (Backordered, ShippingCategory, Weight) registered at boot. Tax calculators, reimbursement types, permission sets, and search classes are all independently replaceable via configuration. This is a textbook Microkernel plugin contract over a stable core.\n\nEVENT-DRIVEN (tertiary, 0.72): Solidus uses the Omnes library for an internal publish/subscribe bus (Spree::Bus). Domain events published from model methods: order_finalized, order_canceled, order_emptied, order_recalculated, order_short_shipped (from Spree::Order), carton_shipped (from Spree::OrderShipping), reimbursement_reimbursed, reimbursement_errored (from Spree::Reimbursement). Subscriber classes (Omnes::Subscriber mixin) are registered into Spree::Config.environment.subscribers and wired to the bus at boot. The pattern enables cross-module integration without direct coupling — solidus_promotions subscribes to order_emptied without solidus_core importing any promotions code. Events are synchronous and in-process (no message broker), limiting the primary classification weight.\n\nRULED OUT - Layered: Rails MVC imposes horizontal layering within each engine, but the modular decomposition and plugin registry are the organizing architectural principles, not the layering.\n\nRULED OUT - Hexagonal Architecture: No ports/adapters. ActiveRecord models mix persistence and business logic. No infrastructure boundary inversion.\n\nRULED OUT - Domain-Driven Design: Rich domain model (~135 classes in core/app/models/spree/) but no explicit bounded contexts, aggregate roots, value objects, or domain events in the DDD sense.\n\nRULED OUT - Microservices/Service-Based: Single deployable process. All engines share one database. No inter-service network calls, no independent deployability per engine.\n\nRULED OUT - CQRS: No read-model/write-model separation. Standard ActiveRecord read and write paths throughout.\n\nQUALITY ATTRIBUTES evidence: Extensibility — ClassConstantizer::Set registries for payment methods, splitters, subscribers; 30+ swappable class references in AppConfiguration; Omnes bus for cross-module integration without direct imports. Replaceability — entire subsystems are swappable: promotions engine (solidus_promotions replaces solidus_legacy_promotions), admin UI (solidus_admin replacing solidus_backend), tax calculator, order merger, state machine class. Maintainability — gem packaging enforces module boundaries; separate migration trees per engine; comprehensive RSpec suite per engine with factory_bot support. Evolvability — Spree::Core::VersionedValue; explicit Spree.deprecator framework; load_defaults(version) mechanism lets applications pin to older behavior while upgrading incrementally. Testability — independent spec suite per engine; spree/testing_support module; factory_bot_rails fixtures. Observability — Spree::StateChange model + StateChangeTrackingJob; LogEntry model for payment gateway responses; Spree::Bus events carry domain context usable for audit/monitoring. Security — role-based Spree::PermissionSet classes; Spree::Ability RBAC; sensitive parameter filtering in engine initializer; credit card number/CVV scrubbed from logs via regex filters."

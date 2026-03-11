@@ -5,51 +5,61 @@ source: Discovered
 source_url: https://github.com/apache/spark
 project_url: https://github.com/apache/spark
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:59:41Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Data Processing
-language: Python
+domain: Distributed Data Processing
+language: Scala
 languages:
-- Python
-- Java/Kotlin
+  - Scala
+  - Java
+  - Python
+  - R
 architecture_styles:
-- Layered
-- Modular Monolith
+  - Pipeline
+  - Layered
+  - Microkernel
 classification_status: classified
-review_notes: 'Apache Spark is a classic example of a **Modular Monolith** designed
-  as a unified engine. While it is used to build and coordinate distributed systems
-  at runtime, the repository itself is structured as a collection of strongly decoupled
-  modules within a single build boundary.
-
-
-  ### Primary Style: Modular Monolith
-
-  The codebase is organized into several top-level modules (e.g., `/core`, `/sql`,
-  `/mllib`, `/graphx`, `/launcher`, `/resource-managers`). These modules are distinct
-  Maven projects with their own `pom.xml` files, allowing for internal dependency
-  management.
-
-  - **Enforced Boundaries:** The separation between `core` and high-level tools (like
-  `sql` or `mllib`) is strict. `core` contains the fundamental RDD abstractions and
-  scheduling logic, while other modules depend on `core`.
-
-  - **Single Build System:** All components are versioned together and typically released
-  as a single unified framework, even though they can be included as separate dependencies
-  by users.
-
-
-  ### Secondary Style: Pipeline (Pipe-and-Filter)
-
-  At its architectural heart, Spark’s internal execution model and the way it structures
-  its data processing logic follow the **Pipeline** pattern.
-
-  - **DAG Execution:** Spark transforms data through sequential stages (filters, maps,
-  joins).'
+classification_confidence: 0.90
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Scalability
+  - Extensibility
+  - Fault Tolerance
+  - Performance
+  - Portability
+  - Observability
+  - Maintainability
+one_line_summary: "Unified distributed analytics engine organized as a multi-stage query compilation pipeline (Catalyst) over a DAG-scheduled execution runtime, with a layered module hierarchy and six distinct microkernel extension point systems."
+classification_reasoning: >
+  Pipeline is the primary style at two levels: (1) the SQL/DataFrame compilation
+  pipeline — parse → analyze → optimize → physical plan → execute — implemented
+  via Catalyst's RuleExecutor batch framework (sql/catalyst/rules/RuleExecutor.scala)
+  and exposed as named checkpoints in QueryExecution; (2) the DAGScheduler runtime
+  pipeline, which decomposes jobs into ShuffleMapStage and ResultStage sequences with
+  data flowing forward through shuffle boundaries. The sql/pipelines/ module
+  (Declarative Pipelines) formalizes this further with DataflowGraph, FlowPlanner,
+  and PipelineExecution. Layered is a strong secondary style: the module hierarchy
+  enforces strict downward dependencies — APIs → SQL → Catalyst → core → common —
+  and the sql/catalyst module explicitly does not depend on core, a documented design
+  decision that allows the optimizer to run independently. Microkernel is the third
+  co-present style: six formal SPI/extension systems are defined — SparkPlugin
+  (DriverPlugin + ExecutorPlugin Java SPI), ShuffleManager SPI, ExternalClusterManager
+  SPI, SparkSessionExtensions rule injection (analyzer/optimizer/parser/columnar/AQE
+  rules), DataSourceV2 SPI, and ResourceDiscoveryPlugin — enabling Delta Lake, Iceberg,
+  third-party shuffle services, profilers, and custom cluster managers to integrate
+  without modifying core. The LiveListenerBus provides event-driven internal
+  observability but is an implementation mechanism, not the primary organizing
+  principle. The system deploys as a single driver JVM plus per-application executor
+  processes, not as independent microservices.
+review_notes: >
+  46 Maven modules; DAGScheduler stage graph is the runtime pipeline engine; Catalyst
+  RuleExecutor applies 43+ optimizer rule files in named batches; QueryExecution
+  exposes analyzed/optimizedPlan/sparkPlan/executedPlan as pipeline checkpoints;
+  SparkSessionExtensions supports injection of 9 rule categories; SparkPlugin SPI
+  has been stable since Spark 3.0; Spark Connect (sql/connect/) adds a gRPC client
+  protocol boundary but does not decompose internals into microservices. Primary
+  language is Scala, not Python — PySpark is the Python binding.
 review_required: false
-classification_method: deep-analysis-subagent
-classification_confidence: 0.95
-classification_model: claude-sonnet-4-6-subagent
-classification_date: '2026-03-09T01:59:27Z'
-classification_reasoning: Core execution layer with pluggable resource managers and
-  optional feature modules (SQL, Streaming, MLlib) built atop

@@ -2,8 +2,8 @@ project_name: practical-dotnet-aspire
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/thangchung/practical-dotnet-aspire
-project_url: https://github.com/thangchung/practical-dotnet-aspire
+source_url: 'https://github.com/thangchung/practical-dotnet-aspire'
+project_url: 'https://github.com/thangchung/practical-dotnet-aspire'
 evidence_type: automated-discovery
 discovered_at: '2026-03-07T04:56:34Z'
 discovered_by: discover-architecture
@@ -11,47 +11,33 @@ discovery_version: 1.0.0
 domain: food-and-beverage / e-commerce
 language: csharp
 languages:
-  - csharp
-  - yaml
-  - json
+- csharp
+- yaml
+- json
 architecture_styles:
-  - Microservices
-  - Event-Driven
-  - CQRS
-  - Domain-Driven Design
+- Microservices
+- Event-Driven
 classification_status: classified
 classification_method: deep-analysis
 classification_confidence: 0.95
 classification_model: claude-sonnet-4-6
 classification_date: '2026-03-11'
 quality_attributes:
-  - scalability
-  - loose-coupling
-  - observability
-  - testability
-  - evolvability
-  - resilience
-  - ai-extensibility
-one_line_summary: >
-  A .NET Aspire 9 coffee-shop reference implementation composed of independently
-  deployed microservices (counter, barista, kitchen, product) that communicate
-  asynchronously over RabbitMQ using MassTransit, with CQRS via MediatR and
-  DDD aggregates within each service boundary.
-classification_reasoning: >
-  The system is composed of five distinct, independently deployable services
-  (counter-api, barista-api, kitchen-api, product-api, yarp gateway), each
-  with its own codebase and process — the defining characteristic of
-  Microservices. Inter-service integration is predominantly asynchronous:
-  counter-api publishes BaristaOrderPlaced and KitchenOrderPlaced events to
-  RabbitMQ; barista-api and kitchen-api are pure consumers that reply with
-  update events, establishing a clear Event-Driven topology. Within every
-  service, commands and queries are separated via MediatR IRequest handlers
-  with distinct Command and Query types (PlaceOrderCommand, OrderFulfillmentQuery,
-  ItemTypesQuery), constituting an intra-service CQRS pattern. The shared
-  library provides canonical DDD building blocks — Aggregate Root with domain
-  event collection (EntityRootBase, IAggregateRoot), EntityBase, ValueObject,
-  IDomainEvent, repository interfaces, and gateway (anti-corruption) interfaces —
-  applied consistently across services. The README explicitly states
-  "Microservices architectural style", "Domain Driven Design building blocks",
-  and "CQRS with MediatR". .NET Aspire orchestrates all resources with health
-  checks, service discovery, and OpenTelemetry wiring.
+- scalability
+- loose-coupling
+- observability
+- testability
+- evolvability
+- resilience
+- ai-extensibility
+one_line_summary: |
+  A .NET Aspire 9 coffee-shop reference implementation composed of independently deployed microservices (counter, barista, kitchen, product) that communicate asynchronously over RabbitMQ using MassTransit, with CQRS via MediatR and DDD aggregates within each service boundary.
+classification_reasoning: |
+  The system is composed of five distinct, independently deployable services (counter-api, barista-api, kitchen-api, product-api, yarp gateway), each with its own codebase and process — the defining characteristic of Microservices. Inter-service integration is predominantly asynchronous: counter-api publishes BaristaOrderPlaced and KitchenOrderPlaced events to RabbitMQ; barista-api and kitchen-api are pure consumers that reply with update events, establishing a clear Event-Driven topology. Within every service, commands and queries are separated via MediatR IRequest handlers with distinct Command and Query types (PlaceOrderCommand, OrderFulfillmentQuery, ItemTypesQuery), constituting an intra-service CQRS pattern. The shared library provides canonical DDD building blocks — Aggregate Root with domain event collection (EntityRootBase, IAggregateRoot), EntityBase, ValueObject, IDomainEvent, repository interfaces, and gateway (anti-corruption) interfaces — applied consistently across services. The README explicitly states "Microservices architectural style", "Domain Driven Design building blocks", and "CQRS with MediatR". .NET Aspire orchestrates all resources with health checks, service discovery, and OpenTelemetry wiring.
+architecture_qualifiers:
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)

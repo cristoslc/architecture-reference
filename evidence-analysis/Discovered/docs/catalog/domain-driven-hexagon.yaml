@@ -2,7 +2,7 @@ project_name: domain-driven-hexagon
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/Sairyss/domain-driven-hexagon
+source_url: 'https://github.com/Sairyss/domain-driven-hexagon'
 evidence_type: automated-discovery
 domain: Developer Tools
 language: TypeScript
@@ -10,9 +10,6 @@ languages:
 - TypeScript
 - JavaScript
 architecture_styles:
-- Hexagonal Architecture
-- Domain-Driven Design
-- CQRS
 - Modular Monolith
 classification_status: classified
 classification_confidence: 0.97
@@ -20,14 +17,22 @@ classification_method: deep-analysis
 classification_model: claude-sonnet-4-6
 classification_date: '2026-03-11'
 quality_attributes:
-  testability: Very high — pure domain layer with no framework dependencies; ports enable full infrastructure mocking; Jest unit and E2E test suites present.
-  maintainability: High — dependency-cruiser enforces five hard error rules preventing cross-layer violations; DDD tactical patterns localise business rules.
-  extensibility: High — new inbound adapters added without touching domain; new aggregates slot in as self-contained modules with their own ports and DI tokens.
-  modularity: High — bounded contexts expressed as NestJS modules with token-isolated repositories and explicit mapper pattern across domain/persistence/API layers.
-  observability: Moderate — request-ID propagated through all log statements via nestjs-request-context; no built-in metrics or distributed tracing infrastructure present.
-  scalability: Moderate — single-process monolith on one Postgres instance; README notes bounded-context structure facilitates microservice extraction if needed.
-  portability: High — domain and application layers contain no NestJS imports; patterns are framework/language agnostic by design.
-one_line_summary: Textbook NestJS reference implementation combining Hexagonal Architecture (Ports and Adapters) with DDD tactical patterns and CQRS, enforced at the tooling level via dependency-cruiser.
+  testability: Very high — pure domain layer with no framework dependencies; ports enable full infrastructure mocking; Jest
+    unit and E2E test suites present.
+  maintainability: High — dependency-cruiser enforces five hard error rules preventing cross-layer violations; DDD tactical
+    patterns localise business rules.
+  extensibility: High — new inbound adapters added without touching domain; new aggregates slot in as self-contained modules
+    with their own ports and DI tokens.
+  modularity: High — bounded contexts expressed as NestJS modules with token-isolated repositories and explicit mapper pattern
+    across domain/persistence/API layers.
+  observability: Moderate — request-ID propagated through all log statements via nestjs-request-context; no built-in metrics
+    or distributed tracing infrastructure present.
+  scalability: Moderate — single-process monolith on one Postgres instance; README notes bounded-context structure facilitates
+    microservice extraction if needed.
+  portability: High — domain and application layers contain no NestJS imports; patterns are framework/language agnostic by
+    design.
+one_line_summary: Textbook NestJS reference implementation combining Hexagonal Architecture (Ports and Adapters) with DDD
+  tactical patterns and CQRS, enforced at the tooling level via dependency-cruiser.
 classification_reasoning: |
   ## Analysis
 
@@ -104,3 +109,13 @@ classification_reasoning: |
 
   **Not CQRS (primary):** CQRS is a secondary pattern within the application layer;
   the governing architecture is Hexagonal (the outer boundary with enforced port/adapter rules).
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)

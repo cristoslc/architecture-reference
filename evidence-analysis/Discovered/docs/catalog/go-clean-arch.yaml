@@ -2,26 +2,44 @@ project_name: go-clean-arch
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/bxcodec/go-clean-arch
-project_url: https://github.com/bxcodec/go-clean-arch
+source_url: 'https://github.com/bxcodec/go-clean-arch'
+project_url: 'https://github.com/bxcodec/go-clean-arch'
 evidence_type: automated-discovery
 domain: Developer Tools
 language: Go
 languages:
-  - Go
+- Go
 architecture_styles:
-  - Hexagonal Architecture
-  - Layered
+- Layered
 classification_status: classified
 classification_confidence: 0.95
 classification_method: deep-analysis
 classification_model: claude-sonnet-4-6
 classification_date: '2026-03-11'
 quality_attributes:
-  - Testability
-  - Maintainability
-  - Modularity
-  - Flexibility / Evolvability
-  - Learnability
-one_line_summary: "Canonical Go reference implementation of Clean Architecture (Hexagonal / Ports and Adapters) with consumer-side interface declarations, compiler-enforced adapter isolation, and full per-layer test coverage."
-classification_reasoning: "go-clean-arch (v4/master) is a textbook Hexagonal Architecture implementation. Primary evidence: (1) port interfaces are declared on the consuming side — ArticleRepository and AuthorRepository are defined in article/service.go (the use-case consumer), not in the MySQL adapter; ArticleService is defined in internal/rest/article.go (the driving adapter), not in the service package; (2) driven adapters (internal/repository/mysql/) and driving adapters (internal/rest/) are isolated behind the Go compiler's internal/ visibility boundary, preventing external importers from accessing concrete implementations; (3) app/main.go is the sole composition root — the only file that instantiates concrete types and wires them through interface-typed constructors (NewService(articleRepo, authorRepo), NewArticleHandler(e, svc)); (4) full unit-test isolation at every layer is only achievable when Hexagonal boundaries are correctly maintained: service tests use generated mocks for repositories (no DB), handler tests use a mock service (no business logic), repository tests use go-sqlmock (no real MySQL). Secondary classification of Layered is supported by the project's own documentation (four named layers: Models, Repository, Usecase, Delivery) and the strict inward-only dependency flow through the layer stack. This is the standard Clean Architecture signature: a Layered conceptual framing expressed through Hexagonal mechanisms. Rejected: Microservices (single binary, single process, single MySQL); Modular Monolith (no separate go.mod per module, no module-scoped build boundaries); DDD (anemic entities, no aggregates, value objects, or bounded contexts); Event-Driven (no message broker, internal/workers/ is empty placeholder); CQRS (no read/write model separation); Service-Based (no distributed service boundaries)."
+- Testability
+- Maintainability
+- Modularity
+- Flexibility / Evolvability
+- Learnability
+one_line_summary: Canonical Go reference implementation of Clean Architecture (Hexagonal / Ports and Adapters) with consumer-side
+  interface declarations, compiler-enforced adapter isolation, and full per-layer test coverage.
+classification_reasoning: 'go-clean-arch (v4/master) is a textbook Hexagonal Architecture implementation. Primary evidence:
+  (1) port interfaces are declared on the consuming side — ArticleRepository and AuthorRepository are defined in article/service.go
+  (the use-case consumer), not in the MySQL adapter; ArticleService is defined in internal/rest/article.go (the driving adapter),
+  not in the service package; (2) driven adapters (internal/repository/mysql/) and driving adapters (internal/rest/) are isolated
+  behind the Go compiler''s internal/ visibility boundary, preventing external importers from accessing concrete implementations;
+  (3) app/main.go is the sole composition root — the only file that instantiates concrete types and wires them through interface-typed
+  constructors (NewService(articleRepo, authorRepo), NewArticleHandler(e, svc)); (4) full unit-test isolation at every layer
+  is only achievable when Hexagonal boundaries are correctly maintained: service tests use generated mocks for repositories
+  (no DB), handler tests use a mock service (no business logic), repository tests use go-sqlmock (no real MySQL). Secondary
+  classification of Layered is supported by the project''s own documentation (four named layers: Models, Repository, Usecase,
+  Delivery) and the strict inward-only dependency flow through the layer stack. This is the standard Clean Architecture signature:
+  a Layered conceptual framing expressed through Hexagonal mechanisms. Rejected: Microservices (single binary, single process,
+  single MySQL); Modular Monolith (no separate go.mod per module, no module-scoped build boundaries); DDD (anemic entities,
+  no aggregates, value objects, or bounded contexts); Event-Driven (no message broker, internal/workers/ is empty placeholder);
+  CQRS (no read/write model separation); Service-Based (no distributed service boundaries).'
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)

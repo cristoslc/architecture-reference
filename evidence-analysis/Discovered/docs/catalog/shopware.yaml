@@ -2,91 +2,59 @@ project_name: shopware
 scope: application
 use_type: production
 source: Discovered
-source_url: https://github.com/shopware/shopware
-project_url: https://github.com/shopware/shopware
+source_url: 'https://github.com/shopware/shopware'
+project_url: 'https://github.com/shopware/shopware'
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:38:11Z'
+discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: E-Commerce
+domain: E-Commerce / Retail Platform
 language: PHP
 languages:
 - PHP
 - JavaScript
 - TypeScript
+- Twig
+- SCSS
 architecture_styles:
+- Modular Monolith
 - Microkernel
-- Layered
+- Event-Driven
 classification_status: classified
-review_notes: "Shopware 6 is structured as a **Modular Monolith** that heavily utilizes\
-  \ a **Microkernel (Plugin)** architecture for extensibility. While the repository\
-  \ contains multiple internal `composer.json` files (e.g., `src/Core`, `src/Storefront`),\
-  \ they are not independently deployable microservices; instead, they represent logical\
-  \ module boundaries within a single unified Symfony application.\n\n### 1. Modular\
-  \ Monolith\nThe codebase is clearly divided into high-level modules: `Core`, `Storefront`,\
-  \ `Administration`, and `Elasticsearch`. \n- **Internal Boundaries:** The root `composer.json`\
-  \ uses the `replace` field to treat internal directories as versioned packages (`shopware/core`,\
-  \ etc.). This enforced naming and structural separation allows the platform to maintain\
-  \ a \"monorepo\" development style while ensuring that logic remains encapsulated\
-  \ within specific domains (e.g., `src/Core/Checkout` vs `src/Core/Content`).\n-\
-  \ **Single Deployment:** Despite the internal modularity, the system boots a single\
-  \ `Kernel.php` (found in `src/Core/Kernel.php`) and is typically deployed as one\
-  \ unit via the `shopware/production` or flex templates.\n\n### 2. Microkernel (Plugin)\n\
-  The system is designed around a core \"Kernel\" that supports runtime extensions.\
-  \ \n- **Extension Points:** The `src/Core/Framework/Plugin.php` class defines the\
-  \ contract for external code to hook into the lifecycle (install, activate, update,\
-  \ deactivate)."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:59:01Z'
-classification_reasoning: "## Analysis\n\nShopware is a **Microkernel (Plugin)** architecture\
-  \ with a **Layered** secondary style. Here's the evidence:\n\n### Primary: Microkernel\
-  \ (Plugin) Architecture\n\n**Core System with Plugin Extension Points:**\n\n1. **Plugin\
-  \ Base Class** (`src/Core/Framework/Plugin.php`):\n   - Plugins extend a `Plugin`\
-  \ class which inherits from `Bundle`\n   - Lifecycle hooks: `install()`, `activate()`,\
-  \ `deactivate()`, `uninstall()`, `update()`\n   - Plugins are discovered and loaded\
-  \ by `KernelPluginLoader` at runtime\n\n2. **Kernel Plugin Loading** (`src/Core/Kernel.php`\
-  \ lines 80-118):\n   ```php\n   public function registerBundles(): iterable {\n\
-  \       // ... loads core bundles\n       yield from $this->pluginLoader->getBundles($kernelParameters,\
-  \ $instantiatedBundleNames);\n   }\n   ```\n   The kernel explicitly loads plugins\
-  \ dynamically, enabling extension without modifying core.\n\n3. **Decoration Pattern**\
-  \ (ADR from 2020-11-25):\n   - Abstract classes with `getDecorated()` method allow\
-  \ plugins to wrap/extend core services\n   - Examples: `AbstractCartLoadRoute`,\
-  \ `AbstractAppLifecycle`, `AbstractTranslator`\n   - Static analysis rules enforce\
-  \ decoration pattern (`DecorationPatternRule.php`)\n\n4. **App System** (`src/Core/Framework/App/`):\n\
-  \   - ADR document explicitly states: \"We need a different extension mechanism\
-  \ besides the well known plugins\"\n   - Apps register via manifest files, webhooks,\
-  \ custom modules\n   - External apps communicate via API without PHP code execution\
-  \ (cloud-compatible)\n\n5. **Extension Directories**:\n   - `custom/plugins/` -\
-  \ local plugins\n   - `custom/apps/` - app extensions\n   - `custom/static-plugins/`\
-  \ - static plugin bundles\n\n### Secondary: Layered Architecture\n\n**Horizontal\
-  \ Layering with Symfony MVC:**\n\n1. **Controller Layer**: \n   - `src/Administration/Controller/`\
-  \ - Admin API endpoints\n   - `src/Storefront/Controller/` - Storefront endpoints\n\
-  \   - `src/Core/Checkout/Cart/` - Cart controllers\n\n2. **Service/Business Logic\
-  \ Layer**:\n   - Services in each domain (e.g., `CartService`, `OrderPersister`)\n\
-  \   - Route handlers (`AbstractCartLoadRoute`, `CartLoadRoute`)\n\n3. **Data Access\
-  \ Layer**:\n   - **Data Abstraction Layer (DAL)** - consistent ORM-like pattern\n\
-  \   - Entity definitions (`ProductDefinition`, `CustomerDefinition`, `OrderDefinition`)\n\
-  \   - Repository pattern (`EntityRepository`, `SalesChannelRepository`)\n\n4. **Domain\
-  \ Organization** within Core:\n   - `Core/Checkout/` - cart, orders, payments, shipping\n\
-  \   - `Core/Content/` - products, categories, CMS, media\n   - `Core/System/` -\
-  \ users, languages, configuration\n\n### What This is NOT:\n\n- **Not Microservices**:\
-  \ Single monolithic Symfony application with one database. All modules deploy together\
-  \ as `shopware/platform`.\n\n- **Not Service-Based**: More than 5 modules; deployed\
-  \ as single unit; not coarse-grained services sharing a database.\n\n- **Not Event-Driven\
-  \ (primary)**: While Flow system exists for business automation (email, state changes),\
-  \ it's secondary to the request-response pattern. Events are processed within the\
-  \ same process, not via external message brokers.\n\n- **Not Hexagonal**: Uses Symfony's\
-  \ standard MVC pattern, not ports-and-adapters with application core isolated from\
-  \ infrastructure.\n\n- **Not DDD (primary)**: While domain modules exist (Checkout,\
-  \ Content, System), there's no explicit aggregate/entity/value object pattern enforcement.\
-  \ Entity definitions are data models, not domain models with behavior.\n\n### Key\
-  \ Architectural Evidence:\n\n- **Single Deployable**: `composer.json` packages everything\
-  \ as `shopware/platform`\n- **Symfony Framework**: Built on Symfony 7 with bundles\
-  \ (Core, Administration, Storefront, Elasticsearch)\n- **Plugin API**: Comprehensive\
-  \ extension points via plugins and apps\n- **Runtime Extension**: Plugins loaded\
-  \ dynamically; decoration chain allows wrapping services\n\nThe architecture prioritizes\
-  \ extensibility through a well-defined plugin system while maintaining a traditional\
-  \ layered structure for the core application."
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Maintainability
+- Scalability
+- Observability
+- Evolvability
+- Security
+- Testability
+one_line_summary: A Symfony 7 / Vue.js 3 open-source e-commerce platform organised as a Modular Monolith with a two-track
+  Microkernel extension system (Plugins and Apps), async Event-Driven processing via Symfony Messenger, and Hexagonal port-and-adapter
+  abstractions across persistence, search, cache, and telemetry.
+classification_reasoning: |-
+  Shopware exhibits a four-style composition: Modular Monolith as primary, Microkernel, Event-Driven, and Hexagonal Architecture as secondary.
+
+  MODULAR MONOLITH (primary, 0.92): Shopware deploys as a single PHP application that is decomposed into bounded domain modules sharing one database. Four top-level Symfony Bundles — Core, Storefront, Administration, Elasticsearch — are all registered in Kernel::registerBundles() and deployed together. Within Core there are thirteen high-cohesion subdomain namespaces (Checkout, Content, System, Framework, Service, Profiling, Maintenance, DevOps, Installer, Migration, etc.), each with its own Definition/Entity/Service/DependencyInjection/Migration slice. The 2022 ADR 'Mapping of product area' formalizes eight product areas (checkout, content, inventory, services-settings, buyers-experience, customer-order, admin, storefront) enforced by @Package annotations on every PHP class. All modules share a single Doctrine DBAL connection and a common DataAbstractionLayer (DAL). The project is distributed as a single Composer library (shopware/platform).
+
+  MICROKERNEL (secondary, 0.88): A two-track runtime extension system sits atop the monolith. Plugins are PHP Symfony bundles loaded via KernelPluginLoader; Apps are manifest-driven, no-code extensions whose backend logic runs on remote HTTP servers (introduced in ADR 2020-08-12). The decoration pattern (ADR 2020-11-25) defines the standard Plugin contract: every extensible service exposes an abstract base class with getDecorated() so plugins chain-wrap services through the Symfony DI container. ADR 2024-06-18 formalises the transition from decoration to an event-based extension contract as the primary plug-in protocol. The App scripting system (Framework/Script/) adds Twig-sandbox hooks at named kernel extension points. CheckoutGatewayInterface and AppContextGateway are explicit contracts allowing app servers to intercept and modify core checkout and context workflows (ADRs 2024-04-01 and 2025-04-01).
+
+  EVENT-DRIVEN (secondary, 0.82): Asynchronous message processing via Symfony Messenger is load-bearing throughout the platform. Framework/MessageQueue/ defines AsyncMessageInterface, LowPriorityMessageInterface, DeduplicatableMessageInterface, ScheduledTask infrastructure, and queue middleware. DAL indexing (EntityIndexer dispatches EntityIndexingMessage), mail delivery, import/export, and product export are all offloaded to async Messenger workers. The Flow Builder (Content/Flow/) is a business-rules automation engine that reacts to FlowEventAware domain events; ADR 2025-01-31 moves flow execution to after the business process (KernelEvents::TERMINATE, WorkerMessageHandledEvent) making the event bus the primary decoupling mechanism between business logic and side effects. The Redis-backed increment pool for queue stats (ADR 2021-11-09) and BusinessEventRegistry/NestedEventDispatcher complete the event infrastructure.
+
+  HEXAGONAL ARCHITECTURE (secondary, 0.75): The platform consistently separates domain logic from infrastructure through port-and-adapter abstractions. Framework/Adapter/ groups infrastructure adapters by concern (Cache, Database, Filesystem, Messenger, Redis, Session, Storage). AbstractKeyValueStorage is a swappable port backed by MySQL or Redis. AbstractStockStorage (ADR 2023-05-15) is a domain port for pluggable stock backends. EntityWriteGatewayInterface is a DAL inbound write port. MetricTransportInterface (ADR 2024-07-30) is an outbound telemetry port whose implementations ship as separate packages. Payment handler interfaces (SynchronousPaymentHandlerInterface, AsynchronousPaymentHandlerInterface) isolate checkout from payment-provider specifics. Store API and Admin API are named, separated inbound ports.
+
+  RULED OUT - Microservices: Single deployable PHP process, single shared database. All modules share one Composer manifest and one Doctrine connection. No independent deployability per module, no inter-service communication protocol.
+
+  RULED OUT - Layered (primary): Standard Symfony MVC layering is present (Controller -> Service -> DAL) but is subordinate to the modular decomposition and microkernel extension system. Layering exists within each module as an implementation detail, not as the dominant organising principle.
+
+  RULED OUT - CQRS: While the DAL has separate write (EntityWriter/EntityWriteGateway) and read (EntitySearcher/EntityAggregator) paths and async indexers build denormalised read models, there is no separate command/query bus, no explicit command and query handler separation, and no event sourcing. The pattern is present as a DAL-level optimization, not as a top-level architectural style.
+
+  QUALITY ATTRIBUTES evidence: Extensibility — two-track Plugin/App extension system; decoration pattern with abstract base class chains; event-based extension hooks; Twig App scripts at named kernel points; Checkout/Context Gateway contracts for app-server integration. Maintainability — @Package annotations per-class; per-domain DomainException factory classes; 140+ ADRs; PHPStan/Rector/Scrutinizer enforcement; feature flags for major-version dark launches. Scalability — Symfony Messenger async worker queues; Redis cache and session; OpenSearch/Elasticsearch for catalog search; HTTP cache with cache-tag invalidation and Store API caching strategy (ADR 2025-09-15). Observability — MetricTransportInterface abstraction layer (Counter/Gauge/Histogram/UpDownCounter); SystemHealthCheck framework (SYSTEM/FEATURE/EXTERNAL/AUXILIARY categories); Messenger queue stats via increment pattern; Profiling bundle with Symfony Stopwatch. Evolvability — feature-flag system gating major version changes; versioned DB migrations per module; UUIDv7 adoption; App system decouples feature delivery from platform release cycle. Security — Symfony Security; OAuth2; ACL/permissions system; App manifest signature verification; Twig sandbox for App scripts; JWT; rate limiting. Testability — test pyramid ADR; PHPUnit unit and integration suites; Jest for Vue.js admin; mock-repository patterns; Playwright/Cypress acceptance tests.
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)

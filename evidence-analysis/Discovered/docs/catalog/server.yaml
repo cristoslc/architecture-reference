@@ -2,83 +2,162 @@ project_name: server
 scope: application
 use_type: production
 source: Discovered
-source_url: https://github.com/bitwarden/server
-project_url: https://github.com/bitwarden/server
-evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:51:59Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
+source_url: 'https://github.com/bitwarden/server'
 domain: Security
 language: C#
 languages:
 - C#
-- JavaScript
+- SQL
+- Shell
 architecture_styles:
-- Microkernel
-- Layered
+- Service-Based
 - Event-Driven
 classification_status: classified
-review_notes: "Nextcloud Server is a classic example of a **Microkernel (Plugin)**\
-  \ architecture. The codebase is divided into a \"Core\" system (the microkernel)\
-  \ and a vast array of \"Apps\" (the plugins) that extend the system's functionality.\n\
-  \n### 1. Microkernel (Plugin) Evidence\nThe architecture is explicitly designed\
-  \ to be extensible through the `apps/` directory. \n- **Core vs. Extension:** The\
-  \ `lib/` directory contains the core platform services (the microkernel), while\
-  \ `apps/` contains optional but critical units like `encryption`, `files_trashbin`,\
-  \ and `user_ldap`.\n- **Plugin Contracts:** The `lib/public` directory serves as\
-  \ the strictly defined **SDK/API surface** for app developers. The presence of numerous\
-  \ interfaces (e.g., `lib/public/IAppConfig.php`, `lib/public/IUserManager.php`)\
-  \ establishes the contract between the kernel and the plugins.\n- **Plugin Metadata:**\
-  \ Each app contains an `appinfo/info.xml` file (e.g., `apps/encryption/appinfo/info.xml`)\
-  \ that defines how the app hooks into the core system, including background jobs,\
-  \ repair steps, console commands, and settings sections.\n- **Dynamic Loading:**\
-  \ The `OC\\AppFramework\\App` class (found in `lib/private/AppFramework/App.php`)\
-  \ manages the lifecycle of these apps, handling namespacing (`buildAppNamespace`)\
-  \ and dependency injection for each individual module.\n\n### 2. Layered (Secondary\
-  \ Style)"
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:58:07Z'
-classification_reasoning: "## Architecture Analysis: Nextcloud Server\n\n### Primary\
-  \ Classification: Microkernel (Plugin)\n\nNextcloud Server implements a classic\
-  \ **microkernel/plugin architecture** with a well-defined core system extended by\
-  \ dynamically loaded applications.\n\n**Key Evidence:**\n\n1. **Core Platform (Microkernel)**:\
-  \ The `lib/private/` and `core/` directories form the platform core that provides:\n\
-  \   - Dependency injection container (`lib/private/AppFramework/DependencyInjection/DIContainer.php`)\n\
-  \   - Application bootstrap coordinator (`lib/private/AppFramework/Bootstrap/Coordinator.php`)\n\
-  \   - Event dispatch system (`lib/private/EventDispatcher/EventDispatcher.php`)\n\
-  \   - Service container with app-scoped containers\n\n2. **Plugin Contract**: Apps\
-  \ implement `IBootstrap` interface (`lib/public/AppFramework/Bootstrap/IBootstrap.php`):\n\
-  \   ```php\n   interface IBootstrap {\n       public function register(IRegistrationContext\
-  \ $context): void;\n       public function boot(IBootContext $context): void;\n\
-  \   }\n   ```\n\n3. **Extension Points**: The `IRegistrationContext` (`lib/public/AppFramework/Bootstrap/IRegistrationContext.php`)\
-  \ defines registration methods for:\n   - Services, capabilities, event listeners,\
-  \ middleware\n   - Search providers, dashboard widgets, crash reporters\n   - Authentication\
-  \ providers, notification handlers, etc.\n\n4. **Dynamic App Loading**: Apps are\
-  \ discovered and loaded from `apps/` directory:\n   - Each app has `appinfo/info.xml`\
-  \ declaring metadata, dependencies, and extension points\n   - Apps can be enabled/disabled\
-  \ at runtime\n   - 31 bundled apps: files, settings, dav, federation, oauth2, etc.\n\
-  \n5. **Public API Contract**: `lib/public/` contains stable interfaces (`OCP\\`\
-  \ namespace) that apps depend on, insulating them from internal implementation changes.\n\
-  \n### Secondary: Layered\n\nWithin both the core and each app, a layered architecture\
-  \ is maintained:\n\n- **Controller Layer**: HTTP request handling (`Controller/`\
-  \ directories)\n- **Service Layer**: Business logic (`Service/` directories)  \n\
-  - **Data Layer**: Database access (`Db/`, `Mapper/` directories)\n\nExample from\
-  \ `apps/files/`:\n```\nController/ApiController.php → Service/TagService.php → Db/Mapper/\n\
-  ```\n\n### Secondary: Event-Driven\n\nThe system extensively uses events for decoupled\
-  \ communication:\n\n- `IEventDispatcher` interface for typed event dispatch\n- Apps\
-  \ register listeners via `$context->registerEventListener()`\n- Example: `apps/comments/lib/Activity/Listener.php`\
-  \ listens to `CommentsEvent` and publishes activities\n\n### What This Is NOT\n\n\
-  - **NOT Microservices**: Single monolithic deployment unit - all apps run in the\
-  \ same PHP process. No service boundaries, no separate deployment units, no network\
-  \ communication between components.\n\n- **NOT Hexagonal**: While there's a public\
-  \ API (`lib/public/`), the pattern is plugin extension rather than ports-and-adapters.\
-  \ Apps extend the core, they don't plug into application ports.\n\n- **NOT Domain-Driven\
-  \ Design**: No bounded contexts, aggregates, or ubiquitous language organization.\
-  \ Apps are feature modules, not domain contexts.\n\n### Summary\n\nNextcloud Server\
-  \ is a textbook example of a microkernel architecture: a stable core platform that\
-  \ exposes well-defined extension points, with apps as plugins that extend functionality.\
-  \ The layered organization within each component and the event-driven communication\
-  \ patterns reinforce the modularity and extensibility of the design."
+classification_confidence: 0.88
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Security
+- Extensibility
+- Reliability
+- Scalability
+- Maintainability
+- Observability
+- Portability
+one_line_summary: Bitwarden Server is a Service-Based architecture of independently deployed ASP.NET Core services (Api, Identity,
+  Billing, Notifications, Events, EventsProcessor, Icons, Admin, SSO, SCIM) sharing a single relational database via a shared
+  Core library, augmented by a two-tier event-driven integration pipeline over Azure Service Bus and RabbitMQ, and internally
+  structured around DDD bounded contexts with CQRS commands and queries.
+classification_reasoning: |
+  ## Architecture Analysis: Bitwarden Server
+
+  ### Primary Style: Service-Based
+
+  The solution contains ten independently deployable ASP.NET Core service entry
+  points, each with its own Dockerfile, Program.cs, and Startup.cs:
+
+  - `src/Api` — main REST API (vault, auth, billing, secrets manager, tools)
+  - `src/Identity` — OAuth2/OIDC token issuance via Duende IdentityServer
+  - `src/Billing` — Stripe/Braintree subscription lifecycle management
+  - `src/Notifications` — real-time WebSocket push via SignalR hubs
+  - `src/Events` — audit event ingestion REST endpoint
+  - `src/EventsProcessor` — background Azure Queue consumer / event drain
+  - `src/Icons` — favicon proxy service
+  - `src/Admin` — internal administration portal
+  - `bitwarden_license/src/Sso` — enterprise SSO (SAML/OIDC)
+  - `bitwarden_license/src/Scim` — SCIM 2.0 provisioning
+
+  Unlike Microservices, all services share a single logical database schema.
+  The `Core` library exposes repository interfaces (IUserRepository,
+  ICipherRepository, IOrganizationRepository, etc.) implemented by both
+  Infrastructure.Dapper and Infrastructure.EntityFramework. Every deployable
+  service wires these through `AddDatabaseRepositories(globalSettings)` in
+  SharedWeb/Utilities/ServiceCollectionExtensions.cs, connecting all processes
+  to the same SQL Server / PostgreSQL / MySQL / MariaDB schema. This
+  shared-database characteristic is the decisive indicator of Service-Based
+  rather than Microservices.
+
+  The `Core` project acts as the shared kernel: entity definitions, repository
+  interfaces, domain service interfaces (IUserService, IEventService,
+  IPushNotificationService, IApplicationCacheService), infrastructure-neutral
+  business logic, and all settings. All deployable services carry a
+  ProjectReference into Core (and optionally Commercial.Core). Hub-and-spoke
+  dependency on a common library is a hallmark of Service-Based architecture.
+
+  ### Co-Style: Event-Driven
+
+  The system uses two distinct async messaging layers:
+
+  **Audit Event Pipeline (Azure Queue)**
+  EventService calls IEventWriteService, implemented by
+  AzureQueueEventWriteService in the cloud configuration. This enqueues audit
+  events to Azure Storage Queue. The standalone EventsProcessor service polls
+  that queue via its AzureQueueHostedService and writes events to Azure Table
+  Storage or the database. The Notifications service has a parallel queue
+  consumer that relays messages to connected SignalR clients.
+
+  **Event Integration Pipeline (Azure Service Bus / RabbitMQ)**
+  When event integrations are enabled, EventIntegrationEventWriteService
+  publishes to a two-tier AMQP topology documented in
+  `src/Core/Dirt/EventIntegrations/README.md`:
+
+  - Tier 1 (Event Exchange/Topic): fan-out to EventRepositoryHandler
+    (persistence) and EventIntegrationHandler (per-integration routing).
+    Backed by Azure Service Bus (cloud) or RabbitMQ (self-hosted).
+  - Tier 2 (Integration Exchange/Topic): per-integration queues consumed by
+    SlackIntegrationHandler, WebhookIntegrationHandler,
+    DatadogIntegrationHandler, TeamsIntegrationHandler, HecIntegrationHandler.
+    Each returns IntegrationHandlerResult for retry/DLQ decisions, with
+    exponential backoff and jitter via RabbitMQ retry queues or delay plugin,
+    and Azure Service Bus native scheduled message delivery.
+
+  Azure Service Bus also drives cross-service cache invalidation:
+  InMemoryServiceBusApplicationCacheService publishes UpsertOrganizationAbility
+  and DeleteOrganizationAbility messages on a topic; every Api instance
+  subscribes and invalidates its local OrganizationAbility cache.
+
+  Infrastructure confirmed in dev/docker-compose.yml: rabbitmq, service-bus
+  (ASB emulator), storage (Azurite), redis.
+
+  ### Co-Style: Domain-Driven Design
+
+  src/Core is organized into explicit bounded contexts with Commands, Queries,
+  Repositories, Services, and Entities per domain:
+
+  - Auth — authentication, SSO, WebAuthn, emergency access, user keys
+  - AdminConsole — organizations, collections, groups, providers, policies
+  - Vault — ciphers, security tasks, cipher task notifications
+  - SecretsManager — machine accounts, projects, secrets
+  - KeyManagement — user key rotation, sends, Kdf management
+  - NotificationCenter — in-app notification entities
+  - Billing — subscriptions, licensing, tax
+  - Tools — password generator, send, import
+  - Dirt (Data Integrity, Reports & Telemetry) — audit events, integrations
+
+  Repository interfaces (ports) are defined in each bounded context; Dapper
+  and EF Core implementations in Infrastructure.Dapper and
+  Infrastructure.EntityFramework fulfill the contracts.
+
+  ### Co-Style: CQRS
+
+  Multiple bounded contexts apply explicit Command/Query separation without
+  MediatR: Core/Vault/Commands/ and Core/Vault/Queries/,
+  Core/AdminConsole/OrganizationFeatures/Organizations/ (CloudOrganizationSignUpCommand,
+  OrganizationDeleteCommand, BulkUpdateOrganizationSubscriptionsCommand, etc.),
+  Core/KeyManagement/Commands/ and /Queries/,
+  Core/SecretsManager/Commands/ and /Queries/,
+  Core/NotificationCenter/Commands/ and /Queries/.
+
+  This is a service-internal structural pattern, not a primary deployment-level
+  style, and is listed as a co-style rather than primary.
+
+  ### Rejected Styles
+
+  - Microservices: Services share a single relational schema; no
+    database-per-service ownership. The defining Microservices criterion is
+    not met.
+  - Modular Monolith: Multiple separately deployed Docker containers; not a
+    single deployable unit.
+  - Layered: Dominant organizing principle is bounded-context decomposition
+    and per-service deployment, not a horizontal tier stack.
+  - Hexagonal Architecture: Port/adapter patterns used tactically within
+    bounded contexts but do not define the primary framing of the system.
+  - Pipeline: EventsProcessor is a supporting queue drain component, not the
+    primary application topology.
+  - Microkernel: No plug-in host with extension registry. bitwarden_license
+    projects are conditional build references, not runtime plugins.
+  - Serverless: Services are long-running ASP.NET Core container processes.
+  - Space-Based: No distributed grid or tuple-space partitioning.
+  - Multi-Agent: No agent orchestration framework present.
+evidence_type: automated-discovery
+discovered_at: '2026-03-11T00:00:00Z'
+discovered_by: discover-architecture
+discovery_version: 1.0.0
+architecture_qualifiers:
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)

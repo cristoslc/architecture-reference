@@ -2,8 +2,8 @@ project_name: clean-architecture-manga
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/ivanpaulovich/clean-architecture-manga
-project_url: https://github.com/ivanpaulovich/clean-architecture-manga
+source_url: 'https://github.com/ivanpaulovich/clean-architecture-manga'
+project_url: 'https://github.com/ivanpaulovich/clean-architecture-manga'
 evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:29:20Z'
 discovered_by: discover-architecture
@@ -14,8 +14,6 @@ languages:
 - C#
 - JavaScript
 architecture_styles:
-- Hexagonal Architecture
-- Domain-Driven Design
 - Layered
 classification_status: classified
 classification_confidence: 0.97
@@ -28,30 +26,17 @@ quality_attributes:
 - evolvability
 - separation-of-concerns
 - observability
-one_line_summary: >-
-  Textbook Hexagonal Architecture (Ports and Adapters) reference implementation
-  for a virtual wallet domain in .NET 6, with DDD tactical patterns in the Domain
-  layer and feature-flag-swappable infrastructure adapters.
-classification_reasoning: >-
-  The repository is a deliberate, high-fidelity demonstration of Hexagonal Architecture
-  (Ports and Adapters). Evidence is explicit at every level: the README wiki names the
-  style and maps components to ports/adapters/left-side/right-side; the project reference
-  graph enforces the inward dependency rule structurally (Domain has zero project references,
-  Application references only Domain, Infrastructure references Application, WebApi wires
-  them together for DI); every use case exposes an IOutputPort for each output path and
-  receives driven ports by constructor injection; and test doubles (AccountRepositoryFake,
-  UnitOfWorkFake) swap in via feature flags without modifying any inner-layer code.
-
-  DDD tactical patterns (aggregate root Account, value objects Money/Currency/AccountId,
-  repository interface IAccountRepository in Domain, IAccountFactory) are genuinely applied
-  and documented in the README wiki under "Domain-Driven Design Patterns". These serve the
-  hexagonal structure rather than defining the overall architecture—no bounded contexts,
-  domain events, or CQRS split are present.
-
-  Layered Architecture is present as a structural secondary style due to the four-layer
-  horizontal separation (Domain / Application / Infrastructure / WebApi), but the dependency
-  inversion rule distinguishes this from classical layering.
-
-  No CQRS, no event-driven messaging, no microservices boundaries, and no microkernel
-  plugin structure were observed. The primary classification is Hexagonal Architecture
-  with high confidence (0.97).
+one_line_summary: Textbook Hexagonal Architecture (Ports and Adapters) reference implementation for a virtual wallet domain
+  in .NET 6, with DDD tactical patterns in the Domain layer and feature-flag-swappable infrastructure adapters.
+classification_reasoning: |-
+  The repository is a deliberate, high-fidelity demonstration of Hexagonal Architecture (Ports and Adapters). Evidence is explicit at every level: the README wiki names the style and maps components to ports/adapters/left-side/right-side; the project reference graph enforces the inward dependency rule structurally (Domain has zero project references, Application references only Domain, Infrastructure references Application, WebApi wires them together for DI); every use case exposes an IOutputPort for each output path and receives driven ports by constructor injection; and test doubles (AccountRepositoryFake, UnitOfWorkFake) swap in via feature flags without modifying any inner-layer code.
+  DDD tactical patterns (aggregate root Account, value objects Money/Currency/AccountId, repository interface IAccountRepository in Domain, IAccountFactory) are genuinely applied and documented in the README wiki under "Domain-Driven Design Patterns". These serve the hexagonal structure rather than defining the overall architecture—no bounded contexts, domain events, or CQRS split are present.
+  Layered Architecture is present as a structural secondary style due to the four-layer horizontal separation (Domain / Application / Infrastructure / WebApi), but the dependency inversion rule distinguishes this from classical layering.
+  No CQRS, no event-driven messaging, no microservices boundaries, and no microkernel plugin structure were observed. The primary classification is Hexagonal Architecture with high confidence (0.97).
+architecture_qualifiers:
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)

@@ -2,58 +2,43 @@ project_name: modular-monolith-with-ddd
 scope: application
 use_type: reference
 source: Discovered
-source_url: https://github.com/kgrzybek/modular-monolith-with-ddd
+source_url: 'https://github.com/kgrzybek/modular-monolith-with-ddd'
 domain: meeting-management
 language: csharp
 languages:
-  - csharp
-  - sql
+- csharp
+- sql
 architecture_styles:
-  - Modular Monolith
-  - Domain-Driven Design
-  - CQRS
-  - Event-Driven
-  - Hexagonal Architecture
-  - Layered
+- Modular Monolith
+- Event-Driven
+- Layered
 classification_status: classified
 classification_confidence: 0.99
 classification_method: deep-analysis
 classification_model: claude-sonnet-4-6
 classification_date: '2026-03-11'
 quality_attributes:
-  - modularity
-  - maintainability
-  - testability
-  - eventual-consistency
-  - deployability
-  - observability
-one_line_summary: >
-  A production-quality .NET reference application that runs five DDD Bounded
-  Contexts as autonomous modules in a single process, integrating them
-  asynchronously via an in-memory event bus with Outbox/Inbox guarantees and
-  applying CQRS within each module.
-classification_reasoning: >
-  The repository is the canonical reference implementation of the Modular
-  Monolith pattern in .NET. ADR-0002 explicitly mandates a single-process
-  deployment with maximum module autonomy (Modular Monolith). Five modules
-  (Meetings, Administration, Payments, Registrations, UserAccess) each expose
-  a Facade interface as their sole public API; direct cross-module type
-  references are prohibited by architecture tests. Domain-Driven Design
-  tactical patterns (Aggregates, Value Objects, Domain Events, Repositories,
-  Business Rules, Bounded Contexts) are applied throughout, backed by shared
-  BuildingBlocks. CQRS is implemented per ADR-0007: every module separates
-  Commands (4-layer Clean Architecture write path) from Queries (2-layer SQL
-  read path). Event-Driven integration between modules is implemented via an
-  InMemoryEventBus with Outbox/Inbox polling (Quartz.NET), achieving loose
-  coupling and eventual consistency (ADR-0014). The write path within each
-  module follows a Hexagonal / Clean Architecture ports-and-adapters model
-  enforced by NetArchTest architecture tests, with Domain layer dependencies
-  pointing inward only. The Payments module additionally applies Event Sourcing
-  via SqlStreamStore, making it the most advanced bounded context in the
-  codebase. Single-container Docker deployment (docker-compose.yml) and a
-  shared SQL Server (schema-per-module) confirm the monolith deployment
-  topology.
+- modularity
+- maintainability
+- testability
+- eventual-consistency
+- deployability
+- observability
+one_line_summary: |
+  A production-quality .NET reference application that runs five DDD Bounded Contexts as autonomous modules in a single process, integrating them asynchronously via an in-memory event bus with Outbox/Inbox guarantees and applying CQRS within each module.
+classification_reasoning: |
+  The repository is the canonical reference implementation of the Modular Monolith pattern in .NET. ADR-0002 explicitly mandates a single-process deployment with maximum module autonomy (Modular Monolith). Five modules (Meetings, Administration, Payments, Registrations, UserAccess) each expose a Facade interface as their sole public API; direct cross-module type references are prohibited by architecture tests. Domain-Driven Design tactical patterns (Aggregates, Value Objects, Domain Events, Repositories, Business Rules, Bounded Contexts) are applied throughout, backed by shared BuildingBlocks. CQRS is implemented per ADR-0007: every module separates Commands (4-layer Clean Architecture write path) from Queries (2-layer SQL read path). Event-Driven integration between modules is implemented via an InMemoryEventBus with Outbox/Inbox polling (Quartz.NET), achieving loose coupling and eventual consistency (ADR-0014). The write path within each module follows a Hexagonal / Clean Architecture ports-and-adapters model enforced by NetArchTest architecture tests, with Domain layer dependencies pointing inward only. The Payments module additionally applies Event Sourcing via SqlStreamStore, making it the most advanced bounded context in the codebase. Single-container Docker deployment (docker-compose.yml) and a shared SQL Server (schema-per-module) confirm the monolith deployment topology.
 evidence_type: automated-discovery
 discovered_at: '2026-03-11T00:00:00Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
+architecture_qualifiers:
+- type: design-approach
+  value: ddd
+  note: Domain-Driven Design approach (reclassified from style per ADR-006)
+- type: data-pattern
+  value: cqrs
+  note: Command-Query Responsibility Segregation pattern (reclassified from style per ADR-006)
+- type: design-approach
+  value: hexagonal
+  note: Hexagonal/Ports-and-Adapters design approach (reclassified from style per ADR-006)
