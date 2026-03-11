@@ -5,44 +5,39 @@ source: Discovered
 evidence_type: ecosystem-curation
 domain: Infrastructure
 architecture_styles:
-  - Microservices
+- Microservices
 architecture_qualifiers:
-  - type: proxy-topology
-    value: sidecar
-    protocol: xDS
+- type: proxy-topology
+  value: sidecar
+  protocol: xDS
 classification_status: classified
 classification_method: ecosystem-analysis
 classification_confidence: 0.93
-classification_date: '2026-03-10'
-one_line_summary: >-
-  Istio/Envoy Service Mesh — a control-plane/data-plane split where Istio
-  manages configuration and policy while Envoy proxies handle traffic.
+classification_date: '2026-03-11'
+one_line_summary: Istio/Envoy Service Mesh — a control-plane/data-plane split where Istio manages configuration and policy
+  while Envoy proxies handle traffic.
 member_repos:
-  - istio
-  - envoy
-emergent_architecture: >-
-  Service mesh with control-plane/data-plane separation. Istio (control
-  plane) manages traffic routing, security policy, and observability
-  configuration, distributing it to Envoy proxies (data plane) via the
-  xDS protocol (Envoy's discovery service APIs: LDS, RDS, CDS, EDS, SDS).
-  Envoy runs as a sidecar proxy alongside each application workload,
-  intercepting all network traffic. Istio's Pilot component translates
-  high-level routing rules (VirtualService, DestinationRule CRDs) into
-  Envoy-native configuration. The two components are developed by
-  different organizations (Google/Istio community vs Envoy/CNCF) and
-  deployed independently — Envoy can run without Istio, and Istio
-  historically supported other proxy implementations. The xDS protocol
-  is the integration contract: a gRPC-based API where Envoy subscribes
-  to configuration updates from the control plane. This composition
-  creates a Microservices infrastructure pattern with sidecar proxy
-  topology.
+- istio
+- envoy
+emergent_architecture: 'Service mesh with control-plane/data-plane separation. Istio (control plane) manages traffic routing,
+  security policy, and observability configuration, distributing it to Envoy proxies (data plane) via the xDS protocol (Envoy''s
+  discovery service APIs: LDS, RDS, CDS, EDS, SDS). Envoy runs as a sidecar proxy alongside each application workload, intercepting
+  all network traffic. Istio''s Pilot component translates high-level routing rules (VirtualService, DestinationRule CRDs)
+  into Envoy-native configuration. The two components are developed by different organizations (Google/Istio community vs
+  Envoy/CNCF) and deployed independently — Envoy can run without Istio, and Istio historically supported other proxy implementations.
+  The xDS protocol is the integration contract: a gRPC-based API where Envoy subscribes to configuration updates from the
+  control plane. This composition creates a Microservices infrastructure pattern with sidecar proxy topology.'
 composition_pattern: control-plane/data-plane via xDS protocol
-review_notes: >-
-  The Istio/Envoy mesh is architecturally significant because it
-  demonstrates how two independently developed repos compose into a
-  service mesh. Istio itself is a Modular Monolith (consolidated from
-  former microservices: Pilot, Citadel, Galley, Mixer into Istiod).
-  Envoy is a Layered + Microkernel proxy. The emergent pattern — sidecar
-  proxy mesh — is invisible at the single-repo level. The sidecar
-  qualifier (per ADR-006) captures the proxy topology that defines this
-  ecosystem's composition pattern.
+review_notes: 'The Istio/Envoy mesh is architecturally significant because it demonstrates how two independently developed
+  repos compose into a service mesh. Istio itself is a Modular Monolith (consolidated from former microservices: Pilot, Citadel,
+  Galley, Mixer into Istiod). Envoy is a Layered + Microkernel proxy. The emergent pattern — sidecar proxy mesh — is invisible
+  at the single-repo level. The sidecar qualifier (per ADR-006) captures the proxy topology that defines this ecosystem''s
+  composition pattern.'
+quality_attributes:
+- Security
+- Observability
+- Extensibility
+- Resilience
+- Traffic Control
+- Zero Trust
+classification_model: claude-opus-4-6

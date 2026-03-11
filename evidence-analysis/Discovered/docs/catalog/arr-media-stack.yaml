@@ -5,42 +5,37 @@ source: Discovered
 evidence_type: ecosystem-curation
 domain: Media Automation
 architecture_styles:
-  - Service-Based
+- Service-Based
 classification_status: classified
 classification_method: ecosystem-analysis
 classification_confidence: 0.91
-classification_date: '2026-03-10'
-one_line_summary: >-
-  *arr Media Stack — a Service-Based media automation platform where
-  Overseerr requests, Prowlarr indexes, Sonarr/Radarr/Lidarr manage
-  downloads, and each service owns its domain.
+classification_date: '2026-03-11'
+one_line_summary: '*arr Media Stack — a Service-Based media automation platform where Overseerr requests, Prowlarr indexes,
+  Sonarr/Radarr/Lidarr manage downloads, and each service owns its domain.'
 member_repos:
-  - overseerr
-  - Sonarr
-  - Radarr
-  - Prowlarr
-  - Lidarr
-emergent_architecture: >-
-  Service-Based media automation platform. Five independently deployed
-  services each own a media domain: Overseerr (request management and
-  user-facing portal), Prowlarr (indexer aggregation and search), Sonarr
-  (TV series lifecycle management), Radarr (movie lifecycle management),
-  and Lidarr (music lifecycle management). Each service maintains its own
-  SQLite/PostgreSQL database and runs as a separate process with its own
-  web UI. Integration follows a hub-and-spoke pattern: Overseerr sends
-  requests to Sonarr/Radarr via their REST APIs, Prowlarr pushes indexer
-  configurations to Sonarr/Radarr/Lidarr via their API endpoints, and
-  each *arr service independently manages its download clients (SABnzbd,
-  qBittorrent) and media libraries. The services communicate exclusively
-  via REST APIs with API key authentication — no shared database, no
-  message broker, no shared file system for state.
+- overseerr
+- Sonarr
+- Radarr
+- Prowlarr
+- Lidarr
+emergent_architecture: 'Service-Based media automation platform. Five independently deployed services each own a media domain:
+  Overseerr (request management and user-facing portal), Prowlarr (indexer aggregation and search), Sonarr (TV series lifecycle
+  management), Radarr (movie lifecycle management), and Lidarr (music lifecycle management). Each service maintains its own
+  SQLite/PostgreSQL database and runs as a separate process with its own web UI. Integration follows a hub-and-spoke pattern:
+  Overseerr sends requests to Sonarr/Radarr via their REST APIs, Prowlarr pushes indexer configurations to Sonarr/Radarr/Lidarr
+  via their API endpoints, and each *arr service independently manages its download clients (SABnzbd, qBittorrent) and media
+  libraries. The services communicate exclusively via REST APIs with API key authentication — no shared database, no message
+  broker, no shared file system for state.'
 composition_pattern: hub-and-spoke service integration via REST APIs
-review_notes: >-
-  The *arr stack is a textbook Service-Based architecture with 5 services,
-  each owning its domain. Individual member architectures are similar
-  (Layered + Event-Driven for Overseerr, Layered for Sonarr/Radarr/
-  Prowlarr/Lidarr). The emergent Service-Based pattern is only visible
-  at the ecosystem level — each repo is a self-contained monolith, but
-  together they form a coordinated media automation platform. This is
-  strong evidence for Service-Based architecture per SPIKE-001's finding
-  that Service-Based is underrepresented at 6.7% of single-repo entries.
+review_notes: 'The *arr stack is a textbook Service-Based architecture with 5 services, each owning its domain. Individual
+  member architectures are similar (Layered + Event-Driven for Overseerr, Layered for Sonarr/Radarr/ Prowlarr/Lidarr). The
+  emergent Service-Based pattern is only visible at the ecosystem level — each repo is a self-contained monolith, but together
+  they form a coordinated media automation platform. This is strong evidence for Service-Based architecture per SPIKE-001''s
+  finding that Service-Based is underrepresented at 6.7% of single-repo entries.'
+quality_attributes:
+- Extensibility
+- Modularity
+- Interoperability
+- Operability
+- Independence
+classification_model: claude-opus-4-6

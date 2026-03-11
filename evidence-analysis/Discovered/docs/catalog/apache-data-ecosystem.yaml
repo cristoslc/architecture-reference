@@ -5,46 +5,44 @@ source: Discovered
 evidence_type: ecosystem-curation
 domain: Data Processing
 architecture_styles:
-  - Pipeline
-  - Event-Driven
+- Pipeline
+- Event-Driven
 classification_status: classified
 classification_method: ecosystem-analysis
 classification_confidence: 0.93
-classification_date: '2026-03-10'
-one_line_summary: >-
-  Apache Data Ecosystem — a Pipe-and-Filter data processing platform where
-  Kafka ingests, Flink/Spark transform, Airflow orchestrates, and NiFi
-  routes data between stages.
+classification_date: '2026-03-11'
+one_line_summary: Apache Data Ecosystem — a Pipe-and-Filter data processing platform where Kafka ingests, Flink/Spark transform,
+  Airflow orchestrates, and NiFi routes data between stages.
 member_repos:
-  - kafka
-  - flink
-  - spark
-  - airflow
-  - nifi
-emergent_architecture: >-
-  Pipe-and-Filter data processing pipeline with Event-Driven ingestion.
-  Kafka serves as the central event backbone — a distributed commit log
-  that decouples producers from consumers via topic-based pub/sub. Flink
-  and Spark consume from Kafka topics as stream processors (filter stages),
-  applying transformations, aggregations, and windowed computations. Airflow
-  orchestrates batch and scheduled workflows, defining DAGs that coordinate
-  Spark jobs and Flink pipelines. NiFi handles data routing and
-  transformation at the edge, ingesting from heterogeneous sources and
-  delivering to Kafka or directly to downstream systems. Each component
-  communicates via well-defined protocols: Kafka's binary protocol for
-  streaming, REST/Thrift APIs for job submission (Flink, Spark), and NiFi's
-  FlowFile abstraction for data routing. The composition forms a classic
-  pipeline where data flows through collection, ingestion, transformation,
-  and orchestration stages.
+- kafka
+- flink
+- spark
+- airflow
+- nifi
+emergent_architecture: 'Pipe-and-Filter data processing pipeline with Event-Driven ingestion. Kafka serves as the central
+  event backbone — a distributed commit log that decouples producers from consumers via topic-based pub/sub. Flink and Spark
+  consume from Kafka topics as stream processors (filter stages), applying transformations, aggregations, and windowed computations.
+  Airflow orchestrates batch and scheduled workflows, defining DAGs that coordinate Spark jobs and Flink pipelines. NiFi handles
+  data routing and transformation at the edge, ingesting from heterogeneous sources and delivering to Kafka or directly to
+  downstream systems. Each component communicates via well-defined protocols: Kafka''s binary protocol for streaming, REST/Thrift
+  APIs for job submission (Flink, Spark), and NiFi''s FlowFile abstraction for data routing. The composition forms a classic
+  pipeline where data flows through collection, ingestion, transformation, and orchestration stages.'
 composition_pattern: stage pipeline with event backbone
-review_notes: >-
-  The Apache data ecosystem is the canonical example of large-scale
-  Pipe-and-Filter at the ecosystem level. Each member is independently
-  deployed and horizontally scalable. Kafka (Modular Monolith + Microkernel)
-  provides the event backbone, Flink (Layered) processes streams, Spark
-  (Modular Monolith) handles batch/stream processing, Airflow (Modular
-  Monolith + Microkernel) orchestrates workflows, and NiFi (Microkernel)
-  routes data. The emergent Pipeline pattern is invisible when analyzing
-  any single repo — it only appears when examining how these components
-  compose via Kafka topics, Flink source/sink connectors, and Airflow
-  operators.
+review_notes: The Apache data ecosystem is the canonical example of large-scale Pipe-and-Filter at the ecosystem level. Each
+  member is independently deployed and horizontally scalable. Kafka (Modular Monolith + Microkernel) provides the event backbone,
+  Flink (Layered) processes streams, Spark (Modular Monolith) handles batch/stream processing, Airflow (Modular Monolith +
+  Microkernel) orchestrates workflows, and NiFi (Microkernel) routes data. The emergent Pipeline pattern is invisible when
+  analyzing any single repo — it only appears when examining how these components compose via Kafka topics, Flink source/sink
+  connectors, and Airflow operators.
+quality_attributes:
+- Scalability
+- Throughput
+- Extensibility
+- Fault Tolerance
+- Interoperability
+- Evolvability
+classification_model: claude-opus-4-6
+architecture_qualifiers:
+- type: data-pattern
+  value: event-sourcing
+  note: Kafka commit log as event backbone for the entire data pipeline

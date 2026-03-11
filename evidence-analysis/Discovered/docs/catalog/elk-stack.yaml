@@ -5,36 +5,34 @@ source: Discovered
 evidence_type: ecosystem-curation
 domain: Observability
 architecture_styles:
-  - Pipeline
+- Pipeline
 classification_status: classified
 classification_method: ecosystem-analysis
 classification_confidence: 0.95
-classification_date: '2026-03-10'
-one_line_summary: >-
-  Elastic Stack (ELK) — a Pipe-and-Filter data pipeline where Beats
-  collects, Logstash transforms, Elasticsearch indexes/stores, and Kibana
-  visualizes.
+classification_date: '2026-03-11'
+one_line_summary: Elastic Stack (ELK) — a Pipe-and-Filter data pipeline where Beats collects, Logstash transforms, Elasticsearch
+  indexes/stores, and Kibana visualizes.
 member_repos:
-  - elasticsearch
-  - kibana
-  - logstash
-  - beats
-emergent_architecture: >-
-  Pipe-and-Filter data pipeline. Each component is a stage: Beats
-  (lightweight data shippers) collect metrics/logs at the edge, Logstash
-  (transformation engine) parses, enriches, and routes data through
-  configurable filter pipelines, Elasticsearch (search/analytics engine)
-  indexes and stores the processed data, and Kibana (visualization
-  platform) queries Elasticsearch to render dashboards and alerts. Data
-  flows unidirectionally through the stages, with each component
-  independently deployable and horizontally scalable.
+- elasticsearch
+- kibana
+- logstash
+- beats
+emergent_architecture: 'Pipe-and-Filter data pipeline. Each component is a stage: Beats (lightweight data shippers) collect
+  metrics/logs at the edge, Logstash (transformation engine) parses, enriches, and routes data through configurable filter
+  pipelines, Elasticsearch (search/analytics engine) indexes and stores the processed data, and Kibana (visualization platform)
+  queries Elasticsearch to render dashboards and alerts. Data flows unidirectionally through the stages, with each component
+  independently deployable and horizontally scalable.'
 composition_pattern: stage pipeline
-review_notes: >-
-  The ELK stack is the canonical example of Pipe-and-Filter at the
-  ecosystem scale. Each member repo is a self-contained application with
-  its own architecture (Elasticsearch is Microkernel, Kibana is
-  Microkernel + Layered, Logstash is Pipeline + Microkernel, Beats is
-  Pipeline + Layered), but the composition forms a clear data processing
-  pipeline. The stages communicate via well-defined protocols: Beats
-  ships via Lumberjack/HTTP, Logstash outputs via Elasticsearch bulk API,
-  Kibana reads via Elasticsearch query API.
+review_notes: 'The ELK stack is the canonical example of Pipe-and-Filter at the ecosystem scale. Each member repo is a self-contained
+  application with its own architecture (Elasticsearch is Microkernel, Kibana is Microkernel + Layered, Logstash is Pipeline
+  + Microkernel, Beats is Pipeline + Layered), but the composition forms a clear data processing pipeline. The stages communicate
+  via well-defined protocols: Beats ships via Lumberjack/HTTP, Logstash outputs via Elasticsearch bulk API, Kibana reads via
+  Elasticsearch query API.'
+quality_attributes:
+- Scalability
+- Extensibility
+- Observability
+- Throughput
+- Interoperability
+- Operability
+classification_model: claude-opus-4-6

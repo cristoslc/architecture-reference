@@ -5,42 +5,40 @@ source: Discovered
 evidence_type: ecosystem-curation
 domain: Workflow Orchestration
 architecture_styles:
-  - Service-Based
+- Service-Based
 classification_status: classified
 classification_method: ecosystem-analysis
 classification_confidence: 0.91
-classification_date: '2026-03-10'
-one_line_summary: >-
-  Temporal Platform — a Service-Based workflow runtime where the Temporal
-  server orchestrates durable workflows and language-specific SDKs
-  execute worker activities.
+classification_date: '2026-03-11'
+one_line_summary: Temporal Platform — a Service-Based workflow runtime where the Temporal server orchestrates durable workflows
+  and language-specific SDKs execute worker activities.
 member_repos:
-  - temporal
-  - sdk-go
-emergent_architecture: >-
-  Service-Based workflow runtime with client SDK separation. The Temporal
-  server is the central orchestration service — it manages workflow state,
-  task queues, timers, and visibility (search/query). It exposes a gRPC
-  API that SDKs connect to for workflow registration, task polling, and
-  state reporting. The Go SDK (sdk-go) implements the worker runtime:
-  it polls the server for tasks, executes workflow and activity code
-  locally, and reports results back via gRPC. The server and SDK are
-  developed independently with separate release cycles. The integration
-  contract is the Temporal gRPC API (defined in a separate proto repo)
-  — workers connect to the server's frontend service, poll task queues,
-  and communicate workflow state transitions. The server internally runs
-  as 4 services (frontend, history, matching, worker) sharing a
-  persistence layer, while SDK workers run in user-space alongside
-  application code. This separation of orchestration (server) from
-  execution (SDK workers) creates a Service-Based architecture.
+- temporal
+- sdk-go
+emergent_architecture: 'Service-Based workflow runtime with client SDK separation. The Temporal server is the central orchestration
+  service — it manages workflow state, task queues, timers, and visibility (search/query). It exposes a gRPC API that SDKs
+  connect to for workflow registration, task polling, and state reporting. The Go SDK (sdk-go) implements the worker runtime:
+  it polls the server for tasks, executes workflow and activity code locally, and reports results back via gRPC. The server
+  and SDK are developed independently with separate release cycles. The integration contract is the Temporal gRPC API (defined
+  in a separate proto repo) — workers connect to the server''s frontend service, poll task queues, and communicate workflow
+  state transitions. The server internally runs as 4 services (frontend, history, matching, worker) sharing a persistence
+  layer, while SDK workers run in user-space alongside application code. This separation of orchestration (server) from execution
+  (SDK workers) creates a Service-Based architecture.'
 composition_pattern: orchestration server with worker SDK clients
-review_notes: >-
-  Temporal's ecosystem demonstrates Service-Based architecture where
-  the server provides durable workflow orchestration and SDKs provide
-  worker runtimes. The server (Modular Monolith internally with 4
-  internal services) exposes the platform capability, while the SDK
-  enables user code to participate in the workflow. Additional SDKs
-  exist for Java, TypeScript, and Python but are not yet in the catalog.
-  The emergent Service-Based pattern appears in the server/worker
-  separation — the SDK isn't just a client library but runs a full
-  worker runtime that polls, executes, and reports independently.
+review_notes: 'Temporal''s ecosystem demonstrates Service-Based architecture where the server provides durable workflow orchestration
+  and SDKs provide worker runtimes. The server (Modular Monolith internally with 4 internal services) exposes the platform
+  capability, while the SDK enables user code to participate in the workflow. Additional SDKs exist for Java, TypeScript,
+  and Python but are not yet in the catalog. The emergent Service-Based pattern appears in the server/worker separation —
+  the SDK isn''t just a client library but runs a full worker runtime that polls, executes, and reports independently.'
+quality_attributes:
+- Durability
+- Reliability
+- Scalability
+- Observability
+- Extensibility
+- Consistency
+classification_model: claude-opus-4-6
+architecture_qualifiers:
+- type: data-pattern
+  value: event-sourcing
+  note: Workflow state reconstructed from append-only history event log
