@@ -1,7 +1,7 @@
 ---
 title: "Competing in an Architecture Kata"
 artifact: JOURNEY-001
-status: Draft
+status: Abandoned
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -92,3 +92,4 @@ journey
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | 6883447 | Initial creation — derived from dataset analysis and reference library structure |
+| Abandoned | 2026-03-11 | — | Not relevant to VISION-001 direction |

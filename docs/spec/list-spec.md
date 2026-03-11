@@ -26,6 +26,12 @@
 | SPEC-028 | Reference Library Ecosystem Integration | Update reference docs with ecosystem evidence alongside single-repo evidence. Depends on SPEC-026, SPEC-027. | 2026-03-10 | 89b29a7c |
 | SPEC-031 | Full Catalog Reclassification | Reclassify all 195 entries via ADR-005/ADR-006-compliant pipeline, produce dual output (report + catalog entry). 184 sonnet deep-analysis + 11 ecosystem updates. Parent: EPIC-013. | 2026-03-11 | 62aefe43 |
 
+## Approved
+
+| ID | Title | Summary | Last Updated | Commit |
+|----|-------|---------|--------------|--------|
+| SPEC-029 | Catalog Entry Schema Validation | Validate catalog-entry.template.j2 against SPEC-003 requirements, create machine-readable schema, test dual output. Parent: EPIC-013. | 2026-03-11 | — |
+
 ## Active
 
 (No active specs.)
@@ -35,7 +41,6 @@
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | SPEC-003 | Comparative Analysis Engine | Compare a user's repo architecture against the expanded catalog, generating evidence-grounded comparison reports. Depends on SPEC-002, ADR-005. | 2026-03-10 | — |
-| SPEC-029 | Catalog Entry Schema Validation | Validate catalog-entry.template.j2 against SPEC-003 requirements, create machine-readable schema, test dual output. Parent: EPIC-013. | 2026-03-10 | — |
 | SPEC-030 | Pipeline Runtime Prompt Assembly | Refactor classify-tooluse.sh to read discover skill files at runtime instead of standalone prompts. Depends on SPEC-029. Parent: EPIC-013. | 2026-03-10 | — |
 | SPEC-032 | Legacy Pipeline Retirement | Remove deprecated prompts, parsers, and scripts per ADR-002/003/005. Depends on SPEC-030. Parent: EPIC-013. | 2026-03-10 | — |
 

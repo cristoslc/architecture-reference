@@ -1,7 +1,7 @@
 ---
 title: "The Kata Competitor"
 artifact: PERSONA-001
-status: Draft
+status: Abandoned
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03
@@ -54,3 +54,4 @@ Accesses the reference library during the 1-2 week kata preparation window. Need
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | 6883447 | Initial creation — hypothesized from dataset analysis, not yet validated via user research |
+| Abandoned | 2026-03-11 | — | Not relevant to VISION-001 direction |
