@@ -17,79 +17,84 @@ architecture_styles:
 - Modular Monolith
 - Domain-Driven Design
 classification_status: classified
-review_notes: 'This repository identifies as a **Modular Monolith**. While it leverages
-  modern cloud-native tooling (specifically .NET Aspire), the core architectural pattern
-  is a single deployable unit (the `Playground.Api` or user-defined host) that dynamically
-  loads and composes self-contained modules.
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- maintainability
+- modularity
+- testability
+- observability
+- multi-tenancy
+- extensibility
+one_line_summary: >-
+  A .NET 10 production-grade SaaS starter kit structured as a single-host Modular Monolith with
+  DDD bounded contexts (Identity, Multitenancy, Auditing), enforced via NetArchTest architecture
+  guardrails and a reflection-based module loader.
+classification_reasoning: |
+  ## Analysis
 
+  The **dotnet-starter-kit** is a **Modular Monolith** with deep **Domain-Driven Design** foundations.
 
-  ### Evidence of Modular Monolith
+  ### Primary Classification: Modular Monolith
 
-  The codebase is structured to solve the "Big Ball of Mud" problem while maintaining
-  the deployment simplicity of a monolith:
+  1. **Single deployable unit.** `Playground.Api/Program.cs` has one `WebApplication.CreateBuilder` call
+     that loads all module assemblies and maps all endpoints. There is no separate deployment artifact
+     per module and no inter-process communication between modules.
 
-  - **Module Separation**: The `src/Modules` directory contains independent modules
-  like `Identity`, `Multitenancy`, and `Auditing`. These are separated into implementation
-  projects and `Contracts` projects to manage cross-module dependencies.
+  2. **Reflection-based module loader** (`src/BuildingBlocks/Web/Modules/ModuleLoader.cs`):
+     - Discovers modules via `[assembly: FshModule(typeof(IdentityModule), 100)]` attributes
+     - Instantiates via `Activator.CreateInstance`, calls `ConfigureServices` then `MapEndpoints`
+     - Canonical Modular Monolith plugin-host pattern
 
-  - **Dynamic Loading**: The README and `src/BuildingBlocks/Web/Modules` indicate
-  a "module loader" pattern. The host calls `builder.AddModules(moduleAssemblies)`
-  and `app.UseHeroPlatform(p => p.MapModules = true)` to wire up endpoints and services
-  from these isolated projects at runtime.
+  3. **Architecture tests enforce module isolation** (`src/Tests/Architecture.Tests/ModuleArchitectureTests.cs`):
+     - Scans `.csproj` files and asserts no module runtime project references another module runtime project
+     - Only contracts or BuildingBlocks cross-references allowed
 
-  - **Enforced Boundaries**: The presence of `src/Tests/Architecture.Tests` (specifically
-  `ModuleArchitectureTests.cs` and `LayerDependencyTests.cs`) is a hallmark of a Modular
-  Monolith, using tools like NetArchTest to programmatically prevent illegal imports
-  between modules.
+  4. **Contracts/implementation split per module:**
+     - `Modules.Identity.Contracts` — pure DTOs, commands/queries, integration event interfaces
+     - `Modules.Identity` — features, persistence, domain, services
+     - `ContractsPurityTests.cs` asserts contracts have zero dependency on EF Core, FluentValidation, Hangfire, or module implementations
 
+  5. **Layer dependency tests** (`LayerDependencyTests.cs`) enforce:
+     - `BuildingBlocks.Core` has no EF Core or ASP.NET Core dependency
+     - Domain types inside modules have no persistence or infrastructure dependency
+     - Feature handlers have no direct `HttpContext` or MVC dependency
 
-  ### Evidence of Domain-Driven Design (DDD)
+  6. **In-process cross-module communication via IEventBus:**
+     - Default: `InMemoryEventBus` (in-process)
+     - Optional: `RabbitMqEventBus` (same interface, pluggable)
+     - Outbox/Inbox pattern backed by EF Core for idempotency
+     - Modules communicate only through each other's `IIntegrationEvent` contracts
 
-  The internal structure of the building blocks and modules follows tactical DDD patterns:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:12:12Z'
-classification_reasoning: "## Analysis\n\nThe **dotnet-starter-kit** is a **Modular\
-  \ Monolith** with strong **Domain-Driven Design** influences.\n\n### Primary Classification:\
-  \ Modular Monolith\n\n**Evidence for enforced internal module boundaries:**\n\n\
-  1. **Single Deployable Unit**: One API host (`Playground.Api`) loads all modules\
-  \ at runtime. The solution has no separate deployment artifacts per module.\n\n\
-  2. **Module Discovery & Loading Plugin System** (`src/BuildingBlocks/Web/Modules/ModuleLoader.cs`):\n\
-  \   - Runtime discovery via reflection scanning `FshModuleAttribute`\n   - Modules\
-  \ self-register: `[assembly: FshModule(typeof(IdentityModule), 100)]`\n   - Standardized\
-  \ lifecycle: `IModule` interface with `ConfigureServices()` and `MapEndpoints()`\n\
-  \n3. **Architecture Tests Enforce Module Isolation** (`src/Tests/Architecture.Tests/ModuleArchitectureTests.cs`):\n\
-  \   ```csharp\n   // Module runtime project must not reference other module runtime\
-  \ project. \n   // Only contracts or building block projects are allowed.\n   isSelfReference.ShouldBeTrue($\"\
-  Module runtime project '{currentName}' must not reference...\");\n   ```\n\n4. **Contracts\
-  \ Pattern**: Each module has two projects:\n   - `Modules.Identity.Contracts` —\
-  \ pure DTOs, interfaces, events (no EF, Hangfire, or implementation deps)\n   -\
-  \ `Modules.Identity` — implementation, features, infrastructure\n   - `ContractsPurityTests.cs`\
-  \ enforces contracts remain free of infrastructure concerns\n\n5. **Module-to-Module\
-  \ Communication via Contracts Only**: Modules depend on each other's contracts,\
-  \ never implementations.\n\n### Secondary Classification: Domain-Driven Design\n\
-  \n**Evidence:**\n\n1. **Aggregate Roots & Entities** (`src/BuildingBlocks/Core/Domain/`):\n\
-  \   - `AggregateRoot<TId>`, `BaseEntity<TId>` with domain event support\n   - `IDomainEvent`,\
-  \ `IHasDomainEvents` interfaces\n\n2. **Bounded Contexts as Modules**: Identity,\
-  \ Multitenancy, and Auditing are separate bounded contexts, each with:\n   - Own\
-  \ DbContext (`IdentityDbContext`, `TenantDbContext`, `AuditDbContext`)\n   - Own\
-  \ domain models (`FshUser`, `FshRole`, `Tenant`, `Audit`)\n   - Own feature slices\n\
-  \n3. **Vertical Slice Features**: Each use case organized as self-contained folder:\n\
-  \   ```\n   Features/v1/Users/RegisterUser/\n     ├── RegisterUserEndpoint.cs\n\
-  \     ├── RegisterUserCommandHandler.cs\n     └── RegisterUserCommandValidator.cs\n\
-  \   ```\n\n4. **Layered Dependency Enforcement** (`src/Tests/Architecture.Tests/LayerDependencyTests.cs`):\n\
-  \   - Tests enforce \"Domain → Application → Infrastructure → Presentation\" flow\n\
-  \   - Core must not depend on EF Core or ASP.NET Core\n   - Domain types isolated\
-  \ from persistence and infrastructure\n\n### What This Is NOT\n\n- **NOT Microservices**:\
-  \ Single deployable, shared process, no inter-service communication protocols\n\
-  - **NOT Hexagonal Architecture**: Organization is around modules/bounded contexts,\
-  \ not ports/adapters isolation\n- **NOT Event-Driven (primary)**: Eventing exists\
-  \ (`IIntegrationEvent`, `InMemoryEventBus`, `RabbitMqEventBus`) but serves as cross-module\
-  \ communication within the monolith, not the primary architectural driver\n\n###\
-  \ Architecture Test Suite\n\nThe repository includes comprehensive architecture\
-  \ guardrails (13+ test files) that validate:\n- Module independence (`ModuleArchitectureTests.cs`)\n\
-  - Layer dependencies (`LayerDependencyTests.cs`)\n- Contracts purity (`ContractsPurityTests.cs`)\n\
-  - Feature version isolation (`FeatureArchitectureTests.cs`)\n- Building block independence\
-  \ (`BuildingBlocksIndependenceTests.cs`)"
+  ### Secondary Classification: Domain-Driven Design
+
+  1. **DDD primitives** (`src/BuildingBlocks/Core/Domain/`):
+     - `AggregateRoot<TId>`, `BaseEntity<TId>` with `IHasDomainEvents`
+     - `IDomainEvent`, `DomainEvent` base record
+     - `DomainEventsInterceptor` (EF Core `SaveChangesInterceptor`) dispatches domain events post-save via Mediator
+
+  2. **Bounded contexts as modules:** Identity, Multitenancy, Auditing each have own `DbContext`,
+     own domain model, own feature slices, own event definitions
+
+  3. **Domain events translated to integration events:**
+     - `UserRegisteredEvent` (domain) → `UserRegisteredIntegrationEvent` (integration, published via `IEventBus`)
+     - Handlers like `UserRegisteredEmailHandler` consume integration events without module coupling
+
+  4. **Vertical slice feature organization:**
+     - `Features/v1/Users/RegisterUser/` contains endpoint, command handler, and validator in one folder
+
+  5. **Specification pattern** (`BuildingBlocks/Persistence/Specifications/`):
+     - `Specification<T>`, `SpecificationEvaluator` for encapsulating query logic
+
+  6. **Mediator pipeline** with `ValidationBehavior<TMessage, TResponse>` applying FluentValidation
+     as a cross-cutting application layer concern
+
+  ### What This Is NOT
+
+  - **NOT Microservices:** single deployable, shared process, no inter-service network calls
+  - **NOT Hexagonal Architecture (primary):** organized around bounded contexts/modules, not ports/adapters rings
+  - **NOT Event-Driven (primary):** eventing is a supporting cross-module mechanism, not the primary processing driver
+  - **NOT CQRS (separate models):** commands and queries use the same EF Core DbContext; no segregated read store
+  - **NOT Microkernel:** modules are compiled into the host, not independently deployed plugins

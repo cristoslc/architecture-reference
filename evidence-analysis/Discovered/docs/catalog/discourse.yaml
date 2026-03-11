@@ -3,104 +3,107 @@ scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/discourse/discourse
-project_url: https://github.com/discourse/discourse
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:32:24Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: Social Media
+domain: Community Platform
 language: Ruby
 languages:
 - Ruby
 - JavaScript
+- TypeScript
 architecture_styles:
 - Microkernel
 - Layered
 classification_status: classified
-review_notes: 'Discourse is a definitive example of a **Microkernel (Plugin)** architecture
-  built on top of a classic **Layered** Rails foundation. While it follows the standard
-  Ruby on Rails directory conventions (controllers, models, views), its defining architectural
-  trait is the robust, high-surface-area plugin system that allows the core "kernel"
-  to be extended without modifying the base codebase.
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- extensibility
+- maintainability
+- scalability
+- reliability
+- modifiability
+- security
+- observability
+one_line_summary: Community forum platform built on a Microkernel plugin system atop a Layered Rails core, where 43+ plugins deliver major features (chat, AI, polls) through ~172 formal extension hooks without touching core source.
+classification_reasoning: |
+  ## Analysis
 
+  Discourse is a Ruby on Rails community/forum platform whose primary architectural expression is the **Microkernel (Plugin)** style, with **Layered** as a clear and deliberate secondary style.
 
-  ### 1. Microkernel (Plugin) Evidence
+  ### Primary Style: Microkernel (Plugin)
 
-  The architecture is designed to keep the core "Discourse" engine stable while delegating
-  significant features (Chat, AI, Polls, Calendar) to independent plugins.
+  The plugin system is the dominant organizational principle, not a convenience mechanism:
 
-  *   **Plugin Registry:** `lib/discourse_plugin_registry.rb` and `lib/plugin.rb`
-  act as the central dispatchers. These manage "hooks" or "events" (`lib/discourse_event.rb`)
-  that the core system fires, allowing plugins to inject logic into the lifecycle.
+  **Plugin API Surface** (`lib/plugin/instance.rb`):
+  - 1,662-line `Plugin::Instance` class with 172+ named registration methods
+  - Methods include `register_asset`, `add_to_serializer`, `add_admin_route`, `register_modifier`, `after_initialize`, `reloadable_patch`, `register_locale`, `register_svg_icon`, and ~165 more
+  - Each hook is a formal, named extension point the core fires and plugins subscribe to
 
-  *   **Sandboxed Data Storage:** `app/models/plugin_store.rb` provides a key-value
-  abstraction for plugins to persist data in a standard way (`PluginStoreRow`) without
-  needing to manage their own migrations for every small piece of state, effectively
-  isolating the plugin''s data concerns from the core schema.
+  **Plugin Registry** (`lib/discourse_plugin_registry.rb`):
+  - `define_register` / `define_filtered_register` class macros generate typed, plugin-aware registers
+  - Filtered registers enforce `plugin.enabled?` at every lookup — runtime enable/disable with no rebuild
+  - Covers auth providers, javascripts, stylesheets, custom fields, reviewable types, and more
 
-  *   **Dynamic Loading:** `config/application.rb` shows a complex initialization
-  sequence where plugins are activated (`Discourse.activate_plugins!`) and can even
-  register their own setting providers (`register_provider.rb`) and locales.
+  **Event Bus** (`lib/discourse_event.rb`):
+  - `DiscourseEvent.on(:event_name) { }` / `DiscourseEvent.trigger(:event_name, ...)` pub/sub
+  - 102+ trigger sites in app/ — core fires events, plugins subscribe to inject cross-cutting logic
 
-  *   **Extensive Plugin Ecosystem:** The `plugins/` directory contains dozens of
-  substantial modules (e.g., `discourse-ai`, `chat`) which are structured to be toggled
-  on/off.
+  **Plugin Bootstrap** (`config/application.rb`):
+  - Plugin activation is a first-class initialization concern (`Discourse.activate_plugins!`)
+  - Plugins can register custom setting providers before main boot via `register_provider.rb`
 
+  **Scale of Feature Delivery via Plugins** (`plugins/`):
+  - 43 bundled plugins (chat, discourse-ai, poll, automation, calendar, gamification, etc.)
+  - 85 official external plugins listed in `config/official_plugins.json`
+  - Major product features — real-time chat, AI assistant, polls, calendar — live entirely in plugins with their own `app/`, `lib/`, `db/`, `config/` structures and database migrations
+  - Plugin activation/deactivation is an admin site-setting toggle, not a deployment event
 
-  ### 2. Layered Architecture (Foundation)'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:05:58Z'
-classification_reasoning: "## Analysis\n\nDiscourse is a **Ruby on Rails forum/community\
-  \ platform** with a sophisticated plugin architecture as its primary organizational\
-  \ pattern.\n\n### Primary Style: Microkernel (Plugin)\n\nThe repository exhibits\
-  \ strong evidence of a Microkernel/Plugin architecture:\n\n**Plugin Discovery and\
-  \ Loading** (`lib/plugin/instance.rb`):\n- 1,654-line `Plugin::Instance` class with\
-  \ 172+ registration methods\n- `Plugin::Instance.find_all(parent_path)` discovers\
-  \ plugins via `plugin.rb` files in subdirectories\n- `Plugin::Metadata.parse(source)`\
-  \ extracts plugin metadata from plugin.rb files\n\n**Plugin Extension Points** -\
-  \ The plugin API allows extensions to:\n- `register_asset` / `register_svg_icon`\
-  \ / `register_locale` - Add assets, icons, translations\n- `add_to_serializer` -\
-  \ Extend API response serializers\n- `add_admin_route` - Add admin UI routes\n-\
-  \ `register_modifier` - Register behavior modifiers\n- `after_initialize` / `reloadable_patch`\
-  \ - Hook into Rails initialization and monkey-patch core classes\n\n**Plugin Directory\
-  \ Structure** (`plugins/`):\n- 43 official plugins bundled in the repository (chat,\
-  \ discourse-ai, discourse-assign, etc.)\n- Each plugin has standardized structure:\
-  \ `plugin.rb`, `config/routes.yml`, `config/settings.yml`, `app/`, `lib/`, `db/`\n\
-  \n**Plugin Integration Example** (`plugins/chat/plugin.rb` lines 100-115):\n```ruby\n\
-  reloadable_patch do |plugin|\n  Guardian.prepend Chat::GuardianExtensions\n  UserNotifications.prepend\
-  \ Chat::UserNotificationsExtension\n  Category.prepend Chat::CategoryExtension\n\
-  \  Reviewable.prepend Chat::ReviewableExtension\n  # ... more extensions\nend\n\
-  ```\n\n**Plugin Registry** (`lib/discourse_plugin_registry.rb`):\n- `define_register`\
-  \ / `define_filtered_register` for registration hooks\n- Filters registered values\
-  \ by plugin enabled state: `filter_map { |h| h[:value] if h[:plugin].enabled? }`\n\
-  - Supports auth providers, javascripts, stylesheets, custom fields, reviewable types,\
-  \ etc.\n\n**Plugin Enable/Disable** via site settings:\n- `enabled_site_setting\
-  \ :chat_enabled` in plugin.rb creates toggle\n- Plugins check `plugin.enabled?`\
-  \ to conditionally include functionality\n\n### Secondary Style: Layered (Rails\
-  \ MVC)\n\nThe core application follows standard Rails layered architecture:\n\n\
-  - **Controllers** (86 files in `app/controllers/`): Handle HTTP requests, authentication,\
-  \ request/response\n- **Services** (60+ files in `app/services/`): Business logic\
-  \ layer (e.g., `post_alerter.rb`, `search_indexer.rb`, `badge_granter.rb`)\n- **Models**\
-  \ (279 files in `app/models/`): ActiveRecord domain models and data access\n- **Serializers**\
-  \ (219 files in `app/serializers/`): API response formatting\n- **Jobs** (`app/jobs/`\
-  \ with `regular/`, `scheduled/`, `onceoff/`): Background processing via Sidekiq\n\
-  \n### What Was Rejected\n\n**Not Microservices**: Single Rails application with\
-  \ one Gemfile, one database. All 43 plugins load into the same process; they're\
-  \ not separate deployable units.\n\n**Not Serverless**: Standard Rails deployment\
-  \ (Unicorn/Puma web servers) with Sidekiq workers, not Lambda/functions.\n\n**Not\
-  \ Event-Driven (primary)**: While the system uses Sidekiq jobs and MessageBus for\
-  \ real-time features, these are implementation details within a layered architecture,\
-  \ not the primary organizational pattern.\n\n**Not CQRS**: Standard ActiveRecord\
-  \ patterns for both reads and writes with no separate read/write models.\n\n**Not\
-  \ Modular Monolith**: The plugin system provides runtime extension, not compile-time\
-  \ module boundaries. The core is designed to be extended by plugins at runtime,\
-  \ not partitioned into internal modules.\n\n### Conclusion\n\nDiscourse is a textbook\
-  \ example of a **Microkernel (Plugin) architecture** where a relatively thin core\
-  \ provides extension points that plugins use to add major features (chat, AI, calendar,\
-  \ etc.). The core handles authentication, database access, and extension loading,\
-  \ while plugins add domain-specific functionality through a well-defined plugin\
-  \ API with ~172 registration methods. The Rails MVC layered structure is secondary,\
-  \ providing the standard web application scaffolding."
+  **Representative Plugin** (`plugins/chat/plugin.rb`):
+  ```ruby
+  enabled_site_setting :chat_enabled
+  after_initialize do
+    reloadable_patch do |plugin|
+      Guardian.prepend Chat::GuardianExtensions
+      UserNotifications.prepend Chat::UserNotificationsExtension
+      Category.prepend Chat::CategoryExtension
+      # ... more extensions
+    end
+  end
+  ```
+
+  ### Secondary Style: Layered (Rails MVC + Service Layer)
+
+  The core Rails application and each plugin replicate a strict four-layer hierarchy:
+
+  - **Controllers** (86+ files in `app/controllers/`): HTTP boundary, auth enforcement, request/response
+  - **Services** (76 service objects in `app/services/`): Business logic via `Service::Base` pipeline DSL (`policy`, `params`, `model`, `step`, `transaction` declarations)
+  - **Models** (279 files in `app/models/`): ActiveRecord persistence and domain logic
+  - **Serializers** (219 files in `app/serializers/`): API response formatting and field projection
+
+  The `Service::Base` DSL is particularly mature — it enforces explicit data flow, authorization policies, and transactional boundaries in a declarative, testable form. This is not incidental Rails scaffolding; it is a deliberate architectural commitment.
+
+  ### Supporting Mechanisms
+
+  **Event-Driven**: `DiscourseEvent` (in-process, 102+ trigger sites), `MessageBus` (real-time browser delivery via WebSocket/long-poll, 116 publish sites), and Sidekiq (216 background jobs across regular/scheduled/onceoff queues) provide event-driven capabilities within and between layers. These are implementation mechanisms, not a primary organizing style.
+
+  **Background Processing**: Sidekiq with dedicated queues (default, critical, low, ultra_low) for async job execution; 90 regular jobs, 96 scheduled jobs, 30 onceoff jobs.
+
+  **Webhook Integration**: `WebHook`/`WebHookEvent` models + `EmitWebHookEvent` Sidekiq job for outbound event delivery.
+
+  ### What Was Rejected
+
+  **Not Modular Monolith**: Plugins are not compile-time module boundaries — they are runtime-activated extension packages. The architectural unit is the plugin hook API, not a module graph.
+
+  **Not Microservices**: Single Rails process, single Gemfile, single database. All plugins load into the same process and share the same database connection pool.
+
+  **Not Event-Driven (primary)**: DiscourseEvent, MessageBus, and Sidekiq are significant, but they operate as implementation mechanisms within the layered and microkernel structure rather than defining the system's primary decomposition.
+
+  **Not CQRS**: Standard ActiveRecord read/write patterns throughout with no separate read/write model objects.
+
+  **Not Service-Based**: No independent deployable service units; all functionality runs in one Rails process with Sidekiq workers.
+
+  ### Conclusion
+
+  Discourse is a textbook **Microkernel** architecture: a stable, thin core exposes a rich, formal extension surface through which the majority of domain features are delivered. The **Layered** secondary classification reflects the deliberate Rails MVC + Service Layer structure that organizes both the core and each plugin internally. Confidence: 0.93.

@@ -3,11 +3,7 @@ scope: application
 use_type: reference
 source: Discovered
 source_url: https://github.com/dotnet-architecture/eShopOnWeb
-project_url: https://github.com/dotnet-architecture/eShopOnWeb
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:28:55Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: E-Commerce
 language: C#
 languages:
@@ -16,75 +12,57 @@ languages:
 architecture_styles:
 - Layered
 - Hexagonal Architecture
+- Domain-Driven Design
 classification_status: classified
-review_notes: "The `eShopOnWeb` repository is a reference implementation of a **Layered\
-  \ Architecture** (specifically a 3-tier or \"N-Tier\" approach) that incorporates\
-  \ **Hexagonal (Ports and Adapters)** and **Domain-Driven Design (DDD)** patterns.\
-  \ \n\n### Primary Style: Layered Architecture\nThe codebase is explicitly divided\
-  \ into three primary horizontal layers as described in its accompanying eBook and\
-  \ reflected in the `src/` directory structure:\n\n1.  **ApplicationCore (`src/ApplicationCore`):**\
-  \ The central layer containing business logic, entities, and interfaces. It has\
-  \ zero dependencies on external frameworks or the infrastructure layer.\n2.  **Infrastructure\
-  \ (`src/Infrastructure`):** Implementation details such as data access (Entity Framework\
-  \ Core), logging, and identity services. It implements interfaces defined in the\
-  \ Core.\n3.  **UI/Presentation (`src/Web` and `src/PublicApi`):** The entry points\
-  \ of the application. `Web` handles the MVC/Razor Pages front-end, while `PublicApi`\
-  \ provides a RESTful interface for the Blazor admin panel.\n\n### Secondary Style:\
-  \ Hexagonal Architecture (Ports and Adapters)"
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:14:52Z'
-classification_reasoning: "## Architecture Classification: Layered with Hexagonal\
-  \ Architecture (Clean Architecture)\n\n### Primary Style: Layered Architecture\n\
-  \nThe repository exhibits a classic **layered architecture** with clear horizontal\
-  \ separation:\n\n**Layer Structure:**\n```\nsrc/\n├── ApplicationCore/     ← Domain\
-  \ Layer (entities, interfaces, specifications, domain services)\n├── Infrastructure/\
-  \      ← Data Access Layer (EF Core, repositories, identity, logging)\n├── Web/\
-  \                 ← Presentation Layer (MVC controllers, Razor Pages, ViewModels)\n\
-  └── PublicApi/           ← API Layer (Minimal API endpoints)\n```\n\n**Evidence\
-  \ from dependency analysis:**\n- `Web.csproj` → references ApplicationCore and Infrastructure\n\
-  - `Infrastructure.csproj` → references ApplicationCore only\n- `ApplicationCore.csproj`\
-  \ → has NO project references (fully independent)\n\nThis demonstrates the classic\
-  \ layered dependency flow: **Presentation → Infrastructure → Core**\n\n**README\
-  \ confirmation:**\n> \"Sample ASP.NET Core reference application... demonstrating\
-  \ a **single-process (monolithic) application architecture** and deployment model.\"\
-  \n\n### Secondary Style: Hexagonal Architecture (Clean Architecture)\n\nStrong evidence\
-  \ of **Hexagonal Architecture** patterns:\n\n**Ports (Interfaces in ApplicationCore):**\n\
-  - `IRepository<T>`, `IReadRepository<T>` - repository ports\n- `IBasketService`,\
-  \ `IOrderService` - service ports  \n- `IAppLogger<T>`, `IEmailSender` - infrastructure\
-  \ ports\n- `IUriComposer`, `ITokenClaimsService` - utility ports\n\n**Adapters (Implementations\
-  \ in Infrastructure):**\n```csharp\n// Infrastructure/Data/EfRepository.cs\npublic\
-  \ class EfRepository<T> : RepositoryBase<T>, IReadRepository<T>, IRepository<T>\
-  \ \n    where T : class, IAggregateRoot\n```\n\n**Core isolation principle:**\n\
-  - ApplicationCore has **zero dependencies** on Infrastructure or Presentation\n\
-  - All dependencies point **inward** toward the domain core\n- The `Dependencies.cs`\
-  \ file wires up implementations to interfaces\n\n### Domain-Driven Design Elements\
-  \ (Within Layers)\n\nDDD tactical patterns are present within the ApplicationCore\
-  \ layer:\n\n**Aggregates with IAggregateRoot marker:**\n```csharp\npublic class\
-  \ Basket : BaseEntity, IAggregateRoot { ... }\npublic class Order : BaseEntity,\
-  \ IAggregateRoot { ... }\n```\n\n**Encapsulated collections (DDD pattern):**\n```csharp\n\
-  private readonly List<OrderItem> _orderItems = new List<OrderItem>();\npublic IReadOnlyCollection<OrderItem>\
-  \ OrderItems => _orderItems.AsReadOnly();\n```\n\n**Specifications pattern for queries:**\n\
-  - `BasketWithItemsSpecification`\n- `CatalogFilterSpecification`\n- `CustomerOrdersWithItemsSpecification`\n\
-  \n### Deployment Topology\n\nThe **docker-compose.yml** reveals a service-based\
-  \ deployment:\n```yaml\nservices:\n  eshopwebmvc:      ← Web MVC application\n \
-  \ eshoppublicapi:   ← Public API  \n  sqlserver:        ← Shared database\n```\n\
-  \nBoth services share the same SQL Server database with identical connection strings\
-  \ - confirming this is **NOT microservices** but a **Service-Based architecture**\
-  \ (2 coarse-grained services sharing data).\n\n### Rejected Styles\n\n**NOT Microservices:**\n\
-  - Explicitly described as \"monolithic\" in README\n- Both services share the same\
-  \ database (CatalogConnection, IdentityConnection)\n- No independent data ownership\
-  \ per service\n\n**NOT Modular Monolith:**\n- No enforced module boundaries (no\
-  \ vertical slices with isolated schemas)\n- Standard horizontal layering, not vertical\
-  \ module separation\n\n**NOT Event-Driven:**\n- No message broker configuration\
-  \ (RabbitMQ, Kafka, etc.)\n- No event handlers or domain events\n- Synchronous request-response\
-  \ communication\n\n**NOT CQRS:**\n- No separate read/write models\n- MediatR is\
-  \ used minimally for query dispatch (not full CQRS)\n- Same database and repositories\
-  \ for all operations\n\n### Summary\n\nThis is a **well-structured Layered Architecture**\
-  \ that embraces **Hexagonal Architecture** principles to keep the domain core isolated\
-  \ from infrastructure concerns. DDD tactical patterns (aggregates, specifications)\
-  \ are employed within the domain layer. The deployment is a simple service-based\
-  \ topology with two applications sharing a database - aligned with the stated goal\
-  \ of demonstrating monolithic architecture patterns for ASP.NET Core."
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Testability
+- Maintainability
+- Modularity
+- Deployability
+- Observability
+one_line_summary: Microsoft ASP.NET Core 8 reference application demonstrating a
+  monolithic Layered Architecture with Hexagonal (Ports and Adapters) dependency
+  inversion and DDD tactical patterns in the domain core.
+classification_reasoning: "## Architecture Classification: Layered + Hexagonal Architecture\
+  \ + Domain-Driven Design\n\n### Primary Style: Layered Architecture\n\nThe repository\
+  \ is explicitly a horizontal three-layer monolith (stated in README as \"single-process\
+  \ (monolithic) application architecture\"). Layers map directly to top-level projects:\n\
+  \n```\nsrc/\n\u251C\u2500\u2500 ApplicationCore/   \u2190 Domain Layer (entities,\
+  \ interfaces, specifications, domain services)\n\u251C\u2500\u2500 Infrastructure/\
+  \    \u2190 Data/Adapter Layer (EF Core, Identity, logging)\n\u251C\u2500\u2500\
+  \ Web/               \u2190 Presentation Layer (MVC, Razor Pages, Blazor WASM host)\n\
+  \u2514\u2514\u2500\u2500 PublicApi/         \u2190 API Layer (Minimal API for Blazor\
+  \ admin)\n```\n\nDependency direction: Presentation \u2192 Infrastructure \u2192\
+  \ ApplicationCore. ApplicationCore has zero project references to any other layer.\n\
+  \n### Secondary Style: Hexagonal Architecture (Ports and Adapters)\n\nSystematic\
+  \ dependency inversion enforced via interface contracts in ApplicationCore/Interfaces/:\n\
+  \n- Ports: IRepository<T>, IReadRepository<T>, IBasketService, IOrderService, IBasketQueryService,\
+  \ IAppLogger<T>, IEmailSender, ITokenClaimsService, IUriComposer\n- Adapters in\
+  \ Infrastructure: EfRepository<T> (repository), BasketQueryService (query), LoggerAdapter<T>,\
+  \ IdentityTokenClaimService, EmailSender\n\nThe domain core is fully isolated from\
+  \ all infrastructure concerns and testable without any framework dependencies.\n\n\
+  ### Tertiary Style: Domain-Driven Design (tactical patterns)\n\nDDD tactical patterns\
+  \ applied throughout ApplicationCore:\n\n- Aggregates with IAggregateRoot marker:\
+  \ Basket, Order\n- Encapsulated collections enforcing aggregate boundaries (private\
+  \ List<T>, public IReadOnlyCollection<T>)\n- Repository-per-aggregate: IRepository<T>\
+  \ constrained to IAggregateRoot\n- Specification pattern for composable queries\
+  \ (Ardalis.Specification): BasketWithItemsSpecification, CustomerOrdersSpecification,\
+  \ CatalogFilterSpecification, etc.\n- Domain Services: BasketService, OrderService\
+  \ for cross-aggregate logic\n- Value Objects: Address, CatalogItemOrdered\n\n###\
+  \ MediatR usage (not CQRS)\n\nMediatR is used in Web/Features/ for in-process request\
+  \ dispatch (GetMyOrders, GetOrderDetails). This is query dispatch, not full CQRS:\
+  \ no separate read/write models, no distinct query stores, no command segregation.\n\
+  \n### Deployment\n\ndocker-compose.yml runs two processes (eshopwebmvc, eshoppublicapi)\
+  \ sharing the same SQL Server database with identical connection strings. This confirms\
+  \ a monolithic data model with no service-level data isolation.\n\n### Rejected\
+  \ Styles\n\n- NOT Microservices: README explicitly says monolithic; both services\
+  \ share database schema\n- NOT Modular Monolith: no vertical module boundaries;\
+  \ purely horizontal layering\n- NOT Event-Driven: no message broker, no domain\
+  \ events, synchronous communication throughout\n- NOT CQRS: MediatR is dispatch-only;\
+  \ same repositories for reads and writes\n- NOT Service-Based: the two Docker processes\
+  \ are not independent business capabilities; they share all data and exist only\
+  \ to support Blazor WebAssembly's cross-origin requirement"

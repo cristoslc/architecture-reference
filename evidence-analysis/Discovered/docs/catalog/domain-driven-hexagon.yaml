@@ -3,11 +3,7 @@ scope: application
 use_type: reference
 source: Discovered
 source_url: https://github.com/Sairyss/domain-driven-hexagon
-project_url: https://github.com/Sairyss/domain-driven-hexagon
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:28:48Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Developer Tools
 language: TypeScript
 languages:
@@ -16,86 +12,95 @@ languages:
 architecture_styles:
 - Hexagonal Architecture
 - Domain-Driven Design
+- CQRS
+- Modular Monolith
 classification_status: classified
-review_notes: 'This repository is a textbook implementation of **Hexagonal Architecture**
-  (Ports and Adapters) combined with **Domain-Driven Design (DDD)** principles. The
-  architecture is intentionally designed to demonstrate these patterns, as stated
-  in the README and evidenced by the directory structure.
+classification_confidence: 0.97
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  testability: Very high — pure domain layer with no framework dependencies; ports enable full infrastructure mocking; Jest unit and E2E test suites present.
+  maintainability: High — dependency-cruiser enforces five hard error rules preventing cross-layer violations; DDD tactical patterns localise business rules.
+  extensibility: High — new inbound adapters added without touching domain; new aggregates slot in as self-contained modules with their own ports and DI tokens.
+  modularity: High — bounded contexts expressed as NestJS modules with token-isolated repositories and explicit mapper pattern across domain/persistence/API layers.
+  observability: Moderate — request-ID propagated through all log statements via nestjs-request-context; no built-in metrics or distributed tracing infrastructure present.
+  scalability: Moderate — single-process monolith on one Postgres instance; README notes bounded-context structure facilitates microservice extraction if needed.
+  portability: High — domain and application layers contain no NestJS imports; patterns are framework/language agnostic by design.
+one_line_summary: Textbook NestJS reference implementation combining Hexagonal Architecture (Ports and Adapters) with DDD tactical patterns and CQRS, enforced at the tooling level via dependency-cruiser.
+classification_reasoning: |
+  ## Analysis
 
+  This repository is an intentional, documented reference implementation combining
+  Hexagonal Architecture (Ports and Adapters) with Domain-Driven Design (DDD) tactical
+  patterns and CQRS. The architecture is enforced programmatically, not merely described.
 
-  ### 1. Hexagonal Architecture (Ports and Adapters)
+  ### Hexagonal Architecture (primary, 0.97)
 
-  The core of the system is isolated from external concerns.
+  The defining characteristic is dependency inversion through domain-owned port interfaces.
+  The domain core (`src/libs/ddd/`, `src/libs/ports/`) defines interfaces that infrastructure
+  adapters must implement:
 
-  - **Ports**: Located in `src/libs/ports/` and throughout modules (e.g., `src/libs/ddd/repository.port.ts`).
-  These are interfaces that define the contract for the application core.
+  - `RepositoryPort<Entity>` in `src/libs/ddd/repository.port.ts` — generic persistence contract
+  - `LoggerPort` in `src/libs/ports/logger.port.ts` — logging abstraction
+  - `UserRepositoryPort extends RepositoryPort<UserEntity>` — domain-specific extension
 
-  - **Adapters**: The infrastructure layer (found in `src/modules/*/database`) implements
-  these ports (e.g., `src/libs/db/sql-repository.base.ts`).
+  Infrastructure adapters (`UserRepository`, `WalletRepository`) extend `SqlRepositoryBase`
+  which implements `RepositoryPort`, pointing dependencies inward from infrastructure to domain.
 
-  - **Dependency Direction**: The README explicitly states that "dependencies point
-  inwards," and the use of `.dependency-cruiser.js` suggests automated enforcement
-  of these boundaries.
+  Inbound adapters for the same command exist in four forms: HTTP controller
+  (`create-user.http.controller.ts`), CLI controller (`create-user.cli.controller.ts`),
+  GraphQL resolver (`create-user.graphql-resolver.ts`), and message controller
+  (`create-user.message.controller.ts`) — each translating an external protocol into a
+  domain Command without the domain knowing the transport exists.
 
+  Architecture enforcement is machine-verified: `.dependency-cruiser.js` declares five
+  `severity: "error"` rules (no-domain-to-api-deps, no-domain-to-app-deps,
+  no-domain-to-infra-deps, no-infra-to-api-deps, no-command-query-to-api-deps) that
+  fail the build on any boundary violation.
 
-  ### 2. Domain-Driven Design (DDD)
+  ### Domain-Driven Design (primary, 0.97)
 
-  The repository uses DDD tactical patterns to organize business logic:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:10:48Z'
-classification_reasoning: "## Analysis\n\nThis repository implements a **Hexagonal\
-  \ Architecture (Ports and Adapters)** with strong **Domain-Driven Design** tactical\
-  \ patterns. The architecture is explicitly designed and documented as such, with\
-  \ rigorous enforcement of layer boundaries.\n\n### Hexagonal Architecture Evidence\n\
-  \n**1. Ports (Interfaces) Defined in Domain Core:**\n- `src/libs/ports/logger.port.ts`\
-  \ - Defines `LoggerPort` interface\n- `src/libs/ddd/repository.port.ts` - Generic\
-  \ repository port interface\n- `src/modules/user/database/user.repository.port.ts`\
-  \ - Domain-specific repository port extending the base\n\n**2. Adapters Implement\
-  \ Ports:**\n- `src/modules/user/database/user.repository.ts` - `UserRepository`\
-  \ implements `UserRepositoryPort`, adapting database operations to domain interface\n\
-  - Controllers act as adapters: `create-user.http.controller.ts`, `create-user.cli.controller.ts`,\
-  \ `create-user.message.controller.ts` - same command handled via HTTP, CLI, and\
-  \ message queue adapters\n\n**3. Dependency Inversion:**\nThe domain core defines\
-  \ interfaces (ports), and outer layers provide implementations (adapters). The `CreateUserService`\
-  \ depends on `UserRepositoryPort` interface, not concrete implementation:\n```typescript\n\
-  constructor(\n  @Inject(USER_REPOSITORY)\n  protected readonly userRepo: UserRepositoryPort,\n\
-  ) {}\n```\n\n**4. Architecture Enforcement via dependency-cruiser:**\nThe `.dependency-cruiser.js`\
-  \ file explicitly enforces hexagonal layer rules:\n- \"Domain layer cannot depend\
-  \ on api layer\"\n- \"Domain layer cannot depend on application layer\"\n- \"Domain\
-  \ layer cannot depend on infrastructure layer\" (except ports)\n- \"Infrastructure\
-  \ layer cannot depend on api layer\"\n- \"Commands and Queries cannot depend on\
-  \ api layer\"\n\n### Domain-Driven Design Evidence\n\n**1. Tactical DDD Building\
-  \ Blocks in `src/libs/ddd/`:**\n- `entity.base.ts` - Base Entity class with identity\
-  \ and validation\n- `aggregate-root.base.ts` - Aggregate root managing domain events\n\
-  - `value-object.base.ts` - Value object base with structural equality\n- `domain-event.base.ts`\
-  \ - Domain event abstraction\n\n**2. Rich Domain Model:**\n`src/modules/user/domain/user.entity.ts`\
-  \ shows:\n- `UserEntity extends AggregateRoot<UserProps>`\n- Factory method `create()`\
-  \ that emits domain events\n- Business methods like `makeAdmin()`, `updateAddress()`\
-  \ that maintain invariants\n- `validate()` method for business rules\n\n**3. Domain\
-  \ Events:**\n- `UserCreatedDomainEvent`, `UserDeletedDomainEvent`, `UserRoleChangedDomainEvent`\
-  \ in `src/modules/user/domain/events/`\n- Cross-aggregate coordination via event\
-  \ handlers (e.g., `CreateWalletWhenUserIsCreatedDomainEventHandler`)\n\n**4. Value\
-  \ Objects:**\n`src/modules/user/domain/value-objects/address.value-object.ts` -\
-  \ Address encapsulated as a value object\n\n**5. Mappers for Layer Translation:**\n\
-  `src/modules/user/user.mapper.ts` implements `Mapper<DomainEntity, DbRecord, Response>`:\n\
-  - `toPersistence()` - Domain → Database model\n- `toDomain()` - Database model →\
-  \ Domain entity  \n- `toResponse()` - Domain entity → Response DTO\n\n### What Was\
-  \ Rejected\n\n**Not Microservices:** Single deployable unit (NestJS monolith). The\
-  \ README explicitly states this pattern \"makes it easy to convert pieces into microservices\
-  \ if needed,\" but this itself is a monolith.\n\n**Not Layered (MVC):** While layers\
-  \ exist, this is distinctly hexagonal. Traditional layered architecture doesn't\
-  \ have dependency inversion with ports/adapters - controllers typically call services\
-  \ which call repositories. Here, the domain defines the ports, and infrastructure\
-  \ provides adapters.\n\n**Not CQRS as Primary:** While CQRS pattern is used (separate\
-  \ `CreateUserCommand`/`CreateUserService` for writes and `FindUsersQuery`/`FindUsersQueryHandler`\
-  \ for reads), this is a tactical pattern within the application layer, not the primary\
-  \ architectural organizing principle.\n\n**Not Serverless:** Single NestJS application\
-  \ with traditional database, not function-based deployment units.\n\n### Repository\
-  \ Self-Description\n\nThe README.md explicitly states this combines:\n- Domain-Driven\
-  \ Design (DDD)\n- Hexagonal (Ports and Adapters) Architecture\n- Clean Architecture\n\
-  - Onion Architecture\n\nThe dependency graph in `assets/dependency-graph.svg` and\
-  \ the strict dependency-cruiser rules confirm the architecture is enforced programmatically,\
-  \ not just documented."
+  The `src/libs/ddd/` library provides the complete DDD tactical toolkit:
+  `AggregateRoot`, `Entity`, `ValueObject`, `DomainEvent`, repository port, mapper interface,
+  command base, and query base. `UserEntity extends AggregateRoot<UserProps>` demonstrates
+  rich domain behaviour: factory `create()` emitting `UserCreatedDomainEvent`, guarded
+  mutations (`makeAdmin()`, `updateAddress()`), and invariant validation. `Address` is a
+  value object with structural equality. Cross-aggregate coordination uses domain events:
+  `CreateWalletWhenUserIsCreatedDomainEventHandler` subscribes to `UserCreatedDomainEvent`
+  via NestJS EventEmitter2, maintaining aggregate root encapsulation. Bounded contexts are
+  expressed as NestJS modules (`UserModule`, `WalletModule`) with DI token isolation
+  (`USER_REPOSITORY`, `WALLET_REPOSITORY`) preventing direct cross-module repository access.
+
+  ### CQRS (secondary, 0.90)
+
+  Commands (`CreateUserCommand`, `DeleteUserCommand`) are dispatched via `@nestjs/cqrs`
+  `CommandBus` to `ICommandHandler` implementations that always route through the domain
+  model and repository. Queries use a separate `QueryHandler` path: `FindUsersQueryHandler`
+  explicitly bypasses the domain and repository, executing raw Slonik SQL against the
+  database pool directly — a true read-model pattern. The `@CommandHandler` / `@QueryHandler`
+  decorators make the split IDE-navigable and statically enforced.
+
+  ### Modular Monolith (secondary, 0.85)
+
+  All modules are composed into a single `AppModule` deploying as one NestJS process against
+  one PostgreSQL instance (Docker Compose shows a single app container + db). Module
+  boundaries are enforced by NestJS DI token isolation rather than network boundaries.
+  The README explicitly states the pattern makes microservice extraction straightforward
+  if needed — confirming this is a deliberately modular monolith, not a microservices system.
+
+  ### What Was Rejected
+
+  **Not Microservices:** `@nestjs/microservices` appears only as a transport adapter
+  demonstration (the message controller), not as a distributed service topology.
+  Single deployable unit, single database.
+
+  **Not Event-Driven (primary):** Domain events via EventEmitter2 are a DDD coordination
+  mechanism internal to the monolith. There is no message broker, event store, or
+  event-sourcing infrastructure.
+
+  **Not Layered (traditional):** Layers exist but the governing principle is dependency
+  inversion via ports. Traditional layering has no such inversion; this does.
+
+  **Not CQRS (primary):** CQRS is a secondary pattern within the application layer;
+  the governing architecture is Hexagonal (the outer boundary with enforced port/adapter rules).

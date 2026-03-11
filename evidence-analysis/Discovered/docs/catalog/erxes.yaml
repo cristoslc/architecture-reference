@@ -3,12 +3,8 @@ scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/erxes/erxes
-project_url: https://github.com/erxes/erxes
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:36:15Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
-domain: CRM
+domain: CRM / Experience Management Platform
 language: TypeScript
 languages:
 - TypeScript
@@ -17,89 +13,69 @@ architecture_styles:
 - Microkernel
 - Microservices
 classification_status: classified
-review_notes: 'This repository is a textbook example of a **Microservices** architecture
-  managed within an **Nx Monorepo**. It utilizes **GraphQL Federation** for the backend
-  and **Module Federation** for the frontend (Micro-frontends) to maintain a decoupled,
-  yet integrated system.
-
-
-  ### Evidence of Microservices
-
-  - **Independent Deployment Units**: Each directory under `backend/plugins/` (e.g.,
-  `sales_api`, `payment_api`, `frontline_api`) and `frontend/plugins/` contains its
-  own `Dockerfile`, `project.json` (Nx configuration), and `package.json`.
-
-  - **Infrastructure**: The README explicitly describes a topology involving an **API
-  Gateway** (Apollo Router) that performs service discovery and routes requests to
-  various "Plugin APIs" (Microservices) on different ports (e.g., Core API on 3300,
-  Gateway on 4000).
-
-  - **Technology Choice**: Use of **GraphQL Federation** is a specific technical solution
-  for composing multiple independent microservice schemas into a single graph.
-
-
-  ### Evidence of Microkernel (Plugin) Architecture
-
-  - The system divides itself into "Core" and "Plugins". The core (found in `backend/erxes-api-shared`
-  and `frontend/core-ui`) provides the fundamental lifecycle management, while specific
-  business domains (Sales, CRM, Finance) are implemented as plugins.
-
-  - The repository includes a `pnpm create-plugin` CLI tool to scaffold new services,
-  adhering to a strict plugin contract so they can be registered by the Core Gateway.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:17:20Z'
-classification_reasoning: "## Analysis\n\nThe erxes repository exhibits a **Microkernel\
-  \ (Plugin)** architecture as its primary style, with **Microservices** as a secondary\
-  \ characteristic.\n\n### Primary: Microkernel (Plugin) Architecture\n\nThe repository\
-  \ is built around a plugin-based architecture with clear evidence:\n\n1. **Plugin\
-  \ Infrastructure and Registration Mechanism** (`backend/erxes-api-shared/src/utils/start-plugin.ts`):\n\
-  \   - A standardized `startPlugin()` function that all plugins must call to initialize\n\
-  \   - Plugins register themselves with the gateway via `joinErxesGateway()` providing\
-  \ name, port, meta information\n   - Each plugin declares its GraphQL schema, tRPC\
-  \ router, REST endpoints, and subscriptions through a consistent contract\n\n2.\
-  \ **Core vs Plugin Separation**:\n   - Core modules (`backend/core-api/`) provide\
-  \ foundational capabilities: contacts, products, segments, automations, documents,\
-  \ notifications\n   - Plugins (`backend/plugins/`) extend functionality: frontline,\
-  \ sales, accounting, content, loyalty, tourism, etc.\n   - The README explicitly\
-  \ states: \"erxes is composed of 2 main components: **Core** & **Plugins**\"\n\n\
-  3. **Plugin Discovery via Redis** (`backend/erxes-api-shared/src/utils/service-discovery.ts`):\n\
-  \   - Plugins register their address in Redis: `erxes-service-${name}`\n   - Gateway\
-  \ discovers plugins dynamically via `getPlugin()` and `getPlugins()`\n   - Environment\
-  \ variable `ENABLED_PLUGINS` controls which plugins are loaded at runtime\n\n4.\
-  \ **Frontend Module Federation** (`frontend/core-ui/module-federation.config.ts`,\
-  \ `frontend/plugins/*/module-federation.config.ts`):\n   - Core UI acts as the host\
-  \ application\n   - Each frontend plugin exposes modules via Module Federation:\
-  \ `exposes: { './config': ..., './frontline': ... }`\n   - Core dynamically loads\
-  \ plugins: `remotes: process.env.ENABLED_PLUGINS?.split(',')`\n\n5. **Plugin Scaffold\
-  \ Script** (`scripts/create-backend-plugin.js`):\n   - Provides a standardized template\
-  \ for creating new plugins\n   - Generates consistent directory structure: `apollo/`,\
-  \ `trpc/`, `modules/`, `db/models/`\n\n### Secondary: Microservices Architecture\n\
-  \nThe system exhibits microservices characteristics with important nuances:\n\n\
-  1. **Independent Deployability**: Each backend plugin has its own Dockerfile:\n\
-  \   - `backend/plugins/frontline_api/Dockerfile`\n   - `backend/plugins/sales_api/Dockerfile`\n\
-  \   - `backend/plugins/accounting_api/Dockerfile`, etc.\n\n2. **Service Discovery**:\
-  \ Plugins register with the gateway via Redis-based service discovery (`joinErxesGateway()`)\n\
-  \n3. **API Gateway Pattern** (`backend/gateway/src/main.ts`):\n   - Single entry\
-  \ point on port 4000\n   - Proxies requests to plugins: `/pl:${serviceName}`\n \
-  \  - Apollo Router for GraphQL Federation\n\n4. **GraphQL Federation**: Each plugin\
-  \ is a subgraph that contributes to the unified GraphQL schema (`buildSubgraphSchema`\
-  \ in start-plugin.ts)\n\n### What This Is NOT\n\n- **NOT a Modular Monolith**: Services\
-  \ are independently deployable containers, not modules within a single process.\
-  \ Each has its own Dockerfile and can be deployed independently.\n\n- **NOT Pure\
-  \ Event-Driven**: While BullMQ is used for automation triggers and internal events\
-  \ (`sendAutomationTrigger`, `eventDispatcher`), the primary communication pattern\
-  \ is synchronous GraphQL/tRPC over HTTP, not asynchronous message passing.\n\n-\
-  \ **NOT Layered**: The architecture is organized around plugin boundaries (vertical\
-  \ slices), not horizontal layers. Each plugin contains its own presentation, business\
-  \ logic, and data access.\n\n- **NOT Hexagonal**: There's no explicit ports/adapters\
-  \ pattern. The plugin contract is the integration mechanism, not dependency inversion\
-  \ through interfaces.\n\n### Key Data Architecture Note\n\nAll services share a\
-  \ single MongoDB instance (`MONGO_URL`). Each plugin creates models against the\
-  \ shared mongoose connection, with tenant isolation achieved through MongoDB's `useDb()`\
-  \ for SaaS multi-tenancy. This is a variation from strict microservices where each\
-  \ service owns its database, but the deployment topology and plugin autonomy align\
-  \ more closely with microkernel + microservices than service-based (which would\
-  \ have fewer, larger services)."
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Deployability
+- Scalability
+- Multi-tenancy
+- Interoperability
+- Evolvability
+one_line_summary: Plugin-driven experience management platform (XOS) built on an Nx
+  monorepo with a Microkernel core, GraphQL Federation API gateway, Module Federation
+  micro-frontends, and BullMQ-backed async automation — all services sharing a single
+  multi-tenant MongoDB instance.
+classification_reasoning: "## Analysis\n\nThe erxes repository is a textbook **Microkernel\
+  \ (Plugin) Architecture** as its primary style, with **Microservices** characteristics\
+  \ as a strong secondary.\n\n### Primary: Microkernel (Plugin) Architecture\n\nThe\
+  \ repository's structure is built entirely around a formalized Core + Plugin extension\
+  \ model:\n\n1. **Plugin Registration Contract** (`backend/erxes-api-shared/src/utils/start-plugin.ts`):\n\
+  \   - Every plugin calls `startPlugin(config)` with a typed `ConfigTypes` object\
+  \ declaring name, port, GraphQL schema factory, tRPC router, REST router, server\
+  \ init hooks, and metadata configs (automations, segments, notifications, payments)\n\
+  \   - On startup, each plugin calls `joinErxesGateway()` to register its address\
+  \ in Redis under `erxes-service-${name}`\n\n2. **Kernel Host (Gateway)** (`backend/gateway/src/main.ts`,\
+  \ `backend/gateway/src/apollo-router/`):\n   - Acts as the central kernel, discovering\
+  \ plugins from Redis via `getPlugins()` / `getPlugin(name)`\n   - Spawns Apollo\
+  \ Router as a child process to compose all plugin GraphQL subgraphs into a unified\
+  \ supergraph\n   - Proxies REST requests to plugins via `/pl:serviceName` → plugin\
+  \ address\n   - `ENABLED_PLUGINS` env var controls which plugins the kernel activates\
+  \ — classic runtime capability selection\n\n3. **Frontend Microkernel** (`frontend/core-ui/module-federation.config.ts`):\n\
+  \   - Core UI is the Module Federation host: `remotes: ENABLED_PLUGINS.split(',')\
+  \ .map(p => p + '_ui')`\n   - Each plugin UI (`frontend/plugins/*/module-federation.config.ts`)\
+  \ exposes named entry points (`./config`, `./frontline`, `./settings`, etc.) consumed\
+  \ by the host at runtime\n\n4. **Plugin Scaffold** (`scripts/create-backend-plugin.js`):\n\
+  \   - Generates the canonical plugin skeleton: `apollo/`, `trpc/`, `modules/`,\
+  \ `db/models/` — enforcing the extension convention structurally\n\n5. **README\
+  \ Explicit Statement**: \"erxes is composed of 2 main components: Core & Plugins\"\
+  \ — the architecture is self-described as Microkernel\n\n### Secondary: Microservices\n\
+  \nEach plugin is independently deployable and communicates over the network:\n\n\
+  1. **Independent Deployment**: Each of the 11 backend plugins (`backend/plugins/*/`)\
+  \ plus core-api, gateway, automations-service, and logs-service has its own `Dockerfile`\
+  \ and runs on a dedicated port\n\n2. **GraphQL Federation Subgraphs**: Each plugin\
+  \ calls `buildSubgraphSchema()` to expose an independent GraphQL subgraph; the\
+  \ Apollo Router composes them into a unified supergraph\n\n3. **tRPC Inter-Service\
+  \ RPC**: `sendTRPCMessage()` in `erxes-api-shared/src/utils/trpc/index.ts` provides\
+  \ typed HTTP RPC between plugins; `sendCoreModuleProducer()` provides typed calls\
+  \ into shared automation/segment/import-export producers\n\n4. **BullMQ Async Queues**:\
+  \ `sendAutomationTrigger()` enqueues jobs to Redis-backed BullMQ queues; the standalone\
+  \ automations service runs `triggerHandlerWorker`, `actionHandlerWorker`, and `aiWorker`\
+  \ consumers\n\n5. **Redis Service Discovery**: Plugins register/deregister addresses\
+  \ in Redis; the gateway performs health-checked proxy target resolution with retry\
+  \ logic\n\n### Key Nuances\n\n- **Shared MongoDB**: All plugins share a single\
+  \ `MONGO_URL` MongoDB instance. Per-tenant isolation is achieved via `useDb(subdomain)`\
+  \ on the Mongoose connection (`backend/erxes-api-shared/src/utils/mongo/generate-models.ts`).\
+  \ This diverges from strict microservices (database-per-service) but aligns with\
+  \ the Microkernel model where plugins share kernel-managed infrastructure.\n\n-\
+  \ **SaaS Billing Integration**: The gateway reads per-organization plugin entitlements\
+  \ (`getSaasOrganizationDetail()`) to dynamically scope which plugins are available\
+  \ per tenant, demonstrating commercial extensibility layered on top of the Microkernel\
+  \ model.\n\n- **NOT Modular Monolith**: Services are independently deployable containers\
+  \ with separate Dockerfiles and network addresses — not modules within a single\
+  \ process.\n\n- **NOT Pure Event-Driven**: BullMQ is used only for the automations\
+  \ pipeline. The primary communication pattern is synchronous GraphQL/tRPC over\
+  \ HTTP. Events (via `createEventDispatcher`) are domain-level model change signals,\
+  \ not the primary integration mechanism."

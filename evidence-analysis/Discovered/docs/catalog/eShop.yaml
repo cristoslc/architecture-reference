@@ -19,95 +19,146 @@ architecture_styles:
 - Event-Driven
 - Domain-Driven Design
 classification_status: classified
-review_notes: 'The eShop repository is a canonical reference implementation of a **Microservices**
-  architecture using .NET Aspire. The system is composed of multiple independently
-  deployable services (Catalog.API, Basket.API, Ordering.API, Identity.API, Webhooks.API)
-  and background workers (OrderProcessor, PaymentProcessor).
-
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Scalability
+- Loose Coupling
+- Fault Isolation
+- Observability
+- Maintainability
+- Extensibility
+one_line_summary: >-
+  Official .NET reference e-commerce application built as independently deployable
+  Microservices orchestrated by .NET Aspire, integrated via a RabbitMQ event bus
+  with transactional outbox, and structured around DDD aggregates in the ordering
+  bounded context.
+classification_reasoning: |
+  ## Architecture Analysis
 
   ### Primary Style: Microservices
 
-  The architecture exhibits the core characteristics of microservices through technical
-  and organizational boundaries:
+  The eShop repository is a canonical reference implementation of the Microservices
+  architecture style. The evidence is conclusive across deployment topology, data
+  ownership, and protocol heterogeneity.
 
-  - **Independent Deployment Units:** Each service has its own `.csproj` (e.g., `src/Catalog.API/Catalog.API.csproj`)
-  and entry point (`Program.cs`).
+  **Independent Deployable Services (10+):**
+  The AppHost (`src/eShop.AppHost/Program.cs`) orchestrates distinct services each
+  with their own .csproj and Program.cs entry point:
+  - `Catalog.API` — REST, PostgreSQL + pgvector, optional AI search
+  - `Basket.API` — gRPC (Protobuf), Redis-backed
+  - `Ordering.API` — REST, MediatR CQRS, PostgreSQL
+  - `Identity.API` — OIDC/IdentityServer, PostgreSQL
+  - `Webhooks.API` — REST, PostgreSQL
+  - `OrderProcessor` — background event consumer (no HTTP endpoints)
+  - `PaymentProcessor` — background event consumer (no HTTP endpoints)
+  - `WebApp` — Blazor Server frontend
+  - `HybridApp` — .NET MAUI mobile client (via YARP BFF)
+  - `WebhookClient` — webhook receiver test app
+  - YARP `mobile-bff` — API gateway / Backend-for-Frontend
 
-  - **Data Sovereignty:** The `src/eShop.AppHost/Program.cs` file confirms that services
-  own their respective data stores (e.g., `catalogdb`, `identitydb`, `orderingdb`,
-  `webhooksdb`) and a shared Redis instance for caching/state.
+  **Database-per-Service Pattern:**
+  ```csharp
+  var catalogDb  = postgres.AddDatabase("catalogdb");
+  var identityDb = postgres.AddDatabase("identitydb");
+  var orderDb    = postgres.AddDatabase("orderingdb");
+  var webhooksDb = postgres.AddDatabase("webhooksdb");
+  // Basket.API uses Redis exclusively
+  ```
 
-  - **Service Orchestration:** .NET Aspire (`AppHost`) manages service discovery and
-  lifecycle, abstracting the complexity of inter-service communication.
+  **Protocol Heterogeneity:**
+  - Basket.API exposes gRPC (`Grpc.AspNetCore`, basket.proto)
+  - Catalog, Ordering, Webhooks expose versioned REST (Asp.Versioning.Http)
+  - Identity.API exposes OIDC endpoints (Duende IdentityServer)
+  This heterogeneity is the expected freedom of independently owned services.
 
-  - **API Gateway/BFF:** The use of YARP as a "mobile-bff" (`builder.AddYarp("mobile-bff")`
-  in `AppHost`) demonstrates the Backend-for-Frontends pattern used to aggregate service
-  calls for clients.
+  ### Primary Co-Style: Event-Driven Architecture
 
+  Cross-service coordination is entirely asynchronous through an `IEventBus`
+  abstraction backed by RabbitMQ. Integration events represent the sole coupling
+  surface between services:
 
-  ### Secondary Style: Event-Driven'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:13:04Z'
-classification_reasoning: "## Architecture Analysis\n\n### Primary Style: Microservices\n\
-  \nThe eShop repository implements a textbook **Microservices architecture** with\
-  \ the following evidence:\n\n**Multiple Independently Deployable Services:**\nThe\
-  \ AppHost (`src/eShop.AppHost/Program.cs`) orchestrates 10+ distinct services:\n\
-  - `Basket.API` - Shopping basket service (gRPC, Redis-backed)\n- `Catalog.API` -\
-  \ Product catalog service (PostgreSQL-backed)\n- `Ordering.API` - Order management\
-  \ service (PostgreSQL-backed)\n- `Identity.API` - Authentication/identity service\n\
-  - `Webhooks.API` - Webhook management service\n- `PaymentProcessor` - Background\
-  \ payment processing worker\n- `OrderProcessor` - Background order processing worker\n\
-  - `WebApp` - Web frontend (Blazor)\n- `WebhookClient` - Webhook client application\n\
-  - YARP-based mobile BFF (reverse proxy)\n\n**Database Per Service Pattern:**\nEach\
-  \ service owns its data with separate databases:\n```\nvar catalogDb = postgres.AddDatabase(\"\
-  catalogdb\");\nvar identityDb = postgres.AddDatabase(\"identitydb\");\nvar orderDb\
-  \ = postgres.AddDatabase(\"orderingdb\");\nvar webhooksDb = postgres.AddDatabase(\"\
-  webhooksdb\");\n```\nBasket.API uses Redis for its state, not shared with other\
-  \ services.\n\n**Independent Technology Choices:**\n- Basket.API uses gRPC (`builder.Services.AddGrpc()`)\n\
-  - Ordering.API uses REST with API versioning\n- Services can be deployed and scaled\
-  \ independently via .NET Aspire\n\n### Secondary Style: Event-Driven Architecture\n\
-  \nServices communicate asynchronously through **integration events** via RabbitMQ:\n\
-  \n**Event Bus Infrastructure:**\n```\nvar rabbitMq = builder.AddRabbitMQ(\"eventbus\"\
-  )\n```\n(`src/eShop.AppHost/Program.cs`, lines 8-9)\n\n**Integration Events Flow:**\n\
-  - `OrderStartedIntegrationEvent` - published by Ordering.API when order created\n\
-  - `OrderStatusChangedToAwaitingValidationIntegrationEvent` - triggers stock validation\
-  \ in Catalog.API\n- `OrderStockConfirmedIntegrationEvent` / `OrderStockRejectedIntegrationEvent`\
-  \ - catalog stock validation results\n- `OrderPaymentSucceededIntegrationEvent`\
-  \ / `OrderPaymentFailedIntegrationEvent` - payment processing results\n\n**Event\
-  \ Handlers Subscribed via Event Bus:**\n```csharp\n// PaymentProcessor/Program.cs\n\
-  builder.AddRabbitMqEventBus(\"EventBus\")\n    .AddSubscription<OrderStatusChangedToStockConfirmedIntegrationEvent,\
-  \ \n                      OrderStatusChangedToStockConfirmedIntegrationEventHandler>();\n\
-  ```\n\n**Outbox Pattern Implementation:**\nThe `IntegrationEventLogService` (`src/IntegrationEventLogEF/`)\
-  \ implements reliable event publishing with transactional integrity - events are\
-  \ stored atomically with domain changes before being published.\n\n### Secondary\
-  \ Style: Domain-Driven Design\n\nStrong DDD tactical patterns in the Ordering bounded\
-  \ context:\n\n**Bounded Context Structure:**\n- `Ordering.Domain` - Pure domain\
-  \ model, no infrastructure dependencies\n- `Ordering.Infrastructure` - Repository\
-  \ implementations, EF Core context\n- `Ordering.API` - Application layer with CQRS\
-  \ handlers\n\n**Aggregate Roots with IAggregateRoot Marker:**\n```csharp\n// Ordering.Domain/AggregatesModel/OrderAggregate/Order.cs\n\
-  public class Order : Entity, IAggregateRoot\n```\n\n**Value Objects:**\n```csharp\n\
-  // Ordering.Domain/AggregatesModel/OrderAggregate/Address.cs\n// Persisted as EF\
-  \ Core owned entity\npublic class Address : ValueObject\n```\n\n**Domain Events:**\n\
-  The domain layer contains 8 domain events (`src/Ordering.Domain/Events/`):\n- `OrderStartedDomainEvent`\n\
-  - `OrderShippedDomainEvent`\n- `OrderCancelledDomainEvent`\n- `OrderStatusChangedToAwaitingValidationDomainEvent`\n\
-  - etc.\n\n**Entity Base Class with Domain Events:**\n```csharp\n// Ordering.Domain/SeedWork/Entity.cs\n\
-  private List<INotification> _domainEvents;\npublic IReadOnlyCollection<INotification>\
-  \ DomainEvents => _domainEvents?.AsReadOnly();\npublic void AddDomainEvent(INotification\
-  \ eventItem) { ... }\n```\n\n**Invariants Protected in Aggregates:**\n```csharp\n\
-  // Order.cs - business rules enforced through methods\npublic void SetShippedStatus()\n\
-  {\n    if (OrderStatus != OrderStatus.Paid)\n    {\n        StatusChangeException(OrderStatus.Shipped);\n\
-  \    }\n    OrderStatus = OrderStatus.Shipped;\n    AddDomainEvent(new OrderShippedDomainEvent(this));\n\
-  }\n```\n\n### Rejected Styles\n\n**Not Layered Monolith:** Services are independently\
-  \ deployable with separate databases, not horizontal layers in a single deployable.\
-  \ Each service has its own Program.cs entry point.\n\n**Not Modular Monolith:**\
-  \ The solution has multiple deployable units (.csproj projects that become separate\
-  \ containers), not a single deployable with enforced module boundaries.\n\n**Not\
-  \ Serverless:** Services are deployed as containers orchestrated by .NET Aspire,\
-  \ not as individual functions triggered by events. PaymentProcessor and OrderProcessor\
-  \ are background workers, not Azure Functions.\n\n**Not CQRS (primary):** While\
-  \ MediatR is used for commands/queries in Ordering.API, this is an application pattern\
-  \ within the microservice, not the primary architectural characteristic. The read/write\
-  \ separation is not at the system level\n\n[truncated]"
+  **Event Bus Infrastructure:**
+  ```csharp
+  var rabbitMq = builder.AddRabbitMQ("eventbus")
+      .WithLifetime(ContainerLifetime.Persistent);
+  ```
+
+  **Order Lifecycle Choreography (multi-service saga via events):**
+  - `OrderStartedIntegrationEvent` published by Ordering.API on order creation
+  - `OrderStatusChangedToAwaitingValidationIntegrationEvent` triggers Catalog.API
+    stock check
+  - `OrderStockConfirmedIntegrationEvent` / `OrderStockRejectedIntegrationEvent`
+    returned by Catalog.API
+  - `OrderStatusChangedToStockConfirmedIntegrationEvent` consumed by PaymentProcessor
+  - `OrderPaymentSucceededIntegrationEvent` / `OrderPaymentFailedIntegrationEvent`
+    complete the lifecycle
+
+  **Transactional Outbox Pattern:**
+  `IntegrationEventLogService<TContext>` (`src/IntegrationEventLogEF/`) persists
+  integration events in the same DB transaction as domain changes before relay to
+  RabbitMQ, guaranteeing at-least-once delivery without distributed transactions.
+  The `TransactionBehavior` MediatR pipeline behavior coordinates commit + outbox
+  flush atomically per command.
+
+  ### Strong Secondary Style: Domain-Driven Design
+
+  The Ordering bounded context is a textbook DDD implementation demonstrating the
+  full tactical pattern set:
+
+  **Aggregate Root with Business Invariants:**
+  ```csharp
+  public class Order : Entity, IAggregateRoot
+  ```
+  `Order` enforces that items can only be added through `AddOrderItem()`, status
+  transitions are guarded by preconditions, and state changes raise domain events.
+
+  **Domain Events:**
+  7 domain events in `src/Ordering.Domain/Events/`: OrderStartedDomainEvent,
+  OrderCancelledDomainEvent, OrderShippedDomainEvent,
+  OrderStatusChangedToAwaitingValidationDomainEvent, etc.
+
+  **Value Objects:**
+  `Address` is a Value Object persisted as an EF Core owned entity with structural
+  equality semantics.
+
+  **Separated Domain/Infrastructure/Application Layers:**
+  - `Ordering.Domain` — zero infrastructure dependencies
+  - `Ordering.Infrastructure` — EF Core repositories, UnitOfWork, domain event dispatch
+  - `Ordering.API` — application layer (CQRS commands, queries, domain event handlers)
+
+  **Domain Event → Integration Event Bridge:**
+  `OrderCancelledDomainEventHandler` (and peers) translate internal domain events
+  into outbound integration events, maintaining the bounded context boundary.
+
+  **Repository Pattern:**
+  `IOrderRepository` / `IBuyerRepository` defined in the domain layer; EF Core
+  implementations in Infrastructure satisfy the ports.
+
+  ### CQRS (Service-Internal Pattern, Not Primary Style)
+
+  Ordering.API applies CQRS internally:
+  - Write side: 9 MediatR command/handler pairs in `Application/Commands/`
+  - Read side: `IOrderQueries` / `OrderQueries` with raw Dapper-style SQL projections
+
+  This is a service-level structural pattern, not a system-level architecture.
+  It is evidence supporting DDD depth rather than a standalone primary classification.
+
+  ### Rejected Styles
+
+  - **Modular Monolith:** Multiple processes with isolated databases. Not a single
+    deployable unit.
+  - **Layered:** No horizontal layer model spanning services.
+  - **Service-Based:** Services do not share a monolithic database; each owns its
+    store (the key Microservices distinction).
+  - **Pipeline:** Event flows are choreography-based saga, not extract-transform-load
+    pipeline processing.
+  - **Microkernel:** No plug-in host / core + extension registry model.
+  - **Serverless:** Services are long-running containers, not FaaS.
+  - **Space-Based:** No distributed grid or tuple-space pattern.
+  - **Hexagonal Architecture:** Port/adapter repository interfaces are a DDD tactic
+    within Ordering, not the primary framing of the overall system.
+  - **Multi-Agent:** Optional OpenAI/Ollama catalog AI search is additive and does
+    not constitute an agent orchestration architecture.
