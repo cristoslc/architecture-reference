@@ -17,92 +17,37 @@ architecture_styles:
 - Microkernel
 - Layered
 classification_status: classified
-review_notes: 'CKAN (Comprehensive Knowledge Archive Network) is a classic example
-  of a **Microkernel (Plugin)** architecture. While it follows a strict internal **Layered**
-  structure for its core operations, its defining architectural characteristic is
-  the heavy reliance on a plugin system to define almost all functional behavior,
-  including core features.
-
-
-  ### 1. Microkernel (Plugin) Architecture
-
-  The system is built around a "Core" (the Microkernel) that provides essential services
-  (database management, configuration, base models) but delegates specific functionality
-  to plugins.
-
-  - **Plugin Loading:** `ckan/plugins/core.py` demonstrates a sophisticated loading
-  mechanism using Python entry points (`ckan.plugins` group). It manages a global
-  registry of active plugins (`_PLUGINS_SERVICE`) and matches them against `ckan.plugins`
-  in the config file.
-
-  - **Interfaces:** Extensibility is enforced via a set of formalized interfaces in
-  `ckan/plugins/interfaces.py`. Plugins must "implement" these interfaces (e.g., `IMapper`,
-  `IRoutes`, `IConfigurer`) to hook into the core lifecycle.
-
-  - **Plugin Toolkit:** `ckan/plugins/toolkit.py` acts as a stable API surface (a
-  "facade") that provides plugins with access to core functions without creating tight
-  coupling or circular dependencies.
-
-
-  ### 2. Layered Architecture (Internal)
-
-  Within the core and within well-behaved plugins, CKAN enforces a strict horizontal
-  layering pattern, visible in the directory structure:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:55:37Z'
-classification_reasoning: "## Architecture Analysis: CKAN\n\n### Primary Style: Microkernel\
-  \ (Plugin)\n\nCKAN is architected around a sophisticated **plugin system** that\
-  \ is the defining characteristic of its architecture. The evidence is extensive:\n\
-  \n**Plugin Infrastructure:**\n- `ckan/plugins/base.py` defines the core `Interface`\
-  \ and `Plugin` base classes, along with `SingletonPlugin` for single-instance plugins\n\
-  - `ckan/plugins/core.py` implements the plugin lifecycle: `load()`, `unload()`,\
-  \ `load_all()`, `get_plugin()` - plugins are loaded dynamically at runtime via Python\
-  \ entry points (`ckan.plugins` entry point group)\n- Plugin discovery uses `importlib.metadata.entry_points`\
-  \ to find plugins registered as Python package entry points (lines 10, 37 in `core.py`)\n\
-  \n**Extension Interfaces (over 20 defined):**\nThe `ckan/plugins/interfaces.py`\
-  \ file defines numerous interfaces that plugins can implement:\n- `IActions`, `IAuthFunctions`,\
-  \ `IConfigurer`, `IDatasetForm`, `IGroupForm`\n- `IBlueprint`, `IResourceController`,\
-  \ `ITemplateHelpers`, `IValidators`\n- `IMiddleware`, `IAuthenticator`, `ITranslation`,\
-  \ `ISignal`, `INotifier`\n- And many more...\n\n**Entry Point Registration (setup.cfg\
-  \ lines 52-119):**\n```ini\nckan.plugins =\n    tracking = ckanext.tracking.plugin:TrackingPlugin\n\
-  \    activity = ckanext.activity.plugin:ActivityPlugin\n    datastore = ckanext.datastore.plugin:DatastorePlugin\n\
-  \    ...\n```\n\n**Built-in Extensions:**\nThe `ckanext/` directory contains 20+\
-  \ bundled plugins that demonstrate the plugin architecture:\n- `datastore/`, `activity/`,\
-  \ `datapusher/` - core functionality as plugins\n- `imageview/`, `videoview/`, `audioview/`\
-  \ - resource view plugins\n- `multilingual/`, `stats/`, `tracking/` - feature extensions\n\
-  \n**Plugin Lifecycle Management:**\n```python\n# ckan/plugins/core.py\ndef load(*plugins:\
-  \ str, force_update: bool = False) -> Plugin | list[Plugin]:\n    observers = PluginImplementations(interfaces.IPluginObserver)\n\
-  \    for plugin in plugins:\n        service = _get_service(plugin)\n        for\
-  \ observer_plugin in observers:\n            observer_plugin.before_load(service)\n\
-  \        _PLUGINS_SERVICE[plugin] = service\n        ...\n```\n\n**Blanket Decorators\
-  \ for Simplified Plugin Development:**\nThe `ckan/plugins/blanket.py` provides convenience\
-  \ decorators (`@tk.blanket.actions`, `@tk.blanket.helpers`, etc.) that automate\
-  \ common plugin patterns.\n\n### Secondary Style: Layered\n\nWithin the monolithic\
-  \ core, CKAN exhibits classic layered architecture:\n\n**Views/Presentation Layer:**\
-  \ `ckan/views/` - Flask blueprints handling HTTP requests (`dataset.py`, `user.py`,\
-  \ `group.py`, `api.py`)\n\n**Logic/Business Layer:** `ckan/logic/` with subdirectories:\n\
-  - `action/` - `create.py`, `get.py`, `update.py`, `delete.py`, `patch.py` - action\
-  \ functions\n- `auth/` - authorization functions organized similarly\n\n**Model/Data\
-  \ Layer:** `ckan/model/` - SQLAlchemy ORM models (`package.py`, `user.py`, `resource.py`,\
-  \ `group.py`, etc.) with `meta.py` for session management\n\n**Library/Helpers:**\
-  \ `ckan/lib/` - utility functions, helpers, signals, jobs\n\n**Single Deployable\
-  \ Unit:**\n- One `wsgi.py` entry point creating a single WSGI application\n- One\
-  \ Python package (`ckan` + `ckanext` namespace package)\n- Configuration via INI\
-  \ files, not service discovery\n\n### What This Is NOT\n\n**Not Microservices:**\
-  \ Single process, single database, single deployment unit. External services like\
-  \ Solr/Redis are infrastructure dependencies, not application services.\n\n**Not\
-  \ Modular Monolith:** No enforced module boundaries at the package level. The plugin\
-  \ system IS the modularization mechanism - modules are implemented as plugins, not\
-  \ as internal bounded contexts.\n\n**Not Hexagonal Architecture:** While plugins\
-  \ use interfaces, these are extension points, not ports/adapters for dependency\
-  \ inversion. The model layer directly uses SQLAlchemy without repository interfaces.\n\
-  \n**Not Domain-Driven Design:** No aggregates, value objects, bounded contexts,\
-  \ or ubiquitous language patterns. The domain logic is in `logic/action/` functions,\
-  \ not domain entities.\n\n### Summary\n\nCKAN is a textbook example of a **Microkernel/Plugin\
-  \ architecture**: a stable core system with a well-defined plugin interface contract\
-  \ that allows extensions to be loaded at runtime. The layered organization within\
-  \ the core is secondary to the plugin-centric extensibility that defines CKAN's\
-  \ architecture."
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Maintainability
+- Modularity
+- Testability
+- Interoperability
+- Scalability
+- Security
+one_line_summary: Open-source data management system built on a formal plugin (Microkernel)
+  architecture with a strict internal layered structure across views, logic/actions,
+  and SQLAlchemy model layers.
+classification_reasoning: "CKAN's primary architecture is Microkernel. The kernel\
+  \ (ckan/) provides a minimal application skeleton and a registry of over 20 typed\
+  \ extension interfaces (IActions, IAuthFunctions, IConfigurer, IDatasetForm, IBlueprint,\
+  \ ISignal, IResourceController, and others defined in ckan/plugins/interfaces.py).\
+  \ All domain capabilities — including features that ship with the product — are\
+  \ implemented as ckanext.* plugins loaded at runtime via Python entry points (importlib.metadata\
+  \ group='ckan.plugins'). Plugin lifecycle is managed by ckan/plugins/core.py through\
+  \ load/unload/plugins_update functions and a global singleton registry. The plugin\
+  \ toolkit (ckan/plugins/toolkit.py) provides a stable versioned API facade that\
+  \ insulates plugins from internal refactoring. Blanket decorators (@tk.blanket.actions\
+  \ etc.) enforce consistent plugin structure. The Layered secondary style reflects\
+  \ strict internal discipline: views (ckan/views/ Flask blueprints) call get_action()\
+  \ into the logic/actions layer (ckan/logic/action/ — ~6,856 lines across create/get/update/delete/patch),\
+  \ which checks auth functions (ckan/logic/auth/) and manipulates SQLAlchemy ORM\
+  \ models (ckan/model/). A Blinker signal system (ckan/lib/signals.py, action_succeeded\
+  \ et al.) and Redis/RQ async job queues (ckan/lib/jobs.py) are secondary infrastructure\
+  \ integrations. The application deploys as a single WSGI process (wsgi.py) with\
+  \ one PostgreSQL database, making Microservices, Service-Based, and distributed\
+  \ patterns inapplicable."

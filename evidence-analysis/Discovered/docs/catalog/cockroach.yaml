@@ -17,96 +17,38 @@ architecture_styles:
 - Layered
 - Modular Monolith
 classification_status: classified
-review_notes: 'CockroachDB is structured as a **Layered** architecture, specifically
-  a "Vertical Hardened Layer" approach where each layer (SQL, KV, Distribution, Replication,
-  Storage) provides a clean abstraction for the one above it. While it is a distributed
-  system at runtime, the codebase itself is organized as a **Modular Monolith**—a
-  single repository that compiles into a single binary (`cockroach`) with strictly
-  defined internal boundaries.
-
-
-  ### 1. Primary Style: Layered (Horizontal/Vertical)
-
-  The codebase follows a clear hierarchy of concerns, which is explicitly documented
-  in `pkg/sql/doc.go`. The layers are:
-
-  - **SQL Layer (`pkg/sql`):** Responsible for parsing, query planning, and execution.
-  It translates SQL ASTs into transactional Key-Value operations.
-
-  - **KV Layer (`pkg/kv`):** Handles transactional logic and "Key Addressing." It
-  provides a `DB` client (`pkg/kv/db.go`) used by the SQL layer to interact with the
-  distributed store.
-
-  - **Distribution/Replication Layer (`pkg/kv/kvserver`):** Manages the "Reachable
-  Range" of keys, Raft consensus for replication, and node-to-node communication.
-
-  - **Storage Layer (`pkg/storage`):** The bottom of the stack, providing MVCC (Multi-Version
-  Concurrency Control) on top of an engine (Pebble/RocksDB).
-
-
-  ### 2. Secondary Style: Modular Monolith'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.95
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:59:02Z'
-classification_reasoning: "## Analysis\n\nCockroachDB implements a **Layered Architecture**\
-  \ with clear horizontal separation of concerns. This is explicitly documented and\
-  \ evident in the codebase structure.\n\n### Evidence for Layered Architecture\n\n\
-  **1. Explicit Design Documentation**\n\nFrom `docs/design.md`:\n> \"CockroachDB\
-  \ implements a layered architecture. The highest level of abstraction is the SQL\
-  \ layer... It depends directly on the SQL layer, which provides familiar relational\
-  \ concepts such as schemas, tables, columns, and indexes. The SQL layer in turn\
-  \ depends on the distributed key value store, which handles the details of range\
-  \ addressing to provide the abstraction of a single, monolithic key value store.\"\
-  \n\n**2. Clear Layer Organization in `pkg/`**\n\nThe codebase is organized into\
-  \ distinct horizontal layers (53 top-level packages):\n\n| Layer | Package | Purpose\
-  \ |\n|-------|---------|---------|\n| **Protocol/Interface** | `sql/pgwire/` | PostgreSQL\
-  \ wire protocol |\n| **SQL Layer** | `sql/` | Parsing, planning, optimization, execution\
-  \ (561 files) |\n| **KV Layer** | `kv/` | Distributed key-value operations and transactions\
-  \ |\n| **Consensus Layer** | `raft/` | Raft consensus protocol (forked from etcd)\
-  \ |\n| **Storage Layer** | `storage/` | MVCC storage engine abstraction (Pebble/RocksDB)\
-  \ |\n| **Infrastructure** | `gossip/`, `rpc/`, `server/` | Node communication, cluster\
-  \ coordination |\n\n**3. Layered Query Processing**\n\nFrom `docs/tech-notes/life_of_a_query.md`:\n\
-  > \"A SQL query arrives at the server through the PostgreSQL wire protocol... The\
-  \ protocol is implemented by the pgwire package... CockroachDB's SQL engine sits\
-  \ between the client connection and the core key/value service, translating SQL\
-  \ queries into key/value operations. It broadly goes through: Parsing → Logical\
-  \ Planning & Optimization → Physical Planning → Execution\"\n\n**4. Dependency Direction**\n\
-  \nThe dependencies flow downward through layers:\n- `sql/` depends on `kv/`\n- `kv/kvserver/`\
-  \ depends on `storage/` and `raft/`\n- Storage layer depends on nothing below it\n\
-  \n**5. Documentation Confirmation**\n\nFrom `pkg/storage/doc.go`:\n> \"Package storage\
-  \ provides low-level storage. It interacts with storage backends... via the Engine\
-  \ interface... MVCC provides multi-version concurrency control capability on top\
-  \ of an Engine instance.\"\n\nFrom `pkg/kv/doc.go`:\n> \"Package kv provides clients\
-  \ for accessing the various externally-facing Cockroach database endpoints.\"\n\n\
-  ### Evidence for Modular Monolith (Secondary Style)\n\n**1. Single Deployable Binary**\n\
-  \nFrom `pkg/cmd/cockroach/main.go`:\n```go\nfunc main() {\n    cli.Main()\n}\n```\n\
-  \nOne binary, one entry point. All nodes run the same binary.\n\n**2. Homogeneous\
-  \ Nodes**\n\nFrom design.md:\n> \"CockroachDB nodes are symmetric; a design goal\
-  \ is homogeneous deployment (one binary) with minimal configuration and no required\
-  \ external dependencies.\"\n\n**3. Module Boundaries**\n\nThe 53 packages under\
-  \ `pkg/` represent clear module boundaries with distinct responsibilities:\n- `backup/`\
-  \ - Backup operations\n- `jobs/` - Job scheduling and execution\n- `changefeed/`\
-  \ - Change data capture\n- `spanconfig/` - Span configuration\n- etc.\n\n**4. Enforced\
-  \ Through Package Structure**\n\nGo's package system naturally enforces boundaries.\
-  \ Each package has explicit imports showing dependencies.\n\n### What This Is NOT\n\
-  \n- **Not Microservices**: Single binary deployment, all nodes are symmetric, deployed\
-  \ via Kubernetes StatefulSet with identical pods\n- **Not Event-Driven**: While\
-  \ changefeeds and rangefeeds exist, the core architecture is synchronous request-response\
-  \ through Raft consensus\n- **Not DDD**: No bounded contexts, aggregates, or domain\
-  \ events as organizing principle\n- **Not Hexagonal**: No ports-and-adapters pattern\
-  \ with application core isolation\n- **Not CQRS**: No separate read/write models\
-  \ as architectural pattern\n- **Not Plugin/Microkernel**: The CCL features use Go's\
-  \ init() hooks for build-time inclusion, not runtime plugin loading:\n  ```go\n\
-  \  // pkg/ccl/ccl_init.go\n  import (\n      _ \"github.com/cockroachdb/cockroach/pkg/ccl/changefeedccl\"\
-  \n      _ \"github.com/cockroachdb/cockroach/pkg/ccl/multiregionccl\"\n      ...\n\
-  \  )\n  ```\n\n### Deployment Architecture\n\nThe `cloud/kubernetes/` directory\
-  \ contains Kubernetes StatefulSet configurations showing deployment as a homogeneous\
-  \ cluster of identical nodes - consistent with a layered monolithic architecture\
-  \ that scales horizontally.\n\n### Conclusion\n\nCockroachDB is a textbook example\
-  \ of **Layered Architecture** for a distributed database system, with strong secondary\
-  \ characteristics of **Modular Monolith** due to its single-binary deployment with\
-  \ well-defined internal module boundaries. The layering is explicitly designed and\
-  \ documented, with SQL → KV → Storage → Consensus forming the primary horizontal\
-  \ strata."
+classification_confidence: 0.97
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Fault Tolerance
+- Horizontal Scalability
+- Strong Consistency
+- Survivability
+- Operational Simplicity
+- SQL Compatibility
+- Observability
+- Extensibility
+one_line_summary: Distributed SQL database built as a layered modular monolith — SQL
+  over KV over Raft over Pebble — deploying as a single symmetric binary with Raft
+  consensus replication and a Cascades-style cost-based distributed query optimizer.
+classification_reasoning: "CockroachDB implements a textbook Layered Architecture,\
+  \ explicitly documented in docs/design.md: \"CockroachDB implements a layered architecture.\
+  \ The highest level of abstraction is the SQL layer... The SQL layer in turn depends\
+  \ on the distributed key value store.\" Five distinct horizontal strata are enforced\
+  \ via Go package boundaries: Protocol/pgwire \u2192 SQL (cost-based optimizer, DistSQL\
+  \ execution) \u2192 KV client \u2192 KV server/Raft replication \u2192 Storage\
+  \ (MVCC over Pebble). Dependencies flow strictly downward. Modular Monolith is a\
+  \ strong secondary classification: all functionality ships in a single symmetric\
+  \ cockroach binary; nodes are homogeneous (design.md: \"homogeneous deployment (one\
+  \ binary) with minimal configuration and no required external dependencies\"); internal\
+  \ module boundaries are enforced by Go's package system rather than network or process\
+  \ boundaries. Commercial features (CCL: multi-region, CDC, OIDC, LDAP) are registered\
+  \ via compile-time blank-import init() hooks, not runtime-loadable plugins, ruling\
+  \ out Microkernel. Core operation is synchronous Raft-based request/response, ruling\
+  \ out Event-Driven as a primary style. Single-binary homogeneous deployment rules\
+  \ out Microservices. No separate read/write models at architectural level rules out\
+  \ CQRS. The internal DistSQL pipeline (processor DAGs shipping sub-plans over gRPC)\
+  \ is an implementation technique within the SQL layer, not a system-wide Pipeline\
+  \ architecture."

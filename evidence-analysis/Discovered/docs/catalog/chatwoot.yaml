@@ -17,223 +17,40 @@ architecture_styles:
 - Event-Driven
 - Layered
 classification_status: classified
-review_notes: "The Chatwoot repository follows a classic **Layered Architecture**,\
-  \ primarily driven by the Ruby on Rails framework conventions, with a strong secondary\
-  \ **Event-Driven** component for handling real-time communications and asynchronous\
-  \ processing.\n\n### 1. Layered Architecture (Primary)\nThe codebase is organized\
-  \ into distinct horizontal layers that separate concerns from the UI down to the\
-  \ database:\n- **Presentation Layer**: Handled by the Rails views and a heavy frontend\
-  \ presence in `app/javascript/`. Specifically, `app/javascript/dashboard`, `app/javascript/widget`,\
-  \ and `app/javascript/portal` indicate separate frontend applications for different\
-  \ user roles.\n- **API/Controller Layer**: (Implicit in Rails standard `app/controllers`,\
-  \ though not fully expanded in the tree, the presence of `app/policies` and `app/presenters`\
-  \ confirms a robust request/response handling layer).\n- **Business Logic Layer**:\
-  \ Unlike \"skinny\" Rails apps, Chatwoot uses several auxiliary patterns to isolate\
-  \ logic:\n    - **Builders**: (`app/builders/`) Logic for constructing complex objects\
-  \ like `AccountBuilder`, `MessageBuilder`, and `ConversationBuilder`.\n    - **Actions**:\
-  \ (`app/actions/`) Service-object style patterns for specific business operations\
-  \ like `ContactMergeAction`.\n    - **Finders**: (`app/finders/`) Encapsulated query\
-  \ logic (e.g., `ConversationFinder`)."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:55:10Z'
-classification_reasoning: '## Architecture Analysis: Chatwoot
-
-
-  ### Primary Style: Event-Driven
-
-
-  The codebase exhibits a strong **Event-Driven architecture** as its defining characteristic:
-
-
-  **1. Custom Event Dispatching System**
-
-
-  The core event infrastructure is in `app/dispatchers/`:
-
-  - `Dispatcher` - Singleton orchestrator with sync and async dispatchers
-
-  - `SyncDispatcher` - Handles immediate events (ActionCable, AgentBot listeners)
-
-  - `AsyncDispatcher` - Delegates to `EventDispatcherJob` for background processing
-
-
-  **2. Event Publication from Domain Models**
-
-
-  Events are dispatched from models throughout the codebase (`app/models/`):
-
-  ```ruby
-
-  # app/models/conversation.rb
-
-  Rails.configuration.dispatcher.dispatch(CONVERSATION_CREATED, Time.zone.now, conversation:
-  self)
-
-  Rails.configuration.dispatcher.dispatch(CONVERSATION_UPDATED, Time.zone.now, conversation:
-  self, changed_attributes: previous_changes)
-
-
-  # app/models/message.rb
-
-  Rails.configuration.dispatcher.dispatch(MESSAGE_CREATED, Time.zone.now, message:
-  self, performed_by: Current.executed_by)
-
-
-  # app/models/contact.rb
-
-  Rails.configuration.dispatcher.dispatch(CONTACT_CREATED, Time.zone.now, contact:
-  self)
-
-  ```
-
-
-  **3. Event Listeners**
-
-
-  Multiple listeners subscribe to events (`app/listeners/`):
-
-  - `WebhookListener` - Delivers webhooks for external integrations
-
-  - `NotificationListener` - Creates user notifications
-
-  - `ActionCableListener` - Real-time WebSocket broadcasts
-
-  - `AutomationRuleListener` - Triggers automation rules
-
-  - `CampaignListener` - Handles campaign triggers
-
-  - `ReportingEventListener` - Analytics events
-
-  - `HookListener` - Integration hooks
-
-  - `InstallationWebhookListener` - Platform-level webhooks
-
-
-  **4. Async Job Processing**
-
-
-  Sidekiq background jobs process events asynchronously:
-
-  - `EventDispatcherJob` publishes events to listeners via Sidekiq
-
-  - Specialized jobs for channel integrations: `WebhookJob`, `SendOnSlackJob`, `SendReplyJob`
-
-  - Scheduled jobs: `TriggerScheduledItemsJob`, `BulkAutoAssignmentJob`
-
-
-  **5. Real-time Communication**
-
-
-  ActionCable (WebSockets) for live updates:
-
-  - `app/channels/room_channel.rb` - Real-time room subscriptions
-
-  - `ActionCableListener` broadcasts events to connected clients
-
-
-  ### Secondary Style: Layered
-
-
-  Traditional Rails MVC layering is present:
-
-
-  **Layer Structure:**
-
-  - **Controllers** (`app/controllers/`) - HTTP request handling, API endpoints organized
-  by version (v1, v2)
-
-  - **Models** (`app/models/`) - ActiveRecord ORM with domain entities (Conversation,
-  Message, Contact, Inbox, Account)
-
-  - **Views** (`app/views/`) - Presentation templates
-
-  - **Services** (`app/services/`) - Business logic encapsulation with namespaced
-  channel-specific services
-
-  - **Policies** (`app/policies/`) - Authorization layer using Pundit
-
-  - **Jobs** (`app/jobs/`) - Background processing via ActiveJob/Sidekiq
-
-  - **Builders** (`app/builders/`) - Object construction patterns
-
-  - **Finders** (`app/finders/`) - Query encapsulation
-
-
-  ### Deployment Topology
-
-
-  **Single Monolithic Deployable:**
-
-  - One `Dockerfile` producing a single container
-
-  - Procfile shows: `web` (Rails server) + `worker` (Sidekiq)
-
-  - Single PostgreSQL database (`config/database.yml`)
-
-  - Single Redis for Sidekiq and caching
-
-
-  **Not Microservices:**
-
-  - No service boundaries, all models share the same database
-
-  - No inter-service communication protocols (no gRPC, no service mesh)
-
-  - Single codebase, single deployment unit
-
-
-  ### Enterprise Extension Mechanism
-
-
-  The `enterprise/` directory contains optional features loaded via Ruby''s `prepend`
-  mechanism:
-
-  ```ruby
-
-  # config/initializers/01_inject_enterprise_edition_module.rb
-
-  Module.prepend(InjectEnterpriseEditionModule)
-
-  ```
-
-
-  This allows:
-
-  - Core open-source functionality in main `app/`
-
-  - Enterprise features conditionally prepended from `enterprise/app/`
-
-  - Same pattern used by GitLab for their enterprise editions
-
-
-  ### Rejected Classifications
-
-
-  - **NOT Microservices** - Single deployable Rails app, single database, no service
-  boundaries
-
-  - **NOT Modular Monolith** - No enforced module boundaries between bounded contexts;
-  Account, Conversation, Message all directly coupled
-
-  - **NOT CQRS** - No separate read/write models; standard ActiveRecord patterns
-
-  - **NOT Hexagonal** - No ports/adapters isolation; controllers directly call services
-  and models
-
-  - **NOT Pipeline** - No sequential data transformation stages
-
-  - **NOT Serverless** - Traditional server deployment (Heroku, Docker, Kubernetes)
-
-
-  ### Conclusion
-
-
-  Chatwoot is an **Event-Driven layered monolith**. The event-driven nature is the
-  primary architectural style - models publish events, multiple listeners react asynchronously,
-  and background jobs handle processing. The layered MVC structure provides the foundational
-  organization, but events are the mechanism by which different parts of the system
-  communicate and trigger side effects (webhooks, notifications, automations, real-time
-  broadcasts).'
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- extensibility
+- scalability
+- maintainability
+- real-time-capability
+- testability
+- operability
+- resilience
+one_line_summary: Rails monolith with a purpose-built dispatcher-listener event framework
+  that decouples domain side-effects (webhooks, real-time pushes, notifications, automations)
+  from core models, layered over standard MVC conventions.
+classification_reasoning: "Chatwoot is classified as Event-Driven (primary) + Layered\
+  \ (secondary).\n\nThe event-driven classification is earned by a purpose-built, first-party\
+  \ dispatcher-listener framework — not incidental callbacks. The system defines a\
+  \ typed event vocabulary (Events::Types with 30+ named constants), routes events\
+  \ through both synchronous (ActionCableListener, AgentBotListener) and asynchronous\
+  \ (Sidekiq-backed EventDispatcherJob) paths, and structures all cross-cutting domain\
+  \ reactions as independent subscribing listeners: WebhookListener, NotificationListener,\
+  \ AutomationRuleListener, CampaignListener, ReportingEventListener, HookListener,\
+  \ InstallationWebhookListener. Domain models publish 34+ dispatch call-sites across\
+  \ conversation, message, contact, inbox, and notification events. This decouples\
+  \ models from side-effects while remaining within a single deployable.\n\nThe layered\
+  \ classification is earned by consistent Rails conventions: versioned API controllers\
+  \ (v1/v2), Pundit policy authorization, service objects for business logic, builders\
+  \ and finders as supporting patterns, and Active Job/Sidekiq for background processing\
+  \ across a rich queue hierarchy (critical, high, medium, default, mailers, scheduled_jobs,\
+  \ low, deferred, housekeeping).\n\nDeployment is a single Rails monolith (web +\
+  \ worker Procfile processes) backed by a single PostgreSQL database and Redis for\
+  \ ActionCable and Sidekiq.\n\nRejected: Microservices (single database, no inter-service\
+  \ communication), Modular Monolith (no enforced bounded-context isolation), CQRS\
+  \ (standard ActiveRecord read/write patterns), Hexagonal (no ports/adapters abstraction),\
+  \ DDD (no explicit aggregates or value objects), Pipeline (no sequential transformation\
+  \ stages), Serverless (traditional server deployment)."

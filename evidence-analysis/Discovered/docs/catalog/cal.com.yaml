@@ -3,11 +3,7 @@ scope: application
 use_type: production
 source: Discovered
 source_url: https://github.com/calcom/cal.com
-project_url: https://github.com/calcom/cal.com
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:35:55Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Scheduling
 language: TypeScript
 languages:
@@ -17,93 +13,52 @@ architecture_styles:
 - Modular Monolith
 - Microkernel
 classification_status: classified
-review_notes: 'The repository is structured as a **Modular Monolith** managed within
-  a Turborepo monorepo. While it contains multiple deployable units, the core business
-  logic (scheduling, availability, bookings) is centralized in a single large Next.js
-  application (`apps/web`), complemented by shared internal packages that enforce
-  module boundaries.
-
-
-  ### Primary Style: Modular Monolith
-
-  The architecture is fundamentally a monolith because the vast majority of the system''s
-  functionality, state management, and UI reside in `apps/web`. However, it is "Modular"
-  because:
-
-  - **Shared Packages:** Logic is extracted into specialized packages under `packages/`
-  (e.g., `@calcom/prisma` for data, `@calcom/trpc` for API contracts, and `@calcom/features`
-  for domain logic).
-
-  - **Dependency Enforcement:** `turbo.json` and `package.json` workspaces define
-  a clear dependency graph where the web app consumes discrete, versioned internal
-  modules.
-
-  - **Single Database: ** Almost all services share a single PostgreSQL database managed
-  by a central Prisma schema (`packages/prisma/schema.prisma`), a hallmark of monolithic
-  data architecture.
-
-
-  ### Secondary Style: Microkernel (Plugin)
-
-  The system implements a strong **Microkernel** pattern through its "App Store" infrastructure:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:53:06Z'
-classification_reasoning: "## Architecture Analysis\n\n### Primary Style: Modular\
-  \ Monolith\n\n**Strong Evidence:**\n\n1. **Feature-based vertical slices** in `packages/features/`:\n\
-  \   - Each domain has its own self-contained directory: `bookings/`, `availability/`,\
-  \ `event-types/`, `auth/`, `insights/`, `webhooks/`, etc.\n   - Features include:\
-  \ `services/`, `repositories/`, `components/`, `hooks/`, `lib/`, `types.ts`\n  \
-  \ - Clear public APIs exported from each feature\n\n2. **Enforced module boundaries**\
-  \ with explicit architecture rules:\n   ```typescript\n   // From agents/rules/architecture-feature-boundaries.md\n\
-  \   // Incorrect - Importing internal implementation details\n   import { calculateSlots\
-  \ } from \"@calcom/features/availability/services/internal/slotCalculator\";\n \
-  \  \n   // Correct - Import through the feature's public API\n   import { getAvailability\
-  \ } from \"@calcom/features/availability\";\n   ```\n\n3. **Repository pattern with\
-  \ dependency injection**:\n   - 30+ repository interfaces: `IBookingAuditRepository`,\
-  \ `IBookingReferenceRepository`, `IBookingReportRepository`, etc.\n   - DI container\
-  \ using `@evyweb/ioctopus` with type-safe module loaders\n   - Services depend on\
-  \ abstractions (interfaces), not concretions:\n   ```typescript\n   // packages/features/booking-audit/di/tokens.ts\n\
-  \   export const BOOKING_AUDIT_DI_TOKENS = {\n     BOOKING_AUDIT_REPOSITORY: Symbol(\"\
-  BookingAuditRepository\"),\n     BOOKING_AUDIT_PRODUCER_SERVICE: Symbol(\"BookingAuditProducerService\"\
-  ),\n     // ...\n   };\n   ```\n\n4. **Single deployable unit** (primary): \n  \
-  \ - Dockerfile builds one main application (`@calcom/web`)\n   - All features are\
-  \ compiled into the same deployment artifact\n   - Single PostgreSQL database (not\
-  \ database-per-service)\n\n5. **Clear layering within the monolith**:\n   - `apps/web/modules/`\
-  \ - tRPC hooks and React components (web-specific)\n   - `packages/features/` -\
-  \ Framework-agnostic business logic (shared)\n   - `packages/lib/` - Cross-cutting\
-  \ utilities\n   - `packages/prisma/` - Data access layer\n\n### Secondary Style:\
-  \ Microkernel (Plugin)\n\n**Strong Evidence:**\n\n1. **140+ plugins in App Store**\
-  \ (`packages/app-store/`):\n   - googlecalendar, zoomvideo, stripepayment, hubspot,\
-  \ salesforce, slack, discord, etc.\n   - Each app follows standardized structure:\
-  \ `index.ts`, `api/`, `lib/`, `_metadata.ts`, `config.json`\n\n2. **Generated plugin\
-  \ registry**:\n   ```typescript\n   // packages/app-store/apps.server.generated.ts\
-  \ (auto-generated)\n   export const apiHandlers = {\n     googlecalendar: import(\"\
-  ./googlecalendar/api\"),\n     zoomvideo: import(\"./zoomvideo/api\"),\n     stripepayment:\
-  \ import(\"./stripepayment/api\"),\n     // 140+ apps...\n   };\n   ```\n\n3. **CLI\
-  \ tool for plugin scaffolding**:\n   - `packages/app-store-cli/` with commands:\
-  \ `create-app`, `edit-app`, `delete-app`\n   - Auto-generates `*.generated.ts` files\
-  \ that register plugins\n\n4. **Plugin metadata and contracts**:\n   ```typescript\n\
-  \   // packages/app-store/googlecalendar/_metadata.ts\n   export const metadata\
-  \ = {\n     name: \"Google Calendar\",\n     type: \"google_calendar\",\n     category:\
-  \ \"calendar\",\n     isOAuth: true,\n     // Standard plugin interface\n   };\n\
-  \   ```\n\n5. **Plugin extension points**:\n   - `api/` - API handlers for OAuth\
-  \ callbacks and webhooks\n   - `lib/` - Calendar service implementations\n   - `components/`\
-  \ - UI components (browser-generated)\n\n### Rejected Styles\n\n**Not Microservices**\
-  \ because:\n- Only 2 services (`calcom` and `calcom-api`) sharing a single database\n\
-  - No database-per-service pattern\n- Features are not independently deployable\n\
-  - All features compile into the same deployment artifact\n\n**Not Event-Driven**\
-  \ because:\n- No message broker (Kafka, RabbitMQ, etc.) in deployment configuration\n\
-  - Direct synchronous calls between components\n- No event sourcing or CQRS patterns\n\
-  \n**Not Serverless** because:\n- Docker container deployment\n- No AWS Lambda/Firebase\
-  \ functions\n- Traditional server architecture\n\n**Not DDD (Domain-Driven Design)**\
-  \ because:\n- While organized by domain, no formal aggregates, value objects, or\
-  \ bounded context definitions\n- No ubiquitous language documentation\n- No event\
-  \ storming artifacts\n\n### Deployment Topology\n\nFrom `docker-compose.yml`:\n\
-  - **calcom** - Main Next.js web application\n- **calcom-api** - NestJS Platform\
-  \ API (for external integrations)\n- **database** - Shared PostgreSQL instance\n\
-  - **redis** - Shared Redis cache\n\nBoth services share the same database, confirming\
-  \ the modular monolith architecture with an optional separate API surface for platform\
-  \ consumers."
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- extensibility
+- maintainability
+- testability
+- scalability
+- deployability
+- reliability
+- observability
+one_line_summary: Open-source scheduling platform structured as a Modular Monolith
+  with a Microkernel plugin system (140+ integrations), tRPC-backed feature modules,
+  shared PostgreSQL database, and an async task pipeline via trigger.dev.
+classification_reasoning: "cal.com is classified as Modular Monolith (primary) +
+  Microkernel (secondary) at confidence 0.92.\n\n## Primary: Modular Monolith\n\n\
+  The definitive evidence is a single shared PostgreSQL database (119 Prisma models
+  in one schema.prisma) consumed by both the main Next.js app (`apps/web`) and the
+  NestJS REST API (`apps/api/v2`). Both services compile from shared packages in
+  `packages/features/` and share the same Prisma client — confirming a monolithic
+  data architecture despite having two runtime processes.\n\nThe 'Modular' aspect
+  is enforced through:\n- Turborepo workspace boundaries with explicit dependency
+  graphs\n- `packages/features/` vertical-slice modules (bookings, availability,
+  eventtypes, auth, webhooks, billing, workflows, etc.), each with repositories/,
+  services/, di/, and lib/ sub-layers\n- tRPC routers in `packages/trpc/server/routers/`
+  as the internal API contract layer for `apps/web`\n- `@evyweb/ioctopus` IoC containers
+  with typed DI tokens wiring repository interfaces to Prisma implementations\n-
+  Repository pattern with explicit interfaces (IBookingRepository, IAttendeeRepository,
+  IWebhookRepository, etc.)\n\n## Secondary: Microkernel\n\n`packages/app-store/`
+  implements a textbook microkernel: the core scheduling engine is the kernel, and
+  140+ calendar/video/CRM/payment integrations are plugins loaded dynamically via
+  auto-generated registries (`apps.server.generated.ts`, `apps.metadata.generated.ts`,
+  `apps.schemas.generated.ts`). The `app-store-cli` provides lifecycle tooling (create-app,
+  edit-app, delete-app). Each plugin conforms to a standard contract: `_metadata.ts`,
+  `config.json`, `api/` (OAuth/webhooks), `lib/` (service implementations), `components/`
+  (UI).\n\n## Tertiary (emerging): Event-Driven elements\n\nAn async task pipeline
+  layers on top of the synchronous core: trigger.dev integration with named queues
+  (webhook-delivery concurrency 25, calendars concurrency 10, booking notifications),
+  a producer/consumer webhook architecture (WebhookTaskerProducerService + WebhookTaskConsumer),
+  and BookingEventHandlerService with named booking lifecycle events. However, the
+  core booking and scheduling flows are synchronous; trigger.dev dispatch is gated
+  by ENABLE_ASYNC_TASKER env flag with a synchronous InternalTasker fallback. This
+  does not constitute a primary Event-Driven architecture.\n\n## Rejected Styles\n\
+  \n- Microservices: Both services share one database; no database-per-service, no
+  service mesh\n- Event-Driven: No message broker (Kafka/RabbitMQ); synchronous core
+  with async bolt-on; no event sourcing\n- CQRS: No explicit read/write model separation;
+  single Prisma client\n- Serverless: Docker container deployment; no FaaS\n- DDD:
+  Domain-organized but no formal aggregates, value objects, or bounded context documentation"

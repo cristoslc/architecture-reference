@@ -3,114 +3,62 @@ scope: application
 use_type: reference
 source: Discovered
 source_url: https://github.com/thangchung/clean-architecture-dotnet
-project_url: https://github.com/thangchung/clean-architecture-dotnet
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:31:07Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Developer Tools
 language: C#
 languages:
 - C#
 - JavaScript
 architecture_styles:
+- Microservices
 - Hexagonal Architecture
 - Domain-Driven Design
 - CQRS
-- Microservices
 classification_status: classified
-review_notes: 'The repository is a reference implementation of a **Microservices**
-  architecture using .NET 6, Dapr, and Tye. It is organized as a monorepo containing
-  multiple independently deployable services, a shared infrastructure layer, and a
-  central API gateway.
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- maintainability
+- testability
+- scalability
+- observability
+- resilience
+- modularity
+one_line_summary: >-
+  A .NET 6 reference monorepo implementing Microservices with Hexagonal Architecture,
+  DDD tactical patterns, and CQRS Lite via MediatR and Dapr.
+classification_reasoning: >-
+  The repository is an explicit reference implementation combining four co-primary
+  architectural styles.
 
+  PRIMARY — Microservices: Three independently deployable bounded-context services
+  (Product, Customer, Setting) each with a dedicated Dockerfile, database context
+  (EF Core + PostgreSQL), and Dapr sidecar. An API gateway (YARP) routes external
+  traffic. Services communicate asynchronously via Dapr pub/sub (Redis) and
+  synchronously via Dapr service invocation. Integration events and a shared
+  DataContracts package provide the inter-service contract layer. Orchestrated via
+  both Tye (tye.yaml) and Docker Compose (docker-compose.yml).
 
-  ### Evidence of Microservices
+  PRIMARY — Hexagonal Architecture (Ports and Adapters): Every service enforces strict
+  inward dependency direction via a tripartite structure: *.Api (primary adapters/
+  controllers), *.AppCore (domain core — no infrastructure references), and
+  *.Infrastructure (secondary adapters: EF Core, repositories, migrations). Ports are
+  defined in N8T.Core (IRepository, IGridRepository, IEventBus) with adapters in
+  N8T.Infrastructure.EfCore and N8T.Infrastructure/Bus/Dapr.
 
-  - **Independent Services:** The `samples/` directory contains distinct service boundaries:
-  `ProductService`, `CustomerService`, and `SettingService`. Each has its own `.Api`
-  project, `Dockerfile`, and separate database context (e.g., `MainDbContext.cs` inside
-  each service''s Infrastructure).
+  SECONDARY — Domain-Driven Design: Aggregate roots extend EntityRootBase/IAggregateRoot
+  with domain events raised during factory methods (e.g., Product.Create raises
+  ProductCreatedIntegrationEvent). TxBehavior publishes collected domain events after
+  transaction commit. Specification pattern used for queries. Separate bounded contexts
+  per service each own their database schema. Cross-context communication uses typed
+  integration events (CoolStore.IntegrationEvents).
 
-  - **Deployment Orchestration:** The presence of `samples/tye.yaml` and `docker-compose.yml`
-  indicates a multi-service deployment strategy. Tye is specifically used to manage
-  multiple .NET services and their dependencies (like Dapr sidecars).
-
-  - **API Gateway:** The `samples/AppGateway` project uses **YARP** (Yet Another Reverse
-  Proxy) to route traffic to downstream services, a classic microservices pattern.
-
-  - **Inter-service Communication:** The use of **Dapr** (Distributed Application
-  Runtime) for Pub/Sub (`DaprEventBus.cs`) and service invocation demonstrates decoupled,
-  network-based communication between components.
-
-
-  ### Evidence of Secondary Styles
-
-  - **CQRS:** The code explicitly separates read and write concerns. Directory structures
-  in `AppCore` contain `UseCases/Commands` and `UseCases/Queries`. It utilizes **MediatR**
-  to dispatch these, as seen in `N8T.Core/Domain/Cqrs.cs`.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:54:50Z'
-classification_reasoning: "## Architecture Classification Analysis\n\n### Primary:\
-  \ Hexagonal Architecture (Ports and Adapters)\n\nThe repository exhibits a textbook\
-  \ implementation of Hexagonal/Clean Architecture with clear separation between application\
-  \ core and infrastructure adapters.\n\n**Evidence:**\n\n1. **Tripartite project\
-  \ structure per service** - Every domain service follows the pattern:\n   - `ProductService.Api`\
-  \ - API layer (controllers, integration handlers)\n   - `ProductService.AppCore`\
-  \ - Application core (domain entities, use cases)\n   - `ProductService.Infrastructure`\
-  \ - Infrastructure adapters (data access, repositories)\n\n   Same pattern for Customer\
-  \ and Setting services.\n\n2. **Dependency inversion** - The core defines interfaces\
-  \ (ports) and infrastructure provides implementations (adapters):\n   - `IRepository<TEntity>`\
-  \ interface in `src/N8T.Core/Repository/IRepository.cs` defines the port\n   - `RepositoryBase<TDbContext,\
-  \ TEntity>` in `src/N8T.Infrastructure.EfCore/Repository.cs` implements the adapter\n\
-  \   - `IEventBus` interface in `src/N8T.Infrastructure/Bus/IEventBus.cs` defines\
-  \ the messaging port\n   - `DaprEventBus` in `src/N8T.Infrastructure/Bus/Dapr/Internal/DaprEventBus.cs`\
-  \ provides the Dapr adapter\n\n3. **Application core isolation** - Domain entities\
-  \ (`Product.cs`, `Customer.cs`) in `AppCore/Core/` have no infrastructure dependencies.\
-  \ Use cases in `AppCore/UseCases/` only depend on repository interfaces, not implementations.\n\
-  \n### Secondary: Domain-Driven Design\n\n**Evidence:**\n\n1. **Aggregate roots with\
-  \ domain events** - Entities extend `EntityRootBase` implementing `IAggregateRoot`:\n\
-  \   ```csharp\n   public class Product : EntityRootBase { ... }\n   public class\
-  \ Customer : EntityRootBase { ... }\n   ```\n\n2. **Rich domain behavior** - Factory\
-  \ methods on entities encapsulate creation logic:\n   ```csharp\n   public static\
-  \ Product Create(string name, int quantity, decimal cost, ProductCode productCode)\n\
-  \   {\n       Product product = new() { ... };\n       product.AddDomainEvent(new\
-  \ ProductCreatedIntegrationEvent { ... });\n       return product;\n   }\n   ```\n\
-  \n3. **Specification pattern** - Domain specifications for queries:\n   - `ProductByIdQuerySpec`,\
-  \ `CustomerAlreadyRegisteredSpec` in respective `Core/Specs/` folders\n\n4. **Bounded\
-  \ contexts** - Separate services (Product, Customer, Setting) with owned databases\
-  \ and integration events for cross-context communication.\n\n### Secondary: CQRS\
-  \ (Command Query Responsibility Segregation)\n\n**Evidence:**\n\n1. **Command/Query\
-  \ interfaces** in `src/N8T.Core/Domain/Cqrs.cs`:\n   ```csharp\n   public interface\
-  \ ICommand<T> : IRequest<ResultModel<T>>\n   public interface IQuery<T> : IRequest<ResultModel<T>>\n\
-  \   public interface ICreateCommand<TRequest, TResponse> : ICommand<TResponse>,\
-  \ ITxRequest\n   public interface IListQuery<TResponse> : IQuery<TResponse>\n  \
-  \ ```\n\n2. **Separated use case handlers** - `UseCases/Commands/` and `UseCases/Queries/`\
-  \ folders in each AppCore project:\n   - Commands: `CreateProduct.cs`, `CreateCustomer.cs`\n\
-  \   - Queries: `GetProductById.cs`, `GetProducts.cs`\n\n3. **MediatR dispatch**\
-  \ - Commands and queries flow through MediatR pipeline with behaviors for transactions,\
-  \ validation, and logging.\n\n### Secondary: Microservices\n\n**Evidence:**\n\n\
-  1. **Multiple independently deployable services** in `docker-compose.yml`:\n   -\
-  \ `productapp` (port 5003)\n   - `customerapp` (port 5004)  \n   - `settingapp`\
-  \ (port 5005)\n   - `webapigatewayapp` (YARP API Gateway on port 5000)\n   - `IdentityServer`\
-  \ (authentication)\n\n2. **Database per service** - Each service has its own `MainDbContext`:\n\
-  \   - `ProductService.Infrastructure/Data/MainDbContext.cs`\n   - `CustomerService.Infrastructure/Data/MainDbContext.cs`\n\
-  \n3. **Dapr sidecars** - Each service paired with Dapr for service invocation and\
-  \ pub/sub messaging.\n\n4. **Integration events for inter-service communication**:\n\
-  \   - `ProductCreatedIntegrationEvent` in `CoolStore.IntegrationEvents`\n   - `CustomerCreatedIntegrationEvent`\
-  \ subscribed by ProductService in `IntegrationEventHandler.cs`\n\n### What Was Rejected\n\
-  \n- **Layered Architecture**: While layered, the architecture goes far beyond simple\
-  \ horizontal layers—it implements ports and adapters with dependency inversion pointing\
-  \ toward the domain core.\n\n- **Modular Monolith**: Clearly not a monolith; services\
-  \ are separate deployables with independent databases.\n\n- **Serverless**: No function-as-a-service\
-  \ components; these are containerized services.\n\n- **Space-Based Architecture**:\
-  \ No in-memory data grids or distributed caching patterns.\n\n- **Pipeline/Pipe-and-Filter**:\
-  \ No sequential processing stages.\n\n- **Microkernel/Plugin**: No plugin infrastructure\
-  \ or runtime extension mechanisms.\n\n### Summary\n\nThis repository demonstrates\
-  \ a sophisticated implementation combining multiple architectural patterns:\n- **Hexagonal\
-  \ Architecture** as the foundational structure (ports/adapters separation)\n- **DDD**\
-  \ for domain modeling (aggregates, specifications, bounded contexts)\n- **CQRS Lite**\
-  \ for read/write separation (commands \n\n[truncated]"
+  SECONDARY — CQRS: Explicit command/query separation at interface and handler level
+  via N8T.Core/Domain/Cqrs.cs (ICommand, IQuery, ICreateCommand, IListQuery, etc.).
+  Each AppCore project has UseCases/Commands/ and UseCases/Queries/ folders. MediatR
+  dispatches all handlers through a pipeline with RequestValidationBehavior,
+  LoggingBehavior, and TxBehavior (commands only). No event sourcing — described as
+  "CQRS Lite" by the authors. Transactional Outbox pattern implemented for reliable
+  event delivery from DB transaction to Dapr pub/sub.
