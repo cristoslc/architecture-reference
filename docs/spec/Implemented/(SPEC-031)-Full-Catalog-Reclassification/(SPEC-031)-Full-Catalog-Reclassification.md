@@ -103,4 +103,4 @@ The 184+ catalog entries were classified by SPEC-024 (GLM-5 tool-calling + Sonne
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-10 | — | Initial creation under EPIC-013 |
-| Implemented | 2026-03-11 | — | Full campaign complete: 184 sonnet deep-analysis + 11 ecosystem updates; ADR-006 compliance sweep |
+| Implemented | 2026-03-11 | 62aefe43 | Full campaign complete: 184 sonnet deep-analysis + 11 ecosystem updates; ADR-006 compliance sweep |
