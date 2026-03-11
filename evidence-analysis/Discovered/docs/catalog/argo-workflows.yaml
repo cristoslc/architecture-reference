@@ -3,86 +3,29 @@ scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/argoproj/argo-workflows
-project_url: https://github.com/argoproj/argo-workflows
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:58:32Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Workflow Orchestration
 language: Go
 languages:
-- Go
-- TypeScript
-- JavaScript
+  - Go
+  - TypeScript
+  - JavaScript
 architecture_styles:
-- Pipeline
-- Microkernel
+  - Pipeline
+  - Microkernel
 classification_status: classified
-review_notes: "Argo Workflows is structured as a **Microkernel (Plugin)** architecture\
-  \ at its core, designed to extend the Kubernetes API via Custom Resource Definitions\
-  \ (CRDs). While it manifests as a set of distributed services, the internal organization\
-  \ and its relationship with the Kubernetes ecosystem define it primarily through\
-  \ its extension points and plugin contracts.\n\n### 1. Primary Style: Microkernel\
-  \ (Plugin)\nThe system is built as a minimal core engine (the `workflow-controller`)\
-  \ that orchestrates tasks by loading and communicating with various plugins. \n\
-  - **Extension Points:** The codebase explicitly defines plugin contracts for multiple\
-  \ concerns:\n    - **Executor Plugins:** Found in `workflow/util/plugin`, `pkg/plugins/executor`,\
-  \ and enabled via flags in `cmd/workflow-controller/main.go` (`--executor-plugins`).\n\
-  \    - **Artifact Plugins:** The directory `workflow/artifacts/plugin` and the command\
-  \ `cmd/argoexec/commands/artifact_plugin_sidecar.go` demonstrate a sidecar-based\
-  \ plugin model for extending storage providers (S3, GCS, etc.).\n    - **Template\
-  \ Plugins:** Logic in `workflow/controller/plugin_template.go` allows the engine\
-  \ to delegate the execution logic of a specific step to an external plugin.\n- **Core-Plugin\
-  \ Separation:** The \"Microkernel\" (the controller) handles the lifecycle, state\
-  \ transitions (DAG/Steps resolution), and Kubernetes heartbeats, while the specific\
-  \ execution logic is offloaded to \"executors\" (`argoexec`) or external plugins."
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T20:09:48Z'
-classification_reasoning: "## Analysis\n\n### Primary Style: Pipeline (Pipe-and-Filter)\n\
-  \nArgo Workflows implements a classic **Pipeline (Pipe-and-Filter)** architecture,\
-  \ where workflows are defined as Directed Acyclic Graphs (DAGs) or sequential Steps\
-  \ through which data flows:\n\n**Key Evidence:**\n\n1. **Workflow Definition Language**\
-  \ (`examples/dag-coinflip.yaml`, `examples/steps.yaml`): Workflows are explicitly\
-  \ defined as pipelines of interconnected tasks:\n   - DAG templates specify task\
-  \ dependencies explicitly (`depends: \"A\"`, `depends: \"B && C\"`)\n   - Steps\
-  \ templates define sequential/parallel execution stages\n   - Each step is a filter/container\
-  \ that processes inputs and produces outputs\n\n2. **Pipeline Execution Engine**\
-  \ (`workflow/controller/dag.go`, `workflow/controller/steps.go`):\n   - `dagContext`\
-  \ tracks task dependencies and execution order\n   - `executeSteps()` method orchestrates\
-  \ step-by-step pipeline execution\n   - Tasks have explicit dependencies forming\
-  \ a DAG structure\n\n3. **Artifact Passing Between Steps** (`workflow/artifacts/`):\
-  \ \n   - Artifacts flow between pipeline stages\n   - Output from one step becomes\
-  \ input to the next\n   - Multiple artifact backends (S3, GCS, Azure, HTTP, Git)\
-  \ support the pipe metaphor\n\n4. **Documentation Confirms** (`docs/architecture.md`):\n\
-  \   > \"Model multi-step workflows as a sequence of tasks or capture the dependencies\
-  \ between tasks using a directed acyclic graph (DAG).\"\n\n### Secondary Style:\
-  \ Microkernel (Plugin)\n\nThe system implements a **Microkernel/Plugin** architecture\
-  \ for extensibility:\n\n**Key Evidence:**\n\n1. **Artifact Plugin System** (`docs/artifact-plugin.md`,\
-  \ `workflow/artifacts/plugin/plugin.go`):\n   - Well-defined gRPC interface (`artifact.proto`)\n\
-  \   - Plugins run as sidecars communicating via Unix sockets\n   - Core system loads\
-  \ plugins dynamically at runtime\n   - Supports plugins in any language (Go, Python,\
-  \ Java, Rust)\n\n2. **Template Executor Plugins** (`pkg/plugins/executor/`, `workflow/executor/plugins/rpc/plugin.go`):\n\
-  \   - `TemplateExecutor` plugin interface\n   - Plugins execute custom templates\
-  \ via RPC\n   - Registered via ConfigMap configuration\n\n3. **Plugin Spec** (`pkg/plugins/spec/plugin_types.go`):\n\
-  \   - Sidecar-based plugin registration\n   - Validated plugin contracts with required\
-  \ fields (ports, resources, security context)\n\n### What This Is NOT\n\n**NOT Microservices**:\
-  \ Despite multiple deployables (workflow-controller, argo-server, argoexec), this\
-  \ is a monolithic codebase (`go.mod` has one module). The components are not independent\
-  \ services - they're a controller, API server, and executor that work in concert\
-  \ on a single workflow engine.\n\n**NOT Event-Driven** (primary style): While the\
-  \ controller uses Kubernetes informers and workqueues (event-driven implementation\
-  \ detail), the **architectural pattern** is Pipeline - workflows are defined as\
-  \ data transformation pipelines, not as event-sourced aggregates. The workqueue\
-  \ is a reconciliation mechanism, not the defining architectural characteristic.\n\
-  \n**NOT Layered**: There's no horizontal presentation/business/data layering. The\
-  \ architecture is organized around workflow execution (controller, operator, DAG,\
-  \ steps) and extensibility (plugins), not separation of concerns layers.\n\n###\
-  \ Deployment Architecture\n\nFrom `Dockerfile` and `manifests/`:\n- **workflow-controller**:\
-  \ Kubernetes controller that reconciles Workflow CRDs\n- **argo-server**: API server\
-  \ (gRPC+HTTP) serving the UI and clients  \n- **argoexec**: Executor binary that\
-  \ runs inside workflow pods (init, wait, emissary containers)\n\nThe architecture\
-  \ leverages Kubernetes as the deployment platform - workflows run as pods, the controller\
-  \ watches for CRD changes, and artifacts flow through the defined pipeline structure."
+classification_confidence: 0.91
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Scalability
+  - Extensibility
+  - Reliability
+  - Observability
+  - Security
+  - Portability
+  - Maintainability
+  - Interoperability
+one_line_summary: "Kubernetes-native container workflow engine organized as a DAG/Steps pipeline executor with a formal microkernel plugin model for artifact backends and template executors."
+classification_reasoning: "The primary organizing principle of Argo Workflows is the pipeline metaphor: workflows are defined as DAGs or sequential Steps where each node is a container step acting as a filter, and data flows between steps via artifacts and output parameters. This drives the entire internal architecture — the DAG executor (workflow/controller/dag.go), steps executor, artifact system, and the operator dispatch table in operator.go all exist to resolve and execute pipeline stages. Microkernel is a strong secondary style: three formal extension points with typed interfaces (TemplateExecutor RPC plugins, ArtifactDriver plugins, artifact plugin sidecar contracts) allow third-party code to extend the core engine without modification. The Kubernetes informer + work queue reconciliation loop is an event-driven implementation mechanism enabling pipeline execution rather than a primary architectural style in its own right. All components share one Go module (github.com/argoproj/argo-workflows/v4) deployed as workflow-controller, argo-server, and ephemeral argoexec pods — a tightly-integrated platform, not independent microservices."

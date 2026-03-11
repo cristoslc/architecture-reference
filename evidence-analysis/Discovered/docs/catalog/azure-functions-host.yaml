@@ -8,7 +8,7 @@ evidence_type: automated-discovery
 discovered_at: '2026-03-06T05:50:34Z'
 discovered_by: discover-architecture
 discovery_version: 1.0.0
-domain: Developer Tools
+domain: Cloud Infrastructure
 language: C#
 languages:
 - C#
@@ -17,97 +17,17 @@ architecture_styles:
 - Microkernel
 - Layered
 classification_status: classified
-review_notes: 'The **Azure Functions Host** is a classic implementation of a **Microkernel
-  (Plugin)** architecture. The system is designed as a stable "Core" (the Host) that
-  provides lifecycle management, HTTP routing, and security, while delegating the
-  actual execution of business logic (Functions) to external "Plugins" (Language Workers)
-  and "Extensions" (Triggers/Bindings).
-
-
-  ### Primary Style: Microkernel (Plugin)
-
-  The codebase is structured to decouple the orchestration of functions from their
-  execution.
-
-  - **The Core (Microkernel):** Represented by `src/WebJobs.Script.WebHost` and `src/WebJobs.Script`.
-  This core manages the "Standby" mode (pre-warming instances), "Specialization" (applying
-  configuration to a warm instance), and the HTTP request pipeline via ASP.NET Core
-  middleware (`src/WebJobs.Script.WebHost/Middleware`).
-
-  - **The Plugins (Language Workers):** The architecture uses a "Worker" model to
-  support multiple languages (Node, Python, Java, etc.) without including their runtimes
-  in the core. Evidence is found in `src/WebJobs.Script.Grpc`, which implements the
-  gRPC-based protocol used to communicate with out-of-process language workers. The
-  use of `WorkerFunctionInvoker.cs` and `RpcWorkerFunctionDescriptorProvider.cs` demonstrates
-  a standard plugin contract where the host discovers and invokes code across a
-
-  - **Extensions:** The host uses an extension-based model for triggers and bindings
-  (e.g., CosmosDB, EventHubs). The `Tools/ExtensionsMetadataGenerator` and the logic
-  in `src/WebJobs.Script/ExtensionBundle` show how the host dynamically loads these
-  capabilities to interact with external data sources.
-
-
-  ### Secondary Style: Layered
-
-  Within the C# projects themselves, the system follows a traditional **Layered**
-  approach to organize internal concerns:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:51:14Z'
-classification_reasoning: "## Analysis\n\nThe **azure-functions-host** repository\
-  \ implements the **Azure Functions runtime host** - the core execution engine that\
-  \ runs Azure Functions. This is the infrastructure that *hosts* serverless functions,\
-  \ not the functions themselves.\n\n### Primary Style: Microkernel (Plugin)\n\nThe\
-  \ architecture exhibits strong microkernel/plugin characteristics:\n\n**Core System\
-  \ with Plugin Extension Points:**\n\n1. **Extension Loading Infrastructure:**\n\
-  \   - `ScriptStartupTypeLocator` dynamically discovers and loads extension startup\
-  \ types from extension bundles or NuGet packages\n   - `ExtensionBundleManager`\
-  \ resolves and downloads extension bundles at runtime\n   - `FunctionAssemblyLoadContext`\
-  \ provides isolated assembly loading for extensions and user functions (src/WebJobs.Script/Description/DotNet/FunctionAssemblyLoadContext.cs)\n\
-  \n2. **Pluggable Binding Providers:**\n   - `IScriptBindingProvider` interface defines\
-  \ the plugin contract for bindings\n   - `ScriptBindingProvider` base class with\
-  \ `TryCreate()` pattern for extension implementations\n   - `GeneralScriptBindingProvider`\
-  \ enables all SDK extensions to work via metadata\n   - Multiple built-in providers:\
-  \ `CoreExtensionsScriptBindingProvider`, `WebJobsCoreScriptBindingProvider`\n\n\
-  3. **Pluggable Function Descriptor Providers:**\n   - `FunctionDescriptorProvider`\
-  \ abstract base class\n   - `DotNetFunctionDescriptorProvider` for .NET functions\n\
-  \   - `RpcFunctionDescriptorProvider` for RPC-based language workers\n   - `HttpFunctionDescriptorProvider`\
-  \ for HTTP-based custom handlers\n   - `IWorkerFunctionDescriptorProviderFactory`\
-  \ creates appropriate providers dynamically\n\n4. **Pluggable Language Workers:**\n\
-  \   - `IWorkerChannel` interface for worker communication\n   - `IRpcWorkerChannelFactory`\
-  \ creates gRPC worker channels\n   - `IFunctionInvocationDispatcher` dispatches\
-  \ invocations to workers\n   - Workers run as separate processes (Python, Java,\
-  \ Node.js, PowerShell, etc.)\n   - Worker configurations loaded from `runtimes.json`\
-  \ and `RpcWorkerConfig`\n\n5. **Extension Bundle System:**\n   - Extensions packaged\
-  \ as bundles that can be downloaded and loaded dynamically\n   - Runtime resolution\
-  \ of extension requirements\n   - `ExtensionsManager` handles adding/removing extensions\n\
-  \n**Evidence from code:**\n```csharp\n// ScriptStartupTypeLocator.cs - Discovers\
-  \ and loads extension startup types\npublic async Task<IEnumerable<Type>> GetExtensionsStartupTypesAsync()\n\
-  {\n    // Dynamically resolves extensions from bundles or assemblies\n    ExtensionBundleDetails\
-  \ bundleDetails = await _extensionBundleManager.GetExtensionBundleDetails();\n \
-  \   // ... loads types dynamically\n}\n```\n\n```csharp\n// FunctionAssemblyLoadContext.cs\
-  \ - Isolated loading for extensions\npublic partial class FunctionAssemblyLoadContext\
-  \ : AssemblyLoadContext\n{\n    // Provides assembly isolation for plugins\n}\n\
-  ```\n\n### Secondary Style: Layered\n\nThe codebase exhibits clear horizontal layering:\n\
-  \n1. **Abstractions Layer:** `WebJobs.Script.Abstractions` - Core interfaces like\
-  \ `IFunctionProvider`, `BindingMetadata`\n2. **Core Runtime Layer:** `WebJobs.Script`\
-  \ - Script host, function descriptors, binding infrastructure, extension management\n\
-  3. **Worker Communication Layer:** `WebJobs.Script.Grpc` - gRPC channels, worker\
-  \ invocation dispatch\n4. **Hosting Layer:** `WebJobs.Script.WebHost` - ASP.NET\
-  \ Core hosting, HTTP routing, web host service\n\n```\nWebJobs.Script.Abstractions\
-  \ (Interfaces)\n        ↓\nWebJobs.Script (Core Runtime)\n        ↓\nWebJobs.Script.Grpc\
-  \ (Worker Communication)\n        ↓\nWebJobs.Script.WebHost (Web Hosting)\n```\n\
-  \n### What This Is NOT\n\n- **NOT Microservices:** Single deployable unit (the host),\
-  \ not multiple independently deployable services\n- **NOT Serverless:** This IS\
-  \ the serverless *platform infrastructure*, not serverless *functions*\n- **NOT\
-  \ Event-Driven (primary):** Internal event manager exists (`ScriptEventManager`\
-  \ with Rx) for host lifecycle coordination, but this is internal plumbing, not the\
-  \ defining architecture\n- **NOT CQRS:** No separate read/write models\n- **NOT\
-  \ DDD:** No aggregates, entities, or bounded contexts\n- **NOT Modular Monolith:**\
-  \ Plugins are truly dynamic and isolated, not compile-time modules\n\n### Key Distinctions\n\
-  \nThe plugin architecture here is particularly sophisticated:\n- Extensions loaded\
-  \ from external bundles (not just assemblies)\n- Custom `AssemblyLoadContext` for\
-  \ isolation\n- Out-of-process workers communicate via gRPC\n- Multiple plugin contracts:\
-  \ bindings, function providers, workers, startup configurations"
+classification_method: deep-analysis
+classification_confidence: 0.93
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Portability
+- Maintainability
+- Scalability
+- Observability
+- Reliability
+- Security
+one_line_summary: "ASP.NET Core-based runtime host for Azure Functions implementing a Microkernel architecture with pluggable out-of-process language workers (gRPC), dynamically loaded extension bundles, and a layered internal project hierarchy."
+classification_reasoning: "The azure-functions-host is the platform runtime that hosts Azure Functions — it is the serverless infrastructure, not a serverless application. The dominant architectural pattern is Microkernel: the stable core (ScriptHost) manages lifecycle and invocation dispatch while delegating all execution concerns to external plugins. Out-of-process language workers (Python, Node.js, Java, PowerShell) are spawned as child processes and communicate via gRPC through IWorkerChannel / GrpcWorkerChannel. Binding providers (IScriptBindingProvider, GeneralScriptBindingProvider, CoreExtensionsScriptBindingProvider) follow the TryCreate() plugin contract. FunctionDescriptorProvider is an abstract plugin base with concrete implementations for .NET, RPC workers, and HTTP handlers selected at runtime by IWorkerFunctionDescriptorProviderFactory. Extension bundles are downloaded from CDN at runtime by ExtensionBundleManager and loaded in isolation via a custom FunctionAssemblyLoadContext (AssemblyLoadContext subclass), confirming true plugin isolation semantics. A Standby/Specialization lifecycle allows the kernel to pre-warm in a placeholder state and specialize to a specific function app identity at runtime. Layered architecture is the secondary organizing style: the four C# projects (Abstractions -> Script -> Grpc -> WebHost) form a strict unidirectional dependency chain. No CQRS read/write model separation, no DDD bounded contexts or aggregates, no independent microservice deployability, and no event sourcing are present. The internal Rx-based ScriptEventManager is internal lifecycle plumbing, not the primary architectural style."

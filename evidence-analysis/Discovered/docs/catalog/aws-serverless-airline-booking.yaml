@@ -3,106 +3,31 @@ scope: application
 use_type: reference
 source: Discovered
 source_url: https://github.com/aws-samples/aws-serverless-airline-booking
-project_url: https://github.com/aws-samples/aws-serverless-airline-booking
 evidence_type: automated-discovery
-discovered_at: '2026-03-06T05:50:19Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Travel
-language: ''
-languages: null
+language: Python
+languages:
+  - Python
+  - TypeScript
+  - JavaScript
+  - Apache VTL
 architecture_styles:
-- Microservices
-- Serverless
-- Event-Driven
+  - Serverless
+  - Microservices
+  - Event-Driven
 classification_status: classified
-review_notes: 'The repository is a quintessential example of a **Serverless** architecture,
-  specifically designed to demonstrate AWS-native serverless patterns. Based on the
-  README documentation and the described stack, the system is organized as follows:
-
-
-  1.  **Serverless (Primary):** The architecture is built entirely on managed services
-  where the unit of deployment and scaling is either a function (AWS Lambda) or a
-  managed service (AppSync, Step Functions). The README explicitly identifies the
-  use of Python and TypeScript for Lambda functions, AWS Step Functions for business
-  logic orchestration, and AWS Amplify for infrastructure provisioning.
-
-
-  2.  **Event-Driven (Secondary):** Communication between discrete business units
-  (e.g., Booking and Loyalty) is handled via asynchronous messaging (AWS SNS). The
-  "Booking" workflow is managed by a state machine (Step Functions), which is a common
-  pattern for event-driven orchestration in serverless environments to handle long-running
-  processes like payment and booking confirmation.
-
-
-  3.  **Microservices (Secondary):** The system is explicitly partitioned into domain-specific
-  services: **Catalog**, **Booking**, **Payment**, and **Loyalty**. Each service uses
-  different languages (Python vs. TypeScript vs. VTL) and has its own data models/storage
-  (DynamoDB), adhering to the principle of decentralization and independent data ownership.
-
-
-  **Key Evidence:**
-
-  - **Infrastructure:** Use of AWS AppSync as a GraphQL API Hub, AWS Lambda for compute,
-  and DynamoDB for storage.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.9
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:46:57Z'
-classification_reasoning: "## Architecture Analysis: AWS Serverless Airline Booking\n\
-  \n### Primary Style: Microservices\n\nThis repository implements a **Microservices\
-  \ architecture** with four distinct, independently deployable services, each owning\
-  \ its own data:\n\n1. **Catalog Service** (`src/backend/catalog/`) — GraphQL API\
-  \ via AppSync, DynamoDB for flight data, VTL resolvers\n2. **Booking Service** (`src/backend/booking/`)\
-  \ — Step Functions state machine orchestrating Lambda functions, DynamoDB for bookings,\
-  \ SNS topic for event publishing\n3. **Payment Service** (`src/backend/payment/`)\
-  \ — Lambda functions wrapping Stripe API, integrates with external payment provider\n\
-  4. **Loyalty Service** (`src/backend/loyalty/`) — REST API via API Gateway, TypeScript\
-  \ Lambda functions, separate DynamoDB table\n\n**Evidence from `Makefile` lines\
-  \ 21-27:**\n```makefile\ndeploy: ##=> Deploy services\n    $(MAKE) deploy.shared-lambda-layers\n\
-  \    $(MAKE) deploy.payment\n    $(MAKE) deploy.booking\n    $(MAKE) deploy.loyalty\n\
-  ```\n\nEach service has its own `template.yaml` (SAM) and deploys independently.\
-  \ Services own their data:\n- **Booking**: Dedicated DynamoDB table via AppSync\
-  \ (`BookingTable`)\n- **Loyalty**: Separate DynamoDB table (`LoyaltyDataTable` in\
-  \ `src/backend/loyalty/template.yaml`)\n- **Catalog**: Dedicated DynamoDB table\
-  \ (`FlightTable`)\n- **Payment**: Integrates with Stripe via Serverless Application\
-  \ Repository\n\n### Secondary Style: Serverless\n\nThe entire system is built on\
-  \ AWS serverless primitives:\n- **Compute**: AWS Lambda functions (Python and TypeScript)\n\
-  - **API**: AppSync GraphQL, API Gateway REST\n- **Database**: DynamoDB (pay-per-request\
-  \ mode)\n- **Orchestration**: Step Functions state machine for booking workflow\n\
-  - **Messaging**: SNS for pub/sub between services\n- **Deployment**: SAM (Serverless\
-  \ Application Model) templates for each service\n\nFrom `src/backend/booking/template.yaml`:\n\
-  ```yaml\nAWSTemplateFormatVersion: 2010-09-09\nTransform: AWS::Serverless-2016-10-31\n\
-  ```\n\nAll services use Lambda functions triggered by events (API Gateway, SNS,\
-  \ Step Functions).\n\n### Secondary Style: Event-Driven\n\nThe architecture uses\
-  \ event-driven communication patterns:\n\n**SNS Pub/Sub between services** — From\
-  \ `src/backend/loyalty/template.yaml` lines 81-88:\n```yaml\nEvents:\n  Listener:\n\
-  \    Type: SNS\n    Properties:\n      Topic: !Ref BookingSNSTopic\n      FilterPolicy:\n\
-  \        Booking.Status:\n          - confirmed\n```\n\n**Step Functions Orchestration**\
-  \ — The booking workflow uses a state machine with Saga pattern for distributed\
-  \ transactions (confirmed in `src/backend/booking/README.md` line 50):\n> \"Booking\
-  \ state machine handles all operations necessary to create bookings including payment.\
-  \ We use Saga pattern to demonstrate how to implement coordinated transactions,\
-  \ fallback transactions, and dead-letter-queue as part of a state machine.\"\n\n\
-  The state machine definition from `src/backend/booking/template.yaml`:\n```yaml\n\
-  StateMachineName: !Sub Airline-ProcessBooking-${Stage}\nDefinitionString: !Sub |\n\
-  \    {\n        \"StartAt\": \"Reserve Flight\",\n        \"States\": {\n      \
-  \      \"Reserve Flight\": { ... },\n            ...\n        }\n    }\n```\n\n\
-  ### What Was Rejected\n\n- **Not Layered**: No horizontal presentation/business/data\
-  \ layering. Services are vertically sliced by business capability (catalog, booking,\
-  \ payment, loyalty).\n\n- **Not Modular Monolith**: Not a single deployable unit.\
-  \ Each service has its own SAM template and CloudFormation stack, deployed independently\
-  \ via separate make targets.\n\n- **Not Service-Based (2-5 coarse services)**: While\
-  \ there are 4 services, the key distinction is that these follow microservice patterns:\
-  \ separate data ownership, event-driven communication, and independent deployability.\
-  \ Service-Based typically implies shared database, which is not the case here.\n\
-  \n- **Not CQRS**: No explicit separation of command and query models. While AppSync\
-  \ provides GraphQL queries and mutations, there's no dedicated read/write model\
-  \ separation.\n\n- **Not Hexagonal Architecture**: No ports-and-adapters pattern.\
-  \ Services use Lambda handlers directly without application core isolation.\n\n\
-  ### Summary\n\nThis is a well-architected **Microservices** system built entirely\
-  \ on **Serverless** infrastructure, with **Event-Driven** patterns for inter-service\
-  \ communication (SNS) and workflow orchestration (Step Functions). The services\
-  \ are bounded by business capability, own their data, and communicate through well-defined\
-  \ APIs and events."
+classification_confidence: 0.95
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+  - Scalability
+  - Resilience
+  - Observability
+  - Security
+  - Loose Coupling
+  - Operational Simplicity
+  - Testability
+  - Cost Efficiency
+one_line_summary: "AWS-native serverless airline booking reference app with four independently deployed microservices (Catalog, Booking, Payment, Loyalty) communicating via AppSync GraphQL, SNS pub/sub, and Step Functions orchestration."
+classification_reasoning: "The dominant pattern is Serverless: all compute is AWS Lambda (Python and TypeScript), storage is DynamoDB (PAY_PER_REQUEST), and every API/workflow component (AppSync, Step Functions, API Gateway, Cognito) is a fully managed service with no persistent processes. Microservices is the second pattern: four bounded-context services each own their data store, deploy from independent SAM templates via separate Makefile targets, and use different language runtimes. Event-Driven is the third pattern: Booking publishes to an SNS topic with a Booking.Status attribute; Loyalty subscribes with a filter policy, decoupling the two services. The booking workflow uses Step Functions implementing the Saga pattern for distributed transaction management, with compensating transactions (CancelBooking, RefundPayment, Release Flight Seat) and a SQS dead-letter queue for permanently failed executions. Styles rejected: Pipeline (no ETL pipeline, Step Functions is a business workflow); CQRS (no separate read/write models); Hexagonal Architecture (Lambda handlers directly use AWS SDKs, no ports-and-adapters isolation); Service-Based (isolated data stores and fine-grained service decomposition distinguish this from Service-Based, which typically uses a shared database); DDD (bounded contexts exist but no tactical DDD patterns are present)."

@@ -3,11 +3,7 @@ scope: application
 use_type: production
 source: Discovered
 source_url: https://github.com/bigcapitalhq/bigcapital
-project_url: https://github.com/bigcapitalhq/bigcapital
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T05:03:25Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: Fintech
 language: TypeScript
 languages:
@@ -15,86 +11,21 @@ languages:
 - JavaScript
 architecture_styles:
 - Modular Monolith
+- Event-Driven
 - Layered
 classification_status: classified
-review_notes: 'The repository is organized as a **Modular Monolith** using the **NestJS**
-  framework. While it is managed within a monorepo (`pnpm` workspaces), the core business
-  logic resides in a single deployable backend unit (`packages/server`) and a frontend
-  unit (`packages/webapp`).
-
-
-  ### Primary Style: Modular Monolith
-
-  The backend (`packages/server`) is strictly partitioned into a high number of fine-grained
-  modules under `src/modules/` (e.g., `Accounts`, `Bills`, `Ledger`, `Currencies`,
-  `SaleInvoices`). These modules encapsulate specific business capabilities.
-
-  - **Enforced Boundaries:** NestJS uses a module-based encapsulation system where
-  components (controllers/services) are private to the module unless explicitly exported.
-
-  - **Unified Deployment:** The `package.json` and `docker-compose.yml` indicate that
-  the system is deployed as a single server instance rather than independent microservices.
-
-  - **Code Organization:** The structure follows a standard NestJS modular pattern
-  where each business domain has its own folder containing its logic, controllers,
-  and services.
-
-
-  ### Secondary Style: Event-Driven
-
-  The system extensively uses asynchronous communication and decoupled event patterns:'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.92
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:53:46Z'
-classification_reasoning: "## Analysis\n\n### Architecture Classification: Modular\
-  \ Monolith\n\n**Primary Evidence:**\n\n1. **Single Deployable Unit**: The repository\
-  \ builds a single NestJS server application (`packages/server`) that is deployed\
-  \ as one container. The production Dockerfile (`packages/server/Dockerfile`) produces\
-  \ a single artifact: `node packages/server/dist/main.js`.\n\n2. **Enforced Module\
-  \ Boundaries**: The server contains **79 feature modules** under `packages/server/src/modules/`,\
-  \ each organized around business domains:\n   - Accounts, Bills, Customers, Expenses,\
-  \ Invoices, Banking, Inventory\n   - Each module is a NestJS `@Module` with explicit\
-  \ imports/exports\n   - Modules contain controllers, services, repositories, models,\
-  \ and DTOs\n\n3. **Module Structure Pattern**: Each module follows a consistent\
-  \ structure:\n   - Controllers (`Accounts.controller.ts`) - HTTP layer\n   - Application\
-  \ services (`AccountsApplication.service.ts`) - orchestrates use cases\n   - Granular\
-  \ services (`CreateAccount.service.ts`, `GetAccount.service.ts`) - single responsibility\n\
-  \   - Repositories (`Account.repository.ts`) - data access layer\n   - Models (`Account.model.ts`)\
-  \ - Objection.js ORM entities\n\n4. **Multi-Tenant Database Architecture**: \n \
-  \  - System database for tenant management\n   - Per-tenant databases (`bigcapital_tenant_{organizationId}`)\n\
-  \   - Dynamic connection routing via `TenancyDatabaseProxyProvider` (`src/modules/Tenancy/TenancyDB/TenancyDB.module.ts`)\n\
-  \   - Request-scoped tenancy context with guards (`TenancyGlobalGuard`, `EnsureTenantIsInitializedGuard`)\n\
-  \n5. **Monorepo Structure**: Uses pnpm workspaces + Lerna with shared packages:\n\
-  \   - `packages/server` - Backend monolith\n   - `packages/webapp` - React frontend\n\
-  \   - `shared/` - SDK, utilities, templates\n\n### Secondary Style: Layered\n\n\
-  The architecture exhibits clear horizontal layering within each module:\n- **Presentation\
-  \ Layer**: Controllers handle HTTP requests/responses (`@Controller` classes)\n\
-  - **Application/Business Logic Layer**: Services implement business rules (`@Injectable`\
-  \ services)\n- **Data Access Layer**: Repositories abstract database operations\
-  \ (`TenantRepository` base class)\n- **Models**: Objection.js ORM models extending\
-  \ `BaseModel`\n\nExample from `Accounts.module.ts`:\n```typescript\n@Module({\n\
-  \  imports: [TenancyDatabaseModule, DynamicListModule, ...models],\n  controllers:\
-  \ [AccountsController],\n  providers: [\n    AccountsApplication,\n    CreateAccountService,\n\
-  \    AccountRepository,\n    ...\n  ],\n})\n```\n\n### Not Microservices\n\nThe\
-  \ architecture is explicitly **not microservices**:\n- Single server process, not\
-  \ multiple independently deployable services\n- No service discovery, API gateway,\
-  \ or inter-service communication\n- Database-per-tenant pattern is about multi-tenancy,\
-  \ not service ownership\n- All modules share the same NestJS runtime and dependency\
-  \ injection container\n\n### Not Event-Driven Architecture\n\nWhile the application\
-  \ uses `@nestjs/event-emitter` for internal events (defined in `src/common/events/events.ts`)\
-  \ and BullMQ queues for background jobs, these are implementation details within\
-  \ a monolith—not the primary architectural style. Events are used for side effects\
-  \ (e.g., `onAccountCreated`, `onSaleInvoiceDelivered`) within a single application\
-  \ boundary.\n\n### Not Domain-Driven Design\n\nDespite having domain-oriented modules,\
-  \ the architecture lacks:\n- Aggregates with enforced consistency boundaries\n-\
-  \ Domain events as first-class citizens\n- Bounded context isolation (all modules\
-  \ share the same database schema)\n- Ubiquitous language artifacts\n\nThe modules\
-  \ are organized by business capability but don't implement DDD tactical patterns.\n\
-  \n### Key Files Supporting Classification:\n\n- `packages/server/src/modules/App/App.module.ts`\
-  \ - Root module importing 50+ feature modules\n- `packages/server/src/modules/Tenancy/Tenancy.module.ts`\
-  \ - Tenant isolation guards\n- `packages/server/src/modules/Accounts/Accounts.module.ts`\
-  \ - Typical module structure\n- `packages/server/Dockerfile` - Single container\
-  \ deployment\n- `docker-compose.prod.yml` - 3 services: proxy, server, webapp (not\
-  \ microservices)"
+classification_confidence: 0.93
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Multi-tenancy
+- Modularity
+- Extensibility
+- Observability
+- Security
+- Scalability
+- Maintainability
+- Integrations
+one_line_summary: "Multi-tenant accounting platform built as a NestJS modular monolith with pervasive event-driven cross-module coordination via @nestjs/event-emitter and BullMQ queues."
+classification_reasoning: "Bigcapital is classified as Modular Monolith (primary) + Event-Driven (co-primary) + Layered (tertiary). The Modular Monolith classification is unambiguous: a single NestJS server process (packages/server) deploys in one container; 60+ feature modules share one DI container and runtime; docker-compose.prod.yml shows a single 'server' service with no inter-process backend communication. Event-Driven is co-primary, not secondary, because events are the structural integration mechanism between modules: src/common/events/events.ts defines 150+ named domain events across all aggregates (accounts, saleInvoice, bill, inventory, banking, stripe, plaid, etc.); every major module uses @OnEvent() subscribers to write GL entries, update inventory, send mail, and track analytics without direct service coupling; BullMQ queues (ComputeItemCostQueue, WriteInventoryTransactionsGLEntriesQueue, SendSaleInvoiceQueue) extend the pattern to async background processing via Redis; a Socket.IO gateway emits real-time events to frontend clients. Layered architecture is tertiary — it describes the internal structure within each module (Controller -> Application Service -> Command/Query Service -> Repository/Model) rather than the overall system topology. The previous classification (Modular Monolith + Layered) correctly identified the primary style but understated the structural role of event-driven coordination across module boundaries."

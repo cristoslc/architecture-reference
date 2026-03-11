@@ -1,13 +1,9 @@
 project_name: bagisto
-scope: application
+scope: platform
 use_type: production
 source: Discovered
 source_url: https://github.com/bagisto/bagisto
-project_url: https://github.com/bagisto/bagisto
 evidence_type: automated-discovery
-discovered_at: '2026-03-07T05:09:31Z'
-discovered_by: discover-architecture
-discovery_version: 1.0.0
 domain: E-Commerce
 language: PHP
 languages:
@@ -17,88 +13,20 @@ languages:
 architecture_styles:
 - Modular Monolith
 - Microkernel
+- Event-Driven
 classification_status: classified
-review_notes: 'The Bagisto repository is a definitive example of a **Modular Monolith**
-  architecture built on the Laravel framework. While it appears as a standard Laravel
-  application at the root level, the core business logic and functional domains are
-  organized into a strict internal module system managed via the `packages/` directory
-  and the **Concord** library.
-
-
-  ### Architecture Analysis
-
-
-  **1. Modular Monolith (Primary Style)**
-
-  The system is organized around bounded functional domains (e.g., `Attribute`, `Checkout`,
-  `Inventory`, `Sales`, `Tax`) rather than horizontal technical layers (Controllers,
-  Models, Services) alone.
-
-  - **Internal Module Isolation:** Evidence from `composer.json` shows over 30 internal
-  PSR-4 mappings pointing to `packages/Webkul/*`. Each of these packages acts as a
-  self-contained module containing its own Routes, Models, Migrations, and Views.
-
-  - **Concord Orchestration:** The `config/concord.php` file explicitly lists these
-  modules (e.g., `\Webkul\Sales\Providers\ModuleServiceProvider::class`). Concord
-  is a specifically designed library for Laravel to enable modularity by allowing
-  modules to provide their own entities, repositories, and configurations while maintaining
-  a unified application state.
-
-  - **Single Deployment Unit:** Despite the modular internal structure, all code is
-  stored in a single repository and deployed as a single unit, fitting the definition
-  of a Modular Monolith rather than Microservices.'
-review_required: false
-classification_method: deep-analysis-tooluse
-classification_confidence: 0.88
-classification_model: openrouter/z-ai/glm-5
-classification_date: '2026-03-08T19:51:20Z'
-classification_reasoning: "## Analysis\n\nBagisto is a Laravel-based e-commerce framework\
-  \ that implements a **Modular Monolith** architecture with clear **Microkernel (Plugin)**\
-  \ characteristics.\n\n### Evidence for Modular Monolith\n\n**Single Deployable with\
-  \ Enforced Module Boundaries:**\n- The entire application is deployed as a single\
-  \ unit via `composer.json` with no separate deployment units\n- Uses `konekt/concord`\
-  \ package specifically designed for Laravel modular monoliths, providing module\
-  \ lifecycle management\n- 31 distinct modules organized under `packages/Webkul/`\
-  \ directory: Admin, Attribute, BookingProduct, CMS, CartRule, CatalogRule, Category,\
-  \ Checkout, Core, Customer, DataGrid, DataTransfer, Inventory, Marketing, Product,\
-  \ Sales, Shipping, Tax, Theme, User, etc.\n\n**Module Structure Consistency:**\n\
-  Each module follows a strict convention with:\n- `Contracts/` - Interfaces for domain\
-  \ entities (e.g., `Product.php`, `Order.php`)\n- `Models/` - Eloquent model implementations\n\
-  - `Repositories/` - Data access layer using `prettus/l5-repository` pattern\n- `Providers/ModuleServiceProvider.php`\
-  \ - Module registration declaring models, migrations, routes\n- `Database/Migrations/`\
-  \ - Module-scoped database migrations (156 total migrations across modules)\n- `Config/`\
-  \ - Module-specific configuration files\n\n**Concord Convention System:**\n```php\n\
-  // config/concord.php\n'modules' => [\n    \\Webkul\\Admin\\Providers\\ModuleServiceProvider::class,\n\
-  \    \\Webkul\\Product\\Providers\\ModuleServiceProvider::class,\n    // ... 28\
-  \ more modules\n]\n```\n\nEach `ModuleServiceProvider` extends `CoreModuleServiceProvider`\
-  \ which enforces:\n- Migration registration per module\n- Model registration per\
-  \ module\n- View registration per module\n- Route registration per module\n\n###\
-  \ Evidence for Microkernel (Plugin) Pattern\n\n**Product Type Plugin System:**\n\
-  ```php\n// packages/Webkul/Product/src/Config/product_types.php\nreturn [\n    'simple'\
-  \ => ['class' => 'Webkul\\Product\\Type\\Simple'],\n    'configurable' => ['class'\
-  \ => 'Webkul\\Product\\Type\\Configurable'],\n    'bundle' => ['class' => 'Webkul\\\
-  Product\\Type\\Bundle'],\n    'downloadable' => ['class' => 'Webkul\\Product\\Type\\\
-  Downloadable'],\n    // ... more types\n];\n```\n\nProduct types are loaded dynamically\
-  \ via configuration with a common `AbstractType` base class that defines the contract.\n\
-  \n**Payment Method Plugin System:**\n```php\n// packages/Webkul/Payment/src/Payment.php\n\
-  foreach (Config::get('payment_methods') as $paymentMethodConfig) {\n    $paymentMethod\
-  \ = app($paymentMethodConfig['class']);\n    if ($paymentMethod->isAvailable())\
-  \ {\n        // ... register method\n    }\n}\n```\n\n**Shipping Carrier Plugin\
-  \ System:**\n```php\n// packages/Webkul/Shipping/src/Shipping.php\nforeach (Config::get('carriers')\
-  \ as $shippingMethod) {\n    $object = new $shippingMethod['class'];\n    if ($rates\
-  \ = $object->calculate()) {\n        // ... collect rates\n    }\n}\n```\n\n###\
-  \ What This Is NOT\n\n- **NOT Microservices**: Single deployment unit, shared database\
-  \ (MySQL), no service boundaries for independent deployment\n- **NOT Layered**:\
-  \ While the code has controllers/repositories/models, the primary organizational\
-  \ principle is vertical modules (Product, Sales, Customer), not horizontal layers\n\
-  - **NOT Domain-Driven Design**: No aggregates, value objects, bounded contexts,\
-  \ or ubiquitous language patterns despite domain-centric organization\n- **NOT Hexagonal**:\
-  \ No ports/adapters pattern; direct Eloquent ORM usage without repository interfaces\
-  \ isolating from persistence\n\n### Architecture Characteristics Summary\n\n| Aspect\
-  \ | Implementation |\n|--------|----------------|\n| **Module Count** | 31 modules\
-  \ under `packages/Webkul/` |\n| **Module Registration** | Central `concord.php`\
-  \ config |\n| **Inter-module Communication** | Direct repository injection + Laravel\
-  \ events |\n| **Event System** | Cross-module events (e.g., `checkout.order.save.after`\
-  \ listened by Product, Admin modules) |\n| **Plugin Points** | Product types, payment\
-  \ methods, shipping carriers |\n| **Database** | Shared MySQL database across all\
-  \ modules |\n| **Deployment** | Single artisan/Laravel application |"
+classification_confidence: 0.92
+classification_method: deep-analysis
+classification_model: claude-sonnet-4-6
+classification_date: '2026-03-11'
+quality_attributes:
+- Extensibility
+- Modularity
+- Maintainability
+- Testability
+- Performance
+- Observability
+- Scalability
+- Security
+one_line_summary: "Laravel e-commerce platform organized as a 31-module Modular Monolith with config-driven plugin registries for product types, payment methods, and shipping carriers, coordinated through a pervasive cross-module event bus."
+classification_reasoning: "Bagisto is classified as a Modular Monolith (primary), Microkernel (secondary), and Event-Driven (secondary). The entire application deploys as a single Laravel process against a shared MySQL database, organized into 31 self-contained domain modules under packages/Webkul/ — each with its own migrations, models, routes, views, and service providers — registered centrally via config/concord.php using the konekt/concord framework. This is the canonical Modular Monolith structure. The Microkernel classification is earned by three fully realized config-driven plugin registries: product types (packages/Webkul/Product/src/Config/product_types.php maps keys like 'simple', 'configurable', 'bundle' to AbstractType subclasses), payment methods (Payment.php iterates Config::get('payment_methods') and instantiates registered classes), and shipping carriers (Shipping.php iterates Config::get('carriers')). In all three cases the core defines an abstract contract and implementations register via configuration — textbook Microkernel. The Event-Driven classification reflects the pervasive use of string-keyed Laravel domain events as the sole cross-module coordination mechanism: repositories fire named events (checkout.order.save.after, sales.shipment.save.after, catalog.product.update.after, etc.) and 14 EventServiceProvider declarations across the package tree register listeners. 157 source files fire events. The FPC module implements reactive cache invalidation through 16 event listeners reacting to domain changes across Product, Category, Sales, CMS, and Core modules — an architectural-level event-driven integration topology. The system is NOT Microservices (single deployment, shared database), NOT pure Layered (domain-vertical primary organization), NOT Hexagonal (Eloquent active-record without port/adapter isolation), and NOT CQRS (no separate read/write model with command bus)."
