@@ -92,4 +92,4 @@ journey
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | 6883447 | Initial creation — derived from dataset analysis and reference library structure |
-| Abandoned | 2026-03-11 | — | Not relevant to VISION-001 direction |
+| Abandoned | 2026-03-11 | b068577b | Not relevant to VISION-001 direction |

@@ -86,4 +86,4 @@ ADR-005 requires the discover skill to produce dual output: a markdown report AN
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-10 | 398ebe55 | Initial creation under EPIC-013 |
-| Approved | 2026-03-11 | — | Approved for implementation |
+| Approved | 2026-03-11 | b068577b | Approved for implementation |

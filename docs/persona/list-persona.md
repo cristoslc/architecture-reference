@@ -8,7 +8,7 @@
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
-| PERSONA-001 | The Kata Competitor | A developer or architect competing in O'Reilly Architecture Katas, seeking evidence-backed guidance to win under time pressure. Not relevant to VISION-001 direction. | 2026-03-11 | — |
+| PERSONA-001 | The Kata Competitor | A developer or architect competing in O'Reilly Architecture Katas, seeking evidence-backed guidance to win under time pressure. Not relevant to VISION-001 direction. | 2026-03-11 | b068577b |
 ## Validated
 
 | ID | Title | Summary | Last Updated | Commit |

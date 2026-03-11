@@ -30,7 +30,7 @@
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
-| SPEC-029 | Catalog Entry Schema Validation | Validate catalog-entry.template.j2 against SPEC-003 requirements, create machine-readable schema, test dual output. Parent: EPIC-013. | 2026-03-11 | — |
+| SPEC-029 | Catalog Entry Schema Validation | Validate catalog-entry.template.j2 against SPEC-003 requirements, create machine-readable schema, test dual output. Parent: EPIC-013. | 2026-03-11 | b068577b |
 
 ## Active
 
