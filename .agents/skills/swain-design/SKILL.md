@@ -5,7 +5,7 @@ license: UNLICENSED
 allowed-tools: Bash, Read, Write, Edit, Grep, Glob, Skill
 metadata:
   short-description: Manage spec artifact creation and lifecycle
-  version: 1.5.0
+  version: 1.6.0
   author: cristos
   source: swain
 ---
@@ -262,3 +262,15 @@ Every doc-type directory keeps a single lifecycle index (`list-<type>.md`). **Re
 | Edit artifact content or frontmatter | Update last-updated date and commit hash |
 | Transition phase | Move row between phase tables |
 | Abandon / end-of-life | Move row to the end-of-life table |
+
+## Session bookmark
+
+After completing any state-changing operation (creating, transitioning, or updating artifacts), update the session bookmark via `swain-bookmark.sh`:
+
+```bash
+BOOKMARK="$(find . .claude .agents -path '*/swain-session/scripts/swain-bookmark.sh' -print -quit 2>/dev/null)"
+bash "$BOOKMARK" "Transitioned SPEC-001 to Approved, created EPIC-002" --files docs/spec/...
+```
+
+- Note format: "{action} {artifact-ids}"
+- Include changed artifact file paths via `--files`
