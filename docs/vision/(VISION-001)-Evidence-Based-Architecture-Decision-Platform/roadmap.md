@@ -32,7 +32,7 @@ graph LR
 |------|-------|------|--------------|
 | [EPIC-001](../../epic/(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment/(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment.md) | **Complete** | Expand evidence base to 4 sources with 62 cataloged projects | None |
 | [EPIC-002](../../epic/(EPIC-002)-Architecture-Advisor-Skill/(EPIC-002)-Architecture-Advisor-Skill.md) | **Complete** | Ship a remote-installable agent skill exposing the evidence library | Built on EPIC-001 |
-| [EPIC-003](../../epic/(EPIC-003)-Architecture-Discovery-and-Scaling/(EPIC-003)-Architecture-Discovery-and-Scaling.md) | **Active** | Build discovery tooling and scale to 200+ projects | Builds on EPIC-001 and EPIC-002 |
+| [EPIC-003](../../epic/Complete/(EPIC-003)-Architecture-Discovery-and-Scaling/(EPIC-003)-Architecture-Discovery-and-Scaling.md) | **Complete** | Build discovery tooling and scale to 200+ projects | Builds on EPIC-001 and EPIC-002 |
 | [EPIC-004](../../epic/(EPIC-004)-Cross-Source-Reference-Library-Integration/(EPIC-004)-Cross-Source-Reference-Library-Integration.md) | **Complete** | Rewrite reference library docs to synthesize evidence from all 5 sources | Builds on EPIC-001 |
 | [EPIC-005](../../epic/(EPIC-005)-LLM-Classification-Pipeline/(EPIC-005)-LLM-Classification-Pipeline.md) | **Complete** | Automate Pass 2 LLM review of Indeterminate entries | Builds on EPIC-003 |
 | [EPIC-006](../../epic/Complete/(EPIC-006)-Deep-Context-Classification-Validation/(EPIC-006)-Deep-Context-Classification-Validation.md) | **Complete** | Re-validate all classifications with deep context | Builds on EPIC-003 |
@@ -40,7 +40,7 @@ graph LR
 | [EPIC-008](../../epic/Complete/(EPIC-008)-Service-Based-Architecture-Detection/(EPIC-008)-Service-Based-Architecture-Detection.md) | **Complete** | Fix Service-Based and Plugin/Microkernel detection blind spots | Builds on EPIC-003 |
 | ~~EPIC-009~~ | **Abandoned** | ~~Heuristic pipeline improvements~~ — obsolete per ADR-002 | — |
 | [EPIC-010](../../epic/Complete/(EPIC-010)-Ecosystem-Architecture-Classification/(EPIC-010)-Ecosystem-Architecture-Classification.md) | **Complete** | Capture cross-repo ecosystem architecture patterns | Builds on SPEC-019 |
-| [EPIC-011](../../epic/Proposed/(EPIC-011)-Platform-Aware-Architecture-Advising/(EPIC-011)-Platform-Aware-Architecture-Advising.md) | Proposed | Enhance advisor skill to distinguish platform vs application contexts | Builds on EPIC-002, EPIC-010 |
+| [EPIC-011](../../epic/Complete/(EPIC-011)-Platform-Aware-Architecture-Advising/(EPIC-011)-Platform-Aware-Architecture-Advising.md) | **Complete** | Enhance advisor skill to distinguish platform vs application contexts | Builds on EPIC-002, EPIC-010 |
 | [EPIC-012](../../epic/Complete/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion/(EPIC-012)-Catalog-Rebalancing-and-Application-Expansion.md) | **Complete** | Remove 43 non-architecture entries, add 30+ applications, recompute rankings | Builds on SPIKE-001, ADR-001 |
 
 ## Research Dependencies

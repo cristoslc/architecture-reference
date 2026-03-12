@@ -51,7 +51,7 @@ Cross-source analysis published in `docs/reference-library/evidence/cross-source
 
 ## Prior Art
 
-This epic was adapted from Phase 1 of the [Dataset Expansion & Architecture Discovery Skill proposal](../../proposals/dataset-expansion-and-discovery-skill.md). Phases 2-4 (discovery skill, scaling, comparative analysis) have been split into [EPIC-003](../(EPIC-003)-Architecture-Discovery-and-Scaling/(EPIC-003)-Architecture-Discovery-and-Scaling.md).
+This epic was adapted from Phase 1 of the [Dataset Expansion & Architecture Discovery Skill proposal](../../proposals/dataset-expansion-and-discovery-skill.md). Phases 2-4 (discovery skill, scaling, comparative analysis) have been split into [EPIC-003](../Complete/(EPIC-003)-Architecture-Discovery-and-Scaling/(EPIC-003)-Architecture-Discovery-and-Scaling.md).
 
 ## Child Specs
 
