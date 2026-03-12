@@ -85,4 +85,4 @@ No blocking dependencies. EPIC-001 (Dataset Expansion) provides the evidence bas
 |-------|------|--------|-------|
 | Proposed | 2026-03-03 | f0ae265 | Split from EPIC-001; covers Phases 2-4 of original dataset expansion proposal |
 | Active | 2026-03-03 | b63f031 | Child specs created: SPEC-001 (Approved), SPEC-002, SPEC-003 (Draft) |
-| Complete | 2026-03-12 | — | All 3 child specs Implemented; discovery, scaling, and comparative analysis delivered |
+| Complete | 2026-03-12 | 30ecbf49 | All 3 child specs Implemented; discovery, scaling, and comparative analysis delivered |

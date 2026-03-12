@@ -82,4 +82,4 @@ The current architecture-advisor skill treats every query as an application-leve
 |-------|------|--------|-------|
 | Proposed | 2026-03-06 | 52a5089 | Initial creation; enhances advisor skill with platform/application context awareness |
 | Active | 2026-03-12 | — | All dependencies resolved (EPIC-002, EPIC-010, EPIC-013 Complete; SPIKE-001 Complete); activated for decomposition |
-| Complete | 2026-03-12 | — | All 3 child specs Implemented: context detection, dual-scale retrieval, platform decision paths |
+| Complete | 2026-03-12 | 30ecbf49 | All 3 child specs Implemented: context detection, dual-scale retrieval, platform decision paths |
