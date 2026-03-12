@@ -1,10 +1,10 @@
 ---
 title: "Comparative Analysis Engine"
 artifact: SPEC-003
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-03
-last-updated: 2026-03-10
+last-updated: 2026-03-12
 parent-epic: EPIC-003
 linked-research: []
 linked-adrs:
@@ -89,3 +89,5 @@ With ADR-005 adopted, the catalog entry schema is standardized via the discover 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-03 | b63f031 | Initial creation — depends on SPEC-001 and SPEC-002 |
+| Approved | 2026-03-12 | — | All dependencies satisfied (SPEC-002 Implemented, ADR-005 Adopted, EPIC-013 Complete); approved for implementation |
+| Implemented | 2026-03-12 | — | Compare-architecture skill created with catalog loader, similarity scorer, report generator |

@@ -1,0 +1,91 @@
+# Architecture Comparison Report
+
+> Generated {{ generated_date }} | {{ total_catalog_entries }} projects in evidence base
+
+---
+
+## Your Architecture
+
+| | |
+|---|---|
+| **Project** | {{ user.project_name }} |
+| **Primary Style(s)** | {{ user.architecture_styles | join(", ") }} |
+| **Domain** | {{ user.domain }} |
+| **Scope** | {{ user.scope }} |
+| **Use-type** | {{ user.use_type }} |
+{% if user.quality_attributes %}| **Quality Attributes** | {{ user.quality_attributes | join(", ") }} |
+{% endif %}{% if user.classification_confidence < 1.0 %}| **Confidence** | {{ user.classification_confidence }} |
+{% endif %}
+
+---
+
+## Similar Projects
+
+Top {{ similar | length }} matches from the evidence base, ranked by multi-axis similarity.
+
+| Rank | Project | Styles | Domain | Score | Summary |
+|------|---------|--------|--------|-------|---------|
+{% for s in similar -%}
+| {{ loop.index }} | {% if s.entry.source_url %}[{{ s.project_name }}]({{ s.entry.source_url }}){% else %}{{ s.project_name }}{% endif %} | {{ s.entry.architecture_styles | join(", ") }} | {{ s.entry.domain }} | {{ "%.2f" | format(s.overall) }} | {{ s.entry.one_line_summary[:120] }}{% if s.entry.one_line_summary | length > 120 %}...{% endif %} |
+{% endfor %}
+
+<details>
+<summary>Score breakdown (click to expand)</summary>
+
+| Project | Style | Domain | Scope | QA | Confidence | Overall |
+|---------|-------|--------|-------|----|------------|---------|
+{% for s in similar -%}
+| {{ s.project_name }} | {{ "%.2f" | format(s.style_score) }} | {{ "%.2f" | format(s.domain_score) }} | {{ "%.2f" | format(s.scope_score) }} | {{ "%.2f" | format(s.qa_score) }} | {{ "%.2f" | format(s.confidence_factor) }} | {{ "%.2f" | format(s.overall) }} |
+{% endfor %}
+
+**Weights:** Style={{ "%.0f" | format(style_weight * 100) }}%, Domain={{ "%.0f" | format(domain_weight * 100) }}%, Scope={{ "%.0f" | format(scope_weight * 100) }}%, QA={{ "%.0f" | format(qa_weight * 100) }}% | Confidence applied as sqrt(confidence) multiplier.
+
+</details>
+
+---
+
+## Statistical Context
+
+{% if primary_style_stats -%}
+**{{ user.architecture_styles[0] }}** (your primary style) appears in **{{ primary_style_stats.count }}** of {{ primary_style_stats.total_production }} production entries ({{ "%.1f" | format(primary_style_stats.percentage) }}%), ranking **#{{ primary_style_stats.rank }}** by frequency.
+
+{% endif -%}
+{% if style_combo_count is not none -%}
+**{{ user.architecture_styles | join(" + ") }}** — {{ style_combo_count }} project(s) in the catalog share this exact style combination.
+
+{% endif -%}
+{% if percentile_note -%}
+{{ percentile_note }}
+
+{% endif -%}
+
+---
+
+## Strengths & Gaps
+
+### Strengths
+
+Your project's quality attributes compared to similar projects:
+
+{% for strength in strengths -%}
+- {{ strength }}
+{% endfor %}
+
+### Gaps
+
+Quality attributes observed in similar projects but not in yours:
+
+{% for gap in gaps -%}
+- **{{ gap.attribute }}** — seen in {{ gap.projects | join(", ") }}
+{% endfor %}
+{% if not gaps -%}
+- No significant gaps detected relative to similar projects.
+{% endif %}
+
+---
+
+## Recommendations
+
+{% for rec in recommendations -%}
+{{ loop.index }}. {{ rec }}
+{% endfor %}
