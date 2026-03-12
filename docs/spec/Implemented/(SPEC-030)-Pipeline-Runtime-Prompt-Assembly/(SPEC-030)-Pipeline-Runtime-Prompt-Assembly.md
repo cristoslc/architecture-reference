@@ -93,4 +93,4 @@ swain-do: required
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-10 | 398ebe55 | Initial creation under EPIC-013 |
-| Implemented | 2026-03-11 | — | Already implemented: classify-tooluse.sh assembles prompt from discover skill at runtime |
+| Implemented | 2026-03-11 | a288b1da | Already implemented: classify-tooluse.sh assembles prompt from discover skill at runtime |

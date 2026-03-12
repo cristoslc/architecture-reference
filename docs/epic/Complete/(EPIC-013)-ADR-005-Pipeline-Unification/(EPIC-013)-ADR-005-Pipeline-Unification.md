@@ -73,5 +73,5 @@ The end state: one specification (the discover skill), one output schema (catalo
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-10 | e02f2eff | Implement ADR-005 decision across the pipeline |
-| Active | 2026-03-11 | — | SPEC-031 implemented; 3 child specs remain |
-| Complete | 2026-03-11 | — | All 4 child specs Implemented; ADR-005 fully realized |
+| Active | 2026-03-11 | a288b1da | SPEC-031 implemented; 3 child specs remain |
+| Complete | 2026-03-11 | a288b1da | All 4 child specs Implemented; ADR-005 fully realized |
