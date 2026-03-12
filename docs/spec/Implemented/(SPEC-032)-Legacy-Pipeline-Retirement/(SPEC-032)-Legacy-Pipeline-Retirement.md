@@ -1,7 +1,7 @@
 ---
 title: "Legacy Pipeline Retirement"
 artifact: SPEC-032
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -66,6 +66,9 @@ ADR-005 makes the discover skill the single classification specification, ADR-00
 
 | Criterion | Evidence | Result |
 |-----------|----------|--------|
+| classify-tooluse.sh runs after removal | `--show-prompt` exits 0, assembles 411-line prompt from discover skill files; no reference to removed files | Pass |
+| No live references to removed files | grep found 32 files referencing legacy names; all are in historical artifacts (completed specs, adopted ADRs, abandoned epics) — one README reference updated | Pass |
+| Only active scripts remain in pipeline/ | `ls pipeline/` shows: classify-tooluse.sh, batch-classify-tooluse.sh, generate-index.py, quality-report.py, recompute_frequencies.py, search-candidates.sh, tools/, tests/, reports/, gold-standard/, manifest.yaml | Pass |
 
 ## Scope & Constraints
 
@@ -96,3 +99,4 @@ ADR-005 makes the discover skill the single classification specification, ADR-00
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-10 | 398ebe55 | Initial creation under EPIC-013 |
+| Implemented | 2026-03-11 | — | Already implemented: all 8 legacy files removed in prior commits |

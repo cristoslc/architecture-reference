@@ -11,7 +11,6 @@
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | EPIC-003 | Architecture Discovery and Scaling | Build automated discovery tooling to classify architecture patterns from repos, then scale the evidence base from 62 to 200+ projects with comparative analysis. | 2026-03-03 | b63f031 |
-| EPIC-013 | ADR-005 Pipeline Unification | Implement ADR-005: make the discover skill the single specification for all pipeline classification. SPEC-031 implemented; 3 child specs remain. | 2026-03-11 | — |
 
 ## Complete
 
@@ -26,6 +25,7 @@
 | EPIC-008 | Service-Based Architecture Detection | Fix the two largest detection blind spots in the Discovered pipeline: Service-Based Architecture (4 detected vs. 23 expected) and Plugin/Microkernel (0 detected vs. 6+ production-validated). New signals, improved scorers, conflict resolution, and re-classification. | 2026-03-06 | 2dee9a7 |
 | EPIC-010 | Ecosystem-Level Architecture Classification | Extend the catalog to capture cross-repo architectural patterns (ELK stack, *arr media stack, Grafana LGTM, etc.) that are invisible at the single-repo level. Curate 10+ ecosystems, add missing member repos, define ecosystem entry format. | 2026-03-10 | 0a9373bc |
 | EPIC-012 | Catalog Rebalancing and Application Expansion | Removed 43 library/non-software entries, tagged all entries with scope/use-type taxonomy (ADR-001), added 30+ production applications to fix 3.4:1→1.58:1 platform-to-application skew, recomputed production-only rankings. | 2026-03-10 | 13ed381c |
+| EPIC-013 | ADR-005 Pipeline Unification | Implement ADR-005: make the discover skill the single specification for all pipeline classification. All 4 child specs Implemented; ADR-005 fully realized. | 2026-03-11 | — |
 
 ## Abandoned
 

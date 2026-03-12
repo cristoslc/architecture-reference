@@ -234,14 +234,10 @@ This is a living repository. Each evidence source has its own YAML schema and co
 
 **Adding Discovered repos (automated pipeline):**
 1. Add the repo to `pipeline/manifest.yaml`
-2. Run `pipeline/extract-signals.sh` to detect structural signals
-3. Classify using `pipeline/signal-rules.md` or LLM review
-4. Apply via `pipeline/apply-review.py` to create a catalog YAML in `evidence-analysis/Discovered/docs/catalog/`
-5. Regenerate index and quality report: `python3 pipeline/generate-index.py && python3 pipeline/quality-report.py`
+2. Run `pipeline/classify-tooluse.sh --repo <URL> --name <project>` — assembles its system prompt from the discover skill at runtime (ADR-005)
+3. Regenerate index and quality report: `python3 pipeline/generate-index.py && python3 pipeline/quality-report.py`
 
 After any addition, update reference library documents to reflect new styles, quality attributes, or problem dimensions. The YAML catalogs are the single source of truth -- all analysis and reference content is derived from them.
-
-See the [Dataset Expansion Proposal](docs/proposals/dataset-expansion-and-discovery-skill.md) for the roadmap on future evidence sources and the planned `/discover-architecture` skill.
 
 ## Acknowledgments
 

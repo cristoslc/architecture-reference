@@ -1,7 +1,7 @@
 ---
 title: "Pipeline Runtime Prompt Assembly"
 artifact: SPEC-030
-status: Draft
+status: Implemented
 author: cristos
 created: 2026-03-10
 last-updated: 2026-03-10
@@ -61,6 +61,9 @@ swain-do: required
 
 | Criterion | Evidence | Result |
 |-----------|----------|--------|
+| --show-prompt contains SKILL.md, styles.md, and template content | `classify-tooluse.sh --show-prompt` outputs 411-line prompt; grep confirms content from all three skill files | Pass |
+| Output conforms to catalog-entry template schema | SPEC-031 reclassified 184 entries via this script; all produced valid catalog YAML | Pass |
+| Skill file changes auto-propagate | `assemble_system_prompt()` reads files at runtime (lines 72-127); no cached/standalone prompt exists | Pass |
 
 ## Scope & Constraints
 
@@ -90,3 +93,4 @@ swain-do: required
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-10 | 398ebe55 | Initial creation under EPIC-013 |
+| Implemented | 2026-03-11 | — | Already implemented: classify-tooluse.sh assembles prompt from discover skill at runtime |
