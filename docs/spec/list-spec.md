@@ -28,6 +28,9 @@
 | SPEC-030 | Pipeline Runtime Prompt Assembly | Refactor classify-tooluse.sh to read discover skill files at runtime instead of standalone prompts. Depends on SPEC-029. Parent: EPIC-013. | 2026-03-11 | a288b1da |
 | SPEC-031 | Full Catalog Reclassification | Reclassify all 195 entries via ADR-005/ADR-006-compliant pipeline, produce dual output (report + catalog entry). 184 sonnet deep-analysis + 11 ecosystem updates. Parent: EPIC-013. | 2026-03-11 | 62aefe43 |
 | SPEC-032 | Legacy Pipeline Retirement | Remove deprecated prompts, parsers, and scripts per ADR-002/003/005. Depends on SPEC-030. Parent: EPIC-013. | 2026-03-11 | a288b1da |
+| SPEC-033 | Context Detection Prompts | Signal taxonomy, probing questions, and context gating for platform/application detection in architecture-advisor Step 1. Parent: EPIC-011. | 2026-03-12 | — |
+| SPEC-034 | Dual-Scale Evidence Retrieval | Context-variant research priorities, ecosystem citation patterns, and offline ecosystem frequency rankings. Parent: EPIC-011. | 2026-03-12 | — |
+| SPEC-035 | Platform Architecture Decision Paths | Context gate, P1-P6 platform classification questions, and paths P-A through P-D in decision navigator. Parent: EPIC-011. | 2026-03-12 | — |
 
 ## Active
 

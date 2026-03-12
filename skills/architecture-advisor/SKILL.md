@@ -5,7 +5,7 @@ license: MIT
 allowed-tools: Bash, Read, Grep, Glob, Agent
 metadata:
   short-description: Production-evidence-based architecture guidance from 142 codebases
-  version: 3.0.0
+  version: 4.0.0
   author: cristos
   source-repo: https://github.com/cristoslc/architecture-reference
 ---
@@ -73,11 +73,41 @@ Ask enough to classify the situation:
 - **Domain mapping**: "What works for e-commerce/healthcare/etc?" → consult domain-style correlations
 - **Kata preparation**: "Help me prepare for an architecture kata" → use templates and competition insights
 
+#### Context Detection
+
+After initial classification, determine whether the user's concern is **application-centric**, **platform-centric**, or **hybrid**. This classification is internal — do not announce it to the user. It can be revised mid-conversation as new information emerges.
+
+Use the signal taxonomy below to classify the context based on the user's language and concerns:
+
+| Signal | Platform indicators | Application indicators |
+|--------|--------------------|-----------------------|
+| Scope language | "services", "repos", "components", "ecosystem" | "my codebase", "the app", "our monolith" |
+| Boundary concerns | "API contracts", "shared schemas", "protocol specs" | "module boundaries", "package organization", "layers" |
+| Deployment | "deploy independently", "multiple pipelines" | "single deployment", "CI/CD pipeline" |
+| Communication | "HTTP/gRPC between services", "message queues" | "function calls", "dependency injection" |
+| Team structure | "multiple teams own different services" | "our team", "the frontend/backend" |
+
+**When signals are mixed**, use lightweight probing questions to disambiguate:
+
+1. "Are you thinking about the architecture of a single codebase, or how multiple independently-deployed services fit together?" — distinguishes application from platform
+2. "Do the components you're describing share a deployment pipeline, or does each have its own?" — deployment topology is the strongest differentiator
+3. "Are the boundaries you're concerned about within a single repo or across repos owned by different teams?" — ownership model reveals scale
+
+**Context gating for subsequent steps:**
+
+- **Application context** → Steps 3-5 use single-repo evidence, existing Q1-Q8 classification, and paths A-J
+- **Platform context** → Steps 3-5 use ecosystem evidence, P1-P6 classification, and paths P-A through P-D
+- **Hybrid context** → Steps 3-5 merge both evidence pools with clear provenance labels; offer the user a choice of which classification questions to answer, or answer both sets
+
 ### Step 2: Examine the codebase (if available)
 
 If the user has a codebase to evaluate, examine it before giving advice. Read actual code — understand their current architecture before recommending changes. Use the discover-architecture skill's approach: read entrypoints, module boundaries, communication patterns, dependency direction, and deployment configs (compose files, proxy configs, k8s manifests) that may introduce components, boundaries, or contracts invisible in application code.
 
 ### Step 3: Research the evidence
+
+Research priorities depend on the context detected in Step 1.
+
+#### Application context (default)
 
 **For style selection or trade-off questions**, consult in this order:
 
@@ -85,19 +115,41 @@ If the user has a codebase to evaluate, examine it before giving advice. Read ac
 |----------|--------|-------------------|----------------|
 | 1 | Discovered frequency rankings | `reference-library/solution-spaces.md` | "How common is this style in production?" |
 | 2 | Domain-style correlations | `reference-library/problem-solution-matrix.md` | "What styles work for my domain?" |
-| 3 | Decision navigator | `reference-library/decision-navigator.md` | "Given my constraints, what's recommended?" |
+| 3 | Decision navigator (Q1-Q8, paths A-J) | `reference-library/decision-navigator.md` | "Given my constraints, what's recommended?" |
 | 4 | Production system narratives | `catalogs/AOSA/`, `catalogs/RealWorldASPNET/` | "How did real systems implement this?" |
 | 5 | Style evidence details | `reference-library/evidence/by-architecture-style.md` | "What's the full evidence picture for this style?" |
 | 6 | Competition team reasoning | `catalogs/TheKataLog/` | "Why did teams choose this? What trade-offs did they document?" |
 
-**For quality attribute questions:**
+#### Platform context
+
+**For platform/ecosystem architecture questions**, consult in this order:
+
+| Priority | Source | Path (references/) | What it answers |
+|----------|--------|-------------------|----------------|
+| 1 | Ecosystem frequency rankings | `reference-library/evidence/by-architecture-style.md` (ecosystem section) | "How common is this style across ecosystems?" |
+| 2 | Ecosystem catalog entries | `catalogs/Discovered/docs/catalog/` (entries with scope: ecosystem) | "What composition patterns do real ecosystems use?" |
+| 3 | Decision navigator (P1-P6, paths P-A through P-D) | `reference-library/decision-navigator.md` | "Given my platform constraints, what's recommended?" |
+| 4 | Single-repo entries exemplifying member-service patterns | `catalogs/Discovered/docs/catalog/` (entries from ecosystem member repos) | "How do individual services within ecosystems architect themselves?" |
+| 5 | Production system narratives | `catalogs/AOSA/`, `catalogs/RealWorldASPNET/` | "How did real platform systems implement this?" |
+| 6 | Competition team reasoning | `catalogs/TheKataLog/` | "What platform-scale reasoning did teams document?" |
+
+#### Hybrid context
+
+When the user's concern spans both scales, merge application and platform pools. For each piece of evidence cited, label its provenance:
+- **(single-repo)** for evidence from the 142 individual production repos
+- **(ecosystem)** for evidence from the 11 ecosystem entries
+- **(production system)** for AOSA/RealWorld case studies
+
+This lets the user see which scale each recommendation draws from.
+
+#### Quality attribute questions (all contexts)
 
 | Priority | Source | Path |
 |----------|--------|------|
 | 1 | QA detection data | `reference-library/evidence/by-quality-attribute.md` |
 | 2 | Cross-source QA analysis | `reference-library/evidence/cross-source-analysis.md` |
 
-**For meta-practice questions** (ADRs, feasibility, fitness functions):
+#### Meta-practice questions (all contexts)
 
 | Priority | Source | Path |
 |----------|--------|------|
@@ -113,6 +165,8 @@ Every recommendation MUST cite specific evidence:
 - **Domain correlation**: "In Developer Tools repos, Microkernel (61%) and Layered (47%) dominate" — cite domain data
 - **Platform vs application**: "Microservices skews heavily toward platforms (13%) vs applications (2%)" — cite split data
 - **Qualitative reasoning**: "KataLog teams explain that cost/feasibility analysis is the #1 predictor of placement (4.5x likelihood)" — cite as annotation, not primary evidence
+- **Ecosystem evidence**: "The ELK Stack ecosystem uses Pipeline + Event-Driven composition (Discovered ecosystem catalog)" — cite ecosystem entries specifically
+- **Composition patterns**: "Service-Based hub-and-spoke integration, as seen in the *arr Media Stack" — cite composition_pattern fields from ecosystem catalog entries
 
 **Do not make unsupported claims.** If evidence is thin (small sample, single source), say so.
 
@@ -164,6 +218,18 @@ When no synced data is available, use these findings. All data from SPEC-022 pro
 | 12 | CQRS | 1 | 0.7% | 0% | 2% | Squidex |
 
 Dataset: 184 repos total (142 production + 42 reference). 87 platforms, 55 applications, 1.58:1 ratio. Zero Indeterminate (ADR-002 deep-analysis). 74% of repos exhibit exactly 2 styles.
+
+### Ecosystem frequency rankings (11 ecosystem entries)
+
+| Rank | Style | Count | % | Example ecosystems |
+|------|-------|-------|---|-------------------|
+| 1 | Service-Based | 5 | 45% | *arr Media Stack, Grafana LGTM, HashiCorp, Fediverse, Temporal |
+| 2 | Microservices | 3 | 27% | Istio/Envoy, Sentry, Supabase |
+| 3 | Pipeline | 2 | 18% | ELK Stack, Apache Data Ecosystem |
+| 4 | Event-Driven | 1 | 9% | Apache Data Ecosystem (secondary) |
+| 5 | Space-Based | 1 | 9% | Apache Data Grid |
+
+Key insight: Service-Based dominates ecosystem evidence (45%) despite ranking 7th in single-repo frequency (4.9%). Many real-world Service-Based systems are ecosystems of independent repos.
 
 ### Key findings from production evidence
 

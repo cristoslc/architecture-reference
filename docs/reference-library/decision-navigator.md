@@ -14,10 +14,28 @@ A practitioner-facing guide for navigating from problem characteristics to evide
 
 ## How to Use This Guide
 
+### Context Gate
+
+Before answering classification questions, determine the scale of your architecture concern:
+
+- **Application context** (single codebase, single deployment unit): Proceed to **Step 1: Q1-Q8** and **Step 2: Paths A-J**. This covers internal architecture -- module boundaries, layers, plugin systems, package organization.
+- **Platform context** (multiple independently-deployed components, multi-repo ecosystem): Proceed to **Step 1P: P1-P6** and **Step 2P: Paths P-A through P-D**. This covers ecosystem architecture -- service composition, API contracts, cross-repo coordination.
+- **Hybrid context** (both scales matter -- e.g., designing a platform AND the internal architecture of its services): Answer both sets of questions. Use application paths for per-service decisions and platform paths for ecosystem-level decisions. Switch between them as needed.
+
+If unsure, ask: "Am I deciding how to structure code within a single deployable, or how multiple deployables fit together?" If the answer is "both," use hybrid.
+
+### Application Context Flow
+
 1. **Answer the 8 questions in Step 1** to classify your problem across key dimensions.
 2. **Follow the matching path in Step 2** based on your answers. Each path opens with statistical evidence from 142 production-only entries, then production validation, then team reasoning explaining why the pattern works.
 3. **Validate with quality attributes in Step 3** to strengthen your approach using Discovered detection data and team insights.
 4. **Check the Quick Reference Card** at the end for a one-page summary ranked by Discovered frequency.
+
+### Platform Context Flow
+
+1. **Answer the 6 questions in Step 1P** to classify your platform across key dimensions.
+2. **Follow the matching path in Step 2P** based on your answers. Each path draws on ecosystem evidence from 11 production ecosystems.
+3. **Validate with quality attributes in Step 3** (shared across both contexts).
 
 This guide is designed for sequential use -- work through Steps 1 through 3 in order. The entire process should take 15-30 minutes and will give you a specific, evidence-backed starting point for your architecture.
 
@@ -68,7 +86,45 @@ Answer these questions about YOUR system. Circle or check the answer that best f
 
 ---
 
-## Step 2: Follow Your Path
+## Step 1P: Classify Your Platform
+
+Answer these questions about your platform/ecosystem. These questions apply when your concern is how multiple independently-deployed components fit together.
+
+### P1: How many independently-deployable components?
+- [ ] **A)** 2-3 components
+- [ ] **B)** 4-10 components
+- [ ] **C)** 10+ components
+
+### P2: Do components share a technology stack?
+- [ ] **A)** Yes -- same language/framework across components
+- [ ] **B)** Mixed -- 2-3 different stacks
+- [ ] **C)** Heterogeneous -- many different languages/frameworks
+
+### P3: Primary communication mechanism?
+- [ ] **A)** REST/gRPC (synchronous request-response)
+- [ ] **B)** Message queue (asynchronous, event-based)
+- [ ] **C)** Shared storage (database, filesystem, object store)
+- [ ] **D)** Mixed (multiple mechanisms for different interactions)
+
+### P4: Are components developed by the same team?
+- [ ] **A)** Same team owns all components
+- [ ] **B)** Multiple teams, shared organization
+- [ ] **C)** Open ecosystem -- independent maintainers/organizations
+
+### P5: API evolution strategy?
+- [ ] **A)** Versioned APIs with deprecation cycles
+- [ ] **B)** Backwards-compatible evolution (additive changes only)
+- [ ] **C)** Breaking changes tolerated (components update independently)
+
+### P6: Shared infrastructure?
+- [ ] **A)** Shared database
+- [ ] **B)** Shared message bus or event backbone
+- [ ] **C)** Fully independent -- each component owns its infrastructure
+- [ ] **D)** Mixed -- some shared, some independent
+
+---
+
+## Step 2: Follow Your Path (Application Context)
 
 Find the path that best matches your answer profile. If you match multiple paths, read all of them and synthesize -- successful architects frequently combine insights from multiple problem dimensions.
 
@@ -351,6 +407,101 @@ Compliance is a constraint on the architecture, not a driver of style selection.
 
 ---
 
+## Step 2P: Follow Your Path (Platform Context)
+
+Find the path that best matches your platform answer profile. These paths draw on ecosystem-level evidence from 11 production ecosystems in the Discovered corpus, supplemented by single-repo evidence where individual member services have been cataloged.
+
+---
+
+### Path P-A: Service-Based Hub-and-Spoke
+**Match profile**: P1=A (2-5 components), P4=A (same team), P3=A (REST/gRPC), P6=D (mixed shared infra)
+
+**Recommended: Service-Based Architecture with centralized coordination point**
+
+**Statistical basis:** Service-Based dominates ecosystem evidence, appearing in 5 of 11 ecosystems (45%) -- the most prevalent ecosystem-level style. This contrasts sharply with its 7th-place ranking in single-repo frequency (7 of 142, 4.9%), revealing that Service-Based is primarily an ecosystem composition pattern rather than an internal architecture pattern.
+
+**Production validation:** The *arr Media Stack uses a hub-and-spoke pattern where Sonarr, Radarr, Lidarr, and other services coordinate through REST APIs with shared configuration conventions. Grafana LGTM centralizes querying and dashboards while Loki, Mimir, and Tempo handle specialized storage -- a shared dashboard plane with independent data planes. HashiCorp's ecosystem (Vault, Consul, Nomad, Terraform) shares a configuration and service-discovery plane while each tool operates independently.
+
+**Cross-repo concerns checklist:**
+- API versioning strategy across services (breaking changes affect the entire hub)
+- Shared configuration management (environment variables, config files, service discovery)
+- Health aggregation and monitoring (is the hub aware of spoke health?)
+- Deployment ordering and dependency management (which services must start first?)
+- Shared authentication/authorization patterns
+
+**Anti-patterns:**
+- **Distributed monolith**: Shared database without API boundaries -- if services read each other's tables directly, you have a monolith with network overhead
+- **Synchronous chains without fallbacks**: Hub calls spoke A, which calls spoke B, which calls spoke C -- a single failure cascades through the entire chain
+
+---
+
+### Path P-B: Pipeline with Event Backbone
+**Match profile**: P3=B or D (message queue or mixed), data-pipeline-oriented workload, stage-oriented processing
+
+**Recommended: Pipeline Architecture with event-driven inter-stage communication**
+
+**Statistical basis:** Pipeline appears in 2 of 11 ecosystems (18%). These ecosystems represent some of the most well-known production data platforms. Pipeline is also the 5th most common single-repo style (13 of 142, 9.2%), confirming that pipeline thinking scales from single-repo to ecosystem level.
+
+**Production validation:** The ELK Stack follows a clear pipeline: Beats (collection) → Logstash (transformation) → Elasticsearch (storage/search) → Kibana (visualization). Each component is independently deployable and replaceable. The Apache Data Ecosystem composes Kafka (ingestion) → Spark (processing) → Cassandra (storage), with each component developed by independent communities and deployable at different scales.
+
+**Cross-repo concerns checklist:**
+- Schema evolution for inter-stage data (what happens when the upstream format changes?)
+- Backpressure handling (what happens when a downstream stage cannot keep up?)
+- Stage failure isolation (does a Logstash crash lose data, or does Kafka buffer it?)
+- Replay capability (can you reprocess historical data through the pipeline?)
+- Monitoring per stage (throughput, latency, error rates at each boundary)
+
+**Anti-patterns:**
+- **Tight coupling between stages**: Direct database reads between stages instead of well-defined data contracts -- makes stages impossible to replace independently
+- **Missing dead-letter queues**: Failed messages silently disappear instead of being captured for investigation and reprocessing
+
+---
+
+### Path P-C: Event-Driven Choreography
+**Match profile**: P1=B or C (5+ components), P4=B or C (multiple teams or open ecosystem), P3=B (message queue primary)
+
+**Recommended: Event-Driven Architecture with choreography over orchestration**
+
+**Statistical basis:** Event-Driven appears in 1 of 11 ecosystems (9%) as a primary style, though it serves as a secondary communication mechanism in several others. In the single-repo corpus, Event-Driven appears in 17 of 142 entries (12.0%) and is more prevalent in applications (18%) than platforms (8%), suggesting that event-driven patterns are more commonly applied within services than as the primary ecosystem composition strategy.
+
+**Production validation:** The Fediverse ecosystem uses the ActivityPub protocol for event-driven choreography across independently-maintained servers (Mastodon, Pixelfed, Lemmy, PeerTube). No central coordinator exists -- each server publishes and subscribes to activity streams. Temporal's ecosystem uses event-driven workers that subscribe to task queues, with workflow orchestration providing higher-level coordination over event-driven execution.
+
+**Cross-repo concerns checklist:**
+- Event schema registry (how do producers and consumers agree on event formats?)
+- Idempotency guarantees (consumers must handle duplicate events gracefully)
+- Eventual consistency handling (how do you reconcile divergent state across services?)
+- Distributed tracing (how do you follow a request across 5+ services?)
+- Event versioning (how do you evolve event schemas without breaking consumers?)
+
+**Anti-patterns:**
+- **Event storms**: Chatty producers flooding the bus with fine-grained events that overwhelm consumers
+- **Missing correlation IDs**: Impossible to trace a business transaction across services without a shared correlation identifier
+- **Implicit ordering assumptions**: Consumers that depend on events arriving in a specific order without explicit guarantees
+
+---
+
+### Path P-D: Microservices with API Gateway
+**Match profile**: P1=C (10+ components), P2=C (heterogeneous stack), P4=C (open ecosystem)
+
+**Recommended: Microservices Architecture with API gateway and service mesh**
+
+**Statistical basis:** Microservices appears in 3 of 11 ecosystems (27%) -- the second most common ecosystem-level style. In the single-repo corpus, Microservices is heavily platform-biased (13% of platforms vs. 2% of applications), confirming that microservices is primarily a platform-scale pattern. The ecosystems that use microservices tend to be the largest and most heterogeneous.
+
+**Production validation:** Istio/Envoy provides a service mesh for traffic management, security, and observability across heterogeneous microservices -- the services themselves can be written in any language. Sentry runs independent services behind a unified API, with each service (event ingestion, search, alerting, integrations) scaling and deploying independently. Supabase composes multiple open-source services (PostgREST, GoTrue, Realtime, Storage) behind a single API surface, allowing each to evolve on its own release cadence.
+
+**Cross-repo concerns checklist:**
+- API gateway configuration (routing, rate limiting, authentication at the edge)
+- Service discovery (how do services find each other? DNS, consul, kubernetes?)
+- Circuit breakers (how does failure in one service prevent cascading failure?)
+- Per-service CI/CD (each service needs its own build, test, and deploy pipeline)
+- Contract testing (how do you verify that service A's client matches service B's API?)
+
+**Anti-patterns:**
+- **API gateway as business logic hub**: The gateway should route and authenticate, not orchestrate business workflows -- that creates a distributed monolith with a single point of failure
+- **Shared libraries creating deployment coupling**: If updating a shared library requires redeploying all services simultaneously, you have lost the key benefit of microservices
+
+---
+
 ## Step 3: Validate with Quality Attributes
 
 After choosing your architecture path, identify your top 3 quality attributes and use this table to strengthen your approach. The "Discovered Detection" column shows how frequently this QA appears in the 142 production-entry corpus. The "Production Examples" column shows which AOSA/RealWorld systems validate the recommended approach.
@@ -433,4 +584,4 @@ Based on the statistically derived "Winning Formula" (80% retrospective accuracy
 
 ---
 
-*Generated: 2026-03-09. Updated per SPEC-023 (Reference Library Rebalancing) using SPEC-022 production-only frequency rankings (ADR-002 deep-analysis). Evidence sources: 142 production-only Discovered entries (87 platforms, 55 applications) across 47 domains, 42 reference implementation annotation examples, 12 AOSA production systems (NGINX, HDFS, Git, LLVM, GStreamer, Graphite, ZeroMQ, Twisted, SQLAlchemy, Riak, Puppet, Selenium), 5 RealWorldASPNET production apps (Bitwarden, Jellyfin, nopCommerce, Orchard Core, Squidex), and 78 O'Reilly Architecture Kata submissions across 11 challenges (Fall 2020 -- Winter 2025). Source data: `docs/reference-library/problem-spaces.md`, `docs/reference-library/solution-spaces.md`, `docs/reference-library/evidence/by-quality-attribute.md`, `docs/analysis/cross-cutting.md`.*
+*Generated: 2026-03-12. Updated per SPEC-035 (Platform Architecture Decision Paths) adding context gate, platform classification questions P1-P6, and platform decision paths P-A through P-D. Built on SPEC-023 (Reference Library Rebalancing) using SPEC-022 production-only frequency rankings (ADR-002 deep-analysis). Evidence sources: 142 production-only Discovered entries (87 platforms, 55 applications) across 47 domains, 11 ecosystem entries (SPEC-026), 42 reference implementation annotation examples, 12 AOSA production systems (NGINX, HDFS, Git, LLVM, GStreamer, Graphite, ZeroMQ, Twisted, SQLAlchemy, Riak, Puppet, Selenium), 5 RealWorldASPNET production apps (Bitwarden, Jellyfin, nopCommerce, Orchard Core, Squidex), and 78 O'Reilly Architecture Kata submissions across 11 challenges (Fall 2020 -- Winter 2025). Source data: `docs/reference-library/problem-spaces.md`, `docs/reference-library/solution-spaces.md`, `docs/reference-library/evidence/by-quality-attribute.md`, `docs/analysis/cross-cutting.md`.*

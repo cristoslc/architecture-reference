@@ -1,10 +1,10 @@
 ---
 title: "Platform-Aware Architecture Advising"
 artifact: EPIC-011
-status: Proposed
+status: Active
 author: cristos
 created: 2026-03-06
-last-updated: 2026-03-06
+last-updated: 2026-03-12
 parent-vision: VISION-001
 success-criteria:
   - Architecture advisor skill detects whether the user's context is application-centric or platform/ecosystem-centric early in the conversation
@@ -66,18 +66,19 @@ The current architecture-advisor skill treats every query as an application-leve
 
 | ID | Title | Status | Focus |
 |----|-------|--------|-------|
-| — | TBD: Context Detection Prompts | — | Conversational probes to detect application vs. platform context |
-| — | TBD: Dual-Scale Evidence Retrieval | — | Skill data-fetching updates to serve both single-repo and ecosystem evidence |
-| — | TBD: Platform Architecture Decision Paths | — | New decision navigator paths for platform/ecosystem patterns |
+| SPEC-033 | Context Detection Prompts | Implemented | Conversational probes to detect application vs. platform context |
+| SPEC-034 | Dual-Scale Evidence Retrieval | Implemented | Skill data-fetching updates to serve both single-repo and ecosystem evidence; depends on SPEC-033 |
+| SPEC-035 | Platform Architecture Decision Paths | Implemented | New decision navigator paths for platform/ecosystem patterns; depends on SPEC-033, SPEC-034 |
 
 ## Key Dependencies
 
 - **EPIC-002** (Complete): Provides the architecture-advisor skill as baseline
-- **EPIC-010** (Proposed): Provides ecosystem-level evidence to power platform-centric advice
-- **SPIKE-001** (Planned): Resolves how ecosystem evidence is weighted and presented — the advisor needs clear statistical data
+- **EPIC-010** (Complete): Provides ecosystem-level evidence to power platform-centric advice
+- **SPIKE-001** (Complete): Resolved how ecosystem evidence is weighted and presented — 2-axis taxonomy, production-only frequency weighting
 
 ## Lifecycle
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-06 | 52a5089 | Initial creation; enhances advisor skill with platform/application context awareness |
+| Active | 2026-03-12 | — | All dependencies resolved (EPIC-002, EPIC-010, EPIC-013 Complete; SPIKE-001 Complete); activated for decomposition |
