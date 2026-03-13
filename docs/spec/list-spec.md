@@ -32,6 +32,7 @@
 | SPEC-033 | Context Detection Prompts | Signal taxonomy, probing questions, and context gating for platform/application detection in architecture-advisor Step 1. Parent: EPIC-011. | 2026-03-12 | — |
 | SPEC-034 | Dual-Scale Evidence Retrieval | Context-variant research priorities, ecosystem citation patterns, and offline ecosystem frequency rankings. Parent: EPIC-011. | 2026-03-12 | — |
 | SPEC-035 | Platform Architecture Decision Paths | Context gate, P1-P6 platform classification questions, and paths P-A through P-D in decision navigator. Parent: EPIC-011. | 2026-03-12 | — |
+| SPEC-036 | Signal Data Retirement | Remove 184 dead signal YAML files and orphaned spec020-cleanup.py per ADR-007. | 2026-03-13 | — |
 
 ## Active
 
