@@ -13,7 +13,8 @@ success-criteria:
   - Discovered source has a source-analysis.md synthesizing evidence from all 173 catalog entries
   - Pipeline preserves raw signal extraction data in evidence-analysis/Discovered/signals/ for full evidence trail
   - No stale single-source references remain (grep for "62 manually", "103 ", "four sources" returns no hits)
-depends-on: []
+depends-on:
+  - EPIC-001
 ---
 
 # Cross-Source Reference Library Integration

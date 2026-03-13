@@ -12,6 +12,9 @@ success-criteria:
   - Platform-centric advice covers composition patterns (Pipe-and-Filter, Service-Based, Sidecar) and cross-repo concerns (API contracts, shared schemas, deployment topology)
   - Application-centric advice covers internal structure patterns (Layered, Hexagonal, Modular Monolith, Plugin/Microkernel) and single-repo concerns (module boundaries, dependency direction, package organization)
   - Reference library documents are consumable at both scales — the advisor can pull ecosystem evidence for platform questions and single-repo evidence for application questions
+linked-adrs:
+  - ADR-004
+  - ADR-006
 depends-on:
   - EPIC-002
   - EPIC-010
@@ -74,6 +77,7 @@ The current architecture-advisor skill treats every query as an application-leve
 
 - **EPIC-002** (Complete): Provides the architecture-advisor skill as baseline
 - **EPIC-010** (Complete): Provides ecosystem-level evidence to power platform-centric advice
+- **EPIC-013** (Complete): Pipeline unification per ADR-005 ensures the discover skill is the sole classification mechanism — the advisor consumes discover-skill output, so classification must be unified before platform-aware advice can be reliable
 - **SPIKE-001** (Complete): Resolved how ecosystem evidence is weighted and presented — 2-axis taxonomy, production-only frequency weighting
 
 ## Lifecycle

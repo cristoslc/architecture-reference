@@ -271,9 +271,9 @@ Each run produces a JSON report:
 
 | ID | Title | Status |
 |----|-------|--------|
-| [SPEC-010](../../spec/(SPEC-010)-LLM-Review-Script/(SPEC-010)-LLM-Review-Script.md) | LLM Review Script | Implemented |
-| [SPEC-011](../../spec/(SPEC-011)-Multi-Turn-Escalation-Protocol/(SPEC-011)-Multi-Turn-Escalation-Protocol.md) | Multi-Turn Escalation Protocol | Implemented |
-| [SPEC-012](../../spec/(SPEC-012)-Quality-Validation/(SPEC-012)-Quality-Validation.md) | Quality Validation | Implemented |
+| [SPEC-010](../../../spec/Implemented/(SPEC-010)-LLM-Review-Script/(SPEC-010)-LLM-Review-Script.md) | LLM Review Script | Implemented |
+| [SPEC-011](../../../spec/Implemented/(SPEC-011)-Multi-Turn-Escalation-Protocol/(SPEC-011)-Multi-Turn-Escalation-Protocol.md) | Multi-Turn Escalation Protocol | Implemented |
+| [SPEC-012](../../../spec/Implemented/(SPEC-012)-Quality-Validation/(SPEC-012)-Quality-Validation.md) | Quality Validation | Implemented |
 
 ## Key Dependencies
 

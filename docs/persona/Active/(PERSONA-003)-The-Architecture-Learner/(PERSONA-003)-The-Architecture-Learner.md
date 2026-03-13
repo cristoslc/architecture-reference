@@ -1,7 +1,7 @@
 ---
 title: "The Architecture Learner"
 artifact: PERSONA-003
-status: Validated
+status: Active
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-03

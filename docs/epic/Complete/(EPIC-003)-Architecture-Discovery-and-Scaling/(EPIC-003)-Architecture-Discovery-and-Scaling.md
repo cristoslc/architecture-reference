@@ -11,7 +11,8 @@ success-criteria:
   - Discovery calibrated against known-architecture reference repos with >= 80% classification accuracy
   - 200+ cataloged projects in the evidence base (up from 62)
   - Comparative analysis available ("how does my architecture compare to similar projects?")
-depends-on: []
+depends-on:
+  - EPIC-001
 ---
 
 # Architecture Discovery and Scaling
@@ -37,7 +38,7 @@ Build automated tooling to discover and classify architecture patterns from sour
 
 ## Prior Art
 
-This epic continues Phases 2-4 of the Dataset Expansion & Architecture Discovery Skill proposal. Phase 1 (manual data enrichment) was completed as [EPIC-001](../../(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment/(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment.md).
+This epic continues Phases 2-4 of the Dataset Expansion & Architecture Discovery Skill proposal. Phase 1 (manual data enrichment) was completed as [EPIC-001](../(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment/(EPIC-001)-Dataset-Expansion-and-Evidence-Enrichment.md).
 
 ### Discovery skill design (from proposal)
 
@@ -71,9 +72,9 @@ The `/discover-architecture` skill would analyze a repository and produce a stru
 
 | ID | Title | Phase | Status |
 |----|-------|-------|--------|
-| [SPEC-001](../../../spec/(SPEC-001)-Architecture-Discovery-Skill/(SPEC-001)-Architecture-Discovery-Skill.md) | Architecture Discovery Skill | Phase 1 | Implemented |
-| [SPEC-002](../../../spec/(SPEC-002)-Dataset-Scaling-Pipeline/(SPEC-002)-Dataset-Scaling-Pipeline.md) | Dataset Scaling Pipeline | Phase 2 | Implemented |
-| [SPEC-003](../../../spec/(SPEC-003)-Comparative-Analysis-Engine/(SPEC-003)-Comparative-Analysis-Engine.md) | Comparative Analysis Engine | Phase 3 | Implemented |
+| [SPEC-001](../../../spec/Implemented/(SPEC-001)-Architecture-Discovery-Skill/(SPEC-001)-Architecture-Discovery-Skill.md) | Architecture Discovery Skill | Phase 1 | Implemented |
+| [SPEC-002](../../../spec/Implemented/(SPEC-002)-Dataset-Scaling-Pipeline/(SPEC-002)-Dataset-Scaling-Pipeline.md) | Dataset Scaling Pipeline | Phase 2 | Implemented |
+| [SPEC-003](../../../spec/Implemented/(SPEC-003)-Comparative-Analysis-Engine/(SPEC-003)-Comparative-Analysis-Engine.md) | Comparative Analysis Engine | Phase 3 | Implemented |
 
 ## Key Dependencies
 

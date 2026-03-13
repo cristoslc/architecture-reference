@@ -1,7 +1,7 @@
 ---
 title: "Choosing an Architecture for a New System"
 artifact: JOURNEY-002
-status: Validated
+status: Active
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-04
@@ -15,7 +15,7 @@ depends-on: []
 
 ## Persona
 
-[PERSONA-002: The Practicing Architect](../../persona/(PERSONA-002)-The-Practicing-Architect/(PERSONA-002)-The-Practicing-Architect.md) — a senior developer or architect making production architecture decisions, looking for empirical grounding.
+[PERSONA-002: The Practicing Architect](../../../persona/Active/(PERSONA-002)-The-Practicing-Architect/(PERSONA-002)-The-Practicing-Architect.md) — a senior developer or architect making production architecture decisions, looking for empirical grounding.
 
 ## Goal
 

@@ -41,7 +41,7 @@ Build a remote-installable agent skill that exposes the evidence-based architect
 
 ## Prior Art
 
-This epic is adapted from the [Architecture Advisor Remote Skill proposal](../../proposals/skill-design-proposal.md), which provides the full design including directory structure, sparse-clone mechanics, sync modes, provenance tracking, versioning strategy, and testing approach.
+This epic is adapted from the Architecture Advisor Remote Skill proposal, which provides the full design including directory structure, sparse-clone mechanics, sync modes, provenance tracking, versioning strategy, and testing approach.
 
 ### Reference implementations studied
 

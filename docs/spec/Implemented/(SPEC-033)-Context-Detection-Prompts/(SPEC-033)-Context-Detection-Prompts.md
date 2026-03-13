@@ -7,7 +7,8 @@ created: 2026-03-12
 last-updated: 2026-03-12
 parent-epic: EPIC-011
 linked-research: []
-linked-adrs: []
+linked-adrs:
+  - ADR-004
 depends-on:
   - EPIC-002
   - EPIC-010

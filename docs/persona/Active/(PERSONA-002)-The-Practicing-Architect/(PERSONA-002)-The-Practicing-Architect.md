@@ -1,7 +1,7 @@
 ---
 title: "The Practicing Architect"
 artifact: PERSONA-002
-status: Validated
+status: Active
 author: cristos
 created: 2026-03-03
 last-updated: 2026-03-04

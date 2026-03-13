@@ -15,6 +15,7 @@ success-criteria:
   - Updated Discovered statistics flow through to all 6 reference library documents
 depends-on:
   - EPIC-005
+  - EPIC-007
 ---
 
 # Service-Based Architecture Detection

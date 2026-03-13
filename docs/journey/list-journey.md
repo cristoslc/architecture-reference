@@ -10,7 +10,7 @@
 |----|-------|---------|--------------|--------|
 | JOURNEY-001 | Competing in an Architecture Kata | End-to-end journey of a Kata Competitor using the reference library to research, decide, and document their architecture submission. Not relevant to VISION-001 direction. | 2026-03-11 | b068577b |
 
-## Validated
+## Active
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|

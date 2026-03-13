@@ -12,6 +12,8 @@ success-criteria:
   - Ecosystem entries document the emergent architecture (the composition pattern) distinct from individual member classifications
   - Reference library documents reflect ecosystem evidence alongside single-repo evidence
   - Pipeline tooling supports ecosystem entries (manifest format, validation, quality report)
+linked-adrs:
+  - ADR-006
 depends-on:
   - SPEC-019
 ---
@@ -143,7 +145,7 @@ Of our 163 repos, **77 belong to identifiable ecosystems** with 99 missing compa
 
 | ID | Title | Status |
 |----|-------|--------|
-| [ADR-006](../../../adr/Adopted/(ADR-006)-Architecture-Qualifier-Annotation-System.md) | Architecture Qualifier Annotation System | Adopted |
+| [ADR-006](../../../adr/Adopted/(ADR-006)-Architecture-Qualifier-Annotation-System/(ADR-006)-Architecture-Qualifier-Annotation-System.md) | Architecture Qualifier Annotation System | Adopted |
 
 ## Key Dependencies
 

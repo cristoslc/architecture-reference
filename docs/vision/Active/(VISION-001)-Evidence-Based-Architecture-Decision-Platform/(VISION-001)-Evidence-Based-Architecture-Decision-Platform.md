@@ -22,7 +22,7 @@ Architecture patterns exist at two scales: **application-level** (how a single d
 
 ## Success Metrics
 
-- Evidence base covers 200+ cataloged projects across 4+ complementary sources (up from 78 from a single source)
+- Evidence base covers 184 production-only cataloged projects (87 platform, 55 application, 42 ecosystem members) classified via deep-analysis, with source-agnostic weighting per ADR-001 (up from 78 from a single source)
 - Architecture advisor skill installable and functional in external repos via remote-skill-manager
 - All architecture styles in the taxonomy have statistically meaningful sample sizes (n >= 10)
 - Cross-source analysis published, triangulating findings across competition, production, and reference sources

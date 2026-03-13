@@ -15,7 +15,7 @@ depends-on: []
 
 ## Persona
 
-[PERSONA-001: The Kata Competitor](../../persona/(PERSONA-001)-The-Kata-Competitor/(PERSONA-001)-The-Kata-Competitor.md) — a developer or architect competing in an O'Reilly Architecture Kata, looking for evidence to guide their submission.
+[PERSONA-001: The Kata Competitor](../../../persona/Abandoned/(PERSONA-001)-The-Kata-Competitor/(PERSONA-001)-The-Kata-Competitor.md) — a developer or architect competing in an O'Reilly Architecture Kata, looking for evidence to guide their submission.
 
 ## Goal
 

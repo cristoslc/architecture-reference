@@ -104,7 +104,7 @@ This EPIC runs a **second validation pass** using the same `llm` CLI + Minimax 2
 
 | ID | Title | Status |
 |----|-------|--------|
-| [SPEC-013](../../../spec/(SPEC-013)-Deep-Context-Validation-Script/(SPEC-013)-Deep-Context-Validation-Script.md) | Deep-Context Validation Script | Implemented |
+| [SPEC-013](../../../spec/Implemented/(SPEC-013)-Deep-Context-Validation-Script/(SPEC-013)-Deep-Context-Validation-Script.md) | Deep-Context Validation Script | Implemented |
 | ~~SPEC-014~~ | ~~Override Rules & Disagreement Report~~ | Abandoned (ADR-002) |
 | ~~SPEC-015~~ | ~~Expanded Gold Standard & Three-Way Report~~ | Abandoned (ADR-002) |
 | ~~SPEC-016~~ | ~~Validation Run Execution~~ | Abandoned (ADR-002) |
