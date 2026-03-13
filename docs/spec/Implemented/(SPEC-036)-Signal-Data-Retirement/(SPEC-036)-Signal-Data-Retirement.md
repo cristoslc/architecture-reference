@@ -66,4 +66,4 @@ ADR-007 drops signal extraction entirely from the pipeline. SPEC-032 already ret
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-13 | — | Initial creation per ADR-007 |
-| Implemented | 2026-03-13 | — | 184 signal YAML files + spec020-cleanup.py removed; all ACs pass |
+| Implemented | 2026-03-13 | 4c2ce9ce | 184 signal YAML files + spec020-cleanup.py removed; all ACs pass |
