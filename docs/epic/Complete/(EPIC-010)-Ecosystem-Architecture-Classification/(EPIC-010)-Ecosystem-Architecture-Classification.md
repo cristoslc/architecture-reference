@@ -145,7 +145,7 @@ Of our 163 repos, **77 belong to identifiable ecosystems** with 99 missing compa
 
 | ID | Title | Status |
 |----|-------|--------|
-| [ADR-006](../../../adr/Adopted/(ADR-006)-Architecture-Qualifier-Annotation-System/(ADR-006)-Architecture-Qualifier-Annotation-System.md) | Architecture Qualifier Annotation System | Adopted |
+| [ADR-006](../../../adr/Adopted/(ADR-006)-Architecture-Qualifier-Annotation-System.md) | Architecture Qualifier Annotation System | Adopted |
 
 ## Key Dependencies
 

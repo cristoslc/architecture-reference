@@ -1,7 +1,8 @@
 ---
 title: "Drop Heuristic Classification — Deep-Analysis Only"
 artifact: ADR-002
-status: Adopted
+status: Superseded
+superseded-by: ADR-007
 author: cristos
 created: 2026-03-07
 last-updated: 2026-03-07
@@ -76,3 +77,4 @@ The user chooses at the outset of each scan. The choice applies to all entries i
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Adopted | 2026-03-07 | f2786ab4 | Heuristic classification dropped; deep-analysis is sole classification source |
+| Superseded | 2026-03-13 | — | Superseded by ADR-007: signal extraction also dropped |

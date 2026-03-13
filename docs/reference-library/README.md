@@ -6,7 +6,7 @@
 
 This is a structured reference library that maps problem characteristics to proven architectural solutions. Every claim is grounded in evidence from real production systems — not opinion, convention, or never-built designs.
 
-The evidence hierarchy (per [ADR-004](../adr/Adopted/(ADR-004)-Discovered-First-Evidence-Hierarchy/(ADR-004)-Discovered-First-Evidence-Hierarchy.md)):
+The evidence hierarchy (per [ADR-004](../adr/Adopted/(ADR-004)-Discovered-First-Evidence-Hierarchy.md)):
 
 - **Primary evidence** — 142 production-grade open-source repositories classified via deep-analysis source code inspection (ADR-002), plus 17 production system case studies (12 AOSA + 5 RealWorldASPNET) with published architectural reasoning
 - **Qualitative annotation** — 78 KataLog competition team submissions valued for ADR documentation, judge commentary, cost projections, and "why this works" reasoning unavailable in code
@@ -128,7 +128,7 @@ The library is organized into **problem spaces** (classifying challenges), **sol
 
 ## Methodology
 
-**Evidence hierarchy (ADR-004).** Production evidence leads all rankings. Discovered production repos (142 entries, deep-analysis validated per ADR-002) provide the statistical baseline. AOSA/RealWorld production systems (17 entries) provide narrative depth. KataLog competition submissions (78 teams) provide qualitative annotation — ADR reasoning, judge commentary, cost projections. Reference implementations provide teaching examples. See [ADR-004](../adr/Adopted/(ADR-004)-Discovered-First-Evidence-Hierarchy/(ADR-004)-Discovered-First-Evidence-Hierarchy.md).
+**Evidence hierarchy (ADR-004).** Production evidence leads all rankings. Discovered production repos (142 entries, deep-analysis validated per ADR-002) provide the statistical baseline. AOSA/RealWorld production systems (17 entries) provide narrative depth. KataLog competition submissions (78 teams) provide qualitative annotation — ADR reasoning, judge commentary, cost projections. Reference implementations provide teaching examples. See [ADR-004](../adr/Adopted/(ADR-004)-Discovered-First-Evidence-Hierarchy.md).
 
 **Classification (ADR-002).** Deep-analysis source code inspection is the sole classification source. Heuristic classification is not counted. All 184 Discovered entries are deep-analysis classified with zero Indeterminate results.
 
