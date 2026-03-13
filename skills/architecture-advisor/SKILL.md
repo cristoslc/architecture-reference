@@ -14,49 +14,26 @@ metadata:
 
 Evidence-based architecture guidance grounded in production reality. Every recommendation cites real systems, not opinion or convention.
 
-The evidence hierarchy (ADR-004):
+The evidence hierarchy:
 
 1. **Discovered production repos (142 entries)** — primary statistical baseline. What production codebases actually use.
 2. **AOSA/RealWorld production systems (17 entries)** — deep case studies from system creators. Highest per-system authority.
 3. **KataLog competition (78 teams)** — qualitative annotation. Never-built designs valued for ADR reasoning, judge commentary, and cost projections. Not primary evidence.
 4. **Reference implementations (50 entries)** — teaching examples. Not counted in frequency rankings.
 
-## Setup: Reference Data
+## Reference Data
 
-This skill can work at three levels of data access:
+All reference data ships with the skill in `references/`:
 
-### Level 1: Offline reference (always available)
+- `references/catalogs/` — YAML catalog entries per source (Discovered, AOSA, RealWorldASPNET, TheKataLog, ReferenceArchitectures)
+- `references/analysis/` — Source analysis documents
+- `references/reference-library/` — Decision navigator, glossary, evidence summaries, problem-solution matrix
+- `references/templates/` — ADR, feasibility, fitness functions, C4, and kata guides
+- `references/style-taxonomy.yaml` — Canonical style definitions
 
-The key findings at the bottom of this file provide enough data for most questions. No setup needed.
+When a specific production project is relevant to the user's question, point them to the project's repository directly rather than summarizing second-hand — the catalog entry's `source_url` field has the link.
 
-### Level 2: Synced references (recommended)
-
-Run the sync script to fetch the full reference library, YAML catalogs, and analyses (<1 MB):
-
-```bash
-bash scripts/sync-references.sh
-```
-
-This populates `references/` with the complete reference library. The script is idempotent.
-
-### Level 3: Full evidence pool
-
-For deep dives into individual competition team submissions (ADRs, C4 diagrams, video transcripts):
-
-```bash
-bash scripts/sync-references.sh --evidence-pool
-```
-
-Adds ~2.2 GB. Only suggest when the user explicitly needs team submission details.
-
-### Data Resolution
-
-Check these locations in order, stop at first match:
-
-1. `references/` relative to this SKILL.md (synced data)
-2. `../../evidence-analysis/` and `../../docs/` (source repo checkout)
-3. Current working directory (user inside source repo)
-4. Offline reference below (always available)
+The offline reference at the bottom of this file provides summary statistics for quick answers without reading the full catalog.
 
 ## What This Skill Does
 
@@ -198,7 +175,7 @@ For definitions of all 12 architecture styles, 13 quality attributes, evidence s
 
 ## Offline Reference
 
-When no synced data is available, use these findings. All data from SPEC-022 production-only frequency recomputation (142 entries, deep-analysis per ADR-002).
+When no synced data is available, use these findings. All data from production-only frequency recomputation (142 entries, deep-analysis validated).
 
 ### Production frequency rankings (Discovered, 142 production repos)
 
@@ -217,7 +194,7 @@ When no synced data is available, use these findings. All data from SPEC-022 pro
 | 11 | Space-Based | 1 | 0.7% | 1% | 0% | Riak |
 | 12 | CQRS | 1 | 0.7% | 0% | 2% | Squidex |
 
-Dataset: 184 repos total (142 production + 42 reference). 87 platforms, 55 applications, 1.58:1 ratio. Zero Indeterminate (ADR-002 deep-analysis). 74% of repos exhibit exactly 2 styles.
+Dataset: 184 repos total (142 production + 42 reference). 87 platforms, 55 applications, 1.58:1 ratio. Zero Indeterminate (deep-analysis validated). 74% of repos exhibit exactly 2 styles.
 
 ### Ecosystem frequency rankings (11 ecosystem entries)
 

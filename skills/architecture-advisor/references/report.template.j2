@@ -1,0 +1,67 @@
+<!-- Architecture advisor report template (Jinja2 syntax). -->
+---
+project: "{{ project_name }}"
+date: {{ date }}
+scope: {{ scope }}
+use-type: {{ use_type }}
+primary-language: {{ primary_language }}
+confidence: {{ confidence }}
+styles:
+{%- for style in styles %}
+  - name: {{ style.name }}
+    role: {{ style.role }}
+    confidence: {{ style.confidence }}
+{%- endfor %}
+---
+
+# Architecture Analysis: {{ project_name }}
+
+**Scope:** {{ scope }}
+**Use-type:** {{ use_type }}
+**Primary language:** {{ primary_language }}
+**Confidence:** {{ confidence }}
+{% if analyst %}**Analyst:** {{ analyst }}{% endif %}
+{% if repo_url %}**Repository:** {{ repo_url }}{% endif %}
+
+## Architecture Styles
+{% for style in styles %}
+### {{ style.name }} ({{ style.role }})
+
+{{ style.rationale }}
+{% endfor %}
+
+## Evidence Summary
+
+| Style | Confidence | Key Evidence |
+|-------|-----------|-------------|
+{%- for style in styles %}
+| {{ style.name }} | {{ style.confidence }} | {{ style.key_evidence }} |
+{%- endfor %}
+
+## Quality Attributes Detected
+{% for qa in quality_attributes %}
+- **{{ qa.name }}**: {{ qa.evidence }}
+{%- endfor %}
+
+> **Detection limitation:** Quality attributes like Performance, Security, and Testability are architecturally significant but invisible in source code analysis.
+{% if invisible_qas %}
+> **Invisible QAs noted from other evidence:** {{ invisible_qas }}
+{% endif %}
+
+## Domain
+
+{{ domain }} — {{ domain_justification }}
+
+## Production Context
+
+How this project's architecture compares to the evidence base (142 production repos, SPEC-022):
+{% for note in production_context %}
+- {{ note }}
+{%- endfor %}
+{% if recommendations %}
+
+## Recommendations
+{% for rec in recommendations %}
+- {{ rec }}
+{%- endfor %}
+{% endif %}

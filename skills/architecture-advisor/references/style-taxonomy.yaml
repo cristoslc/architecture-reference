@@ -1,0 +1,70 @@
+# Architecture Style Taxonomy
+# ===========================
+# Canonical vocabulary for the `architecture_styles` field across all
+# evidence sources. Only topology-defining styles belong here — styles
+# that describe how components are organized and communicate (Richards &
+# Ford's "architecture style" definition).
+#
+# Design approaches and patterns (CQRS, DDD, Hexagonal) are NOT styles —
+# they belong in `architecture_qualifiers` per ADR-006.
+#
+# Normalization aliases map variant spellings to the canonical name.
+# The normalize-styles.py script uses these; the normalize-qualifiers.py
+# script validates that architecture_styles values are in this file.
+#
+# To add a new style: requires an ADR amendment or spike demonstrating
+# >=5 repos and a clear structural differentiator (see SPIKE-002).
+
+styles:
+  Layered:
+    source: "Richards & Ford, Fundamentals of Software Architecture, Ch.10"
+    aliases: ["Layered Architecture"]
+    description: "Components organized in horizontal layers with unidirectional dependencies"
+  Modular Monolith:
+    source: "Richards & Ford, Fundamentals of Software Architecture 2e, Ch.10"
+    description: "Single deployment unit with well-defined internal module boundaries"
+  Pipeline:
+    source: "Richards & Ford, Fundamentals of Software Architecture, Ch.11"
+    aliases: ["Pipeline (Pipe-and-Filter)", "Pipe-and-Filter", "Pipes and Filters"]
+    description: "Data flows through a series of filter stages connected by pipes"
+  Microkernel:
+    source: "Richards & Ford, Fundamentals of Software Architecture, Ch.12"
+    aliases: ["Microkernel (Plugin)", "Plugin/Microkernel", "Plugin Architecture", "Plug-in"]
+    description: "Minimal core system extended via a plug-in component registry"
+  Service-Based:
+    source: "Richards & Ford, Fundamentals of Software Architecture, Ch.13"
+    description: "Coarse-grained services (4-12) sharing a database, independently deployed"
+  Event-Driven:
+    source: "Richards & Ford, Fundamentals of Software Architecture, Ch.14"
+    description: "Components communicate via asynchronous events through a mediator or broker"
+  Space-Based:
+    source: "Richards & Ford, Fundamentals of Software Architecture, Ch.15"
+    description: "In-memory data grid with processing units that replicate data and logic"
+  Microservices:
+    source: "Richards & Ford, Fundamentals of Software Architecture, Ch.17"
+    description: "Fine-grained independently deployed services with bounded contexts"
+  Serverless:
+    source: "Richards & Ford, Fundamentals of Software Architecture (implied)"
+    description: "Functions-as-a-Service with event triggers and managed infrastructure"
+  Multi-Agent:
+    source: "Catalog addition for AI/ML repos"
+    description: "Autonomous agents coordinating via message passing to solve complex tasks"
+
+# Qualifier types and controlled vocabulary for architecture_qualifiers.
+# These capture cross-cutting concerns orthogonal to the style taxonomy.
+qualifier_types:
+  distribution-model:
+    description: "How instances or nodes relate to each other at runtime"
+    values: [federated, cell-based, primary-secondary, peer-to-peer, sharded]
+  proxy-topology:
+    description: "How traffic interception and routing is structured"
+    values: [sidecar, ambient, gateway]
+  concurrency-model:
+    description: "Primary concurrency or computation paradigm"
+    values: [actor, csp, thread-per-request, coroutine]
+  data-pattern:
+    description: "Data management pattern applied within the architecture style"
+    values: [event-sourcing, cqrs, data-mesh, change-data-capture]
+  design-approach:
+    description: "Structural design approach (pattern, not topology) per Richards & Ford 2e"
+    values: [ddd, hexagonal, clean-architecture, vertical-slice]
