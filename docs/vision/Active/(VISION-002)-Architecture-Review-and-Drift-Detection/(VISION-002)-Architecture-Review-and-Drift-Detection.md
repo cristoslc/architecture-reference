@@ -1,13 +1,12 @@
 ---
 title: "Architecture Review and Drift Detection"
 artifact: VISION-002
-status: Draft
+status: Active
 product-type: personal
 author: cristos
 created: 2026-03-13
 last-updated: 2026-03-13
-depends-on:
-  - VISION-001
+depends-on: []
 evidence-pool: ""
 ---
 
