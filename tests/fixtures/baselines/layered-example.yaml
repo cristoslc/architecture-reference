@@ -1,0 +1,48 @@
+style: Layered
+style_slug: layered
+schema_version: "1.0.0"
+
+structural_rules:
+  - id: layered-001
+    description: >
+      Dependencies flow downward only — no layer may import from a layer above it.
+    severity: violation
+    signal_type: dependency_direction
+    detection_hint: >
+      Check import graphs for upward references between layer directories.
+
+  - id: layered-002
+    description: >
+      Each layer should have a well-defined public API surface — not all internals exposed.
+    severity: warning
+    signal_type: module_boundary
+
+statistical_norms:
+  - metric: layer_count
+    central_tendency:
+      median: 3
+      mode: 3
+    spread:
+      p25: 2
+      p75: 4
+      min_observed: 2
+      max_observed: 7
+    sample_size: 78
+    anomaly_threshold:
+      low: 1
+      high: 6
+    confidence: high
+
+co_occurrence:
+  common:
+    - style: Microkernel
+      frequency_pct: 62.8
+      sample_size: 78
+    - style: Modular Monolith
+      frequency_pct: 41.0
+      sample_size: 78
+  unusual:
+    - style: Microservices
+      note: >
+        Layered + Microservices is rare — layering typically applies within
+        a monolithic deployment, while microservices distribute across services.
