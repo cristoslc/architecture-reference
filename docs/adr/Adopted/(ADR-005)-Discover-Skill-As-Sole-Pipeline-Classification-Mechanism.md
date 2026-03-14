@@ -11,7 +11,7 @@ linked-epics:
 linked-specs:
   - SPEC-024
 depends-on:
-  - ADR-002
+  - ADR-007
   - ADR-003
 ---
 

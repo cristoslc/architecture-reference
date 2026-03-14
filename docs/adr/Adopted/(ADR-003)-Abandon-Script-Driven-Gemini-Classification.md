@@ -10,7 +10,7 @@ linked-epics:
 linked-specs:
   - SPEC-024
 depends-on:
-  - ADR-002
+  - ADR-007
 ---
 
 # Abandon Script-Driven Batch Classification with Gemini Flash
