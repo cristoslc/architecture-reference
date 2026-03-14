@@ -36,7 +36,10 @@ Derive per-architecture-style structural expectations from the evidence base (14
 
 ## Child Specs
 
-_Updated as Agent Specs are created under this epic._
+| Spec | Title | Status | Depends On |
+|------|-------|--------|------------|
+| SPEC-037 | Constraint Baseline Schema | Draft | — |
+| SPEC-038 | Baseline Population | Draft | SPEC-037 |
 
 ## Key Dependencies
 
