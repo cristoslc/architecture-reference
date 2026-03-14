@@ -1,0 +1,149 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "constraint-baseline.schema.json",
+  "title": "Architecture Style Constraint Baseline",
+  "description": "Per-style structural constraints and statistical norms for drift detection",
+  "type": "object",
+  "required": ["style", "style_slug", "schema_version", "structural_rules", "statistical_norms", "co_occurrence"],
+  "additionalProperties": false,
+  "properties": {
+    "style": {
+      "type": "string",
+      "description": "Canonical architecture style name from style-taxonomy.yaml"
+    },
+    "style_slug": {
+      "type": "string",
+      "pattern": "^[a-z][a-z0-9-]*$",
+      "description": "URL/filename-safe identifier"
+    },
+    "schema_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "description": "Semver version of the constraint-baseline-schema"
+    },
+    "structural_rules": {
+      "type": "array",
+      "description": "Architectural invariants the style implies",
+      "items": {
+        "type": "object",
+        "required": ["id", "description", "severity", "signal_type"],
+        "additionalProperties": false,
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^[a-z][a-z0-9-]+-\\d{3}$",
+            "description": "Stable rule identifier: <style-slug>-<seq>"
+          },
+          "description": {
+            "type": "string",
+            "description": "Human-readable constraint description"
+          },
+          "severity": {
+            "type": "string",
+            "enum": ["violation", "warning"]
+          },
+          "signal_type": {
+            "type": "string",
+            "enum": [
+              "dependency_direction",
+              "module_boundary",
+              "communication_pattern",
+              "deployment_topology",
+              "data_access_pattern",
+              "extension_mechanism"
+            ]
+          },
+          "detection_hint": {
+            "type": "string",
+            "description": "Guidance for drift engine on what to look for"
+          }
+        }
+      }
+    },
+    "statistical_norms": {
+      "type": "array",
+      "description": "Per-style distributions from the evidence base",
+      "items": {
+        "type": "object",
+        "required": ["metric", "central_tendency", "spread", "sample_size", "anomaly_threshold", "confidence"],
+        "additionalProperties": false,
+        "properties": {
+          "metric": {
+            "type": "string",
+            "description": "Name of the measured quantity"
+          },
+          "central_tendency": {
+            "type": "object",
+            "additionalProperties": false,
+            "anyOf": [
+              {"required": ["median"]},
+              {"required": ["mode"]}
+            ],
+            "properties": {
+              "median": { "type": "number" },
+              "mode": { "type": "number" }
+            }
+          },
+          "spread": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "p25": { "type": "number" },
+              "p75": { "type": "number" },
+              "min_observed": { "type": "number" },
+              "max_observed": { "type": "number" }
+            }
+          },
+          "sample_size": {
+            "type": "integer",
+            "minimum": 0
+          },
+          "anomaly_threshold": {
+            "type": "object",
+            "additionalProperties": false,
+            "properties": {
+              "low": { "type": "number" },
+              "high": { "type": "number" }
+            }
+          },
+          "confidence": {
+            "type": "string",
+            "enum": ["high", "moderate", "low"]
+          }
+        }
+      }
+    },
+    "co_occurrence": {
+      "type": "object",
+      "required": ["common", "unusual"],
+      "additionalProperties": false,
+      "properties": {
+        "common": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["style", "frequency_pct", "sample_size"],
+            "additionalProperties": false,
+            "properties": {
+              "style": { "type": "string" },
+              "frequency_pct": { "type": "number", "minimum": 0, "maximum": 100 },
+              "sample_size": { "type": "integer", "minimum": 0 }
+            }
+          }
+        },
+        "unusual": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["style"],
+            "additionalProperties": false,
+            "properties": {
+              "style": { "type": "string" },
+              "note": { "type": "string" }
+            }
+          }
+        }
+      }
+    }
+  }
+}
