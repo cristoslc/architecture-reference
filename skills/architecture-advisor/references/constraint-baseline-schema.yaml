@@ -1,0 +1,211 @@
+# Constraint Baseline Schema
+# Defines the per-style structural constraints and statistical norms
+# used by the drift detection engine (EPIC-015).
+#
+# One baseline file per canonical architecture style, stored in:
+#   skills/architecture-advisor/references/baselines/<style-slug>.yaml
+#
+# Schema version: 1.0.0
+
+schema_version: "1.0.0"
+
+fields:
+  style:
+    type: string
+    required: true
+    description: >
+      Canonical architecture style name from style-taxonomy.yaml.
+      Must match exactly (case-sensitive).
+    examples: ["Layered", "Microkernel", "Event-Driven"]
+
+  style_slug:
+    type: string
+    required: true
+    description: >
+      URL/filename-safe identifier derived from style name.
+      Lowercase, hyphens for spaces.
+    examples: ["layered", "microkernel", "event-driven"]
+
+  schema_version:
+    type: string
+    required: true
+    description: >
+      Version of the constraint-baseline-schema this file conforms to.
+      Semver format.
+    examples: ["1.0.0"]
+
+  structural_rules:
+    type: list
+    required: true
+    description: >
+      Architectural invariants the style implies. Each rule describes
+      a structural property that should hold in a well-formed codebase
+      of this style.
+    items:
+      type: object
+      fields:
+        id:
+          type: string
+          required: true
+          description: >
+            Stable identifier for the rule. Format: <style-slug>-<seq>.
+            Used by drift findings to reference which rule was violated.
+          examples: ["layered-001", "microkernel-003"]
+
+        description:
+          type: string
+          required: true
+          description: >
+            Human-readable description of the constraint.
+          examples: ["Dependencies flow downward only — no layer may import from a layer above it"]
+
+        severity:
+          type: string
+          required: true
+          enum: ["violation", "warning"]
+          description: >
+            violation: clear architectural breach that contradicts the style.
+            warning: deviation from typical practice that may indicate drift.
+
+        signal_type:
+          type: string
+          required: true
+          enum:
+            - dependency_direction
+            - module_boundary
+            - communication_pattern
+            - deployment_topology
+            - data_access_pattern
+            - extension_mechanism
+          description: >
+            The category of structural signal this rule targets. Maps to
+            discover-architecture's inspection dimensions.
+
+        detection_hint:
+          type: string
+          required: false
+          description: >
+            Guidance for the drift engine on what to look for when checking
+            this rule. Not prescriptive — the engine may use any method.
+          examples: ["Check import graphs for upward references between layer directories"]
+
+  statistical_norms:
+    type: list
+    required: true
+    description: >
+      Per-style distributions derived from the evidence base. Each norm
+      captures what is typical for repos classified with this style.
+      May be empty list for styles with insufficient sample size.
+    items:
+      type: object
+      fields:
+        metric:
+          type: string
+          required: true
+          description: >
+            Name of the measured quantity.
+          examples: ["layer_count", "plugin_count", "service_count"]
+
+        central_tendency:
+          type: object
+          required: true
+          description: >
+            Central tendency measures. At least one of median or mode required.
+          fields:
+            median:
+              type: number
+              required: false
+            mode:
+              type: number
+              required: false
+
+        spread:
+          type: object
+          required: true
+          description: >
+            Spread measure. Use IQR (p25/p75) or explicit percentiles.
+          fields:
+            p25:
+              type: number
+              required: false
+            p75:
+              type: number
+              required: false
+            min_observed:
+              type: number
+              required: false
+            max_observed:
+              type: number
+              required: false
+
+        sample_size:
+          type: integer
+          required: true
+          description: >
+            Number of repos this norm was computed from.
+
+        anomaly_threshold:
+          type: object
+          required: true
+          description: >
+            Values beyond these bounds are flagged as anomalous.
+          fields:
+            low:
+              type: number
+              required: false
+              description: Values below this are unusually low.
+            high:
+              type: number
+              required: false
+              description: Values above this are unusually high.
+
+        confidence:
+          type: string
+          required: true
+          enum: ["high", "moderate", "low"]
+          description: >
+            Confidence in this norm based on sample size.
+            high: 20+ repos, moderate: 5-19 repos, low: <5 repos.
+
+  co_occurrence:
+    type: object
+    required: true
+    description: >
+      Which style combinations are common vs. unusual when this style
+      is present. Derived from multi-style classifications in the catalog.
+    fields:
+      common:
+        type: list
+        required: true
+        description: >
+          Styles that frequently co-occur with this style.
+        items:
+          type: object
+          fields:
+            style:
+              type: string
+              required: true
+            frequency_pct:
+              type: number
+              required: true
+              description: Percentage of repos with this style that also have the co-occurring style.
+            sample_size:
+              type: integer
+              required: true
+
+      unusual:
+        type: list
+        required: true
+        description: >
+          Styles that rarely or never co-occur with this style.
+          Presence of an unusual combination may indicate misclassification or drift.
+        items:
+          type: object
+          fields:
+            style:
+              type: string
+              required: true
+            note:
+              type: string
+              required: false
+              description: Why this combination is unusual.
