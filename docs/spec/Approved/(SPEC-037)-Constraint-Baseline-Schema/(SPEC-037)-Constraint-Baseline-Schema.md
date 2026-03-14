@@ -70,4 +70,4 @@ The drift detection engine (EPIC-015) needs a machine-readable format to consume
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Approved | 2026-03-14 | — | Created and approved in same session — schema contract ready for implementation |
+| Approved | 2026-03-14 | 81e4d03a | Created and approved in same session — schema contract ready for implementation |

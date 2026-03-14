@@ -51,4 +51,4 @@ Derive per-architecture-style structural expectations from the evidence base (14
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-14 | b88a076c | Initial creation |
-| Active | 2026-03-14 | — | Child specs created, starting implementation |
+| Active | 2026-03-14 | 81e4d03a | Child specs created, starting implementation |
