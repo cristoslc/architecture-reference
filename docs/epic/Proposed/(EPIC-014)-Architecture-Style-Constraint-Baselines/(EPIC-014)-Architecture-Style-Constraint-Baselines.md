@@ -47,4 +47,4 @@ _Updated as Agent Specs are created under this epic._
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Proposed | 2026-03-14 | — | Initial creation |
+| Proposed | 2026-03-14 | b88a076c | Initial creation |
