@@ -2,7 +2,11 @@
 
 ## Proposed
 
-_No epics in this phase._
+| ID | Title | Summary | Last Updated | Commit |
+|----|-------|---------|--------------|--------|
+| EPIC-014 | Architecture Style Constraint Baselines | Derive per-style structural expectations from the evidence base for drift detection comparison targets. | 2026-03-14 | — |
+| EPIC-015 | Drift Detection Engine | Compare discovered structure against constraint baselines, produce grounded drift findings with confidence scores. | 2026-03-14 | — |
+| EPIC-016 | Architecture Review Skill | Installable skill orchestrating discover-architecture → baselines → drift analysis → annotated report. | 2026-03-14 | — |
 
 ## Active
 
