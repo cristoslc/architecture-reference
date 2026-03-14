@@ -83,3 +83,4 @@ Ongoing maintenance is primarily keeping the drift heuristics aligned as the evi
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Draft | 2026-03-13 | — | Initial creation from brainstorming session |
+| Active | 2026-03-13 | b0af60d2 | Approved — vision aligns with project direction |
