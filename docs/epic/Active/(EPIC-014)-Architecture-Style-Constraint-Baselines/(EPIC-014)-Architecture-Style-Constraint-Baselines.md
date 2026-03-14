@@ -1,7 +1,7 @@
 ---
 title: "Architecture Style Constraint Baselines"
 artifact: EPIC-014
-status: Proposed
+status: Active
 author: cristos
 created: 2026-03-14
 last-updated: 2026-03-14
@@ -38,7 +38,7 @@ Derive per-architecture-style structural expectations from the evidence base (14
 
 | Spec | Title | Status | Depends On |
 |------|-------|--------|------------|
-| SPEC-037 | Constraint Baseline Schema | Draft | — |
+| SPEC-037 | Constraint Baseline Schema | Approved | — |
 | SPEC-038 | Baseline Population | Draft | SPEC-037 |
 
 ## Key Dependencies
@@ -51,3 +51,4 @@ Derive per-architecture-style structural expectations from the evidence base (14
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
 | Proposed | 2026-03-14 | b88a076c | Initial creation |
+| Active | 2026-03-14 | — | Child specs created, starting implementation |

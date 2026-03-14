@@ -1,7 +1,7 @@
 ---
 title: "Constraint Baseline Schema"
 artifact: SPEC-037
-status: Draft
+status: Approved
 author: cristos
 created: 2026-03-14
 last-updated: 2026-03-14
@@ -70,4 +70,4 @@ The drift detection engine (EPIC-015) needs a machine-readable format to consume
 
 | Phase | Date | Commit | Notes |
 |-------|------|--------|-------|
-| Draft | 2026-03-14 | — | Initial creation |
+| Approved | 2026-03-14 | — | Created and approved in same session — schema contract ready for implementation |

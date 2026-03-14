@@ -38,11 +38,16 @@
 
 (No active specs.)
 
-## Draft
+## Approved
 
 | ID | Title | Summary | Last Updated | Commit |
 |----|-------|---------|--------------|--------|
 | SPEC-037 | Constraint Baseline Schema | Machine-readable YAML schema for per-style structural constraints and statistical norms. Contract between EPIC-014 baselines and EPIC-015 drift engine. Parent: EPIC-014. | 2026-03-14 | — |
+
+## Draft
+
+| ID | Title | Summary | Last Updated | Commit |
+|----|-------|---------|--------------|--------|
 | SPEC-038 | Baseline Population | Populate constraint baselines for all 10 canonical styles from the evidence base. Structural rules + statistical norms + co-occurrence data. Depends on SPEC-037. Parent: EPIC-014. | 2026-03-14 | — |
 
 ## Abandoned
