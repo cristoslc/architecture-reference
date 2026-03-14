@@ -1,10 +1,10 @@
 # Architecture Reference Repository
 
-An evidence-based knowledge base for software architecture, drawing on five complementary sources: **78 competition submissions** from [O'Reilly Architecture Katas](https://learning.oreilly.com/featured/architectural-katas/) (Fall 2020 -- Winter 2025), **12 production system narratives** from [The Architecture of Open Source Applications](https://aosabook.org/en/) (AOSA), **5 production .NET applications** (RealWorldASPNET), **8 curated reference implementations** with working, deployable code, and **173 open-source repositories** classified by automated architecture discovery.
+An evidence-based architecture decision platform that replaces opinion-driven architecture selection with evidence-grounded guidance. The evidence base draws on five complementary sources — **78 competition submissions** from [O'Reilly Architecture Katas](https://learning.oreilly.com/featured/architectural-katas/) (Fall 2020 -- Winter 2025), **12 production system narratives** from [The Architecture of Open Source Applications](https://aosabook.org/en/) (AOSA), **5 production .NET applications** (RealWorldASPNET), **8 curated reference implementations** with working, deployable code, and **173 open-source repositories** classified by automated architecture discovery — covering architecture patterns at both the **application level** (how a single deployable system is organized) and the **ecosystem/platform level** (how independently-developed repos compose into a coherent system).
 
 ## What This Is
 
-This repository turns real-world architecture data into actionable guidance. Rather than relying on opinion or convention, every recommendation is grounded in evidence from five distinct vantage points:
+This repository turns real-world architecture data into actionable guidance for software architects, engineering leaders, development teams, and AI agents. Rather than relying on opinion or convention, every recommendation is grounded in evidence from five distinct vantage points. Evidence informs — it does not dictate.
 
 - **Competition designs** (TheKataLog) -- 78 teams solving 11 kata challenges, with placement-weighted scoring. Shows what judges reward and what patterns correlate with winning.
 - **Production narratives** (AOSA) -- architectural descriptions of systems like NGINX, Git, HDFS, and ZeroMQ, written by their creators. Shows what actually works at scale.
@@ -12,7 +12,7 @@ This repository turns real-world architecture data into actionable guidance. Rat
 - **Reference implementations** (curated repos) -- working codebases for patterns like Microservices, Modular Monolith, Hexagonal Architecture, and CQRS. Shows how to build it.
 - **Automated discovery** (Discovered) -- 173 open-source repositories classified from structural signals (Docker configs, message queues, API specs, directory structure) with LLM review. Shows what developers actually build across all 12 canonical styles.
 
-Raw sources are preserved in an **evidence pool**, structured analyses and YAML catalogs live in an **evidence analysis** layer, and distilled guidance lives in the **docs** layer as a reference library with cross-source evidence and reusable templates.
+Raw sources are preserved in an **evidence pool**, structured analyses and YAML catalogs live in an **evidence analysis** layer, and distilled guidance lives in the **docs** layer as a reference library with cross-source evidence and reusable templates. The library is consumable both by humans reading the docs directly and by AI agents via the **architecture-advisor skill**.
 
 ## Quick Start
 
@@ -212,6 +212,8 @@ Raw sources are preserved in an **evidence pool**, structured analyses and YAML 
 ## How to Use This Repository
 
 **For architects and developers:** Use the [Decision Navigator](docs/reference-library/decision-navigator.md) to get tailored architecture recommendations based on your project's characteristics. Cross-reference with the [Problem-Solution Matrix](docs/reference-library/problem-solution-matrix.md), then validate findings against production systems via the [Cross-Source Reference](docs/reference-library/evidence/cross-source-reference.md) and browse [working code](evidence-analysis/ReferenceArchitectures/docs/catalog/) for your chosen style.
+
+**For AI agents:** Install the architecture-advisor skill to get evidence-grounded architecture guidance programmatically. The skill consumes the same reference library and evidence catalogs, distinguishing between application-centric and platform-centric contexts when providing recommendations.
 
 **For kata competitors:** Start with the [Kata Checklist](docs/templates/kata-checklist.md), review how past winners approached similar challenges in the [Challenge Analyses](evidence-analysis/TheKataLog/docs/analysis/challenges/), and use the templates for ADRs, C4 diagrams, and feasibility studies.
 
